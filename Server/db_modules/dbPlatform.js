@@ -6010,56 +6010,7 @@ var dbPlatform = {
                         tempPlatforms.push(item.platformId);
                     });
 
-                    let requestData = {
-                        platformIds: tempPlatforms
-                    };
-
-                    return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
-                       data => {
-                            if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
-                                let financialPointPlatforms = data.networkPlatforms;
-                                let proms = [];
-
-                                financialPointPlatforms.forEach(platform => {
-                                    let indexNo = paymentSystemConfig.findIndex(x => x && x.systemType && x.platform && x.platform.platformId && platform.platformId
-                                        && (x.platform.platformId.toString() == platform.platformId.toString()));
-
-                                    if (indexNo != -1 && paymentSystemConfig && paymentSystemConfig[indexNo] && paymentSystemConfig[indexNo].minPointNotification
-                                        && platform && platform.quota != 'undefined' && platform.quota != null && (platform.quota <= paymentSystemConfig[indexNo].minPointNotification)) {
-
-                                        proms.push(getPlatformNotificationRecipient(paymentSystemConfig[indexNo], platform.quota));
-
-                                    } else {
-                                        if (extConfig && Object.keys(extConfig)) {
-                                            Object.keys(extConfig).forEach(key => {
-                                                if (key && extConfig[key] && extConfig[key].name === 'PMS' && platform && platform.quota != 'undefined' && platform.quota != null
-                                                    && extConfig[key].minPointNotification && (platform.quota <= extConfig[key].minPointNotification)) {
-                                                    let platformIndexNo = platfromRecord.findIndex(x => x && x.platformId && platform && platform.platformId && x.platformId == platform.platformId);
-
-                                                    if (platformIndexNo != -1) {
-                                                        let data = {
-                                                            platform: platfromRecord[platformIndexNo]._id,
-                                                            systemType: Number(key)
-                                                        }
-
-                                                        proms.push(getPlatformNotificationRecipient(data, platform.quota));
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    }
-                                });
-
-                                return Promise.all(proms).then(
-                                    data => {
-                                        if (data) {
-                                            sendMinFinancialPointNotification(data, currentDate);
-                                        }
-                                    }
-                                );
-                            }
-                       }
-                    );
+                    getFinancialSettlementPointFromPMSAndSendEmail(tempPlatforms, paymentSystemConfig, platfromRecord, currentDate);
                 }
             }
         );
@@ -6401,6 +6352,59 @@ function sendMinFinancialPointNotification(platformRecipients, currentDate) {
         });
     }
     return Promise.all(proms);
+}
+
+function getFinancialSettlementPointFromPMSAndSendEmail(tempPlatforms, paymentSystemConfig, platfromRecord, currentDate) {
+    let requestData = {
+        platformIds: tempPlatforms
+    };
+
+    return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
+        data => {
+            if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
+                let financialPointPlatforms = data.networkPlatforms;
+                let proms = [];
+
+                financialPointPlatforms.forEach(platform => {
+                    let indexNo = paymentSystemConfig.findIndex(x => x && x.systemType && x.platform && x.platform.platformId && platform.platformId
+                        && (x.platform.platformId.toString() == platform.platformId.toString()));
+
+                    if (indexNo != -1 && paymentSystemConfig && paymentSystemConfig[indexNo] && paymentSystemConfig[indexNo].minPointNotification
+                        && platform && platform.quota != 'undefined' && platform.quota != null && (platform.quota <= paymentSystemConfig[indexNo].minPointNotification)) {
+
+                        proms.push(getPlatformNotificationRecipient(paymentSystemConfig[indexNo], platform.quota));
+
+                    } else {
+                        if (extConfig && Object.keys(extConfig)) {
+                            Object.keys(extConfig).forEach(key => {
+                                if (key && extConfig[key] && extConfig[key].name === 'PMS' && platform && platform.quota != 'undefined' && platform.quota != null
+                                    && extConfig[key].minPointNotification && (platform.quota <= extConfig[key].minPointNotification)) {
+                                    let platformIndexNo = platfromRecord.findIndex(x => x && x.platformId && platform && platform.platformId && x.platformId == platform.platformId);
+
+                                    if (platformIndexNo != -1) {
+                                        let data = {
+                                            platform: platfromRecord[platformIndexNo]._id,
+                                            systemType: Number(key)
+                                        }
+
+                                        proms.push(getPlatformNotificationRecipient(data, platform.quota));
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
+                return Promise.all(proms).then(
+                    data => {
+                        if (data) {
+                            sendMinFinancialPointNotification(data, currentDate);
+                        }
+                    }
+                );
+            }
+        }
+    );
 }
 
 var proto = dbPlatformFunc.prototype;
