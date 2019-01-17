@@ -2777,7 +2777,7 @@ define(['js/app'], function (myApp) {
             console.log(type, data);
             vm.getSMSTemplate();
             var title, text;
-            if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+            if (type == 'msg') {
                 vm.smsPlayer = {
                     playerId: data.playerId,
                     name: data.name,
