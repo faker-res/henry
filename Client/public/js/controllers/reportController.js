@@ -532,6 +532,7 @@ define(['js/app'], function (myApp) {
 
         vm.groupByIfAliPayLine = function () {
             let selectByGroup = [];
+            vm.queryTopup.line = [];
             if(vm.queryTopup.merchantNoData && vm.queryTopup.merchantNoData.length > 0){
                 vm.queryTopup.merchantNoData.forEach(merchantNo=>{
                     vm.merchantCloneList.forEach(item=>{
@@ -539,7 +540,7 @@ define(['js/app'], function (myApp) {
                             // if that is a alipay category flag, tick all same "line".
                             if(item.category){
                                 vm.merchantCloneList.map(merchant=>{
-                                    if(merchant.merchantTypeId == '9997' && merchant.line == item.line){
+                                    if(merchant.merchantTypeId == '9997' && merchant.line == item.line && !merchant.includesAllCards && !merchant.category){
                                         selectByGroup.push(merchant);
                                     }
                                 })
@@ -551,13 +552,17 @@ define(['js/app'], function (myApp) {
                                     })
                                 }
                             }
+
+                            if(item.includesAllCards){
+                                vm.queryTopup.line.push(item.lineGroup);
+                            }
                         }
                     })
                 })
             }
             vm.queryTopup.merchantNo = [];
             vm.queryTopup.merchantNoData.forEach(item=>{
-                if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.indexOf(item)==-1){
+                if ( vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.indexOf(item) == -1 && !item.category && !item.includesAllCards ){
                     vm.queryTopup.merchantNo.push(item.merchantNo);
                 }
             })
@@ -1654,7 +1659,9 @@ define(['js/app'], function (myApp) {
             // if (vm.queryTopup.status) {
             //     sendObj.status = {'$in': staArr}
             // }
-
+            if ( vm.queryTopup.line && vm.queryTopup.line.length > 0 ) {
+                sendObj.line = vm.queryTopup.line
+            }
             vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : [];
             // showing data with auto-assign card at pms.
 
@@ -8854,7 +8861,9 @@ define(['js/app'], function (myApp) {
             if(data && data.length > 0 ){
                 result = data.map(item=>{
                     if(item.category){
-                        item.name = $translate('Alipay Line')+ item.line+ $translate('( All )');
+                        item.name = $translate('Alipay Line') + item.line+ $translate('( All )');
+                    }else if(item.includesAllCards){
+                        item.name = $translate('Alipay Line') + item.lineGroup + $translate('( include not longer exist )');
                     }
                     return item;
                 })
