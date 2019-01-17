@@ -14,8 +14,3 @@ let scheduleLive800DailySummarized = require('./schedule/scheduleLive800DailySum
 //var scheduleProposalExpiration = require('./schedule/scheduleProposalExpiration');
 
 //var scheduleStatistics = require('./schedule/scheduleStatistics');
-
-
-
-
-
