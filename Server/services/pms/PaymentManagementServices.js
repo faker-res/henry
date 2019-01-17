@@ -48,7 +48,8 @@
                 "update",
                 "delete",
                 "modifyCode",
-                "syncData"
+                "syncData",
+                "queryNetworkPlatformAmount"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

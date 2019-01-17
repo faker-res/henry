@@ -25105,7 +25105,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PROMO_REWARD_AMOUNT'),
                             data: "amount",
-                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 ? data + "%" : data
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? data + "%" : data
                         },
                         {
                             title: $translate('PROMO_minTopUpAmount'),
@@ -25118,7 +25118,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PROMO_CONSUMPTION'),
                             data: "requiredConsumption",
-                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 ? "*" + data : data
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? "*" + data : data
                         },
                         {
                             title: $translate('SHARE_WITH_XIMA'),
@@ -27917,7 +27917,8 @@ define(['js/app'], function (myApp) {
                 vm.refreshPaymentSystem();
 
                 let sendData = {
-                    platform: vm.selectedPlatform.id
+                    platform: vm.selectedPlatform.id,
+                    platformId: vm.selectedPlatform.data.platformId
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPaymentSystemConfigByPlatform', sendData, function (data) {
@@ -27938,7 +27939,6 @@ define(['js/app'], function (myApp) {
 
                 $('#paymentSystemRecordSpinRecordSpin').show();
                 vm.lastPaymentSystemRefresh = utilService.$getTimeFromStdTimeFormat();
-                vm.getProviderLatestTimeRecord();
             }
 
             vm.updatePaymentSystemConfigByPlatform = function () {
@@ -27954,21 +27954,12 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'updatePaymentSystemConfigByPlatform', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log('updatePaymentSystemConfigByPlatform success ',data);
-                        if (data && data.length > 0) {
-                            vm.paymentSystemConfig = data;
-                        }
-                    })
+                        console.log('updatePaymentSystemConfigByPlatform success ', data);
+                        vm.getPaymentSystemConfigByPlatform();
+                    });
                 }, function (err) {
-                    $scope.$evalAsync(() => {
-                        console.log('updatePaymentSystemConfigByPlatform fail ', err);
-                        vm.resetPaymentSystemConfig();
-                    })
+                    console.log('updatePaymentSystemConfigByPlatform fail ', err);
                 });
-            };
-
-            vm.resetPaymentSystemConfig = function () {
-                vm.paymentSystemConfig = vm.cloneOriPaymentSystemConfig ? JSON.parse(JSON.stringify(vm.cloneOriPaymentSystemConfig)) : [];
             };
 
             vm.enablePaymentSystemRdBtnConfig = function (idx, data, type) {
@@ -36299,17 +36290,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.resetRewardTypeChanged = function () {
-                vm.auctionProductReward.promoCode = '';
-                vm.auctionProductReward.openPromoCode = '';
-                vm.auctionProductReward.productImageUrl = '';
-                vm.auctionProductReward.messageTitle = '';
-                vm.auctionProductReward.messageContent = '';
-                vm.auctionProductReward.gameProviderGroup = '';
-                vm.auctionProductReward.unlockAmount = '';
-                vm.auctionProductReward.rewardAmount = '';
-                vm.auctionProductReward.useConsumption = false;
-                vm.auctionProductReward.realPrizeDetails = '';
-                vm.auctionProductReward.rewardPointsVariable = '';
+                vm.auctionProductReward = {};
             };
 
             vm.auctionRewardTypeChanged = function (choice) {
@@ -36317,22 +36298,27 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case 'promoCode':
                         vm.selectedAuctionRewardType = 'promoCode';
+                        vm.auctionProductReward.rewardType = 'promoCode';
                         vm.auctionProductReward.isSharedWithXima = true;
                         vm.auctionProductReward.isForbidWithdrawal = false;
                         break;
                     case 'openPromoCode':
                         vm.selectedAuctionRewardType = 'openPromoCode';
+                        vm.auctionProductReward.rewardType = 'openPromoCode';
                         vm.auctionProductReward.isSharedWithXima = true;
                         vm.auctionProductReward.isForbidWithdrawal = false;
                         break;
                     case 'promotion':
                         vm.selectedAuctionRewardType = 'promotion';
+                        vm.auctionProductReward.rewardType = 'promotion';
                         break;
                     case 'realPrize':
                         vm.selectedAuctionRewardType = 'realPrize';
+                        vm.auctionProductReward.rewardType = 'realPrize';
                         break;
                     case 'rewardPointsChange':
                         vm.selectedAuctionRewardType = 'rewardPointsChange';
+                        vm.auctionProductReward.rewardType = 'rewardPointsChange';
                         break;
                 }
             };

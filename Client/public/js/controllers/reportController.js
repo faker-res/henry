@@ -56,7 +56,8 @@ define(['js/app'], function (myApp) {
             TOPUPMANUAL: 1,
             TOPUPONLINE: 2,
             ALIPAY: 3,
-            WechatPay: 4
+            WechatPay: 4,
+            CommonTopUp: 5,
         };
         vm.feedbackResultList = {
             NORMAL: "Normal",
@@ -8847,6 +8848,20 @@ define(['js/app'], function (myApp) {
             }
         }
 
+        vm.getAliPayGroup = function (data) {
+            //rename the alipay-line category
+            let result = [];
+            if(data && data.length > 0 ){
+                result = data.map(item=>{
+                    if(item.category){
+                        item.name = $translate('Alipay Line')+ item.line+ $translate('( All )');
+                    }
+                    return item;
+                })
+            }
+            return result;
+        }
+
         vm.refreshSPicker = () => {
             // without this timeout, 'selectpicker refresh' might done before the DOM able to refresh, which evalAsync doesn't help
             $timeout(function () {
@@ -8854,21 +8869,6 @@ define(['js/app'], function (myApp) {
             }, 0);
         };
 
-        function getAliPayGroup (data){
-            //rename the alipay-line category
-            let result = [];
-            if(data && data.length > 0 ){
-                result = data.map(item=>{
-                    if(item.category){
-                        item.name = $translate('Alipay-Line')+ item.line+ $translate('( All )');
-                    }else if(item.merchantTypeId == '9997' && !item.category){
-                        item.name = item.name +' --- ' + item.line;
-                    }
-                    return item;
-                })
-            }
-            return result;
-        }
         function drawReportQuery (choice) {
             vm.merchantNoNameObj = {};
             vm.merchantGroupObj = [];
@@ -8876,8 +8876,8 @@ define(['js/app'], function (myApp) {
             vm.merchantTypes = $scope.merchantTypes;
             vm.merchantGroupObj = $scope.merchantGroupObj;
             vm.merchantLists = $scope.merchantLists;
-            vm.merchantNoList = $scope.merchantNoList;
-            vm.merchantCloneList = $scope.merchantCloneList
+            vm.merchantNoList = vm.getAliPayGroup($scope.merchantNoList);
+            vm.merchantCloneList = vm.getAliPayGroup($scope.merchantCloneList);
             vm.merchantGroupObj = $scope.merchantGroupObj;
             vm.merchantGroupCloneList = $scope.merchantGroupCloneList;
 
@@ -8900,10 +8900,10 @@ define(['js/app'], function (myApp) {
                     vm.queryTopup.totalCount = 0;
                     vm.resetTopupRecord();
                     vm.reportSearchTime = 0;
-                    vm.merchantCloneList = getAliPayGroup(vm.merchantCloneList);
                     $('#topupTable').remove();
 
                     vm.initAccs();
+                    endLoadMultipleSelect('.merchantNoList');
 
                     utilService.actionAfterLoaded("#topupTablePage", function () {
                         // $timeout(function(){
