@@ -2826,7 +2826,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? 10 : vm.smsLog.limit,
             };
 
-            if (vm.selectedTab == "REMINDER_PHONE_LIST" && vm.selectedTsDistributedPhoneId) {
+            if ((vm.selectedTab == "REMINDER_PHONE_LIST" || vm.targetedTsDistributedPhoneDetail) && vm.selectedTsDistributedPhoneId) {
                 socketActionStr = "searchTsSMSLog";
                 requestData.tsDistributedPhone = vm.selectedTsDistributedPhoneId;
             } else {
