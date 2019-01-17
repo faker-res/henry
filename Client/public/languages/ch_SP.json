@@ -3930,6 +3930,7 @@
   "PlayerRegisterIntentionSuccess": "玩家注册意象（手动、成功）",
   "PlayerPromoCodeRewardSuccess": "优惠代码（成功）",
   "AuctionOpenPromoCodeSuccess": "开放式优惠代码竞拍（成功）",
+  "AuctionRealPrizeSuccess": "实体奖品竞拍（成功）",
   "AuctionPromoCodeSuccess": "优惠代码竞拍（成功）",
   "ximaAmount": "洗码金额",
   "manualTopupAmount": "手工存款金额",
