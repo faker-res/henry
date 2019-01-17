@@ -1285,11 +1285,16 @@ define(['js/app'], function (myApp) {
             });
         }
 
-        vm.initTsDistrubutedPhoneReminder = function (tsPhoneObjId) {
-            vm.tsPhoneReminder = {tsPhone: tsPhoneObjId && tsPhoneObjId.tsPhone && tsPhoneObjId.tsPhone._id || ""};
+        vm.initTsDistrubutedPhoneReminder = function (tsPhoneObj) {
+            vm.tsPhoneReminder = {tsPhone: tsPhoneObj && tsPhoneObj.tsPhone && tsPhoneObj.tsPhone._id || ""};
+            vm.tsPhoneReminderDateShow = "-";
+            if (tsPhoneObj.remindTime && tsPhoneObj.remindTime >= tsPhoneObj.startTime && tsPhoneObj.remindTime <= tsPhoneObj.endTime) {
+                vm.tsPhoneReminderDateShow = vm.dateReformat(tsPhoneObj.remindTime);
+            }
             utilService.actionAfterLoaded("#phoneListReminderTimePicker", function () {
-                let remindDate = tsPhoneObjId.remindTime || utilService.getNdaylaterStartTime(1)
-                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null, noInvert: true});
+                let remindDate = /*tsPhoneObj.remindTime || */utilService.setNDaysAfter(new Date(), 1);
+                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, false,
+                    {language: 'en', format: 'yyyy/MM/dd hh:mm:ss', noInvert: true});
             })
         }
 
@@ -1322,6 +1327,7 @@ define(['js/app'], function (myApp) {
             };
             socketService.$socket($scope.AppSocket, 'updateTsPhoneDistributedPhone', sendData, function (data) {
                 vm.autoRefreshTsDistributedPhoneReminder(true);
+                vm.searchAdminPhoneList(true);
             });
         };
 

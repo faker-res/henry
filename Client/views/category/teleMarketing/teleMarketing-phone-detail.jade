@@ -333,10 +333,12 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"Set reminder/ clear reminder"|translate}}
             .modal-body
+                text(style='color:red') {{"CURRENT_REMIND_TIME"| translate}} : {{vm.tsPhoneReminderDateShow}}
                 #phoneListReminderTimePicker
             .modal-footer
                 button.btn.btn-primary.common-button(ng-click="vm.updateTsPhoneDistributedPhone()", data-dismiss='modal') {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.cancelTsDistributedPhoneReminder()" data-dismiss='modal') {{"Clear Reminder" | translate}}
 
 #modalCreateTsPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='max-height: 80vh;overflow-y: auto')
