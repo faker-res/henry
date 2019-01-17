@@ -466,7 +466,7 @@ var dbPlatformMerchantGroup = {
         if(data && data.data && data.data.length > 0){
             data.data.forEach(card => {
                 card.merchantNo = card.accountNumber;
-                card.name = card.accountNumber + '(' + card.name + ')';
+                card.name = card.accountNumber + '(' + card.name + ')' + ' -- ' + card.line;
                 card.merchantTypeId = '9997';
                 card.merchantTypeName = "AliPayAcc";
                 result.push(card);
