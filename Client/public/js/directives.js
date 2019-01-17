@@ -260,7 +260,7 @@ angular.module('myApp.directives', [])
           link: function(scope, element, attrs){
               if (attrs.ngOptions && / in /.test(attrs.ngOptions)) {
                   scope.$watch(attrs.ngOptions.split(' in ')[1], function() {
-                      scope.$applyAsync(function () {
+                      scope.$evalAsync(function () {
                           $(element).selectpicker('refresh');
                       });
                   }, true);
@@ -273,13 +273,13 @@ angular.module('myApp.directives', [])
         return {
             restrict: 'A',
             link: function (scope, element, attrs) {
-                $timeout(() => {
-                    $(element).selectpicker('refresh')
-                }, 50)
-
                 if (attrs.ngModel) {
                     scope.$watch(attrs.ngModel, function () {
-                        $(element).selectpicker('refresh');
+                        $timeout(() => {
+                            scope.$evalAsync(function () {
+                                $(element).selectpicker('refresh');
+                            });
+                        }, 50)
                     }, true)
                 }
             }
