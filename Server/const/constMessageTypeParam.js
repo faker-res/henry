@@ -216,6 +216,12 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.data.expirationTime' , description:'expirationTime'},
             {parameterName:'proposalData.data.promoCode' , description:'PromoCode'}
         ]
+    },
+    AUCTION_REAL_PRIZE_SUCCESS: {
+        name:"AuctionRealPrizeSuccess",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+        ]
     }
 
 };
