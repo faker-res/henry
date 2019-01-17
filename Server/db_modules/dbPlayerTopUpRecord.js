@@ -836,7 +836,7 @@ var dbPlayerTopUpRecord = {
                     queryObj['inputDevice'] = {$in: convertStringNumber(query.userAgent)};
                 }
                 if(query.line){
-                    queryObj['data.line'] = query.line;
+                    queryObj['data.line'] = {$in: query.line};
                 }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }

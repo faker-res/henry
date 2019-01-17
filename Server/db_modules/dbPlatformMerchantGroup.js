@@ -458,11 +458,16 @@ var dbPlatformMerchantGroup = {
             });
         }
         Object.keys(uniqueObj).forEach(key=>{
-            //insert a "select all (same) line" object, ex: 支付宝线路1(全部)
-            let category = dbPlatformMerchantGroup.getAlipayLineAcc(key)
+            //insert a "select all (same) line" object, ex: 支付宝线路1(包含不存在的卡)
+            let category = dbPlatformMerchantGroup.getAlipayLineAcc(key, 1);
             result.push(category);
         })
 
+        Object.keys(uniqueObj).forEach(key=>{
+            //insert a "select all (same) line" object, ex: 支付宝线路1(全部)
+            let category = dbPlatformMerchantGroup.getAlipayLineAcc(key, 2);
+            result.push(category);
+        })
         if(data && data.data && data.data.length > 0){
             data.data.forEach(card => {
                 card.merchantNo = card.accountNumber;
@@ -474,21 +479,29 @@ var dbPlatformMerchantGroup = {
         }
         return result;
     },
-    getAlipayLineAcc: function (no) {
+    getAlipayLineAcc: function (no, type) {
         let name = "MMM4-line"+no;
         let lineAcc = {
             accountNumber:"MMM4-line"+no,
             bankTypeId:"170",
-            merchantNo:"MMM4-line"+no,
             merchantTypeId:"9997",
             merchantTypeName:"AliPayAcc",
             minDepositAmount:1,
             name: name,
             singleLimit:0,
             state:"NORMAL",
-            line: no,
-            category:true
         }
+        if(type == 1){
+            // the query will not contain alipay acc , it search by field -- "line" (because specific alipay acc will not always exist).
+            lineAcc.includesAllCards = true;
+            lineAcc.merchantNo = "MMM-all"+no;
+            lineAcc.lineGroup = no;
+        } else if (type == 2) {
+            // we create a category to display alipay proposal when alipay card is exist( which means the query will contain alipay acc).
+            lineAcc.category = true;
+            lineAcc.merchantNo = "MMM4-line"+no;
+            lineAcc.line = no;
+        };
         return lineAcc;
     },
     syncMerchantNoScript:function(platformObjId){
@@ -516,7 +529,6 @@ var dbPlatformMerchantGroup = {
                         merchantNames.push(merchant.name);
                     }
                 })
-                console.log(merchantNames);
                 let query = {'groupId': item.groupId, 'platform': platformObjId};
                 let updateData = {
                     '$addToSet': {
