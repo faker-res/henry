@@ -27917,7 +27917,8 @@ define(['js/app'], function (myApp) {
                 vm.refreshPaymentSystem();
 
                 let sendData = {
-                    platform: vm.selectedPlatform.id
+                    platform: vm.selectedPlatform.id,
+                    platformId: vm.selectedPlatform.data.platformId
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPaymentSystemConfigByPlatform', sendData, function (data) {
@@ -27938,7 +27939,6 @@ define(['js/app'], function (myApp) {
 
                 $('#paymentSystemRecordSpinRecordSpin').show();
                 vm.lastPaymentSystemRefresh = utilService.$getTimeFromStdTimeFormat();
-                vm.getProviderLatestTimeRecord();
             }
 
             vm.updatePaymentSystemConfigByPlatform = function () {
@@ -27954,21 +27954,12 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'updatePaymentSystemConfigByPlatform', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log('updatePaymentSystemConfigByPlatform success ',data);
-                        if (data && data.length > 0) {
-                            vm.paymentSystemConfig = data;
-                        }
-                    })
+                        console.log('updatePaymentSystemConfigByPlatform success ', data);
+                        vm.getPaymentSystemConfigByPlatform();
+                    });
                 }, function (err) {
-                    $scope.$evalAsync(() => {
-                        console.log('updatePaymentSystemConfigByPlatform fail ', err);
-                        vm.resetPaymentSystemConfig();
-                    })
+                    console.log('updatePaymentSystemConfigByPlatform fail ', err);
                 });
-            };
-
-            vm.resetPaymentSystemConfig = function () {
-                vm.paymentSystemConfig = vm.cloneOriPaymentSystemConfig ? JSON.parse(JSON.stringify(vm.cloneOriPaymentSystemConfig)) : [];
             };
 
             vm.enablePaymentSystemRdBtnConfig = function (idx, data, type) {
