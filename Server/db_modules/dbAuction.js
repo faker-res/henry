@@ -22,7 +22,29 @@ var dbAuction = {
         return [];
     },
     loadAuctionItem: (id) => {
-        return dbconfig.collection_auctionSystem.findOne({_id: ObjectId(id)}).exec();
+        let productDetail = null;
+        return dbconfig.collection_auctionSystem.findOne({_id: ObjectId(id)}).lean().then(
+            product => {
+                productDetail = product;
+                if (product && product.rewardData && product.rewardData.rewardType == 'openPromoCode' && product.rewardData.promoCode){
+                    let queryObj = {
+                        'data.promoCodeName': product.productName,
+                        'data.promoCode': product.rewardData.promoCode,
+                        'data.platformId': product.platformObjId,
+                    };
+
+                    return dbconfig.collection_proposal.find(queryObj).count();
+                }
+            }
+        ).then(
+            retData => {
+                if (retData){
+                    productDetail.rewardData.receivedQuantity = retData;
+                }
+
+                return productDetail;
+            }
+        );
     },
     updateAuctionProduct: (id, updateData) => {
         let updateProm = Promise.resolve();
@@ -827,6 +849,10 @@ var dbAuction = {
                         }
                         if (auctionData && auctionData.rewardData.gameProviderGroup){
                             newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
+                        }
+
+                        if (playerName){
+                            newProposal.data.playerName = playerName;
                         }
 
                         return dbProposal.createProposalWithTypeId(proposalTypeId, newProposal).then(
