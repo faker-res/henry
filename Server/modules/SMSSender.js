@@ -63,6 +63,13 @@ const SMSSender = {
                                         template.content = template.content.replace('{{playerName}}', proposalData.data.playerName);
                                     if(proposalData.newPassword)
                                         template.content = template.content.replace('{{newPassword}}', proposalData.newPassword);
+                                    if(proposalData.data.promoCode)
+                                        template.content = template.content.replace('{{proposalData.data.promoCode}}', proposalData.data.promoCode);
+                                    if(proposalData.data.productName)
+                                        template.content = template.content.replace('{{proposalData.data.productName}}', proposalData.data.productName);
+                                    // the time when the promoCode is expired
+                                    if(proposalData.data.expirationTime)
+                                        template.content = template.content.replace('{{proposalData.data.expirationTime}}', proposalData.data.expirationTime);
 
                                     template.content = renderTemplate(template.content, metaData);
                                 }

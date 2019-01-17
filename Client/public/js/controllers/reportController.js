@@ -56,7 +56,8 @@ define(['js/app'], function (myApp) {
             TOPUPMANUAL: 1,
             TOPUPONLINE: 2,
             ALIPAY: 3,
-            WechatPay: 4
+            WechatPay: 4,
+            CommonTopUp: 5,
         };
         vm.feedbackResultList = {
             NORMAL: "Normal",
@@ -10239,7 +10240,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.forcePairingWithReferenceNumber = function() {
-            commonService.forcePairingWithReferenceNumber($scope, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
+            commonService.forcePairingWithReferenceNumber($scope, $translate, socketService, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
             vm.forcePairingReferenceNumber = '';
         };
 

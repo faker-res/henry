@@ -15,8 +15,3 @@ let scheduleCheckMinPointNotification = require('./schedule/scheduleCheckMinPoin
 //var scheduleProposalExpiration = require('./schedule/scheduleProposalExpiration');
 
 //var scheduleStatistics = require('./schedule/scheduleStatistics');
-
-
-
-
-

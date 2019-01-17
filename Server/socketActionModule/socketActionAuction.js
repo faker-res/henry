@@ -84,7 +84,7 @@ function socketActionAuction(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = true;
             data.platformObjId = ObjectId(data.platformObjId);
-            socketUtil.emitter(self.socket, dbAuction.listAuctionMonitor, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbAuction.listAuctionMonitor, [data, data.limit, getAdminName(), getAdminId()], actionName, isValidData);
         },
     };
     socketActionAuction.actions = this.actions;

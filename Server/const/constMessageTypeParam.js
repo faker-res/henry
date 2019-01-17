@@ -201,6 +201,14 @@ const constMessageTypeParam = {
         name:"PromoCodeSend",
         params:[]
     },
+    AUCTION_PROMO_CODE_SUCCESS: {
+        name:"AuctionPromoCodeSuccess",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.data.expirationTime' , description:'expirationTime'},
+            {parameterName:'proposalData.data.promoCode' , description:'PromoCode'}
+        ]
+    },
     AUCTION_OPEN_PROMO_CODE_SUCCESS: {
         name:"AuctionOpenPromoCodeSuccess",
         params:[

@@ -36290,17 +36290,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.resetRewardTypeChanged = function () {
-                vm.auctionProductReward.promoCode = '';
-                vm.auctionProductReward.openPromoCode = '';
-                vm.auctionProductReward.productImageUrl = '';
-                vm.auctionProductReward.messageTitle = '';
-                vm.auctionProductReward.messageContent = '';
-                vm.auctionProductReward.gameProviderGroup = '';
-                vm.auctionProductReward.unlockAmount = '';
-                vm.auctionProductReward.rewardAmount = '';
-                vm.auctionProductReward.useConsumption = false;
-                vm.auctionProductReward.realPrizeDetails = '';
-                vm.auctionProductReward.rewardPointsVariable = '';
+                vm.auctionProductReward = {};
             };
 
             vm.auctionRewardTypeChanged = function (choice) {
@@ -36308,22 +36298,27 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case 'promoCode':
                         vm.selectedAuctionRewardType = 'promoCode';
+                        vm.auctionProductReward.rewardType = 'promoCode';
                         vm.auctionProductReward.isSharedWithXima = true;
                         vm.auctionProductReward.isForbidWithdrawal = false;
                         break;
                     case 'openPromoCode':
                         vm.selectedAuctionRewardType = 'openPromoCode';
+                        vm.auctionProductReward.rewardType = 'openPromoCode';
                         vm.auctionProductReward.isSharedWithXima = true;
                         vm.auctionProductReward.isForbidWithdrawal = false;
                         break;
                     case 'promotion':
                         vm.selectedAuctionRewardType = 'promotion';
+                        vm.auctionProductReward.rewardType = 'promotion';
                         break;
                     case 'realPrize':
                         vm.selectedAuctionRewardType = 'realPrize';
+                        vm.auctionProductReward.rewardType = 'realPrize';
                         break;
                     case 'rewardPointsChange':
                         vm.selectedAuctionRewardType = 'rewardPointsChange';
+                        vm.auctionProductReward.rewardType = 'rewardPointsChange';
                         break;
                 }
             };
