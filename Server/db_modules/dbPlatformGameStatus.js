@@ -302,8 +302,6 @@ var dbPlatformGameStatus = {
                     queryObj.playGameType = playGameType;
                 }
 
-                console.log('RT - queryObj', queryObj);
-
                 return dbconfig.collection_game.find(queryObj)
                     .populate({path: "provider", model: dbconfig.collection_gameProvider}).lean()
                     .then(games => games ? games : platformGames);
@@ -311,7 +309,6 @@ var dbPlatformGameStatus = {
         ).then(
             games => {
                 if (games && games.length > 0) {
-                    console.log('RT - games', games);
                     if(providerId){
                         games = games.filter(game => game.status != 4 && game.provider.providerId == providerId);
                     }else{

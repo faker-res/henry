@@ -753,6 +753,8 @@ var dbPlayerTopUpRecord = {
                     str = constProposalType.PLAYER_WECHAT_TOP_UP
                 } else if (query && query.mainTopupType == constPlayerTopUpType.QUICKPAY) {
                     str = constProposalType.PLAYER_QUICKPAY_TOP_UP
+                } else if (query && query.mainTopupType === constPlayerTopUpType.COMMON) {
+                    str = constProposalType.PLAYER_COMMON_TOP_UP
                 } else {
                     str = {
                         $in: [
@@ -760,7 +762,8 @@ var dbPlayerTopUpRecord = {
                             constProposalType.PLAYER_ALIPAY_TOP_UP,
                             constProposalType.PLAYER_MANUAL_TOP_UP,
                             constProposalType.PLAYER_WECHAT_TOP_UP,
-                            constProposalType.PLAYER_QUICKPAY_TOP_UP
+                            constProposalType.PLAYER_QUICKPAY_TOP_UP,
+                            constProposalType.PLAYER_COMMON_TOP_UP,
                         ]
                     };
                 }
@@ -834,7 +837,7 @@ var dbPlayerTopUpRecord = {
                     queryObj['inputDevice'] = {$in: convertStringNumber(query.userAgent)};
                 }
                 if(query.line){
-                    queryObj['data.line'] = query.line;
+                    queryObj['data.line'] = {$in: query.line};
                 }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
@@ -1364,7 +1367,7 @@ var dbPlayerTopUpRecord = {
      * @param {Json} query
      * @param {Json} update
      */
-    playerTopUpFail: function (query, bCancel) {
+    playerTopUpFail: function (query, bCancel, remarks) {
         var deferred = Q.defer();
         var topupIntentionObj = {};
         var proposalObj = {};
@@ -1386,9 +1389,15 @@ var dbPlayerTopUpRecord = {
             .then(
                 function (data) {
                     if (data) {
+                        let updateData = {
+                            status: bCancel ? constProposalStatus.CANCEL : constProposalStatus.FAIL,
+                        };
+                        if(remarks) {
+                            updateData['data.remark'] = proposalObj.data && proposalObj.data.remark ? proposalObj.data.remark + "; " + remarks : remarks;
+                        }
                         return dbProposal.updateProposal(
                             {_id: proposalObj._id, createTime: proposalObj.createTime},
-                            {status: bCancel ? constProposalStatus.CANCEL : constProposalStatus.FAIL}
+                            updateData
                         );
                     }
                     else {
@@ -4629,20 +4638,18 @@ var dbPlayerTopUpRecord = {
             if(data) {
                 // execute TopUp
                 let remarks = "强制匹配：成功。";
-                return dbProposal.updateProposalProcessStep(proposalObjId, adminId, remarks, true);
+                return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
+                    if(proposal && proposal.data) {
+                        let proposalRemark = proposal.data.remark ? proposal.data.remark + "; " + remarks : remarks;
+                        return updateProposalRemark(proposal, proposalRemark).then(() => {return Promise.resolve(true)});
+                    }
+                });
             }
-            // else if(data && data.status == 401) {
-            //     // cancel top up
-            //     let remarks = data.errorMsg || "强制匹配：失败并取消。";
-            //     return dbProposal.cancelProposal(proposalObjId, adminId, remarks, adminObjId).then(() => {
-            //         return Promise.reject({message: remarks});
-            //     })
-            // }
         }, err => {
             if(err && err.status == 401) {
                 // cancel top up
                 let remarks = err.errorMessage || "强制匹配：失败并取消。";
-                return dbProposal.cancelProposal(proposalObjId, adminId, remarks, adminObjId).then(() => {
+                return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true, remarks).then(() => {
                     return Promise.reject({message: remarks});
                 })
             } else {

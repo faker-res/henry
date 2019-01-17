@@ -3,6 +3,7 @@ console.log("Proposal schedule start");
 var CronJob = require('cron').CronJob;
 var dbProposal = require('./../db_modules/dbProposal');
 var errorUtils = require("../modules/errorUtils.js");
+var dbAuction = require('./../db_modules/dbAuction');
 
 var everyMinuteJob = new CronJob('0 * * * * *', function() {
 
@@ -10,7 +11,7 @@ var everyMinuteJob = new CronJob('0 * * * * *', function() {
         dbProposal.checkManualTopUpExpiration().then().catch(errorUtils.reportError);
         dbProposal.checkLimitedOfferTopUpExpiration().then().catch(errorUtils.reportError);
         dbProposal.checkProposalExpiration().then().catch(errorUtils.reportError);
-
+        //dbAuction.auctionExecute();
     }, function () {
         /* This function is executed when the job stops */
     },

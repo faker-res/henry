@@ -48,6 +48,8 @@ const Client = require('ftp');
 const admZip = require('adm-zip');
 const jwt = require('jsonwebtoken');
 const jwtSecret = env.socketSecret;
+const moment = require('moment-timezone');
+const emailer = require("./../modules/emailer");
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -5762,7 +5764,7 @@ var dbPlatform = {
 
     },
 
-    getPaymentSystemConfigByPlatform: function(platformObjId) {
+    getPaymentSystemConfigByPlatform: function(platformObjId, platformId) {
         let paymentSystemConfig = [];
 
         return dbconfig.collection_paymentSystemConfig.find({platform: platformObjId}).lean().then(
@@ -5779,16 +5781,10 @@ var dbPlatform = {
                                 tempConfig._id = customConfig[indexNo]._id;
                                 tempConfig.enableTopup = customConfig[indexNo].enableTopup;
                                 tempConfig.enableBonus = customConfig[indexNo].enableBonus;
-                                // region TO-DO: wait for PMS / 3rd party payment system's API to get current financial point
-                                tempConfig.curFinancialSettlementPoint = customConfig[indexNo].curFinancialSettlementPoint;
-                                // end region
                                 tempConfig.minPointNotification = customConfig[indexNo].minPointNotification;
                             } else {
                                 tempConfig.enableTopup = extConfig[key].enableTopup;
                                 tempConfig.enableBonus = extConfig[key].enableBonus;
-                                // region TO-DO: wait for PMS / 3rd party payment system's API to get current financial point
-                                tempConfig.curFinancialSettlementPoint = extConfig[key].curFinancialSettlementPoint;
-                                // end region
                                 tempConfig.minPointNotification = extConfig[key].minPointNotification;
                             }
 
@@ -5800,6 +5796,37 @@ var dbPlatform = {
                             paymentSystemConfig.push(tempConfig);
                         }
                     });
+                }
+
+                return paymentSystemConfig;
+            }
+        ).then(
+            paymentSystemConfig => {
+                if (paymentSystemConfig && paymentSystemConfig.length > 0) {
+                    let indexNo = paymentSystemConfig.findIndex(x => x && x.name && x.name === 'PMS');
+
+                    if (indexNo != -1) {
+                        let requestData = {
+                            platformIds: [platformId]
+                        };
+
+                        return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
+                            data => {
+                                let curFinancialSettlementPoint;
+
+                                if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
+                                    let pointIndexNo = data.networkPlatforms.findIndex(y => y && y.platformId && y.platformId == platformId);
+
+                                    if (pointIndexNo != -1) {
+                                        curFinancialSettlementPoint = data.networkPlatforms[pointIndexNo].quota;
+                                        paymentSystemConfig[indexNo].curFinancialSettlementPoint = curFinancialSettlementPoint;
+                                    }
+
+                                    return paymentSystemConfig;
+                                }
+                            }
+                        );
+                    }
                 }
 
                 return paymentSystemConfig;
@@ -5915,6 +5942,76 @@ var dbPlatform = {
                 }
 
                 return Promise.all(proms);
+            }
+        );
+    },
+
+    checkMinPointNotification: function () {
+        let platfromRecord;
+        let currentDate = new Date();
+
+        return dbconfig.collection_platform.find({}, {platformId: 1, topUpSystemType: 1, bonusSystemType: 1}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platfromRecord = platformData;
+                    let paymentSystemConfigProms = [];
+
+                    Object.keys(extConfig).forEach(key => {
+                        if (key && extConfig[key] && extConfig[key].name && extConfig[key].name == 'PMS') {
+                            paymentSystemConfigProms.push(dbconfig.collection_paymentSystemConfig.find({
+                                systemType: Number(key),
+                                minPointNotification: {$exists: true, $ne: null}
+                            }).populate({path: 'platform', model: dbconfig.collection_platform, select: {platformId: 1, topUpSystemType: 1, bonusSystemType: 1}}).lean());
+                        }
+                    });
+
+                    return Promise.all(paymentSystemConfigProms);
+                }
+            }
+        ).then(
+            configData => {
+                let paymentSystemConfig = configData && configData[0] ? configData[0] : [];
+                let pmsPlatforms = [];
+
+                platfromRecord.forEach(platform => {
+                    if (platform) {
+                        if (platform.topUpSystemType) {
+                            let extConfigIndexNo = Object.keys(extConfig).findIndex(x => x && (Number(x) == platform.topUpSystemType));
+
+                            if (extConfigIndexNo != -1) {
+                                let extConfigTemp = extConfig[extConfigIndexNo + 1];
+
+                                getPMSPlatfroms(platform, extConfigTemp, pmsPlatforms);
+                            }
+                        }
+
+                        if (platform.bonusSystemType) {
+                            let extConfigIndexNo = Object.keys(extConfig).findIndex(x => x && (Number(x) == platform.bonusSystemType));
+
+                            if (extConfigIndexNo != -1) {
+                                let extConfigTemp = extConfig[extConfigIndexNo + 1];
+
+                                getPMSPlatfroms(platform, extConfigTemp, pmsPlatforms);
+                            }
+                        }
+
+                        if (!platform.topUpSystemType && !platform.bonusSystemType) {
+                            Object.keys(extConfig).forEach(key => {
+                                getPMSPlatfroms(platform, extConfig[key], pmsPlatforms);
+                            });
+                        }
+                    }
+                });
+
+                if (pmsPlatforms && pmsPlatforms.length > 0) {
+                    let tempPlatforms = [];
+
+                    pmsPlatforms.map(item => {
+                        tempPlatforms.push(item.platformId);
+                    });
+
+                    getFinancialSettlementPointFromPMSAndSendEmail(tempPlatforms, paymentSystemConfig, platfromRecord, currentDate);
+                }
             }
         );
     }
@@ -6202,6 +6299,112 @@ function comparePlatformId(a, b) {
         }
     }
     return 0;
+}
+
+function getPMSPlatfroms(platform, extConfig, platforms) {
+    if (extConfig && extConfig.name && extConfig.name === 'PMS') {
+        let indexNo = platforms.findIndex(x => x && x._id && platform._id && (x._id.toString() == platform._id.toString()));
+
+        if (indexNo == -1) {
+            platforms.push({_id: platform._id, platformId: platform.platformId});
+        }
+    }
+
+    return platforms;
+}
+
+function getPlatformNotificationRecipient(data, curFinancialSettlementPoint) {
+    let platformObjId = data && data.platform && data.platform._id ? data.platform._id : data.platform;
+
+    return dbconfig.collection_platformNotificationRecipient.find({platform: platformObjId}).lean().then(
+        recipientData => {
+            if (recipientData && recipientData.length > 0) {
+                let recipientEmails = recipientData.map(recipient => {
+                    return recipient.email;
+                });
+
+                let recipientEmailsStr = recipientEmails.join();
+
+                return {platformObjId: platformObjId, recipientEmails: recipientEmailsStr, systemType: data.systemType, curFinancialPoint: curFinancialSettlementPoint};
+            }
+        }
+    )
+}
+
+function sendMinFinancialPointNotification(platformRecipients, currentDate) {
+    let proms = [];
+    if (platformRecipients && platformRecipients.length > 0) {
+        platformRecipients.forEach(detail => {
+            if (detail) {
+                let title = '『' + extConfig[detail.systemType].name + '』财务系统点数过低' + moment(currentDate).format('YYYY/MM/DD HH A') + '（馀额：' + detail.curFinancialPoint + '）';
+                let content = '请尽速充值或关闭提醒';
+
+                let emailConfig = {
+                    sender: "no-reply@snsoft.my", // company email?
+                    recipient: detail.recipientEmails, // recipient email
+                    subject: title, // title
+                    body: content, // content
+                    isHTML: false
+                };
+
+                proms.push(emailer.sendEmail(emailConfig));
+            }
+        });
+    }
+    return Promise.all(proms);
+}
+
+function getFinancialSettlementPointFromPMSAndSendEmail(tempPlatforms, paymentSystemConfig, platfromRecord, currentDate) {
+    let requestData = {
+        platformIds: tempPlatforms
+    };
+
+    return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
+        data => {
+            if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
+                let financialPointPlatforms = data.networkPlatforms;
+                let proms = [];
+
+                financialPointPlatforms.forEach(platform => {
+                    let indexNo = paymentSystemConfig.findIndex(x => x && x.systemType && x.platform && x.platform.platformId && platform.platformId
+                        && (x.platform.platformId.toString() == platform.platformId.toString()));
+
+                    if (indexNo != -1 && paymentSystemConfig && paymentSystemConfig[indexNo] && paymentSystemConfig[indexNo].minPointNotification
+                        && platform && platform.quota != 'undefined' && platform.quota != null && (platform.quota <= paymentSystemConfig[indexNo].minPointNotification)) {
+
+                        proms.push(getPlatformNotificationRecipient(paymentSystemConfig[indexNo], platform.quota));
+
+                    } else {
+                        if (extConfig && Object.keys(extConfig)) {
+                            Object.keys(extConfig).forEach(key => {
+                                if (key && extConfig[key] && extConfig[key].name === 'PMS' && platform && platform.quota != 'undefined' && platform.quota != null
+                                    && extConfig[key].minPointNotification && (platform.quota <= extConfig[key].minPointNotification)) {
+                                    let platformIndexNo = platfromRecord.findIndex(x => x && x.platformId && platform && platform.platformId && x.platformId == platform.platformId);
+
+                                    if (platformIndexNo != -1) {
+                                        let data = {
+                                            platform: platfromRecord[platformIndexNo]._id,
+                                            systemType: Number(key)
+                                        }
+
+                                        proms.push(getPlatformNotificationRecipient(data, platform.quota));
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
+                return Promise.all(proms).then(
+                    data => {
+                        if (data) {
+                            sendMinFinancialPointNotification(data, currentDate);
+                        }
+                    }
+                );
+            }
+        }
+    );
 }
 
 var proto = dbPlatformFunc.prototype;

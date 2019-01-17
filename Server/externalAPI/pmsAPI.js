@@ -125,6 +125,10 @@ const pmsAPI = {
         return callPMSAPI("platform", "syncData", data);
     },
 
+    platform_queryNetworkPlatformAmount: function (data) {
+        return callPMSAPI("platform", "queryNetworkPlatformAmount", data);
+    },
+
     bonus_applyBonus: function (data) {
         return callPMSAPI("bonus", "applyBonus", data);
     },
