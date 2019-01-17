@@ -4830,7 +4830,7 @@ var proposal = {
             entryType: constProposalEntryType.CLIENT,
             userType: constProposalUserType.PLAYERS
         };
-        
+
         if (selectedRewardParam && playerBonusDoubledRecord){
             if (selectedRewardParam.hasOwnProperty('rewardPercentage')){
                 rewardAmount = playerBonusDoubledRecord.transferInAmount * selectedRewardParam.rewardPercentage;
@@ -5070,10 +5070,6 @@ var proposal = {
                             }
                             ,{
                                 $sort: sortCol
-                            },{
-                                $skip: index
-                            },{
-                                $limit: limit
                             }
                         ]).read("secondaryPreferred").then( playerRecord => {
                             if (playerRecord && playerRecord.length > 0){
@@ -5328,7 +5324,13 @@ var proposal = {
 
                                 }
 
-                                return {data: playerResult, size: totalPlayerCount, total: resultSum};
+                                let outputResult = [];
+
+                                for (let i = 0, len = limit; i < len; i++) {
+                                    playerResult[index + i] ? outputResult.push(playerResult[index + i]) : null;
+                                }
+
+                                return {data: outputResult, size: totalPlayerCount, total: resultSum};
                             }
                             else{
                                 Promise.reject({
