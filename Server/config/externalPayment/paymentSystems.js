@@ -42,7 +42,7 @@ const thirdPartyAPIConfig = {
         topUpAPICallback: "http://devtest.wsweb.me:7100",
 
         //financial settlement
-        name: '其他财务4',
+        name: 'PMS2',
         enableTopup: false,
         enableBonus: false,
         description: '我是说明4',

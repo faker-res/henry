@@ -349,11 +349,13 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
         calleeList => {
             let proms = [];
             calleeList.map(callee => {
+                if (!callee) return;
                 let prom = dbconfig.collection_tsDistributedPhone.findOne({_id: callee.tsDistributedPhone})
                     .populate({path: "tsPhone", model: dbconfig.collection_tsPhone})
                     .populate({path: "tsPhoneList", model: dbconfig.collection_tsPhoneList, select: "name"})
                     .lean().then(
                         tsDistributedPhone => {
+                            if (!tsDistributedPhone) return;
                             callee.tsDistributedPhone = tsDistributedPhone;
                             callee.tsPhone = tsDistributedPhone.tsPhone;
                             return callee;
@@ -367,6 +369,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
         }
     ).then(
         calleeList => {
+            calleeList = calleeList.filter(calleeList => calleeList); // remove undefined value
             let outputData = {};
             outputData.hasOnGoingMission = true;
             outputData = Object.assign({}, outputData, mission);

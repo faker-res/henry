@@ -654,7 +654,7 @@ let dbTeleSales = {
                                     dbconfig.collection_tsPhone.update({_id: {$in: tsAssignee.updateObj.tsPhone.map(tsPhone => tsPhone.tsPhoneObjId)}}, {
                                         $addToSet: {assignee: tsAssignee.admin},
                                         $inc: {assignTimes: 1},
-                                        distributedEndTime: phoneNumberEndTime.endTime
+                                        distributedEndTime: phoneNumberEndTime.startTime
                                     }, {multi: true}).catch(errorUtils.reportError);
                                     if (assignedCount) {
                                         dbconfig.collection_tsAssignee.findOneAndUpdate({_id: tsAssignee._id}, {$inc: {assignedCount: assignedCount}}).lean().catch(errorUtils.reportError);
