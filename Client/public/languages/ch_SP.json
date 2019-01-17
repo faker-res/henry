@@ -2638,6 +2638,7 @@
   "SENDING_TIMES": "已发短信次数",
   "TIME_OPENING_ACCOUNT": "开户时间（触击时间）",
   "REMIND_TIME": "提醒时间",
+  "CURRENT_REMIND_TIME": "当前提醒时间",
   "minTopUpAmount": "最小充值额",
   "PROMO_minTopUpAmount": "最低存款(D)",
   "maxTopUpAmount": "最大充值额",
