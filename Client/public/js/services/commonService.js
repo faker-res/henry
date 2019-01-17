@@ -1422,7 +1422,7 @@ define([], () => {
             }
             // end region
 
-            // region Player Bonus Doubled Reward Group Proposal
+            // region auction product Proposal
             if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "AuctionPromoCode" || vm.selectedProposal.type.name === "AuctionOpenPromoCode" ||
                 vm.selectedProposal.type.name === "AuctionRewardPromotion" || vm.selectedProposal.type.name === "AuctionRealPrize" || vm.selectedProposal.type.name === "AuctionRewardPointChange")) {
                 proposalDetail = {};
