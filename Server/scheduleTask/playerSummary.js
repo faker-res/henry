@@ -48,6 +48,35 @@ var playerSummary = {
         return deferred.promise;
     },
 
+    calculatePreviousTwoDaysPlayerReportDaySummary: function (platformId) {
+        var deferred = Q.defer();
+
+        dbconfig.collection_platform.findOne({_id: platformId}).then(
+            function (platformData) {
+                if (platformData) {
+                    let startTime = dbutility.getNDaysAgoSGTime(new Date(), 2);
+                    let endTime = dbutility.getNDaysAgoSGTime(new Date(), 1);
+                    return dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startTime, endTime, platformId);
+                }
+                else {
+                    deferred.resolve("NoPlatform");
+                }
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Error finding platform!", error: error});
+            }
+        ).then(
+            function (data) {
+                deferred.resolve(data);
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Error calculating platform day summary", error: error});
+            }
+        );
+
+        return deferred.promise;
+    },
+
     // getTopUp and consumption summary and calculate for valid and active
     calculateYesterdayActiveValidPlayerSummary: function (platformId) {
         var deferred = Q.defer();

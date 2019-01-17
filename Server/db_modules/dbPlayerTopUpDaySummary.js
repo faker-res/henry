@@ -38,7 +38,7 @@ var dbPlayerTopUpDaySummary = {
         );
     },
 
-    upsertByTopUpType: function(data){
+    upsertPlayerReportDataDaySummary: function(data){
         var upsertData = JSON.parse(JSON.stringify(data));
         delete upsertData.playerId;
         delete upsertData.platformId;
@@ -121,15 +121,70 @@ var dbPlayerTopUpDaySummary = {
             }
         ).then(
             function (data) {
-                //update playerTopUpDaySummayByTopUpType
-                let twoDaysAgoStartTime = new Date(startTime);
-                let twoDaysAgoEndTime = new Date(endTime);
-                twoDaysAgoStartTime.setDate(twoDaysAgoStartTime.getDate() - 1);
-                twoDaysAgoEndTime.setDate(twoDaysAgoEndTime.getDate() - 1);
-                return dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(twoDaysAgoStartTime, twoDaysAgoEndTime, platformId, playerObjIds);
+                deferred.resolve(data);
             },
             function (error) {
                 deferred.reject({name: "DBError", message: "Update player top up day summary failed!", error: error});
+            }
+        );
+        return deferred.promise;
+    },
+
+    calculatePlayerReportDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
+
+        var balancer = new SettlementBalancer();
+
+        return balancer.initConns().then(function () {
+
+            return dbPlayerConsumptionRecord.streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId).then(
+                playerObjIds => {
+                    var stream = dbconfig.collection_players.aggregate(
+                        [
+                            {
+                                $match: {
+                                    "_id": {$in: playerObjIds}
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: '$_id'
+                                }
+                            }
+                        ]
+                    ).cursor({batchSize: 1000}).allowDiskUse(true).exec();
+
+                    return Q(
+                        balancer.processStream({
+                            stream: stream,
+                            batchSize: constSystemParam.BATCH_SIZE,
+                            makeRequest: function (playerIdObjs, request) {
+                                request("player", "playerReportDaySummary_calculatePlatformDaySummaryForPlayers", {
+                                    startTime: startTime,
+                                    endTime: endTime,
+                                    platformId: platformId,
+                                    playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj._id)
+                                });
+                            }
+                        })
+                    );
+                }
+            )
+        });
+    },
+
+    playerReportDaySummary_calculatePlatformDaySummaryForPlayers: function (startTime, endTime, platformId, playerObjIds) {
+        var deferred = Q.defer();
+
+        dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
+            function(data){
+                if(data && data.length > 0){
+                    return data;
+                }else{
+                    deferred.resolve(false);
+                }
+            },
+            function (error){
+                deferred.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
             }
         ).then(
             function (data){
@@ -137,23 +192,25 @@ var dbPlayerTopUpDaySummary = {
                     var proms = data.map(
                         sum => {
                             sum.date = startTime;
-                            return dbPlayerTopUpDaySummary.upsertByTopUpType(sum);
+                            sum.createTime = new Date();
+                            return dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum);
                         }
                     );
                     return Q.all(proms);
                 }
             },
             function (error){
-                deferred.reject({name: "DBError", message: "Get player top up by topup type failed!", error: error});
+                deferred.reject({name: "DBError", message: "Update player report data day summary failed!", error: error});
             }
         ).then(
             function (data) {
                 deferred.resolve(data);
             },
             function (error) {
-                deferred.reject({name: "DBError", message: "Update player top up day summary by topup type failed!", error: error});
+                deferred.reject({name: "DBError", message: "Update player report data day summary failed!", error: error});
             }
         );
+
         return deferred.promise;
     },
 
