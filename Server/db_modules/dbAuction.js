@@ -679,7 +679,18 @@ var dbAuction = {
         let playerData = null;
         let auctionData = null;
         let proposalData = null;
+        let proposalTypeId = null;
         let timeNow = new Date().getTime();
+
+        if (!playerId) {
+            return Promise.reject({name: "DBError", message: "Player is not found"});
+        }
+        if (!productName) {
+            return Promise.reject({name: "DBError", message: "Product name is not found"});
+        }
+        if (!rewardType) {
+            return Promise.reject({name: "DBError", message: "Reward type is not found"});
+        }
 
         switch (rewardType) {
             case 'promoCode':
@@ -729,13 +740,29 @@ var dbAuction = {
             }
         ).then(
             proposalTypeData => {
-                let proposalTypeId = proposalTypeData && proposalTypeData._id ? proposalTypeData._id : null;
+                proposalTypeId = proposalTypeData && proposalTypeData._id ? proposalTypeData._id : null;
 
-                if (!playerId) {
-                    return Promise.reject({name: "DBError", message: "Player not found"});
+                if (!proposalTypeId){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cannot find the proposalTypeId"
+                    })
                 }
-                if (!productName) {
-                    return Promise.reject({name: "DBError", message: "Product name not found"});
+
+                let query = {
+                    'data.platformId': platformObjId,
+                    'data.productName': productName,
+                    status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    type: proposalTypeId,
+                };
+                return dbconfig.collection_proposal.find(query).count();
+            }
+        ).then(
+            successCount => {
+                if (successCount){
+                    return Promise.reject({
+                        message: "This product has already sold out"
+                    })
                 }
 
                 playerProm = dbconfig.collection_players.findOne({
@@ -927,7 +954,6 @@ var dbAuction = {
                         if (auctionData && auctionData.rewardData.gameProviderGroup){
                             newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
                         }
-
                         if (playerName){
                             newProposal.data.playerName = playerName;
                         }
