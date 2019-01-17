@@ -701,6 +701,7 @@ let dbTeleSales = {
             }
         ).then(
             () => {
+                console.log("daily distribute 3", totalDistributed);
                 let updateObj = {
                     $inc: {totalDistributed: totalDistributed}
                 }

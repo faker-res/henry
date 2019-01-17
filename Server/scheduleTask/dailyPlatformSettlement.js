@@ -374,6 +374,7 @@ var dailyPlatformSettlement = {
 
     startDailyTsDistributePhone: function (platformData) {
         let curTime = new Date();
+        console.log("daily distribute 1");
         return dbconfig.collection_tsPhoneList.find({
             platform: platformData._id,
             distributeTaskStartTime: {$lte: curTime},
@@ -382,6 +383,7 @@ var dailyPlatformSettlement = {
             status: {$in: [constTsPhoneListStatus.PRE_DISTRIBUTION, constTsPhoneListStatus.DISTRIBUTING, constTsPhoneListStatus.NOT_ENOUGH_CALLER]}
         }).lean().then(
            tsPhoneListData => {
+               console.log("daily distribute 2", JSON.stringify(tsPhoneListData, null, 2));
                if (tsPhoneListData && tsPhoneListData.length) {
                    let promArr = [];
                    tsPhoneListData.forEach(
