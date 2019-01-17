@@ -1850,9 +1850,6 @@ let dbPlayerInfo = {
                 if (data) {
                     playerData = data;
 
-                    if (playerData.phoneNumber) {
-                        checkTelesalesPhone(playerData.phoneNumber);
-                    }
 
                     if (playerData.tsPhone) {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
@@ -1869,6 +1866,10 @@ let dbPlayerInfo = {
                             }
                         ).catch(errorUtils.reportError);
                         dbconfig.collection_tsDistributedPhone.update({tsPhone: playerData.tsPhone}, {registered: true}, {multi: true}).catch(errorUtils.reportError);
+                    } else {
+                        if (playerData.phoneNumber) {
+                            checkTelesalesPhone(playerData.phoneNumber);
+                        }
                     }
 
                     if (playerData.isRealPlayer) {
