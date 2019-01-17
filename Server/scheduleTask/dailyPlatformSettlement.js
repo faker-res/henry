@@ -383,7 +383,7 @@ var dailyPlatformSettlement = {
             status: {$in: [constTsPhoneListStatus.PRE_DISTRIBUTION, constTsPhoneListStatus.DISTRIBUTING, constTsPhoneListStatus.NOT_ENOUGH_CALLER]}
         }).lean().then(
            tsPhoneListData => {
-               console.log("daily distribute 2", JSON.stringify(tsPhoneListData, null, 2));
+               console.log("daily distribute 2", curTime,  JSON.stringify(tsPhoneListData, null, 2));
                if (tsPhoneListData && tsPhoneListData.length) {
                    let promArr = [];
                    tsPhoneListData.forEach(
