@@ -11,6 +11,7 @@ let scheduleAutoProposal = require('./schedule/scheduleAutoProposal');
 let scheduleConvertRewardPoints = require('./schedule/scheduleConvertRewardPoints');
 let scheduleCheckAndUpdateWCSessionStatus = require('./schedule/scheduleCheckAndUpdateWCSessionStatus');
 let scheduleLive800DailySummarized = require('./schedule/scheduleLive800DailySummarized');
+let scheduleCheckMinPointNotification = require('./schedule/scheduleCheckMinPointNotification');
 //var scheduleProposalExpiration = require('./schedule/scheduleProposalExpiration');
 
 //var scheduleStatistics = require('./schedule/scheduleStatistics');
