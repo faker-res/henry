@@ -276,7 +276,9 @@ angular.module('myApp.directives', [])
                 if (attrs.ngModel) {
                     scope.$watch(attrs.ngModel, function () {
                         $timeout(() => {
-                            $(element).selectpicker('refresh');
+                            scope.$evalAsync(function () {
+                                $(element).selectpicker('refresh');
+                            });
                         }, 50)
                     }, true)
                 }
