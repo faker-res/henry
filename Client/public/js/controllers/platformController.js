@@ -1127,7 +1127,7 @@ define(['js/app'], function (myApp) {
                  vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
                  vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
                  [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList],
-                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions
+                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions, vm.smsTemplate
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -1146,7 +1146,8 @@ define(['js/app'], function (myApp) {
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                     commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []])),
-                    commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+                    commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
                 ]);
 
                 // 1st dependencies variable
@@ -2584,7 +2585,7 @@ define(['js/app'], function (myApp) {
 
             vm.initSendMultiMessage = function () {
                 vm.smsLog = {index: 0, limit: 10};
-                vm.getSMSTemplate();
+                //vm.getSMSTemplate();
                 vm.sendMultiMessage = {
                     totalCount: 0,
                     playerType: 'Real Player (all)',
@@ -2631,17 +2632,17 @@ define(['js/app'], function (myApp) {
                 })
             };
 
-            vm.getSMSTemplate = function () {
-                vm.smsTemplate = [];
-                $scope.$socketPromise('getMessageTemplatesForPlatform', {
-                    platform: vm.selectedPlatform.id,
-                    format: 'smstpl'
-                }).then(function (data) {
-                    vm.smsTemplate = data.data;
-                    console.log("vm.smsTemplate", vm.smsTemplate);
-                    $scope.safeApply();
-                }).done();
-            };
+            // vm.getSMSTemplate = function () {
+            //     vm.smsTemplate = [];
+            //     $scope.$socketPromise('getMessageTemplatesForPlatform', {
+            //         platform: vm.selectedPlatform.id,
+            //         format: 'smstpl'
+            //     }).then(function (data) {
+            //         vm.smsTemplate = data.data;
+            //         console.log("vm.smsTemplate", vm.smsTemplate);
+            //         $scope.safeApply();
+            //     }).done();
+            // };
 
             vm.useSMSTemplate = function () {
                 vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
@@ -8660,7 +8661,7 @@ define(['js/app'], function (myApp) {
                     vm.lastCallNewPlayerDate = new Date();
                 }
 
-                vm.getSMSTemplate();
+                // vm.getSMSTemplate();
                 var phoneCall = {
                     playerId: data.playerId,
                     name: data.name,
@@ -8676,7 +8677,7 @@ define(['js/app'], function (myApp) {
                 $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
             }
             vm.smsNewPlayerBtn = function (phoneNumber, data) {
-                vm.getSMSTemplate();
+                //vm.getSMSTemplate();
                 vm.selectedSinglePlayer = data;
                 vm.editPlayer = data.data ? data.data : "";
                 vm.selectedPlayersCount = 1
@@ -8696,7 +8697,7 @@ define(['js/app'], function (myApp) {
             vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
                 // var rowData = JSON.parse(data);
                 console.log(type, data);
-                vm.getSMSTemplate();
+                //vm.getSMSTemplate();
                 var title, text;
                 if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                     vm.smsPlayer = {
@@ -8737,7 +8738,7 @@ define(['js/app'], function (myApp) {
             vm.telorMessageToPartnerBtn = function (type, partnerObjId, data) {
                 // let rowData = JSON.parse(data);
                 console.log(type, data);
-                vm.getSMSTemplate();
+                //vm.getSMSTemplate();
                 let title, text;
                 if (type === 'msg' && authService.checkViewPermission('Partner', 'Partner', 'sendSMS')) {
                     vm.smsPartner = {
