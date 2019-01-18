@@ -9,10 +9,11 @@ const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGe
 const dbutility = require('./../modules/dbutility');
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 const errorUtils = require("./../modules/errorUtils");
-
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const proposalExecutor = require('./../modules/proposalExecutor');
 const dbProposalUtility = require("./../db_common/dbProposalUtility");
 const constPromoCodeStatus = require("./../const/constPromoCodeStatus");
+var constServerCode = require('../const/constServerCode');
 
 var dbAuction = {
     /**
@@ -715,15 +716,37 @@ var dbAuction = {
                 break;
         }
 
-        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        return dbconfig.collection_players.findOne({
+            _id: playerId
+        }).populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean().then(
+            player => {
+                if (!player){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cannot find player"
+                    })
+                }
+
+                playerData = player;
+                return dbPlayerUtil.setPlayerBState(player._id, "auctionBidding", true);
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    return dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+                } else {
+                    return Promise.reject({
+                        name: "DBError",
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        message: "Bidding Fail, please try again later"
+                    })
+                }
+            }
+        ).then(
             platformData => {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-                return platformData;
-            }
-        ).then(
-            platformData => {
                 platform = platformData;
                 platformObjId = platformData && platformData._id ? platformData._id : null;
 
@@ -731,12 +754,10 @@ var dbAuction = {
                     return Promise.reject({name: "DBError", message: "Proposal type not found"});
                 }
 
-                proposalTypeProm = dbconfig.collection_proposalType.findOne({
+                return proposalTypeProm = dbconfig.collection_proposalType.findOne({
                     platformId: platformObjId,
                     name: proposalType,
                 }).lean();
-
-                return proposalTypeProm;
             }
         ).then(
             proposalTypeData => {
@@ -967,13 +988,27 @@ var dbAuction = {
 
                         return dbProposal.createProposalWithTypeId(proposalTypeId, newProposal).then(
                             data => {
+                                // Reset BState
+                                dbPlayerUtil.setPlayerBState(playerData._id, "auctionBidding", false).catch(errorUtils.reportError);
                                 return data;
                             }
                         );
                     }
                 );
             }
-        );
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerData._id, "auctionBidding", false).catch(errorUtils.reportError);
+                }
+
+                console.log('bidding error', playerId, err);
+                throw err;
+            }
+        )
     },
 };
 
