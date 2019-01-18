@@ -56,6 +56,7 @@ var playerSummary = {
                 if (platformData) {
                     let startTime = dbutility.getNDaysAgoSGTime(new Date(), 2);
                     let endTime = dbutility.getNDaysAgoSGTime(new Date(), 1);
+                    console.log("LH check player report scheduler start time - ", startTime);
                     return dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startTime, endTime, platformId);
                 }
                 else {
