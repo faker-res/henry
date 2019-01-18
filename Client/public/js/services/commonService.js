@@ -274,6 +274,10 @@ define([], () => {
                 .then(data => data.data.data);
         };
 
+        self.getSMSTemplate = function($scope, platformObjId) {
+            return $scope.$socketPromise("getMessageTemplatesForPlatform", {platform: platformObjId, format: 'smstpl'}).then(data => data.data)
+        };
+
         self.getPMSDevices = function(num){
             // PMS definition of device type
             // Web: 1, H5: 2, Both: 3, App:4
@@ -1419,6 +1423,27 @@ define([], () => {
                 if (vm.selectedProposal.data.maxReward){
                     proposalDetail["maxReward"] = vm.selectedProposal.data.maxReward;
                 }
+            }
+            // end region
+
+            // region auction product Proposal
+            if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "AuctionPromoCode" || vm.selectedProposal.type.name === "AuctionOpenPromoCode" ||
+                vm.selectedProposal.type.name === "AuctionRewardPromotion" || vm.selectedProposal.type.name === "AuctionRealPrize" || vm.selectedProposal.type.name === "AuctionRewardPointChange")) {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.proposalPlayerLevel;
+                proposalDetail["productName"] = vm.selectedProposal.data.productName;
+                proposalDetail["Seller"] = vm.selectedProposal.data.seller;
+                proposalDetail["startingPrice"] = vm.selectedProposal.data.startingPrice;
+                proposalDetail["directPurchasePrice"] = vm.selectedProposal.data.directPurchasePrice;
+                proposalDetail["isExclusive"] = vm.selectedProposal.data.isExclusive;
             }
             // end region
 

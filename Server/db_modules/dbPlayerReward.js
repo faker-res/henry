@@ -5531,11 +5531,7 @@ let dbPlayerReward = {
             "data.platformObjId": playerData.platform._id,
             "data.playerObjId": playerData._id,
             "data.eventId": eventData._id,
-            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            $or: [
-                {"data.applyTargetDate": {$gte: todayTime.startTime, $lt: todayTime.endTime}},
-                {"data.applyTargetDate": {$exists: false}, createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}}
-            ],
+            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
         };
 
         if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {

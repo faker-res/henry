@@ -57,7 +57,7 @@ define(['js/app'], function (myApp) {
             TOPUPONLINE: 2,
             ALIPAY: 3,
             WechatPay: 4,
-            CommonTopUp: 5,
+            CommonTopUp: 6,
         };
         vm.feedbackResultList = {
             NORMAL: "Normal",
@@ -680,7 +680,7 @@ define(['js/app'], function (myApp) {
         // display  proposal detail
         vm.showProposalDetailField = function (obj, fieldName, val) {
             if (!obj) return '';
-            var result = val ? val.toString() : (val === 0) ? "0" : "";
+            var result = val || val === false ? val.toString() : (val === 0) ? "0" : "";
             if (obj.type.name === "UpdatePlayerPhone" && (fieldName === "updateData" || fieldName === "curData")) {
                 var str = val.phoneNumber
                 if (obj && obj.status && obj.status == 'Pending' && fieldName == 'updateData') {
