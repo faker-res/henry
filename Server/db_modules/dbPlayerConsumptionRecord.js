@@ -2038,6 +2038,63 @@ var dbPlayerConsumptionRecord = {
         return dbPlayerConsumptionRecord.streamPlayerRecordsInTimeFrame(dbconfig.collection_playerTopUpRecord, 'createTime', startTime, endTime, platformId);
     },
 
+    streamPlayersWithConsumptionAndProposalInTimeFrame: function streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId) {
+        let consumptionPlayerObjIdList = [];
+        let proposalPlayerObjIdList = [];
+        startTime = new Date(startTime);
+        endTime = new Date(endTime);
+
+        let returnProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+            [
+                {
+                    $match: {
+                        createTime: {$gte: startTime, $lt: endTime},
+                        platformId: platformId
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$playerId'
+                    }
+                }
+            ]
+        ).then(
+            consumptionPlayerList => {
+                if(consumptionPlayerList && consumptionPlayerList.length > 0){
+                    consumptionPlayerObjIdList = consumptionPlayerList.map(c => c._id);
+                }
+
+                return dbconfig.collection_proposal.aggregate(
+                    [
+                        {
+                            $match: {
+                                createTime: {$gte: startTime, $lt: endTime},
+                                mainType: {$in: ["TopUp", "PlayerBonus", "Reward"]},
+                                "data.platformId": platformId,
+                                "data.playerObjId": {$nin: consumptionPlayerObjIdList}
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: '$data.playerObjId'
+                            }
+                        }
+                    ]
+                );
+            }
+        ).then(
+            proposalPlayerList => {
+                if(proposalPlayerList && proposalPlayerList.length > 0){
+                    proposalPlayerObjIdList = proposalPlayerList.map(p => p._id);
+                }
+
+                return consumptionPlayerObjIdList.concat(proposalPlayerObjIdList)
+            }
+        );
+
+        return returnProm;
+    },
+
     streamPlayersWithTopUpDaySummaryInTimeFrame: function streamPlayersWithTopUpDaySummaryInTimeFrame(startTime, endTime, platformId) {
         return dbPlayerConsumptionRecord.streamPlayerRecordsInTimeFrame(dbconfig.collection_playerTopUpDaySummary, 'date', startTime, endTime, platformId);
     },

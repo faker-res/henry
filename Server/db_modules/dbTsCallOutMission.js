@@ -352,7 +352,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
                 if (!callee) return;
                 let prom = dbconfig.collection_tsDistributedPhone.findOne({_id: callee.tsDistributedPhone})
                     .populate({path: "tsPhone", model: dbconfig.collection_tsPhone})
-                    .populate({path: "tsPhoneList", model: dbconfig.collection_tsPhoneList, select: "name"})
+                    .populate({path: "tsPhoneList", model: dbconfig.collection_tsPhoneList, select: "name callerCycleCount"})
                     .lean().then(
                         tsDistributedPhone => {
                             if (!tsDistributedPhone) return;
