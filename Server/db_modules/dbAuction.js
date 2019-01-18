@@ -786,11 +786,6 @@ var dbAuction = {
                     })
                 }
 
-                playerProm = dbconfig.collection_players.findOne({
-                    platform: platformObjId,
-                    _id: playerId,
-                }).populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean();
-
                 auctionProm = dbconfig.collection_auctionSystem.findOne({
                     platformObjId: platformObjId,
                     productName: productName,
@@ -803,11 +798,10 @@ var dbAuction = {
                     type: proposalTypeId,
                 }).lean();
 
-                return Promise.all([playerProm, auctionProm, proposalProm]).then(data => {
+                return Promise.all([auctionProm, proposalProm]).then(data => {
                     if (data) {
-                        playerData = data[0];
-                        auctionData = data[1];
-                        proposalData = data[2];
+                        auctionData = data[0];
+                        proposalData = data[1];
 
                         // check if the same player bidding again (consecutively)
                         if (proposalData && proposalData.data && proposalData.data.playerName && playerData && playerData.name){
