@@ -519,12 +519,13 @@ define(['js/app'], function (myApp) {
             vm.getTsDistributedPhoneDetail($scope.tsDistributedPhoneObjId);
 
             // Zero dependencies variable
-            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults, vm.allTsPhoneList] = await Promise.all([
+            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults, vm.allTsPhoneList, vm.smsTemplate] = await Promise.all([
                 commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id}).catch(err => Promise.resolve([])),
                 commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
                 commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
             ]);
         };
 
@@ -1439,7 +1440,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToTsPhoneBtn = function (type, data) {
             vm.selectedTsDistributedPhoneId = data._id;
             console.log(type, data);
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                 if (!(data && data.tsPhone && data.tsPhone.phoneNumber)) {
@@ -2710,17 +2711,17 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.getSMSTemplate = function () {
-            vm.smsTemplate = [];
-            $scope.$socketPromise('getMessageTemplatesForPlatform', {
-                platform: vm.selectedPlatform.id,
-                format: 'smstpl'
-            }).then(function (data) {
-                vm.smsTemplate = data.data;
-                console.log("vm.smsTemplate", vm.smsTemplate);
-                $scope.safeApply();
-            }).done();
-        };
+        // vm.getSMSTemplate = function () {
+        //     vm.smsTemplate = [];
+        //     $scope.$socketPromise('getMessageTemplatesForPlatform', {
+        //         platform: vm.selectedPlatform.id,
+        //         format: 'smstpl'
+        //     }).then(function (data) {
+        //         vm.smsTemplate = data.data;
+        //         console.log("vm.smsTemplate", vm.smsTemplate);
+        //         $scope.safeApply();
+        //     }).done();
+        // };
 
         vm.useSMSTemplate = function () {
             vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
@@ -2775,7 +2776,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToPlayerBtn = function (type, data) {
             // var rowData = JSON.parse(data);
             console.log(type, data);
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
@@ -5996,7 +5997,7 @@ define(['js/app'], function (myApp) {
 
         vm.callNewPlayerBtn = function (phoneNumber, data) {
 
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var phoneCall = {
                 playerId: data && data.playerObjId && data.playerObjId.playerId ? data.playerObjId.playerId : "",
                 name: data && data.playerObjId && data.playerObjId.name ? data.playerObjId.name : "",
