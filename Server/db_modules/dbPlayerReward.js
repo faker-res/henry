@@ -6356,6 +6356,10 @@ let dbPlayerReward = {
                                 correctTopUpType = false;
                             }
 
+                            if (eventData.condition.depositMethod && selectedTopUp.depositMethod && eventData.condition.depositMethod.length > 0 && eventData.condition.depositMethod.indexOf(selectedTopUp.depositMethod) === -1) {
+                                correctTopUpType = false;
+                            }
+
                             // Set reward param step to use
                             if (eventData.param.isMultiStepReward) {
                                 if (eventData.param.isSteppingReward) {
