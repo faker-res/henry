@@ -111,12 +111,11 @@ define(['js/app'], function (myApp) {
             vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
             vm.getPlatformGameData(vm.getProviderLatestTimeRecord);
-            Promise.all([commonService.getSMSTemplate($scope, vm.selectedPlatform._id).catch(err => Promise.resolve([]))])
-                .then(data => {
-                    if (data) {
-                        vm.smsTemplate = data[0] ? data[0] : [];
-                    }
-                });
+            commonService.getSMSTemplate($scope, vm.selectedPlatform._id).then(data => {
+                if (data) {
+                    vm.smsTemplate = data ? data : [];
+                }
+            }).catch(err => Promise.resolve([]));
             initPageParam();
             vm.initPlayerModal();
             $cookies.put("platform", vm.selectedPlatform.name);
