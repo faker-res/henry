@@ -695,7 +695,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('ASSIGN_TIMES'),
                         render: function (data, type, row) {
-                            return '<span>' + row.assignTimes + "/" + row.tsPhone.assignTimes + '</span>';
+                            return '<span>' + row.assignTimes + "/" + row.tsPhoneList.callerCycleCount + '</span>';
                         }
                     },
                     {title: $translate('PHONE_DISTRIBUTED_TIME'), data: "startTime$"},
@@ -2778,7 +2778,7 @@ define(['js/app'], function (myApp) {
             console.log(type, data);
             //vm.getSMSTemplate();
             var title, text;
-            if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+            if (type == 'msg') {
                 vm.smsPlayer = {
                     playerId: data.playerId,
                     name: data.name,
