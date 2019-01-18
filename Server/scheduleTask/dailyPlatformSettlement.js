@@ -209,6 +209,10 @@ var dailyPlatformSettlement = {
                 error => console.log({name: "DBError", message: "Error calculating player top up summary!", error: error})
             )
         ).then(
+            () => playerSummary.calculatePreviousTwoDaysPlayerReportDaySummary(platformId).catch(
+                error => console.log({name: "DBError", message: "Error calculating player report day summary!", error: error})
+            )
+        ).then(
             () => playerSummary.calculateYesterdayActiveValidPlayerSummary(platformId).catch(
                 error => console.log({name: "DBError", message: "Error calculating platform day summary!", error: error})
             )

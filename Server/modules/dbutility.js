@@ -845,6 +845,16 @@ var dbUtility = {
         return hour >= 12;
     },
 
+    /**
+     * Get N day time frame based on SGT
+     */
+    getNDaysAgoSGTime: function (inputDate, n) {
+        inputDate.setHours(0,0,0,0);
+        var date = moment(inputDate).tz('Asia/Singapore').toDate();
+
+        return new Date(date.setDate(date.getDate() - n));
+    },
+
     //endregion
 
     generateRandomPositiveNumber: function (min, max) {

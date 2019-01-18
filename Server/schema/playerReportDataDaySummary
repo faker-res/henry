@@ -48,8 +48,12 @@ var playerReportDataDaySummarySchema = new Schema({
             onlineTopUpServiceChargeRate: {type: Number, default: 0}
         }
     ],
+    //Platform fee details
     platformFeeEstimate: {type: JSON, default: {}},
-    totalPlatformFeeEstimate: {type: Number, required: true, default: 0}
+    //Total platform fee
+    totalPlatformFeeEstimate: {type: Number, required: true, default: 0},
+    //scheduler summary data create time
+    createTime: {type: Date, index: true, default: Date.now},
 });
 
 module.exports = playerReportDataDaySummarySchema;
