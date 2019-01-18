@@ -976,6 +976,20 @@ var dbAuction = {
                         if (playerName){
                             newProposal.data.playerName = playerName;
                         }
+                        // specially for auction product: reward promotion
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.unlockAmount && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.requiredUnlockAmount = auctionData.rewardData.unlockAmount;
+                        }
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.rewardAmount && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.rewardAmount = auctionData.rewardData.rewardAmount;
+                        }
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
+                        }
+                        if (platform && platform.hasOwnProperty("useProviderGroup") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.isGroupReward = platform.useProviderGroup;
+                        }
+
                         newProposal.data.isExclusive = auctionData.isExclusive;
                         newProposal.data.startingPrice = auctionData.startingPrice || null;
                         newProposal.data.directPurchasePrice = auctionData.directPurchasePrice || null;

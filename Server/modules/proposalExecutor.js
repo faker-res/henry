@@ -112,7 +112,9 @@ var proposalExecutor = {
             // Auction reward
             || executionType === 'executeAuctionPromoCode'
             || executionType === 'executeAuctionOpenPromoCode'
+            || executionType === 'executeAuctionRewardPromotion'
             || executionType === 'executeAuctionRealPrize'
+            || executionType === 'executePlayerAuctionPromotionReward'
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -300,6 +302,7 @@ var proposalExecutor = {
             this.executions.executeAuctionPromoCode.des = "Auction Promo Code";
             this.executions.executeAuctionOpenPromoCode.des = "Auction Open Promo Code";
             this.executions.executeAuctionRewardPromotion.des = "Auction Reward Promotion";
+            this.executions.executePlayerAuctionPromotionReward.des = "player Auction Reward Promotion";
             this.executions.executeAuctionRealPrize.des = "Auction Real Prize";
             this.executions.executeAuctionRewardPointChange.des = "Auction Reward Point Change";
 
@@ -388,6 +391,7 @@ var proposalExecutor = {
             this.rejections.rejectAuctionPromoCode.des = "Reject Auction Promo Code";
             this.rejections.rejectAuctionOpenPromoCode.des = "Reject Auction Open Promo Code";
             this.rejections.rejectAuctionRewardPromotion.des = "Reject Auction Reward Promotion";
+            this.rejections.rejectePlayerAuctionPromotionReward.des = "Reject Player Auction Reward Promotion";
             this.rejections.rejectAuctionRealPrize.des = "Reject Auction Real Prize";
             this.rejections.rejectAuctionRewardPointChange.des = "Reject Auction Reward Point Change";
         },
@@ -3847,10 +3851,87 @@ var proposalExecutor = {
                 }
             },
 
-            executeAuctionRewardPromotion: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executePlayerAuctionPromotionReward: function (proposalData) {
+                if (!(proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.platformId)) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Incorrect player auction promotion reward proposal data"
+                    });
+                }
+
+                let taskData = {
+                    playerId: proposalData.data.playerObjId,
+                    platformId: proposalData.data.platformId,
+                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                    currentAmount: proposalData.data.rewardAmount,
+                    initAmount: proposalData.data.rewardAmount,
+                    useConsumption: Boolean(proposalData.data.useConsumption),
+                    applyAmount: proposalData.data.applyAmount || 0,
+                    providerGroup: proposalData.data.providerGroup,
+                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                    useConsumption: proposalData.data.useConsumption,
+                    isGroupReward: proposalData.data.isGroupReward,
+                    type: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                    rewardType: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                    eventCode:  "manualReward",
+                };
+
+                return createRTGForProposal(proposalData, taskData, constProposalType.PLAYER_AUCTION_PROMOTION_REWARD, proposalData);
+            },
+
+            executeAuctionRewardPromotion: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformId && (proposalData.status == constProposalStatus.SUCCESS ||
+                    proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                    // create reward proposal
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: ObjectId(proposalData.data.platformId),
+                        name: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD
+                    }).lean().then(
+                        proposalTypeData => {
+                            if (!proposalTypeData){
+                                return Promise.reject({
+                                    name: "DataError",
+                                    message: "Cannot find proposal type"
+                                })
+                            }
+
+                            let proposalObj = {
+                                type: proposalTypeData._id,
+                                creator:
+                                    {
+                                        type: 'player',
+                                        name: proposalData.data.playerName,
+                                        id: proposalData.data.playerObjId
+                                    },
+                                data: {
+                                    playerId: proposalData.data.playerObjId,
+                                    playerObjId: proposalData.data.playerObjId,
+                                    platformId: proposalData.data.platformId,
+                                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                                    rewardAmount: proposalData.data.rewardAmount,
+                                    useConsumption: Boolean(proposalData.data.useConsumption),
+                                    applyAmount: proposalData.data.applyAmount || 0,
+                                    providerGroup: proposalData.data.providerGroup,
+                                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                                    useConsumption: proposalData.data.useConsumption,
+                                    isGroupReward: proposalData.data.isGroupReward,
+                                    type: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                                    rewardType: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                                    eventCode:  "manualReward",
+                                },
+                                entryType: constProposalEntryType.CLIENT,
+                                userType: constProposalUserType.PLAYERS
+                            };
+
+                            proposalObj.inputDevice = proposalData.inputDevice;
+
+                            sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_PROMOTION_SUCCESS, {});
+                            return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalObj);
+                        }
+                    )
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 
@@ -4851,6 +4932,10 @@ var proposalExecutor = {
             },
 
             rejectAuctionRewardPromotion: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectePlayerAuctionPromotionReward: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 

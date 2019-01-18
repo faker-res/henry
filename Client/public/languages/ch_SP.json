@@ -3937,6 +3937,8 @@
   "AuctionOpenPromoCodeSuccess": "开放式优惠代码竞拍（成功）",
   "AuctionRealPrizeSuccess": "实体奖品竞拍（成功）",
   "AuctionPromoCodeSuccess": "优惠代码竞拍（成功）",
+  "AuctionRewardPromotionSuccess": "促销优惠竞拍（成功）",
+  "PlayerAuctionPromotionReward": "竞拍的促销优惠",
   "ximaAmount": "洗码金额",
   "manualTopupAmount": "手工存款金额",
   "onlineTopupAmount": "在线充值金额",
