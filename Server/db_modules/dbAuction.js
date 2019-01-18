@@ -695,23 +695,23 @@ var dbAuction = {
         switch (rewardType) {
             case 'promoCode':
                 proposalType = constProposalType.AUCTION_PROMO_CODE;
-                remark = 'Auction Promo Code';
+                remark = productName;
                 break;
             case 'openPromoCode':
                 proposalType = constProposalType.AUCTION_OPEN_PROMO_CODE;
-                remark = 'Auction Open Promo Code';
+                remark = productName;
                 break;
             case 'promotion':
                 proposalType = constProposalType.AUCTION_REWARD_PROMOTION;
-                remark = 'Auction Reward Promotion';
+                remark = productName;
                 break;
             case 'realPrize':
                 proposalType = constProposalType.AUCTION_REAL_PRIZE;
-                remark = 'Auction Real Prize';
+                remark = productName;
                 break;
             case 'rewardPointsChange':
                 proposalType = constProposalType.AUCTION_REWARD_POINT_CHANGE;
-                remark = 'Auction Reward Point Change';
+                remark = productName;
                 break;
         }
 
@@ -768,19 +768,19 @@ var dbAuction = {
                 playerProm = dbconfig.collection_players.findOne({
                     platform: platformObjId,
                     _id: playerId,
-                }).populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).exec();
+                }).populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean();
 
                 auctionProm = dbconfig.collection_auctionSystem.findOne({
                     platformObjId: platformObjId,
                     productName: productName,
-                }).exec();
+                }).lean();
 
                 proposalProm = dbconfig.collection_proposal.findOne({
                     'data.platformId': platformObjId,
                     'data.productName': productName,
                     status: constProposalStatus.PENDING,
                     type: proposalTypeId,
-                }).exec();
+                }).lean();
 
                 return Promise.all([playerProm, auctionProm, proposalProm]).then(data => {
                     if (data) {
@@ -928,10 +928,11 @@ var dbAuction = {
                                 productName: productName,
                                 currentBidPrice: playerBidPrice,
                                 remark: remark,
-                                auction: auctionData._id ? auctionData._id : ''
+                                auction: auctionData._id ? auctionData._id : '',
+                                updateAmount: playerBidPrice
                             },
                             creator: {
-                                name: playerName ? playerName : ''
+                                name: auctionData && auctionData.seller ? auctionData.seller : playerName || null
                             },
                             status: proposalStatus,
                             type: proposalTypeId
@@ -942,21 +943,27 @@ var dbAuction = {
                         if (auctionData && auctionData.rewardData && auctionData.rewardData.templateObjId){
                             newProposal.data.templateObjId = auctionData.rewardData.templateObjId;
                         }
+                        if (auctionData && auctionData.seller){
+                            newProposal.data.seller = auctionData.seller;
+                        }
                         if (auctionData && auctionData.rewardData.hasOwnProperty("isSharedWithXima")){
                             newProposal.data.isSharedWithXima = auctionData.rewardData.isSharedWithXima;
                         }
-                        if (auctionData && auctionData.rewardData.hasOwnProperty("isForbidWithdrawal")){
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("isForbidWithdrawal")){
                             newProposal.data.isForbidWithdrawal = auctionData.rewardData.isForbidWithdrawal;
                         }
-                        if (auctionData && auctionData.rewardData.hasOwnProperty("useConsumption")){
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption")){
                             newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
                         }
-                        if (auctionData && auctionData.rewardData.gameProviderGroup){
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.gameProviderGroup){
                             newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
                         }
                         if (playerName){
                             newProposal.data.playerName = playerName;
                         }
+                        newProposal.data.isExclusive = auctionData.isExclusive;
+                        newProposal.data.startingPrice = auctionData.startingPrice || null;
+                        newProposal.data.directPurchasePrice = auctionData.directPurchasePrice || null;
 
                         return dbProposal.createProposalWithTypeId(proposalTypeId, newProposal).then(
                             data => {

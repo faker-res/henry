@@ -1422,6 +1422,27 @@ define([], () => {
             }
             // end region
 
+            // region auction product Proposal
+            if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "AuctionPromoCode" || vm.selectedProposal.type.name === "AuctionOpenPromoCode" ||
+                vm.selectedProposal.type.name === "AuctionRewardPromotion" || vm.selectedProposal.type.name === "AuctionRealPrize" || vm.selectedProposal.type.name === "AuctionRewardPointChange")) {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.proposalPlayerLevel;
+                proposalDetail["productName"] = vm.selectedProposal.data.productName;
+                proposalDetail["Seller"] = vm.selectedProposal.data.seller;
+                proposalDetail["startingPrice"] = vm.selectedProposal.data.startingPrice;
+                proposalDetail["directPurchasePrice"] = vm.selectedProposal.data.directPurchasePrice;
+                proposalDetail["isExclusive"] = vm.selectedProposal.data.isExclusive;
+            }
+            // end region
+
             return proposalDetail;
         };
 
