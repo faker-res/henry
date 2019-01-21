@@ -10176,7 +10176,7 @@ define(['js/app'], function (myApp) {
                 vm.initQueryTimeFilter('playerCreditChangeLog', function () {
                     vm.queryPara.playerCreditChangeLog.type = 'none';
                     vm.queryPara.playerCreditChangeLog.startTime.data('datetimepicker').setLocalDate(utilService.setNDaysAgo(new Date(), 1));
-                    vm.showCreditChangeLogByFilter();
+                    vm.showCreditChangeLogByFilter();vm.rewardSelectOnChange(vm.rewardMainCondition[i])
                     $scope.safeApply();
                 });
             }
@@ -20834,6 +20834,10 @@ define(['js/app'], function (myApp) {
                 //$scope.safeApply();
             };
 
+            vm.rewardEventTableOptions = function () {
+
+            };
+
             vm.platformRewardTypeChanged = function () {
                 $scope.$evalAsync(() => {
                     $.each(vm.allRewardTypes, function (i, v) {
@@ -21482,6 +21486,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.changeRewardParamLayout = (model, isFirstLoad) => {
+                console.log("walaochange")
                 let isResetLayout = Boolean(isFirstLoad);
 
                 if (model && model.name == "canApplyFromClient") {

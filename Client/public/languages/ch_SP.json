@@ -5109,6 +5109,7 @@
   "Apply Max Reward Amount in interval": "周期内优惠上限",
   "Source by provider": "来源大厅（单选）",
   "Bet Type(Multiple Selection)": "下注项目（复选）",
+  "Banker or player tie (empty equal to any pairs)": "庄对（或闲对）结果（不填表示任意对子）",
   "Minimum Bet Amount": "指定项目最低下注金额",
   "Baccarat Reward Amount": "优惠金额（下注金额X倍）",
   "Host Result": "开奖结果（庄）",
