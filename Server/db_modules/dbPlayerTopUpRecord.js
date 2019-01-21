@@ -2303,6 +2303,7 @@ var dbPlayerTopUpRecord = {
                     }
                 }
 
+                console.log('rt - prop error check', newProposal);
                 return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(
