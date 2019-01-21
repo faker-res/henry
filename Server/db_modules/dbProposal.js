@@ -3256,6 +3256,7 @@ var proposal = {
      *
      */
     getProposalsByAdvancedQuery: function (reqData, index, count, sortObj) {
+        console.log("LH check proposal report 1");
         //count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM)
         sortObj = sortObj || {};
         var dataDeferred = Q.defer();
@@ -3292,6 +3293,7 @@ var proposal = {
             }
         }
         if (!reqData.type && reqData.platformId) {
+            console.log("LH check proposal report 2");
             let searchQuery = {
                 platformId: ObjectId(reqData.platformId)
             }
@@ -3302,6 +3304,7 @@ var proposal = {
 
             dbconfig.collection_proposalType.find(searchQuery).then(
                 function (data) {
+                    console.log("LH check proposal report 3 ------------------ get proposal type");
                     if (data && data.length > 0) {
                         for (var i = 0; i < data.length; i++) {
                             (proposalTypeList.push(ObjectId(data[i]._id)));
@@ -3324,6 +3327,7 @@ var proposal = {
                 }
             ).then(
                 function (proposalTypeIdList) { // all proposal type ids of this platform
+                    console.log("LH check proposal report 4");
                     delete queryData.platformId;
                     var a = dbconfig.collection_proposal.find({
                         type: {$in: proposalTypeIdList},
@@ -3375,6 +3379,7 @@ var proposal = {
                 }
             ).then(
                 function (data) {
+                    console.log("LH check proposal report 5");
                     if (data && data[1]) {
                         totalSize = data[0];
                         resultArray = Object.assign([], data[1]);
@@ -3397,6 +3402,7 @@ var proposal = {
             );
         }
         else {
+            console.log("LH check proposal report B2");
             if (reqData.type && reqData.type.length > 0) {
                 let arr = reqData.type.map(item => {
                     return ObjectId(item);
@@ -3406,6 +3412,7 @@ var proposal = {
 
             let a, b, c;
             if(isApprove){
+                console.log("LH check proposal report B3 isApproved");
                 let searchQuery = {
                     platformId: ObjectId(reqData.platformId),
                     name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
@@ -3541,6 +3548,7 @@ var proposal = {
                     }
                 );
             }else{
+                console.log("LH check proposal report B3 not isApproved");
                 delete reqData.platformId;
                 a = dbconfig.collection_proposal.find(reqData).lean().count();
                 b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
@@ -3613,6 +3621,7 @@ var proposal = {
             }
             Q.all([a, b, c]).then(
                 function (data) {
+                    console.log("LH check proposal report B4 -----------",data)
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
@@ -3633,8 +3642,10 @@ var proposal = {
             );
         }
 
+        console.log("LH check proposal report 6");
         dataDeferred.promise.then(
             function (data) {
+                console.log("LH check proposal report 7");
                 data = resultArray;
                 var allProm = [];
                 if (data && data.length > 0) {
@@ -3664,6 +3675,7 @@ var proposal = {
             }
         ).then(
             function (playerData) {
+                console.log("LH check proposal report 8");
                 for (var i in playerData) {
                     if (playerData[i] && playerData[i].playerId) {
                         resultArray[i].data.playerShortId = playerData[i].playerId
