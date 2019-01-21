@@ -421,11 +421,14 @@ const dbPlayerPayment = {
                         + "username=" + playerData.name + "&"
                         + "clientType=" + clientType;
 
+                    console.log('getMinMaxCommonTopupAmount url', url);
+
                     return rp(url);
                 }
             }
         ).then(
             ret => {
+                console.log('getMinMaxCommonTopupAmount ret', ret);
                 if (ret) {
                     ret = JSON.parse(ret);
 
