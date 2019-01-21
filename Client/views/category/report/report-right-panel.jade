@@ -1,4 +1,4 @@
-#reportRightTable.panel.panel-danger(style='width:100%;display:inline-block')
+#reportRightTable.panel.panel-danger.widthto100.inline-block
     .panel-heading
         .pull-left(style='margin-top: -5px;')
             a.fa.fa-chevron-circle-left.contractIcon(ng-show='!vm.hideLeftPanel', ng-click='vm.setPanel(true)')
@@ -11,29 +11,29 @@
                 //div
                     label &nbsp;
                     button.btn.btn-primary(ng-click='vm.resetTopupRecord()') {{'Reset' | translate}}
-                div(style='max-width:125px')
+                .search-filters-item
                     label {{'PLAYER_NAME' | translate}}
                     input.form-control(type='text', ng-model='vm.queryTopup.playerName')
-                div(style='max-width:125px')
+                .search-filters-item
                     label {{'Proposal No' | translate}}
                     input.form-control(type='text', ng-model='vm.queryTopup.proposalID')
-                div
+                .search-filters-item
                     label {{'topupType' | translate}}
                     select.form-control(ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.mainTopupType', required)
                         option(value='') {{"any" | translate}}
                         option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{i | translate}}
-                div(style='max-width:125px')
+                .search-filters-item
                     label {{'DEVICE' | translate}}
                     select.form-control.merchantNoList(ng-options='i as v|translate for (i,v) in vm.playerInputDevice' ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.userAgent', required, multiple, static-bsp, data-actions-box='true')
 
-                div(style='max-width:180px')
+                .search-filters-item
                     label {{'Online Topup Type' | translate}}
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.topupType', multiple, static-bsp, data-actions-box='true')
                         option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{ v | translate}}({{v}})
-                div(style='max-width:125px')
+                .search-filters-item
                     label {{'3rd Party Platform' | translate}}
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.merchantGroup',ng-options='mer as mer.name for mer in vm.merchantGroupCloneList', multiple, bsp, data-actions-box='true')
-                div(style='max-width:125px')
+                .search-filters-item
                     label {{'DEPOSIT_METHOD' | translate}}
                     select.form-control.merchantNoList(ng-model='vm.queryTopup.depositMethod', multiple, static-bsp, data-actions-box='true')
                         option(value='1') 网银转账(OnlineTransfer)
@@ -45,39 +45,39 @@
                         //option(value='5') 支付宝(AliPay)
 
 
-                div(style='max-width:125px')
+                .search-filters-item
                     label 收款银行类别
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
-                div(style='max-width:125px')
+                .search-filters-item
                     label {{'Business Acc/ Bank Acc' | translate}}
                     select.form-control.merchantNoList(ng-change='vm.groupByIfAliPayLine()', ng-model='vm.queryTopup.merchantNoData', ng-options='a as a.name group by a.merchantTypeName for a in vm.merchantCloneList' , multiple, bsp, alipay-line-group, data-actions-box='true')
                         //option(value='') {{'any' | translate}}
                         //option(ng-repeat='(i,v) in vm.merchantNoList' ,ng-init='$last && vm.initMultiSelect()', value='{{v.merchantNo}}') {{v.name}}
                         //option()
-                div(style='max-width:125px')
+                .search-filters-item
                     label {{'STATUS' | translate}}
                     select.form-control.merchantNoList(ng-model='vm.queryTopup.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList', multiple, bsp, data-actions-box='true')
-                div
+                .search-filters-item
                     label.control-label {{'Start date' | translate}}
                     .startTime
-                div
+                .search-filters-item
                     label.control-label {{'End date' | translate}}
                     .endTime
-                div
+                .text-right.widthto100
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.searchTopupRecord(true, true)') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-success.btn-space(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.btn-space(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchTopupRecord(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#topupTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
-            table#topupTable.common-table.display(style="min-width:100% ;overflow: scroll")
+            table#topupTable.common-table.display.widthto100
             #topupTablePage
             table#topupExcelTable.common-table.display(style="min-width:100% ;overflow: scroll; display; none !important")
         div(ng-if='vm.showPageName=="PROPOSAL_REPORT"')
             #proposalReportQuery.block-query.col-md-12.well
-                div
+                .search-filters-item
                     label {{"REGISTRATION_AGENT"|translate}}
                     select.form-control(ng-model="vm.proposalQuery.inputDevice")
                         option(value='') {{'all'|translate}}
@@ -88,44 +88,44 @@
                         option(value=4) {{'HTML5 Agent'|translate}}
                         option(value=5) {{'APP Player'|translate}}
                         option(value=6) {{'APP Agent'|translate}}
-                div
-                    label(style='width:200px;') {{"Proposal Type"|translate}}
+                .search-filters-item
+                    label {{"Proposal Type"|translate}}
                     select.form-control#selectProposalType(multiple="multiple", ng-options='i._id as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='abc')
 
                     //select.form-control(ng-model='vm.proposalQuery.proposalTypeId', style='max-width:300px', required)
                         option(value='all') {{"all" | translate}}
                         option(ng-repeat='(i,v) in vm.allProposalType', value='{{v._id}}', ng-selected='vm.selectedProposalType==v._id') {{v.name | translate}}
 
-                div
-                    label(style='width:150px;') {{"CUSTOMIZED_PROMO_NAME"|translate}}
+                .search-filters-item
+                    label {{"CUSTOMIZED_PROMO_NAME"|translate}}
                     select.form-control#selectRewardType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.rewardList | unique: "name" ) track by i.name', ng-model='bbc')
-                div
-                    label(style='width:150px;') {{"PROMO_CODE_NAME"|translate}}
+                .search-filters-item
+                    label {{"PROMO_CODE_NAME"|translate}}
                     select.form-control#selectPromoType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.promoTypeList | unique: "name" ) track by i.name', ng-model='cbc')
 
-                div
+                .search-filters-item
                     label {{"Proposal Status"|translate}}
-                    select.form-control(ng-model='vm.proposalQuery.status', style='max-width:300px', required)
+                    select.form-control(ng-model='vm.proposalQuery.status', required)
                         option(value='all') {{'all' | translate}}
                         option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}', ng-selected='vm.proposalQuery.status==v._id') {{v | translate}}
-                div
+                .search-filters-item
                     label {{"RELATED_ACCOUNT" | translate}}
-                    input.form-control(ng-model='vm.proposalQuery.relatedAccount' type='text' style='width:180px;')
+                    input.form-control(ng-model='vm.proposalQuery.relatedAccount' type='text')
 
-                div
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
+                .search-filters-item
                     label {{"Proposal No"|translate}}
-                    input.noGrey.form-control(type="text", ng-model="vm.proposalQuery.proposalId", ng-change='vm.hideOtherConditions("#proposalReportQuery",vm.proposalQuery.proposalId,".noGrey")', style='width:110px;')
-                div
+                    input.noGrey.form-control(type="text", ng-model="vm.proposalQuery.proposalId", ng-change='vm.hideOtherConditions("#proposalReportQuery",vm.proposalQuery.proposalId,".noGrey")')
+                .text-right.widthto100
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.searchProposalRecord(true, true)') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-success.btn-space(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.btn-space(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchProposalRecord(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#proposalTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -135,21 +135,21 @@
             table.common-table#proposalExcelTable.display(style="width:100%;overflow: scroll;max-height:700px")
          div(ng-if='vm.showPageName=="FINANCIAL_POINTS_REPORT"')
             #financialPointsReportQuery.block-query.col-md-12.well
-                div
-                    label(style='width:150px;') {{"FINANCIAL_POINTS_TYPE"|translate}}
+                .search-filters-item
+                    label {{"FINANCIAL_POINTS_TYPE"|translate}}
                     select.form-control#selectFinancialPointsType(multiple="multiple", ng-model='bbca')
                         option(ng-repeat='(i,v) in vm.financialPointsType', value='{{v}}') {{i | translate}}
-                div
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
+                .text-right.widthto100
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchFinancialPointsRecord(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.searchFinancialPointsRecord(true, true)') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-success.btn-space(ng-click='vm.searchFinancialPointsRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.btn-space(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchFinancialPointsRecord(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#financialPointsTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -160,29 +160,29 @@
 
         div(ng-if='vm.showPageName=="CONSUMPTION_MODE_REPORT"')
             #consumptionModeReportQuery.block-query.col-md-12.well
-                div
-                    label(style='width:150px;') {{"Game Type"|translate}}
+                .search-filters-item
+                    label {{"Game Type"|translate}}
                     select.form-control(ng-model="vm.consumptionModeQuery.gameProvider" ng-change="vm.dynamicGameType()")
                         option(ng-repeat="(i,v) in vm.allGameProviders" value="{{v}}") {{v.name}}
 
-                div
-                    label(style='width:150px;') {{"GAME_TYPE"|translate}}
+                .search-filters-item
+                    label {{"GAME_TYPE"|translate}}
                     select.form-control(ng-model="vm.consumptionModeQuery.gameType" ng-change="vm.dynamicBetType()")
                         option(ng-repeat="(i,v) in vm.providerGameType" value="{{v}}") {{v.gameType}}
-                div
-                    label(style='width:150px;') {{"betType"|translate}}
+                .search-filters-item
+                    label {{"betType"|translate}}
                     select.form-control#selectBetType(multiple="multiple", ng-model='cbc')
                         option(ng-repeat="(i,v) in vm.gameBetType track by $index" value="{{v}}") {{v}}
-                div
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
+                .text-right.widthto100
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchConsumptionModeRecord(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-success.btn-space(ng-click='vm.searchConsumptionModeRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.btn-space(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
                     span#consumptionModeTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -193,22 +193,22 @@
         div(ng-if='vm.showPageName=="PROVIDER_REPORT"')
             //提供商报表
             #operationReportQuery.block-query.col-md-12.well
-                div
+                .search-filters-item
                     label {{"Provider"|translate}}
-                    select.form-control(ng-model='vm.queryOperation.providerId', style='max-width:300px', required)
+                    select.form-control(ng-model='vm.queryOperation.providerId', required)
                         option(value="all") {{'all' | translate}}
                         option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
 
-                div
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
+                .text-right.widthto100
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchOperationRecord()') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.exportToExcel("operationTable", "PROVIDER_REPORT")') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-success.btn-space(ng-click='vm.searchOperationRecord()') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.exportToExcel("operationTable", "PROVIDER_REPORT")') {{'EXPORT_EXCEL' | translate}}
                     span#operationTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
@@ -235,27 +235,27 @@
 
         div(ng-if='vm.showPageName=="PLAYER_EXPENSE_REPORT"')
             #playerExpenseReportQuery.block-query.col-md-12.well
-                div
+                .search-filters-item
                     label {{"Player ID"|translate}}
-                    input.form-control.span.input-sm(type="text", ng-model="vm.playerExpenseQuery.playerId")
-                div
+                    input.form-control(type="text", ng-model="vm.playerExpenseQuery.playerId")
+                .search-filters-item
                     label {{"Player Name"|translate}}
-                    input.form-control.span.input-sm(type="text", ng-model="vm.playerExpenseQuery.playerName")
-                div
+                    input.form-control(type="text", ng-model="vm.playerExpenseQuery.playerName")
+                .search-filters-item
                     label {{"Provider"|translate}}
-                    select.form-control(ng-model='vm.playerExpenseQuery.providerId', style='max-width:300px', required)
+                    select.form-control(ng-model='vm.playerExpenseQuery.providerId', required)
                         option(value='all') {{'all' | translate}}
                         option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}', ng-selected='vm.playerExpenseQuery.providerId==v._id') {{v.name || translate}}
-                div
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
+                .text-right.widthto100
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchProviderPlayerRecord(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.searchProviderPlayerRecord(true,true)') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-success.btn-space(ng-click='vm.searchProviderPlayerRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchProviderPlayerRecord(true,true)') {{'EXPORT_EXCEL' | translate}}
                     span#playerExpenseTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
@@ -266,119 +266,119 @@
             table.common-table#playerExpenseExcelTable.display(style="width:100% ;overflow-x: scroll")
 
         div(ng-if='vm.showPageName=="PLAYER_REPORT"')
-            .block-query.col-md-12.well
-                div
-                    label(style='min-width:130px') {{"CREDIBILITY"|translate}}
-                    select.form-control#selectCredibilityRemarks(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
-                div
+            .col-md-12.well
+                .search-filters-item
+                    label {{"CREDIBILITY"|translate}}
+                    select.form-control#selectCredibilityRemarks(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
+
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.playerQuery.valueScoreOperator === "range")}')
                     label {{"PlayerValue" | translate}}
-                    select.form-control(ng-model="vm.playerQuery.valueScoreOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.playerQuery.playerScoreValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.valueScoreOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.playerQuery.playerScoreValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.valueScoreOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.playerQuery.valueScoreOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.playerScoreValue" )
+                        div.symbol(ng-if="vm.playerQuery.valueScoreOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.playerScoreValueTwo" ng-if="vm.playerQuery.valueScoreOperator === 'range'")
+                .search-filters-item
                     label {{'LEVEL' | translate}}
                     select.form-control(ng-model="vm.playerQuery.level", ng-options='a as b.name for (a,b) in vm.playerLvlData')
                         option(value='') {{'any' | translate}}
-                div
+                .search-filters-item
                     label {{"Provider"|translate}}
                     select.form-control(ng-model='vm.playerQuery.providerId', style='max-width:300px', required)
                         option(value='') {{'all' | translate}}
                         option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
-                div
+                .search-filters-item
                     label {{'Start date' | translate}}
                         //a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regDateTimePicker")')
                         .startTime
                     #startingDateTimePicker
-                div
+                .search-filters-item
                     label {{'End date' | translate}}
                         //a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regEndDateTimePicker")')
                         .endTime
                     #endingEndDateTimePicker
-                div
+                .search-filters-item
                     label {{'Player Name' | translate}}
-                    input.form-control.span.input-sm(ng-model="vm.playerQuery.name")
-                div
+                    input.form-control(ng-model="vm.playerQuery.name")
+                .search-filters-item
                     label {{"csPromoteWay"|translate}}
                     select.spicker.form-control(ng-model='vm.playerQuery.csPromoteWay', multiple, data-actions-box='true')
                         option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
-                div.sPickDepartment
+                .search-filters-item
                     label {{"REGISTRATION_DEPARTMENT"|translate}}
                     select.spicker.form-control(ng-model='vm.playerQuery.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.playerQuery)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
-                div.sPickDepartment
+                .search-filters-item
                     label {{"REGISTRATION_ROLE"|translate}}
                     select.spicker.form-control(ng-model='vm.playerQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.playerQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
-                div.sPickDepartment
+                .search-filters-item
                     label {{"REGISTRATION_ADMIN"|translate}}
                     select.spicker.form-control(ng-model='vm.playerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
-                div
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.playerQuery.consumptionTimesOperator === "range")}')
                     label {{"Consumption Times"|translate}}
-                    select.form-control(ng-model="vm.playerQuery.consumptionTimesOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.playerQuery.consumptionTimesValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.consumptionTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.playerQuery.consumptionTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.consumptionTimesOperator === 'range'")
-                div
+                     div
+                        select.threeBoxes.form-control(ng-model="vm.playerQuery.consumptionTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.consumptionTimesValue")
+                        div.symbol(ng-if="vm.playerQuery.consumptionTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.consumptionTimesValueTwo" ng-if="vm.playerQuery.consumptionTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.playerQuery.profitAmountOperator === "range")}')
                     label {{"PLAYER_PROFIT_AMOUNT"|translate}}
-                    select.form-control(ng-model="vm.playerQuery.profitAmountOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.playerQuery.profitAmountValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.profitAmountOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.playerQuery.profitAmountValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.profitAmountOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.playerQuery.profitAmountOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.profitAmountValue")
+                        div.symbol(ng-if="vm.playerQuery.profitAmountOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.profitAmountValueTwo"  ng-if="vm.playerQuery.profitAmountOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.playerQuery.topUpTimesOperator === "range")}')
                     label {{"TOP_UP_TIMES"|translate}}
-                    select.form-control(ng-model="vm.playerQuery.topUpTimesOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.playerQuery.topUpTimesValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.topUpTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.playerQuery.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.topUpTimesOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.playerQuery.topUpTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.topUpTimesValue")
+                        div.symbol(ng-if="vm.playerQuery.topUpTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.topUpTimesValueTwo" ng-if="vm.playerQuery.topUpTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.playerQuery.bonusTimesOperator === "range")}')
                     label {{"BonusTime"|translate}}
-                    select.form-control(ng-model="vm.playerQuery.bonusTimesOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.playerQuery.bonusTimesValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.bonusTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.playerQuery.bonusTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.bonusTimesOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.playerQuery.bonusTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.bonusTimesValue")
+                        div.symbol(ng-if="vm.playerQuery.bonusTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.bonusTimesValueTwo" ng-if="vm.playerQuery.bonusTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.playerQuery.topUpAmountOperator === "range")}')
                     label {{"TOTAL_TOP_UP"|translate}}
-                    select.form-control(ng-model="vm.playerQuery.topUpAmountOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.playerQuery.topUpAmountValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.topUpAmountOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.playerQuery.topUpAmountValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.topUpAmountOperator === 'range'")
-                div
-                    label &nbsp;
-                    div(style="display: inline")
-                        label {{'测试数据'}}
-                        input(type="checkbox", ng-model='vm.playerQuery.searchBySummaryData')
-                    button.btn.btn-success(ng-click='vm.searchPlayerReport(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.searchPlayerReport(true, true)') {{'EXPORT_EXCEL' | translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.playerQuery.topUpAmountOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.topUpAmountValue" )
+                        div.symbol(ng-if="vm.playerQuery.topUpAmountOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.topUpAmountValueTwo" ng-if="vm.playerQuery.topUpAmountOperator === 'range'")
+                .search-filters-twoBoxes
+                    input.symbol(type="checkbox", ng-model='vm.playerQuery.searchBySummaryData')
+                    label {{'测试数据'}}
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchPlayerReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchPlayerReport(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#loadingPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -388,51 +388,50 @@
             table.common-table#playerReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
         div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_ANALYSIS_REPORT"')
-            .block-query.col-md-12.well
-                div
+            .col-md-12.well
+                .search-filters-item
                     label {{'Player Name' | translate}}
-                    input.form-control.span.input-sm(ng-model="vm.depositAnalysisQuery.name")
-                div
-                    label(style='min-width:130px') {{"CREDIBILITY"|translate}}
-                    select.form-control#selectCredibilityRemarksDepositAnalysis(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.depositAnalysisQuery.credibilityRemarks")
-                div
+                    input.form-control(ng-model="vm.depositAnalysisQuery.name")
+                .search-filters-item
+                    label {{"CREDIBILITY"|translate}}
+                    select.form-control#selectCredibilityRemarksDepositAnalysis(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.depositAnalysisQuery.credibilityRemarks")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.depositAnalysisQuery.valueScoreOperator === "range")}')
                     label {{"PlayerValue" | translate}}
-                    select.form-control(ng-model="vm.depositAnalysisQuery.valueScoreOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.depositAnalysisQuery.playerScoreValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.depositAnalysisQuery.valueScoreOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.depositAnalysisQuery.playerScoreValueTwo" style="width:80px;display:inline-block" ng-if="vm.depositAnalysisQuery.valueScoreOperator === 'range'")
-                div
+                     div
+                        select.threeBoxes.form-control(ng-model="vm.depositAnalysisQuery.valueScoreOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.depositAnalysisQuery.playerScoreValue" )
+                        div.symbol(ng-if="vm.depositAnalysisQuery.valueScoreOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.depositAnalysisQuery.playerScoreValueTwo"  ng-if="vm.depositAnalysisQuery.valueScoreOperator === 'range'")
+                .search-filters-item
                     label {{'LEVEL' | translate}}
                     select.form-control(ng-model="vm.depositAnalysisQuery.level", ng-options='a as b.name for (a,b) in vm.playerLvlData')
                         option(value='') {{'any' | translate}}
-                div
+                .search-filters-item
                     label {{"Provider" | translate}}
-                    select.form-control(ng-model='vm.depositAnalysisQuery.providerId', style='max-width:300px', required)
+                    select.form-control(ng-model='vm.depositAnalysisQuery.providerId', required)
                         option(value='') {{'all' | translate}}
                         option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name | translate}}
-                div
+                .search-filters-item
                     label {{'Start date' | translate}}
                         .startTime
                     #startingDateTimePickerDepositAnalysis
-                div
+                .search-filters-item
                     label {{'End date' | translate}}
                         .endTime
                     #endingEndDateTimePickerDepositAnalysis
-                div
+                .search-filters-item
                     label {{'DAILY_TOTAL_DEPOSIT' | translate}}
-                    input.form-control.span.input-sm(type="number" ng-model="vm.depositAnalysisQuery.dailyTotalDeposit")
-                div
+                    input.form-control(type="number" ng-model="vm.depositAnalysisQuery.dailyTotalDeposit")
+                .search-filters-item
                     label {{'NUMBER_OF_DAYS' | translate}}
-                    input.form-control.span.input-sm(type="number" ng-model="vm.depositAnalysisQuery.numberOfDays")
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchPlayerDepositAnalysisReport(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.exportToExcel('playerDepositAnalysisExcelReportTable', 'PLAYER_DEPOSIT_ANALYSIS_REPORT');") {{'EXPORT_EXCEL' | translate}}
+                    input.form-control(type="number" ng-model="vm.depositAnalysisQuery.numberOfDays")
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchPlayerDepositAnalysisReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.exportToExcel('playerDepositAnalysisExcelReportTable', 'PLAYER_DEPOSIT_ANALYSIS_REPORT');") {{'EXPORT_EXCEL' | translate}}
                     span#loadingPlayerDepositAnalysisReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -483,27 +482,26 @@
                 br
 
         div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_TRACKING_REPORT"')
-            #depositTrackingReport.block-query.col-md-12.well
-                div
+            #depositTrackingReport.col-md-12.well
+                .search-filters-item
                     label {{'Player Name' | translate}}
                     input.form-control.span.input-sm(ng-model="vm.depositTrackingQuery.name")
-                div
-                    label(style='min-width:130px') {{"CREDIBILITY"|translate}}
-                    select.form-control#selectCredibilityRemarksDepositTracking(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.depositTrackingQuery.credibilityRemarks")
-                div
-                    label(style='min-width:130px') {{"TRACKING_GROUP"|translate}}
-                    select.form-control#selectTrackingGroupDepositTracking(multiple="multiple", style='min-width:100px;height:34px;', ng-options='group._id as group.name | translate for group in vm.filterDepositTrackingGroup', ng-model="vm.depositTrackingQuery.depositTrackingGroup")
-                div
+                .search-filters-item
+                    label {{"CREDIBILITY"|translate}}
+                    select.form-control#selectCredibilityRemarksDepositTracking(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.depositTrackingQuery.credibilityRemarks")
+                .search-filters-item
+                    label {{"TRACKING_GROUP"|translate}}
+                    select.form-control#selectTrackingGroupDepositTracking(multiple="multiple", ng-options='group._id as group.name | translate for group in vm.filterDepositTrackingGroup', ng-model="vm.depositTrackingQuery.depositTrackingGroup")
+                .search-filters-item
                     label {{"LAST_ACCESS_TIME_START" | translate}}
                     .loginStartTime
-                div
+                .search-filters-item
                     label {{"LAST_ACCESS_TIME_END" | translate}}
                     .loginEndTime
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchPlayerDepositTrackingReport(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-primary.margin-left-5(data-toggle="modal", data-target='#modalPlayerDepositTrackingGroupTable' ng-click='vm.initDepositTrackingGroup()') {{'EDIT_TRACKING_GROUP' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.exportToExcel('playerDepositTrackingTable', 'PLAYER_DEPOSIT_TRACKING_REPORT')") {{'EXPORT_EXCEL' | translate}}
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchPlayerDepositTrackingReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-primary.btn-space(data-toggle="modal", data-target='#modalPlayerDepositTrackingGroupTable' ng-click='vm.initDepositTrackingGroup()') {{'EDIT_TRACKING_GROUP' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.exportToExcel('playerDepositTrackingTable', 'PLAYER_DEPOSIT_TRACKING_REPORT')") {{'EXPORT_EXCEL' | translate}}
                     span#loadingPlayerDepositTrackingReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -513,7 +511,7 @@
             #playerDepositTrackingReportTablePage
 
             .text-center
-                table.simple-table#playerDepositTrackingTable(style='width:auto;min-width:99.9%')
+                table.simple-table#playerDepositTrackingTable.widthto100
                     thead
                         tr
                             th {{'ORDER' | translate}}
@@ -570,17 +568,16 @@
                 br
 
         div(ng-if='vm.showPageName=="NEWACCOUNT_REPORT"')
-            #newPlayerReportQuery.block-query.col-md-12.well
-                div
+            #newPlayerReportQuery.col-md-12.well
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchNewPlayerRecord(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.exportToExcel('newAccountTable', 'NEWACCOUNT_REPORT')") {{'EXPORT_EXCEL' | translate}}
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchNewPlayerRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.exportToExcel('newAccountTable', 'NEWACCOUNT_REPORT')") {{'EXPORT_EXCEL' | translate}}
                     span *搜寻在该时段开户玩家的总记录
             //.row.text-center
             //    .col-md-2
@@ -600,7 +597,7 @@
             //        label.block.text-danger {{vm.newPlayerQuery.totalpartnerPlayerCount || 0}}
             label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             .text-center
-                table.playerLvlTable#newAccountTable(style='width:100%')
+                table.playerLvlTable#newAccountTable.widthto100
                     thead
                         tr
                             th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Promotion Method" | translate}}
@@ -640,7 +637,7 @@
                         #validPlayerPie(style="height:380px;width:100%")
                     .col-md-6(style='padding-top:10px')
                         .text-center
-                            table.playerLvlTable#validPlayerPromoteWay(style='width:100%')
+                            table.playerLvlTable#validPlayerPromoteWay.widthto100
                                 thead
                                     tr
                                         th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Promotion Method" | translate}}
@@ -736,7 +733,7 @@
                         #validPlayerCsAnalysisPie(style="height:380px;width:100%")
                     .col-md-6(style='padding-top:10px')
                         .text-center
-                            table.playerLvlTable#validPlayerCSOfficer(style='width:100%')
+                            table.playerLvlTable#validPlayerCSOfficer.widthto100
                                 thead
                                     tr
                                         th(ng-click='vm.newPlayerQuery.validPlayerCsAnalysisGraphSort = vm.newPlayerQuery.validPlayerCsAnalysisGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Create Account Cs Name" | translate}}
@@ -832,7 +829,7 @@
                         #validPlayerPartnerAnalysisPie(style="height:380px;width:100%")
                     .col-md-6(style='padding-top:10px')
                         .text-center
-                            table.playerLvlTable#validPlayerPartner(style='width:100%')
+                            table.playerLvlTable#validPlayerPartner.widthto100
                                 thead
                                     tr
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort = vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"partner" | translate}}
@@ -943,7 +940,7 @@
                         #validPlayerDomainAnalysisPie(style="height:380px;width:100%")
                     .col-md-6(style='padding-top:10px')
                         .text-center
-                            table.playerLvlTable#validPlayerDomain(style='width:100%')
+                            table.playerLvlTable#validPlayerDomain.widthto100
                                 thead
                                     tr
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerDomainGraphSort = vm.newPlayerQuery.validPlayerPartnerDomainGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Registration Domain" | translate}}
@@ -1076,85 +1073,84 @@
             //        #detailDomainPlayerTablePage
 
         div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
-            #dxNewPlayerReportQuery.block-query.col-md-12.well
-                div
+            #dxNewPlayerReportQuery.col-md-12.well
+                .search-filters-item
                     label {{"USER TYPE"|translate}}
-                    select.form-control(ng-model='vm.dxNewPlayerQuery.userType', style='max-width:300px')
+                    select.form-control(ng-model='vm.dxNewPlayerQuery.userType')
                         option(value='') {{'REAL_PLAYER_ALL' | translate}}
                         option(value='1') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
                         option(value='2') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
                         option(value='3') {{'TEST_PLAYER' | translate}}
-                div
+                .search-filters-item
                     label {{'REGISTRATION_TIME_START' | translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{'REGISTRATION_TIME_END' | translate}}
                     .endTime
-                div
+                .search-filters-item
                     label {{"ACCUMULATE_DAYS" | translate}}
                     input.form-control.span.input-sm(type="Number" ng-model="vm.dxNewPlayerQuery.days")
-                div
+                .search-filters-item
                     label {{"csPromoteWay"|translate}}
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.csPromoteWay', multiple, data-actions-box='true')
                         option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
-                div.sPickDepartment
+                .search-filters-item
                     label {{"REGISTRATION_DEPARTMENT"|translate}}
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.dxNewPlayerQuery)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
-                div.sPickDepartment
+                .search-filters-item
                     label {{"REGISTRATION_ROLE"|translate}}
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.dxNewPlayerQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
-                div.sPickDepartment
+                .search-filters-item
                     label {{"REGISTRATION_ADMIN"|translate}}
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
-                div
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxNewPlayerQuery.valueScoreOperator === "range")}')
                     label {{"PlayerValue"|translate}}
-                    select.form-control(ng-model="vm.dxNewPlayerQuery.valueScoreOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.playerScoreValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.dxNewPlayerQuery.valueScoreOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.playerScoreValueTwo" style="width:80px;display:inline-block" ng-if="vm.dxNewPlayerQuery.valueScoreOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.dxNewPlayerQuery.valueScoreOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxNewPlayerQuery.playerScoreValue")
+                        div.symbol(ng-if="vm.dxNewPlayerQuery.valueScoreOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxNewPlayerQuery.playerScoreValueTwo" ng-if="vm.dxNewPlayerQuery.valueScoreOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxNewPlayerQuery.topUpTimesOperator === "range")}')
                     label {{"TOP_UP_TIMES"|translate}}
-                    select.form-control(ng-model="vm.dxNewPlayerQuery.topUpTimesOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpTimesValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.dxNewPlayerQuery.topUpTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.dxNewPlayerQuery.topUpTimesOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.dxNewPlayerQuery.topUpTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpTimesValue")
+                        div.symbol(ng-if="vm.dxNewPlayerQuery.topUpTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpTimesValueTwo" ng-if="vm.dxNewPlayerQuery.topUpTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxNewPlayerQuery.bonusTimesOperator === "range")}')
                     label {{"BonusTime"|translate}}
-                    select.form-control(ng-model="vm.dxNewPlayerQuery.bonusTimesOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.bonusTimesValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.dxNewPlayerQuery.bonusTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.bonusTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.dxNewPlayerQuery.bonusTimesOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.dxNewPlayerQuery.bonusTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxNewPlayerQuery.bonusTimesValue")
+                        div.symbol(ng-if="vm.dxNewPlayerQuery.bonusTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxNewPlayerQuery.bonusTimesValueTwo" ng-if="vm.dxNewPlayerQuery.bonusTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxNewPlayerQuery.topUpAmountOperator === "range")}')
                     label {{"TOTAL_TOP_UP"|translate}}
-                    select.form-control(ng-model="vm.dxNewPlayerQuery.topUpAmountOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpAmountValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.dxNewPlayerQuery.topUpAmountOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpAmountValueTwo" style="width:80px;display:inline-block" ng-if="vm.dxNewPlayerQuery.topUpAmountOperator === 'range'")
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchDXNewPlayerReport(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.searchDXNewPlayerReport(true, true)") {{'EXPORT_EXCEL' | translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.dxNewPlayerQuery.topUpAmountOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpAmountValue")
+                        div.symbol(ng-if="vm.dxNewPlayerQuery.topUpAmountOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpAmountValueTwo" ng-if="vm.dxNewPlayerQuery.topUpAmountOperator === 'range'")
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchDXNewPlayerReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.searchDXNewPlayerReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#dxNewPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -1163,28 +1159,25 @@
             table.common-table#dxNewPlayerReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
         div(ng-if='vm.showPageName=="PLAYERPARTNER_REPORT"')
-            #playerPartnerReportQuery.block-query.col-md-12.well
-                div
+            #playerPartnerReportQuery.col-md-12.well
+                .search-filters-item
                     label {{"PARTNER_NAME"|translate}}
-                    input.form-control.span.input-sm(type="text", ng-model="vm.partnerQuery.partnerName")
-
-                div
+                    input.form-control(type="text", ng-model="vm.partnerQuery.partnerName")
+                .search-filters-item
                     label {{"REGISTRATION_TIME_START"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"REGISTRATION_TIME_END"|translate}}
                     .endTime
-                div
+                .search-filters-item
                     label {{"PLAYER_TYPE"|translate}}
-                    select.form-control( style='max-width:300px', ng-model="vm.partnerQuery.playerType")
+                    select.form-control(ng-model="vm.partnerQuery.playerType")
                         option(value='all') {{'all' | translate}}
                         option(value='Real Player') {{'REAL_PLAYER' | translate}}
                         option(value='Test Player') {{'TEST_PLAYER' | translate}}
-
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchPlayerPartnerRecord(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.searchPlayerPartnerRecord(true,true)") {{'EXPORT_EXCEL' | translate}}
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchPlayerPartnerRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.searchPlayerPartnerRecord(true,true)") {{'EXPORT_EXCEL' | translate}}
                     span#playerParnterTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
@@ -1207,70 +1200,70 @@
                         td {{v.total_topup_times}}
                         td {{v.total_consumption_times}}
         div(ng-if='vm.showPageName=="PLAYERDOMAIN_REPORT"')
-            #playerDomainReportQuery.block-query.col-md-12.well
-                div
+            #playerDomainReportQuery.col-md-12.well
+                .search-filters-item
                     label {{"USER_TYPE"|translate}}
-                    select.form-control( style='max-width:300px', ng-model="vm.playerDomain.playerType")
+                    select.form-control(ng-model="vm.playerDomain.playerType")
                         option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
                         option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
                         option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
                         option(value='Test Player') {{'TEST_PLAYER' | translate}}
                         option(value='Partner') {{'partner' | translate}}
-                div
+                .search-filters-item
                     label {{"REGISTRATION_TIME_START"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"REGISTRATION_TIME_END"|translate}}
                     .endTime
-                div
+                .search-filters-item
                     label {{"PLAYER_NAME"|translate}}
                     input.form-control(type="text", ng-model="vm.playerDomain.name")
-                div
+                .search-filters-item
                     label {{"realName"|translate}}
                     input.form-control(type="text", ng-model="vm.playerDomain.realName")
-                div
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.playerDomain.topUpTimesOperator === "range")}')
                     label {{"TOP_UP_TIMES"|translate}}
-                    select.form-control(ng-model="vm.playerDomain.topUpTimesOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.playerDomain.topUpTimesValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerDomain.topUpTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.playerDomain.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerDomain.topUpTimesOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.playerDomain.topUpTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerDomain.topUpTimesValue")
+                        div.symbol(ng-if="vm.playerDomain.topUpTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerDomain.topUpTimesValueTwo" ng-if="vm.playerDomain.topUpTimesOperator === 'range'")
+                .search-filters-item
                     label {{"csPromoteWay"|translate}}
                     select.spicker.form-control(ng-model='vm.playerDomain.csPromoteWay', multiple, data-actions-box='true')
                         option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.pdAllPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
-                div.sPickDepartment
+                .search-filters-item
                     label {{"REGISTRATION_DEPARTMENT"|translate}}
                     select.spicker.form-control(ng-model='vm.playerDomain.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setPDQueryRole()", ng-options='dp._id as dp.departmentName | translate for dp in vm.pdQueryDepartments')
-                div.sPickDepartment
+                .search-filters-item
                     label {{"REGISTRATION_ROLE"|translate}}
                     select.spicker.form-control(ng-model='vm.playerDomain.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setPDQueryAdmins()", ng-options='dp._id as dp.roleName | translate for dp in vm.pdQueryRoles')
-                div.sPickDepartment
+                .search-filters-item
                     label {{"REGISTRATION_ADMIN"|translate}}
                     select.spicker.form-control(ng-model='vm.playerDomain.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.pdQueryAdmins')
-                div
+                .search-filters-item
                     label {{"Registration Domain"|translate}}
                     input.form-control(type="text", ng-model="vm.playerDomain.domain")
-                div
+                .search-filters-item
                     label {{"Source Domain"|translate}}
-                    input.form-control(style="width:100%" type="text", ng-model="vm.playerDomain.sourceUrl")
-                div
+                    input.form-control(type="text", ng-model="vm.playerDomain.sourceUrl")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.playerDomain.playerValueOperator === "range")}')
                     label {{"PLAYER_VALUE"|translate}}
-                    select.form-control(ng-model="vm.playerDomain.playerValueOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.playerDomain.playerValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerDomain.playerValueOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.playerDomain.playerValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerDomain.playerValueOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.playerDomain.playerValueOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerDomain.playerValue")
+                        div.symbol(ng-if="vm.playerDomain.playerValueOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.playerDomain.playerValueTwo" ng-if="vm.playerDomain.playerValueOperator === 'range'")
+                .search-filters-item
                     label {{"REGISTRATION_AGENT"|translate}}
                     select.form-control(ng-model="vm.playerDomain.registrationInterface")
                         option(value='') {{'all'|translate}}
@@ -1281,39 +1274,37 @@
                         option(value=4) {{'HTML5 Agent'|translate}}
                         option(value=5) {{'APP Player'|translate}}
                         option(value=6) {{'APP Agent'|translate}}
-                div
+                .search-filters-item
                     label(ng-hide="true") {{"SYSTEM_PLAYER"|translate}}
                     select.form-control(ng-model="vm.playerDomain.isNewSystem", ng-hide="true")
                         option(value='') {{'all'|translate}}
                         option(value='new') {{'NEW_SYSTEM'|translate}}
                         option(value='old') {{'OLD_SYSTEM'|translate}}
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchPlayerDomainReport(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.searchPlayerDomainReport(true, true)") {{'EXPORT_EXCEL' | translate}}
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchPlayerDomainReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.searchPlayerDomainReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#playerDomainReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.playerDomain.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
-            table#playerDomainReportTable.common-table.display(style="width:100%")
+            table#playerDomainReportTable.common-table.display.widthto100
             #playerDomainReportTablePage
-            table#playerDomainReportExcelTable.common-table.display(style="width:100%")
+            table#playerDomainReportExcelTable.common-table.display.widthto100
 
         div(ng-if='vm.showPageName=="PARTNERPLAYERBOUNS_REPORT"')
-            #partnerPlayerBonusQuery.block-query.col-md-12.well
-                div
+            #partnerPlayerBonusQuery.col-md-12.well
+                .search-filters-item
                     label *{{"partnerName"|translate}}
                     input.form-control.span.input-sm(type="text", ng-model="vm.partnerPlayerBonusQuery.partnerName")
-                div
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchPartnerPlayerBonusData(true)', ng-disabled='!vm.partnerPlayerBonusQuery.partnerName') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.searchPartnerPlayerBonusData(true, true)") {{'EXPORT_EXCEL' | translate}}
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchPartnerPlayerBonusData(true)', ng-disabled='!vm.partnerPlayerBonusQuery.partnerName') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.searchPartnerPlayerBonusData(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#partnerPlayerBonusTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
@@ -1357,20 +1348,19 @@
                         th {{'TOP_UP_SUM' | translate}}
                         th {{'BonusAmount' | translate}}
         div(ng-if='vm.showPageName=="PARTNERCOMMISSION_REPORT"')
-            #partnerCommissionQuery.block-query.col-md-12.well
-                div
+            #partnerCommissionQuery.col-md-12.well
+                .search-filters-item
                     label {{"PARTNER_NAME"|translate}}
                     input.form-control.span.input-sm(type="text", ng-model="vm.partnerCommissionQuery.partnerName")
-                div
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchPartnerCommissionData(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.searchPartnerCommissionData(true, true)") {{'EXPORT_EXCEL' | translate}}
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchPartnerCommissionData(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.searchPartnerCommissionData(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#partnerCommissionTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.partnerCommissionReportLoadingStatus}}
@@ -1381,8 +1371,8 @@
             #partnerCommissionTablePage
             table.common-table#partnerCommissionExcelTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
         div(ng-if='vm.showPageName=="PARTNER_SETTLEMENT_HISTORY_REPORT"')
-            #partnerSettlementQuery.block-query.col-md-12.well
-                div
+            #partnerSettlementQuery.col-md-12.well
+                .search-filters-item
                     label {{"COMMISSION_TYPE"|translate}}
                     select.form-control(ng-model='vm.partnerSettlementQuery.commissionType')
                         option(value='') {{'any' | translate}}
@@ -1391,59 +1381,57 @@
                         option(value='3') {{'BIWEEKLY_BONUS_AMOUNT' | translate}}
                         option(value='4') {{'MONTHLY_BONUS_AMOUNT' | translate}}
                         option(value='5') {{'WEEKLY_CONSUMPTION' | translate}}
-                div
+                .search-filters-item
                     label {{"PARTNER_NAME"|translate}}
                     input.form-control.span.input-sm(type="text", ng-model="vm.partnerSettlementQuery.partnerName")
-                div
+                .search-filters-item
                     label {{"CALENDER"|translate}} {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"CALENDER"|translate}} {{"End date"|translate}}
                     .endTime
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchPartnerSettlementHistory(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.searchPartnerSettlementHistory(true, true)") {{'EXPORT_EXCEL' | translate}}
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchPartnerSettlementHistory(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.searchPartnerSettlementHistory(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#partnerSettlementTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
-                div(style="display:block;")
+                div.block
                     span.text-danger.margin-left-5 {{vm.partnerSettlementQuery.message | translate}}
-                div(style="display:block;font-size:10px;color:rgb(0,0,255);margin-top:10px;")
-                    div(style="display:block;font-size:12px;color:black;") {{"Calender legend" | translate}}
-                    div(style="display:inline;") *{{"Gray (strikethrough) indicates skipped settlement" | translate}}
-                    div(style="display:inline;margin-left:10px;") *{{"Select date range to show settlement details" | translate}}
-                    div(style="display:block;") *{{"Green indicates executed settlement" | translate}}
-                    div(style="display:block;") *{{"White indicates unexecuted settlement" | translate}}
+                div
+                    .black-annotation {{"Calender legend" | translate}}
+                    .blue-annotation.margin-right-5.inline-block *{{"Gray (strikethrough) indicates skipped settlement" | translate}}
+                    .blue-annotation.margin-left-5.inline-block *{{"Select date range to show settlement details" | translate}}
+                    .blue-annotation *{{"Green indicates executed settlement" | translate}}
+                    .blue-annotation *{{"White indicates unexecuted settlement" | translate}}
             .clearfix
             label {{"Total" | translate}} {{vm.partnerSettlementQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#partnerSettlementTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerSettlementTablePage
             table.common-table#partnerSettlementExcelTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
         div(ng-if='vm.showPageName=="REAL_TIME_COMMISSION_REPORT"')
-            #realTimeCommissionQuery.block-query.col-md-12.well
-                div
+            #realTimeCommissionQuery.col-md-12.well
+                .search-filters-item
                     label {{"COMMISSION_TYPE" | translate}}
-                    select.form-control(ng-model='vm.realTimeCommissionQuery.commissionType' style='max-width:300px' ng-change="vm.showRealTimeCommissionSettlementButton = false")
+                    select.form-control(ng-model='vm.realTimeCommissionQuery.commissionType' ng-change="vm.showRealTimeCommissionSettlementButton = false")
                         option(value='1') {{"DAILY_BONUS_AMOUNT" | translate}}
                         option(value='2') {{"WEEKLY_BONUS_AMOUNT" | translate}}
                         option(value='3') {{"BIWEEKLY_BONUS_AMOUNT" | translate}}
                         option(value='4') {{"MONTHLY_BONUS_AMOUNT" | translate}}
                         option(value='5') {{"WEEKLY_CONSUMPTION" | translate}}
-                div
+                .search-filters-item
                     label {{"PARTNER_NAME" | translate}}
-                    input.form-control.span.input-sm(type="text", ng-model="vm.realTimeCommissionQuery.partnerName" ng-change="vm.showRealTimeCommissionSettlementButton = false")
-                div
+                    input.form-control(type="text", ng-model="vm.realTimeCommissionQuery.partnerName" ng-change="vm.showRealTimeCommissionSettlementButton = false")
+                .search-filters-item
                     label {{"COMMISSION_TYPE" | translate}}
-                    select.form-control(ng-model='vm.selectCommissionPeriod' style='max-width:300px' ng-change="vm.showRealTimeCommissionSettlementButton = false")
+                    select.form-control(ng-model='vm.selectCommissionPeriod' ng-change="vm.showRealTimeCommissionSettlementButton = false")
                         option(value='') {{"CURRENT_PERIOD" | translate}}
                         option(value='1') {{"PREVIOUS_X_PERIOD" | translate}}
                 div(ng-if='vm.selectCommissionPeriod' ng-change="vm.showRealTimeCommissionSettlementButton = false")
                     label {{'　'}}
-                    input.form-control.span.input-sm(type="number" step='1' ng-model='vm.selectedCommissionPeriod' style='max-width: 61px' min=0 ng-change='vm.getSelectedCommissionPeriod()')
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchRealTimePartnerCommissionData()') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.exportToExcel('realTimeComissionTable', 'REAL_TIME_COMMISSION_REPORT')") {{'EXPORT_EXCEL' | translate}}
+                    input.form-control.span.input-sm(type="number" step='1' ng-model='vm.selectedCommissionPeriod' min=0 ng-change='vm.getSelectedCommissionPeriod()')
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchRealTimePartnerCommissionData()') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.exportToExcel('realTimeComissionTable', 'REAL_TIME_COMMISSION_REPORT')") {{'EXPORT_EXCEL' | translate}}
                     span#realTimeCommissionTableSpin.searchRealTimePartnerCommissionData
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.realTimeCommissionLoadingStatus}}
@@ -1497,89 +1485,88 @@
 
 
         div(ng-if='vm.showPageName=="FEEDBACK_REPORT"')
-            #feedbackReportQuery.block-query.col-md-12.well
-                div
+            #feedbackReportQuery.col-md-12.well
+                .search-filters-item
                     label {{"USER TYPE"|translate}}
-                    select.form-control(ng-model='vm.feedbackQuery.userType', style='max-width:300px')
+                    select.form-control(ng-model='vm.feedbackQuery.userType')
                         option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
                         option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
                         option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
                         option(value='Test Player') {{'TEST_PLAYER' | translate}}
-                div
+                .search-filters-item
                     label {{"FEEDBACK_TIME_START" | translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"FEEDBACK_TIME_END" | translate}}
                     .endTime
-                div
+                .search-filters-item
                     label {{"ACCUMULATE_DAYS" | translate}}
-                    input.form-control.span.input-sm(type="Number" ng-model="vm.feedbackQuery.days")
-                div
+                    input.form-control(type="Number" ng-model="vm.feedbackQuery.days")
+                .search-filters-item
                     label {{"FEEDBACK_RESULT"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.result', multiple, data-actions-box='true', ng-options='a.key as a.value for (i,a) in vm.allFeedbackResults', bsp)
-                div
+                .search-filters-item
                     label {{"FEEDBACK_TOPIC"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.topic', multiple, data-actions-box='true', ng-options='a.key as a.value for (i,a) in vm.allFeedbackTopics', bsp)
-                div
+                .search-filters-item
                     label {{"FEEDBACK_DEPARTMENT"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.departments', multiple, data-actions-box='true' data-width="200px", ng-change="vm.setQueryRole(vm.feedbackQuery)", ng-options='a._id as a.departmentName |translate for (i,a) in vm.queryDepartments', bsp)
-                div
+                .search-filters-item
                     label {{"FEEDBACK_ROLE"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.roles', multiple, data-actions-box='true' data-width="200px", ng-change="vm.setQueryAdmins(vm.feedbackQuery)", ng-options='a._id as a.roleName | translate for (i,a) in vm.queryRoles', bsp)
-                div
+                .search-filters-item
                     label {{"FEEDBACK_ADMIN"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true', data-width="200px", ng-options='a._id as a.adminName | translate for (i,a) in vm.queryAdmins', bsp)
-                div
+                .search-filters-item
                     label {{"CREDIBILITY"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.credibility', multiple, data-actions-box='true', ng-options='a._id as a.name for (i,a) in vm.filterCredibilityRemarks', bsp)
-                div
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.feedbackQuery.valueOperator === "range")}')
                     label {{"PLAYER_VALUE"|translate}}
-                    select.form-control(ng-model="vm.feedbackQuery.valueOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.valueFormal" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.valueOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.valueLatter" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.valueOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.feedbackQuery.valueOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.valueFormal" )
+                        div.symbol(ng-if="vm.feedbackQuery.valueOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.valueLatter" ng-if="vm.feedbackQuery.valueOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.feedbackQuery.topUpTimesOperator === "range")}')
                     label {{"TOP_UP_TIMES"|translate}}
-                    select.form-control(ng-model="vm.feedbackQuery.topUpTimesOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpTimesFormal" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.topUpTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpTimesLatter" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.topUpTimesOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.feedbackQuery.topUpTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.topUpTimesFormal")
+                        div.symbol(ng-if="vm.feedbackQuery.topUpTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.topUpTimesLatter" ng-if="vm.feedbackQuery.topUpTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.feedbackQuery.bonusTimesOperator === "range")}')
                     label {{"BonusTime"|translate}}
-                    select.form-control(ng-model="vm.feedbackQuery.bonusTimesOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.bonusTimesFormal" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.bonusTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.bonusTimesLatter" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.bonusTimesOperator === 'range'")
-                div
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.feedbackQuery.bonusTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.bonusTimesFormal")
+                        div.symbol(ng-if="vm.feedbackQuery.bonusTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.bonusTimesLatter" ng-if="vm.feedbackQuery.bonusTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.feedbackQuery.topUpAmountOperator === "range")}')
                     label {{"TOTAL_TOP_UP"|translate}}
-                    select.form-control(ng-model="vm.feedbackQuery.topUpAmountOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountFormal" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountLatter" style="width:80px;display:inline-block" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'")
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.searchFeedbackReport(true, true)") {{'EXPORT_EXCEL' | translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.feedbackQuery.topUpAmountOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountFormal")
+                        div.symbol(ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountLatter" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'")
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.searchFeedbackReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#feedbackReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -1614,7 +1601,7 @@
                             input.form-control(ng-model='vm.rewardProposalQuery.playerName' type='text' style='width:180px;')
                         div
                             label {{"DAY_COUNT_AFTER_REDEEM_PROMO" | translate}}
-                            input.form-control(ng-model='vm.rewardProposalQuery.dayCountAfterRedeemPromo' type='Number' style='width:100px;')
+                            input.form-control.widthto100(ng-model='vm.rewardProposalQuery.dayCountAfterRedeemPromo' type='Number')
                         div
                             label &nbsp;
                             button.btn.btn-success(ng-click='vm.getRewardProposalReport()') {{'SEARCH' | translate}}
@@ -1623,7 +1610,7 @@
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
                     label {{"TOTAL_PLAYER_COUNT" | translate}} : {{vm.rewardProposalQuery.totalCount}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
-                    table#rewardProposalTable.common-table.display(style="width:100%")
+                    table#rewardProposalTable.common-table.display.widthto100
                     #rewardProposalTablePage
         div(ng-if='vm.currentRewardCode && vm.showPageName!="RewardReport"')
             .panel.panel-primary
@@ -1637,7 +1624,7 @@
                         div
                             label {{"End date"|translate}}
                             .endTime
-                        div(style= "width:100px;", ng-if="vm.currentRewardCode != 'ALL'")
+                        div.widthto100(ng-if="vm.currentRewardCode != 'ALL'")
                             label {{'Number_Of_Day_After_Receiving' | translate}}
                             input.form-control(type='number', ng-model='vm.generalRewardProposalQuery.dayAfterReceiving')
                         div
@@ -1652,7 +1639,7 @@
                     .clearfix
                     label {{"Total" | translate}} {{vm.generalRewardProposalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
                     label(style="padding-left:15px;") {{"Total Number of Applicant" | translate}}: {{vm.generalRewardProposalQuery.totalApplicant|| 0}}
-                    table#generalRewardProposalTable.common-table.display(style="width:100%")
+                    table#generalRewardProposalTable.common-table.display.widthto100
                     #generalRewardProposalTablePage
         div(ng-if='vm.currentRewardTaskName && vm.showPageName!="RewardReport"')
             .panel.panel-primary
@@ -1673,7 +1660,7 @@
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
                     label {{"Total" | translate}} {{vm.generalRewardTaskTableProp.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
-                    table#generalRewardTaskTable.common-table.display(style="width:100%")
+                    table#generalRewardTaskTable.common-table.display.widthto100
                     #generalRewardTaskTablePage
 
         div(ng-if='vm.showPageName=="RewardReport"')
@@ -1718,7 +1705,7 @@
                         .col-md-6
                             label &nbsp;
                             .graph
-                                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                                table.table-striped.display.tableDiv.no-footer.dataTable.text-center.widthto100
                                     thead
                                         tr
                                             th(ng-click="vm.dataArraySort('rewardReportPlayer', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
@@ -1746,7 +1733,7 @@
                         .col-md-6
                             label &nbsp;
                             .graph
-                                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                                table.table-striped.display.tableDiv.no-footer.dataTable.text-center.widthto100
                                     thead
                                         tr
                                             th(ng-click="vm.dataArraySort('rewardReportProposal', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
@@ -1774,7 +1761,7 @@
                         .col-md-6
                             label &nbsp;
                             .graph
-                                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                                table.table-striped.display.tableDiv.no-footer.dataTable.text-center.widthto100
                                     thead
                                         tr
                                             th(ng-click="vm.dataArraySort('rewardReportAmount', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
@@ -1796,23 +1783,22 @@
 
         //MISCELLANEOUS_REPORT
         div(ng-if='vm.showPageName=="PLAYER_FEEDBACK_REPORT"')
-            #playerFeedbackReportQuery.block-query.col-md-12.well
-                div
+            #playerFeedbackReportQuery.col-md-12.well
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
+                .search-filters-item
                     label {{"PLAYER_NAME"|translate}}
                     input.form-control(type='text', ng-model='vm.playerFeedbackQuery.playerName')
-                div
+                .search-filters-item
                     label {{"RESULT"|translate}}
-                    select.form-control(ng-model='vm.playerFeedbackQuery.result', style='max-width:300px')
+                    select.form-control(ng-model='vm.playerFeedbackQuery.result')
                         option(value='all') {{'all' | translate}}
                         option(ng-repeat='(i,v) in vm.feedbackResultList', value='{{v}}') {{v | translate}}
-                div
-                    label &nbsp;
+                .text-right.widthto100
                     button.btn.btn-success(ng-click='vm.searchPlayerFeedbackQuery(true)') {{'SEARCH' | translate}}
                     span#playerFeedbackTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
@@ -1822,15 +1808,14 @@
             #playerFeedbackTablePage
 
         div(ng-if='vm.showPageName=="CREDIT_CHANGE_REPORT"')
-            #creditChangeReportQuery.block-query.col-md-12.well
-                div
+            #creditChangeReportQuery.col-md-12.well
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
-                    label &nbsp;
+                .text-right.widthto100
                     button.btn.btn-success(ng-click='vm.searchCreditChangeQuery(true)') {{'SEARCH' | translate}}
                     span#creditChangeTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
@@ -1840,72 +1825,68 @@
             #creditChangeTablePage
 
         div(ng-if='vm.showPageName=="PLAYER_ALMOST_LEVELUP_REPORT"')
-            .block-query.col-md-12.well
-                div
+            .col-md-12.well
+                .search-filters-item
                     label {{"Level-Up Progress"|translate}}
                     .percentage
                         input.form-control.inlineBlk(type='number', max='100', percentage, ng-model='vm.playerAlmostLevelUpQuery.percentage')
                 //div
                     label {{"Search limit(Max rows)"|translate}}
                     input.form-control(type='number', ng-model='vm.playerAlmostLevelUpQuery.limit', min='1', ng-init='vm.playerAlmostLevelUpQuery.limit=20')
-                div
-                    label &nbsp;
+                .text-right.widthto100
                     button.btn.btn-success(ng-click='vm.searchPlayerAlmostLevelUp(true)') {{'SEARCH' | translate}}
                     span#playerAlmostLevelUpTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.playerAlmostLevelUpQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
-            table#playerAlmostLevelUpTable.common-table.display(style="width:100%;")
+            table#playerAlmostLevelUpTable.common-table.display.widthto100
             #playerAlmostLevelUpTablePage
         div(ng-if='vm.showPageName=="ACTIONLOG_REPORT"')
-            #actionLogReportQuery.block-query.col-md-12.well
-                div
+            #actionLogReportQuery.col-md-12.well
+                .search-filters-item
                     label {{'PLATFORM' | translate}}
                     select.spicker.form-control(ng-model='vm.actionLogQuery.platform', bsp, multiple, data-actions-box='true', ng-options='platform._id as platform.name | translate for platform in vm.platformList')
-                div
+                .search-filters-item
                     label {{'TYPE' | translate}}
                     select.form-control(ng-options='i.action as i.text | translate group by i.group | translate for (k,i) in vm.actionLogQuery.allActions', ng-model='vm.actionLogQuery.action')
                         option(value='') {{'any' | translate}}
-                div
+                .search-filters-item
                     label {{'adminName' | translate}}
                     input.form-control(type='text', ng-model='vm.actionLogQuery.admin')
-                div
+                .search-filters-item
                     label {{'PLAYERNAME' | translate}}
                     input.form-control(type='text', ng-model='vm.actionLogQuery.player')
-                div
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
-                    label &nbsp;
+                .text-right.widthto100
                     button.btn.btn-success(ng-click='vm.searchActionLogData(true)') {{'SEARCH' | translate}}
                     span#actionLogTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.actionLogQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
-            table#actionLogTable.common-table.display(style="width:100%;")
+            table#actionLogTable.common-table.display.widthto100
             #actionLogTablePage
         div(ng-if='vm.showPageName=="WINRATE_REPORT"')
             // 输赢报表
-            #winrateReportQuery.block-query.col-md-12.well
-                div
+            #winrateReportQuery.col-md-12.well
+                .search-filters-item
                     label {{"Provider"|translate}}
-                    select.form-control(ng-model='vm.winRateQuery.providerId', style='max-width:300px', required)
+                    select.form-control(ng-model='vm.winRateQuery.providerId', required)
                         option(value="all") {{'all' | translate}}
                         option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
-
-                div
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.getWinRateReportData()') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.exportToExcel("winRateSummaryTable", "WINRATE_REPORT")') {{'EXPORT_EXCEL' | translate}}
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.getWinRateReportData()') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.exportToExcel("winRateSummaryTable", "WINRATE_REPORT")') {{'EXPORT_EXCEL' | translate}}
                     span#winRateTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.winRateReportLoadingStatus}}
@@ -1932,22 +1913,21 @@
 
         div(ng-if='vm.showPageName=="ONLINE_PAYMENT_MISMATCH_REPORT"')
             // 输赢报表
-            #onlinePaymentMismatchQuery.block-query.col-md-12.well
-                div
+            #onlinePaymentMismatchQuery.col-md-12.well
+                .search-filters-item
                     label {{'Topup Type' | translate}}
-                        select.form-control(ng-model='vm.onlinePaymentMismatchQuery.type')
-                            //option(value='all') {{'any' | translate}}
-                            option(value='online') {{"TOPUPONLINE" | translate }}
-                            option(value='manual') {{"TOPUPMANUAL" | translate }}
-                            option(value='bonus') {{"Bonus" | translate }}
-                div
+                    select.form-control(ng-model='vm.onlinePaymentMismatchQuery.type')
+                        //option(value='all') {{'any' | translate}}
+                        option(value='online') {{"TOPUPONLINE" | translate }}
+                        option(value='manual') {{"TOPUPMANUAL" | translate }}
+                        option(value='bonus') {{"Bonus" | translate }}
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
-                    label &nbsp;
+                .text-right.widthto100
                     button.btn.btn-success(ng-click='vm.getMismatchReport()') {{'SEARCH' | translate}}
                     span#onlinePaymentMismatchTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
@@ -1973,30 +1953,29 @@
                 span pms：提案个数： {{vm.proposalMismatchDetail.pmsCount || 0}}  提案总额度： {{vm.proposalMismatchDetail.pmsAmount || 0}}
 
         div(ng-if='vm.showPageName=="LIMITED_OFFER_REPORT"')
-            #limitedOfferQuery.block-query.col-md-12.well
-                div
+            #limitedOfferQuery.col-md-12.well
+                .search-filters-item
                     label {{'PLAYERNAME' | translate}}
                     input.form-control(type='text', ng-model='vm.limitedOfferQuery.playerName')
-                div
+                .search-filters-item
                     label {{'promoName' | translate}}
                     input.form-control(type='text', ng-model='vm.limitedOfferQuery.promoName')
-                div
+                .search-filters-item
                     label {{'Receive Status' | translate}}
-                    select.form-control(ng-model='vm.limitedOfferQuery.status', ng-options="a | translate for a in vm.claimStatus", style='max-width:200px', multiple, bsp)
-                div
+                    select.form-control(ng-model='vm.limitedOfferQuery.status', ng-options="a | translate for a in vm.claimStatus",  multiple, bsp)
+                .search-filters-item
                     label {{'Level Requirement' | translate}}
-                    select.form-control(ng-model='vm.limitedOfferQuery.level', ng-options="a.name for a in vm.playerLvlData", style='max-width:200px', multiple, bsp)
-                div
+                    select.form-control(ng-model='vm.limitedOfferQuery.level', ng-options="a.name for a in vm.playerLvlData",  multiple, bsp)
+                .search-filters-item
                     label {{'DEVICE' | translate}}
-                    select.form-control(ng-model='vm.limitedOfferQuery.inputDevice', ng-options="+(i) as v | translate for (i,v) in vm.playerInputDevice", style='max-width:200px', multiple, bsp)
-                div
+                    select.form-control(ng-model='vm.limitedOfferQuery.inputDevice', ng-options="+(i) as v | translate for (i,v) in vm.playerInputDevice",  multiple, bsp)
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
-                div
-                    label &nbsp;
+                .text-right.widthto100
                     button.btn.btn-success(ng-click='vm.getLimitedOfferReport(true)') {{'SEARCH' | translate}}
                     span#limitedOfferTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
@@ -2028,31 +2007,30 @@
                         td {{el.data.rewardProposalId}}
                         td {{el.data.rewardProposalId ? el.data.rewardAmount : ""}}
                         td {{el.data.spendingAmount}}
-            table#limitedOfferTable.common-table.display(style="width:100%")
+            table#limitedOfferTable.common-table.display.widthto100
             #limitedOfferTablePage
 
         div(ng-if='vm.showPageName=="WECHAT_GROUP_REPORT"')
-            #wechatGroupQuery.block-query.col-md-12.well
-                div(style='width:125px')
+            #wechatGroupQuery.col-md-12.well
+                .search-filters-item
                     label.control-label  {{'PRODUCT' | translate}}
-                    select.form-control.spicker(ng-model='vm.wechatGroupQuery.product', ng-change='vm.getWechatSessionDeviceNickName(vm.wechatGroupQuery.product)', ng-options="a._id as a.name  for a in vm.adminPlatformName", style='max-width:200px', multiple, bsp, data-actions-box='true')
-                div(style='width:125px')
+                    select.form-control.spicker(ng-model='vm.wechatGroupQuery.product', ng-change='vm.getWechatSessionDeviceNickName(vm.wechatGroupQuery.product)', ng-options="a._id as a.name  for a in vm.adminPlatformName", multiple, bsp, data-actions-box='true')
+                .search-filters-item
                     label.control-label  {{'Device Name' | translate}}
-                    select.form-control.spicker(ng-model='vm.wechatGroupQuery.deviceNickName', ng-change='vm.getWechatSessionCsOfficer(vm.wechatGroupQuery.product, vm.wechatGroupQuery.deviceNickName)', ng-options="a  for a in vm.wechatSessionNickName", style='max-width:200px', multiple, bsp, data-actions-box='true')
-                div(style='width:125px')
+                    select.form-control.spicker(ng-model='vm.wechatGroupQuery.deviceNickName', ng-change='vm.getWechatSessionCsOfficer(vm.wechatGroupQuery.product, vm.wechatGroupQuery.deviceNickName)', ng-options="a  for a in vm.wechatSessionNickName",  multiple, bsp, data-actions-box='true')
+                .search-filters-item
                     label.control-label  {{'Login Account' | translate}}
-                    select.form-control.spicker(ng-model='vm.wechatGroupQuery.csOfficer', ng-options="a._id as a.adminName  for a in vm.wechatSessionCsOfficer", style='max-width:200px', multiple, bsp, data-actions-box='true')
-                div
+                    select.form-control.spicker(ng-model='vm.wechatGroupQuery.csOfficer', ng-options="a._id as a.adminName  for a in vm.wechatSessionCsOfficer",  multiple, bsp, data-actions-box='true')
+                .search-filters-item
                     label {{"Connection Start Time"|translate}}
                     .startTime
-                div
+                .search-filters-item
                     label {{"Connection End Time"|translate}}
                     .endTime
-                div
-                    label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchWechatControlSession(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage("WECHAT_GROUP_REPORT")') {{'Reset' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.searchWechatControlSession(true, true)') {{'EXPORT_EXCEL' | translate}}
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchWechatControlSession(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.btn-space(ng-click='vm.loadPage("WECHAT_GROUP_REPORT")') {{'Reset' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchWechatControlSession(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#wechatGroupReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -2120,12 +2098,12 @@
                     .panel-body
                         h4 {{"Force Pairing, Please enter reference number." | translate}}
                         input(type="text" ng-model="vm.forcePairingReferenceNumber")
-                div(style='text-align:right')
+                div.text-right
                     button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(data-dismiss='modal' ng-click="vm.forcePairingWithReferenceNumber()") {{"CONFIRMATION" | translate}}
 
 #modalCommissionTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog.widthto100
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2136,7 +2114,7 @@
                                 a.common-tab(data-toggle="tab", href="#", ng-click="vm.partnerCommVar.group = grp")
                                     text.span {{grp.groupName | translate}}
 
-                h4.modal-title(style='margin-top:10px') {{"totalCount" | translate}} {{": "}} {{vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length}}
+                h4.modal-title.margin-top-10  {{"totalCount" | translate}} {{": "}} {{vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length}}
             .modal-body
                 div
                     table.simple-table
@@ -2151,14 +2129,14 @@
                                 td {{v.realName}}
                                 td {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].bonusAmount | noRoundTwoDecimalToFix}} {{"/"}} {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].validAmount | noRoundTwoDecimalToFix}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Total Consumption' | translate}}
+                                td.text-bold(colspan="2") {{'Total Consumption' | translate}}
                                 td {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].bonusAmount | noRoundTwoDecimalToFix}} {{'/'}} {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].validAmount | noRoundTwoDecimalToFix}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Commission' | translate}} {{' ('}} {{'ACTIVE_DOWNLINES'| translate}} {{': '}} {{vm.realTimeCommissionData[vm.partnerCommVar.partner].activeDownLines}} {{'/'}} {{'RATIO'| translate}} {{': '}}
+                                td.text-bold(colspan="2") {{'Commission' | translate}} {{' ('}} {{'ACTIVE_DOWNLINES'| translate}} {{': '}} {{vm.realTimeCommissionData[vm.partnerCommVar.partner].activeDownLines}} {{'/'}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomCommissionRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.commissionRate}} {{'%)'}}
                                 td(ng-style='vm.partnerCommVar.group.isCustomCommissionRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.amount | noRoundTwoDecimalToFix}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Platform Fee' | translate}} {{' ('}} {{'RATIO'| translate}} {{': '}}
+                                td.text-bold(colspan="2") {{'Platform Fee' | translate}} {{' ('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFeeRate}} {{'%)'}}
                                 td
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFee | noRoundTwoDecimalToFix}}
@@ -2166,7 +2144,7 @@
                                     text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].isAnyCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalPlatformFee | noRoundTwoDecimalToFix}}
 
 #modalRewardFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog.widthto100
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2197,7 +2175,7 @@
                                 td {{v.rewardDetail.pointConversion | noRoundTwoDecimalToFix}}
                                 td {{v.rewardDetail.total | noRoundTwoDecimalToFix}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Total' | translate}}
+                                td.text-bold(colspan="2") {{'Total' | translate}}
                                 td {{vm.partnerDLCommDetailTotal.systemReward | noRoundTwoDecimalToFix}}
                                 td {{vm.partnerDLCommDetailTotal.manualReward | noRoundTwoDecimalToFix}}
                                 td {{vm.partnerDLCommDetailTotal.consumptionReturn | noRoundTwoDecimalToFix}}
@@ -2206,12 +2184,12 @@
                                 td {{vm.partnerDLCommDetailTotal.pointConversion | noRoundTwoDecimalToFix}}
                                 td {{vm.partnerDLCommDetailTotal.total | noRoundTwoDecimalToFix}}
                             tr
-                                td(colspan="8", style="font-weight:bold") {{'Reward Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                td.text-bold(colspan="8") {{'Reward Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromo}} {{"%)"}}
                                 td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalRewardFee | noRoundTwoDecimalToFix}}
 
 #modalTopUpFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog.widthto100
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2238,19 +2216,19 @@
                                 td {{v.topUpDetail.weChatTopUpAmount | noRoundTwoDecimalToFix}}
                                 td {{v.topUpDetail.topUpAmount | noRoundTwoDecimalToFix}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Total' | translate}}
+                                td.text-bold(colspan="2") {{'Total' | translate}}
                                 td {{vm.partnerDLCommDetailTotal.manualTopUpAmount | noRoundTwoDecimalToFix}}
                                 td {{vm.partnerDLCommDetailTotal.onlineTopUpAmount | noRoundTwoDecimalToFix}}
                                 td {{vm.partnerDLCommDetailTotal.aliPayTopUpAmount | noRoundTwoDecimalToFix}}
                                 td {{vm.partnerDLCommDetailTotal.weChatTopUpAmount | noRoundTwoDecimalToFix}}
                                 td {{vm.partnerDLCommDetailTotal.topUpAmount | noRoundTwoDecimalToFix}}
                             tr
-                                td(colspan="6", style="font-weight:bold") {{'TopUp Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                td.text-bold(colspan="6") {{'TopUp Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDeposit}} {{"%)"}}
                                 td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalTopUpFee | noRoundTwoDecimalToFix}}
 
 #modalWithdrawalFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog.widthto100
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2269,15 +2247,15 @@
                                 td {{v.realName}}
                                 td {{v.withdrawalDetail.withdrawalAmount | noRoundTwoDecimalToFix}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Total' | translate}}
+                                td.text-bold(colspan="2") {{'Total' | translate}}
                                 td {{vm.partnerDLCommDetailTotal.withdrawalAmount | noRoundTwoDecimalToFix}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Withdrawal Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                td.text-bold(colspan="2") {{'Withdrawal Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal}} {{"%)"}}
                                 td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalWithdrawalFee | noRoundTwoDecimalToFix}}
 
 #modalActivePlayerTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog.widthto100
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2303,7 +2281,7 @@
                                 td {{v.consumptionDetail.validAmount | noRoundTwoDecimalToFix}}
 
 #modalGameDetails.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2329,7 +2307,7 @@
                                 td {{item.profitMargin}} %
 
 #modalPlayerDepositAnalysisDetailsTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2350,12 +2328,12 @@
                                 td(ng-class='v.isExceedDailyTotalDeposit ? "yellow-background" : ""') {{v.topUpAmount | noRoundTwoDecimalPlaces}}
                                 td(ng-class='v.isExceedDailyTotalDeposit ? "yellow-background" : ""') {{v.bonusAmount | noRoundTwoDecimalPlaces}}
                             tr(ng-if="vm.playerDepositAnalysisDetails.outputData.length > 0")
-                                td(style="font-weight:bold") {{"Totalsum" | translate}}
-                                td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
-                                td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
+                                td.text-bold {{"Totalsum" | translate}}
+                                td.text-bold {{vm.playerDepositAnalysisDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td.text-bold {{vm.playerDepositAnalysisDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
 
 #modalPlayerDepositTrackingGroupTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2403,7 +2381,7 @@
                 button.btn.btn-danger.margin-left-5(ng-if='vm.editDepositTrackingGroup' ng-click='vm.editDepositTrackingGroup=!vm.editDepositTrackingGroup; vm.newDepositTrackingGroup = []') {{'CANCEL' | translate}}
 
 #modalPlayerDepositTrackingGroupModifyTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2428,7 +2406,7 @@
                     text {{"CANCEL" | translate}}
 
 #modalPlayerDepositTrackingMonthlyDetailsTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2454,14 +2432,14 @@
                                 td
                                     a(data-toggle="modal", data-target='#modalPlayerDepositTrackingDailyDetailsTable', ng-click="vm.getPlayerDepositTrackingDailyDetails(v.date)") {{'DETAILS' | translate}}
                             tr(ng-if="vm.depositTrackingMonthlyDetails.outputData.length > 0")
-                                td(style="font-weight:bold") {{"Totalsum" | translate}}
-                                td(style="font-weight:bold") {{vm.depositTrackingMonthlyDetails.total.validConsumption | noRoundTwoDecimalPlaces}}
-                                td(style="font-weight:bold") {{vm.depositTrackingMonthlyDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
-                                td(style="font-weight:bold") {{vm.depositTrackingMonthlyDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
+                                td.text-bold {{"Totalsum" | translate}}
+                                td.text-bold {{vm.depositTrackingMonthlyDetails.total.validConsumption | noRoundTwoDecimalPlaces}}
+                                td.text-bold {{vm.depositTrackingMonthlyDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td.text-bold {{vm.depositTrackingMonthlyDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
                                 td
 
 #modalPlayerDepositTrackingDailyDetailsTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:40%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -2484,10 +2462,10 @@
                                 td {{v.topUpAmount | noRoundTwoDecimalPlaces}}
                                 td {{v.bonusAmount | noRoundTwoDecimalPlaces}}
                             tr(ng-if="vm.depositTrackingDailyDetails.outputData.length > 0")
-                                td(style="font-weight:bold") {{"Totalsum" | translate}}
-                                td(style="font-weight:bold") {{vm.depositTrackingDailyDetails.total.validConsumption | noRoundTwoDecimalPlaces}}
-                                td(style="font-weight:bold") {{vm.depositTrackingDailyDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
-                                td(style="font-weight:bold") {{vm.depositTrackingDailyDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
+                                td.text-bold {{"Totalsum" | translate}}
+                                td.text-bold {{vm.depositTrackingDailyDetails.total.validConsumption | noRoundTwoDecimalPlaces}}
+                                td.text-bold {{vm.depositTrackingDailyDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td.text-bold {{vm.depositTrackingDailyDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
 
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')

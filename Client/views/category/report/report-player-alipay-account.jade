@@ -1,28 +1,27 @@
-#playerAlipayAccountReport.block-query.col-md-12.well
-    div
+#playerAlipayAccountReport.col-md-12.well
+    .search-filters-item
         label {{"playerName" | translate}}
-        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.playerName")
-    div
+        input.form-control(ng-model="vm.playerAlipayAccReport.playerName")
+    .search-filters-item
         label {{"RECORD_ALIPAY_ACC"|translate}}
-        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayAcc")
-    div
+        input.form-control(ng-model="vm.playerAlipayAccReport.alipayAcc")
+    .search-filters-item
         label {{"RECORD_ALIPAY_NAME"|translate}}
-        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayName")
-    div
+        input.form-control(ng-model="vm.playerAlipayAccReport.alipayName")
+    .search-filters-item
         label {{"RECORD_ALIPAY_NICKNAME"|translate}}
-        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayNickname")
-    div
+        input.form-control(ng-model="vm.playerAlipayAccReport.alipayNickname")
+    .search-filters-item
         label {{"RECORD_ALIPAY_REMARK"|translate}}
-        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayRemark")
-    div
+        input.form-control(ng-model="vm.playerAlipayAccReport.alipayRemark")
+    .search-filters-item
         label {{"Start date"|translate}}
         #playerAlipayAccountReportStartTime
-    div
+    .search-filters-item
         label {{"End date"|translate}}
         #playerAlipayAccountReportEndTime
-    div
-        label &nbsp;
-        button.btn.btn-success(ng-click='vm.getPlayerAlipayAccReport(true)') {{'SEARCH' | translate}}
+    .text-right.widthto100
+        button.btn.btn-success.btn-space(ng-click='vm.getPlayerAlipayAccReport(true)') {{'SEARCH' | translate}}
         span#playerAlipayAccReportSpin.collapse
             i.fa.fa-spinner.fa-spin
 .clearfix

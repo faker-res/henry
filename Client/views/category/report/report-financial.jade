@@ -1,38 +1,29 @@
 #financialReport.block-query.col-md-12.well
-    div
-        label(style='color: red; font-size:10pt') {{"*Default 00:00:00" | translate}}
+    .search-filters-item
+        label.red-annotation {{"*Default 00:00:00" | translate}}
         label {{"Search Date (Start)" | translate}}
         .startTime
-    div
-        label(style='color: red; font-size:10pt') {{"*Default 23:59:59" | translate}}
+    .search-filters-item
+        label.red-annotation {{"*Default 23:59:59" | translate}}
         label {{"Search Date (End)" | translate}}
         .endTime
-    div(style='width:155px')
+    .search-filters-item
         label &nbsp;
         label {{"Platform (Multiple Selection)" | translate}}
         select.form-control#selectFinancialReportPlatform(multiple='multiple', ng-model='vm.financialReport.platform')
             option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}') {{v.name}}
-    div
+    .search-filters-item
         label &nbsp;
-        label {{"Display Method"|translate}} &nbsp;
+        label {{"Display Method"|translate}}
         select.form-control(ng-model='vm.financialReport.displayMethod' ng-disabled='vm.isDisableSelectDisplayMethod')
             option(value='sum') {{"A. Sum" | translate}}
             option(value='daily') {{"B. Daily" | translate}}
-    div
-        label &nbsp;
-        label &nbsp;
-        button.btn.btn-success(ng-click='vm.searchFinancialReport()') {{'SEARCH' | translate}}
+    .text-right.widthto100
+        button.btn.btn-success.btn-space(ng-click='vm.searchFinancialReport()') {{'SEARCH' | translate}}
         span#financialReportSpin.collapse
             i.fa.fa-spinner.fa-spin
-    div
-        label &nbsp;
-        label &nbsp;
-        button.btn.btn-danger(data-toggle="modal", data-target='#modalDepositGroupSetting', ng-click='vm.initDepositGroupSetting()') {{'Deposit Group Setting' | translate}}（{{'Impact report display' | translate}}）
-
-    div
-        label &nbsp;
-        label &nbsp;
-        button.btn.btn-info(ng-click='vm.exportToExcel("", "FINANCIAL_REPORT")') {{'EXPORT_EXCEL' | translate}}
+        button.btn.btn-danger.btn-space(data-toggle="modal", data-target='#modalDepositGroupSetting', ng-click='vm.initDepositGroupSetting()') {{'Deposit Group Setting' | translate}}（{{'Impact report display' | translate}}）
+        button.btn.btn-info.btn-space(ng-click='vm.exportToExcel("", "FINANCIAL_REPORT")') {{'EXPORT_EXCEL' | translate}}
 
 
 .clearfix
