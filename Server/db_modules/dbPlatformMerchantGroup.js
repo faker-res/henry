@@ -452,13 +452,16 @@ var dbPlatformMerchantGroup = {
 
         for(var i = 1; i < 4; i++) {
             //insert a "select all (same) line" object, ex: 支付宝线路1(包含不存在的卡)
+            // forloop 1-3 ,is because pms wont keep every card forever, if it dont have return any card in 1 kind of "line",
+            // we will unable to create the query condition at frontend (ex: 线路3), cause data which with same "line" type will become unsearchable.
+            // so, we hardcode only 3 type of "线路", which is 1,2,3
             let str = i.toString();
             let category = dbPlatformMerchantGroup.getAlipayLineAcc(str, 1);
             result.push(category);
         }
 
         for(var k = 1; k < 4; k++) {
-            //insert a "select all (same) line" object, ex: 支付宝线路1(全部)
+            //insert a "select all (same) line" object, ex: 支付宝线路1(全部) .. forloop 1-3. reason same with above.
             let str = k.toString();
             let category = dbPlatformMerchantGroup.getAlipayLineAcc(str, 2);
             result.push(category);
