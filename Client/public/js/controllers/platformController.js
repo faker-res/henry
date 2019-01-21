@@ -259,6 +259,7 @@ define(['js/app'], function (myApp) {
                 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP', 'BAN_PLAYER_BONUS'];
 
             vm.depositMethodList = $scope.depositMethodList;
+            vm.depositMethod = $scope.depositMethod;
 
             vm.allPlayerFeedbackString = {
                 NORMAL: "Normal",
@@ -21012,6 +21013,8 @@ define(['js/app'], function (myApp) {
                                         }
                                         result = gameProviders;
                                         break;
+                                    case "depositMethod":
+                                        result = vm.depositMethod;
                                     default:
                                         result = $scope[cond.options];
                                         if (result) {
@@ -21043,7 +21046,8 @@ define(['js/app'], function (myApp) {
                                         vm.rewardDisabledParam.push("onlineTopUpType")
                                     }
                                     if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("1") > -1)) {
-                                        vm.rewardDisabledParam.push("bankCardType")
+                                        vm.rewardDisabledParam.push("bankCardType");
+                                        vm.rewardDisabledParam.push("depositMethod");
                                     }
                                 }
 
@@ -21675,6 +21679,7 @@ define(['js/app'], function (myApp) {
 
                     if (model.value.indexOf("1") === -1) {
                         vm.rewardDisabledParam.indexOf("bankCardType") === -1 ? vm.rewardDisabledParam.push("bankCardType") : null;
+                        vm.rewardDisabledParam.indexOf("depositMethod") === -1 ? vm.rewardDisabledParam.push("depositMethod") : null;
                         for (let i = 0; i < Object.keys(vm.rewardMainCondition).length; i++) {
                             if (vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].name == "bankCardType") {
                                 vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].value = [];
@@ -21683,7 +21688,9 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     } else {
-                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "bankCardType");
+                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => {
+                            return name !== "bankCardType" && name !== "depositMethod";
+                        });
                     }
                 }
                 if (model && model.name == "defineLoseValue") {

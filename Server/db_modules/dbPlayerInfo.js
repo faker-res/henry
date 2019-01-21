@@ -22076,6 +22076,7 @@ let dbPlayerInfo = {
                 updatePassword: false,
                 applyRewardPoint: false,
                 deductRewardPoint: false,
+                auctionBidding: false,
             }
         })
     },
