@@ -14342,6 +14342,8 @@ let dbPlayerInfo = {
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type, forceSettled) {
         console.log('Apply reward event', playerId, code);
+        let applyRewardEventRunTime = 0;
+        let applyRewardEventRunTimeStart = new Date().getTime();
         data = data || {};
         let dbPlayerUtil = require('../db_common/dbPlayerUtility');
         let isFrontEnd = data.isFrontEnd || false;
@@ -14675,6 +14677,9 @@ let dbPlayerInfo = {
                 if (data && isPreview){
                     return data;
                 }
+                let applyRewardEventRunTimeEnd = new Date().getTime();
+                applyRewardEventRunTime = (applyRewardEventRunTimeEnd - applyRewardEventRunTimeStart) / 1000;
+                console.log('applyRewardEventRunTime===11', applyRewardEventRunTime);
                 // Reset BState
                 dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 return data;
@@ -14687,6 +14692,10 @@ let dbPlayerInfo = {
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 }
+
+                let applyRewardEventRunTimeEnd = new Date().getTime();
+                applyRewardEventRunTime = (applyRewardEventRunTimeEnd - applyRewardEventRunTimeStart) / 1000;
+                console.log('applyRewardEventRunTime===22', applyRewardEventRunTime);
 
                 console.log('applyRewardEvent error', playerId, err);
                 throw err;
@@ -16215,7 +16224,7 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 let summaryDataQuery = {
-                    date: {$gte: new Date(query.start), $lte: new Date(query.end)},
+                    date: {$gte: new Date(query.start), $lt: new Date(query.end)},
                     platformId: ObjectId(platform)
                 };
 

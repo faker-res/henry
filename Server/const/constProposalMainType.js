@@ -77,7 +77,6 @@ const constProposalMainType = {
     "UpdatePlayerEmail": constMainType.UPDATE_PLAYER,
     "UpdatePlayerPhone": constMainType.UPDATE_PLAYER,
     //"UpdatePlayerCredit": constMainType.UPDATE_PLAYER,
-    "FixPlayerCreditTransfer": constMainType.UPDATE_PLAYER,
     "UpdatePlayerQQ": constMainType.UPDATE_PLAYER,
     "UpdatePlayerWeChat": constMainType.UPDATE_PLAYER,
     //"ManualUnlockPlayerReward": constMainType.UPDATE_PLAYER,
@@ -100,6 +99,7 @@ const constProposalMainType = {
 
     //OTHERS
     "UpdatePlayerCredit": constMainType.OTHERS,
+    "FixPlayerCreditTransfer": constMainType.OTHERS,
     "RepairTransaction":constMainType.OTHERS, // New added
     "UpdatePartnerCredit":constMainType.OTHERS,
     "ManualUnlockPlayerReward": constMainType.OTHERS,

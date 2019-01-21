@@ -508,7 +508,16 @@ db.rewardParam.update({
             periodCond: periodCond,
             latestTopUpCond: latestTopUpCond,
             consumptionCond: consumptionCond,
-            dynamicCond: dynamicCond
+            dynamicCond: dynamicCond,
+            customCond: {
+                depositMethod: {
+                    index: 19,
+                    type: "multiSelect",
+                    des: "DEPOSIT_METHOD",
+                    options: "depositMethod",
+                    detail: "REWARD_TOP_UP_TYPE_DETAIL"
+                }
+            }
         },
         param: {
             tblOptFixed: {
