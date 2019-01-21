@@ -157,7 +157,18 @@ function socketActionReport(socketIO, socket) {
             query.limit = query.limit || 10;
             query.index = query.index || 0;
             let isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateReport, [startTime, endTime, query.providerId, query.platformId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateReport, [startTime, endTime, query.providerId, query.platformId, query.listAll], actionName, isValidData);
+        },
+
+        winRateAllPlatformReport: function winRateAllPlatformReport(query) {
+            let actionName = arguments.callee.name;
+            let time = dbUtil.getYesterdaySGTime();
+            let startTime = query.startTime ? new Date(query.startTime) : time.startTime;
+            let endTime = query.endTime ? new Date(query.endTime) : time.endTime;
+            query.limit = query.limit || 10;
+            query.index = query.index || 0;
+            let isValidData = Boolean(query && query.platformId);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateAllPlatformReport, [startTime, endTime, query.providerId, query.platformId], actionName, isValidData);
         },
 
         /**

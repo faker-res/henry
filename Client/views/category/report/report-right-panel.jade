@@ -1921,6 +1921,7 @@
                         th {{'VALID_CONSUMPTION' | translate}}
                         th {{'PLAYER_PROFIT_AMOUNT' | translate}}
                         th {{'COMPANY_EARNING_RATIO' | translate}}
+                        th {{'DETAILS' | translate}}
                 tbody
                     tr
                         td {{vm.winRateSummaryData.participantNumber}}
@@ -1929,6 +1930,20 @@
                         td {{(vm.winRateSummaryData.validAmount) | number : 2}}
                         td {{(vm.winRateSummaryData.bonusAmount) | number : 2}}
                         td {{(-vm.winRateSummaryData.bonusAmount/vm.winRateSummaryData.validAmount*100 || 0) | number : 2 }}%
+                        td(ng-click='vm.getWinRateAllPlatformReport(true)')
+                            a {{'DETAILS' | translate}}
+
+            #layer2
+            table#winRateLayer2Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+            table.common-table.simple-table#winRateSummaryLayer2Table(style='margin-top:10px;font-size:12px')
+
+            #layer3
+            table#winRateLayer3Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+            table.common-table.simple-table#winRateSummaryLayer3Table(style='margin-top:10px;font-size:12px')
+
+            #layer4
+            table#winRateLayer4Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+            table.common-table.simple-table#winRateSummaryLayer4Table(style='margin-top:10px;font-size:12px')
 
         div(ng-if='vm.showPageName=="ONLINE_PAYMENT_MISMATCH_REPORT"')
             // 输赢报表

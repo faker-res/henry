@@ -2515,15 +2515,109 @@ define(['js/app'], function (myApp) {
                 $('#winRateTable').show();
                 $('#winRateSummaryTable').show();
                 console.log('win rate report data', data);
-                vm.winRateSummaryData = data.data;
-                $scope.safeApply();
+                vm.winRateSummaryData = ( data.data && data.data[0] ) ? data.data[0] : [];
+                $scope.$evalAsync();
             }, function (err) {
                 $('#winRateTableSpin').hide();
                 vm.winRateReportLoadingStatus = err.message;
-                $scope.safeApply();
+                $scope.$evalAsync();
             }, true);
         };
 
+        vm.getWinRateAllPlatformReport = function (listAll) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            // hide table and show 'loading'
+            $('#winRateTableSpin').show();
+            $('#winRateTable').hide();
+            $('#winRateSummaryTable').hide();
+
+            vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
+            vm.curWinRateQuery.providerId = vm.curWinRateQuery.providerId == "all" ? null : vm.curWinRateQuery.providerId;
+            vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
+
+            vm.curWinRateQuery.limit = 0;
+
+            vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
+            vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+            if( listAll ){
+                vm.curWinRateQuery.listAll = true;
+            }
+
+            console.log('vm.curWinRateQuery', vm.curWinRateQuery);
+            socketService.$socket($scope.AppSocket, 'winRateAllPlatformReport', vm.curWinRateQuery, function (data) {
+                console.log(data);
+                // findReportSearchTime();
+                // vm.winRateReportLoadingStatus = "";
+                // $('#winRateTableSpin').hide();
+                // $('#winRateTable').show();
+                // $('#winRateSummaryTable').show();
+                // console.log('win rate report data', data);
+                // vm.winRateSummaryData = data.data;
+                // $scope.safeApply();
+            }, function (err) {
+                // $('#winRateTableSpin').hide();
+                // vm.winRateReportLoadingStatus = err.message;
+                // $scope.safeApply();
+            }, true);
+        };
+
+        vm.getProviderDetail = function () {
+            alert('got it');
+        }
+        vm.drawWinRateLayer2Report = function (data, size, summary, newSearch, isExport) {
+            console.log('data', data);
+            var tableOptions = {
+                data: data,
+                "order": vm.queryTopup.aaSorting || [[0, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        title: $translate('Business Acc/ Bank Acc'), data: "merchantNoDisplay",
+                        render: function (data, type, row){
+                            let addititionalText = '';
+                            if( row.data.line && row.data.line == '2'){
+                                addititionalText = '(MMM)';
+                            }else if(row.data.line && row.data.line == '3'){
+                                addititionalText = '('+$translate('MMM4-line3')+')';
+                            }
+                            return "<div>" + data + addititionalText + "</div>";
+                        }
+                    },
+
+                ],
+                "paging": false,
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                },
+                fnDrawCallback: function () {
+                    $scope.$evalAsync();
+                }
+
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            // vm.topupTable = $('#topupTable').DataTable(tableOptions);
+            // if(isExport){
+            //     vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {13: summary.amount});
+            //     $('#topupExcelTable_wrapper').hide();
+            //     vm.exportToExcel("topupExcelTable", "TOPUP_REPORT");
+            // }else{
+                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {13: summary.amount});
+                vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
+
+                $('#topupTable').off('order.dt');
+                $('#topupTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'queryTopup', vm.searchTopupRecord);
+                });
+                $('#topupTable').resize();
+            // }
+
+        }
+        /* end */
         vm.getNumberQueryStr = function (operator, formal, later) {
             if (operator && formal != null) {
                 switch (operator) {
