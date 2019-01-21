@@ -70,6 +70,8 @@ const SMSSender = {
                                     // the time when the promoCode is expired
                                     if(proposalData.data.expirationTime)
                                         template.content = template.content.replace('{{proposalData.data.expirationTime}}', proposalData.data.expirationTime);
+                                    if(proposalData.data.rewardPointsVariable)
+                                        template.content = template.content.replace('{{proposalData.data.rewardPointsVariable}}', proposalData.data.rewardPointsVariable);
 
                                     template.content = renderTemplate(template.content, metaData);
                                 }
