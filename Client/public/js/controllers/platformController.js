@@ -21486,7 +21486,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.changeRewardParamLayout = (model, isFirstLoad) => {
-                console.log("walaochange")
                 let isResetLayout = Boolean(isFirstLoad);
 
                 if (model && model.name == "canApplyFromClient") {
