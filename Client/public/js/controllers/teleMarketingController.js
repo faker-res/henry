@@ -575,7 +575,7 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.createCallOutMission = function () {
+        vm.createCallOutMission = function (isChosenPhoneOnly) {
             $('#adminPhoneListTableSpin').show();
             let sendQuery = {};
 
@@ -584,6 +584,21 @@ define(['js/app'], function (myApp) {
             sendQuery.searchQuery = JSON.stringify(vm.generateAdminPhoneQuery());
             sendQuery.searchFilter = sendQuery.searchQuery;
             sendQuery.sortCol = sendQuery.searchQuery.sortCol || {endTime: -1};
+            if (isChosenPhoneOnly) {
+                let selectedPhones = [];
+                $('.chosenPhone').each((i, phone)=>{
+                    let isChecked = $(phone).is(':checked');
+                    if(isChecked){
+                        let id = $(phone).attr('data-id');
+                        selectedPhones.push(id);
+                    }
+                });
+                if (selectedPhones.length) {
+                    sendQuery.selectedPhones = selectedPhones;
+                } else {
+                    return; // might need to show an error message here
+                }
+            }
 
             $scope.$socketPromise("createTsCallOutMission", sendQuery).then(data => {
                 console.log(data);
@@ -665,6 +680,7 @@ define(['js/app'], function (myApp) {
                 searchFunc = "searchAdminPhoneReminderList";
             }
             utilService.clearPopovers();
+            $('#selectAllPhone').off();
             var tableOptions = {
                 data: data,
                 "order": vm[objKey].aaSorting ,
@@ -675,6 +691,13 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {
+                        title: '<div><input type="checkbox" id="selectAllPhone"></div>',
+                        visible: !vm.isCallOutMissionMode,
+                        render: function (data, type, row) {
+                            return $('<div>', {}).append($('<input type="checkbox" class="chosenPhone" data-id="'+row._id+'">', {}).text(data)).prop('outerHTML');
+                        }
+                    },
                     {title: $translate('NAME_LIST_TITLE'), data: "tsPhoneList.name"},
                     {
                         title: $translate('PHONENUMBER'), data: "encodedPhoneNumber$",
@@ -796,6 +819,8 @@ define(['js/app'], function (myApp) {
 
                         }
                     });
+
+                    $('#selectAllPhone').on('click', vm.selectAllPhone);
                 }
 
             }
@@ -810,6 +835,10 @@ define(['js/app'], function (myApp) {
             });
             $(tableId).resize();
         }
+
+        vm.selectAllPhone = function (e) {
+            $('.chosenPhone').prop('checked', Boolean($(e.currentTarget).is(':checked')));
+        };
 
         vm.showSelectedCredibility = function () {
             vm.tsCreditRemark = "";
