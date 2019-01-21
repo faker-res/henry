@@ -450,14 +450,14 @@ var dbPlatformMerchantGroup = {
         let uniqueLine = [];
         let uniqueObj = {};
 
-        for(var i = 1; i < 6; i++) {
+        for(var i = 1; i < 4; i++) {
             //insert a "select all (same) line" object, ex: 支付宝线路1(包含不存在的卡)
             let str = i.toString();
             let category = dbPlatformMerchantGroup.getAlipayLineAcc(str, 1);
             result.push(category);
         }
 
-        for(var k = 1; k < 6; k++) {
+        for(var k = 1; k < 4; k++) {
             //insert a "select all (same) line" object, ex: 支付宝线路1(全部)
             let str = k.toString();
             let category = dbPlatformMerchantGroup.getAlipayLineAcc(str, 2);
