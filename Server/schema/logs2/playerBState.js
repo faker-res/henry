@@ -26,6 +26,8 @@ let playerBStateSchema = new Schema({
     applyRewardPoint: {type: Boolean, default: false},
     // deduct reward points
     deductRewardPoint: {type: Boolean, default: false},
+    // auction bidding process
+    auctionBidding: {type: Boolean, default: false},
 });
 
 module.exports = playerBStateSchema;

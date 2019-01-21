@@ -222,6 +222,14 @@ const constMessageTypeParam = {
         params:[
             {parameterName:'proposalData.data.productName' , description:'Product Name'},
         ]
+    },
+    AUCTION_REWARD_PROMOTION_SUCCESS: {
+        name:"AuctionRewardPromotionSuccess",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.requiredUnlockAmount' , description:'Spending times on reward'},
+        ]
     }
 
 };
