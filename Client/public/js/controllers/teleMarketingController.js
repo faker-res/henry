@@ -519,12 +519,13 @@ define(['js/app'], function (myApp) {
             vm.getTsDistributedPhoneDetail($scope.tsDistributedPhoneObjId);
 
             // Zero dependencies variable
-            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults, vm.allTsPhoneList] = await Promise.all([
+            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults, vm.allTsPhoneList, vm.smsTemplate] = await Promise.all([
                 commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id}).catch(err => Promise.resolve([])),
                 commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
                 commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
             ]);
         };
 
@@ -574,7 +575,7 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.createCallOutMission = function () {
+        vm.createCallOutMission = function (isChosenPhoneOnly) {
             $('#adminPhoneListTableSpin').show();
             let sendQuery = {};
 
@@ -583,6 +584,21 @@ define(['js/app'], function (myApp) {
             sendQuery.searchQuery = JSON.stringify(vm.generateAdminPhoneQuery());
             sendQuery.searchFilter = sendQuery.searchQuery;
             sendQuery.sortCol = sendQuery.searchQuery.sortCol || {endTime: -1};
+            if (isChosenPhoneOnly) {
+                let selectedPhones = [];
+                $('.chosenPhone').each((i, phone)=>{
+                    let isChecked = $(phone).is(':checked');
+                    if(isChecked){
+                        let id = $(phone).attr('data-id');
+                        selectedPhones.push(id);
+                    }
+                });
+                if (selectedPhones.length) {
+                    sendQuery.selectedPhones = selectedPhones;
+                } else {
+                    return; // might need to show an error message here
+                }
+            }
 
             $scope.$socketPromise("createTsCallOutMission", sendQuery).then(data => {
                 console.log(data);
@@ -664,6 +680,7 @@ define(['js/app'], function (myApp) {
                 searchFunc = "searchAdminPhoneReminderList";
             }
             utilService.clearPopovers();
+            $('#selectAllPhone').off();
             var tableOptions = {
                 data: data,
                 "order": vm[objKey].aaSorting ,
@@ -674,6 +691,13 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {
+                        title: '<div><input type="checkbox" id="selectAllPhone"></div>',
+                        visible: !vm.isCallOutMissionMode,
+                        render: function (data, type, row) {
+                            return $('<div>', {}).append($('<input type="checkbox" class="chosenPhone" data-id="'+row._id+'">', {}).text(data)).prop('outerHTML');
+                        }
+                    },
                     {title: $translate('NAME_LIST_TITLE'), data: "tsPhoneList.name"},
                     {
                         title: $translate('PHONENUMBER'), data: "encodedPhoneNumber$",
@@ -694,7 +718,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('ASSIGN_TIMES'),
                         render: function (data, type, row) {
-                            return '<span>' + row.assignTimes + "/" + row.tsPhone.assignTimes + '</span>';
+                            return '<span>' + row.assignTimes + "/" + row.tsPhoneList.callerCycleCount + '</span>';
                         }
                     },
                     {title: $translate('PHONE_DISTRIBUTED_TIME'), data: "startTime$"},
@@ -795,6 +819,8 @@ define(['js/app'], function (myApp) {
 
                         }
                     });
+
+                    $('#selectAllPhone').on('click', vm.selectAllPhone);
                 }
 
             }
@@ -809,6 +835,10 @@ define(['js/app'], function (myApp) {
             });
             $(tableId).resize();
         }
+
+        vm.selectAllPhone = function (e) {
+            $('.chosenPhone').prop('checked', Boolean($(e.currentTarget).is(':checked')));
+        };
 
         vm.showSelectedCredibility = function () {
             vm.tsCreditRemark = "";
@@ -1285,11 +1315,16 @@ define(['js/app'], function (myApp) {
             });
         }
 
-        vm.initTsDistrubutedPhoneReminder = function (tsPhoneObjId) {
-            vm.tsPhoneReminder = {tsPhone: tsPhoneObjId && tsPhoneObjId.tsPhone && tsPhoneObjId.tsPhone._id || ""};
+        vm.initTsDistrubutedPhoneReminder = function (tsPhoneObj) {
+            vm.tsPhoneReminder = {tsPhone: tsPhoneObj && tsPhoneObj.tsPhone && tsPhoneObj.tsPhone._id || ""};
+            vm.tsPhoneReminderDateShow = "-";
+            if (tsPhoneObj.remindTime && tsPhoneObj.remindTime >= tsPhoneObj.startTime && tsPhoneObj.remindTime <= tsPhoneObj.endTime) {
+                vm.tsPhoneReminderDateShow = vm.dateReformat(tsPhoneObj.remindTime);
+            }
             utilService.actionAfterLoaded("#phoneListReminderTimePicker", function () {
-                let remindDate = tsPhoneObjId.remindTime || utilService.getNdaylaterStartTime(1)
-                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null, noInvert: true});
+                let remindDate = /*tsPhoneObj.remindTime || */utilService.setNDaysAfter(new Date(), 1);
+                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, false,
+                    {language: 'en', format: 'yyyy/MM/dd hh:mm:ss', noInvert: true});
             })
         }
 
@@ -1322,6 +1357,7 @@ define(['js/app'], function (myApp) {
             };
             socketService.$socket($scope.AppSocket, 'updateTsPhoneDistributedPhone', sendData, function (data) {
                 vm.autoRefreshTsDistributedPhoneReminder(true);
+                vm.searchAdminPhoneList(true);
             });
         };
 
@@ -1433,7 +1469,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToTsPhoneBtn = function (type, data) {
             vm.selectedTsDistributedPhoneId = data._id;
             console.log(type, data);
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                 if (!(data && data.tsPhone && data.tsPhone.phoneNumber)) {
@@ -2704,17 +2740,17 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.getSMSTemplate = function () {
-            vm.smsTemplate = [];
-            $scope.$socketPromise('getMessageTemplatesForPlatform', {
-                platform: vm.selectedPlatform.id,
-                format: 'smstpl'
-            }).then(function (data) {
-                vm.smsTemplate = data.data;
-                console.log("vm.smsTemplate", vm.smsTemplate);
-                $scope.safeApply();
-            }).done();
-        };
+        // vm.getSMSTemplate = function () {
+        //     vm.smsTemplate = [];
+        //     $scope.$socketPromise('getMessageTemplatesForPlatform', {
+        //         platform: vm.selectedPlatform.id,
+        //         format: 'smstpl'
+        //     }).then(function (data) {
+        //         vm.smsTemplate = data.data;
+        //         console.log("vm.smsTemplate", vm.smsTemplate);
+        //         $scope.safeApply();
+        //     }).done();
+        // };
 
         vm.useSMSTemplate = function () {
             vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
@@ -2769,9 +2805,9 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToPlayerBtn = function (type, data) {
             // var rowData = JSON.parse(data);
             console.log(type, data);
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var title, text;
-            if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+            if (type == 'msg') {
                 vm.smsPlayer = {
                     playerId: data.playerId,
                     name: data.name,
@@ -2820,7 +2856,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? 10 : vm.smsLog.limit,
             };
 
-            if (vm.selectedTab == "REMINDER_PHONE_LIST" && vm.selectedTsDistributedPhoneId) {
+            if ((vm.selectedTab == "REMINDER_PHONE_LIST" || vm.targetedTsDistributedPhoneDetail) && vm.selectedTsDistributedPhoneId) {
                 socketActionStr = "searchTsSMSLog";
                 requestData.tsDistributedPhone = vm.selectedTsDistributedPhoneId;
             } else {
@@ -5990,7 +6026,7 @@ define(['js/app'], function (myApp) {
 
         vm.callNewPlayerBtn = function (phoneNumber, data) {
 
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var phoneCall = {
                 playerId: data && data.playerObjId && data.playerObjId.playerId ? data.playerObjId.playerId : "",
                 name: data && data.playerObjId && data.playerObjId.name ? data.playerObjId.name : "",

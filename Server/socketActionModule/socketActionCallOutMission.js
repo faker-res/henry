@@ -51,7 +51,7 @@ function socketActionBankCardGroup(socketIO, socket) {
         createTsCallOutMission: function createTsCallOutMission(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.adminObjId && data.searchFilter && data.searchQuery && data.sortCol);
-            socketUtil.emitter(self.socket, dbTsCallOutMission.createCallOutMission, [data.platformObjId, data.adminObjId, data.searchFilter, data.searchQuery, data.sortCol, data.selectedPlayers], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTsCallOutMission.createCallOutMission, [data.platformObjId, data.adminObjId, data.searchFilter, data.searchQuery, data.sortCol, data.selectedPhones], actionName, isValidData);
         },
 
         toggleTsCallOutMissionStatus: function toggleTsCallOutMissionStatus(data) {

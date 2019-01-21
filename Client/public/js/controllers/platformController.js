@@ -259,6 +259,7 @@ define(['js/app'], function (myApp) {
                 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP', 'BAN_PLAYER_BONUS'];
 
             vm.depositMethodList = $scope.depositMethodList;
+            vm.depositMethod = $scope.depositMethod;
 
             vm.allPlayerFeedbackString = {
                 NORMAL: "Normal",
@@ -1127,7 +1128,7 @@ define(['js/app'], function (myApp) {
                  vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
                  vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
                  [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList],
-                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions
+                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions, vm.smsTemplate
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -1146,7 +1147,8 @@ define(['js/app'], function (myApp) {
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                     commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []])),
-                    commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+                    commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
                 ]);
 
                 // 1st dependencies variable
@@ -2584,7 +2586,7 @@ define(['js/app'], function (myApp) {
 
             vm.initSendMultiMessage = function () {
                 vm.smsLog = {index: 0, limit: 10};
-                vm.getSMSTemplate();
+                //vm.getSMSTemplate();
                 vm.sendMultiMessage = {
                     totalCount: 0,
                     playerType: 'Real Player (all)',
@@ -2631,17 +2633,17 @@ define(['js/app'], function (myApp) {
                 })
             };
 
-            vm.getSMSTemplate = function () {
-                vm.smsTemplate = [];
-                $scope.$socketPromise('getMessageTemplatesForPlatform', {
-                    platform: vm.selectedPlatform.id,
-                    format: 'smstpl'
-                }).then(function (data) {
-                    vm.smsTemplate = data.data;
-                    console.log("vm.smsTemplate", vm.smsTemplate);
-                    $scope.safeApply();
-                }).done();
-            };
+            // vm.getSMSTemplate = function () {
+            //     vm.smsTemplate = [];
+            //     $scope.$socketPromise('getMessageTemplatesForPlatform', {
+            //         platform: vm.selectedPlatform.id,
+            //         format: 'smstpl'
+            //     }).then(function (data) {
+            //         vm.smsTemplate = data.data;
+            //         console.log("vm.smsTemplate", vm.smsTemplate);
+            //         $scope.safeApply();
+            //     }).done();
+            // };
 
             vm.useSMSTemplate = function () {
                 vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
@@ -8660,7 +8662,7 @@ define(['js/app'], function (myApp) {
                     vm.lastCallNewPlayerDate = new Date();
                 }
 
-                vm.getSMSTemplate();
+                // vm.getSMSTemplate();
                 var phoneCall = {
                     playerId: data.playerId,
                     name: data.name,
@@ -8676,7 +8678,7 @@ define(['js/app'], function (myApp) {
                 $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
             }
             vm.smsNewPlayerBtn = function (phoneNumber, data) {
-                vm.getSMSTemplate();
+                //vm.getSMSTemplate();
                 vm.selectedSinglePlayer = data;
                 vm.editPlayer = data.data ? data.data : "";
                 vm.selectedPlayersCount = 1
@@ -8696,7 +8698,7 @@ define(['js/app'], function (myApp) {
             vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
                 // var rowData = JSON.parse(data);
                 console.log(type, data);
-                vm.getSMSTemplate();
+                //vm.getSMSTemplate();
                 var title, text;
                 if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                     vm.smsPlayer = {
@@ -8737,7 +8739,7 @@ define(['js/app'], function (myApp) {
             vm.telorMessageToPartnerBtn = function (type, partnerObjId, data) {
                 // let rowData = JSON.parse(data);
                 console.log(type, data);
-                vm.getSMSTemplate();
+                //vm.getSMSTemplate();
                 let title, text;
                 if (type === 'msg' && authService.checkViewPermission('Partner', 'Partner', 'sendSMS')) {
                     vm.smsPartner = {
@@ -21011,6 +21013,8 @@ define(['js/app'], function (myApp) {
                                         }
                                         result = gameProviders;
                                         break;
+                                    case "depositMethod":
+                                        result = vm.depositMethod;
                                     default:
                                         result = $scope[cond.options];
                                         if (result) {
@@ -21042,7 +21046,8 @@ define(['js/app'], function (myApp) {
                                         vm.rewardDisabledParam.push("onlineTopUpType")
                                     }
                                     if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("1") > -1)) {
-                                        vm.rewardDisabledParam.push("bankCardType")
+                                        vm.rewardDisabledParam.push("bankCardType");
+                                        vm.rewardDisabledParam.push("depositMethod");
                                     }
                                 }
 
@@ -21674,6 +21679,7 @@ define(['js/app'], function (myApp) {
 
                     if (model.value.indexOf("1") === -1) {
                         vm.rewardDisabledParam.indexOf("bankCardType") === -1 ? vm.rewardDisabledParam.push("bankCardType") : null;
+                        vm.rewardDisabledParam.indexOf("depositMethod") === -1 ? vm.rewardDisabledParam.push("depositMethod") : null;
                         for (let i = 0; i < Object.keys(vm.rewardMainCondition).length; i++) {
                             if (vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].name == "bankCardType") {
                                 vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].value = [];
@@ -21682,7 +21688,9 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     } else {
-                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "bankCardType");
+                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => {
+                            return name !== "bankCardType" && name !== "depositMethod";
+                        });
                     }
                 }
                 if (model && model.name == "defineLoseValue") {
@@ -25105,7 +25113,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PROMO_REWARD_AMOUNT'),
                             data: "amount",
-                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 ? data + "%" : data
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? data + "%" : data
                         },
                         {
                             title: $translate('PROMO_minTopUpAmount'),
@@ -25118,7 +25126,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PROMO_CONSUMPTION'),
                             data: "requiredConsumption",
-                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 ? "*" + data : data
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? "*" + data : data
                         },
                         {
                             title: $translate('SHARE_WITH_XIMA'),
@@ -27917,7 +27925,8 @@ define(['js/app'], function (myApp) {
                 vm.refreshPaymentSystem();
 
                 let sendData = {
-                    platform: vm.selectedPlatform.id
+                    platform: vm.selectedPlatform.id,
+                    platformId: vm.selectedPlatform.data.platformId
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPaymentSystemConfigByPlatform', sendData, function (data) {
@@ -27938,7 +27947,6 @@ define(['js/app'], function (myApp) {
 
                 $('#paymentSystemRecordSpinRecordSpin').show();
                 vm.lastPaymentSystemRefresh = utilService.$getTimeFromStdTimeFormat();
-                vm.getProviderLatestTimeRecord();
             }
 
             vm.updatePaymentSystemConfigByPlatform = function () {
@@ -27954,21 +27962,12 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'updatePaymentSystemConfigByPlatform', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log('updatePaymentSystemConfigByPlatform success ',data);
-                        if (data && data.length > 0) {
-                            vm.paymentSystemConfig = data;
-                        }
-                    })
+                        console.log('updatePaymentSystemConfigByPlatform success ', data);
+                        vm.getPaymentSystemConfigByPlatform();
+                    });
                 }, function (err) {
-                    $scope.$evalAsync(() => {
-                        console.log('updatePaymentSystemConfigByPlatform fail ', err);
-                        vm.resetPaymentSystemConfig();
-                    })
+                    console.log('updatePaymentSystemConfigByPlatform fail ', err);
                 });
-            };
-
-            vm.resetPaymentSystemConfig = function () {
-                vm.paymentSystemConfig = vm.cloneOriPaymentSystemConfig ? JSON.parse(JSON.stringify(vm.cloneOriPaymentSystemConfig)) : [];
             };
 
             vm.enablePaymentSystemRdBtnConfig = function (idx, data, type) {
@@ -36299,17 +36298,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.resetRewardTypeChanged = function () {
-                vm.auctionProductReward.promoCode = '';
-                vm.auctionProductReward.openPromoCode = '';
-                vm.auctionProductReward.productImageUrl = '';
-                vm.auctionProductReward.messageTitle = '';
-                vm.auctionProductReward.messageContent = '';
-                vm.auctionProductReward.gameProviderGroup = '';
-                vm.auctionProductReward.unlockAmount = '';
-                vm.auctionProductReward.rewardAmount = '';
-                vm.auctionProductReward.useConsumption = false;
-                vm.auctionProductReward.realPrizeDetails = '';
-                vm.auctionProductReward.rewardPointsVariable = '';
+                vm.auctionProductReward = {};
             };
 
             vm.auctionRewardTypeChanged = function (choice) {
@@ -36317,22 +36306,27 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case 'promoCode':
                         vm.selectedAuctionRewardType = 'promoCode';
+                        vm.auctionProductReward.rewardType = 'promoCode';
                         vm.auctionProductReward.isSharedWithXima = true;
                         vm.auctionProductReward.isForbidWithdrawal = false;
                         break;
                     case 'openPromoCode':
                         vm.selectedAuctionRewardType = 'openPromoCode';
+                        vm.auctionProductReward.rewardType = 'openPromoCode';
                         vm.auctionProductReward.isSharedWithXima = true;
                         vm.auctionProductReward.isForbidWithdrawal = false;
                         break;
                     case 'promotion':
                         vm.selectedAuctionRewardType = 'promotion';
+                        vm.auctionProductReward.rewardType = 'promotion';
                         break;
                     case 'realPrize':
                         vm.selectedAuctionRewardType = 'realPrize';
+                        vm.auctionProductReward.rewardType = 'realPrize';
                         break;
                     case 'rewardPointsChange':
                         vm.selectedAuctionRewardType = 'rewardPointsChange';
+                        vm.auctionProductReward.rewardType = 'rewardPointsChange';
                         break;
                 }
             };

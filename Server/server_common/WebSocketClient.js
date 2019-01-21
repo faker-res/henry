@@ -234,7 +234,6 @@
                     console.log('callAPIOnce funcName and key', funcName, key)
 
                     wsFunc.onceSync(key, function (res) {
-
                         if (res && res.status == 200) {
                             var resObj = Object.assign({}, res);
                             delete resObj.status;
@@ -254,7 +253,6 @@
                     // console.log("callAPIOnce:", data);
                     wsFunc.request(data);
                     wsFunc.once(function (res) {
-                        console.log("callAPIOnce res", res);
                         if (res && res.status == 200) {
                             var resObj = Object.assign({}, res);
                             delete resObj.status;

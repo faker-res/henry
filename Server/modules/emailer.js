@@ -1,3 +1,9 @@
+"use strict";
+
+var emailerFunc = function () {
+};
+module.exports = new emailerFunc();
+
 const Q = require("q");
 const nodemailer = require('nodemailer');
 const errorUtils = require('./errorUtils');
@@ -50,38 +56,46 @@ transporter.use('compile', htmlToText({}));   // For options see: https://www.np
  * @param {boolean} [config.isHTML] - Describes whether the body is HTML (otherwise plain text)
  * @returns {*}
  */
-function sendEmail (config) {
-    const mailOptions = {
-        from: config.sender,
-        to: config.recipient,
-        replyTo: config.replyTo || config.sender,
-        subject: config.subject
-    };
+var emailer = {
+    sendEmail: function(config)
+    {
+        const mailOptions = {
+            from: config.sender,
+            to: config.recipient,
+            replyTo: config.replyTo || config.sender,
+            subject: config.subject
+        };
 
-    if (config.isHTML) {
-        mailOptions.html = config.body;
-    } else {
-        mailOptions.text = config.body;
-    }
+        if (config.isHTML) {
+            mailOptions.html = config.body;
+        } else {
+            mailOptions.text = config.body;
+        }
 
-    // send mail with defined transport object
-    return Q.Promise(function (resolve, reject) {
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                reject(error);
-            } else {
-                if (info.accepted.length < 1 || info.rejected.length > 0 || info.errors.length > 0) {
-                    // We may be interested in one of the arrays: info.rejected or info.errors.
-                    errorUtils.reportError(info);
-                    reject(info);
+        // send mail with defined transport object
+        return Q.Promise(function (resolve, reject) {
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    reject(error);
                 } else {
-                    resolve(info);
+                    if (info.accepted.length < 1 || info.rejected.length > 0 || info.errors.length > 0) {
+                        // We may be interested in one of the arrays: info.rejected or info.errors.
+                        errorUtils.reportError(info);
+                        reject(info);
+                    } else {
+                        resolve(info);
+                    }
                 }
-            }
+            });
         });
-    });
+    }
 }
 
-module.exports = {
-    sendEmail: sendEmail
-};
+// module.exports = {
+//     sendEmail: sendEmail
+// };
+
+var proto = emailerFunc.prototype;
+proto = Object.assign(proto, emailer);
+
+module.exports = emailer;

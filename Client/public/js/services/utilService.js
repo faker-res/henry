@@ -1043,6 +1043,15 @@ define([], function () {
                     case "UpdatePlayerWeChat":
                         allProposalType[x].seq = 4.06;
                         break;
+                    case "UpdatePlayerInfoPartner":
+                        allProposalType[x].seq = 4.07;
+                        break;
+                    case "UpdatePlayerInfoLevel":
+                        allProposalType[x].seq = 4.08;
+                        break;
+                    case "UpdatePlayerInfoAccAdmin":
+                        allProposalType[x].seq = 4.09;
+                        break;
                     case "UpdatePartnerInfo":
                         allProposalType[x].seq = 5.01;
                         break;

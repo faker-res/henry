@@ -817,7 +817,7 @@ var proposal = {
             proposalData => {
                 if (proposalData && proposalData.data) {
                     proposalObj = proposalData;
-
+                    remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
                     if (callbackData && callbackData.amount && proposalData.data.amount && Math.floor(callbackData.amount) !== Math.floor(proposalData.data.amount)) {
                         console.log('callbackData.amount', callbackData.amount, Math.floor(callbackData.amount));
@@ -982,7 +982,7 @@ var proposal = {
                             }
 
                             // Some extra data
-                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
+                            addDetailToProp(updObj.data, 'remark', remark);
                             addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
                             addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
                             addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
@@ -1457,8 +1457,8 @@ var proposal = {
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
                                 .then(successData => {
                                     let updateData = {
-                                        "data.lastSettleTime": Date.now(),
-                                        settleTime: Date.now(),
+                                        "data.lastSettleTime": new Date(),
+                                        settleTime: new Date(),
                                         noSteps: true,
                                         process: null,
                                         status: constProposalStatus.CANCEL,
@@ -3256,6 +3256,7 @@ var proposal = {
      *
      */
     getProposalsByAdvancedQuery: function (reqData, index, count, sortObj) {
+        console.log("LH check proposal report 1");
         //count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM)
         sortObj = sortObj || {};
         var dataDeferred = Q.defer();
@@ -3292,6 +3293,7 @@ var proposal = {
             }
         }
         if (!reqData.type && reqData.platformId) {
+            console.log("LH check proposal report 2");
             let searchQuery = {
                 platformId: ObjectId(reqData.platformId)
             }
@@ -3302,6 +3304,7 @@ var proposal = {
 
             dbconfig.collection_proposalType.find(searchQuery).then(
                 function (data) {
+                    console.log("LH check proposal report 3 ------------------ get proposal type");
                     if (data && data.length > 0) {
                         for (var i = 0; i < data.length; i++) {
                             (proposalTypeList.push(ObjectId(data[i]._id)));
@@ -3324,6 +3327,7 @@ var proposal = {
                 }
             ).then(
                 function (proposalTypeIdList) { // all proposal type ids of this platform
+                    console.log("LH check proposal report 4");
                     delete queryData.platformId;
                     var a = dbconfig.collection_proposal.find({
                         type: {$in: proposalTypeIdList},
@@ -3375,6 +3379,7 @@ var proposal = {
                 }
             ).then(
                 function (data) {
+                    console.log("LH check proposal report 5");
                     if (data && data[1]) {
                         totalSize = data[0];
                         resultArray = Object.assign([], data[1]);
@@ -3397,6 +3402,7 @@ var proposal = {
             );
         }
         else {
+            console.log("LH check proposal report B2");
             if (reqData.type && reqData.type.length > 0) {
                 let arr = reqData.type.map(item => {
                     return ObjectId(item);
@@ -3406,6 +3412,7 @@ var proposal = {
 
             let a, b, c;
             if(isApprove){
+                console.log("LH check proposal report B3 isApproved");
                 let searchQuery = {
                     platformId: ObjectId(reqData.platformId),
                     name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
@@ -3541,6 +3548,7 @@ var proposal = {
                     }
                 );
             }else{
+                console.log("LH check proposal report B3 not isApproved");
                 delete reqData.platformId;
                 a = dbconfig.collection_proposal.find(reqData).lean().count();
                 b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
@@ -3613,6 +3621,7 @@ var proposal = {
             }
             Q.all([a, b, c]).then(
                 function (data) {
+                    console.log("LH check proposal report B4 -----------",data)
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
@@ -3633,8 +3642,10 @@ var proposal = {
             );
         }
 
+        console.log("LH check proposal report 6");
         dataDeferred.promise.then(
             function (data) {
+                console.log("LH check proposal report 7");
                 data = resultArray;
                 var allProm = [];
                 if (data && data.length > 0) {
@@ -3664,6 +3675,7 @@ var proposal = {
             }
         ).then(
             function (playerData) {
+                console.log("LH check proposal report 8");
                 for (var i in playerData) {
                     if (playerData[i] && playerData[i].playerId) {
                         resultArray[i].data.playerShortId = playerData[i].playerId
@@ -4830,7 +4842,7 @@ var proposal = {
             entryType: constProposalEntryType.CLIENT,
             userType: constProposalUserType.PLAYERS
         };
-        
+
         if (selectedRewardParam && playerBonusDoubledRecord){
             if (selectedRewardParam.hasOwnProperty('rewardPercentage')){
                 rewardAmount = playerBonusDoubledRecord.transferInAmount * selectedRewardParam.rewardPercentage;
@@ -5070,10 +5082,6 @@ var proposal = {
                             }
                             ,{
                                 $sort: sortCol
-                            },{
-                                $skip: index
-                            },{
-                                $limit: limit
                             }
                         ]).read("secondaryPreferred").then( playerRecord => {
                             if (playerRecord && playerRecord.length > 0){
@@ -5328,7 +5336,13 @@ var proposal = {
 
                                 }
 
-                                return {data: playerResult, size: totalPlayerCount, total: resultSum};
+                                let outputResult = [];
+
+                                for (let i = 0, len = limit; i < len; i++) {
+                                    playerResult[index + i] ? outputResult.push(playerResult[index + i]) : null;
+                                }
+
+                                return {data: outputResult, size: totalPlayerCount, total: resultSum};
                             }
                             else{
                                 Promise.reject({
@@ -6431,7 +6445,7 @@ var proposal = {
                 },
                 {
                     $group: {
-                        _id: {id: "$_id", timeUsed: {"$subtract": ["$settleTime", "$createTime"]}}
+                        _id: {id: "$_id", timeUsed: {"$subtract": ["$data.lastSettleTime", "$createTime"]}}
                     }
                 },
                 groupObj
@@ -7600,8 +7614,8 @@ var proposal = {
             () => {
 
                 let updateData = {
-                    "data.lastSettleTime": Date.now(),
-                    settleTime: Date.now(),
+                    "data.lastSettleTime": new Date(),
+                    settleTime: new Date(),
                     noSteps: true,
                     process: null,
                     status: constProposalStatus.CANCEL,

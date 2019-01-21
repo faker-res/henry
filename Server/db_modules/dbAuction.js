@@ -9,7 +9,11 @@ const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGe
 const dbutility = require('./../modules/dbutility');
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 const errorUtils = require("./../modules/errorUtils");
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const proposalExecutor = require('./../modules/proposalExecutor');
+const dbProposalUtility = require("./../db_common/dbProposalUtility");
 const constPromoCodeStatus = require("./../const/constPromoCodeStatus");
+var constServerCode = require('../const/constServerCode');
 
 var dbAuction = {
     /**
@@ -22,7 +26,29 @@ var dbAuction = {
         return [];
     },
     loadAuctionItem: (id) => {
-        return dbconfig.collection_auctionSystem.findOne({_id: ObjectId(id)}).exec();
+        let productDetail = null;
+        return dbconfig.collection_auctionSystem.findOne({_id: ObjectId(id)}).lean().then(
+            product => {
+                productDetail = product;
+                if (product && product.rewardData && product.rewardData.rewardType == 'openPromoCode' && product.rewardData.promoCode){
+                    let queryObj = {
+                        'data.promoCodeName': product.productName,
+                        'data.promoCode': product.rewardData.promoCode,
+                        'data.platformId': product.platformObjId,
+                    };
+
+                    return dbconfig.collection_proposal.find(queryObj).count();
+                }
+            }
+        ).then(
+            retData => {
+                if (retData){
+                    productDetail.rewardData.receivedQuantity = retData;
+                }
+
+                return productDetail;
+            }
+        );
     },
     updateAuctionProduct: (id, updateData) => {
         let updateProm = Promise.resolve();
@@ -375,7 +401,7 @@ var dbAuction = {
     applyAuction: (data) =>{
         return [];
     },
-    listAuctionMonitor: function(query){
+    listAuctionMonitor: function(query, limit){
         let proms = [];
         let proposalType;
         let result = [];
@@ -391,6 +417,7 @@ var dbAuction = {
                         return item._id;
                     })
                 }
+                console.log('query', query);
                 return dbconfig.collection_auctionSystem.find(query).lean()
             }
         ).then(auctionItems=>{
@@ -398,14 +425,7 @@ var dbAuction = {
             // if(auctionItems.length <= 0 ){ return }
             auctionItems.forEach(item=>{
                 let period = dbAuction.getPeriodTime(item);
-                let prom = dbconfig.collection_proposal.find({
-                    type: {'$in': proposalType},
-                    createTime:{
-                        '$gte':period.startTime,
-                        '$lte':period.endTime
-                    },
-                    'data.auction':item._id
-                },{ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1, 'data.currentBidPrice':1 }).limit(10).sort('-createTime')
+                let prom = dbAuction.getAuctionProposal(proposalType, period, item, limit)
                 .then(proposal=>{
                     item.proposal = proposal;
                     return item;
@@ -420,6 +440,25 @@ var dbAuction = {
             )
         })
     },
+    getAuctionProposal: function(proposalType, period, item, limit){
+        let sendQuery = {
+           type: {'$in': proposalType},
+           createTime:{
+               '$gte':period.startTime,
+               '$lte':period.endTime
+           },
+           'data.auction':item._id
+        }
+        let options ={ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1, 'data.currentBidPrice':1 };
+
+        if(limit){
+            options ={ 'type':1, 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1, 'data.currentBidPrice':1 };
+            return dbconfig.collection_proposal.find(sendQuery, options).populate({path: "type", model: dbconfig.collection_proposalType}).limit(limit).sort('-createTime');
+        }else{
+            return dbconfig.collection_proposal.find(sendQuery, options).sort('-createTime');
+        }
+    },
+
     getPeriodTime: function(auctionItem){
         let period;
         if(auctionItem.rewardInterval){
@@ -560,6 +599,67 @@ var dbAuction = {
             return record.save();
         }
     },
+    auctionExecute: function(){
+        let endDate = new Date();
+        let proms = [];
+        let status = constProposalStatus.APPROVED;
+        let sendQuery = {
+            'rewardEndTime': {
+                '$lte':endDate
+            },
+            status:1,
+            publish:true
+        }
+        return dbconfig.collection_auctionSystem.find(sendQuery).then(data=>{
+            if(data && data.length > 0){
+                data.forEach(item=>{
+                    let sendQuery = {
+                        '_id': item._id,
+                        'platformObjId': item.platformObjId,
+                    };
+                    let prom = dbAuction.listAuctionMonitor(sendQuery, 1);
+                    proms.push(prom);
+                })
+            }
+            return Promise.all(proms);
+        }).then(data=>{
+            if( data && data.length > 0 ){
+                data.forEach(item=>{
+                    if(item[0] && item[0].proposal && item[0].proposal.length > 0){
+                        let proposal;
+                        let lastProposalData = item[0].proposal[0];
+
+                        return dbconfig.collection_proposal.findOneAndUpdate({
+                            _id: lastProposalData._id,
+                            status: constProposalStatus.PENDING,
+                            createTime: lastProposalData.createTime
+                        }, {
+                            status: status,
+                        }, {
+                            new: true
+                        }).populate({path: "type", model: dbconfig.collection_proposalType})
+                        .then(
+                            proposalData => {
+                                if (!proposalData) {
+                                    // someone changed the status in between these processes
+                                    return Promise.reject({message: "Proposal had been used"});
+                                }
+                                proposal = proposalData;
+                                let memo = '';
+                                return dbProposalUtility.createProposalProcessStep(proposal, null, status, memo).catch(errorUtils.reportError);
+                            }
+                        ).then(
+                            () => {
+                                return proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, true, proposal);
+                            }
+                        ).then(res=>{
+                            console.log(res);
+                        })
+                    }
+                })
+            }
+        })
+    },
 
     bidAuctionItem: function (inputData, platformId, productName, rewardType, playerId, inputDevice) {
         let playerProm = Promise.resolve(true);
@@ -580,40 +680,73 @@ var dbAuction = {
         let playerData = null;
         let auctionData = null;
         let proposalData = null;
+        let proposalTypeId = null;
         let timeNow = new Date().getTime();
+
+        if (!playerId) {
+            return Promise.reject({name: "DBError", message: "Player is not found"});
+        }
+        if (!productName) {
+            return Promise.reject({name: "DBError", message: "Product name is not found"});
+        }
+        if (!rewardType) {
+            return Promise.reject({name: "DBError", message: "Reward type is not found"});
+        }
 
         switch (rewardType) {
             case 'promoCode':
                 proposalType = constProposalType.AUCTION_PROMO_CODE;
-                remark = 'Auction Promo Code';
+                remark = productName;
                 break;
             case 'openPromoCode':
                 proposalType = constProposalType.AUCTION_OPEN_PROMO_CODE;
-                remark = 'Auction Open Promo Code';
+                remark = productName;
                 break;
             case 'promotion':
                 proposalType = constProposalType.AUCTION_REWARD_PROMOTION;
-                remark = 'Auction Reward Promotion';
+                remark = productName;
                 break;
             case 'realPrize':
                 proposalType = constProposalType.AUCTION_REAL_PRIZE;
-                remark = 'Auction Real Prize';
+                remark = productName;
                 break;
             case 'rewardPointsChange':
                 proposalType = constProposalType.AUCTION_REWARD_POINT_CHANGE;
-                remark = 'Auction Reward Point Change';
+                remark = productName;
                 break;
         }
 
-        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        return dbconfig.collection_players.findOne({
+            _id: playerId
+        }).populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean().then(
+            player => {
+                if (!player){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cannot find player"
+                    })
+                }
+
+                playerData = player;
+                return dbPlayerUtil.setPlayerBState(player._id, "auctionBidding", true);
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    return dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+                } else {
+                    return Promise.reject({
+                        name: "DBError",
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        message: "Bidding Fail, please try again later"
+                    })
+                }
+            }
+        ).then(
             platformData => {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-                return platformData;
-            }
-        ).then(
-            platformData => {
                 platform = platformData;
                 platformObjId = platformData && platformData._id ? platformData._id : null;
 
@@ -621,46 +754,62 @@ var dbAuction = {
                     return Promise.reject({name: "DBError", message: "Proposal type not found"});
                 }
 
-                proposalTypeProm = dbconfig.collection_proposalType.findOne({
+                return proposalTypeProm = dbconfig.collection_proposalType.findOne({
                     platformId: platformObjId,
                     name: proposalType,
                 }).lean();
-
-                return proposalTypeProm;
             }
         ).then(
             proposalTypeData => {
-                let proposalTypeId = proposalTypeData && proposalTypeData._id ? proposalTypeData._id : null;
+                proposalTypeId = proposalTypeData && proposalTypeData._id ? proposalTypeData._id : null;
 
-                if (!playerId) {
-                    return Promise.reject({name: "DBError", message: "Player not found"});
-                }
-                if (!productName) {
-                    return Promise.reject({name: "DBError", message: "Product name not found"});
+                if (!proposalTypeId){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cannot find the proposalTypeId"
+                    })
                 }
 
-                playerProm = dbconfig.collection_players.findOne({
-                    platform: platformObjId,
-                    _id: playerId,
-                }).populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).exec();
+                let query = {
+                    'data.platformId': platformObjId,
+                    'data.productName': productName,
+                    status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    type: proposalTypeId,
+                };
+                return dbconfig.collection_proposal.find(query).count();
+            }
+        ).then(
+            successCount => {
+                if (successCount){
+                    return Promise.reject({
+                        message: "This product has already sold out"
+                    })
+                }
 
                 auctionProm = dbconfig.collection_auctionSystem.findOne({
                     platformObjId: platformObjId,
                     productName: productName,
-                }).exec();
+                    'rewardData.rewardType': rewardType
+                }).lean();
 
                 proposalProm = dbconfig.collection_proposal.findOne({
                     'data.platformId': platformObjId,
                     'data.productName': productName,
                     status: constProposalStatus.PENDING,
                     type: proposalTypeId,
-                }).exec();
+                }).lean();
 
-                return Promise.all([playerProm, auctionProm, proposalProm]).then(data => {
+                return Promise.all([auctionProm, proposalProm]).then(data => {
                     if (data) {
-                        playerData = data[0];
-                        auctionData = data[1];
-                        proposalData = data[2];
+                        auctionData = data[0];
+                        proposalData = data[1];
+
+                        if (!auctionData){
+                            return Promise.reject({
+                                name: "DBError",
+                                message: "The bidding product is not found."
+                            })
+                        }
 
                         // check if the same player bidding again (consecutively)
                         if (proposalData && proposalData.data && proposalData.data.playerName && playerData && playerData.name){
@@ -742,7 +891,7 @@ var dbAuction = {
                         }
 
                         // deduct reward points from current bidder, if not enough reward points, will return error
-                        return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, platformObjId, -playerBidPrice, 'bid auction item', null, null, playerData.name, inputDevice);
+                        return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, platformObjId, -playerBidPrice, 'Bidding item: ' + auctionData.productName || "" , null, null, playerData.name, inputDevice);
                     }
                 }).then(
                     () => {
@@ -783,8 +932,9 @@ var dbAuction = {
                     proposalData => {
                         if (!proposalData) return true; // skip refund reward points
 
+                        let creator = proposalData.data.seller || 'System';
                         // return reward points to rejected bidder
-                        return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'refund bid', null, null, playerData.name, inputDevice);
+                        return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'Refund from bidding item: ' + auctionData.productName || "", null, null, creator, inputDevice);
                     }
                 ).then(
                     () => {
@@ -802,10 +952,11 @@ var dbAuction = {
                                 productName: productName,
                                 currentBidPrice: playerBidPrice,
                                 remark: remark,
-                                auction: auctionData._id ? auctionData._id : ''
+                                auction: auctionData._id ? auctionData._id : '',
+                                updateAmount: playerBidPrice
                             },
                             creator: {
-                                name: playerName ? playerName : ''
+                                name: auctionData && auctionData.seller ? auctionData.seller : playerName || null
                             },
                             status: proposalStatus,
                             type: proposalTypeId
@@ -816,28 +967,68 @@ var dbAuction = {
                         if (auctionData && auctionData.rewardData && auctionData.rewardData.templateObjId){
                             newProposal.data.templateObjId = auctionData.rewardData.templateObjId;
                         }
+                        if (auctionData && auctionData.seller){
+                            newProposal.data.seller = auctionData.seller;
+                        }
                         if (auctionData && auctionData.rewardData.hasOwnProperty("isSharedWithXima")){
                             newProposal.data.isSharedWithXima = auctionData.rewardData.isSharedWithXima;
                         }
-                        if (auctionData && auctionData.rewardData.hasOwnProperty("isForbidWithdrawal")){
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("isForbidWithdrawal")){
                             newProposal.data.isForbidWithdrawal = auctionData.rewardData.isForbidWithdrawal;
                         }
-                        if (auctionData && auctionData.rewardData.hasOwnProperty("useConsumption")){
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption")){
                             newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
                         }
-                        if (auctionData && auctionData.rewardData.gameProviderGroup){
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.gameProviderGroup){
                             newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
                         }
+                        if (playerName){
+                            newProposal.data.playerName = playerName;
+                        }
+                        // specially for auction product: reward promotion
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.unlockAmount && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.requiredUnlockAmount = auctionData.rewardData.unlockAmount;
+                        }
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.rewardAmount && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.rewardAmount = auctionData.rewardData.rewardAmount;
+                        }
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
+                        }
+                        if (platform && platform.hasOwnProperty("useProviderGroup") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.isGroupReward = platform.useProviderGroup;
+                        }
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("rewardPointsVariable")){
+                            newProposal.data.rewardPointsVariable = auctionData.rewardData.rewardPointsVariable;
+                        }
+
+                        newProposal.data.isExclusive = auctionData.isExclusive;
+                        newProposal.data.startingPrice = auctionData.startingPrice || null;
+                        newProposal.data.directPurchasePrice = auctionData.directPurchasePrice || null;
 
                         return dbProposal.createProposalWithTypeId(proposalTypeId, newProposal).then(
                             data => {
+                                // Reset BState
+                                dbPlayerUtil.setPlayerBState(playerData._id, "auctionBidding", false).catch(errorUtils.reportError);
                                 return data;
                             }
                         );
                     }
                 );
             }
-        );
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerData._id, "auctionBidding", false).catch(errorUtils.reportError);
+                }
+
+                console.log('bidding error', playerId, err);
+                throw err;
+            }
+        )
     },
 };
 

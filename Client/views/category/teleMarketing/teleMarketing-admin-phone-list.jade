@@ -82,6 +82,7 @@ div(ng-show="vm.curPlatformText")
             label {{"Total" | translate}} {{vm.queryAdminPhoneList.totalCount}} {{"records" | translate}}
         .inlineBlk
             .btn.btn-primary(ng-click="vm.createCallOutMission()" ng-if="!vm.ctiData.hasOnGoingMission") {{"BULK_CALL" | translate}}
+            .btn.btn-primary.margin-left-5(ng-click="vm.createCallOutMission(true)" ng-if="!vm.ctiData.hasOnGoingMission") {{"SELECTED_CALL" | translate}}
         .inlineBlk
             label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.callOutMissionStatus}}
             label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.ctiData.adminName}} : {{vm.callOutMissionStatusText}}  /  {{"Completed" | translate}} : ({{vm.callOutMissionProgressText}})

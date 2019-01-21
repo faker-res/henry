@@ -274,6 +274,10 @@ define([], () => {
                 .then(data => data.data.data);
         };
 
+        self.getSMSTemplate = function($scope, platformObjId) {
+            return $scope.$socketPromise("getMessageTemplatesForPlatform", {platform: platformObjId, format: 'smstpl'}).then(data => data.data)
+        };
+
         self.getPMSDevices = function(num){
             // PMS definition of device type
             // Web: 1, H5: 2, Both: 3, App:4
@@ -1422,10 +1426,31 @@ define([], () => {
             }
             // end region
 
+            // region auction product Proposal
+            if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "AuctionPromoCode" || vm.selectedProposal.type.name === "AuctionOpenPromoCode" ||
+                vm.selectedProposal.type.name === "AuctionRewardPromotion" || vm.selectedProposal.type.name === "AuctionRealPrize" || vm.selectedProposal.type.name === "AuctionRewardPointChange")) {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.proposalPlayerLevel;
+                proposalDetail["productName"] = vm.selectedProposal.data.productName;
+                proposalDetail["Seller"] = vm.selectedProposal.data.seller;
+                proposalDetail["startingPrice"] = vm.selectedProposal.data.startingPrice;
+                proposalDetail["directPurchasePrice"] = vm.selectedProposal.data.directPurchasePrice;
+                proposalDetail["isExclusive"] = vm.selectedProposal.data.isExclusive;
+            }
+            // end region
+
             return proposalDetail;
         };
 
-        this.forcePairingWithReferenceNumber = ($scope, platformId, proposalObjId, proposalId, referenceNumber) => {
+        this.forcePairingWithReferenceNumber = ($scope, $translate, socketService, platformId, proposalObjId, proposalId, referenceNumber) => {
             if(platformId && proposalObjId && proposalId && referenceNumber) {
                 console.log("forcePairingWithReferenceNumber ", platformId, proposalObjId, proposalId, referenceNumber);
                 return $scope.$socketPromise("forcePairingWithReferenceNumber", {
@@ -1433,7 +1458,15 @@ define([], () => {
                     proposalObjId: proposalObjId,
                     proposalId: proposalId,
                     referenceNumber: referenceNumber
-                }).then(data=>{console.log("data",data)},err=>{console.log("err",err)});
+                }).then(
+                    data=>{
+                        console.log("data",data);
+                        socketService.showConfirmMessage($translate("Force Pairing") + $translate("Success"),5000);
+                    },
+                    err=>{
+                        console.log("err",err);
+                    }
+                );
             }
         }
     };
