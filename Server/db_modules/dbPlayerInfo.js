@@ -5846,6 +5846,7 @@ let dbPlayerInfo = {
         );
 
         function updateAutoFeedbackLoginCount (record) {
+            console.log('updateAutoFeedbackLoginCount time log start', record.platform, record.player);
             return dbconfig.collection_promoCode.aggregate([
                 {$match: {
                     platformObjId: record.platform,
@@ -5878,6 +5879,8 @@ let dbPlayerInfo = {
                                     autoFeedbackMissionLogin: true
                                 }).exec();
                             }
+
+                            console.log('updateAutoFeedbackLoginCount time log end', record.platform, record.player);
                         }
                     )
                 }
