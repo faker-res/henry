@@ -449,25 +449,21 @@ var dbPlatformMerchantGroup = {
         let result = [];
         let uniqueLine = [];
         let uniqueObj = {};
-        if(data && data.data.length > 0){
-            data.data.forEach(item=>{
-                // find how many of different "line"
-                if(item.line && (uniqueLine.indexOf(item.line)== -1)){
-                    uniqueObj[item.line] = [];
-                }
-            });
-        }
-        Object.keys(uniqueObj).forEach(key=>{
-            //insert a "select all (same) line" object, ex: 支付宝线路1(包含不存在的卡)
-            let category = dbPlatformMerchantGroup.getAlipayLineAcc(key, 1);
-            result.push(category);
-        })
 
-        Object.keys(uniqueObj).forEach(key=>{
-            //insert a "select all (same) line" object, ex: 支付宝线路1(全部)
-            let category = dbPlatformMerchantGroup.getAlipayLineAcc(key, 2);
+        for(var i = 1; i < 6; i++) {
+            //insert a "select all (same) line" object, ex: 支付宝线路1(包含不存在的卡)
+            let str = i.toString();
+            let category = dbPlatformMerchantGroup.getAlipayLineAcc(str, 1);
             result.push(category);
-        })
+        }
+
+        for(var k = 1; k < 6; k++) {
+            //insert a "select all (same) line" object, ex: 支付宝线路1(全部)
+            let str = k.toString();
+            let category = dbPlatformMerchantGroup.getAlipayLineAcc(str, 2);
+            result.push(category);
+        }
+
         if(data && data.data && data.data.length > 0){
             data.data.forEach(card => {
                 card.merchantNo = card.accountNumber;
