@@ -215,6 +215,8 @@ const messageDispatcher = {
             if(metaData.proposalData.data.expirationTime)
             // the time when the promoCode is expired
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.expirationTime}}', moment(metaData.proposalData.data.expirationTime).format("YYYY/MM/DD HH:mm:ss"));
+            if(metaData.proposalData.data.rewardPointsVariable)
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.rewardPointsVariable}}', metaData.proposalData.data.rewardPointsVariable);
         }
         const renderedContent = renderTemplate(messageTemplate.content, metaData);
         console.log("checking sendMessage")

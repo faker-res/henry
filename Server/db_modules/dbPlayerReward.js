@@ -7487,6 +7487,9 @@ let dbPlayerReward = {
 
                         return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
                             proposalData => {
+                                let applyGroupRewardRunTimeEnd = new Date().getTime();
+                                applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
+                                console.log('applyGroupRewardRunTime===44', applyGroupRewardRunTime);
                                 let postPropPromArr = [];
                                 // save a record for the playerRetentionRewardGroup
                                 if (eventData && eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP){
@@ -7564,6 +7567,9 @@ let dbPlayerReward = {
                                     }
 
                                     return Promise.all(postPropPromArr).then(() => {
+                                        let applyGroupRewardRunTimeEnd = new Date().getTime();
+                                        applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
+                                        console.log('applyGroupRewardRunTime===55', applyGroupRewardRunTime);
                                         return {
                                             rewardAmount: rewardAmount
                                         }

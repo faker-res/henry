@@ -5366,11 +5366,13 @@ var dbPlatform = {
 
         jwt.verify(token, jwtSecret, function (err, decoded) {
             if (err || !decoded) {
+                console.log('sendFileFTP jwt err', err);
                 // Jwt token error
                 deferred.reject({
                     status: constServerCode.DB_ERROR,
                     name: "DataError",
-                    errorMessage: "Failed to verify token"
+                    errorMessage: "Failed to verify token",
+                    errorDetail: err
                 });
             } else {
                 if(decoded.platforms == "admin" || (decoded.platforms && decoded.platforms.length > 0)){
