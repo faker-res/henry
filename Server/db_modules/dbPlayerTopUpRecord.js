@@ -4627,7 +4627,7 @@ var dbPlayerTopUpRecord = {
         );
     },
 
-    forcePairingWithReferenceNumber: function(platformId, proposalObjId, proposalId, referenceNumber, adminId, adminObjId) {    //this ends up at PMS
+    forcePairingWithReferenceNumber: function(platformId, proposalObjId, proposalId, referenceNumber) {
         return pmsAPI.foundation_mandatoryMatch({
             platformId: platformId,
             queryId: serverInstance.getQueryId(),
@@ -4640,7 +4640,8 @@ var dbPlayerTopUpRecord = {
                 let remarks = "强制匹配：成功。";
                 return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
                     if(proposal && proposal.data) {
-                        let proposalRemark = proposal.data.remark ? proposal.data.remark + "; " + remarks : remarks;
+                        console.log("mandatoryMatch proposal", proposal.data.remark);
+                        let proposalRemark = proposal.data.remark && proposal.data.remark != 'undefined' ? proposal.data.remark + "; " + remarks : remarks;
                         return updateProposalRemark(proposal, proposalRemark).then(() => {return Promise.resolve(true)});
                     }
                 });

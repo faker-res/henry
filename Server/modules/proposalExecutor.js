@@ -115,6 +115,7 @@ var proposalExecutor = {
             || executionType === 'executeAuctionRewardPromotion'
             || executionType === 'executeAuctionRealPrize'
             || executionType === 'executePlayerAuctionPromotionReward'
+            || executionType === 'executeAuctionRewardPointChange'
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -3957,10 +3958,23 @@ var proposalExecutor = {
                 }
             },
 
-            executeAuctionRewardPointChange: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executeAuctionRewardPointChange: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty("rewardPointsVariable") &&
+                    (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED ||
+                    proposalData.status == constProposalStatus.APPROVE)) {
+
+                    let userDevice = proposalData.inputDevice;
+                    let playerObjId = proposalData.data.playerObjId;
+                    let platformObjId = proposalData.data.platformId;
+                    let updateAmount = proposalData.data.rewardPointsVariable;
+                    let remark = proposalData.data.productName;
+                    let creator = proposalData.data.seller || 'System';
+
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_POINT_CHANGE_SUCCESS, {});
+                    return dbPlayerInfo.updatePlayerRewardPointsRecord (playerObjId, platformObjId, updateAmount, remark, null, null,creator, userDevice)
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 

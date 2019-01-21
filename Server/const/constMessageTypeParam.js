@@ -230,6 +230,13 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
             {parameterName:'proposalData.data.requiredUnlockAmount' , description:'Spending times on reward'},
         ]
+    },
+    AUCTION_REWARD_POINT_CHANGE_SUCCESS: {
+        name:"AuctionRewardPointChangeSuccess",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.data.rewardPointsVariable' , description:'Changes of Reward Points'},
+        ]
     }
 
 };
