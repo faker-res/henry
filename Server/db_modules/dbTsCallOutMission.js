@@ -14,7 +14,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
 let dbTsCallOutMission = {
-    createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol, selectedPlayers) => {
+    createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol, selectedPhones) => {
         let platform, admin, calleeList, callOutMission, availableCallOutMission;
         searchQuery = typeof searchQuery == "string" ? JSON.parse(searchQuery) : searchQuery;
 
@@ -43,7 +43,7 @@ let dbTsCallOutMission = {
                     });
                 }
 
-                return getCalleeList(searchQuery, sortCol, selectedPlayers);
+                return getCalleeList(searchQuery, sortCol, selectedPhones);
             }
         ).then(
             calleeData => {
@@ -392,7 +392,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     );
 }
 
-function getCalleeList (query, sortCol) {
+function getCalleeList (query, sortCol, selectedPhones) {
     let phoneListProm = Promise.resolve();
     if (query.phoneListName && query.phoneListName.length) {
         phoneListProm = dbconfig.collection_tsPhoneList.find({name: {$in: query.phoneListName}, platform: query.platform}, {_id: 1}).lean();
@@ -413,6 +413,14 @@ function getCalleeList (query, sortCol) {
             }
 
             dbTeleSales.getAdminPhoneListQuery(query, phoneListQuery, phoneListData);
+
+            if (selectedPhones && selectedPhones.length && selectedPhones instanceof Array) {
+                phoneListQuery = {
+                    platform: query.platform,
+                    assignee: query.admin,
+                    _id: {$in: selectedPhones}
+                }
+            }
 
             return dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortCol)
                 .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();
