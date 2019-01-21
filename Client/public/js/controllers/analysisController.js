@@ -433,19 +433,7 @@ define(['js/app'], function (myApp) {
                             all: 'date',
                         }
                         vm.initSearchParameter('manualApproval', 'day', 3, function () {});
-                        vm.allBankTypeList = {};
-                        vm.allGameTypesList = [];
-                        vm.allGameTypes = {};
-                        Promise.all([
-                            commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
-                            commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []]))])
-                            .then(data => {
-                                if (data){
-                                    vm.allBankTypeList = data[0] ? data[0] : {};
-                                    vm.allGameTypesList = data[1] && data[1][0] ? data[1][0] : [];
-                                    vm.allGameTypes = data[1] && data[1][1] ? data[1][1] : {};
-                                }
-                            });
+                        vm.getAllBankTypeAndGameTypeList();
                         // vm.drawManualApprovalRate();
                         break;
                     case "FRONT_END_REGISTRATION_ATTRITION_RATE":
@@ -467,6 +455,7 @@ define(['js/app'], function (myApp) {
                             withdrawFailed: 'date',
                         }
                         vm.initSearchParameter('withdrawalSpeed', 'day', 3, function () {});
+                        vm.getAllBankTypeAndGameTypeList();
                         // vm.drawWithdrawSpeed();
                         break;
                     case "PLAYER_ONLINE_TIME":
@@ -1271,6 +1260,22 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         };
+
+        vm.getAllBankTypeAndGameTypeList = () => {
+            vm.allBankTypeList = {};
+            vm.allGameTypesList = [];
+            vm.allGameTypes = {};
+            Promise.all([
+                commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []]))])
+                .then(data => {
+                    if (data){
+                        vm.allBankTypeList = data[0] ? data[0] : {};
+                        vm.allGameTypesList = data[1] && data[1][0] ? data[1][0] : [];
+                        vm.allGameTypes = data[1] && data[1][1] ? data[1][1] : {};
+                    }
+                });
+        }
         // display  proposal detail
         vm.showProposalDetailField = function (obj, fieldName, val) {
             if (!obj) return '';
