@@ -16215,7 +16215,7 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 let summaryDataQuery = {
-                    date: {$gte: new Date(query.start), $lte: new Date(query.end)},
+                    date: {$gte: new Date(query.start), $lt: new Date(query.end)},
                     platformId: ObjectId(platform)
                 };
 

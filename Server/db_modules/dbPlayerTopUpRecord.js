@@ -152,6 +152,8 @@ var dbPlayerTopUpRecord = {
 
                 //concat both string type playerObjId and Object type playerObjId for searching in reward proposal
                 playerIds = playerIds.concat(stringPlayerId);
+                console.log("LH check player report 1------", startTime);
+                console.log("LH check player report 2------", endTime);
 
                 let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
                     [
@@ -236,7 +238,7 @@ var dbPlayerTopUpRecord = {
                             "data.playerObjId": {$in: playerIds},
                             "createTime": {
                                 "$gte": new Date(startTime),
-                                "$lte": new Date(endTime)
+                                "$lt": new Date(endTime)
                             },
                             "type": ObjectId(consumptionReturnTypeId),
                             "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
@@ -256,7 +258,7 @@ var dbPlayerTopUpRecord = {
                             "data.playerObjId": {$in: playerIds},
                             "createTime": {
                                 "$gte": new Date(startTime),
-                                "$lte": new Date(endTime)
+                                "$lt": new Date(endTime)
                             },
                             "mainType": "Reward",
                             "type": {"$ne": ObjectId(consumptionReturnTypeId)},
@@ -279,7 +281,7 @@ var dbPlayerTopUpRecord = {
                             "data.playerObjId": {$in: playerIds},
                             "createTime": {
                                 "$gte": new Date(startTime),
-                                "$lte": new Date(endTime)
+                                "$lt": new Date(endTime)
                             },
                             "mainType": "TopUp",
                             "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
@@ -595,8 +597,6 @@ var dbPlayerTopUpRecord = {
                 )
             }
         );
-
-
     },
 
     countPlatformFeeByPlayer: function(platformId, playerId, providerDetail){
