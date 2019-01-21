@@ -871,7 +871,7 @@ var dbPlayerTopUpRecord = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 50,
+                                batchSize: 100,
                                 makeRequest: function (proposals, request) {
                                     request("player", "topupRecordInsertRepeatCount", {
                                         proposals: proposals,
