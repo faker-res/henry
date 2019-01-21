@@ -6025,6 +6025,8 @@ function updateAllCustomizeCommissionRate (proposalData) {
 }
 
 function getProviderCredit(providers, playerName, platformId) {
+    let getProviderCreditRunTime = 0;
+    let getProviderCreditRunTimeEndStart = new Date().getTime();
     let promArr = [];
     let providerCredit = 0;
     let cpmsAPI = require('../externalAPI/cpmsAPI');
@@ -6040,6 +6042,9 @@ function getProviderCredit(providers, playerName, platformId) {
                     }
                 ).then(
                     data => {
+                        let getProviderCreditRunTimeEnd = new Date().getTime();
+                        getProviderCreditRunTime = (getProviderCreditRunTimeEnd - getProviderCreditRunTimeEndStart) / 1000;
+                        console.log('getProviderCreditRunTime===11', getProviderCreditRunTime);
                         console.log("proposalExecutor.js getProviderCredit()", data);
                         return data;
                     },
