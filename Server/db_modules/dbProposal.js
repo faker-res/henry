@@ -3304,7 +3304,7 @@ var proposal = {
 
             dbconfig.collection_proposalType.find(searchQuery).then(
                 function (data) {
-                    console.log("LH check proposal report 3 ------------------ get proposal type", data);
+                    console.log("LH check proposal report 3 ------------------ get proposal type");
                     if (data && data.length > 0) {
                         for (var i = 0; i < data.length; i++) {
                             (proposalTypeList.push(ObjectId(data[i]._id)));
