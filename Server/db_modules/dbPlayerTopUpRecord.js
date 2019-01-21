@@ -217,7 +217,7 @@ var dbPlayerTopUpRecord = {
                             "data.playerObjId": {$in: playerIds},
                             "createTime": {
                                 "$gte": new Date(startTime),
-                                "$lte": new Date(endTime)
+                                "$lt": new Date(endTime)
                             },
                             "mainType": "PlayerBonus",
                             "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
