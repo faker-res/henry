@@ -3617,7 +3617,7 @@ var proposal = {
                             },
                         }
                     }
-                ]).read("secondaryPreferred").cursor({batchSize: 1000});
+                ]).read("secondaryPreferred");
             }
             Q.all([a, b, c]).then(
                 function (data) {
