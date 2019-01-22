@@ -366,11 +366,14 @@ include modalGameCreditLog
                 label {{"FORBID_REWARD" | translate}}
                 div
                     label {{"优惠代码" | translate}}
-                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode')
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode', ng-checked='vm.forbidPromoCode || vm.selectedAllForbidRewardEvent')
                 div(ng-repeat='(i,v) in vm.allRewardEvent')
                     label {{v.name}}
-                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1')
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1 || vm.selectedAllForbidRewardEvent')
                         span(id="{{'c-'+v._id}}")
+                div
+                    label.text-danger {{'Select All' | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='isTrue', ng-click='vm.selectedAllForbidRewardEvent = !vm.selectedAllForbidRewardEvent; vm.forbidPromoCode = vm.selectedAllForbidRewardEvent', ng-checked='vm.selectedAllForbidRewardEvent')
                 .textareaDetail.margin-top-bottom-small
                     textarea.forbidRewardRemark(ng-model='vm.forbidRewardRemark', placeholder='{{"Please add remark." | translate}}')
                 button.common-button.margin-right-5.btn.btn-success.forbidRewardEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewards') && vm.platformPageName!='batchPermit'", ng-disabled='vm.forbidRewardDisable') {{'CONFIRM' | translate}}
