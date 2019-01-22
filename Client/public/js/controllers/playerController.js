@@ -6306,6 +6306,10 @@ define(['js/app'], function (myApp) {
                             vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
+                            vm.selectedAllForbidRewardEvent = false;
+                            if (vm.forbidPromoCode && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
+                                vm.selectedAllForbidRewardEvent = true;
+                            }
                             $scope.safeApply();
                             return $compile($('#forbidRewardEventPopover').html())($scope);
                         },
