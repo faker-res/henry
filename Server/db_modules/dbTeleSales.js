@@ -1653,7 +1653,7 @@ let dbTeleSales = {
                 if (tsPhoneData && tsPhoneData.length) {
                     tsPhoneData.forEach(tsPhone => {
                         if (tsPhone.phoneNumber) {
-                            tsPhone.phoneNumber = rsaCrypto.decrypt(tsPhone.phoneNumber);
+                            tsPhone.decryptedPhone = rsaCrypto.decrypt(tsPhone.phoneNumber);
                         }
                     })
                 }
@@ -1666,7 +1666,7 @@ let dbTeleSales = {
         let tsPhoneProm = dbconfig.collection_tsPhone.findOne({_id: tsPhoneObjId}).lean().then(
             tsPhoneData => {
                 if (tsPhoneData && tsPhoneData.phoneNumber) {
-                    tsPhoneData.phoneNumber = rsaCrypto.decrypt(tsPhoneData.phoneNumber);
+                    tsPhoneData.decryptedPhone = rsaCrypto.decrypt(tsPhoneData.phoneNumber);
                 }
                 return tsPhoneData;
             }
