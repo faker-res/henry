@@ -2540,10 +2540,11 @@ function findRTGToUpdate (oldData, newData) {
 
 function createBaccaratConsumption (providerObjId, providerName, consumptionRecord, oldConsumtionObjId) {
     let regexPattern = new RegExp('百家乐','g');
+    let pairResultObj = {}; // for ebet only
     if (consumptionRecord && consumptionRecord.cpGameType && consumptionRecord.result && regexPattern.test(consumptionRecord.cpGameType)) {
         let baccaratResult;
         if (consumptionRecord.providerId ==  '56'/*"18"*/) { // EBET // todo :: change back to 56 for live
-            baccaratResult = readEBETBaccaratResult(consumptionRecord.result);
+            baccaratResult = readEBETBaccaratResult(consumptionRecord.result, pairResultObj);
         } else if (consumptionRecord.providerId == '16') { // AG
             baccaratResult = readAGBaccaratResult(consumptionRecord.result);
         } else if (consumptionRecord.providerId == '55') { // BYLIVE
@@ -2567,6 +2568,14 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
                 createTime: consumptionRecord.createTime,
                 consumption: consumptionRecord._id
             };
+
+            if (pairResultObj.host) {
+                saveData.hostPairResult = pairResultObj.host;
+            }
+            if (pairResultObj.player) {
+                saveData.playerPairResult = pairResultObj.player;
+            }
+
             if (oldConsumtionObjId) {
                 delete saveData.consumption;
                 dbconfig.collection_baccaratConsumption.findOneAndUpdate({consumption: oldConsumtionObjId}, saveData).catch(errorUtils.reportError);
@@ -2625,7 +2634,7 @@ function readBYBaccaratResult (resultStr) {
     };
 }
 
-function readEBETBaccaratResult (resultStr) {
+function readEBETBaccaratResult (resultStr, pairResultObj) {
     let strSplit;
     resultStr = resultStr || "";
     strSplit = resultStr.split(")(");
@@ -2645,15 +2654,32 @@ function readEBETBaccaratResult (resultStr) {
     }
 
     return {
-        host: getBaccaratNumber(hostStr),
-        player: getBaccaratNumber(playerStr)
+        host: getBaccaratNumber(hostStr, "host"),
+        player: getBaccaratNumber(playerStr, "player")
     };
 
-    function getBaccaratNumber (str) {
+    function getBaccaratNumber (str, pairObjField) {
         let total = 0;
+        let splitedResult = str.split("|");
+        let firstTwoResult = splitedResult && splitedResult[0] && splitedResult[1] && String(splitedResult[0] + splitedResult[1]) || "";
+
         total += dbUtility.countOccurrenceInString(str, "Ace");
-        for (let i = 2; i <= 9; i++) {
+        if (pairResultObj && firstTwoResult) {
+            let checkPairArr = ["Ace", "Jack", "Queen", "King"];
+            for (let j = 0; j < checkPairArr.length; j++) {
+                if (dbUtility.countOccurrenceInString(firstTwoResult, checkPairArr[j]) == 2) {
+                    pairResultObj[pairObjField] = checkPairArr[j];
+                    break;
+                }
+            }
+        }
+        for (let i = 2; i <= 10; i++) {
             total += (dbUtility.countOccurrenceInString(str, String(i)) * i);
+            if (pairResultObj && !pairResultObj[pairObjField]) {
+                if (dbUtility.countOccurrenceInString(firstTwoResult, String(i)) == 2) {
+                    pairResultObj[pairObjField] = String(i);
+                }
+            }
         }
 
         total %= 10;
