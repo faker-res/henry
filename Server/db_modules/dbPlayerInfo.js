@@ -16296,7 +16296,39 @@ let dbPlayerInfo = {
                         playerSummary => {
                             if(playerSummary){
                                 playerSummary.topUpAmount = playerSummary.manualTopUpAmount + playerSummary.onlineTopUpAmount + playerSummary.aliPayTopUpAmount + playerSummary.weChatTopUpAmount;
-                                playerSummary.providerDetail = playerSummary.providerDetail && playerSummary.providerDetail[0] ? playerSummary.providerDetail[0] : {};
+
+                                if(playerSummary.providerDetail && playerSummary.providerDetail.length > 1){
+                                    //merge providerDetail from different date
+                                    let providerDetailObj = {};
+                                    playerSummary.providerDetail.forEach(
+                                        providerDetail => {
+                                            if(providerDetail && Object.keys(providerDetail).length > 0){
+                                                for(let i = 0; i < Object.keys(providerDetail).length; i++){
+                                                    let providerDetailKey = Object.keys(providerDetail)[i];
+                                                    if(providerDetailObj[providerDetailKey]){
+                                                        providerDetailObj[providerDetailKey].bonusAmount += providerDetail[providerDetailKey].bonusAmount;
+                                                        providerDetailObj[providerDetailKey].validAmount += providerDetail[providerDetailKey].validAmount;
+                                                        providerDetailObj[providerDetailKey].amount += providerDetail[providerDetailKey].amount;
+                                                        providerDetailObj[providerDetailKey].count += providerDetail[providerDetailKey].count;
+                                                        providerDetailObj[providerDetailKey].bonusRatio = (providerDetail[providerDetailKey].bonusAmount / providerDetail[Object.keys(providerDetail)[i]].validAmount);
+                                                    }else{
+                                                        providerDetailObj[providerDetailKey] = {
+                                                            bonusRatio: providerDetail[providerDetailKey].bonusRatio,
+                                                            bonusAmount: providerDetail[providerDetailKey].bonusAmount,
+                                                            validAmount: providerDetail[providerDetailKey].validAmount,
+                                                            amount: providerDetail[providerDetailKey].amount,
+                                                            count: providerDetail[providerDetailKey].count,
+                                                        };
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    );
+
+                                    playerSummary.providerDetail = providerDetailObj;
+                                }else{
+                                    playerSummary.providerDetail = playerSummary.providerDetail && playerSummary.providerDetail[0] ? playerSummary.providerDetail[0] : {};
+                                }
                             }
                         }
                     )
@@ -17315,16 +17347,7 @@ let dbPlayerInfo = {
                 }
 
                 result.forEach(data => {
-                    if (playerData) {
-                        playerData.forEach(player => {
-                            if (player && data && player._id.toString() === data._id.toString()) {
-                                data.realName = player.realName ? player.realName : "";
-                                data.lastAccessTime = player.lastAccessTime ? player.lastAccessTime : "";
-                            }
-                        });
-                    }
                     data.totalPlayerDepositAmount = data.topUpAmount - data.bonusAmount;
-
                     return data;
                 });
 
@@ -18683,7 +18706,9 @@ let dbPlayerInfo = {
                     province: 1,
                     city: 1,
                     depositTrackingGroup: 1,
-                    csOfficer: 1
+                    csOfficer: 1,
+                    lastAccessTime: 1,
+                    realName: 1
                 }
             ).populate({
                 path: 'csOfficer',
@@ -18920,6 +18945,8 @@ let dbPlayerInfo = {
                     result.registrationTime = playerDetail.registrationTime;
                     result.depositTrackingGroup = playerDetail.depositTrackingGroup;
                     result.endTime = endTime;
+                    result.lastAccessTime = playerDetail.lastAccessTime;
+                    result.realName = playerDetail.realName;
 
                     let csOfficerDetail = data[6];
 
@@ -19531,8 +19558,17 @@ let dbPlayerInfo = {
         let dbPhone = Promise.resolve([]);
         let matchObj = {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}};
 
+
+        // arrayPhoneXLS = arrayPhoneXLS.filter(phoneNumber => !isNaN(phoneNumber));
+
         for (let i = 0; i < arrayPhoneXLS.length; i++) {
             arrayPhoneXLS[i] = arrayPhoneXLS[i].trim();
+            if (isNaN(arrayPhoneXLS[i])) {
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Invalid phone number"
+                });
+            }
             oldNewPhone.$in.push(arrayPhoneXLS[i]);
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneXLS[i]));
             oldNewPhone.$in.push(rsaCrypto.oldEncrypt(arrayPhoneXLS[i]));
@@ -19666,7 +19702,7 @@ let dbPlayerInfo = {
                     adminName: adminName,
                     admin: adminId
                 }).save().catch(errorUtils.reportError);
-                
+
                 // if (saveObj.isCheckWhiteListAndRecycleBin) {
                 let filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsList._id, saveObj.isCheckWhiteListAndRecycleBin);
                 // }

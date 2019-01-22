@@ -781,6 +781,7 @@ define([], function () {
                 maxPage: 0,
                 pageSize: (tblObj && tblObj.pageSize) ? tblObj.pageSize : 10
             };
+            let maxPageSize = (tblObj && tblObj.maxPageSize) ? tblObj.maxPageSize : 2000;
             $(id).append(newPage.prop('innerHTML'));
             $(id).find(".jumpText").text(trans("Jump to"));
             $(id).find(".first_page").text(1).hide();
@@ -835,8 +836,8 @@ define([], function () {
                         retObj.pageSize = event.target.valueAsNumber;
                         if (retObj.pageSize < 1) {
                             retObj.pageSize = 1
-                        } else if (retObj.pageSize > 2000) {
-                            retObj.pageSize = 2000;
+                        } else if (retObj.pageSize > maxPageSize) {
+                            retObj.pageSize = maxPageSize;
                         }
                         $(id).find('.pageSize').val(retObj.pageSize);
                         retObj.jump();
