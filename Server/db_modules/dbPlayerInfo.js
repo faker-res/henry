@@ -19531,6 +19531,8 @@ let dbPlayerInfo = {
         let dbPhone = Promise.resolve([]);
         let matchObj = {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}};
 
+        arrayPhoneXLS.filter(phoneNumber => !isNaN(phoneNumber));
+
         for (let i = 0; i < arrayPhoneXLS.length; i++) {
             arrayPhoneXLS[i] = arrayPhoneXLS[i].trim();
             oldNewPhone.$in.push(arrayPhoneXLS[i]);
