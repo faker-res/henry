@@ -274,6 +274,18 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.dailyTradeTsPhone, [], actionName, isValidData);
         },
 
+        debugTsPhoneList: function debugTsPhoneList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.tsPhoneList);
+            socketUtil.emitter(self.socket, dbTeleSales.debugTsPhoneList, [data.tsPhoneList], actionName, isValidData);
+        },
+
+        debugTsPhone: function debugTsPhone(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.tsPhone);
+            socketUtil.emitter(self.socket, dbTeleSales.debugTsPhone, [data.tsPhone], actionName, isValidData);
+        },
+
         getDecomposedNewPhoneRecord: function getDecomposedNewPhoneRecord(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.startTime && data.endTime);

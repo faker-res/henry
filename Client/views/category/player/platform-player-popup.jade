@@ -4,336 +4,271 @@
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{'Player' | translate}} : {{vm.selectedSinglePlayer.name}}
-            .modal-body
-                .panel.panel-primary
-                    .panel-heading.panel-heading-sm
-                        h5.text-center {{"Player Information" | translate}}
+            .modal-body.col-xs-12
+                h4 {{"Player Information" | translate}}
+                div.newcontanier.col-xs-12
+                    div
+                        h5 {{'Basic' | translate}}
+                        hr
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"PLAYER_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.name}}
+
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"PLAYER_ID" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.playerId}}
+
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"REMARK" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
+
+                            .col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Player', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"realName" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"partner" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"GENDER" | translate}}
+                                .col-sm-7
+                                    text {{vm.getGenderFromBool(vm.selectedSinglePlayer.gender) || 'NONE' | translate}}
+                            .col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-click='vm.getPlayerInfoHistory()') {{"EDIT_HISTORY" | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"NICK_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.nickName || 'NONE' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"REFERRAL" | translate}}
+                                .col-sm-7
+                                    text {{vm.showReferralName || 'NONE' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"DOB" | translate}}
+                                .col-sm-7
+                                    text {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
+                            .col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Player', 'Player', 'ResetPassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset') {{"EDIT_WEBSITE_PASS" | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-10.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Player', 'Player', 'ModifyGamePassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareModifyPlayerGamePassword()' data-target='#modalModifyGamePassword') {{"EDIT_PROVIDER_PASS" | translate}}
+
+                    div
+                        h5 {{'CONTACT_INFO' | translate}}
+                        hr
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-5
+                                .col-sm-3
+                                    label {{"TELEPHONE" | translate}}
+                                .col-sm-8
+                                    text.
+                                        {{vm.getEncPhoneNumber(vm.selectedSinglePlayer) || 'Unknown' | translate}}&nbsp;
+                                        ({{vm.selectedSinglePlayer.phoneCity || 'Unknown' | translate}},&nbsp;
+                                        {{vm.selectedSinglePlayer.phoneProvince || 'Unknown' | translate}}/
+                                        {{vm.selectedSinglePlayer.phoneType || 'Unknown' | translate}})
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"WECHAT" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
+                            .col-sm-offset-6.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Player', 'Player', 'EditContact')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('contactInfo')") {{"EDIT" | translate}}
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"QQ" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
+                            .col-sm-offset-6.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-click='vm.getPlayerContactHistory()') {{"EDIT_HISTORY" | translate}}
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"EMAIL" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.email || vm.qqAddress || 'Unknown' | translate}}
+
+                    div
+                        h5 {{'WITHDRAW_INFO' | translate}}
+                        hr
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.allBankTypeList[vm.selectedSinglePlayer.bankName] || vm.selectedSinglePlayer.bankName || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
+                            .col-sm-offset-3.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Player', 'Player', 'PaymentInformation')&&vm.selectedSinglePlayer.isRealPlayer",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('withdrawInfo');") {{"EDIT" | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.encodedBankAccount || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_PROVINCE" | translate}}
+                                .col-sm-7
+                                    text {{vm.showProvinceStr ? vm.showProvinceStr : (vm.selectedSinglePlayer.bankAccountProvince || 'Unknown') | translate}}
+                            .col-sm-offset-3.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Player', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_CITY" | translate}}
+                                .col-sm-7
+                                    text {{vm.showCityStr ? vm.showCityStr : (vm.selectedSinglePlayer.bankAccountCity || 'Unknown') | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_DISTRICT" | translate}}
+                                .col-sm-7
+                                    text {{vm.showDistrictStr ? vm.showDistrictStr : 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"Bank Address" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.bankAddress || 'Unknown' | translate}}
+                    div
+                        h5 {{"Topup Group" | translate}}
+                        hr
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BankCardGroup" | translate}}
+                                .col-sm-7
+                                    text {{vm.platformBankCardGroupListCheck[vm.selectedSinglePlayer.bankCardGroup] | translate}}
+
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"ONLINE_TOP_UP_GROUP" | translate}}
+                                .col-sm-7
+                                    text {{vm.platformMerchantGroupListCheck[vm.selectedSinglePlayer.merchantGroup] | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"PERSONAL_ALIPAY_GROUP" | translate}}
+                                .col-sm-7
+                                    text {{vm.platformAlipayGroupListCheck[vm.selectedSinglePlayer.alipayGroup] | translate}}
+
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"PERSONAL_WECHAT_GROUP" | translate}}
+                                .col-sm-7
+                                    text {{vm.platformWechatPayGroupListCheck[vm.selectedSinglePlayer.wechatPayGroup] | translate}}
+
+                            .col-sm-offset-3.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-click='vm.openEditPlayerDialog("topUpInfo");', ng-if="checkViewPermission('Player', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
+                    div
+                        h5 {{'REGISTRATION_INFO' | translate}}
+                        hr
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"REGISTRATION_IP" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.loginIps && vm.selectedSinglePlayer.loginIps[0] || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{'COUNTRY' | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.country || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{'PROVINCE' | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.province || 'Unknown' | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"CITY" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.city || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"PROMOTE_WAY" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.promoteWay || 'Unknown' | translate}}
+                            .col-sm-offset-3.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-click='vm.showIPHistory()') {{"View Details" | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{'Registration Domain' | translate}}
+                                .col-sm-7
+                                    a(href='{{vm.selectedSinglePlayer.domain}}', title='{{vm.selectedSinglePlayer.domain}}', target='_blank') {{vm.selectedSinglePlayer.$displayDomain || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{'SOURCE_URL' | translate}}
+                                .col-sm-7
+                                    a(href='{{vm.selectedSinglePlayer.sourceUrl}}', title='{{vm.selectedSinglePlayer.sourceUrl}}', target='_blank') {{vm.selectedSinglePlayer.$displaySourceUrl || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"REGISTRATION_ADMIN" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.csOfficer.adminName || 'Unknown' | translate}}
+
+                button.pull-right.btn.btn-primary.margin-top-10(ng-click="vm.showSimilarPlayersTable=!vm.showSimilarPlayersTable; vm.showSimilarPlayerTab();") {{"SHOW_SIMILAR_PLAYERS" | translate}}
+
+
+        #similarPlayersTable.panel(ng-if="vm.showSimilarPlayersTable")
+            .panel-heading.panel-heading-sm
+                h4.text-center {{"SIMILAR_PLAYERS" | translate}}
+            .panel-body
+                ul.nav.nav-tabs.common-nav-tabs
+                    li(ng-class="vm.selectedSimilarPlayerTab === 'similar-phone' ? 'active' : null")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showSimilarPlayerTab('similar-phone')") {{"PLAYER_SIMILAR_PHONE" | translate}}
+                    li(ng-class="vm.selectedSimilarPlayerTab === 'similar-ip' ? 'active' : null")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showSimilarPlayerTab('similar-ip')") {{"PLAYER_SIMILAR_IP" | translate}}
+
+                .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
-                        table.playerInfoModalDivs
-                            thead
-                                tr
-                                    th
-                                        div {{'Type' | translate}}
-                                    th {{'CONTENT' | translate}}
-                                    th
-                                        div {{'ACTION_BUTTON' | translate}}
-                            tbody
-                                tr
-                                    td
-                                        div {{'Basic' | translate}}
-                                    td
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"PLAYER_NAME" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.name}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"PLAYER_ID" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.playerId}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"REMARK" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"realName" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"partner" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
+                        div(ng-show="vm.selectedSimilarPlayerTab === 'similar-phone'")
+                            #similarPhoneForPlayer.adminLogQueryDiv
+                            label {{"Total" | translate}} {{vm.similarPhoneForPlayer.totalCount}} {{"records" | translate}}
+                                .inlineBlk.margin-left-5(ng-if='vm.similarPhoneForPlayer.loading')
+                                    i.fa.fa-spin.fa-spinner
+                            table#similarPhoneForPlayerTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
+                            #similarPhoneForPlayerTablePage
 
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"GENDER" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.getGenderFromBool(vm.selectedSinglePlayer.gender) || 'NONE' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"NICK_NAME" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.nickName || 'NONE' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"REFERRAL" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.showReferralName || 'NONE' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"DOB" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
-                                    td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Player', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
-                                        br
-                                        button.btn.btn-primary.common-button-sm(ng-click='vm.getPlayerInfoHistory()') {{"EDIT_HISTORY" | translate}}
-                                        br
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Player', 'Player', 'ResetPassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset') {{"EDIT_WEBSITE_PASS" | translate}}
-                                        br
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Player', 'Player', 'ModifyGamePassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareModifyPlayerGamePassword()' data-target='#modalModifyGamePassword') {{"EDIT_PROVIDER_PASS" | translate}}
-
-
-                                tr
-                                    td
-                                        div {{'CONTACT_INFO' | translate}}
-                                    td
-                                        .row
-                                            .col-md-8
-                                                .row
-                                                    .col-sm-2
-                                                        label {{"TELEPHONE" | translate}}
-                                                    .col-sm-8
-                                                        text.
-                                                            {{vm.getEncPhoneNumber(vm.selectedSinglePlayer) || 'Unknown' | translate}}&nbsp;
-                                                            ({{vm.selectedSinglePlayer.phoneCity || 'Unknown' | translate}},&nbsp;
-                                                            {{vm.selectedSinglePlayer.phoneProvince || 'Unknown' | translate}}/
-                                                            {{vm.selectedSinglePlayer.phoneType || 'Unknown' | translate}})
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"WECHAT" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"QQ" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"EMAIL" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.email || vm.qqAddress || 'Unknown' | translate}}
-
-                                        //.inlineBlk.col-md-3
-                                        //    label {{'Test Player' | translate}}
-                                        //    text(style='height:inherit') {{vm.selectedSinglePlayer.isTestPlayer ? 'Yes' : 'No' | translate}}
-                                        //.inlineBlk.col-md-3
-                                    td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Player', 'Player', 'EditContact')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('contactInfo')") {{"EDIT" | translate}}
-                                        br
-                                        button.btn.btn-primary.common-button-sm(ng-click='vm.getPlayerContactHistory()') {{"EDIT_HISTORY" | translate}}
-                                tr
-                                    td
-                                        div {{'WITHDRAW_INFO' | translate}}
-                                    td
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_NAME" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.allBankTypeList[vm.selectedSinglePlayer.bankName] || vm.selectedSinglePlayer.bankName || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_ACCOUNT_NAME" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
-                                            //.col-md-4
-                                            //    .row
-                                            //        .col-sm-4(style='white-space: nowrap;')
-                                            //            label {{"BANK_ACCOUNT_TYPE" | translate}}
-                                            //        .col-sm-8
-                                            //            text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card'|translate}}
-                                            //            text(ng-if='vm.selectedSinglePlayer.bankAccountType==1 || vm.selectedSinglePlayer.bankAccountType=="1"') {{'Credit Card'|translate}}
-                                            //            text(ng-if='vm.selectedSinglePlayer.bankAccountType==3 || vm.selectedSinglePlayer.bankAccountType=="3"') {{'储存卡'|translate}}
-                                            //            text(ng-if='vm.selectedSinglePlayer.bankAccountType==4 || vm.selectedSinglePlayer.bankAccountType=="4"') {{'储蓄卡'|translate}}
-                                            //            text(ng-if='vm.selectedSinglePlayer.bankAccountType==5 || vm.selectedSinglePlayer.bankAccountType=="5"') {{'商务理财卡'|translate}}
-                                            //            text(ng-if='vm.selectedSinglePlayer.bankAccountType==6 || vm.selectedSinglePlayer.bankAccountType=="6"') {{'工商银行一卡通'|translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_ACCOUNT" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.encodedBankAccount || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_ACCOUNT_PROVINCE" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.showProvinceStr ? vm.showProvinceStr : (vm.selectedSinglePlayer.bankAccountProvince || 'Unknown') | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_ACCOUNT_CITY" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.showCityStr ? vm.showCityStr : (vm.selectedSinglePlayer.bankAccountCity || 'Unknown') | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_ACCOUNT_DISTRICT" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.showDistrictStr ? vm.showDistrictStr : 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"Bank Address" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.bankAddress || 'Unknown' | translate}}
-
-                                        //.inlineBlk
-                                        //    label {{"Today Consumption" | translate}}
-                                        //    text {{vm.selectedSinglePlayer.dailyConsumptionSum || 0}}
-                                        //.inlineBlk
-                                        //    label {{"Today Topup" | translate}}
-                                        //    text {{vm.selectedSinglePlayer.dailyTopUpSum || 0}}
-                                    td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Player', 'Player', 'PaymentInformation')&&vm.selectedSinglePlayer.isRealPlayer",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('withdrawInfo');") {{"EDIT" | translate}}
-                                        br
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Player', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
-                                tr
-                                    td
-                                        div {{"Topup Group" | translate}}
-                                    td
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BankCardGroup" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.platformBankCardGroupListCheck[vm.selectedSinglePlayer.bankCardGroup] | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"ONLINE_TOP_UP_GROUP" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.platformMerchantGroupListCheck[vm.selectedSinglePlayer.merchantGroup] | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"PERSONAL_ALIPAY_GROUP" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.platformAlipayGroupListCheck[vm.selectedSinglePlayer.alipayGroup] | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"PERSONAL_WECHAT_GROUP" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.platformWechatPayGroupListCheck[vm.selectedSinglePlayer.wechatPayGroup] | translate}}
-                                    td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog("topUpInfo");', ng-if="checkViewPermission('Player', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
-                                        br
-                                tr
-                                    td
-                                        div {{'REGISTRATION_INFO' | translate}}
-                                    td
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"REGISTRATION_IP" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.loginIps && vm.selectedSinglePlayer.loginIps[0] || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4(style='white-space: nowrap;')
-                                                        label {{'COUNTRY' | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.country || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{'PROVINCE' | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.province || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"CITY" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.city || 'Unknown' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{'Registration Domain' | translate}}
-                                                    .col-sm-8
-                                                        a(href='{{vm.selectedSinglePlayer.domain}}', title='{{vm.selectedSinglePlayer.domain}}', target='_blank') {{vm.selectedSinglePlayer.$displayDomain || 'Unknown' | translate}}
-                                                        //text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{'SOURCE_URL' | translate}}
-                                                    .col-sm-8
-                                                        text
-                                                            a(href='{{vm.selectedSinglePlayer.sourceUrl}}', title='{{vm.selectedSinglePlayer.sourceUrl}}', target='_blank') {{vm.selectedSinglePlayer.$displaySourceUrl || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"REGISTRATION_ADMIN" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.csOfficer.adminName || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"PROMOTE_WAY" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.promoteWay || 'Unknown' | translate}}
-                                        //.inlineBlk
-                                        //    label {{'BANK_BRANCH' | translate}}
-                                        //    text {{vm.selectedSinglePlayer.bankBranch || 'Unknown' | translate}}
-                                    td
-                                        button.btn.btn-primary.common-button-sm(ng-click='vm.showIPHistory()') {{"View Details" | translate}}
-
-                .row
-                    .col-md-12
-                        button.pull-right.btn.btn-primary.common-button-sm(ng-click="vm.showSimilarPlayersTable=!vm.showSimilarPlayersTable; vm.showSimilarPlayerTab();") {{"SHOW_SIMILAR_PLAYERS" | translate}}
-                        br
-                        br
-
-                #similarPlayersTable.panel.panel-primary(ng-if="vm.showSimilarPlayersTable")
-                    .panel-heading.panel-heading-sm
-                        h5.text-center {{"SIMILAR_PLAYERS" | translate}}
-                    .panel-body
-                        ul.nav.nav-tabs.common-nav-tabs
-                            li(ng-class="vm.selectedSimilarPlayerTab === 'similar-phone' ? 'active' : null")
-                                a.common-tab(data-toggle="tab", ng-click="vm.showSimilarPlayerTab('similar-phone')") {{"PLAYER_SIMILAR_PHONE" | translate}}
-                            li(ng-class="vm.selectedSimilarPlayerTab === 'similar-ip' ? 'active' : null")
-                                a.common-tab(data-toggle="tab", ng-click="vm.showSimilarPlayerTab('similar-ip')") {{"PLAYER_SIMILAR_IP" | translate}}
-
-                        .panel.panel-primary(style="border-radius:0 !important;")
-                            .panel-body
-                                div(ng-show="vm.selectedSimilarPlayerTab === 'similar-phone'")
-                                    #similarPhoneForPlayer.adminLogQueryDiv
-                                    label {{"Total" | translate}} {{vm.similarPhoneForPlayer.totalCount}} {{"records" | translate}}
-                                        .inlineBlk.margin-left-5(ng-if='vm.similarPhoneForPlayer.loading')
-                                            i.fa.fa-spin.fa-spinner
-                                    table#similarPhoneForPlayerTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
-                                    #similarPhoneForPlayerTablePage
-
-                                div(ng-show="vm.selectedSimilarPlayerTab === 'similar-ip'")
-                                    #similarIpForPlayer.adminLogQueryDiv
-                                    label {{"Total" | translate}} {{vm.similarIpForPlayer.totalCount}} {{"records" | translate}}
-                                        .inlineBlk.margin-left-5(ng-if='vm.similarIpForPlayer.loading')
-                                            i.fa.fa-spin.fa-spinner
-                                    table#similarIpForPlayerTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
-                                    #similarIpForPlayerTablePage
+                        div(ng-show="vm.selectedSimilarPlayerTab === 'similar-ip'")
+                            #similarIpForPlayer.adminLogQueryDiv
+                            label {{"Total" | translate}} {{vm.similarIpForPlayer.totalCount}} {{"records" | translate}}
+                                .inlineBlk.margin-left-5(ng-if='vm.similarIpForPlayer.loading')
+                                    i.fa.fa-spin.fa-spinner
+                            table#similarIpForPlayerTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
+                            #similarIpForPlayerTablePage
 
                     //
                         .panel.panel-primary
@@ -840,26 +775,27 @@
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"Player API Log" | translate}} : {{vm.selectedSinglePlayer.name}}
             .modal-body
-                #playerApiLogQuery.well
-                    .inlineBlk
+                #playerApiLogQuery.well.col-xs-12
+                    .search-filters-item
                         label {{"Start date" | translate}}
                         .startTime
-                    .inlineBlk
+                    .search-filters-item
                         label {{"End date" | translate}}
                         .endTime
-                    .inlineBlk
+                    .search-filters-item
                         label {{"API Action" | translate}}
                         select.form-control.apiAction(ng-model='vm.playerApiLog.apiAction')
                             option(value="") {{'all' | translate}}
                             option(value="main site") {{'Login to main site' | translate}}
                             option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{"LOGIN" | translate}}{{v.name | translate}}
-                    .inlineBlk
+                    .search-filters-item
                         label {{"IP_ADDRESS" | translate}}
                         input.form-control(ng-model='vm.playerApiLog.ipAddress')
-                    .inlineBlk(ng-if="vm.selectedSinglePlayer == null")
+                    .search-filters-item(ng-if="vm.selectedSinglePlayer == null")
                         label {{"Player Name (Can be empty)" | translate}}
                         input.form-control(ng-model='vm.playerApiLog.playerName')
-                    button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)') {{"SEARCH" | translate}}
+                    .col-xs-12.text-right
+                        button.btn.btn-primary(ng-click='vm.getPlayerApiLogData(true)') {{"SEARCH" | translate}}
                 div
                     label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
                     table#playerApiLogTbl.common-table.display.paymentGroup-btn

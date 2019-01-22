@@ -21,6 +21,10 @@ let baccaratConsumptionSchema = new Schema({
     hostResult: {type: Number, index: true},
     // player result score
     playerResult: {type: Number, index: true},
+    // host pair result score
+    hostPairResult: {type: String, index: true},
+    // player pair result score
+    playerPairResult: {type: String, index: true},
     // bet details
     betDetails: [{
         _id: false,

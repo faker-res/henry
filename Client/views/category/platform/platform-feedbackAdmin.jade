@@ -1,54 +1,52 @@
 .row
     .col-md-12
-        .well.feedbackAdminQueryDiv
-            .inlineBlk
-                label.control-label {{'ADMIN' | translate}}
-                //input.form-control(ng-model='vm.feedbackAdminQuery.admin', placeholder="{{'SEARCH' | translate}}")
+        .well.col-xs-12
+            .search-filters-item
+                label {{'ADMIN' | translate}}
                 select.form-control.feedbackOption(ng-model='vm.feedbackAdminQuery.admin', ng-options='a.adminName as a.adminName group by a.departmentName for a in vm.departmentUsers')
                     option(value="") {{'any' | translate}}
-            .inlineBlk
-                label.control-label {{'Customer Service Name' | translate}}
+            .search-filters-item
+                label {{'Customer Service Name' | translate}}
                 input.form-control(ng-model='vm.feedbackAdminQuery.cs', placeholder="{{'SEARCH' | translate}}")
-            .inlineBlk
-                label.control-label {{'PLAYER' | translate}}
+            .search-filters-item
+                label {{'PLAYER' | translate}}
                 input.form-control(ng-model='vm.feedbackAdminQuery.player', placeholder="{{'SEARCH' | translate}}")
-            .inlineBlk
-                label.control-label {{'FEEDBACK_RESULTS' | translate}}
+            .search-filters-item
+                label {{'FEEDBACK_RESULTS' | translate}}
                 select.form-control(ng-model='vm.feedbackAdminQuery.result', required)
                     option(value='all') {{'ALL' | translate}}
                     option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value|translate}}
-            .inlineBlk
-                label.control-label {{'FEEDBACK_TOPIC' | translate}}
+            .search-filters-item
+                label {{'FEEDBACK_TOPIC' | translate}}
                 select.form-control(ng-model='vm.feedbackAdminQuery.topic', required)
                     option(value='all') {{'ALL' | translate}}
                     option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.value}}') {{v.value|translate}}
-            .inlineBlk
-                label.control-label {{'Start date' | translate}}
+            .search-filters-item
+                label {{'Start date' | translate}}
                 #feedbackquerystarttime.input-append.form-control
-                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                    input(data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
                     span.add-on
                         i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-            .inlineBlk
-                 label.control-label {{'End date' | translate}}
+            .search-filters-item
+                 label {{'End date' | translate}}
                  #feedbackqueryendtime.input-append.form-control
-                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                    input(data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
                     span.add-on
                         i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-            .inlineBlk
-                label.control-label {{'topUpTimes' | translate}}
+            .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.feedbackAdminQuery.topUpTimesOperator === "range")}')
+                label {{'topUpTimes' | translate}}
                 div
-                    select.form-control(ng-model="vm.feedbackAdminQuery.topUpTimesOperator" style="width:75px;display:inline-block")
+                    select.threeBoxes.form-control(ng-model="vm.feedbackAdminQuery.topUpTimesOperator")
                         option(value='>=') {{'>='}}
                         option(value='=') {{'='}}
                         option(value='<=') {{'<='}}
                         option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.feedbackAdminQuery.topUpTimesValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackAdminQuery.topUpTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.feedbackAdminQuery.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.feedbackAdminQuery.topUpTimesOperator === 'range'")
-
-            button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'FeedbackQuery', 'Read')",ng-click='vm.submitAdminPlayerFeedbackQuery(true)') {{"SEARCH" | translate}}
-            i#loadPlayerFeedbackAdminIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
+                    input.threeBoxes.form-control(type="number" ng-model="vm.feedbackAdminQuery.topUpTimesValue" )
+                    div.symbol(ng-if="vm.feedbackAdminQuery.topUpTimesOperator === 'range'") ~
+                    input.threeBoxes.form-control(type="number" ng-model="vm.feedbackAdminQuery.topUpTimesValueTwo" ng-if="vm.feedbackAdminQuery.topUpTimesOperator === 'range'")
+            .col-xs-12.text-right
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'FeedbackQuery', 'Read')",ng-click='vm.submitAdminPlayerFeedbackQuery(true)') {{"SEARCH" | translate}}
+                i#loadPlayerFeedbackAdminIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
 .row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
     .text-center.text-danger
         label {{"NO_PLATFORM_MESSAGE" | translate}}
