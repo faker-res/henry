@@ -307,6 +307,9 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
             if (ctiMissionStatus == constCallOutMissionStatus.FINISHED) {
                 updateMissionStatusProm = dbconfig.collection_tsCallOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.FINISHED}, {new: true}).lean();
             }
+            if (ctiMissionStatus == constCallOutMissionStatus.PAUSED && mission.status !== constCallOutMissionStatus.PAUSED) {
+                updateMissionStatusProm = dbconfig.collection_tsCallOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.PAUSED}, {new: true}).lean();
+            }
 
             return updateMissionStatusProm;
         }
