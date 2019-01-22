@@ -449,24 +449,28 @@ var dbPlatformMerchantGroup = {
         let result = [];
         let uniqueLine = [];
         let uniqueObj = {};
-        if(data && data.data.length > 0){
-            data.data.forEach(item=>{
-                // find how many of different "line"
-                if(item.line && (uniqueLine.indexOf(item.line)== -1)){
-                    uniqueObj[item.line] = [];
-                }
-            });
-        }
-        Object.keys(uniqueObj).forEach(key=>{
-            //insert a "select all (same) line" object, ex: 支付宝线路1(全部)
-            let category = dbPlatformMerchantGroup.getAlipayLineAcc(key)
+
+        for(var i = 1; i < 4; i++) {
+            //insert a "select all (same) line" object, ex: 支付宝线路1(包含不存在的卡)
+            // forloop 1-3 ,is because pms wont keep every card forever, if it dont have return any card in 1 kind of "line",
+            // we will unable to create the query condition at frontend (ex: 线路3), cause data which with same "line" type will become unsearchable.
+            // so, we hardcode only 3 type of "线路", which is 1,2,3
+            let str = i.toString();
+            let category = dbPlatformMerchantGroup.getAlipayLineAcc(str, 1);
             result.push(category);
-        })
+        }
+
+        for(var k = 1; k < 4; k++) {
+            //insert a "select all (same) line" object, ex: 支付宝线路1(全部) .. forloop 1-3. reason same with above.
+            let str = k.toString();
+            let category = dbPlatformMerchantGroup.getAlipayLineAcc(str, 2);
+            result.push(category);
+        }
 
         if(data && data.data && data.data.length > 0){
             data.data.forEach(card => {
                 card.merchantNo = card.accountNumber;
-                card.name = card.accountNumber + '(' + card.name + ')';
+                card.name = card.accountNumber + '(' + card.name + ')' + ' -- ' + card.line;
                 card.merchantTypeId = '9997';
                 card.merchantTypeName = "AliPayAcc";
                 result.push(card);
@@ -474,21 +478,29 @@ var dbPlatformMerchantGroup = {
         }
         return result;
     },
-    getAlipayLineAcc: function (no) {
+    getAlipayLineAcc: function (no, type) {
         let name = "MMM4-line"+no;
         let lineAcc = {
             accountNumber:"MMM4-line"+no,
             bankTypeId:"170",
-            merchantNo:"MMM4-line"+no,
             merchantTypeId:"9997",
             merchantTypeName:"AliPayAcc",
             minDepositAmount:1,
             name: name,
             singleLimit:0,
             state:"NORMAL",
-            line: no,
-            category:true
         }
+        if(type == 1){
+            // the query will not contain alipay acc , it search by field -- "line" (because specific alipay acc will not always exist).
+            lineAcc.includesAllCards = true;
+            lineAcc.merchantNo = "MMM-all"+no;
+            lineAcc.lineGroup = no;
+        } else if (type == 2) {
+            // we create a category to display alipay proposal when alipay card is exist( which means the query will contain alipay acc).
+            lineAcc.category = true;
+            lineAcc.merchantNo = "MMM4-line"+no;
+            lineAcc.line = no;
+        };
         return lineAcc;
     },
     syncMerchantNoScript:function(platformObjId){
@@ -516,7 +528,6 @@ var dbPlatformMerchantGroup = {
                         merchantNames.push(merchant.name);
                     }
                 })
-                console.log(merchantNames);
                 let query = {'groupId': item.groupId, 'platform': platformObjId};
                 let updateData = {
                     '$addToSet': {

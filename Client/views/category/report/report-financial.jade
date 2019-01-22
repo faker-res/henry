@@ -39,36 +39,36 @@
                 tr.no-border
                     th(ng-repeat="group in vm.topUpHeader  | orderBy: 'groupId'" style="min-width:210px;")
                         table
-                            th.text-center(ng-repeat="method in group.topUpDetail | orderBy: 'depositId' track by $index" style="min-width:210px;border-right: 1px solid rgba(43, 102, 152, 0.5);height: 120px")
+                            th.text-center(ng-repeat="method in group.topUpDetail | orderBy: 'depositId'" style="min-width:210px;border-right: 1px solid rgba(43, 102, 152, 0.5);height: 120px")
                                 span(ng-if='method.topUpTypeId != 2') {{ method.depositName | translate}}
                                 span(ng-if='method.topUpTypeId == 2') {{ method.depositName | translate}}({{ method.depositName }}): {{ method.topUpMethodId }}
                             th.text-center(style="color:red;min-width:210px;" ) {{ group.groupName }}（{{ 'Total Sum' | translate }}）
                     th(ng-repeat="group in vm.bonusHeader" style="min-width:210px;")
                         table
-                            th.text-center(ng-repeat="type in group.bonusDetail | orderBy: 'typeId' track by $index" style="min-width:210px;border-right: 1px solid rgba(43, 102, 152, 0.5);height: 120px")
+                            th.text-center(ng-repeat="type in group.bonusDetail | orderBy: 'typeId'" style="min-width:210px;border-right: 1px solid rgba(43, 102, 152, 0.5);height: 120px")
                                 span {{ type.typeName | translate }}
                             th.text-center(style="color:red;min-width:210px;" ) {{'All Withdrawal' | translate}}（{{'Total Sum' | translate}}）
 
             tbody
-                tr.no-border(ng-repeat="financialReport in vm.dailyFinancialReportList track by $index" style="padding:0 !important;")
+                tr.no-border(ng-repeat="financialReport in vm.dailyFinancialReportList" style="padding:0 !important;")
                     td
                         span {{ financialReport.date }}
 
-                    td(ng-repeat="method in financialReport.topUpList | orderBy: 'groupId' track by $index")
+                    td(ng-repeat="method in financialReport.topUpList | orderBy: 'groupId'")
                         table(style='width:100%')
-                            td(ng-repeat="detail in method.topUpDetail | orderBy: 'depositId' track by $index" style="min-width: 210px;border-right: 1px solid rgba(43, 102, 152, 0.5)")
+                            td(ng-repeat="detail in method.topUpDetail | orderBy: 'depositId'" style="min-width: 210px;border-right: 1px solid rgba(43, 102, 152, 0.5)")
                                 span {{ detail.amount || 0}}
                             td(style="color:red;min-width: 210px")
                                 span {{ method.totalAmount || 0}}
 
-                    td(ng-repeat="type in financialReport.bonusList track by $index")
+                    td(ng-repeat="type in financialReport.bonusList")
                         table(style='width:100%')
-                            td(ng-repeat="detail in type.bonusDetail | orderBy: 'typeId' track by $index" style="min-width: 210px;border-right: 1px solid rgba(43, 102, 152, 0.5)")
+                            td(ng-repeat="detail in type.bonusDetail | orderBy: 'typeId'" style="min-width: 210px;border-right: 1px solid rgba(43, 102, 152, 0.5)")
                                 span {{ detail.amount || 0}}
                             td(style="color:red;min-width: 210px")
                                 span {{ type.totalAmount || 0}}
 
-                    td(ng-repeat="platformFee in financialReport.platformFeeEstimate track by $index")
+                    td(ng-repeat="platformFee in financialReport.platformFeeEstimate")
                         span {{ platformFee.totalPlatformFeeEstimate || 0}}
 
     div(style="min-width:100% ;overflow-x: scroll; display; none !important")
@@ -82,13 +82,13 @@
                                 span.text-center {{header.platformName}}
 
             tbody
-                tr.no-border(ng-repeat="topUp in vm.sumFinancialReportList.topUpList | orderBy: 'groupId' track by $index" style="padding:0 !important;")
+                tr.no-border(ng-repeat="topUp in vm.sumFinancialReportList.topUpList | orderBy: 'groupId'" style="padding:0 !important;")
                     td(style="min-width:230px; border-right:none;")
                         span {{ topUp.groupName }}
 
                     td
                         table(style='width:100%;')
-                            tr(ng-repeat="method in topUp.topUpDetail | orderBy: 'depositId' track by $index")
+                            tr(ng-repeat="method in topUp.topUpDetail | orderBy: 'depositId'")
                                 td(style="min-width: 230px; border-top:none; border-left:none; border-right:none;")
                                     span(ng-if='method.topUpTypeId != 2') {{ method.depositName | translate}}
                                     span(ng-if='method.topUpTypeId == 2') {{ method.depositName | translate}}({{ method.depositName }}): {{ method.topUpMethodId }}
@@ -97,18 +97,18 @@
                                     span {{ topUp.groupName }}（{{'Total Sum' | translate}}）
                     td(style="vertical-align:top; border-right:none;")
                         table(style='width:100%;')
-                            tr(ng-repeat="method in topUp.topUpDetail | orderBy: 'depositId' track by $index")
-                                td(style="min-width: 230px; border-top:none; border-left:none; " ng-repeat="detail in method.topUpDetail | orderBy: 'platformId' track by $index")
+                            tr(ng-repeat="method in topUp.topUpDetail | orderBy: 'depositId'")
+                                td(style="min-width: 230px; border-top:none; border-left:none; " ng-repeat="detail in method.topUpDetail | orderBy: 'platformId'")
                                     span {{ detail.amount || 0 }}
                             tr
-                                td(style="min-width:230px; height:50px;color:red; border-left:none; border-bottom:none" ng-repeat="sum in topUp.totalAmountList | orderBy: 'platformId' track by $index")
+                                td(style="min-width:230px; height:50px;color:red; border-left:none; border-bottom:none" ng-repeat="sum in topUp.totalAmountList | orderBy: 'platformId'")
                                     span {{ sum.totalAmount || 0 }}
 
-                tr.no-border(ng-repeat="bonus in vm.sumFinancialReportList.bonusList track by $index" style="padding:0 !important;")
+                tr.no-border(ng-repeat="bonus in vm.sumFinancialReportList.bonusList" style="padding:0 !important;")
                     td(style="min-width:230px") {{'All Withdrawal' | translate}}
                     td
                         table(style='width:100%')
-                            tr(ng-repeat="group in bonus.groups | orderBy: 'typeId' track by $index")
+                            tr(ng-repeat="group in bonus.groups | orderBy: 'typeId'")
                                 td(style="min-width:230px; border-top:none; border-left:none; border-right:none;")
                                     span {{ group.typeName  | translate}}
                             tr
@@ -117,11 +117,11 @@
 
                     td(style="vertical-align:top; border-right:none;")
                         table(style='width:100%')
-                            tr(ng-repeat="group in bonus.groups | orderBy: 'typeId' track by $index")
-                                td(style="min-width:230px; border-top:none; border-left:none;" ng-repeat="detail in group.bonusDetail | orderBy: 'platformId' track by $index")
+                            tr(ng-repeat="group in bonus.groups | orderBy: 'typeId'")
+                                td(style="min-width:230px; border-top:none; border-left:none;" ng-repeat="detail in group.bonusDetail | orderBy: 'platformId'")
                                     span {{ detail.amount || 0 }}
                             tr
-                                td(style="min-width:230px;color:red; border-bottom:none; border-left:none;" ng-repeat="sum in vm.sumFinancialReportList.totalSumBonusTopUp | orderBy: 'platformId' track by $index")
+                                td(style="min-width:230px;color:red; border-bottom:none; border-left:none;" ng-repeat="sum in vm.sumFinancialReportList.totalSumBonusTopUp | orderBy: 'platformId'")
                                     span {{ sum.amount || 0 }}
 
                 tr.no-border
@@ -130,7 +130,7 @@
                     td(style='border-right:none;')
                         table(style='width:100%; border-right:none;')
                             tr
-                                td(style="min-width:230px; border-bottom:none; border-top:none; border-left:none;" ng-repeat="platformFee in vm.sumFinancialReportList.platformFeeEstimateList | orderBy: 'platformId' track by $index")
+                                td(style="min-width:230px; border-bottom:none; border-top:none; border-left:none;" ng-repeat="platformFee in vm.sumFinancialReportList.platformFeeEstimateList | orderBy: 'platformId'")
                                     span {{ platformFee.totalPlatformFeeEstimate || 0 }}
 
 

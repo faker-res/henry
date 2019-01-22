@@ -165,7 +165,7 @@ let dbTeleSales = {
 
                 let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
                 let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).skip(index).limit(limit)
-                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name"})
+                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name callerCycleCount"})
                     .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();
 
                 return Promise.all([tsDistributePhoneCountProm, tsDistributePhoneProm]);
@@ -213,7 +213,7 @@ let dbTeleSales = {
                 let phoneListQuery = {_id: {$in: data[0].distributedPhoneIds}};
                 let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
                 let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).skip(index).limit(limit)
-                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name"})
+                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name callerCycleCount"})
                     .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();
 
                 return Promise.all([tsDistributePhoneCountProm, tsDistributePhoneProm]);
@@ -517,8 +517,6 @@ let dbTeleSales = {
     },
 
     distributePhoneNumber: function (inputData) {
-        console.log("tsListObjId", inputData.tsListObjId);
-        console.log("tsListPlatform", inputData.platform);
         if (!(inputData.tsListObjId && inputData.platform)) {
             return Promise.reject({name: "DataError", message: "Invalid data"});
         }
@@ -654,7 +652,7 @@ let dbTeleSales = {
                                     dbconfig.collection_tsPhone.update({_id: {$in: tsAssignee.updateObj.tsPhone.map(tsPhone => tsPhone.tsPhoneObjId)}}, {
                                         $addToSet: {assignee: tsAssignee.admin},
                                         $inc: {assignTimes: 1},
-                                        distributedEndTime: phoneNumberEndTime.endTime
+                                        distributedEndTime: phoneNumberEndTime.startTime
                                     }, {multi: true}).catch(errorUtils.reportError);
                                     if (assignedCount) {
                                         dbconfig.collection_tsAssignee.findOneAndUpdate({_id: tsAssignee._id}, {$inc: {assignedCount: assignedCount}}).lean().catch(errorUtils.reportError);

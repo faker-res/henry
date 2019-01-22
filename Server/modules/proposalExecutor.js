@@ -110,7 +110,12 @@ var proposalExecutor = {
             || executionType === 'executeBaccaratRewardGroup'
 
             // Auction reward
+            || executionType === 'executeAuctionPromoCode'
             || executionType === 'executeAuctionOpenPromoCode'
+            || executionType === 'executeAuctionRewardPromotion'
+            || executionType === 'executeAuctionRealPrize'
+            || executionType === 'executePlayerAuctionPromotionReward'
+            || executionType === 'executeAuctionRewardPointChange'
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -298,6 +303,7 @@ var proposalExecutor = {
             this.executions.executeAuctionPromoCode.des = "Auction Promo Code";
             this.executions.executeAuctionOpenPromoCode.des = "Auction Open Promo Code";
             this.executions.executeAuctionRewardPromotion.des = "Auction Reward Promotion";
+            this.executions.executePlayerAuctionPromotionReward.des = "player Auction Reward Promotion";
             this.executions.executeAuctionRealPrize.des = "Auction Real Prize";
             this.executions.executeAuctionRewardPointChange.des = "Auction Reward Point Change";
 
@@ -386,6 +392,7 @@ var proposalExecutor = {
             this.rejections.rejectAuctionPromoCode.des = "Reject Auction Promo Code";
             this.rejections.rejectAuctionOpenPromoCode.des = "Reject Auction Open Promo Code";
             this.rejections.rejectAuctionRewardPromotion.des = "Reject Auction Reward Promotion";
+            this.rejections.rejectePlayerAuctionPromotionReward.des = "Reject Player Auction Reward Promotion";
             this.rejections.rejectAuctionRealPrize.des = "Reject Auction Real Prize";
             this.rejections.rejectAuctionRewardPointChange.des = "Reject Auction Reward Point Change";
         },
@@ -3321,6 +3328,8 @@ var proposalExecutor = {
             },
 
             executePlayerConsumptionRewardGroup: function (proposalData, deferred) {
+                let executePlayerConsumptionRewardGroupRunTime = 0;
+                let executePlayerConsumptionRewardGroupRunTimeStart = new Date().getTime();
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
@@ -3340,6 +3349,9 @@ var proposalExecutor = {
                     createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP, proposalData);
                     deferred1.promise.then(
                         data => {
+                            let executePlayerConsumptionRewardGroupRunTimeEnd = new Date().getTime();
+                            executePlayerConsumptionRewardGroupRunTime = (executePlayerConsumptionRewardGroupRunTimeEnd - executePlayerConsumptionRewardGroupRunTimeStart) / 1000;
+                            console.log('executePlayerConsumptionRewardGroupRunTime===11', executePlayerConsumptionRewardGroupRunTime);
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
@@ -3351,6 +3363,9 @@ var proposalExecutor = {
                                 updateData
                             ).then(
                                 playerData => {
+                                    let executePlayerConsumptionRewardGroupRunTimeEnd = new Date().getTime();
+                                    executePlayerConsumptionRewardGroupRunTime = (executePlayerConsumptionRewardGroupRunTimeEnd - executePlayerConsumptionRewardGroupRunTimeStart) / 1000;
+                                    console.log('executePlayerConsumptionRewardGroupRunTime===22', executePlayerConsumptionRewardGroupRunTime);
                                     if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
                                         let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
                                         let newPermissionObj = {applyBonus: false};
@@ -3361,6 +3376,9 @@ var proposalExecutor = {
                                 }
                             ).then(
                                 () => {
+                                    let executePlayerConsumptionRewardGroupRunTimeEnd = new Date().getTime();
+                                    executePlayerConsumptionRewardGroupRunTime = (executePlayerConsumptionRewardGroupRunTimeEnd - executePlayerConsumptionRewardGroupRunTimeStart) / 1000;
+                                    console.log('executePlayerConsumptionRewardGroupRunTime===33', executePlayerConsumptionRewardGroupRunTime);
                                     deferred.resolve(data);
                                 },
                                 deferred.reject
@@ -3687,10 +3705,105 @@ var proposalExecutor = {
                 }
             },
 
-            executeAuctionPromoCode: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executeAuctionPromoCode: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.SUCCESS ||
+                    proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                    let code = null;
+                    let expirationDate = null;
+                    let isProviderGroup = null;
+                    let promoCodeTemplateData = null;
+                    let player;
+                    let newPromoCodeEntry = {};
+                    let platformObjId = proposalData && proposalData.data && proposalData.data.platformId ? proposalData.data.platformId : null;
+                    let playerName = proposalData && proposalData.data && proposalData.data.playerName ? proposalData.data.playerName : null;
+
+                    return dbconfig.collection_promoCodeTemplate.findOne({_id: ObjectId(proposalData.data.templateObjId)}).lean().then(
+                        promoCodeTemplate => {
+                            if (promoCodeTemplate && promoCodeTemplate._id) {
+                                promoCodeTemplateData = promoCodeTemplate;
+                                // Check if player exist
+                                return dbconfig.collection_players.findOne({
+                                    platform: platformObjId,
+                                    name: playerName
+                                }).lean();
+                            }
+                        }
+                    ).then(
+                        playerData => {
+                            if (playerData) {
+                                player = playerData;
+
+                                return dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", true);
+                            } else {
+                                return Promise.reject({name: "DataError", message: "Invalid player data"});
+                            }
+                        }
+                    ).then(
+                        playerState => {
+                            if (playerState) {
+                                newPromoCodeEntry.playerObjId = player._id;
+                                newPromoCodeEntry.code = dbUtil.generateRandomPositiveNumber(1000, 9999);
+                                newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+                                newPromoCodeEntry.platformObjId = platformObjId;
+                                newPromoCodeEntry.promoCodeTemplateObjId = promoCodeTemplateData._id;
+                                newPromoCodeEntry.isSharedWithXIMA = promoCodeTemplateData.isSharedWithXIMA;
+                                newPromoCodeEntry.disableWithdraw = promoCodeTemplateData.disableWithdraw;
+                                newPromoCodeEntry.requiredConsumption = promoCodeTemplateData.requiredConsumption;
+                                newPromoCodeEntry.amount = promoCodeTemplateData.amount;
+                                newPromoCodeEntry.minTopUpAmount = promoCodeTemplateData.minTopUpAmount;
+                                newPromoCodeEntry.isProviderGroup = promoCodeTemplateData.isProviderGroup;
+                                newPromoCodeEntry.isDeleted = promoCodeTemplateData.isDeleted;
+                                newPromoCodeEntry.allowedProviders = promoCodeTemplateData.allowedProviders;
+                                newPromoCodeEntry.createTime = new Date();
+                                let todayEndTime = dbUtil.getTodaySGTime().endTime;
+                                newPromoCodeEntry.expirationTime = dbUtil.getNdaylaterFromSpecificStartTime(promoCodeTemplateData.expiredInDay, todayEndTime);
+                                if (promoCodeTemplateData.maxRewardAmount) {
+                                    newPromoCodeEntry.maxRewardAmount = promoCodeTemplateData.maxRewardAmount;
+                                }
+                                code =  newPromoCodeEntry.code;
+                                expirationDate =  newPromoCodeEntry.expirationTime;
+                                isProviderGroup = newPromoCodeEntry.isProviderGroup;
+
+                                return dbconfig.collection_promoCodeActiveTime.findOne({
+                                    platform: platformObjId,
+                                    startTime: {$lt: new Date()},
+                                    endTime: {$gt: new Date()}
+                                }).lean();
+                            }
+                        }
+                    ).then(
+                        activeTimeRes => {
+                            if (activeTimeRes) {
+                                newPromoCodeEntry.isActive = true;
+                            }
+
+                            let updateData = {
+                                'data.promoCode': code || null,
+                                'data.expirationTime': expirationDate || null,
+                                'data.isProviderGroup': isProviderGroup || false,
+                            };
+
+                            let promoCodeProm = new dbconfig.collection_promoCode(newPromoCodeEntry).save();
+                            let updateProposalProm = dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(proposalData._id)}, updateData, {new: true}).lean();
+                            return Promise.all([promoCodeProm, updateProposalProm])
+                        }
+                    ).then(
+                        retData => {
+                            if (retData[1]){
+                                sendMessageToPlayer(retData[1], constMessageType.AUCTION_PROMO_CODE_SUCCESS, {});
+                                dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
+                                return retData[1]
+                            }
+                        }
+                    ).catch(
+                        err => {
+                            dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
+                            throw err;
+                        }
+                    )
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 
@@ -3702,7 +3815,7 @@ var proposalExecutor = {
                     proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
                     let code = null;
                     let expirationDate = null;
-                    let isProvidderGroup = null;
+                    let isProviderGroup = null;
                     // find the open promo code template to update its expiration time and the status
                     return dbconfig.collection_openPromoCodeTemplate.findOne({_id: ObjectId(proposalData.data.templateObjId)}).lean().then(
                         openPromoCodeTemplate => {
@@ -3725,7 +3838,7 @@ var proposalExecutor = {
                             let updateData = {
                                 'data.promoCode': code || null,
                                 'data.expirationTime': expirationDate || null,
-                                'data.isProviderGroup': isProvidderGroup || false,
+                                'data.isProviderGroup': isProviderGroup || false,
                             };
 
                             return dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(proposalData._id)}, updateData, {new: true}).lean();
@@ -3750,24 +3863,118 @@ var proposalExecutor = {
                 }
             },
 
-            executeAuctionRewardPromotion: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executePlayerAuctionPromotionReward: function (proposalData) {
+                if (!(proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.platformId)) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Incorrect player auction promotion reward proposal data"
+                    });
+                }
+
+                let taskData = {
+                    playerId: proposalData.data.playerObjId,
+                    platformId: proposalData.data.platformId,
+                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                    currentAmount: proposalData.data.rewardAmount,
+                    initAmount: proposalData.data.rewardAmount,
+                    useConsumption: Boolean(proposalData.data.useConsumption),
+                    applyAmount: proposalData.data.applyAmount || 0,
+                    providerGroup: proposalData.data.providerGroup,
+                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                    useConsumption: proposalData.data.useConsumption,
+                    isGroupReward: proposalData.data.isGroupReward,
+                    type: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                    rewardType: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                    eventCode:  "manualReward",
+                };
+
+                return createRTGForProposal(proposalData, taskData, constProposalType.PLAYER_AUCTION_PROMOTION_REWARD, proposalData);
+            },
+
+            executeAuctionRewardPromotion: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformId && (proposalData.status == constProposalStatus.SUCCESS ||
+                    proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                    // create reward proposal
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: ObjectId(proposalData.data.platformId),
+                        name: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD
+                    }).lean().then(
+                        proposalTypeData => {
+                            if (!proposalTypeData){
+                                return Promise.reject({
+                                    name: "DataError",
+                                    message: "Cannot find proposal type"
+                                })
+                            }
+
+                            let proposalObj = {
+                                type: proposalTypeData._id,
+                                creator:
+                                    {
+                                        type: 'player',
+                                        name: proposalData.data.playerName,
+                                        id: proposalData.data.playerObjId
+                                    },
+                                data: {
+                                    playerId: proposalData.data.playerObjId,
+                                    playerObjId: proposalData.data.playerObjId,
+                                    platformId: proposalData.data.platformId,
+                                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                                    rewardAmount: proposalData.data.rewardAmount,
+                                    useConsumption: Boolean(proposalData.data.useConsumption),
+                                    applyAmount: proposalData.data.applyAmount || 0,
+                                    providerGroup: proposalData.data.providerGroup,
+                                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                                    useConsumption: proposalData.data.useConsumption,
+                                    isGroupReward: proposalData.data.isGroupReward,
+                                    type: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                                    rewardType: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                                    eventCode:  "manualReward",
+                                },
+                                entryType: constProposalEntryType.CLIENT,
+                                userType: constProposalUserType.PLAYERS
+                            };
+
+                            proposalObj.inputDevice = proposalData.inputDevice;
+
+                            sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_PROMOTION_SUCCESS, {});
+                            return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalObj);
+                        }
+                    )
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 
-            executeAuctionRealPrize: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executeAuctionRealPrize: function (proposalData) {
+                if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.SUCCESS ||
+                    proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REAL_PRIZE_SUCCESS, {});
+                    return Promise.resolve(proposalData);
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 
-            executeAuctionRewardPointChange: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executeAuctionRewardPointChange: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty("rewardPointsVariable") &&
+                    (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED ||
+                    proposalData.status == constProposalStatus.APPROVE)) {
+
+                    let userDevice = proposalData.inputDevice;
+                    let playerObjId = proposalData.data.playerObjId;
+                    let platformObjId = proposalData.data.platformId;
+                    let updateAmount = proposalData.data.rewardPointsVariable;
+                    let remark = proposalData.data.productName;
+                    let creator = proposalData.data.seller || 'System';
+
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_POINT_CHANGE_SUCCESS, {});
+                    return dbPlayerInfo.updatePlayerRewardPointsRecord (playerObjId, platformObjId, updateAmount, remark, null, null,creator, userDevice)
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 
@@ -4753,6 +4960,10 @@ var proposalExecutor = {
                 deferred.resolve("Proposal is rejected");
             },
 
+            rejectePlayerAuctionPromotionReward: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
             rejectAuctionRealPrize: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
@@ -4779,6 +4990,8 @@ function changePlayerCredit(playerObjId, platformId, updateAmount, reasonType, d
  * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
  */
 function createRewardTaskForProposal(proposalData, taskData, deferred, rewardType, resolveValue) {
+    let createRewardTaskForProposalRunTime = 0;
+    let createRewardTaskForProposalRunTimeStart = new Date().getTime();
     console.log('createRewardTaskForProposal');
     let rewardTask, platform, gameProviderGroup, playerRecord;
     //check if player object id is in the proposal data
@@ -4803,12 +5016,18 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
     Promise.all([gameProviderGroupProm, platformProm, playerProm]).then(
         res => {
+            let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+            createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+            console.log('createRewardTaskForProposalRunTime===11', createRewardTaskForProposalRunTime);
             gameProviderGroup = res[0];
             platform = res[1];
             playerRecord = res[2];
             let calCreditArr = [];
             return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: playerRecord._id})
                 .then(rtgData => {
+                    let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                    createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                    console.log('createRewardTaskForProposalRunTime===22', createRewardTaskForProposalRunTime);
                     console.log("createRewardTaskForProposal Promise.all.then rtgData", rtgData);
                     if (rtgData && rtgData.length) {
                         rtgData.forEach(rtg => {
@@ -4858,6 +5077,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         }
     ).then(
         rewardTaskGroup => {
+            let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+            createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+            console.log('createRewardTaskForProposalRunTime===33', createRewardTaskForProposalRunTime);
             if(rewardTaskGroup){
                 let rtgArr = [];
 
@@ -4891,6 +5113,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             }
         }
     ).then(() => {
+        let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+        createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+        console.log('createRewardTaskForProposalRunTime===44', createRewardTaskForProposalRunTime);
         // Create different process flow for lock provider group reward
         console.log('reward here is reached')
         if (platform.useProviderGroup) {
@@ -4903,6 +5128,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
                 return deductFreeAmtProm.then(
                     () => {
+                        let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                        createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                        console.log('createRewardTaskForProposalRunTime===55', createRewardTaskForProposalRunTime);
                         console.log('deduct function run succeed');
                         return dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData);
                     },
@@ -4916,6 +5144,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     }
                 ).then(
                     output => {
+                        let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                        createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                        console.log('createRewardTaskForProposalRunTime===66', createRewardTaskForProposalRunTime);
                         if (!output) {
                             return deferred;
                         }
@@ -4937,6 +5168,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             } else {
                 return dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
                     data => {
+                        let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                        createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                        console.log('createRewardTaskForProposalRunTime===77', createRewardTaskForProposalRunTime);
                         console.log("createRewardTaskForProposal Promise.all.then.then.then.then data", data);
                         rewardTask = data;
                         dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
@@ -4966,6 +5200,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                 {path: "platformId", model: dbconfig.collection_platform}
             ).lean().then(
                 curTask => {
+                    let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                    createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                    console.log('createRewardTaskForProposalRunTime===88', createRewardTaskForProposalRunTime);
                     if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
                         return;
                     }
@@ -4985,6 +5222,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                 )
             ).then(
                 () => {
+                    let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                    createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                    console.log('createRewardTaskForProposalRunTime===99', createRewardTaskForProposalRunTime);
                     if (!taskData.useLockedCredit) {
                         return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
                             playerData => {
@@ -4996,10 +5236,16 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             ).then(
                 //() => createRewardLogForProposal(taskData.rewardType, proposalData)
                 () => {
+                    let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                    createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                    console.log('createRewardTaskForProposalRunTime===100', createRewardTaskForProposalRunTime);
                     sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
                 }
             ).then(
                 function () {
+                    let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                    createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                    console.log('createRewardTaskForProposalRunTime===110', createRewardTaskForProposalRunTime);
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                     deferred.resolve(resolveValue || rewardTask);
                 },
@@ -5779,6 +6025,8 @@ function updateAllCustomizeCommissionRate (proposalData) {
 }
 
 function getProviderCredit(providers, playerName, platformId) {
+    let getProviderCreditRunTime = 0;
+    let getProviderCreditRunTimeEndStart = new Date().getTime();
     let promArr = [];
     let providerCredit = 0;
     let cpmsAPI = require('../externalAPI/cpmsAPI');
@@ -5794,6 +6042,9 @@ function getProviderCredit(providers, playerName, platformId) {
                     }
                 ).then(
                     data => {
+                        let getProviderCreditRunTimeEnd = new Date().getTime();
+                        getProviderCreditRunTime = (getProviderCreditRunTimeEnd - getProviderCreditRunTimeEndStart) / 1000;
+                        console.log('getProviderCreditRunTime===11', getProviderCreditRunTime);
                         console.log("proposalExecutor.js getProviderCredit()", data);
                         return data;
                     },

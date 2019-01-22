@@ -1850,9 +1850,6 @@ let dbPlayerInfo = {
                 if (data) {
                     playerData = data;
 
-                    if (playerData.phoneNumber) {
-                        checkTelesalesPhone(playerData.phoneNumber);
-                    }
 
                     if (playerData.tsPhone) {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
@@ -1869,6 +1866,10 @@ let dbPlayerInfo = {
                             }
                         ).catch(errorUtils.reportError);
                         dbconfig.collection_tsDistributedPhone.update({tsPhone: playerData.tsPhone}, {registered: true}, {multi: true}).catch(errorUtils.reportError);
+                    } else {
+                        if (playerData.phoneNumber) {
+                            checkTelesalesPhone(playerData.phoneNumber);
+                        }
                     }
 
                     if (playerData.isRealPlayer) {
@@ -5845,6 +5846,7 @@ let dbPlayerInfo = {
         );
 
         function updateAutoFeedbackLoginCount (record) {
+            console.log('updateAutoFeedbackLoginCount time log start', record.platform, record.player);
             return dbconfig.collection_promoCode.aggregate([
                 {$match: {
                     platformObjId: record.platform,
@@ -5877,6 +5879,8 @@ let dbPlayerInfo = {
                                     autoFeedbackMissionLogin: true
                                 }).exec();
                             }
+
+                            console.log('updateAutoFeedbackLoginCount time log end', record.platform, record.player);
                         }
                     )
                 }
@@ -14341,6 +14345,8 @@ let dbPlayerInfo = {
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type, forceSettled) {
         console.log('Apply reward event', playerId, code);
+        let applyRewardEventRunTime = 0;
+        let applyRewardEventRunTimeStart = new Date().getTime();
         data = data || {};
         let dbPlayerUtil = require('../db_common/dbPlayerUtility');
         let isFrontEnd = data.isFrontEnd || false;
@@ -14674,6 +14680,9 @@ let dbPlayerInfo = {
                 if (data && isPreview){
                     return data;
                 }
+                let applyRewardEventRunTimeEnd = new Date().getTime();
+                applyRewardEventRunTime = (applyRewardEventRunTimeEnd - applyRewardEventRunTimeStart) / 1000;
+                console.log('applyRewardEventRunTime===11', applyRewardEventRunTime);
                 // Reset BState
                 dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 return data;
@@ -14686,6 +14695,10 @@ let dbPlayerInfo = {
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 }
+
+                let applyRewardEventRunTimeEnd = new Date().getTime();
+                applyRewardEventRunTime = (applyRewardEventRunTimeEnd - applyRewardEventRunTimeStart) / 1000;
+                console.log('applyRewardEventRunTime===22', applyRewardEventRunTime);
 
                 console.log('applyRewardEvent error', playerId, err);
                 throw err;
@@ -16214,7 +16227,7 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 let summaryDataQuery = {
-                    date: {$gte: new Date(query.start), $lte: new Date(query.end)},
+                    date: {$gte: new Date(query.start), $lt: new Date(query.end)},
                     platformId: ObjectId(platform)
                 };
 
@@ -16225,6 +16238,7 @@ let dbPlayerInfo = {
                 }
 
 
+                console.log("LH check player report search query ", summaryDataQuery);
                 return dbconfig.collection_playerReportDataDaySummary.aggregate(
                     {
                         $match: summaryDataQuery
@@ -16477,6 +16491,7 @@ let dbPlayerInfo = {
         ).then(
             playerData => {
                 if(playerData && playerData.length > 0){
+                    let finalPlayerReportSummaryData = [];
                     playerData.forEach(
                         player => {
                             if(player && player._id){
@@ -16488,7 +16503,7 @@ let dbPlayerInfo = {
                                     playerReportSummaryData[indexNo].province = player.province || "";
                                     playerReportSummaryData[indexNo].consumptionBonusRatio  = player.consumptionBonusRatio || "";
                                     playerReportSummaryData[indexNo].credibilityRemarks  = player.credibilityRemarks || [];
-                                    playerReportSummaryData[indexNo].csOfficer = player.csOfficer && player.csOfficer.admin ? player.csOfficer.adminName : "";
+                                    playerReportSummaryData[indexNo].csOfficer = player.csOfficer && player.csOfficer.adminName ? player.csOfficer.adminName : "";
                                     playerReportSummaryData[indexNo].onlineTopUpFeeDetail = player.onlineTopUpFeeDetail || [];
                                     playerReportSummaryData[indexNo].phoneCity = player.phoneCity || "";
                                     playerReportSummaryData[indexNo].phoneProvince = player.phoneProvince || "";
@@ -16499,13 +16514,15 @@ let dbPlayerInfo = {
                                     playerReportSummaryData[indexNo].valueScore = player.valueScore || "";
                                     playerReportSummaryData[indexNo].gameDetail = playerReportSummaryData[indexNo].providerDetail || [];
                                     playerReportSummaryData[indexNo].endTime = query.end;
+
+                                    finalPlayerReportSummaryData.push(playerReportSummaryData[indexNo]);
                                 }
                             }
                         }
                     );
 
                     if (Object.keys(sortCol).length > 0) {
-                        playerReportSummaryData.sort(function (a, b) {
+                        finalPlayerReportSummaryData.sort(function (a, b) {
                             if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
                                 return 1 * sortCol[Object.keys(sortCol)[0]];
                             } else {
@@ -16514,7 +16531,7 @@ let dbPlayerInfo = {
                         });
                     }
                     else {
-                        playerReportSummaryData.sort(function (a, b) {
+                        finalPlayerReportSummaryData.sort(function (a, b) {
                             if (a._id > b._id) {
                                 return 1;
                             } else {
@@ -16524,36 +16541,36 @@ let dbPlayerInfo = {
                     }
 
                     //handle sum of field here
-                    for (let z = 0; z < playerReportSummaryData.length; z++) {
-                        resultSum.manualTopUpAmount += playerReportSummaryData[z].manualTopUpAmount;
-                        resultSum.weChatTopUpAmount += playerReportSummaryData[z].weChatTopUpAmount;
-                        resultSum.aliPayTopUpAmount += playerReportSummaryData[z].aliPayTopUpAmount;
-                        resultSum.onlineTopUpAmount += playerReportSummaryData[z].onlineTopUpAmount;
-                        resultSum.topUpTimes += playerReportSummaryData[z].topUpTimes;
-                        resultSum.topUpAmount += playerReportSummaryData[z].topUpAmount;
-                        resultSum.bonusTimes += playerReportSummaryData[z].bonusTimes;
-                        resultSum.bonusAmount += playerReportSummaryData[z].bonusAmount;
-                        resultSum.rewardAmount += playerReportSummaryData[z].rewardAmount;
-                        resultSum.consumptionReturnAmount += playerReportSummaryData[z].consumptionReturnAmount;
-                        resultSum.consumptionTimes += playerReportSummaryData[z].consumptionTimes;
-                        resultSum.validConsumptionAmount += playerReportSummaryData[z].validConsumptionAmount;
-                        resultSum.consumptionBonusAmount += playerReportSummaryData[z].consumptionBonusAmount;
-                        // resultSum.profit += (playerReportSummaryData[z].consumptionBonusAmount / playerReportSummaryData[z].validConsumptionAmount * -100).toFixed(2) / 1;
+                    for (let z = 0; z < finalPlayerReportSummaryData.length; z++) {
+                        resultSum.manualTopUpAmount += finalPlayerReportSummaryData[z].manualTopUpAmount;
+                        resultSum.weChatTopUpAmount += finalPlayerReportSummaryData[z].weChatTopUpAmount;
+                        resultSum.aliPayTopUpAmount += finalPlayerReportSummaryData[z].aliPayTopUpAmount;
+                        resultSum.onlineTopUpAmount += finalPlayerReportSummaryData[z].onlineTopUpAmount;
+                        resultSum.topUpTimes += finalPlayerReportSummaryData[z].topUpTimes;
+                        resultSum.topUpAmount += finalPlayerReportSummaryData[z].topUpAmount;
+                        resultSum.bonusTimes += finalPlayerReportSummaryData[z].bonusTimes;
+                        resultSum.bonusAmount += finalPlayerReportSummaryData[z].bonusAmount;
+                        resultSum.rewardAmount += finalPlayerReportSummaryData[z].rewardAmount;
+                        resultSum.consumptionReturnAmount += finalPlayerReportSummaryData[z].consumptionReturnAmount;
+                        resultSum.consumptionTimes += finalPlayerReportSummaryData[z].consumptionTimes;
+                        resultSum.validConsumptionAmount += finalPlayerReportSummaryData[z].validConsumptionAmount;
+                        resultSum.consumptionBonusAmount += finalPlayerReportSummaryData[z].consumptionBonusAmount;
+                        // resultSum.profit += (finalPlayerReportSummaryData[z].consumptionBonusAmount / finalPlayerReportSummaryData[z].validConsumptionAmount * -100).toFixed(2) / 1;
                         resultSum.consumptionAmount += playerReportSummaryData[z].consumptionAmount;
-                        if (playerReportSummaryData[z].totalPlatformFeeEstimate) {
-                            resultSum.totalPlatformFeeEstimate += playerReportSummaryData[z].totalPlatformFeeEstimate;
+                        if (finalPlayerReportSummaryData[z].totalPlatformFeeEstimate) {
+                            resultSum.totalPlatformFeeEstimate += finalPlayerReportSummaryData[z].totalPlatformFeeEstimate;
                         }
-                        resultSum.totalOnlineTopUpFee += playerReportSummaryData[z].totalOnlineTopUpFee;
+                        resultSum.totalOnlineTopUpFee += finalPlayerReportSummaryData[z].totalOnlineTopUpFee;
                     }
                     resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
 
                     let outputResult = [];
 
                     for (let i = 0, len = limit; i < len; i++) {
-                        playerReportSummaryData[index + i] ? outputResult.push(playerReportSummaryData[index + i]) : null;
+                        finalPlayerReportSummaryData[index + i] ? outputResult.push(finalPlayerReportSummaryData[index + i]) : null;
                     }
 
-                    return {size: playerReportSummaryData.length, data: outputResult, total: resultSum};
+                    return {size: finalPlayerReportSummaryData.length, data: outputResult, total: resultSum};
                 }else{
                     return {
                         data: [],
@@ -22066,6 +22083,7 @@ let dbPlayerInfo = {
                 updatePassword: false,
                 applyRewardPoint: false,
                 deductRewardPoint: false,
+                auctionBidding: false,
             }
         })
     },
