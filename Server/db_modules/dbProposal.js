@@ -6329,6 +6329,8 @@ var proposal = {
     getWithdrawalProposal: (startDate, endDate, period, platformObjId) => {
         let withdrawSuccessArr = [];
         let withdrawFailedArr = [];
+        let withdrawSuccessPayArr = [];
+        let withdrawSuccessPayTotalArr = [];
 
         var dayStartTime = startDate;
         var getNextDate;
@@ -6406,69 +6408,62 @@ var proposal = {
                 proposal9: []
             };
 
+            // success withdrawal (submit - approved)
             let matchObj1 = {
                 "data.platformId": ObjectId(platformObjId),
                 mainType: constProposalMainType.PlayerBonus,
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             };
+            let groupTimeDiffSubmitToApproved = {
+                _id: {id: "$_id", timeUsed: {"$subtract": ["$settleTime", "$createTime"]}}
+            };
+            withdrawSuccessArr.push(getWithdrawalSpeed(matchObj1, groupTimeDiffSubmitToApproved, groupObj, nullObj));
 
-            withdrawSuccessArr.push(dbconfig.collection_proposal.aggregate([
-                {
-                    $match: matchObj1
-                },
-                {
-                    $group: {
-                        _id: {id: "$_id", timeUsed: {"$subtract": ["$settleTime", "$createTime"]}}
-                    }
-                },
-                groupObj
-                ]).read("secondaryPreferred").then(result => {
-
-                if (result && result.length > 0) {
-                    return result[0];
-                } else {
-                    return nullObj;
-                }
-            }));
-
-
+            // cancel / reject withdrawal
             let matchObj2 = {
                 "data.platformId": ObjectId(platformObjId),
                 mainType: constProposalMainType.PlayerBonus,
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
                 status: {$in: [constProposalStatus.FAIL, constProposalStatus.REJECTED, constProposalStatus.CANCEL]}
             };
+            let groupFailedTimeDiff = {
+                _id: {id: "$_id", timeUsed: {"$subtract": ["$data.lastSettleTime", "$createTime"]}}
+            };
+            withdrawFailedArr.push(getWithdrawalSpeed(matchObj2, groupFailedTimeDiff, groupObj, nullObj));
 
-            withdrawFailedArr.push(dbconfig.collection_proposal.aggregate([
-                {
-                    $match: matchObj2
-                },
-                {
-                    $group: {
-                        _id: {id: "$_id", timeUsed: {"$subtract": ["$data.lastSettleTime", "$createTime"]}}
-                    }
-                },
-                groupObj
-                ]).read("secondaryPreferred").then(result => {
+            // withdrawal success pay
+            let matchObj3 = {
+                "data.platformId": ObjectId(platformObjId),
+                mainType: constProposalMainType.PlayerBonus,
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                status: {$in: [constProposalStatus.SUCCESS]}
+            };
+            // success withdrawal (approved - success)
+            let groupTimeDiffApprovedToSuccess = {
+                _id: {id: "$_id", timeUsed: {"$subtract": ["$data.lastSettleTime", "$settleTime"]}}
+            };
+            withdrawSuccessPayArr.push(getWithdrawalSpeed(matchObj3, groupTimeDiffApprovedToSuccess, groupObj, nullObj));
 
-                if (result && result.length > 0) {
-                    return result[0];
-                } else {
-                    return nullObj;
-                }
-            }));
+            // success withdrawal (submit - success)
+            let groupTimeDiffSubmitToSuccess = {
+                _id: {id: "$_id", timeUsed: {"$subtract": ["$data.lastSettleTime", "$createTime"]}}
+            };
+            withdrawSuccessPayTotalArr.push(getWithdrawalSpeed(matchObj3, groupTimeDiffSubmitToSuccess, groupObj, nullObj));
+
         }
-        return Promise.all([Promise.all(withdrawSuccessArr), Promise.all(withdrawFailedArr)]).then(data => {
-            if (!data && !data[0] && !data[1]) {
+        return Promise.all([Promise.all(withdrawSuccessArr), Promise.all(withdrawFailedArr), Promise.all(withdrawSuccessPayArr), Promise.all(withdrawSuccessPayTotalArr)]).then(data => {
+            if (!data && !data[0] && !data[1] && !data[2] && !data[3]) {
                 return Q.reject({name: 'DataError', message: 'Can not find the proposal data'})
             }
             let tempDate = startDate;
 
-            if (data[0].length == data[1].length){
+            if (data[0].length == data[1].length && data[0].length == data[2].length && data[0].length == data[3].length){
                 for (let i = 0; i < data[0].length; i++) {  // number of date
                     data[0][i].date = new Date(tempDate);
                     data[1][i].date = new Date(tempDate);
+                    data[2][i].date = new Date(tempDate);
+                    data[3][i].date = new Date(tempDate);
                     tempDate = getNextDate(tempDate);
                 }
             }
@@ -6476,7 +6471,7 @@ var proposal = {
                 return Q.reject({name: 'DataError', message: 'The data mismatched'})
             }
 
-            return [data[0], data[1]];
+            return [data[0], data[1], data[2], data[3]];
 
         });
     },
@@ -9647,6 +9642,25 @@ function dailyPlatformFeeEstimateDetail (platform, startTime, endTime, currentDa
             );
         }
     )
+}
+
+function getWithdrawalSpeed (matchObj, groupTimeDiff, groupObj, nullObj) {
+    return dbconfig.collection_proposal.aggregate([
+        {
+            $match: matchObj
+        },
+        {
+            $group: groupTimeDiff
+        },
+        groupObj
+    ]).read("secondaryPreferred").then(result => {
+
+        if (result && result.length > 0) {
+            return result[0];
+        } else {
+            return nullObj;
+        }
+    });
 }
 
 var proto = proposalFunc.prototype;
