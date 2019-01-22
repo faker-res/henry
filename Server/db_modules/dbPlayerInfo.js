@@ -18913,8 +18913,8 @@ let dbPlayerInfo = {
                     result.registrationTime = playerDetail.registrationTime;
                     result.depositTrackingGroup = playerDetail.depositTrackingGroup;
                     result.endTime = endTime;
-                    result.lastAccessTime = playerDetail.lastAccessTime
-                    result.realName = playerDetail.realName
+                    result.lastAccessTime = playerDetail.lastAccessTime;
+                    result.realName = playerDetail.realName;
 
                     let csOfficerDetail = data[6];
 
