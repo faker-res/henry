@@ -1,31 +1,31 @@
 //div(ng-if='vm.pageName === "Payment Monitor"')
 div
-    #paymentMonitorQuery.block-query.col-md-12.well
-        div(style='max-width:125px')
+    #paymentMonitorQuery.col-md-12.well
+        .search-filters-item
             label {{'PLAYER_NAME' | translate}}
             input.form-control(type='text', ng-model='vm.paymentMonitorQuery.playerName')
-        div(style='max-width:125px')
+        .search-filters-item
             label {{'Proposal No' | translate}}
             input.form-control(type='text', ng-model='vm.paymentMonitorQuery.proposalID')
-        div
+        .search-filters-item
             label {{'topupType' | translate}}
             select.form-control(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.mainTopupType', required)
                 option(value='') {{'any' | translate}}
                 option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{ i | translate}}
-        div(style='max-width:125px')
+        .search-filters-item
             label {{'DEVICE' | translate}}
             select.form-control.merchantNoList(ng-options = 'i as v|translate for (i,v) in vm.playerInputDevice' ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.userAgent', required, multiple, static-bsp, data-actions-box='true')
 
-        div(style='max-width:180px')
+        .search-filters-item
             label {{'Online Topup Type' | translate}}
-            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.topupType', multiple, static-bsp, data-actions-box='true')
+            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.topupType', multiple, static-bsp, data-actions-box='true')
                 option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{ v | translate}}({{v}})
-        div(style='max-width:125px')
+        .search-filters-item
             label {{'3rd Party Platform' | translate}}
-            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupCloneList', multiple, bsp, data-actions-box='true')
-        div(style='max-width:125px')
+            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupCloneList', multiple, bsp, data-actions-box='true')
+        .search-filters-item
             label {{'DEPOSIT_METHOD' | translate}}
-            select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.depositMethod', multiple, static-bsp, data-actions-box='true')
+            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.depositMethod', multiple, static-bsp, data-actions-box='true')
                 option(value='1') 网银转账(OnlineTransfer)
                 option(value='2') 自动取款机(ATM)
                 option(value='3') 银行柜台(Counter)
@@ -33,22 +33,22 @@ div
                 option(value='5') 微信转帐(WeChatPay Transfer)
                 option(value='6') 云闪付(CloudFlashPay)
 
-        div(style='max-width:125px')
+        .search-filters-item
             label 收款银行类别
             select.form-control.merchantNoList(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
-        div(style='max-width:125px')
+        .search-filters-item
             label {{'Business Acc/ Bank Acc' | translate}}
             //select.form-control.merchantNoList( ng-model='vm.paymentMonitorQuery.merchantNo')
             select.form-control.merchantNoList(style='max-width:155px', ng-model='vm.paymentMonitorQuery.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchantCloneList' , multiple, bsp, data-actions-box='true')
                 //option(value='') {{'any' | translate}}
                 //option(ng-repeat='(i,v) in vm.merchants' ,ng-init='$last && vm.initMultiSelect()', value='{{v.merchantNo}}') {{v.name}}
-        div(style='max-width:125px')
+        .search-filters-item
             label {{'STATUS' | translate}}
             select.form-control.merchantNoList(ng-model='vm.paymentMonitorQuery.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList', multiple, static-bsp, data-actions-box='true')
-        div
+        .search-filters-item
             label.control-label {{'Start date' | translate}}
             .startTime
-        div
+        .search-filters-item
             label.control-label {{'End date' | translate}}
             .endTime
 
@@ -88,12 +88,9 @@ div
         //div
             label.control-label {{'End date' | translate}}
             .endTime
-        div
-            label &nbsp;
-            button.btn.btn-warning(ng-click='vm.resetTopUpMonitorQuery()') {{'Reset' | translate}}
-        div
-            label &nbsp;
-            button.btn.btn-success(ng-click='vm.getPaymentMonitorRecord(true)') {{'SEARCH' | translate}}
+        .text-right.widthto100.margin-top-10
+            button.btn.btn-warning.btn-space(ng-click='vm.resetTopUpMonitorQuery()') {{'Reset' | translate}}
+            button.btn.btn-success.btn-space(ng-click='vm.getPaymentMonitorRecord(true)') {{'SEARCH' | translate}}
             span#paymentMonitorTableSpin.collapse
                 i.fa.fa-spinner.fa-spin
     .clearfix

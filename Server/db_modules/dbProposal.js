@@ -3303,7 +3303,7 @@ var proposal = {
                 searchQuery.name = {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]} ;
             }
 
-            dbconfig.collection_proposalType.find(searchQuery).then(
+            dbconfig.collection_proposalType.find(searchQuery).lean().then(
                 function (data) {
                     console.log("LH check proposal report 3 ------------------ get proposal type");
                     if (data && data.length > 0) {
@@ -3340,7 +3340,7 @@ var proposal = {
                     }).sort(sortObj).skip(index).limit(count).populate({
                         path: "process",
                         model: dbconfig.collection_proposalProcess
-                    }).populate({path: "type", model: dbconfig.collection_proposalType});
+                    }).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
                     var c = dbconfig.collection_proposal.aggregate([
                         {
                             $match: {
@@ -3419,7 +3419,7 @@ var proposal = {
                     name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
                 };
 
-                a = dbconfig.collection_proposalType.find(searchQuery).then(
+                a = dbconfig.collection_proposalType.find(searchQuery).lean().then(
                     proposalType => {
                         delete reqData.platformId;
                         if(proposalType && proposalType.length > 0){
@@ -3441,7 +3441,7 @@ var proposal = {
                     }
                 );
 
-                b = dbconfig.collection_proposalType.find(searchQuery).then(
+                b = dbconfig.collection_proposalType.find(searchQuery).lean().then(
                     proposalType => {
                         delete reqData.platformId;
                         if(proposalType && proposalType.length > 0){
@@ -3465,7 +3465,7 @@ var proposal = {
                     }
                 );
 
-                c = dbconfig.collection_proposalType.find(searchQuery).then(
+                c = dbconfig.collection_proposalType.find(searchQuery).lean().then(
                     proposalType => {
                         delete reqData.platformId;
                         if(proposalType && proposalType.length > 0){
@@ -3655,10 +3655,10 @@ var proposal = {
                             try {
                                 if (ObjectId(data[i].data.playerId)) {
                                 }
-                                allProm.push(dbconfig.collection_players.findOne({_id: data[i].data.playerId}));
+                                allProm.push(dbconfig.collection_players.findOne({_id: data[i].data.playerId}).lean());
                             }
                             catch (err) {
-                                allProm.push(dbconfig.collection_players.findOne({playerId: data[i].data.playerId}));
+                                allProm.push(dbconfig.collection_players.findOne({playerId: data[i].data.playerId}).lean());
                             }
                         } else {
                             allProm.push({playerId: 'NA'});

@@ -304,46 +304,43 @@
 
                 // Tab - Promo Code History
                 div(ng-if='vm.selectedPromoCodeTab=="history" && checkViewPermission("Platform", "promoCode", "promoCodeHistory")')
-                    #promoCodeQuery.block-query.col-md-12.well
-                        div
+                    #promoCodeQuery.col-md-12.well
+                        .search-filters-item
                             label {{"ACCOUNT" | translate}}
                             input.form-control(type='text', ng-model='vm.promoCodeQuery.playerName')
-                        div
+                        .search-filters-item
                             label {{"PROMO_CODE_TYPE" | translate}}
                             select.form-control(ng-model='vm.promoCodeQuery.promoCodeType')
                                 option(value='') {{'any' | translate}}
                                 option(value='1') {{"PROMO_CODE_TYPE_1" | translate}}
                                 option(value='2') {{"PROMO_CODE_TYPE_2" | translate}}
                                 option(value='3') {{"PROMO_CODE_TYPE_3" | translate}}
-                        div(ng-if='vm.promoCodeQuery.promoCodeType')
+                        .search-filters-item(ng-if='vm.promoCodeQuery.promoCodeType')
                             label {{"PROMO_CODE_SUB_TYPE" | translate}}
                             select.form-control(ng-model='vm.promoCodeQuery.promoCodeSubType' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: vm.promoCodeQuery.promoCodeType}")
                                 option(value='') {{'any' | translate}}
-                        div
+                        .search-filters-twoBoxes
                             label {{"STATUS" | translate}}
                             select.form-control(ng-model='vm.promoCodeQuery.status')
                                 option(value='') {{'any' | translate}}
                                 option(value='1') {{"AVAILABLE" | translate}}
                                 option(value='2') {{"ACCEPTED" | translate}}
                                 option(value='3') {{"EXPIRED" | translate}}
-                        div
+                        .search-filters-item
                             label.control-label {{'START_CREATE_TIME' | translate}}
                             .startCreateTime
-                        div
+                        .search-filters-item
                             label.control-label {{'END_CREATE_TIME' | translate}}
                             .endCreateTime
-                        div
+                        .search-filters-item
                             label.control-label {{'START_ACCEPTED_TIME' | translate}}
                             .startAcceptedTime
-                        div
+                        .search-filters-item
                             label.control-label {{'END_ACCEPTED_TIME' | translate}}
                             .endAcceptedTime
-                        div
-                            label &nbsp;
-                            button.btn.btn-success(ng-click='vm.promoCodeQuery.searchType = 1; vm.getPromoCodeHistory(true)') {{'SEARCH_CREATETIME' | translate}}
-                        div
-                            label &nbsp;
-                            button.btn.btn-success(ng-click='vm.promoCodeQuery.searchType = 2; vm.getPromoCodeHistory(true)') {{'SEARCH_ACCEPTEDTIME' | translate}}
+                        .text-right.widthto100
+                            button.btn.btn-success.btn-space(ng-click='vm.promoCodeQuery.searchType = 1; vm.getPromoCodeHistory(true)') {{'SEARCH_CREATETIME' | translate}}
+                            button.btn.btn-success.btn-space(ng-click='vm.promoCodeQuery.searchType = 2; vm.getPromoCodeHistory(true)') {{'SEARCH_ACCEPTEDTIME' | translate}}
                             span#promoCodeHistoryTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
@@ -369,19 +366,18 @@
 
                 //Tab - Promo Code Monitor
                 div(ng-if='vm.selectedPromoCodeTab=="monitor" && checkViewPermission("Platform", "promoCode", "monitor")')
-                    #promoCodeMonitorQuery.block-query.col-md-12.well
-                        div
+                    #promoCodeMonitorQuery.col-md-12.well
+                        .search-filters-item
                             label.control-label {{'START_ACCEPTED_TIME' | translate}}
                             .startAcceptedTime
-                        div
+                        .search-filters-item
                             label.control-label {{'END_ACCEPTED_TIME' | translate}}
                             .endAcceptedTime
-                        div
+                        .search-filters-item
                             label.control-label {{"PROMO_CODE_TYPE_3" | translate}}
                             select.form-control(ng-model='vm.promoCodeMonitor.promoCodeType3Name' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: 3}")
                                 option(value='') {{'any' | translate}}
-                        div
-                            label &nbsp;
+                        .text-right.widthto100
                             button.btn.btn-success(ng-click='vm.getPromoCodeMonitor(true)') {{'SEARCH' | translate}}
                             span#promoCodeMonitorTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
@@ -779,47 +775,46 @@
 
                 // Tab - Activate Promo Code
                 div(ng-if='vm.selectedPromoCodeTab=="activatePromoCode" && checkViewPermission("Platform", "promoCode", "activatePromoCode")')
-                    #promoCodeActivate.block-query.col-md-12.well
-                        div
+                    #promoCodeActivate.col-md-12.well
+                        .search-filters-item
                             label.control-label {{'START_ACCEPTED_TIME' | translate}}
                             .startCreateTime
-                        div
+                        .search-filters-item
                             label.control-label {{'END_ACCEPTED_TIME' | translate}}
                             .endCreateTime
-                        div
+                        .threeBoxes
                             label {{"IS_ACTIVE" | translate}}
                             select.form-control(ng-model='vm.promoCodeActivate.flag')
                                 option(value='false') {{'NO' | translate}}
                                 option(value='true') {{"YES" | translate}}
-                        .pull-right
-                            button.btn.btn-primary.common-button(ng-click='vm.setPromoCodeActivate(); vm.savePromoCodeTime();') {{"SET" | translate}}
+                        .text-right.widthto100
+                            button.btn.btn-primary(ng-click='vm.setPromoCodeActivate(); vm.savePromoCodeTime();') {{"SET" | translate}}
                             label {{vm.promoCodeActivate.message}}
 
                 // Tab - Promo Code Analysis
                 div(ng-if='vm.selectedPromoCodeTab=="promoCodeAnalysis" && checkViewPermission("Platform", "promoCode", "promoCodeAnalysis")')
-                    #promoCodeAnalysisQuery.block-query.col-md-12.well
-                        div
+                    #promoCodeAnalysisQuery.col-md-12.well
+                        .search-filters-item
                             label.control-label {{'START_CREATE_TIME' | translate}}
                             .startCreateTime
-                        div
+                        .search-filters-item
                             label.control-label {{'END_CREATE_TIME' | translate}}
                             .endCreateTime
-                        div
+                        .search-filters-item
                             label {{"ACCOUNT" | translate}}
                             input.form-control(type='text', ng-model='vm.promoCodeAnalysis.playerName')
-                        div
+                        .search-filters-item
                             label {{"PROMO_CODE_TYPE" | translate}}
                             select.form-control(ng-model='vm.promoCodeAnalysis.promoCodeType', ng-change="vm.promoCodeAnalysis.promoCodeSubType = ''")
                                 option(value='') {{'any' | translate}}
                                 option(value='1') {{"PROMO_CODE_TYPE_1" | translate}}
                                 option(value='2') {{"PROMO_CODE_TYPE_2" | translate}}
                                 option(value='3') {{"PROMO_CODE_TYPE_3" | translate}}
-                        div(ng-if='vm.promoCodeAnalysis.promoCodeType')
+                        div.search-filters-item(ng-if='vm.promoCodeAnalysis.promoCodeType')
                             label {{"PROMO_CODE_SUB_TYPE" | translate}}
                             select.form-control(ng-model='vm.promoCodeAnalysis.promoCodeSubType' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: vm.promoCodeAnalysis.promoCodeType}")
                                 option(value='') {{'any' | translate}}
-                        div
-                            label &nbsp;
+                        .text-right.widthto100
                             button.btn.btn-success(ng-click='vm.promoCodeAnalysis.searchType = 1; vm.getPromoCodeAnalysis(true); vm.getPromoCodeAnalysis2(true)') {{'SEARCH_CREATETIME' | translate}}
                             span#promoCodeAnaysisTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
