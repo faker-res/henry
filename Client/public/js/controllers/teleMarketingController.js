@@ -8465,6 +8465,18 @@ define(['js/app'], function (myApp) {
             })
         }
 
+        vm.debugTsPhoneList = function (tsPhoneListObjId) { // for debug use only
+            socketService.$socket($scope.AppSocket, 'debugTsPhoneList', {tsPhoneList: tsPhoneListObjId}, function (data) {
+                console.log("all tsPhone in tsPhoneList", data)
+            })
+        }
+
+        vm.debugTsPhone = function (tsPhoneObjId) { // for debug use only
+            socketService.$socket($scope.AppSocket, 'debugTsPhone', {tsPhone: tsPhoneObjId}, function (data) {
+                console.log("tsPhone and all tsDistributedPhone", data)
+            })
+        }
+
         vm.initModalImportTsPhoneTrade = function () {
             vm.totalTsPhoneTrade = 1;
         }
