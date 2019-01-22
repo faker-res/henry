@@ -17315,16 +17315,7 @@ let dbPlayerInfo = {
                 }
 
                 result.forEach(data => {
-                    if (playerData) {
-                        playerData.forEach(player => {
-                            if (player && data && player._id.toString() === data._id.toString()) {
-                                data.realName = player.realName ? player.realName : "";
-                                data.lastAccessTime = player.lastAccessTime ? player.lastAccessTime : "";
-                            }
-                        });
-                    }
                     data.totalPlayerDepositAmount = data.topUpAmount - data.bonusAmount;
-
                     return data;
                 });
 
@@ -18683,7 +18674,9 @@ let dbPlayerInfo = {
                     province: 1,
                     city: 1,
                     depositTrackingGroup: 1,
-                    csOfficer: 1
+                    csOfficer: 1,
+                    lastAccessTime: 1,
+                    realName: 1
                 }
             ).populate({
                 path: 'csOfficer',
@@ -18920,6 +18913,8 @@ let dbPlayerInfo = {
                     result.registrationTime = playerDetail.registrationTime;
                     result.depositTrackingGroup = playerDetail.depositTrackingGroup;
                     result.endTime = endTime;
+                    result.lastAccessTime = playerDetail.lastAccessTime
+                    result.realName = playerDetail.realName
 
                     let csOfficerDetail = data[6];
 
@@ -19668,7 +19663,7 @@ let dbPlayerInfo = {
                     adminName: adminName,
                     admin: adminId
                 }).save().catch(errorUtils.reportError);
-                
+
                 // if (saveObj.isCheckWhiteListAndRecycleBin) {
                 let filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsList._id, saveObj.isCheckWhiteListAndRecycleBin);
                 // }
