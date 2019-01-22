@@ -522,7 +522,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     //     $scope.processes = data.processes;
     // });
 
-    $scope.pairResultType = ['', "Ace", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
+    $scope.pairResultType = ['', "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
 
     $scope.merchantUseTypeJson = {
         '1': 'MerchantUse_CreateAccount',

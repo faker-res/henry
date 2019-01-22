@@ -2451,6 +2451,9 @@ define(['js/app'], function (myApp) {
                 }
 
                 $scope.safeApply();
+            }, err => {
+                vm.importPhoneResult = 'INVALID_PHONE_NUMBER_FORMAT';
+                $scope.$evalAsync();
             });
         };
 

@@ -508,7 +508,7 @@ var dbPlayerTopUpRecord = {
                                                 && onlineTopUpDetail.hasOwnProperty('merchantName') && onlineTopUpDetail.merchantName) {
                                                 let index = merchantList.findIndex(x => x && x.hasOwnProperty('merchantNo') && x.hasOwnProperty('name') && x.merchantNo && x.name && (x.merchantNo == onlineTopUpDetail.merchantNo) && (x.name == onlineTopUpDetail.merchantName));
 
-                                                let onlineTopUpAmount = onlineTopUpDetail && onlineTopUpDetail.oriAmount ? onlineTopUpDetail.oriAmount : onlineTopUpDetail.oriAmount || 0;
+                                                let onlineTopUpAmount = onlineTopUpDetail && onlineTopUpDetail.amount ? onlineTopUpDetail.amount : 0;
                                                 let rate = 0;
                                                 let onlineTopUpFee = 0;
 

@@ -27,8 +27,8 @@ const thirdPartyAPIConfig = {
         minPointNotification: 200000
     },
     3: {
-        topUpAPIAddr: "http://pms-pay-cstest.neweb.me/",
-        topUpAPICallback: "http://localhost:7100",
+        topUpAPIAddr: "http://pms-pay-dev.neweb.me/",
+        topUpAPICallback: "http://devtest.wsweb.me:7100",
 
         //financial settlement
         name: 'PMS',

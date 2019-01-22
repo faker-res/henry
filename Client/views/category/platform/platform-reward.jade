@@ -209,7 +209,7 @@
                                 th(style="width:70px" ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
                                 th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                 th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Source by provider' | translate}}
-                                th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Multiple Selection)' | translate}}
+                                th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Single Selection)' | translate}}
                                 th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                             tbody(ng-repeat="entry in cond.value track by $index")
                                 td(ng-if="vm.isPlayerLevelDiff || (vm.isMultiStepReward || (vm.showRewardTypeData.isGrouped === true && vm.showRewardTypeData && vm.showRewardTypeData.name ==='PlayerConsumptionSlipRewardGroup'))")
@@ -260,7 +260,7 @@
                                 th(ng-if="vm.isMultiStepReward")
                                 th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                 th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Source by provider' | translate}}
-                                th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Multiple Selection)' | translate}}
+                                th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Single Selection)' | translate}}
                                 th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                             tbody(ng-repeat="entry in cond.value track by $index" style="overflow: auto;")
                                 td(ng-if="vm.isMultiStepReward")
@@ -303,7 +303,7 @@
                                             th(ng-if="vm.isMultiStepReward")
                                             th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                             th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Source by provider' | translate}}
-                                            th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Multiple Selection)' | translate}}
+                                            th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Single Selection)' | translate}}
                                             th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                                         tbody(ng-repeat="entry in cond.value")
                                             td(ng-if="vm.isMultiStepReward")
