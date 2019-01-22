@@ -9780,7 +9780,7 @@ define(['js/app'], function (myApp) {
                         vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                         vm.feedbackQuery.limit = 10;
                         vm.feedbackQuery.index = 0;
-                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {pageSize:5000, maxPageSize:5000}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
                         });
                     })
