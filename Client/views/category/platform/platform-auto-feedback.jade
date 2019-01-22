@@ -305,35 +305,36 @@
             .panel-heading.panel-heading-sm
                 label {{"Feedback Mission Overview List" | translate}}
             .panel-body
-                .search-filters-item
-                    label {{"Feedback Mission Name"|translate}}
-                    select.form-control(ng-model="vm.autoFeedbackMissionSearch.name")
-                        option(value='') {{'any' | translate}}
-                        option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
-                .search-filters-item
-                    label.control-label {{'Mission Create Start Time' | translate}}
-                    #autoFeedbackOverviewCreateTimeStartPicker.datetimepicker
-                        input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
-                        span.add-on
-                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                .search-filters-item
-                    label.control-label {{'Mission Create End Time' | translate}}
-                    #autoFeedbackOverviewCreateTimeEndPicker.datetimepicker
-                        input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
-                        span.add-on
-                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                .search-filters-item
-                    label {{"Mission Status" | translate}}
-                    select.form-control(ng-model='vm.autoFeedbackMissionSearch.status')
-                        option(value='') {{'any' | translate}}
-                        option(value='Unbegun') {{'Unbegun' | translate}}
-                        option(value='Ongoing') {{'Ongoing' | translate}}
-                        option(value='Ended') {{'Ended' | translate}}
-                        option(value='Manually Cancelled') {{'Manually Cancelled' | translate}}
-                .text-right
-                    button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','Overview')" ng-click='vm.autoFeedbackSearchMission(true)') {{"SEARCH" | translate}}
-                    span#autoFeedbackOverviewSpin.collapse
-                    i.fa.fa-spinner.fa-spin
+                .well
+                    .search-filters-item
+                        label {{"Feedback Mission Name"|translate}}
+                        select.form-control(ng-model="vm.autoFeedbackMissionSearch.name")
+                            option(value='') {{'any' | translate}}
+                            option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
+                    .search-filters-item
+                        label.control-label {{'Mission Create Start Time' | translate}}
+                        #autoFeedbackOverviewCreateTimeStartPicker.datetimepicker
+                            input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                            span.add-on
+                                i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                    .search-filters-item
+                        label.control-label {{'Mission Create End Time' | translate}}
+                        #autoFeedbackOverviewCreateTimeEndPicker.datetimepicker
+                            input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                            span.add-on
+                                i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                    .search-filters-item
+                        label {{"Mission Status" | translate}}
+                        select.form-control(ng-model='vm.autoFeedbackMissionSearch.status')
+                            option(value='') {{'any' | translate}}
+                            option(value='Unbegun') {{'Unbegun' | translate}}
+                            option(value='Ongoing') {{'Ongoing' | translate}}
+                            option(value='Ended') {{'Ended' | translate}}
+                            option(value='Manually Cancelled') {{'Manually Cancelled' | translate}}
+                    .text-right
+                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','Overview')" ng-click='vm.autoFeedbackSearchMission(true)') {{"SEARCH" | translate}}
+                        span#autoFeedbackOverviewSpin.collapse
+                        i.fa.fa-spinner.fa-spin
 
                 br
                 table#autoFeedbackOverviewTable.display.paymentGroup-btn
@@ -343,26 +344,27 @@
             .panel-heading.panel-heading-sm
                 label {{"Feedback Mission Daily Detail" | translate}}
             .panel-body
-                .search-filters-item
-                    label {{"Feedback Mission Name"|translate}}
-                    select.form-control(ng-model="vm.autoFeedbackMissionSearchDetail.name")
-                        option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
-                .search-filters-item
-                    label.control-label {{'Start date' | translate}}
-                    #autoFeedbackListStartTimePicker.datetimepicker
-                        input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
-                        span.add-on
-                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                .search-filters-item
-                    label.control-label {{'End date' | translate}}
-                    #autoFeedbackListEndTimePicker.datetimepicker
-                        input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
-                        span.add-on
-                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                .text-right
-                    button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','Overview')" ng-click='vm.autoFeedbackSearchMissionDetail()') {{"SEARCH" | translate}}
-                    span#autoFeedbackDetailSpin.collapse
-                    i.fa.fa-spinner.fa-spin
+                .well
+                    .search-filters-item
+                        label {{"Feedback Mission Name"|translate}}
+                        select.form-control(ng-model="vm.autoFeedbackMissionSearchDetail.name")
+                            option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
+                    .search-filters-item
+                        label.control-label {{'Start date' | translate}}
+                        #autoFeedbackListStartTimePicker.datetimepicker
+                            input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                            span.add-on
+                                i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                    .search-filters-item
+                        label.control-label {{'End date' | translate}}
+                        #autoFeedbackListEndTimePicker.datetimepicker
+                            input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                            span.add-on
+                                i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                    .text-right
+                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','Overview')" ng-click='vm.autoFeedbackSearchMissionDetail()') {{"SEARCH" | translate}}
+                        span#autoFeedbackDetailSpin.collapse
+                        i.fa.fa-spinner.fa-spin
 
                 br
                 br

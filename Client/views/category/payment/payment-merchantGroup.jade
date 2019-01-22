@@ -31,33 +31,33 @@ style.
                         input#merchantPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.merchantGroupPMS" ng-disabled="!checkViewPermission('Payment', 'MerchantGroup', 'UpdateCardGroupType')")
                         label.radio-space(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' for='merchantPMSGroupSetting') {{"PMS Group" | translate}}
                         br
-                        button.btn.btn-primary.common-button(ng-click="vm.updateIsPMSGroup(vm.merchantGroupPMS, 'merchantGroupIsPMS')" ng-if="checkViewPermission('Payment', 'MerchantGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
+                        button.btn.btn-primary(ng-click="vm.updateIsPMSGroup(vm.merchantGroupPMS, 'merchantGroupIsPMS')" ng-if="checkViewPermission('Payment', 'MerchantGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
                 br
-                .btn-group.text-center(style="border-radius:9px",role="group")
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Create') && vm.merchantGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.newMerchantGroup={};', data-target='#modalAddMerchantGroup')
+                .btn-group.text-center(role="group")
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Create') && vm.merchantGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.newMerchantGroup={};', data-target='#modalAddMerchantGroup')
                         img.img-create
                         text {{"ADD" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Delete') && vm.merchantGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalRemoveMerchantGroup', ng-click='')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Delete') && vm.merchantGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalRemoveMerchantGroup', ng-click='')
                         img.img-delete
                         text {{"DELETE" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalRenameMerchantGroup', ng-click='vm.initRenameMerchantGroup()')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalRenameMerchantGroup', ng-click='vm.initRenameMerchantGroup()')
                         img.img-edit
                         text {{"EDIT" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !(vm.platformMerchantGroupList.length>0)", data-toggle="modal", data-target='#modalSetMerchantGroupDefault')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !(vm.platformMerchantGroupList.length>0)", data-toggle="modal", data-target='#modalSetMerchantGroupDefault')
                         img.img-edit
                         text {{"Default" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'AddPlayer') && vm.merchantGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalAddPlayersToMerchantGroup', ng-click='vm.preparePlayerToGroupDialog("merchantGroup","#playertoMerchantGroupDataTable")')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'AddPlayer') && vm.merchantGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalAddPlayersToMerchantGroup', ng-click='vm.preparePlayerToGroupDialog("merchantGroup","#playertoMerchantGroupDataTable")')
                         img.img-create
                         text {{"ADD_PLAYER" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'AddAllPlayer') && vm.merchantGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToMerchantGroup', ng-click='vm.addAllPlayerToMerchantResult=""')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'AddAllPlayer') && vm.merchantGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToMerchantGroup', ng-click='vm.addAllPlayerToMerchantResult=""')
                         img.img-create
                         text {{"ADD_ALL_PLAYER" | translate}}
                     //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
                     //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", ng-click='vm.confirmDetachProvider()')
                     //    text {{"DETACH" | translate}}
                     //    .fa.fa-chain-broken
-                    img.img-create
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.syncMerchantNoScript()')
+                        img.img-create
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.syncMerchantNoScript()')
                         img.img-create
                         text 同步商户号
     .col-md-10(style="padding-left:0;padding-right:15px")
@@ -67,23 +67,27 @@ style.
             .panel-body
                 .text-center(ng-if='!vm.SelectedMerchantGroupNode')
                     label.text-danger {{"NO_MERCHANT_GROUP_MESSAGE" | translate}}
-                .well
-                    .inlineBlk.margin-right-5
-                        .control-label {{"Backstage Merchant ID" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.merchantFilterOptions.backstageMerchantId')
-                    .inlineBlk.margin-right-5(ng-if="vm.merchantGroupUsed != 'PMS'")
-                        .control-label {{"IS_IN_GROUP" | translate}}
-                        select.input-sm.form-control(ng-model="vm.merchantFilterOptions.isIncluded")
-                            option(value='all') {{'any' | translate}}
-                            option(value='yes') {{'IN_GROUP' | translate}}
-                            option(value='no') {{'NOT_IN_GROUP' | translate}}
-                    .inlineBlk
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantPayFilter()") {{"FILTER" | translate}}
-                    .inlineBlk.margin-right-5(ng-if="vm.merchantGroupUsed == 'PMS'")
-                        .control-label {{"Player's Name (PMS Group Search)" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.pmsGroupPlayerName')
-                    .inlineBlk(ng-if="vm.merchantGroupUsed == 'PMS'")
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.playerPMSMerchantGroupSearch()") {{"SEARCH" | translate}}
+                .col-sm-12(ng-class="{'col-sm-6':(vm.merchantGroupUsed == 'PMS')}")
+                    .well
+                        .search-filters-item
+                            .control-label {{"Backstage Merchant ID" | translate}}
+                            input.form-control(type='text', ng-model='vm.merchantFilterOptions.backstageMerchantId')
+                        .threeBoxes(ng-if="vm.merchantGroupUsed != 'PMS'")
+                            .control-label {{"IS_IN_GROUP" | translate}}
+                            select.form-control(ng-model="vm.merchantFilterOptions.isIncluded")
+                                option(value='all') {{'any' | translate}}
+                                option(value='yes') {{'IN_GROUP' | translate}}
+                                option(value='no') {{'NOT_IN_GROUP' | translate}}
+                        .text-right.widthto100
+                            button.btn.btn-primary(data-dismiss='modal', ng-click="vm.merchantPayFilter()") {{"FILTER" | translate}}
+                .col-sm-6(ng-if="vm.merchantGroupUsed == 'PMS'")
+                    .well
+                        .search-filters-item
+                            .control-label {{"Player's Name (PMS Group Search)" | translate}}
+                            input.form-control(type='text', ng-model='vm.pmsGroupPlayerName')
+                        .text-right.widthto100
+                            button.btn.btn-primary(data-dismiss='modal', ng-click="vm.playerPMSMerchantGroupSearch()") {{"SEARCH" | translate}}
+
                 span {{"All Pages" | translate}}: {{vm.totalMerchantShows()}}
                 table#merchantGroupTable.table(ng-if='vm.SelectedMerchantGroupNode')
                     thead
@@ -124,14 +128,15 @@ style.
                                 a(href='', ng-if='!v.editRate && v.customizeRate && checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio")', style='color:red', ng-click='vm.editMerchantRateFlag(i)') {{v.customizeRate ? (v.customizeRate * 100).toFixed(2) : 0}}%
                                 input.form-control(name='merchantCustomizeRateTextBox', id='merchantCustomizeRateTextBox', type='text' ng-if='checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio") && v.editRate', ng-model='v.customizeRate', ng-change='vm.validateCustomizeRateIsNumber(v.customizeRate, i)',  ng-keypress='enterSubmitMerchantCustomizeRate($event, v, v.customizeRate)', ng-blur='vm.backToOriRate(v)')
 
-                button.btn.btn-info.common-button.pull-right(style='margin-top:20px;' ng-click="vm.selectMerchant(true)" ng-if="vm.merchantGroupUsed != 'PMS'") {{"Select All" | translate}}
-                button.btn.btn-info.common-button.pull-right(style='margin-top:20px;' ng-click="vm.selectMerchant(false)" ng-if="vm.merchantGroupUsed != 'PMS'") {{"Clear All" | translate}}
-                button.btn.btn-primary.common-button.pull-right(style='margin-top:20px;' ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", ng-click='vm.removeMerchantFromGroup()')
-                        i.fa.fa-minus-square
-                        text {{"EXCLUDE" | translate}}
-                button.btn.btn-primary.common-button.pull-right(style='margin-top:20px;' ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", ng-click='vm.addmerchantToGroup()')
-                        i.fa.fa-plus-square
-                        text {{"INCLUDE" | translate}}
+                .text-right.widthto100
+                    button.btn.btn-info.btn-space(ng-click="vm.selectMerchant(true)" ng-if="vm.merchantGroupUsed != 'PMS'") {{"Select All" | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.selectMerchant(false)" ng-if="vm.merchantGroupUsed != 'PMS'") {{"Clear All" | translate}}
+                    button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", ng-click='vm.removeMerchantFromGroup()')
+                            i.fa.fa-minus-square.symbol
+                            text {{"EXCLUDE" | translate}}
+                    button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", ng-click='vm.addmerchantToGroup()')
+                            i.fa.fa-plus-square.symbol
+                            text {{"INCLUDE" | translate}}
                 //#MerchantList.panel-group(ng-if='vm.SelectedMerchantGroupNode')
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#MerchantList", href='#includedMerchants', ng-click='vm.showMerchantCate="include";vm.toggleBankType()')
