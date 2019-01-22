@@ -26,28 +26,28 @@
                         input#wechatPayPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.wechatPayGroupPMS" ng-disabled="!checkViewPermission('Payment', 'WechatPayGroup', 'UpdateCardGroupType')")
                         label.radio-space(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' for='wechatPayPMSGroupSetting') {{"PMS Group" | translate}}
                         br
-                        button.btn.btn-primary.common-button(ng-click="vm.updateIsPMSGroup(vm.wechatPayGroupPMS, 'wechatPayGroupIsPMS')" ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
+                        button.btn.btn-primary(ng-click="vm.updateIsPMSGroup(vm.wechatPayGroupPMS, 'wechatPayGroupIsPMS')" ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
                 br
-                .btn-group.text-center(style="border-radius:9px", role="group")
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'WechatPayGroup', 'CreateWechatPay')", data-toggle="modal", ng-click='vm.newWechatpayAcc={};', data-target='#modalAddNewWechatpay')
+                .btn-group.text-center(role="group")
+                    button.btn.btn-primary.vertical-button-group(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'WechatPayGroup', 'CreateWechatPay')", data-toggle="modal", ng-click='vm.newWechatpayAcc={};', data-target='#modalAddNewWechatpay')
                         img.img-create
                         text {{"CreateWechatPay" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Create') && vm.wechatGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.newWechatPayGroup={};', data-target='#modalAddWechatPayGroup')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Create') && vm.wechatGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.newWechatPayGroup={};', data-target='#modalAddWechatPayGroup')
                         img.img-create
                         text {{"ADD" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Delete') && vm.wechatGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalRemoveWechatPayGroup', ng-click='')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Delete') && vm.wechatGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalRemoveWechatPayGroup', ng-click='')
                         img.img-delete
                         text {{"DELETE" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update') && vm.wechatGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalRenameWechatPayGroup', ng-click='vm.initRenameWechatPayGroup()')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update') && vm.wechatGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalRenameWechatPayGroup', ng-click='vm.initRenameWechatPayGroup()')
                         img.img-edit
                         text {{"EDIT" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update') && vm.wechatGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !(vm.platformWechatPayGroupList.length>0)", data-toggle="modal", data-target='#modalSetWechatPayGroupDefault')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update') && vm.wechatGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !(vm.platformWechatPayGroupList.length>0)", data-toggle="modal", data-target='#modalSetWechatPayGroupDefault')
                         img.img-edit
                         text {{"Default" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'AddPlayer') && vm.wechatGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalAddPlayersToWechatPayGroup', ng-click='vm.preparePlayerToGroupDialog("WechatPayGroup","#playertoWechatPayGroupDataTable")')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'AddPlayer') && vm.wechatGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalAddPlayersToWechatPayGroup', ng-click='vm.preparePlayerToGroupDialog("WechatPayGroup","#playertoWechatPayGroupDataTable")')
                         img.img-create
                         text {{"ADD_PLAYER" | translate}}
-                    button.paymentGroup-btn.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'AddAllPlayer') && vm.wechatGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToWechatPayGroup', ng-click='vm.addAllPlayerToWechatResult=""')
+                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'AddAllPlayer') && vm.wechatGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToWechatPayGroup', ng-click='vm.addAllPlayerToWechatResult=""')
                         img.img-create
                         text {{"ADD_ALL_PLAYER" | translate}}
     .col-md-10(style="padding-left:0;padding-right:15px")
@@ -58,26 +58,26 @@
                 .text-center(ng-if='!vm.SelectedWechatPayGroupNode')
                     label.text-danger {{"NO_WECHATPAY_GROUP_MESSAGE" | translate}}
                 .well
-                    .inlineBlk.margin-right-5
+                    .search-filters-item
                         .control-label {{"Wechat Account" | translate}}
-                        input.input-sm.form-control.merchantNoList(ng-model='vm.filterWechatAccount',type='text', style='max-width:200px')
-                    .inlineBlk.margin-right-5
+                        input.form-control.merchantNoList(ng-model='vm.filterWechatAccount',type='text')
+                    .search-filters-item
                         .control-label {{"Wechat Name" | translate}}
-                        input.input-sm.form-control.merchantNoList(ng-model='vm.filterWechatName', type='text', style='max-width:200px')
-                    .inlineBlk.margin-right-5
+                        input.form-control.merchantNoList(ng-model='vm.filterWechatName', type='text')
+                    .search-filters-item
                         .control-label {{"Wechat Nickname" | translate}}
-                        input.input-sm.form-control.merchantNoList(ng-model='vm.filterWechatNickname', type='text', style='max-width:200px')
-                    .inlineBlk.margin-right-5(ng-if="vm.wechatGroupUsed != 'PMS'")
+                        input.form-control.merchantNoList(ng-model='vm.filterWechatNickname', type='text')
+                    .threeBoxes(ng-if="vm.wechatGroupUsed != 'PMS'")
                         .control-label {{"isInGroup" | translate}}
-                        select.input-sm.form-control.merchantNoList(ng-model='vm.filterWechatInGroup' style='max-width:200px', ng-init='vm.filterWechatInGroup="all"')
+                        select.form-control.merchantNoList(ng-model='vm.filterWechatInGroup', ng-init='vm.filterWechatInGroup="all"')
                             option(value='all') {{'any' | translate}}
                             option(value='false') {{'noInGroup' | translate}}
                             option(value='true') {{'inGroup' | translate}}
-                    .inlineBlk.margin-right-5(ng-if="vm.wechatGroupUsed == 'PMS'")
+                    .search-filters-item(ng-if="vm.wechatGroupUsed == 'PMS'")
                         .control-label {{"Player's Name (PMS Group Search)" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.pmsGroupPlayerName')
-                    .inlineBlk(ng-if="vm.wechatGroupUsed == 'PMS'")
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.playerPMSWechatGroupSearch()") {{"SEARCH" | translate}}
+                        input.form-control(type='text', ng-model='vm.pmsGroupPlayerName')
+                    .text-right.widthto100(ng-if="vm.wechatGroupUsed == 'PMS'")
+                        button.btn.btn-primary(data-dismiss='modal', ng-click="vm.playerPMSWechatGroupSearch()") {{"SEARCH" | translate}}
                 //    .inlineBlk.margin-right-5
                 //        .control-label {{"Wechat Account" | translate}}
                 //        select.input-sm.form-control.merchantNoList(id="selectWechatAccount" ng-model='vm.filterWechatPayAcc', ng-options="a.accountNumber for a in vm.allWechatList", style='max-width:200px', ng-init='vm.filterWechatPayAcc="all"' ng-change='vm.WechatPayAccChanged();',multiple,bsp,rddl)
@@ -226,17 +226,17 @@
                             td {{ val.singleLimit | translate}}
                             td {{ val.dailyLimit | translate}}
                 br
-                .div.pull-right
-                    button.btn.btn-info.common-button.pull-right(ng-click="vm.selectWechatGroup(true)" ng-if="vm.wechatGroupUsed != 'PMS'") {{"Select All" | translate}}
-                    button.btn.btn-info.common-button.pull-right(ng-click="vm.selectWechatGroup(false)" ng-if="vm.wechatGroupUsed != 'PMS'") {{"Clear All" | translate}}
-                    button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && vm.allWechatList.length > 0 && checkViewPermission('Payment', 'WechatPayGroup', 'EditWechatPay') && vm.wechatGroupUsed != 'PMS'" ng-click="vm.showEditWechatPayInfo()" ng-disabled="vm.disableEditWechatPay()", data-toggle="modal", data-target='#modalEditWechatPay')
-                        img.img-edit
+                .text-right.widthto100
+                    button.btn.btn-info.btn-space(ng-click="vm.selectWechatGroup(true)" ng-if="vm.wechatGroupUsed != 'PMS'") {{"Select All" | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.selectWechatGroup(false)" ng-if="vm.wechatGroupUsed != 'PMS'") {{"Clear All" | translate}}
+                    button.btn.btn-primary.btn-space(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && vm.allWechatList.length > 0 && checkViewPermission('Payment', 'WechatPayGroup', 'EditWechatPay') && vm.wechatGroupUsed != 'PMS'" ng-click="vm.showEditWechatPayInfo()" ng-disabled="vm.disableEditWechatPay()", data-toggle="modal", data-target='#modalEditWechatPay')
+                        img.img-edit.symbol
                         text {{"EditWechatPay" | translate}}
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update') && vm.wechatGroupUsed != 'PMS'" ng-click='vm.wechatPaytoWechatPayGroup("attach")')
-                        i.fa.fa-plus-square
+                    button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update') && vm.wechatGroupUsed != 'PMS'" ng-click='vm.wechatPaytoWechatPayGroup("attach")')
+                        i.fa.fa-plus-square.symbol
                         text {{"INCLUDE" | translate}}
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update') && vm.wechatGroupUsed != 'PMS'" ng-click='vm.wechatPaytoWechatPayGroup("detach")')
-                        i.fa.fa-minus-square
+                    button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update') && vm.wechatGroupUsed != 'PMS'" ng-click='vm.wechatPaytoWechatPayGroup("detach")')
+                        i.fa.fa-minus-square.symbol
                         text {{"EXCLUDE" | translate}}
 
 #modalAddNewWechatpay.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

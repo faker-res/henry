@@ -539,27 +539,35 @@ ul.roleList {
     font-size: 1.3em;
 
 }
-
-.common-button img.img-create {
-    content: url("./../images/icon/create1.png")
+img.img-create {
+    content: url("./../images/icon/create1.png");
+    width: 20px;
+    margin-right: .5em
 }
 
-.common-button img.img-delete {
-    content: url("./../images/icon/delete1.png")
+img.img-delete {
+    content: url("./../images/icon/delete1.png");
+    width: 20px;
+    margin-right: .5em
 }
 
-.common-button img.img-edit {
-    content: url("./../images/icon/rename1.png")
+img.img-edit {
+    content: url("./../images/icon/rename1.png");
+    width: 20px;
+    margin-right: .5em
 }
 
-.common-button img.img-move {
-    content: url("./../images/icon/move1.png")
-
+img.img-move {
+    content: url("./../images/icon/move1.png");
+    width: 20px;
+    margin-right: .5em
+}
+img.img-platform {
+    content: url("./../images/icon/platform1.png");
+    width: 20px;
+    margin-right: .5em
 }
 
-.common-button img.img-platform {
-    content: url("./../images/icon/platform1.png")
-}
 
 .modal > .modal-dialog {
     /*text-align: center;*/
@@ -3247,7 +3255,7 @@ table.simple-table-single > thead > tr > th {
     padding: 12px 12px;
 }
 .search-filters-item {
-    width: 200px;
+    width: 190px;
     display: inline-block;
     margin: .5em 1em;
 }
@@ -3268,10 +3276,10 @@ table.simple-table-single > thead > tr > th {
 }
 .symbol {
     display: inline-block;
-    margin-right: .5em;
+    margin-right: .5em!important;
 }
 .vertical-button-group {
-    width: 60%;
+    width: 100%;
     font-size: 13px;
     padding: 0.2em;
     margin-bottom: .2em;

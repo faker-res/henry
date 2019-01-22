@@ -1585,28 +1585,27 @@
                 .panel-heading
                     label {{'PROPOSAL' | translate}}
                 .panel-body
-                    #rewardProposalQuery.block-query.col-md-12.well
-                        div
+                    #rewardProposalQuery.col-md-12.well
+                        .search-filters-item
                             label {{"Start date"|translate}}
                             .startTime
-                        div
+                        .search-filters-item
                             label {{"End date"|translate}}
                             .endTime
-                        div
+                        .search-filters-item
                             label {{"Proposal Status" | translate}}
-                            select.form-control(ng-model='vm.rewardProposalQuery.status', style='max-width:300px')
+                            select.form-control(ng-model='vm.rewardProposalQuery.status')
                                 option(value='all') {{'all' | translate}}
                                 option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}') {{v | translate}}
-                        div
+                        .search-filters-item
                             label {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
-                            input.form-control(ng-model='vm.rewardProposalQuery.playerName' type='text' style='width:180px;')
-                        div
+                            input.form-control(ng-model='vm.rewardProposalQuery.playerName' type='text')
+                        .search-filters-item
                             label {{"DAY_COUNT_AFTER_REDEEM_PROMO" | translate}}
                             input.form-control.widthto100(ng-model='vm.rewardProposalQuery.dayCountAfterRedeemPromo' type='Number')
-                        div
-                            label &nbsp;
-                            button.btn.btn-success(ng-click='vm.getRewardProposalReport()') {{'SEARCH' | translate}}
-                            button.btn.btn-info.margin-left-5(ng-click='vm.exportToExcel("rewardProposalTable", "RewardReport")') {{'EXPORT_EXCEL' | translate}}
+                        .text-right.widthto100
+                            button.btn.btn-success.btn-space(ng-click='vm.getRewardProposalReport()') {{'SEARCH' | translate}}
+                            button.btn.btn-info.btn-space(ng-click='vm.exportToExcel("rewardProposalTable", "RewardReport")') {{'EXPORT_EXCEL' | translate}}
                             span#rewardProposalTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
@@ -1618,22 +1617,20 @@
                 .panel-heading
                     label {{'PROPOSAL' | translate}}
                 .panel-body
-                    #generalRewardProposalQuery.block-query.col-md-12.well
-                        div
+                    #generalRewardProposalQuery.col-md-12.well
+                        .search-filters-item
                             label {{"Start date"|translate}}
                             .startTime
-                        div
+                        .search-filters-item
                             label {{"End date"|translate}}
                             .endTime
-                        div.widthto100(ng-if="vm.currentRewardCode != 'ALL'")
+                        .search-filters-item(ng-if="vm.currentRewardCode != 'ALL'")
                             label {{'Number_Of_Day_After_Receiving' | translate}}
                             input.form-control(type='number', ng-model='vm.generalRewardProposalQuery.dayAfterReceiving')
-                        div
+                        .search-filters-item
                             label {{'PLAYER_NAME' | translate}}
                             input.form-control(type='text', ng-model='vm.generalRewardProposalQuery.playerName')
-                        div
-                        div
-                            label &nbsp;
+                        .text-right.widthto100
                             button.btn.btn-success(ng-click='vm.generalRewardProposalSearch(true)') {{'SEARCH' | translate}}
                             span#generalRewardProposalTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
@@ -1647,15 +1644,14 @@
                 .panel-heading
                     label {{'Reward task' | translate}}
                 .panel-body
-                    #generalRewardTaskQuery.block-query.col-md-12.well
-                        div
+                    #generalRewardTaskQuery.col-md-12.well
+                        .search-filters-item
                             label {{"Start date"|translate}}
                             .startTime
-                        div
+                        .search-filters-item
                             label {{"End date"|translate}}
                             .endTime
-                        div
-                            label &nbsp;
+                        .text-right.widthto100
                             button.btn.btn-success(ng-click='vm.searchGeneralRewardTask(true)') {{'SEARCH' | translate}}
                             span#generalRewardTaskSpin.collapse
                                 i.fa.fa-spinner.fa-spin
@@ -1670,33 +1666,32 @@
                     label {{'REWARD_ANALYSIS_REPORT' | translate}}
                 .panel-body
                    #rewardReportAnalysis
-                    .col-md-12.block-query.well(style='margin-bottom:3px;')
-                        div
+                    .col-md-12.well
+                        .threeBoxes
                             label {{'PERIOD' | translate}}
                             select.form-control(ng-model='vm.rewardReportAnalysis.periodText')
                                 option(value='day') {{"DAY"|translate}}
                                 option(value='week') {{"WEEK"|translate}}
                                 option(value='month') {{"MONTH"|translate}}
-                        div
+                        .search-filters-item
                             label {{"Start date"|translate}}
                             .startTime
-                        div
+                        .search-filters-item
                             label {{"End date"|translate}}
                             .endTime
-                        div
+                        .search-filters-item
                             label {{'ITEM_FILTER' | translate}}
                             select.form-control(ng-init='vm.rewardReportAnalysis.type="rewardType"' ng-model='vm.rewardReportAnalysis.type')
                                 option(value='rewardType') {{"PROPOSAL_TYPE"|translate}}
                                 option(value='rewardName') {{"CUSTOM_REWARD"|translate}}
-                        div(ng-hide='vm.rewardReportAnalysis.type != "rewardType"')
-                            label(style='width:200px;') {{'Proposal Type'|translate}}
+                        .search-filters-item(ng-hide='vm.rewardReportAnalysis.type != "rewardType"')
+                            label {{'Proposal Type'|translate}}
                             select.form-control#selectRewardProposalType(multiple="multiple", ng-options='i._id as i.name | translate for (k,i) in ( vm.allRewardProposalType | unique: "name" ) track by i.name', ng-model='abc')
-                        div(ng-hide='vm.rewardReportAnalysis.type != "rewardName"')
-                            label(style='width:150px;') {{"CUSTOMIZED_PROMO_NAME"|translate}}
+                        .search-filters-item(ng-hide='vm.rewardReportAnalysis.type != "rewardName"')
+                            label {{"CUSTOMIZED_PROMO_NAME"|translate}}
                             select.form-control#selectRewardAnalysisType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.rewardList | unique: "name" ) track by i.name', ng-model='bbc')
-                        div
-                            label &nbsp;
-                            button.btn.btn-primary.common-button(ng-click='vm.drawRewardReportAnalysis();') {{'SEARCH' | translate}}
+                        .text-right.widthto100
+                            button.btn.btn-primary(ng-click='vm.drawRewardReportAnalysis();') {{'SEARCH' | translate}}
                     .row
                         .col-md-6
                             label.text-primary {{"REWARD_ANALYSIS_PLAYER_COUNT" | translate}} VS {{vm.rewardReportAnalysis.periodText | translate}}
