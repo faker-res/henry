@@ -7,82 +7,79 @@
         input#playerTableExactSearch.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}} : {{"PLAYERNAME" | translate}}' ng-model="playerExactSearchText" ng-change="vm.searchForExactPlayerDebounced(playerExactSearchText)")
 .col-md-12(ng-show="checkViewPermission('Player', 'Player', 'AdvancedSearch') && vm.curPlatformText")
     .col-md-12.search-filters-container#playerTable-search-filter.well
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'PLAYER_ID' | translate}}
+        .search-filters-item
+            label {{'PLAYER_ID' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'USER_TYPE' | translate}}
+        .search-filters-item
+            label {{'USER_TYPE' | translate}}
             select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerType', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
                 option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
                 option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
                 option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
                 option(value='Test Player') {{'TEST_PLAYER' | translate}}
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'PLAYERNAME' | translate}}
+        .search-filters-item
+            label {{'PLAYERNAME' | translate}}
             input#playerTableNameSearch.form-control(ng-model='vm.playerAdvanceSearchQuery.name', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'REAL_NAME' | translate}}
+        .search-filters-item
+            label {{'REAL_NAME' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.realName', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'LEVEL' | translate}}
+        .search-filters-item
+            label {{'LEVEL' | translate}}
             select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerLevel', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
                 option(value='') —
                 option(ng-repeat="(i,v) in vm.allPlayerLvl", value='{{v._id}}') {{v.name | translate}}
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'REGISTRATION_TIME' | translate}}
+        .search-filters-item
+            label {{'REGISTRATION_TIME' | translate}}
             #regDateTimePicker.datetimepicker.form-control
-                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'REGISTRATION_TIME_END' | translate}}
+        .search-filters-item
+            label {{'REGISTRATION_TIME_END' | translate}}
             #regEndDateTimePicker.datetimepicker.form-control
-                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'LAST_ACCESS_TIME' | translate}}
+        .search-filters-item
+            label {{'LAST_ACCESS_TIME' | translate}}
             #lastAccessDateTimePicker.datetimepicker.form-control
-                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'LAST_ACCESS_TIME_END' | translate}}
+        .search-filters-item
+            label {{'LAST_ACCESS_TIME_END' | translate}}
             #lastAccessEndDateTimePicker.datetimepicker.form-control
-                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'TELEPHONE' | translate}}
+        .search-filters-item
+            label {{'TELEPHONE' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.phoneNumber', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'BANK_ACCOUNT' | translate}}
+        .search-filters-item
+            label {{'BANK_ACCOUNT' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.bankAccount', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'EMAIL' | translate}}
+        .search-filters-item
+            label {{'EMAIL' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.email', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'LOGIN_IP' | translate}}
+        .search-filters-item
+            label {{'LOGIN_IP' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.loginIps', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'CREDIBILITY_REMARK' | translate}}
-            select.form-control#selectCredibilityRemark(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6
+        .search-filters-item
+            label {{'CREDIBILITY_REMARK' | translate}}
+            select.form-control#selectCredibilityRemark(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filters-threeBoxes
             label.control-label {{'LOCAL_AMOUNT' | translate}}
             div
-                div.row.col-xs-6
-                    select.form-control(ng-model='vm.playerAdvanceSearchQuery.creditOperator', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-                        option(value='>=') >=
-                        option(value='=') =
-                        option(value='<=') <=
-                        option(value='range') {{'range' | translate}}
-                div.col-xs-6
-                    input.col-xs-6.form-control(ng-model='vm.playerAdvanceSearchQuery.creditAmountOne', type = 'number', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.playerAdvanceSearchQuery.creditAmountTwo" ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'" ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-        .search-filter.col-md-3
-            label.control-label
-            button#resetPlayerQuery.btn.btn-primary.common-button-sm.block {{'Reset' | translate}}
+                select.form-control.threeBoxes(ng-model='vm.playerAdvanceSearchQuery.creditOperator', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                input.form-control.threeBoxes(ng-model='vm.playerAdvanceSearchQuery.creditAmountOne', type = 'number', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+                div.symbol(ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'") ~
+                input.form-control.threeBoxes(type="number" ng-model="vm.playerAdvanceSearchQuery.creditAmountTwo" ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'" ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .col-xs-12.text-right
+            button#resetPlayerQuery.btn.btn-primary {{'Reset' | translate}}
 
 
 
@@ -99,7 +96,7 @@
         a.fa.fa-refresh.margin-top-5(ng-click='vm.getPlayersByAdvanceQuery(vm.playerAdvanceSearchQuery)')
             text.margin-right-5.pull-left {{"Refresh" | translate}}
 .col-md-12
-    table.common-table#playerDataTable.display(style="min-width:100%;")
+    table.common-table#playerDataTable.display.paymentGroup-btn
         thead
     #playerTablePage
 .col-md-12.playerBtn
@@ -135,7 +132,7 @@
 
 // Sub-views
 #modalCreatePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='max-height: 80vh;overflow-y: auto')
+    .modal-dialog.widthto50(style='max-height: 80vh;overflow-y: auto;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -157,7 +154,7 @@
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal', ng-show='vm.playerCreateResult') {{"CLOSE" | translate}}
 include modalGameCreditLog
 #modalDeletePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -228,12 +225,12 @@ include modalGameCreditLog
                                 div(ng-show="selectedTab =='topUpInfo'")
                                     hr
                                     .btn.btn-success(ng-click="getPlayerTopUpGroupChangeLog(0,10)") {{'TOPUP_GROUP_RECORD' | translate}}
-                                    table.topupGroupRecordTable.common-table.display(style="width:100%")
+                                    table.topupGroupRecordTable.common-table.display.paymentGroup-btn
                                     .topupGroupRecordTablePage
 
 
 #modalPlayerDailyExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:95%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -280,7 +277,7 @@ include modalGameCreditLog
                                     p
                                     label {{"Total" | translate}} {{vm.playerDailyExpenseLog.totalCount}} {{"records" | translate}}
                                     i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
-                                    table#playerDailyExpenseTable.common-table.display(style='width:100%')
+                                    table#playerDailyExpenseTable.common-table.display.paymentGroup-btn
                                     #playerDailyExpenseTablePage
                                 //thead
                                     tr
@@ -312,7 +309,7 @@ include modalGameCreditLog
     //- .well
     table.simple-table
         tr
-            td(style='text-align:left')
+            td.alignLeft
                 div(ng-repeat='(i,v) in vm.allPlayersStatusString')
                     label
                         input.playerStatusChange.pull-left(data-row='{{vm.statusPopover}}' data-status='{{v}}' type='radio' name='playerstatus' ng-checked='v==vm.statusPopover.status')
@@ -344,7 +341,7 @@ include modalGameCreditLog
 #prohibitGamePopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
         tr
-            td(style='text-align:left')
+            td.alignLeft
                 label {{"BANNED_FROM_THESE_PROVIDERS" | translate}}
                 div(ng-repeat='(i,v) in vm.showPlatform.gameProviders')
                     label {{vm.getProviderText(v)}}
@@ -361,7 +358,7 @@ include modalGameCreditLog
 #forbidRewardEventPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
         tr
-            td(style='text-align:left')
+            td.alignLeft
 
                 label {{"FORBID_REWARD" | translate}}
                 div
@@ -385,7 +382,7 @@ include modalGameCreditLog
 #forbidTopUpPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
         tr
-            td(style='text-align:left')
+            td.alignLeft
                 label {{"ForbidTopupTypes" | translate}}
                 div(ng-repeat='(i,v) in merchantTopupTypeJson')
                     label {{v | translate}} ({{v}}): {{i}}
@@ -401,7 +398,7 @@ include modalGameCreditLog
 #forbidRewardPointsEventPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
         tr
-            td(style='text-align:left')
+            td.alignLeft
                 label {{"LOGIN_REWARD_POINTS" | translate}}
                 div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS}")
                     label {{v.rewardTitle}}
@@ -458,14 +455,14 @@ include modalGameCreditLog
             tr.consumptionPlayer
                 td {{'CONSUMPTION' | translate}}
                 td {{vm.levelPlayer.consumptionSum}}
-                //- td.progress.progress-striped.active(style='width:200px')
-                //-     .progress-bar.progress-bar-success(style="width:0%")
+                //- td.progress.progress-striped.active
+                //-     .progress-bar.progress-bar-success
                 //- td {{vm.nextPlayerLevelData.consumptionLimit}}
             tr.topupPlayer
                 td {{'TOP_UP' | translate}}
                 td {{vm.levelPlayer.topUpSum}}
-                //- td.progress.progress-striped.active(style='width:200px')
-                //-     .progress-bar.progress-bar-success(style="width:0%")
+                //- td.progress.progress-striped.active
+                //-     .progress-bar.progress-bar-success
                 //- td {{vm.nextPlayerLevelData.topupLimit}}
 
 
@@ -531,7 +528,7 @@ include modalGameCreditLog
 
 
 #modalCreateTrailPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -550,11 +547,11 @@ include modalGameCreditLog
                                 label.control-label {{'TEST_PLAYER_PASSWORD' | translate}}
                                 label.form-control {{vm.testPlayerPassword}}
             .modal-footer
-                button.common-button.margin-right-5.btn.btn-success(ng-if='!vm.createtrail', ng-click='vm.createTrialPlayerAccount()') {{'CREATE_TRIAL' | translate}}
-                button.common-button.margin-right-5.btn.btn-success(ng-if='vm.createtrail', data-dismiss='modal') {{'OK' | translate}}
-                button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.createtrail', data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn.btn-success.btn-space(ng-if='!vm.createtrail', ng-click='vm.createTrialPlayerAccount()') {{'CREATE_TRIAL' | translate}}
+                button.btn.btn-success.btn-space(ng-if='vm.createtrail', data-dismiss='modal') {{'OK' | translate}}
+                button.btn.btn-warning.btn-space(ng-if='!vm.createtrail', data-dismiss='modal') {{"CANCEL" | translate}}
 #modalPlayerForbidTopupTypes.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -583,7 +580,7 @@ include modalGameCreditLog
 
 
 #modalEditPlayerPayment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -711,7 +708,7 @@ include modalGameCreditLog
 
 
 #modalForbidRewardLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -732,7 +729,7 @@ include modalGameCreditLog
                 table#forbidRewardTbl.common-table(style='min-width:100%')
                 #forbidRewardTblPage.height30
 #modalForbidGameLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -753,7 +750,7 @@ include modalGameCreditLog
                 table#forbidGameTbl.common-table(style='min-width:100%')
                 #forbidGameTblPage.height30
 #modalForbidRewardPointsEventLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -774,7 +771,7 @@ include modalGameCreditLog
                 table#forbidRewardPointsEventTbl.common-table(style='min-width:100%')
                 #forbidRewardPointsEventTblPage.height30
 #modalForbidTopUpLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -796,7 +793,7 @@ include modalGameCreditLog
                 #forbidTopUpTblPage.height30
 
 #modalPlayerRewardHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -830,7 +827,7 @@ include modalGameCreditLog
                 table#playerRewardHistoryTbl.common-table.display(style='min-width:100%')
                 #playerRewardHistoryTblPage.height30
 #modalPlayerBonusHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -872,7 +869,7 @@ include modalGameCreditLog
                 #playerBonusHistoryTblPage.height30
 
 #sameNumPlayerListTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:95%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -914,23 +911,23 @@ include modalGameCreditLog
 
                     #newPlayerListPanel.panel-body(ng-if="vm.playerModalTab === 'newPlayerListPanel'")
                         #newPlayerRecords.adminLogQueryDiv
-                            .inlineBlk
+                            .search-filters-item
                                 label {{'PLAYERNAME' | translate}}
                                 input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
-                            .inlineBlk
+                            .search-filters-item
                                 label {{'REGISTERED_PHONE_NUMBER' | translate}}
                                 input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.phoneNumber', required)
-                            .inlineBlk
+                            .search-filters-item
                                 label {{'START_DATE' | translate}}
                                 .startTime
-                            .inlineBlk
+                            .search-filters-item
                                 label {{'END_DATE' | translate}}
                                 .endTime
-                            .inlineBlk
+                            .search-filters-item
                                 label {{'STATUS' | translate}}
                                 select.form-control(ng-model='vm.queryPara.newPlayerList.status', ng-options='i as a | translate for (i,a) in vm.newPlayerListStatus')
                                     option(value='',) {{'any' | translate}}
-                            .inlineBlk
+                            .widthto100.text-right
                                 button.btn.btn-primary(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}
                         .well
                             .row
@@ -943,13 +940,13 @@ include modalGameCreditLog
 
                     #attemptNumberListPanel.panel-body(ng-if="vm.playerModalTab === 'attemptNumberListPanel'")
                         #attemptNumberRecords.adminLogQueryDiv
-                            .inlineBlk
+                            .search-filters-item
                                 label {{'START_DATE' | translate}}
                                 .startTime
-                            .inlineBlk
+                            .search-filters-item
                                 label {{'END_DATE' | translate}}
                                 .endTime
-                            .inlineBlk
+                            .widthto100.text-right
                                 button.btn.btn-primary(ng-click='vm.getPlayerRegistrationSucccessRateListByFilter()') {{'SEARCH' | translate}}
                         .well
                             .row
@@ -966,7 +963,7 @@ include modalGameCreditLog
 
 
 #sameRealNameLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:95%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -979,7 +976,7 @@ include modalGameCreditLog
 
 
 #modalClearProposalLimit.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -987,8 +984,8 @@ include modalGameCreditLog
             .modal-body
                 label {{'ClearProposalLimit' | translate}}
             .modal-footer
-                button.common-button.margin-right-5.btn.btn-success(ng-if='vm.clearPlayerProposalLimit.showSubmit', ng-click='vm.requestClearProposalLimit()') {{'APPLY' | translate}}
-                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+                button.btn.btn-success.btn-space(ng-if='vm.clearPlayerProposalLimit.showSubmit', ng-click='vm.requestClearProposalLimit()') {{'APPLY' | translate}}
+                button.btn.btn-warning.btn-space(data-dismiss='modal') {{"CLOSE" | translate}}
                 label.inlineBlk.margin-right-5(ng-if='vm.clearPlayerProposalLimit.resMsg') {{vm.clearPlayerProposalLimit.resMsg}}
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.clearPlayerProposalLimit.showSubmit && !vm.clearPlayerProposalLimit.resMsg')
 
@@ -996,7 +993,7 @@ include modalGameCreditLog
 
 
 #modalMailLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width: 80%')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1036,7 +1033,7 @@ include modalGameCreditLog
 
 // Platform related sub-views
 #modalPlatformCreditTransferLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:85%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1045,37 +1042,35 @@ include modalGameCreditLog
                 .panel.panel-primary
                     .panel-body
                         #platformCreditTransferLogPopup.adminLogQueryDiv
-                            .inlineBlk
+                            .search-filters-item
                                 label {{ 'playerName' | translate }}
                                 input.form-control(ng-model='vm.queryPlatformCreditTransferPlayerName')
-                            .inlineBlk
+                            .search-filters-item
                                 label {{ 'START_DATE' | translate }}
                                 .startTime
-                            .inlineBlk
+                            .search-filters-item
                                 label {{ 'END_DATE' | translate }}
                                 .endTime
-                            .inlineBlk
+                            .search-filters-item
                                 label {{ 'Type' | translate }}
                                 select.form-control(ng-model='vm.queryPlatformCreditTransferType')
                                     option(value='') {{'any' | translate}}
                                     option(value='transferin') {{'TransferIn' | translate}}
                                     option(value='transferout') {{'TransferOut' | translate}}
-                            .inlineBlk
+                            .search-filters-item
                                 label {{ 'provider' | translate }}
                                 select.form-control(ng-model='vm.queryPlatformCreditTransferProvider', ng-options='a.providerId as a.name for a in vm.platformProviderList')
                                     option(value='') {{'any' | translate}}
-
-                            .inlineBlk
+                            .search-filters-item
                                 label {{ 'STATUS' | translate }}
-                                select.form-control(ng-model='vm.queryPlatformCreditTransferStatus', style='min-width:100px;height:34px;')
+                                select.form-control(ng-model='vm.queryPlatformCreditTransferStatus')
                                     option(value='') {{'all' | translate}}
                                     option(ng-repeat='(i,v) in vm.allPlayerCreditTransferStatus', value='{{v}}') {{i | translate}}
-                            .inlineBlk
-                                button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true,true)') {{'SEARCH' | translate}}
-                            .inlineBlk(ng-if='vm.platformCreditTransferLog.loading')
-                                i.fa.fa-spin.fa-spinner
+                            .text-right.widthto100
+                                button.btn.btn-primary.btn-space(ng-click='vm.getPagedPlatformCreditTransferLog(true,true)') {{'SEARCH' | translate}}
+                                i.fa.fa-spin.fa-spinner(ng-if='vm.platformCreditTransferLog.loading')
                         //label {{"Total" | translate}} {{vm.platformCreditTransferLog.totalCount}} {{"records" | translate}}
-                        table#platformCreditTransferLogPopupTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                        table#platformCreditTransferLogPopupTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                         #platformCreditTransferLogPopupTablePage
 
                         .clearfix
@@ -1113,28 +1108,28 @@ include modalGameCreditLog
                 .panel.panel-primary
                     .panel-body
                         #providerExpenseQuery.well
-                            .inlineBlk
+                            .search-filters-item
                                 .control-label {{"Provider" | translate}}
                                 select.form-control(ng-model='vm.selectedProviderID', ng-init='vm.selectedProviderID="all"')
                                     option(value='all') {{'any' | translate}}
                                     option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{v.name}}
-                            .inlineBlk
+                            .search-filters-item
                                 .control-label {{"Start date" | translate}}
                                 .startTime
-                            .inlineBlk
+                            .search-filters-item
                                 .control-label {{"End date" | translate}}
                                 .endTime
-                            .inlineBlk
+                            .search-filters-item
                                 .control-label {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
                                 input.input-sm.form-control(ng-model="vm.playerName")
-                            .inlineBlk
+                            .search-filters-item
                                 .control-label {{'ROUND_NUMBER OR PLAY_NUMBER' | translate}}
                                 input.input-sm.form-control(ng-model='vm.roundNoOrPlayNo')
-                            .inlineBlk
+                            .search-filters-item
                                 .control-label {{'GAME_TYPE (FUZZY SEARCH)' | translate}}
                                 input.input-sm.form-control(ng-model='vm.cpGameType')
-                            .inlineBlk
-                                button.btn.btn-primary.common-button(ng-click="vm.getProviderExpense(true)") {{"SEARCH" | translate}}
+                            .widthto100.text-right
+                                button.btn.btn-primary(ng-click="vm.getProviderExpense(true)") {{"SEARCH" | translate}}
                             br
                         div(ng-if="checkViewPermission('Player', 'Player', 'Read')")
                             i.fa.fa-spinner.fa-spin(ng-show='vm.providerExpenseTableLoading')

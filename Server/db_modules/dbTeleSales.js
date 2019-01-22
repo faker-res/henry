@@ -1645,6 +1645,34 @@ let dbTeleSales = {
                 total: data[4] && data[4].length ? data[4].length : 0
             };
         });
+    },
+
+    debugTsPhoneList: function(tsPhoneListObjId) {
+        return dbconfig.collection_tsPhone.find({tsPhoneList: tsPhoneListObjId}).lean().then(
+            tsPhoneData => {
+                if (tsPhoneData && tsPhoneData.length) {
+                    tsPhoneData.forEach(tsPhone => {
+                        if (tsPhone.phoneNumber) {
+                            tsPhone.decryptedPhone = rsaCrypto.decrypt(tsPhone.phoneNumber);
+                        }
+                    })
+                }
+                return tsPhoneData;
+            }
+        );
+    },
+
+    debugTsPhone: function(tsPhoneObjId) {
+        let tsPhoneProm = dbconfig.collection_tsPhone.findOne({_id: tsPhoneObjId}).lean().then(
+            tsPhoneData => {
+                if (tsPhoneData && tsPhoneData.phoneNumber) {
+                    tsPhoneData.decryptedPhone = rsaCrypto.decrypt(tsPhoneData.phoneNumber);
+                }
+                return tsPhoneData;
+            }
+        );
+        let distributedPhone = dbconfig.collection_tsDistributedPhone.find({tsPhone: tsPhoneObjId}).lean();
+        return Promise.all([tsPhoneProm, distributedPhone]);
     }
 
 };

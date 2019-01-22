@@ -8436,6 +8436,11 @@ let dbPlayerReward = {
                         continue;
                     }
 
+                    if (!criteria.sourceProvider) {
+                        continue;
+                    }
+
+                    let betTypeBeforeHandling = JSON.parse(JSON.stringify(criteria.betType));
                     let betType = criteria.betType = handlingBaccaratBetTypeList(criteria.betType);
 
                     let consumptionMetQuery = {
@@ -8445,8 +8450,8 @@ let dbPlayerReward = {
                             $lt: intervalTime.endTime,
                         },
                         provider: criteria.sourceProvider,
-                        hostResult: Number(criteria.hostResult),
-                        playerResult: Number(criteria.playerResult),
+                        // hostResult: Number(criteria.hostResult),
+                        // playerResult: Number(criteria.playerResult),
                         betDetails: {
                             $elemMatch: {
                                 separatedBetType: {$in: betType},
@@ -8459,15 +8464,39 @@ let dbPlayerReward = {
                         consumptionMetQuery.bUsed = {$ne: true};
                     }
 
-                    let consumptionMetProm = dbConfig.collection_baccaratConsumption.find(consumptionMetQuery).sort({createTime: -1}).lean().then(
-                        bConsumptions => {
-                            if (!bConsumptions || !bConsumptions.length) {
-                                return false;
+                    let consumptionMetProm = dbConfig.collection_gameProvider.findOne({_id: criteria.sourceProvider}).lean().then(
+                        providerData => {
+                            if (!providerData) {
+                                return Promise.reject({message: "Provider not found"});
                             }
 
-                            return {bConsumptions, criteria}
-                        }
-                    );
+                            if (providerData.providerId == "56" && betTypeBeforeHandling == "闲对") { //ebet only
+                                if (criteria.pairResult) {
+                                    consumptionMetQuery.playerPairResult = criteria.pairResult
+                                } else {
+                                    consumptionMetQuery.playerPairResult = {$exists: true};
+                                }
+                            } else if (providerData.providerId == "56" && betTypeBeforeHandling == "庄对") {//ebet only
+                                if (criteria.pairResult) {
+                                    consumptionMetQuery.hostPairResult = criteria.pairResult
+                                } else {
+                                    consumptionMetQuery.hostPairResult = {$exists: true};
+                                }
+                            } else {
+                                consumptionMetQuery.hostResult = Number(criteria.hostResult);
+                                consumptionMetQuery.playerResult = Number(criteria.playerResult);
+                            }
+
+                            return dbConfig.collection_baccaratConsumption.find(consumptionMetQuery).sort({createTime: -1}).lean().then(
+                                bConsumptions => {
+                                    if (!bConsumptions || !bConsumptions.length) {
+                                        return false;
+                                    }
+
+                                    return {bConsumptions, criteria}
+                                }
+                            );
+                        });
 
                     proms.push(consumptionMetProm);
                 }
@@ -9117,6 +9146,9 @@ function getPlatformAndPlayerFromId(platformId, playerId) {
 }
 
 function handlingBaccaratBetTypeList (betType) {
+    if (!betType instanceof Array) {
+        betType = [betType];
+    }
     for (let i = 0; i < betType.length; i++) {
         if (betType[i] == "庄免佣、庄(免佣)") {
             betType.push("庄免佣");
@@ -9141,6 +9173,7 @@ function handlingBaccaratBetTypeList (betType) {
     }
 
     return betType;
+
 }
 
 var proto = dbPlayerRewardFunc.prototype;
