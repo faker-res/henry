@@ -2018,9 +2018,12 @@ var proposal = {
     },
 
     getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice, partnerId) {//need
+
+        console.log('start getQueryProposalsForPlatformId');
+
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
-        return dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean().then(//removed , prom2
+        return dbconfig.collection_proposalType.find({platformId: {$in: platformId}}, {_id: 1, name: 1}).lean().then(//removed , prom2
             data => {
                 if (data) {
                     let types = data;
@@ -2187,6 +2190,9 @@ var proposal = {
                                     }
                                 }, {$sort: sortCol}, {$skip: index}, {$limit: size}).read("secondaryPreferred").then(
                                 aggr => {
+
+                                    console.log('rt - prop done aggreagation');
+
                                     var retData = [];
 
                                     function getDoc(id) {
@@ -2239,7 +2245,8 @@ var proposal = {
                                 }
                             }
                         ).read("secondaryPreferred");
-                        return Q.all([a, b, c])
+
+                        return Promise.all([a, b, c])
                     }
                     else {
                         return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
@@ -2250,6 +2257,9 @@ var proposal = {
                 }
             }
         ).then(returnData => {
+
+            console.log('getQueryProposalsForPlatformId then 1');
+
             var summaryObj = {};
             if (returnData[2] && returnData[2][0]) {
                 summaryObj = {
@@ -2266,6 +2276,8 @@ var proposal = {
                     returnData[0] = returnData[0].filter(r => !((r.type.name != "PlayerBonus" && r.type.name != "PartnerBonus" && r.type.name != "BulkExportPlayerData" ) && r.status == "Approved"));
                 }
             }
+
+            console.log('getQueryProposalsForPlatformId return');
 
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
         });
