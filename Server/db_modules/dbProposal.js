@@ -1457,8 +1457,8 @@ var proposal = {
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
                                 .then(successData => {
                                     let updateData = {
-                                        "data.lastSettleTime": Date.now(),
-                                        settleTime: Date.now(),
+                                        "data.lastSettleTime": new Date(),
+                                        settleTime: new Date(),
                                         noSteps: true,
                                         process: null,
                                         status: constProposalStatus.CANCEL,
@@ -6446,7 +6446,7 @@ var proposal = {
                 },
                 {
                     $group: {
-                        _id: {id: "$_id", timeUsed: {"$subtract": ["$settleTime", "$createTime"]}}
+                        _id: {id: "$_id", timeUsed: {"$subtract": ["$data.lastSettleTime", "$createTime"]}}
                     }
                 },
                 groupObj
@@ -7615,8 +7615,8 @@ var proposal = {
             () => {
 
                 let updateData = {
-                    "data.lastSettleTime": Date.now(),
-                    settleTime: Date.now(),
+                    "data.lastSettleTime": new Date(),
+                    settleTime: new Date(),
                     noSteps: true,
                     process: null,
                     status: constProposalStatus.CANCEL,

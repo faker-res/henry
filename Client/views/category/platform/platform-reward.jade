@@ -225,10 +225,12 @@
                                             option(ng-repeat='(i,v) in vm.baccaratRewardGameProviders', value='{{v._id}}') {{ v.name }}
                                 td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                     div(style='width:280px;')
-                                        select.form-control(ng-model='entry.betType', data-container="body" data-width='100%', multiple, static-bsp, data-actions-box='true')
+                                        select.form-control(ng-model='entry.betType')
                                             option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;')
+                                        option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
                                     span.percentage(ng-if="v.type == 'percentage'")
                                         input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
                                     table(ng-if="v.type == 'PercentageAmount'")
@@ -274,13 +276,15 @@
                                             option(ng-repeat='(i,v) in vm.baccaratRewardGameProviders', value='{{v._id}}') {{ v.name }}
                                 td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                     div(style='width:280px;')
-                                        select.form-control(ng-model='entry.betType', data-container="body" data-width='100%', multiple, static-bsp, data-actions-box='true')
+                                        select.form-control(ng-model='entry.betType')
                                             option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     span(ng-if="i == 'loginDay'") {{entry[i]}}
                                     input(ng-if="i != 'loginDay' && (v.type == 'text' || v.type == 'checkbox' || v.type == 'number')" type="{{v.type}})" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
                                     span.percentage(ng-if="v.type == 'percentage'")
                                         input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;')
+                                        option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
 
                     #platformRewardSetting.col-md-12.well(ng-if="vm.isNewDisplay && vm.isPlayerLevelDiff")
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
@@ -315,13 +319,15 @@
                                                         option(ng-repeat='(i,v) in vm.baccaratRewardGameProviders', value='{{v._id}}') {{ v.name }}
                                             td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                                 div(style='width:280px;')
-                                                    select.form-control(ng-model='entry.betType', data-container="body" data-width='100%', multiple, static-bsp, data-actions-box='true')
+                                                    select.form-control(ng-model='entry.betType')
                                                         option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
                                             td(ng-repeat="(i,v) in cond.header")
                                                 span(ng-if="i == 'loginDay'") {{entry[i]}}
                                                 input(ng-if="i != 'loginDay' && (v.type == 'text' || v.type == 'checkbox' || v.type == 'number')" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
                                                 span.percentage(ng-if="v.type == 'percentage'")
                                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+                                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;')
+                                                    option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
 
 
                 .col-md-12.well.scrollRecord(ng-if='vm.showRewardTypeData.isGrouped === true || (vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')

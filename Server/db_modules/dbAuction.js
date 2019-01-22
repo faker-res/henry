@@ -789,6 +789,7 @@ var dbAuction = {
                 auctionProm = dbconfig.collection_auctionSystem.findOne({
                     platformObjId: platformObjId,
                     productName: productName,
+                    'rewardData.rewardType': rewardType
                 }).lean();
 
                 proposalProm = dbconfig.collection_proposal.findOne({
@@ -802,6 +803,13 @@ var dbAuction = {
                     if (data) {
                         auctionData = data[0];
                         proposalData = data[1];
+
+                        if (!auctionData){
+                            return Promise.reject({
+                                name: "DBError",
+                                message: "The bidding product is not found."
+                            })
+                        }
 
                         // check if the same player bidding again (consecutively)
                         if (proposalData && proposalData.data && proposalData.data.playerName && playerData && playerData.name){
@@ -883,7 +891,7 @@ var dbAuction = {
                         }
 
                         // deduct reward points from current bidder, if not enough reward points, will return error
-                        return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, platformObjId, -playerBidPrice, 'bid auction item', null, null, playerData.name, inputDevice);
+                        return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, platformObjId, -playerBidPrice, 'Bidding item: ' + auctionData.productName || "" , null, null, playerData.name, inputDevice);
                     }
                 }).then(
                     () => {
@@ -924,8 +932,9 @@ var dbAuction = {
                     proposalData => {
                         if (!proposalData) return true; // skip refund reward points
 
+                        let creator = proposalData.data.seller || 'System';
                         // return reward points to rejected bidder
-                        return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'refund bid', null, null, playerData.name, inputDevice);
+                        return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'Refund from bidding item: ' + auctionData.productName || "", null, null, creator, inputDevice);
                     }
                 ).then(
                     () => {
@@ -988,6 +997,9 @@ var dbAuction = {
                         }
                         if (platform && platform.hasOwnProperty("useProviderGroup") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
                             newProposal.data.isGroupReward = platform.useProviderGroup;
+                        }
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("rewardPointsVariable")){
+                            newProposal.data.rewardPointsVariable = auctionData.rewardData.rewardPointsVariable;
                         }
 
                         newProposal.data.isExclusive = auctionData.isExclusive;

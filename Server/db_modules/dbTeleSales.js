@@ -1645,6 +1645,16 @@ let dbTeleSales = {
                 total: data[4] && data[4].length ? data[4].length : 0
             };
         });
+    },
+
+    debugTsPhoneList: function(tsPhoneListObjId) {
+        return dbconfig.collection_tsPhone.find({tsPhoneList: tsPhoneListObjId}).lean();
+    },
+
+    debugTsPhone: function(tsPhoneObjId) {
+        let tsPhoneProm = dbconfig.collection_tsPhone.findOne({_id: tsPhoneObjId}).lean();
+        let distributedPhone = dbconfig.collection_tsDistributedPhone.find({tsPhone: tsPhoneObjId}).lean();
+        return Promise.all([tsPhoneProm, distributedPhone]);
     }
 
 };

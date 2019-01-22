@@ -10177,7 +10177,7 @@ define(['js/app'], function (myApp) {
                 vm.initQueryTimeFilter('playerCreditChangeLog', function () {
                     vm.queryPara.playerCreditChangeLog.type = 'none';
                     vm.queryPara.playerCreditChangeLog.startTime.data('datetimepicker').setLocalDate(utilService.setNDaysAgo(new Date(), 1));
-                    vm.showCreditChangeLogByFilter();
+                    vm.showCreditChangeLogByFilter();vm.rewardSelectOnChange(vm.rewardMainCondition[i])
                     $scope.safeApply();
                 });
             }
@@ -20833,6 +20833,10 @@ define(['js/app'], function (myApp) {
                 }
                 console.log('vm.rewardParams', vm.rewardParams);
                 //$scope.safeApply();
+            };
+
+            vm.rewardEventTableOptions = function () {
+
             };
 
             vm.platformRewardTypeChanged = function () {
