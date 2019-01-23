@@ -467,7 +467,7 @@ define([], function () {
             })
             let comp_span = $('<span>', {class: "add-on"}).append(comp_i);
             let comp_input = $('<input>', {
-                style: 'width:calc(100% - 15px)',
+                // style: 'width:calc(100% - 15px)',
                 "data-format": "yyyy/MM/dd HH:mm:ss PP",
                 type: 'text'
             })
