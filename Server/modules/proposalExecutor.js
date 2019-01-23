@@ -2141,9 +2141,6 @@ var proposalExecutor = {
                                        });
                                    }
                                })
-                               .catch(function (err) {
-                                   console.log('post failed', err);
-                               });
                        } else {
                            return pmsAPI.bonus_applyBonus(message).then(
                                bonusData => {

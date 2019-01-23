@@ -154,4 +154,82 @@ router.post('/getPlayerConsumptionSum', function(req, res, next) {
     });
 });
 
+router.post('/notifyWithdrawal', function(req, res, next) {
+    let inputData = [];
+
+    req.on('data', data => {
+        inputData.push(data);
+    }).on('end', () => {
+        let buffer = Buffer.concat(inputData);
+        let stringBuffer = buffer.toString();
+        let decoded = decodeURIComponent(stringBuffer);
+        let parsedData = JSON.parse(decoded.substring(decoded.indexOf('{')));
+
+        let msgBody = parsedData.content;
+        let isValidData = msgBody && msgBody.proposalId && msgBody.orderStatus;
+        let statusText;
+        switch (Number(msgBody.orderStatus)) {
+            case 1:
+                statusText = constProposalStatus.SUCCESS;
+                break;
+            case 2:
+                statusText = constProposalStatus.FAIL;
+                break;
+            case 3:
+                statusText = constProposalStatus.PROCESSING;
+                break;
+            case 4:
+                statusText = constProposalStatus.UNDETERMINED;
+                break;
+            case 5:
+                statusText = constProposalStatus.RECOVER;
+                break;
+            // case 4:
+            //     statusText = constProposalStatus.PROCESSING;
+            //     break;
+            default:
+                isValidData = false;
+                break;
+        }
+
+        // TEMP LOG
+        console.log('parsedData notifyWithdrawal', parsedData);
+
+        if (isValidData) {
+            dbProposal.updateBonusProposal(msgBody.proposalId, statusText, 1, msgBody.remark).then(
+                data => {
+                    console.log('notifyWithdrawal data', data);
+                    let returnMsg = encodeURIComponent(JSON.stringify({
+                        code: constServerCode.SUCCESS,
+                        msg: "succ"
+                    }));
+
+                    console.log('notifyWithdrawal success', msgBody.name, returnMsg);
+
+                    res.send(returnMsg);
+                    res.end();
+                },
+                err => {
+                    console.log('notifyWithdrawal error', msgBody.name, err);
+                    let returnMsg = encodeURIComponent(JSON.stringify({
+                        code: constServerCode.INVALID_DATA,
+                        msg: err.message
+                    }));
+
+                    res.send(returnMsg);
+                    res.end();
+                }
+            )
+
+        } else {
+            let returnMsg = encodeURIComponent(JSON.stringify({
+                code: constServerCode.INVALID_DATA,
+                msg: "Invalid data"
+            }));
+            res.send(returnMsg);
+            res.end();
+        }
+    });
+});
+
 module.exports = router;
