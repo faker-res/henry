@@ -98,7 +98,28 @@ let dbCtiCallOut = {
 
                 if (apiOutput.result != 1) {
                     console.error("CTI API createCallOutTask.do output:", apiOutput, param);
-                    return Promise.reject({message: "CTI API return error"});
+                    switch(Number(apiOutput.result)) {
+                        case -1:
+                            return Promise.reject({message: "参数输入不合法"});
+                        case -2:
+                            return Promise.reject({message: "token错误"});
+                        case -3:
+                            return Promise.reject({message: "CTI任务名重复或不合法"});
+                        case -4:
+                            return Promise.reject({message: "ivrnum不存在"});
+                        case -5:
+                            return Promise.reject({message: "队列号错误"});
+                        case -6:
+                            return Promise.reject({message: "ivrProfile不存在"});
+                        case -7:
+                            return Promise.reject({message: "呼出号码错误"});
+                        case -8:
+                            return Promise.reject({message: "CTI系统错误"});
+                        case -9:
+                            return Promise.reject({message: "CTI路由组ID不存在"});
+                        default:
+                            return Promise.reject({message: "CTI API return error"});
+                    }
                 }
 
                 return dbCtiCallOut.addPhoneNumToMission (platform, missionName, calleeList, admin.did || "879997");
@@ -140,7 +161,22 @@ let dbCtiCallOut = {
 
                 if (apiOutput.result != 1) {
                     console.error("CTI API callOutTaskAddPhonenum.do output:", apiOutput);
-                    return Promise.reject({message: "CTI API return error"});
+                    switch(Number(apiOutput.result)) {
+                        case -1:
+                            return Promise.reject({message: "参数输入不合法"});
+                        case -2:
+                            return Promise.reject({message: "token错误"});
+                        case -3:
+                            return Promise.reject({message: "CTI任务不存在"});
+                        case -4:
+                            return Promise.reject({message: "CTI接口电话输入格式不正确"});
+                        case -5:
+                            return Promise.reject({message: "CTI任务状态不能添加客户"});
+                        case -6:
+                            return Promise.reject({message: "CTI系统错误"});
+                        default:
+                            return Promise.reject({message: "CTI API return error"});
+                    }
                 }
                 return apiOutput;
             }
@@ -164,7 +200,20 @@ let dbCtiCallOut = {
 
                 if (apiOutput.result != 1) {
                     console.error("CTI API settingTaskStatus.do output:", apiOutput);
-                    return Promise.reject({message: "CTI API return error"});
+                    switch(Number(apiOutput.result)) {
+                        case -1:
+                            return Promise.reject({message: "参数输入不合法"});
+                        case -2:
+                            return Promise.reject({message: "token错误"});
+                        case -3:
+                            return Promise.reject({message: "CTI任务不存在"});
+                        case -4:
+                            return Promise.reject({message: "CTI执行操作不合法（是否有在CTI后台修改过任务状态？）"});
+                        case -5:
+                            return Promise.reject({message: "CTI系统错误"});
+                        default:
+                            return Promise.reject({message: "CTI API return error"});
+                    }
                 }
                 return true;
             }
@@ -208,7 +257,18 @@ let dbCtiCallOut = {
 
                 if (apiOutput.result != 1) {
                     console.error("CTI API getCallOutTaskStatus.do output:", apiOutput);
-                    return Promise.reject({message: "CTI API return error"});
+                    switch(Number(apiOutput.result)) {
+                        case -1:
+                            return Promise.reject({message: "参数输入不合法"});
+                        case -2:
+                            return Promise.reject({message: "token错误"});
+                        case -3:
+                            return Promise.reject({message: "CTI任务不存在"});
+                        case -4:
+                            return Promise.reject({message: "CTI系统错误"});
+                        default:
+                            return Promise.reject({message: "CTI API return error"});
+                    }
                 }
                 return apiOutput;
             }
@@ -220,15 +280,14 @@ let dbCtiCallOut = {
 
         return tryCallCtiApi();
 
-        function tryCallCtiApi (triedTimes, lastBody) {
+        function tryCallCtiApi (triedTimes, mostRelevantError) {
             triedTimes = triedTimes || 0;
-            console.log('CTI API debug log param', path, param);
             if (triedTimes >= urls.length) {
-                console.error("CTI API Fail All Tries:", path, param);
-                if (lastBody) {
-                    return JSON.parse(lastBody);
+                console.error("CTI API Fail All Tries:", path, param, mostRelevantError);
+                if (mostRelevantError) {
+                    return {result: mostRelevantError};
                 }
-                return Promise.reject({message: "Fail To Connect CTI API."});
+                return Promise.reject({message: "Fail To Connect CTI API.", errorCode: mostRelevantError});
             }
 
             let nextTriedTimes = triedTimes + 1;
@@ -240,17 +299,28 @@ let dbCtiCallOut = {
                 try {
                     request.post(link, {form: param, timeout: 3000}, (err, resp, body) => {
                         if (err || (resp && body && Number(JSON.parse(body).result) != 1)) {
-                            console.log("try no.", nextTriedTimes, link);
-                            console.error(err || body);
-                            resolve(tryCallCtiApi(nextTriedTimes, body));
+                            console.log("CTI try no.", nextTriedTimes, link, body, err);
+
+                            if (body) {
+                                let currentCtiError = JSON.parse(body).result;
+
+                                if (mostRelevantError) {
+                                    mostRelevantError = Number(mostRelevantError) < Number(currentCtiError) ? mostRelevantError : currentCtiError;
+                                }
+                                else {
+                                    mostRelevantError = currentCtiError;
+                                }
+                            }
+
+                            resolve(tryCallCtiApi(nextTriedTimes, mostRelevantError));
                             return;
                         }
 
                         if (!resp) {
                             // throw this to prevent passing undefined to JSON.parse function
-                            console.log("try no.", nextTriedTimes, link);
-                            console.error('Post request get nothing for ' + link);
-                            resolve(tryCallCtiApi(nextTriedTimes, lastBody));
+                            console.log("CTI try no.", nextTriedTimes, link);
+                            console.error('CTI Post request get nothing for ' + link);
+                            resolve(tryCallCtiApi(nextTriedTimes, mostRelevantError));
                             return;
                         }
 
@@ -258,7 +328,7 @@ let dbCtiCallOut = {
                     });
                 } catch (err) {
                     console.error(err);
-                    resolve(tryCallCtiApi(nextTriedTimes, lastBody));
+                    resolve(tryCallCtiApi(nextTriedTimes, mostRelevantError));
                 }
             });
         }
