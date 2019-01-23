@@ -842,6 +842,18 @@ var proposal = {
                         type = constPlayerTopUpType.COMMON;
                     }
 
+                    if (type == constPlayerTopUpType.COMMON && status === constProposalStatus.SUCCESS) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Invalid proposal status",
+                            data: {
+                                proposalId: proposalId,
+                                orderStatus: orderStatus,
+                                depositId: requestId
+                            }
+                        });
+                    }
+
                     if (proposalData.status == constProposalStatus.PREPENDING
                         || (
                             (
