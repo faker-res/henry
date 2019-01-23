@@ -1556,7 +1556,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     function initPage() {
         if (!$scope.AppSocket.connected) {
-            $("#pageWrapper").html('<i class="fa fa-spin fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>');
+            $("#pageWrapper").hide();
+            $("#pageConnectionLoader").html('<i class="fa fa-spin fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>');
+        } else {
+            $("#pageWrapper").show();
+            $("#pageConnectionLoader").empty();
         }
 
         var location = $location.path().slice(1);
