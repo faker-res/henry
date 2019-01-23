@@ -59,6 +59,9 @@ const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 
+const extConfig = require('../config/externalPayment/paymentSystems');
+const rp = require('request-promise');
+
 /**
  * Proposal executor
  ***/
@@ -2095,172 +2098,85 @@ var proposalExecutor = {
                            email: player.email || "",
                            loginName: player.name || "",
                            applyTime: cTimeString
-                       };
+                        };
 
-                        return pmsAPI.bonus_applyBonus(message).then(
-                            bonusData => {
-                                if (bonusData) {
-                                    // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
-                                    increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
-                                    // return bonusData;
-                                    return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
-                                        platformData => {
-                                            if (!platformData) {
-                                                return Q.reject({
-                                                    name: "DataError",
-                                                    errorMessage: "Cannot find platform"
-                                                });
-                                            }
-                                            let dataToUpdate = {
-                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                            };
-                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                            return bonusData;
-                                        }
-                                    );
-                                }
-                                else {
-                                    return Q.reject({
-                                        name: "DataError",
-                                        errorMessage: "Cannot request bonus"
-                                    });
-                                }
-                            }
-                        );
+                       if (extConfig && extConfig[player.platform.bonusSystemType]
+                           && extConfig[player.platform.bonusSystemType].withdrawAPIAddr
+                       ) {
+                           let options = {
+                               method: 'POST',
+                               uri: extConfig[player.platform.bonusSystemType].withdrawAPIAddr,
+                               body: message,
+                               json: true // Automatically stringifies the body to JSON
+                           };
 
-                       // //console.log("bonus_applyBonus", message);
-                       //  let allProposalQuery = {
-                       //      'data.platformId': ObjectId(player.platform._id),
-                       //      createTime: {$lt: proposalData.createTime},
-                       //      $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}]
-                       //  };
-                       //
-                       //  if (proposalData.data.playerId) {
-                       //      allProposalQuery["$or"].push({'data.playerId': proposalData.data.playerId});
-                       //  }
-                       //  if (proposalData.data.playerName) {
-                       //      allProposalQuery["$or"].push({'data.playerName': proposalData.data.playerName});
-                       //  }
-                       //
-                       //  return dbconfig.collection_proposal.find(allProposalQuery).populate(
-                       //      {path: "type", model: dbconfig.collection_proposalType}
-                       //  ).sort({createTime: -1}).lean().then(
-                       //      proposals => {
-                       //          let length = proposals.length;
-                       //          for (let i = 0; i < length; i++) {
-                       //              let proposal = proposals[i];
-                       //              if (proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
-                       //                  if (proposal.data) {
-                       //
-                       //                      if (proposal.data.bankAccount) {
-                       //                          if (!player.bankAccount) {
-                       //                              return false;
-                       //
-                       //                          } else if (proposal.data.bankAccount != player.bankAccount) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccount) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAccountName) {
-                       //                          if (!player.bankAccountName) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAccountName != player.bankAccountName) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccountName) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankName) {
-                       //                          if (!player.bankName) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankName != player.bankName) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankName) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAccountCity) {
-                       //                          if (!player.bankAccountCity) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAccountCity != player.bankAccountCity) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccountCity) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAccountType) {
-                       //                          if (!player.bankAccountType) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAccountType != player.bankAccountType) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccountType) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAddress) {
-                       //                          if (!player.bankAddress) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAddress != player.bankAddress) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAddress) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankBranch) {
-                       //                          if (!player.bankBranch) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankBranch != player.bankBranch) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankBranch) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAccountDistrict) {
-                       //                          if (!player.bankAccountDistrict) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAccountDistrict != player.bankAccountDistrict) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccountDistrict) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAccountProvince) {
-                       //                          if (!player.bankAccountProvince) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAccountProvince != player.bankAccountProvince) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccountProvince) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                  }
-                       //
-                       //                  return true;
-                       //              }
-                       //          }
-                       //          return true;
-                       //      }
-                       //  )
-                        //     .then(
-                        //     bIsPaymentInfoMatched => {
-                        //         if (bIsPaymentInfoMatched) {
-                        //
-                        //         } else {
-                        //             return Q.reject({name: "DataError", errorMessage: "Bank Info Not Matched"});
-                        //         }
-                        //     }
-                        // );
+                           return rp(options)
+                               .then(function (bonusData) {
+                                   console.log('bonus post success', bonusData);
+                                   if (bonusData) {
+                                       // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                       increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
+                                       // return bonusData;
+                                       return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
+                                           platformData => {
+                                               if (!platformData) {
+                                                   return Q.reject({
+                                                       name: "DataError",
+                                                       errorMessage: "Cannot find platform"
+                                                   });
+                                               }
+                                               let dataToUpdate = {
+                                                   "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                   "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                               };
+                                               dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                               return bonusData;
+                                           }
+                                       );
+                                   }
+                                   else {
+                                       return Q.reject({
+                                           name: "DataError",
+                                           errorMessage: "Cannot request bonus"
+                                       });
+                                   }
+                               })
+                               .catch(function (err) {
+                                   console.log('post failed', err);
+                               });
+                       } else {
+                           return pmsAPI.bonus_applyBonus(message).then(
+                               bonusData => {
+                                   if (bonusData) {
+                                       // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                       increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
+                                       // return bonusData;
+                                       return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
+                                           platformData => {
+                                               if (!platformData) {
+                                                   return Q.reject({
+                                                       name: "DataError",
+                                                       errorMessage: "Cannot find platform"
+                                                   });
+                                               }
+                                               let dataToUpdate = {
+                                                   "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                   "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                               };
+                                               dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                               return bonusData;
+                                           }
+                                       );
+                                   }
+                                   else {
+                                       return Q.reject({
+                                           name: "DataError",
+                                           errorMessage: "Cannot request bonus"
+                                       });
+                                   }
+                               }
+                           );
+                       }
                     }
                 ).then(deferred.resolve, deferred.reject);
             },
