@@ -409,9 +409,15 @@ const dbPlayerPayment = {
                     let paymentUrl = env.paymentHTTPAPIUrl;
 
                     // currently set to platformId 4 use on it first
-                    if (playerData && playerData.platform && playerData.platform.platformId && playerData.platform.platformId === '4' && playerData.platform.topUpSystemType
-                        && extConfig && extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].topUpAPIAddr) {
+                    if (playerData && playerData.platform && playerData.platform.topUpSystemType && extConfig
+                        && extConfig[playerData.platform.topUpSystemType]
+                        && extConfig[playerData.platform.topUpSystemType].topUpAPIAddr
+                    ) {
                         paymentUrl = extConfig[playerData.platform.topUpSystemType].topUpAPIAddr;
+
+                        if (extConfig[playerData.platform.topUpSystemType].minMaxAPIAddr) {
+                            paymentUrl = extConfig[playerData.platform.topUpSystemType].minMaxAPIAddr;
+                        }
                     }
 
                     url =
@@ -428,7 +434,6 @@ const dbPlayerPayment = {
             }
         ).then(
             ret => {
-                console.log('getMinMaxCommonTopupAmount ret', ret);
                 if (ret) {
                     ret = JSON.parse(ret);
 
@@ -444,6 +449,14 @@ const dbPlayerPayment = {
                         maxDepositAmount: Number(ret.max) || 0
                     }
                 }
+            }
+        ).catch(
+            err => {
+                return Promise.reject({
+                    status: constServerCode.PAYMENT_NOT_AVAILABLE,
+                    message: "Payment is not available",
+                    err: err
+                });
             }
         )
     },
