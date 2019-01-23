@@ -154,6 +154,10 @@ router.post('/getPlayerConsumptionSum', function(req, res, next) {
     });
 });
 
+router.get('/notifyWithdrawal', (req, res, next) => {
+    res.end('Success');
+});
+
 router.post('/notifyWithdrawal', function(req, res, next) {
     let inputData = [];
 
