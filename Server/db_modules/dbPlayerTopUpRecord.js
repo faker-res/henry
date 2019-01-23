@@ -4632,11 +4632,17 @@ var dbPlayerTopUpRecord = {
     },
 
     forcePairingWithReferenceNumber: function(platformId, proposalObjId, proposalId, referenceNumber) {
-        return pmsAPI.foundation_mandatoryMatch({
-            platformId: platformId,
-            queryId: serverInstance.getQueryId(),
-            proposalId: proposalId,
-            depositId: referenceNumber
+        return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
+            if(proposal && proposal.data && new Date(proposal.data.validTime) < new Date) {
+                return Promise.reject({message: "提案已过期"});
+            }
+        }).then(()=>{
+            return pmsAPI.foundation_mandatoryMatch({
+                platformId: platformId,
+                queryId: serverInstance.getQueryId(),
+                proposalId: proposalId,
+                depositId: referenceNumber
+            })
         }).then(data => {
             console.log("forcePairingWithReferenceNumber data", data);
             if(data) {
