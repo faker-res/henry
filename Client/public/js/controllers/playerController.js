@@ -18777,37 +18777,29 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getProvinceName = function (provinceId, fieldName) {
-
-            return new Promise((resolve, reject)=>{
-                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-                    var text = data.data.province ? data.data.province.name : '';
-                    if(vm.selectedProposal){
-                        if (fieldName) {
-                            vm.selectedProposal.data[fieldName] = text;
-                        } else {
-                            vm.selectedProposal.data.provinceName = text;
-                        }
+            socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
+                let text = data.data.province ? data.data.province.name : '';
+                if (text) {
+                    if (fieldName) {
+                        vm.selectedProposal.data[fieldName] = text;
+                    } else {
+                        vm.selectedProposal.data.provinceName = text;
                     }
-                    resolve(text);
-                });
-            })
-
+                }
+            });
         }
 
         vm.getCityName = function (cityId, fieldName) {
-            return new Promise((resolve, reject)=>{
-                socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-                    var text = data.data.city ? data.data.city.name : '';
-                    if(vm.selectedProposal){
-                        if (fieldName) {
-                            vm.selectedProposal.data[fieldName] = text;
-                        } else {
-                            vm.selectedProposal.data.cityName = text;
-                        }
+            socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
+                let text = data.data.city ? data.data.city.name : '';
+                if (text) {
+                    if (fieldName) {
+                        vm.selectedProposal.data[fieldName] = text;
+                    } else {
+                        vm.selectedProposal.data.cityName = text;
                     }
-                    resolve(text);
-                });
-            })
+                }
+            });
         }
 
         vm.showNewPlayerModal = function (data, templateNo) {
