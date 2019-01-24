@@ -422,7 +422,16 @@ var dbPlayerTopUpRecord = {
                                             }
 
                                             if(typeof playerReportDaySummary[indexNo].providerDetail != "undefined"){
-                                                playerReportDaySummary[indexNo].providerDetail = Object.assign(playerReportDaySummary[indexNo].providerDetail, providerDetail);
+                                                let providerId = providerDetail && Object.keys(providerDetail) && Object.keys(providerDetail).length ? Object.keys(providerDetail)[0] : null;
+                                                if(providerId && playerReportDaySummary[indexNo].providerDetail[providerId]){
+                                                    playerReportDaySummary[indexNo].providerDetail[providerId].count += providerDetail[providerId].count;
+                                                    playerReportDaySummary[indexNo].providerDetail[providerId].amount += providerDetail[providerId].amount;
+                                                    playerReportDaySummary[indexNo].providerDetail[providerId].validAmount += providerDetail[providerId].validAmount;
+                                                    playerReportDaySummary[indexNo].providerDetail[providerId].bonusAmount += providerDetail[providerId].bonusAmount;
+                                                    playerReportDaySummary[indexNo].providerDetail[providerId].bonusRatio = providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount;
+                                                }else{
+                                                    playerReportDaySummary[indexNo].providerDetail = Object.assign(playerReportDaySummary[indexNo].providerDetail, providerDetail);
+                                                }
                                             }else{
                                                 playerReportDaySummary[indexNo].providerDetail = providerDetail;
                                             }
