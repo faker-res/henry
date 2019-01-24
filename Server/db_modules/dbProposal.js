@@ -842,6 +842,18 @@ var proposal = {
                         type = constPlayerTopUpType.COMMON;
                     }
 
+                    if (type == constPlayerTopUpType.COMMON && status === constProposalStatus.SUCCESS) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Invalid proposal status",
+                            data: {
+                                proposalId: proposalId,
+                                orderStatus: orderStatus,
+                                depositId: requestId
+                            }
+                        });
+                    }
+
                     if (proposalData.status == constProposalStatus.PREPENDING
                         || (
                             (
@@ -982,7 +994,7 @@ var proposal = {
                             }
 
                             // Some extra data
-                            addDetailToProp(updObj.data, 'remark', remark);
+                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
                             addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
                             addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
                             addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
@@ -3257,18 +3269,15 @@ var proposal = {
      *
      */
     getProposalsByAdvancedQuery: function (reqData, index, count, sortObj) {
-        console.log("LH check proposal report 1");
-        //count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM)
         sortObj = sortObj || {};
-        var dataDeferred = Q.defer();
-        var deferred = Q.defer();
-        var proposalTypeList = [];
-        var queryData = reqData;
-        var resultArray = null;
-        var totalSize = 0;
-        var summary = {};
+        let proposalTypeList = [];
+        let queryData = reqData;
+        let resultArray = null;
+        let totalSize = 0;
+        let summary = {};
         let isApprove = false;
         let isSuccess = false;
+        let prom = Promise.resolve([]);
 
         if (reqData.inputDevice) {
             reqData.inputDevice = Number(reqData.inputDevice);
@@ -3294,7 +3303,6 @@ var proposal = {
             }
         }
         if (!reqData.type && reqData.platformId) {
-            console.log("LH check proposal report 2");
             let searchQuery = {
                 platformId: ObjectId(reqData.platformId)
             }
@@ -3303,16 +3311,15 @@ var proposal = {
                 searchQuery.name = {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]} ;
             }
 
-            dbconfig.collection_proposalType.find(searchQuery).then(
+            prom = dbconfig.collection_proposalType.find(searchQuery).lean().then(
                 function (data) {
-                    console.log("LH check proposal report 3 ------------------ get proposal type");
                     if (data && data.length > 0) {
                         for (var i = 0; i < data.length; i++) {
                             (proposalTypeList.push(ObjectId(data[i]._id)));
                         }
                     }
                     else {
-                        dataDeferred.reject({
+                        return Promise.reject({
                             name: "DataError",
                             message: "No proposal type found in the selected platform.",
                         });
@@ -3320,7 +3327,7 @@ var proposal = {
                     return proposalTypeList;
                 },
                 function (error) {
-                    dataDeferred.reject({
+                    return Promise.reject({
                         name: "DBError",
                         message: "Error in searching proposal types in the selected platform.",
                         error: error
@@ -3328,20 +3335,19 @@ var proposal = {
                 }
             ).then(
                 function (proposalTypeIdList) { // all proposal type ids of this platform
-                    console.log("LH check proposal report 4");
                     delete queryData.platformId;
-                    var a = dbconfig.collection_proposal.find({
+                    let a = dbconfig.collection_proposal.find({
                         type: {$in: proposalTypeIdList},
                         $and: [queryData]
                     }).read("secondaryPreferred").count();
-                    var b = dbconfig.collection_proposal.find({
+                    let b = dbconfig.collection_proposal.find({
                         type: {$in: proposalTypeIdList},
                         $and: [queryData]
                     }).sort(sortObj).skip(index).limit(count).populate({
                         path: "process",
                         model: dbconfig.collection_proposalProcess
-                    }).populate({path: "type", model: dbconfig.collection_proposalType});
-                    var c = dbconfig.collection_proposal.aggregate([
+                    }).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
+                    let c = dbconfig.collection_proposal.aggregate([
                         {
                             $match: {
                                 type: {$in: proposalTypeIdList},
@@ -3369,10 +3375,10 @@ var proposal = {
                             }
                         }
                     ]).read("secondaryPreferred");
-                    return Q.all([a, b, c]);
+                    return Promise.all([a, b, c]);
                 },
                 function (error) {
-                    dataDeferred.reject({
+                    return Promise.reject({
                         name: "DBError",
                         message: "Error in getting proposal type Ids in the selected platform.",
                         error: error
@@ -3380,7 +3386,6 @@ var proposal = {
                 }
             ).then(
                 function (data) {
-                    console.log("LH check proposal report 5");
                     if (data && data[1]) {
                         totalSize = data[0];
                         resultArray = Object.assign([], data[1]);
@@ -3390,11 +3395,11 @@ var proposal = {
                             resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
                         }
 
-                        dataDeferred.resolve(resultArray);
+                        return resultArray;
                     }
                 },
                 function (error) {
-                    dataDeferred.reject({
+                    return Promise.reject({
                         name: "DBError",
                         message: "Error in getting proposals in the selected platform.",
                         error: error
@@ -3403,7 +3408,6 @@ var proposal = {
             );
         }
         else {
-            console.log("LH check proposal report B2");
             if (reqData.type && reqData.type.length > 0) {
                 let arr = reqData.type.map(item => {
                     return ObjectId(item);
@@ -3413,13 +3417,12 @@ var proposal = {
 
             let a, b, c;
             if(isApprove){
-                console.log("LH check proposal report B3 isApproved");
                 let searchQuery = {
                     platformId: ObjectId(reqData.platformId),
                     name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
                 };
 
-                a = dbconfig.collection_proposalType.find(searchQuery).then(
+                a = dbconfig.collection_proposalType.find(searchQuery).lean().then(
                     proposalType => {
                         delete reqData.platformId;
                         if(proposalType && proposalType.length > 0){
@@ -3441,7 +3444,7 @@ var proposal = {
                     }
                 );
 
-                b = dbconfig.collection_proposalType.find(searchQuery).then(
+                b = dbconfig.collection_proposalType.find(searchQuery).lean().then(
                     proposalType => {
                         delete reqData.platformId;
                         if(proposalType && proposalType.length > 0){
@@ -3465,7 +3468,7 @@ var proposal = {
                     }
                 );
 
-                c = dbconfig.collection_proposalType.find(searchQuery).then(
+                c = dbconfig.collection_proposalType.find(searchQuery).lean().then(
                     proposalType => {
                         delete reqData.platformId;
                         if(proposalType && proposalType.length > 0){
@@ -3549,7 +3552,6 @@ var proposal = {
                     }
                 );
             }else{
-                console.log("LH check proposal report B3 not isApproved");
                 delete reqData.platformId;
                 a = dbconfig.collection_proposal.find(reqData).lean().count();
                 b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
@@ -3620,9 +3622,9 @@ var proposal = {
                     }
                 ]).read("secondaryPreferred");
             }
-            Q.all([a, b, c]).then(
+
+            prom = Promise.all([a, b, c]).then(
                 function (data) {
-                    console.log("LH check proposal report B4 -----------",data)
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
@@ -3631,10 +3633,10 @@ var proposal = {
                         resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
                     }
 
-                    dataDeferred.resolve(resultArray);
+                    return resultArray;
                 },
                 function (err) {
-                    dataDeferred.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "Error in getting proposals type in the selected platform.",
                         error: err,
@@ -3643,32 +3645,30 @@ var proposal = {
             );
         }
 
-        console.log("LH check proposal report 6");
-        dataDeferred.promise.then(
+        return prom.then(
             function (data) {
-                console.log("LH check proposal report 7");
                 data = resultArray;
-                var allProm = [];
+                let allProm = [];
                 if (data && data.length > 0) {
                     for (var i in data) {
                         if (data[i].data.playerId || data[i].data.playerId) {
                             try {
                                 if (ObjectId(data[i].data.playerId)) {
                                 }
-                                allProm.push(dbconfig.collection_players.findOne({_id: data[i].data.playerId}));
+                                allProm.push(dbconfig.collection_players.findOne({_id: data[i].data.playerId}).lean());
                             }
                             catch (err) {
-                                allProm.push(dbconfig.collection_players.findOne({playerId: data[i].data.playerId}));
+                                allProm.push(dbconfig.collection_players.findOne({playerId: data[i].data.playerId}).lean());
                             }
                         } else {
                             allProm.push({playerId: 'NA'});
                         }
                     }
                 }
-                return Q.all(allProm);
+                return Promise.all(allProm);
             },
             function (error) {
-                deferred.reject({
+                return Promise.reject({
                     name: "DBError",
                     message: "Error in getting proposals in the selected platform.",
                     error: error
@@ -3676,8 +3676,7 @@ var proposal = {
             }
         ).then(
             function (playerData) {
-                console.log("LH check proposal report 8");
-                for (var i in playerData) {
+                for (let i in playerData) {
                     if (playerData[i] && playerData[i].playerId) {
                         resultArray[i].data.playerShortId = playerData[i].playerId
                     }
@@ -3693,22 +3692,21 @@ var proposal = {
                     total += summary[0].totalCommissionAmount;
                 }
                 total = dbutility.decimalAdjust("floor", total, -2);
-                deferred.resolve({
+
+                return {
                     size: totalSize,
                     data: resultArray,
                     summary: {amount: total}, //parseFloat(total).toFixed(2)
-                });
+                };
             },
             function (error) {
-                deferred.reject({
+                return Promise.reject({
                     name: "DBError",
                     message: "Error in getting player ID information.",
                     error: error
                 })
             }
         );
-
-        return deferred.promise;
     },
 
     getFinancialReportByDay: function (reqData) {

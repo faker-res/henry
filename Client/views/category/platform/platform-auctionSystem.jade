@@ -514,13 +514,15 @@ form(name='form_auctionSystem').row
                             tbody
                                 tr(ng-repeat='(index,val) in vm.auctionSystemProduct.rewardAppearPeriod')
                                     td
-                                        select.form-control(ng-model='val.startDate' ng-options='i as v | translate for (i,v) in weekDay')
+                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="weekly"' ng-model='val.startDate' ng-options='i as v | translate for (i,v) in weekDay')
+                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="monthly"' ng-model='val.startDate' ng-options='n for n in monthDate')
                                     td
                                         select.form-control(ng-model='val.startTime' ng-options='i as v for (i,v) in dayTime')
                                     td
                                         -
                                     td
-                                        select.form-control(ng-model='val.endDate' ng-options='i as v | translate for (i,v) in weekDay')
+                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="weekly"' ng-model='val.endDate' ng-options='i as v | translate for (i,v) in weekDay')
+                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="monthly"' ng-model='val.endDate' ng-options='n for n in monthDate')
                                     td
                                         select.form-control(ng-model='val.endTime' ng-options='i as v for (i,v) in dayTime')
                                     td

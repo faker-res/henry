@@ -22489,17 +22489,24 @@ define(['js/app'], function (myApp) {
                     if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam.length > 0) {
                         vm.rewardParams.rewardParam.forEach(x => {
                             if (x && x.value && x.value.length > 0) {
-                                x.value.forEach(el => {
-                                    if (el && Object.keys(el).length > 0) {
-                                        if (el.hostResult === null || el.hostResult === 'undefined') {
+                                for (let i = 0; i < x.value.length; i++) {
+                                    if (!(x.value[i] && Object.keys(x.value[i]).length)) {
+                                        isValid = false;
+                                        break;
+                                    }
+                                    if (!(x.value[i].betType && (x.value[i].betType == "庄对" || x.value[i].betType == "闲对"))) {
+                                        if (!x.value[i].hasOwnProperty("hostResult")) {
                                             isValid = false;
                                             isHostResult = false;
-                                        } else if (el.playerResult === null || el.playerResult === 'undefined') {
+                                            break;
+                                        }
+                                        if (!x.value[i].hasOwnProperty("playerResult")) {
                                             isValid = false;
                                             isPlayerResult = false;
+                                            break;
                                         }
                                     }
-                                })
+                                }
                             }
                         })
                     }
@@ -22669,17 +22676,24 @@ define(['js/app'], function (myApp) {
                     if (sendData && sendData.param && sendData.param.rewardParam.length > 0) {
                         sendData.param.rewardParam.forEach(x => {
                             if (x && x.value && x.value.length > 0) {
-                                x.value.forEach(el => {
-                                    if (el && Object.keys(el).length > 0) {
-                                        if (el.hostResult === null || el.hostResult === 'undefined') {
+                                for (let i = 0; i < x.value.length; i++) {
+                                    if (!(x.value[i] && Object.keys(x.value[i]).length)) {
+                                        isValid = false;
+                                        break;
+                                    }
+                                    if (!(x.value[i].betType && (x.value[i].betType == "庄对" || x.value[i].betType == "闲对"))) {
+                                        if (!x.value[i].hasOwnProperty("hostResult")) {
                                             isValid = false;
                                             isHostResult = false;
-                                        } else if (el.playerResult === null || el.playerResult === 'undefined') {
+                                            break;
+                                        }
+                                        if (!x.value[i].hasOwnProperty("playerResult")) {
                                             isValid = false;
                                             isPlayerResult = false;
+                                            break;
                                         }
                                     }
-                                })
+                                }
                             }
                         })
                     }
@@ -24918,25 +24932,27 @@ define(['js/app'], function (myApp) {
 
             vm.getProvinceName = function (provinceId, fieldName) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-                    var text = data.data.province ? data.data.province.name : '';
-                    if (fieldName) {
-                        vm.selectedProposal.data[fieldName] = text;
-                    } else {
-                        vm.selectedProposal.data.provinceName = text;
+                    let text = data.data.province ? data.data.province.name : '';
+                    if (text) {
+                        if (fieldName) {
+                            vm.selectedProposal.data[fieldName] = text;
+                        } else {
+                            vm.selectedProposal.data.provinceName = text;
+                        }
                     }
-                    $scope.safeApply();
                 });
             }
 
             vm.getCityName = function (cityId, fieldName) {
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-                    var text = data.data.city ? data.data.city.name : '';
-                    if (fieldName) {
-                        vm.selectedProposal.data[fieldName] = text;
-                    } else {
-                        vm.selectedProposal.data.cityName = text;
+                    let text = data.data.city ? data.data.city.name : '';
+                    if (text) {
+                        if (fieldName) {
+                            vm.selectedProposal.data[fieldName] = text;
+                        } else {
+                            vm.selectedProposal.data.cityName = text;
+                        }
                     }
-                    $scope.safeApply();
                 });
             }
 

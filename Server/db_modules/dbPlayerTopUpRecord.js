@@ -839,7 +839,7 @@ var dbPlayerTopUpRecord = {
                 if(query.line){
                     queryObj['data.line'] = {$in: query.line};
                 }
-                return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
+                return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str}).lean();
             }
         ).then(
             proposalType => {
@@ -1050,8 +1050,8 @@ var dbPlayerTopUpRecord = {
                     nextSuccessQuery["$and"] = bankCardNoRegExp;
                 }
 
-                let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1);
-                let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).sort({createTime: 1}).limit(1);
+                let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1).lean();
+                let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).sort({createTime: 1}).limit(1).lean();
 
                 // for debug usage
                 // let pS, nS, fISQ;
@@ -1113,7 +1113,7 @@ var dbPlayerTopUpRecord = {
 
                         let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
                         let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
-                        let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).sort({createTime: 1}).limit(1);
+                        let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).sort({createTime: 1}).limit(1).lean();
 
                         return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
                     }
@@ -1156,13 +1156,13 @@ var dbPlayerTopUpRecord = {
                     createTime: {$lte: proposal.createTime},
                     "data.playerName": playerName,
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-                }).sort({createTime: -1}).limit(1);
+                }).sort({createTime: -1}).limit(1).lean();
                 let nextSuccessProm = dbconfig.collection_proposal.find({
                     type: {$in: typeIds},
                     createTime: {$gte: proposal.createTime},
                     "data.playerName": playerName,
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-                }).sort({createTime: 1}).limit(1);
+                }).sort({createTime: 1}).limit(1).lean();
 
                 return Promise.all([prevSuccessProm, nextSuccessProm]).then(
                     successData => {
@@ -1214,11 +1214,14 @@ var dbPlayerTopUpRecord = {
                         proposal.$playerAllCount = allCount;
                         proposal.$playerCurrentCount = currentCount;
 
-                        if (firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
+                        if (firstFailure && firstFailure.proposalId && proposal && proposal.proposalId && (firstFailure.proposalId.toString() === proposal.proposalId.toString())) {
                             proposal.$playerGapTime = 0;
-                        } else {
+                        } else if (firstFailure && firstFailure.createTime && proposal && proposal.createTime) {
                             proposal.$playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                        } else {
+                            proposal.$playerGapTime = 0;
                         }
+
                         return proposal;
                     }
                 );
@@ -4629,11 +4632,17 @@ var dbPlayerTopUpRecord = {
     },
 
     forcePairingWithReferenceNumber: function(platformId, proposalObjId, proposalId, referenceNumber) {
-        return pmsAPI.foundation_mandatoryMatch({
-            platformId: platformId,
-            queryId: serverInstance.getQueryId(),
-            proposalId: proposalId,
-            depositId: referenceNumber
+        return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
+            if(proposal && proposal.data && new Date(proposal.data.validTime) < new Date) {
+                return Promise.reject({message: "提案已过期"});
+            }
+        }).then(()=>{
+            return pmsAPI.foundation_mandatoryMatch({
+                platformId: platformId,
+                queryId: serverInstance.getQueryId(),
+                proposalId: proposalId,
+                depositId: referenceNumber
+            })
         }).then(data => {
             console.log("forcePairingWithReferenceNumber data", data);
             if(data) {

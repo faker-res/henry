@@ -5,67 +5,67 @@
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 .col-sm-12(ng-if='vm.curPlatformText')
     .panel.panel-primary(style='opacity:{{vm.toPhoneNumber ? "0.3" : "1"}}')
-        .panel-body(style='padding-left:5px;padding-right:5px')
-            #sendMultiMessageQuery.block-query.col-md-12.form-control-sm
-                .inlineBlk
-                    label {{"USER TYPE" | translate}}
-                    select.form-control(ng-model="vm.sendMultiMessage.playerType", required)
-                        option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
-                        option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
-                        option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
-                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
-                        option(value='Partner') {{'partner' | translate}}
-                .inlineBlk
-                    label {{"PlayerLevel" | translate}}
-                    select.form-control(ng-model='vm.sendMultiMessage.playerLevel', required)
-                        option(value='') {{'ALL' | translate}}
-                        option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
-                .inlineBlk
-                    label(style='min-width:130px')  {{"CREDIBILITY"|translate}}
-                    select.form-control#selectCredibilityRemarkMultiMsg(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.sendMultiMessage.credibilityRemarks')
-                .inlineBlk
-                    label {{"TOP_UP_TIMES"|translate}}
-                    select.form-control(ng-model="vm.sendMultiMessage.topUpTimesOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.sendMultiMessage.topUpTimesValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.sendMultiMessage.topUpTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.sendMultiMessage.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.sendMultiMessage.topUpTimesOperator === 'range'")
-                .inlineBlk
-                    label {{"LAST_ACCESS_TIME_START" | translate}}
-                    .accStart
-                .inlineBlk
-                    label {{"LAST_ACCESS_TIME_END" | translate}}
-                    .accEnd
-                .inlineBlk
-                    label {{"REGISTRATION_TIME_START" | translate}}
-                    .regStart
-                .inlineBlk
-                    label {{"REGISTRATION_TIME_END" | translate}}
-                    .regEnd
-                .inlineBlk
-                    label {{"bankAccount" | translate}}
-                    input.form-control(ng-model='vm.sendMultiMessage.bankAccount', style='width: 180px;')
-                .inlineBlk
-                    label {{"LOGIN_TIMES"|translate}}
-                    select.form-control(ng-model="vm.sendMultiMessage.loginTimesOperator" style="width:75px;display:inline-block")
-                        option(value='>=') {{'>='}}
-                        option(value='=') {{'='}}
-                        option(value='<=') {{'<='}}
-                        option(value='range') {{'range'|translate}}
-                    div(style="width:8px;display:inline-block")
-                    input.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValue" style="width:80px;display:inline-block")
-                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'")
-                //.inlineBlk
-                    label {{"Length Per Page" | translate}}
-                    input.form-control(type='number',ng-model='vm.sendMultiMessage.pageNumber', style='width:70px')
-                .inlineBlk
-                    label &nbsp;
-                    button.btn.common-button-sm.btn-primary(ng-click='vm.searchPlayersForSendingMessage(true)') {{'SEARCH' | translate}}
+        .panel-body.row
+            #sendMultiMessageQuery.col-md-12
+                .well
+                    .search-filters-item
+                        label {{"USER TYPE" | translate}}
+                        select.form-control(ng-model="vm.sendMultiMessage.playerType", required)
+                            option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                            option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                            option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                            option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                            option(value='Partner') {{'partner' | translate}}
+                    .search-filters-item
+                        label {{"PlayerLevel" | translate}}
+                        select.form-control(ng-model='vm.sendMultiMessage.playerLevel', required)
+                            option(value='') {{'ALL' | translate}}
+                            option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                    .search-filters-item
+                        label {{"CREDIBILITY"|translate}}
+                        select.form-control#selectCredibilityRemarkMultiMsg(multiple="multiple", ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.sendMultiMessage.credibilityRemarks')
+                    .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.sendMultiMessage.topUpTimesOperator === "range")}')
+                        label {{"TOP_UP_TIMES"|translate}}
+                        div
+                            select.threeBoxes.form-control(ng-model="vm.sendMultiMessage.topUpTimesOperator")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                            input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.topUpTimesValue")
+                            div.symbol(ng-if="vm.sendMultiMessage.topUpTimesOperator === 'range'") ~
+                            input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.topUpTimesValueTwo" ng-if="vm.sendMultiMessage.topUpTimesOperator === 'range'")
+                    .search-filters-item
+                        label {{"LAST_ACCESS_TIME_START" | translate}}
+                        .accStart
+                    .search-filters-item
+                        label {{"LAST_ACCESS_TIME_END" | translate}}
+                        .accEnd
+                    .search-filters-item
+                        label {{"REGISTRATION_TIME_START" | translate}}
+                        .regStart
+                    .search-filters-item
+                        label {{"REGISTRATION_TIME_END" | translate}}
+                        .regEnd
+                    .search-filters-item
+                        label {{"bankAccount" | translate}}
+                        input.form-control(ng-model='vm.sendMultiMessage.bankAccount')
+                    .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.sendMultiMessage.loginTimesOperator === "range")}')
+                        label {{"LOGIN_TIMES"|translate}}
+                        div
+                            select.threeBoxes.form-control(ng-model="vm.sendMultiMessage.loginTimesOperator")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                            input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValue" )
+                            div.symbol(ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'") ~
+                            input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValueTwo" ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'")
+                    //.inlineBlk
+                        label {{"Length Per Page" | translate}}
+                        input.form-control(type='number',ng-model='vm.sendMultiMessage.pageNumber', style='width:70px')
+                    .text-right.widthto100
+                        button.btn.btn-primary(ng-click='vm.searchPlayersForSendingMessage(true)') {{'SEARCH' | translate}}
             .col-md-12
                 label.margin-left-5 {{"total" | translate}} {{vm.sendMultiMessage.totalCount}} {{"records" | translate}}
                 table#mutilplePlayerTable.common-table.datatable-sm.display(style='width:100%;min-width:100%')
