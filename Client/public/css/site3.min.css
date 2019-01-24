@@ -3630,6 +3630,7 @@ tr.sn-selected, td.sn-selected {
 .input-append.form-control input {
     border: 0;
     padding: 0;
+    width: 150px;
 }
 
 .datepicker-days td:hover,
@@ -4333,7 +4334,7 @@ table.simple-table-single > thead > tr > th {
     margin: .5em 1em;
 }
 .search-filters-threeBoxes {
-    width: 220px;
+    width: 232px;
     display: inline-block;
     margin: .5em 1em;
 }
@@ -4387,9 +4388,7 @@ hr {
     font-size: 12px;
     color:red;
 }
-.search-filters-item input[type="text"] {
-    width: 150px;
-}
+
 
 
 .navbar-right {
