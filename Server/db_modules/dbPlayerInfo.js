@@ -5555,6 +5555,7 @@ let dbPlayerInfo = {
      *  @param include name and password of the player and some more additional info to log the player's login
      */
     playerLogin: function (playerData, userAgent, inputDevice, mobileDetect) {
+        console.log('rt playerLogin start');
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -5569,6 +5570,7 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
+                console.log('rt playerLogin 1');
                 if (platformData) {
                     platformObj = platformData;
                     requireLogInCaptcha = platformData.requireLogInCaptcha || false;
@@ -5608,6 +5610,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                console.log('rt playerLogin 2');
                 if (data) {
                     playerObj = data;
 
@@ -5652,6 +5655,7 @@ let dbPlayerInfo = {
             }
         ).then(
             isMatch => {
+                console.log('rt playerLogin 3');
                 if (!isMatch) {
                     return Promise.reject({
                         name: "DataError",
@@ -5750,6 +5754,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                console.log('rt playerLogin 4');
                 // Geo and ip related update
                 if (bUpdateIp) {
                     dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
@@ -5791,6 +5796,7 @@ let dbPlayerInfo = {
             }
         ).then(
             record => {
+                console.log('rt playerLogin 5');
                 updateAutoFeedbackLoginCount(record).catch(errorUtils.reportError);
                 dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
                     err => {
@@ -5817,6 +5823,7 @@ let dbPlayerInfo = {
             }
         ).then(
             res => {
+                console.log('rt playerLogin 6');
                 res.name = res.name.replace(platformPrefix, "");
                 retObj = res;
 
@@ -5836,11 +5843,13 @@ let dbPlayerInfo = {
             }
         ).then(
             zoneData => {
+                console.log('rt playerLogin 7');
                 retObj.bankAccountProvince = zoneData[0] && zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
                 retObj.bankAccountCity = zoneData[1] && zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                 retObj.bankAccountDistrict = zoneData[2] && zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
+                console.log('rt playerLogin end');
                 return retObj;
             }
         );
