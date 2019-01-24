@@ -37,7 +37,6 @@
     "mysql": "^2.15.0",
     "nodemailer": "^2.4.2",
     "nodemailer-html-to-text": "^2.1.0",
-    "osa-imessage": "^2.4.0",
     "pnglib": "0.0.1",
     "q": "^1.4.1",
     "qrcode": "^1.2.0",
