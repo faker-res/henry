@@ -5623,6 +5623,7 @@ let dbPlayerInfo = {
                     }
                     db_password = String(data.password); // hashedPassword from db
                     if (dbUtility.isMd5(db_password)) {
+                        console.log('rt playerLogin 2.1');
                         if (md5(playerData.password) == db_password) {
                             return Promise.resolve(true);
                         }
@@ -5631,6 +5632,7 @@ let dbPlayerInfo = {
                         }
                     }
                     else {
+                        console.log('rt playerLogin 2.2');
                         return new Promise((resolve, reject) => {
                             bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
                                 if (err) {
@@ -5642,7 +5644,7 @@ let dbPlayerInfo = {
                                 }
                                 resolve(isMatch);
                             });
-                        })
+                        }).catch(err => console.log(err))
                     }
                 }
                 else {
