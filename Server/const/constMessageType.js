@@ -35,6 +35,8 @@ const constMessageType = {
     AUCTION_PROMO_CODE_SUCCESS: "AuctionPromoCodeSuccess",
     AUCTION_OPEN_PROMO_CODE_SUCCESS: "AuctionOpenPromoCodeSuccess",
     AUCTION_REAL_PRIZE_SUCCESS: "AuctionRealPrizeSuccess",
+    AUCTION_REWARD_PROMOTION_SUCCESS: "AuctionRewardPromotionSuccess",
+    AUCTION_REWARD_POINT_CHANGE_SUCCESS: "AuctionRewardPointChangeSuccess",
 
     // TOP UP
     COMMON_TOPUP_SUCCESS: "CommonTopupSuccess",

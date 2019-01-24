@@ -508,7 +508,16 @@ db.rewardParam.update({
             periodCond: periodCond,
             latestTopUpCond: latestTopUpCond,
             consumptionCond: consumptionCond,
-            dynamicCond: dynamicCond
+            dynamicCond: dynamicCond,
+            customCond: {
+                depositMethod: {
+                    index: 19,
+                    type: "multiSelect",
+                    des: "DEPOSIT_METHOD",
+                    options: "depositMethod",
+                    detail: "REWARD_TOP_UP_TYPE_DETAIL"
+                }
+            }
         },
         param: {
             tblOptFixed: {
@@ -1248,6 +1257,7 @@ db.rewardParam.update({
             tblOptFixed: {
                 rewardParam: {
                     minBetAmount: {type: "number", des: "Minimum Bet Amount"},
+                    pairResult: {type: "select", options: "pairResultType", des: "Banker or player tie (empty equal to any pairs)"},
                     hostResult: {type: "number", des: "Host Result"},
                     playerResult: {type: "number", des: "Player Result"},
                     rewardAmount: {type: "number", des: "Baccarat Reward Amount"},

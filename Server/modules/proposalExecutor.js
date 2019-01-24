@@ -59,6 +59,9 @@ const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 
+const extConfig = require('../config/externalPayment/paymentSystems');
+const rp = require('request-promise');
+
 /**
  * Proposal executor
  ***/
@@ -112,7 +115,10 @@ var proposalExecutor = {
             // Auction reward
             || executionType === 'executeAuctionPromoCode'
             || executionType === 'executeAuctionOpenPromoCode'
+            || executionType === 'executeAuctionRewardPromotion'
             || executionType === 'executeAuctionRealPrize'
+            || executionType === 'executePlayerAuctionPromotionReward'
+            || executionType === 'executeAuctionRewardPointChange'
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -300,6 +306,7 @@ var proposalExecutor = {
             this.executions.executeAuctionPromoCode.des = "Auction Promo Code";
             this.executions.executeAuctionOpenPromoCode.des = "Auction Open Promo Code";
             this.executions.executeAuctionRewardPromotion.des = "Auction Reward Promotion";
+            this.executions.executePlayerAuctionPromotionReward.des = "player Auction Reward Promotion";
             this.executions.executeAuctionRealPrize.des = "Auction Real Prize";
             this.executions.executeAuctionRewardPointChange.des = "Auction Reward Point Change";
 
@@ -388,6 +395,7 @@ var proposalExecutor = {
             this.rejections.rejectAuctionPromoCode.des = "Reject Auction Promo Code";
             this.rejections.rejectAuctionOpenPromoCode.des = "Reject Auction Open Promo Code";
             this.rejections.rejectAuctionRewardPromotion.des = "Reject Auction Reward Promotion";
+            this.rejections.rejectePlayerAuctionPromotionReward.des = "Reject Player Auction Reward Promotion";
             this.rejections.rejectAuctionRealPrize.des = "Reject Auction Real Prize";
             this.rejections.rejectAuctionRewardPointChange.des = "Reject Auction Reward Point Change";
         },
@@ -2090,172 +2098,82 @@ var proposalExecutor = {
                            email: player.email || "",
                            loginName: player.name || "",
                            applyTime: cTimeString
-                       };
+                        };
 
-                        return pmsAPI.bonus_applyBonus(message).then(
-                            bonusData => {
-                                if (bonusData) {
-                                    // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
-                                    increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
-                                    // return bonusData;
-                                    return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
-                                        platformData => {
-                                            if (!platformData) {
-                                                return Q.reject({
-                                                    name: "DataError",
-                                                    errorMessage: "Cannot find platform"
-                                                });
-                                            }
-                                            let dataToUpdate = {
-                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                            };
-                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                            return bonusData;
-                                        }
-                                    );
-                                }
-                                else {
-                                    return Q.reject({
-                                        name: "DataError",
-                                        errorMessage: "Cannot request bonus"
-                                    });
-                                }
-                            }
-                        );
+                       if (extConfig && extConfig[player.platform.bonusSystemType]
+                           && extConfig[player.platform.bonusSystemType].withdrawAPIAddr
+                       ) {
+                           let options = {
+                               method: 'POST',
+                               uri: extConfig[player.platform.bonusSystemType].withdrawAPIAddr,
+                               body: message,
+                               json: true // Automatically stringifies the body to JSON
+                           };
 
-                       // //console.log("bonus_applyBonus", message);
-                       //  let allProposalQuery = {
-                       //      'data.platformId': ObjectId(player.platform._id),
-                       //      createTime: {$lt: proposalData.createTime},
-                       //      $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}]
-                       //  };
-                       //
-                       //  if (proposalData.data.playerId) {
-                       //      allProposalQuery["$or"].push({'data.playerId': proposalData.data.playerId});
-                       //  }
-                       //  if (proposalData.data.playerName) {
-                       //      allProposalQuery["$or"].push({'data.playerName': proposalData.data.playerName});
-                       //  }
-                       //
-                       //  return dbconfig.collection_proposal.find(allProposalQuery).populate(
-                       //      {path: "type", model: dbconfig.collection_proposalType}
-                       //  ).sort({createTime: -1}).lean().then(
-                       //      proposals => {
-                       //          let length = proposals.length;
-                       //          for (let i = 0; i < length; i++) {
-                       //              let proposal = proposals[i];
-                       //              if (proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
-                       //                  if (proposal.data) {
-                       //
-                       //                      if (proposal.data.bankAccount) {
-                       //                          if (!player.bankAccount) {
-                       //                              return false;
-                       //
-                       //                          } else if (proposal.data.bankAccount != player.bankAccount) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccount) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAccountName) {
-                       //                          if (!player.bankAccountName) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAccountName != player.bankAccountName) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccountName) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankName) {
-                       //                          if (!player.bankName) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankName != player.bankName) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankName) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAccountCity) {
-                       //                          if (!player.bankAccountCity) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAccountCity != player.bankAccountCity) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccountCity) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAccountType) {
-                       //                          if (!player.bankAccountType) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAccountType != player.bankAccountType) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccountType) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAddress) {
-                       //                          if (!player.bankAddress) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAddress != player.bankAddress) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAddress) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankBranch) {
-                       //                          if (!player.bankBranch) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankBranch != player.bankBranch) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankBranch) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAccountDistrict) {
-                       //                          if (!player.bankAccountDistrict) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAccountDistrict != player.bankAccountDistrict) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccountDistrict) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                      if (proposal.data.bankAccountProvince) {
-                       //                          if (!player.bankAccountProvince) {
-                       //                              return false;
-                       //                          } else if (proposal.data.bankAccountProvince != player.bankAccountProvince) {
-                       //                              return false;
-                       //                          }
-                       //                      } else if (player.bankAccountProvince) {
-                       //                          return false;
-                       //                      }
-                       //
-                       //                  }
-                       //
-                       //                  return true;
-                       //              }
-                       //          }
-                       //          return true;
-                       //      }
-                       //  )
-                        //     .then(
-                        //     bIsPaymentInfoMatched => {
-                        //         if (bIsPaymentInfoMatched) {
-                        //
-                        //         } else {
-                        //             return Q.reject({name: "DataError", errorMessage: "Bank Info Not Matched"});
-                        //         }
-                        //     }
-                        // );
+                           return rp(options)
+                               .then(function (bonusData) {
+                                   console.log('bonus post success', bonusData);
+                                   if (bonusData) {
+                                       // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                       increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
+                                       // return bonusData;
+                                       return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
+                                           platformData => {
+                                               if (!platformData) {
+                                                   return Q.reject({
+                                                       name: "DataError",
+                                                       errorMessage: "Cannot find platform"
+                                                   });
+                                               }
+                                               let dataToUpdate = {
+                                                   "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                   "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                               };
+                                               dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                               return bonusData;
+                                           }
+                                       );
+                                   }
+                                   else {
+                                       return Q.reject({
+                                           name: "DataError",
+                                           errorMessage: "Cannot request bonus"
+                                       });
+                                   }
+                               })
+                       } else {
+                           return pmsAPI.bonus_applyBonus(message).then(
+                               bonusData => {
+                                   if (bonusData) {
+                                       // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                       increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
+                                       // return bonusData;
+                                       return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
+                                           platformData => {
+                                               if (!platformData) {
+                                                   return Q.reject({
+                                                       name: "DataError",
+                                                       errorMessage: "Cannot find platform"
+                                                   });
+                                               }
+                                               let dataToUpdate = {
+                                                   "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                   "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                               };
+                                               dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                               return bonusData;
+                                           }
+                                       );
+                                   }
+                                   else {
+                                       return Q.reject({
+                                           name: "DataError",
+                                           errorMessage: "Cannot request bonus"
+                                       });
+                                   }
+                               }
+                           );
+                       }
                     }
                 ).then(deferred.resolve, deferred.reject);
             },
@@ -3323,6 +3241,8 @@ var proposalExecutor = {
             },
 
             executePlayerConsumptionRewardGroup: function (proposalData, deferred) {
+                let executePlayerConsumptionRewardGroupRunTime = 0;
+                let executePlayerConsumptionRewardGroupRunTimeStart = new Date().getTime();
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
@@ -3342,6 +3262,9 @@ var proposalExecutor = {
                     createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP, proposalData);
                     deferred1.promise.then(
                         data => {
+                            let executePlayerConsumptionRewardGroupRunTimeEnd = new Date().getTime();
+                            executePlayerConsumptionRewardGroupRunTime = (executePlayerConsumptionRewardGroupRunTimeEnd - executePlayerConsumptionRewardGroupRunTimeStart) / 1000;
+                            console.log('executePlayerConsumptionRewardGroupRunTime===11', executePlayerConsumptionRewardGroupRunTime);
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
@@ -3353,6 +3276,9 @@ var proposalExecutor = {
                                 updateData
                             ).then(
                                 playerData => {
+                                    let executePlayerConsumptionRewardGroupRunTimeEnd = new Date().getTime();
+                                    executePlayerConsumptionRewardGroupRunTime = (executePlayerConsumptionRewardGroupRunTimeEnd - executePlayerConsumptionRewardGroupRunTimeStart) / 1000;
+                                    console.log('executePlayerConsumptionRewardGroupRunTime===22', executePlayerConsumptionRewardGroupRunTime);
                                     if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
                                         let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
                                         let newPermissionObj = {applyBonus: false};
@@ -3363,6 +3289,9 @@ var proposalExecutor = {
                                 }
                             ).then(
                                 () => {
+                                    let executePlayerConsumptionRewardGroupRunTimeEnd = new Date().getTime();
+                                    executePlayerConsumptionRewardGroupRunTime = (executePlayerConsumptionRewardGroupRunTimeEnd - executePlayerConsumptionRewardGroupRunTimeStart) / 1000;
+                                    console.log('executePlayerConsumptionRewardGroupRunTime===33', executePlayerConsumptionRewardGroupRunTime);
                                     deferred.resolve(data);
                                 },
                                 deferred.reject
@@ -3847,10 +3776,87 @@ var proposalExecutor = {
                 }
             },
 
-            executeAuctionRewardPromotion: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executePlayerAuctionPromotionReward: function (proposalData) {
+                if (!(proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.platformId)) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Incorrect player auction promotion reward proposal data"
+                    });
+                }
+
+                let taskData = {
+                    playerId: proposalData.data.playerObjId,
+                    platformId: proposalData.data.platformId,
+                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                    currentAmount: proposalData.data.rewardAmount,
+                    initAmount: proposalData.data.rewardAmount,
+                    useConsumption: Boolean(proposalData.data.useConsumption),
+                    applyAmount: proposalData.data.applyAmount || 0,
+                    providerGroup: proposalData.data.providerGroup,
+                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                    useConsumption: proposalData.data.useConsumption,
+                    isGroupReward: proposalData.data.isGroupReward,
+                    type: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                    rewardType: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                    eventCode:  "manualReward",
+                };
+
+                return createRTGForProposal(proposalData, taskData, constProposalType.PLAYER_AUCTION_PROMOTION_REWARD, proposalData);
+            },
+
+            executeAuctionRewardPromotion: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformId && (proposalData.status == constProposalStatus.SUCCESS ||
+                    proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                    // create reward proposal
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: ObjectId(proposalData.data.platformId),
+                        name: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD
+                    }).lean().then(
+                        proposalTypeData => {
+                            if (!proposalTypeData){
+                                return Promise.reject({
+                                    name: "DataError",
+                                    message: "Cannot find proposal type"
+                                })
+                            }
+
+                            let proposalObj = {
+                                type: proposalTypeData._id,
+                                creator:
+                                    {
+                                        type: 'player',
+                                        name: proposalData.data.playerName,
+                                        id: proposalData.data.playerObjId
+                                    },
+                                data: {
+                                    playerId: proposalData.data.playerObjId,
+                                    playerObjId: proposalData.data.playerObjId,
+                                    platformId: proposalData.data.platformId,
+                                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                                    rewardAmount: proposalData.data.rewardAmount,
+                                    useConsumption: Boolean(proposalData.data.useConsumption),
+                                    applyAmount: proposalData.data.applyAmount || 0,
+                                    providerGroup: proposalData.data.providerGroup,
+                                    requiredUnlockAmount: proposalData.data.requiredUnlockAmount,
+                                    useConsumption: proposalData.data.useConsumption,
+                                    isGroupReward: proposalData.data.isGroupReward,
+                                    type: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                                    rewardType: constProposalType.PLAYER_AUCTION_PROMOTION_REWARD,
+                                    eventCode:  "manualReward",
+                                },
+                                entryType: constProposalEntryType.CLIENT,
+                                userType: constProposalUserType.PLAYERS
+                            };
+
+                            proposalObj.inputDevice = proposalData.inputDevice;
+
+                            sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_PROMOTION_SUCCESS, {});
+                            return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalObj);
+                        }
+                    )
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 
@@ -3865,10 +3871,23 @@ var proposalExecutor = {
                 }
             },
 
-            executeAuctionRewardPointChange: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executeAuctionRewardPointChange: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty("rewardPointsVariable") &&
+                    (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED ||
+                    proposalData.status == constProposalStatus.APPROVE)) {
+
+                    let userDevice = proposalData.inputDevice;
+                    let playerObjId = proposalData.data.playerObjId;
+                    let platformObjId = proposalData.data.platformId;
+                    let updateAmount = proposalData.data.rewardPointsVariable;
+                    let remark = proposalData.data.productName;
+                    let creator = proposalData.data.seller || 'System';
+
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_POINT_CHANGE_SUCCESS, {});
+                    return dbPlayerInfo.updatePlayerRewardPointsRecord (playerObjId, platformObjId, updateAmount, remark, null, null,creator, userDevice)
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 
@@ -4854,6 +4873,10 @@ var proposalExecutor = {
                 deferred.resolve("Proposal is rejected");
             },
 
+            rejectePlayerAuctionPromotionReward: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
             rejectAuctionRealPrize: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
@@ -4880,6 +4903,8 @@ function changePlayerCredit(playerObjId, platformId, updateAmount, reasonType, d
  * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
  */
 function createRewardTaskForProposal(proposalData, taskData, deferred, rewardType, resolveValue) {
+    let createRewardTaskForProposalRunTime = 0;
+    let createRewardTaskForProposalRunTimeStart = new Date().getTime();
     console.log('createRewardTaskForProposal');
     let rewardTask, platform, gameProviderGroup, playerRecord;
     //check if player object id is in the proposal data
@@ -4904,12 +4929,18 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
     Promise.all([gameProviderGroupProm, platformProm, playerProm]).then(
         res => {
+            let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+            createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+            console.log('createRewardTaskForProposalRunTime===11', createRewardTaskForProposalRunTime);
             gameProviderGroup = res[0];
             platform = res[1];
             playerRecord = res[2];
             let calCreditArr = [];
             return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: playerRecord._id})
                 .then(rtgData => {
+                    let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                    createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                    console.log('createRewardTaskForProposalRunTime===22', createRewardTaskForProposalRunTime);
                     console.log("createRewardTaskForProposal Promise.all.then rtgData", rtgData);
                     if (rtgData && rtgData.length) {
                         rtgData.forEach(rtg => {
@@ -4959,6 +4990,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         }
     ).then(
         rewardTaskGroup => {
+            let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+            createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+            console.log('createRewardTaskForProposalRunTime===33', createRewardTaskForProposalRunTime);
             if(rewardTaskGroup){
                 let rtgArr = [];
 
@@ -4992,6 +5026,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             }
         }
     ).then(() => {
+        let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+        createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+        console.log('createRewardTaskForProposalRunTime===44', createRewardTaskForProposalRunTime);
         // Create different process flow for lock provider group reward
         console.log('reward here is reached')
         if (platform.useProviderGroup) {
@@ -5004,6 +5041,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
                 return deductFreeAmtProm.then(
                     () => {
+                        let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                        createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                        console.log('createRewardTaskForProposalRunTime===55', createRewardTaskForProposalRunTime);
                         console.log('deduct function run succeed');
                         return dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData);
                     },
@@ -5017,6 +5057,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     }
                 ).then(
                     output => {
+                        let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                        createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                        console.log('createRewardTaskForProposalRunTime===66', createRewardTaskForProposalRunTime);
                         if (!output) {
                             return deferred;
                         }
@@ -5038,6 +5081,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             } else {
                 return dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
                     data => {
+                        let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                        createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                        console.log('createRewardTaskForProposalRunTime===77', createRewardTaskForProposalRunTime);
                         console.log("createRewardTaskForProposal Promise.all.then.then.then.then data", data);
                         rewardTask = data;
                         dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
@@ -5067,6 +5113,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                 {path: "platformId", model: dbconfig.collection_platform}
             ).lean().then(
                 curTask => {
+                    let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                    createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                    console.log('createRewardTaskForProposalRunTime===88', createRewardTaskForProposalRunTime);
                     if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
                         return;
                     }
@@ -5086,6 +5135,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                 )
             ).then(
                 () => {
+                    let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                    createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                    console.log('createRewardTaskForProposalRunTime===99', createRewardTaskForProposalRunTime);
                     if (!taskData.useLockedCredit) {
                         return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
                             playerData => {
@@ -5097,10 +5149,16 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             ).then(
                 //() => createRewardLogForProposal(taskData.rewardType, proposalData)
                 () => {
+                    let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                    createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                    console.log('createRewardTaskForProposalRunTime===100', createRewardTaskForProposalRunTime);
                     sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
                 }
             ).then(
                 function () {
+                    let createRewardTaskForProposalRunTimeEnd = new Date().getTime();
+                    createRewardTaskForProposalRunTime = (createRewardTaskForProposalRunTimeEnd - createRewardTaskForProposalRunTimeStart) / 1000;
+                    console.log('createRewardTaskForProposalRunTime===110', createRewardTaskForProposalRunTime);
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                     deferred.resolve(resolveValue || rewardTask);
                 },
@@ -5880,6 +5938,8 @@ function updateAllCustomizeCommissionRate (proposalData) {
 }
 
 function getProviderCredit(providers, playerName, platformId) {
+    let getProviderCreditRunTime = 0;
+    let getProviderCreditRunTimeEndStart = new Date().getTime();
     let promArr = [];
     let providerCredit = 0;
     let cpmsAPI = require('../externalAPI/cpmsAPI');
@@ -5895,6 +5955,9 @@ function getProviderCredit(providers, playerName, platformId) {
                     }
                 ).then(
                     data => {
+                        let getProviderCreditRunTimeEnd = new Date().getTime();
+                        getProviderCreditRunTime = (getProviderCreditRunTimeEnd - getProviderCreditRunTimeEndStart) / 1000;
+                        console.log('getProviderCreditRunTime===11', getProviderCreditRunTime);
                         console.log("proposalExecutor.js getProviderCredit()", data);
                         return data;
                     },

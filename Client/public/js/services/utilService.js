@@ -467,7 +467,7 @@ define([], function () {
             })
             let comp_span = $('<span>', {class: "add-on"}).append(comp_i);
             let comp_input = $('<input>', {
-                style: 'width:calc(100% - 15px)',
+                // style: 'width:calc(100% - 15px)',
                 "data-format": "yyyy/MM/dd HH:mm:ss PP",
                 type: 'text'
             })
@@ -806,6 +806,7 @@ define([], function () {
                 maxPage: 0,
                 pageSize: (tblObj && tblObj.pageSize) ? tblObj.pageSize : 10
             };
+            let maxPageSize = (tblObj && tblObj.maxPageSize) ? tblObj.maxPageSize : 2000;
             $(id).append(newPage.prop('innerHTML'));
             $(id).find(".jumpText").text(trans("Jump to"));
             $(id).find(".first_page").text(1).hide();
@@ -860,8 +861,8 @@ define([], function () {
                         retObj.pageSize = event.target.valueAsNumber;
                         if (retObj.pageSize < 1) {
                             retObj.pageSize = 1
-                        } else if (retObj.pageSize > 2000) {
-                            retObj.pageSize = 2000;
+                        } else if (retObj.pageSize > maxPageSize) {
+                            retObj.pageSize = maxPageSize;
                         }
                         $(id).find('.pageSize').val(retObj.pageSize);
                         retObj.jump();
@@ -1067,6 +1068,15 @@ define([], function () {
                         break;
                     case "UpdatePlayerWeChat":
                         allProposalType[x].seq = 4.06;
+                        break;
+                    case "UpdatePlayerInfoPartner":
+                        allProposalType[x].seq = 4.07;
+                        break;
+                    case "UpdatePlayerInfoLevel":
+                        allProposalType[x].seq = 4.08;
+                        break;
+                    case "UpdatePlayerInfoAccAdmin":
+                        allProposalType[x].seq = 4.09;
                         break;
                     case "UpdatePartnerInfo":
                         allProposalType[x].seq = 5.01;

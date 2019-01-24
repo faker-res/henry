@@ -7,170 +7,149 @@
         a.fa.fa-times.pull-right.margin-all-5(ng-if='vm.searchText', ng-click='vm.searchText=null')
         input#partnerSearch.span.input-sm(type="text", ng-model="vm.searchText", placeholder='{{"SEARCH_HERE" | translate}}')
 .col-md-12(ng-show="checkViewPermission('Partner', 'Partner', 'AdvancedSearch') && vm.curPlatformText")
-    //.col-xs-11.col-sm-10.col-md-12.search-filters-container#partnerTable-search-filters.well
     .col-xs-11.col-sm-10.col-md-12.search-filters-container.well
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'PARTNER_ID' | translate}}
+        .search-filters-item
+            label {{'PARTNER_ID' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.partnerId', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'PARTNER_NAME' | translate}}
+        .search-filters-item
+            label {{'PARTNER_NAME' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.partnerName', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'REAL_NAME' | translate}}
+        .search-filters-item
+            label {{'REAL_NAME' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.realName', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'COMMISSION_TYPE' | translate}}
+        .search-filters-item
+            label {{'COMMISSION_TYPE' | translate}}
             select.form-control(ng-model='vm.partnerAdvanceSearchQuery.commissionType', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
                 option(value='') —
                 option(ng-repeat="(i,v) in vm.constPartnerCommisionType", value='{{v}}') {{i | translate}}
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'CREDIT' | translate}}
+        .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.creditsOperator === "range")}')
+            label {{'CREDIT' | translate}}
             div
-                div.row.col-xs-6
-                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                        option(value='>=') >=
-                        option(value='=') =
-                        option(value='<=') <=
-                        option(value='range') {{'range' | translate}}
-                div.col-xs-6
-                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.creditsInput2" ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'REGISTRATION_TIME' | translate}}
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.symbol(ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.creditsInput2" ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filters-item
+            label {{'REGISTRATION_TIME' | translate}}
             #regDateTimePicker2.datetimepicker.form-control
                 input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'REGISTRATION_TIME_END' | translate}}
+        .search-filters-item
+            label {{'REGISTRATION_TIME_END' | translate}}
             #regEndDateTimePicker2.datetimepicker.form-control
                 input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'LAST_ACCESS_TIME' | translate}}
+        .search-filters-item
+            label {{'LAST_ACCESS_TIME' | translate}}
             #lastAccessDateTimePicker2.datetimepicker.form-control
                 input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'LAST_ACCESS_TIME_END' | translate}}
+        .search-filters-item
+            label {{'LAST_ACCESS_TIME_END' | translate}}
             #lastAccessEndDateTimePicker2.datetimepicker.form-control
                 input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'TELEPHONE' | translate}}
+        .search-filters-item
+            label {{'TELEPHONE' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.phoneNumber', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
+        .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === "range")}')
             label.control-label {{'DAILY_ACTIVE' | translate}}
             div
-                div.row.col-xs-6
-                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                        option(value='>=') >=
-                        option(value='=') =
-                        option(value='<=') <=
-                        option(value='range') {{'range' | translate}}
-                div.col-xs-6
-                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.dailyActivePlayerInput2"  ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'WEEKLY_ACTIVE' | translate}}
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.symbol(ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.dailyActivePlayerInput2"  ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === "range")}')
+            label {{'WEEKLY_ACTIVE' | translate}}
             div
-                div.row.col-xs-6
-                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                        option(value='>=') >=
-                        option(value='=') =
-                        option(value='<=') <=
-                        option(value='range') {{'range' | translate}}
-                div.col-xs-6
-                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput2" ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'MONTHLY_ACTIVE' | translate}}
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.symbol(ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput2" ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === "range")}')
+            label {{'MONTHLY_ACTIVE' | translate}}
             div
-                div.row.col-xs-6
-                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                        option(value='>=') >=
-                        option(value='=') =
-                        option(value='<=') <=
-                        option(value='range') {{'range' | translate}}
-                div.col-xs-6
-                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput2"  ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'VALID_PLAYER' | translate}}
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.symbol(ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput2"  ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.validPlayersOperator === "range")}')
+            label {{'VALID_PLAYER' | translate}}
             div
-                div.row.col-xs-6
-                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                        option(value='>=') >=
-                        option(value='=') =
-                        option(value='<=') <=
-                        option(value='range') {{'range' | translate}}
-                div.col-xs-6
-                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.validPlayersInput2"  ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'TOTAL_CHILDREN_COUNT' | translate}}
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.symbol(ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.validPlayersInput2"  ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === "range")}')
+            label {{'TOTAL_CHILDREN_COUNT' | translate}}
             div
-                div.row.col-xs-6
-                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                        option(value='>=') >=
-                        option(value='=') =
-                        option(value='<=') <=
-                        option(value='range') {{'range' | translate}}
-                div.col-xs-6
-                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    div.text-center( ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.symbol(ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === "range")}')
+            label {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
             div
-                div.row.col-xs-6
-                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                        option(value='>=') >=
-                        option(value='=') =
-                        option(value='<=') <=
-                        option(value='range') {{'range' | translate}}
-                div.col-xs-6
-                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenDepositInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'TOTAL_CHILDREN_BALANCE' | translate}}
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.symbol(ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenDepositInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === "range")}')
+            label {{'TOTAL_CHILDREN_BALANCE' | translate}}
             div
-                div.row.col-xs-6
-                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                        option(value='>=') >=
-                        option(value='=') =
-                        option(value='<=') <=
-                        option(value='range') {{'range' | translate}}
-                div.col-xs-6
-                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'SETTLED_COMMISSION' | translate}}
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.symbol(ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === "range")}')
+            label {{'SETTLED_COMMISSION' | translate}}
             div
-                div.row.col-xs-6
-                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                        option(value='>=') >=
-                        option(value='=') =
-                        option(value='<=') <=
-                        option(value='range') {{'range' | translate}}
-                div.col-xs-6
-                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'") ~
-                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalSettledCommissionInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filter.col-md-3
-            label.control-label
-            button#resetPartnerQuery.btn.btn-primary.common-button-sm(style="display:block;") {{'Reset' | translate}}
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.symbol(ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalSettledCommissionInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .col-xs-12.text-right
+            button#resetPartnerQuery.btn.btn-primary {{'Reset' | translate}}
 
 .col-md-12
     .pull-right.margin-top-5
@@ -230,247 +209,201 @@ p
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{'Partner' | translate}} : {{vm.selectedSinglePartner.partnerName}}
-            .modal-body
-                .panel.panel-primary
-                    .panel-heading.panel-heading-sm
-                        h5.text-center {{"Partner Information" | translate}}
-                    .panel-body
-                        table.playerInfoModalDivs
-                            thead
-                                tr
-                                    th
-                                        div {{'Type' | translate}}
-                                    th {{'CONTENT' | translate}}
-                                    th
-                                        div {{'ACTION_BUTTON' | translate}}
-                            tbody
-                                tr
-                                    td
-                                        div {{'Basic' | translate}}
-                                    td
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"PARTNER_NAME" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.partnerName}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"PARTNER_ID" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.partnerId}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"realName" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.realName || 'NONE' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"GENDER" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.getGenderFromBool(vm.selectedSinglePartner.gender) || 'NONE' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"DOB" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.convertDOBFormat(vm.selectedSinglePartner.DOB) || 'NONE' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"Bind Player" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.player.name || 'NONE' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"REGISTRATION_TIME" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.registrationTime || 'NONE' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"own domain" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.ownDomain$ || 'NONE' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"REMARK" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.remarks || 'NONE' | translate}}
-                                        td.text-left
-                                            button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPartnerDialog('basicInfo');", ng-if="checkViewPermission('Partner', 'Partner', 'Edit')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner") {{"EDIT" | translate}}
-                                            br
-                                            button.btn.btn-primary.common-button-sm(ng-click='vm.getPartnerInfoHistory()') {{"EDIT_HISTORY" | translate}}
-                                            br
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'ResetPassword')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal",ng-click='vm.initResetPartnerPasswordModal()',data-target='#modalPartnerPasswordReset') {{"RESET_PASSWORD" | translate}}
+            .modal-body.col-xs-12
+                h4 {{"Partner Information" | translate}}
+                div.newcontanier.col-xs-12
+                    div
+                        h5 {{'Basic' | translate}}
+                        hr
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"PARTNER_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.partnerName}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"PARTNER_ID" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.partnerId}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"realName" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.realName || 'NONE' | translate}}
+                            .col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-click="vm.openEditPartnerDialog('basicInfo');", ng-if="checkViewPermission('Partner', 'Partner', 'Edit')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner") {{"EDIT" | translate}}
 
-                                tr
-                                    td
-                                        div {{"CONTACT_INFO" | translate}}
-                                    td
-                                        .row
-                                            .col-md-8
-                                                .row
-                                                    .col-sm-2
-                                                        label {{"TELEPHONE" | translate}}
-                                                    .col-sm-8
-                                                        text.
-                                                            {{vm.selectedSinglePartner.phoneNumber || 'Unknown' | translate}}&nbsp;
-                                                            ({{vm.selectedSinglePartner.phoneCity || 'Unknown' | translate}},&nbsp;
-                                                            {{vm.selectedSinglePartner.phoneProvince || 'Unknown' | translate}}/
-                                                            {{vm.selectedSinglePartner.phoneType || 'Unknown' | translate}})
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"WECHAT" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.wechat || 'Unknown' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"QQ" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.qq || 'Unknown' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"EMAIL" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.email || 'Unknown' | translate}}
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"GENDER" | translate}}
+                                .col-sm-7
+                                    text {{vm.getGenderFromBool(vm.selectedSinglePartner.gender) || 'NONE' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"DOB" | translate}}
+                                .col-sm-7
+                                    text {{vm.convertDOBFormat(vm.selectedSinglePartner.DOB) || 'NONE' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"Bind Player" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.player.name || 'NONE' | translate}}
+                            .col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-click='vm.getPartnerInfoHistory()') {{"EDIT_HISTORY" | translate}}
 
-                                        td.text-left
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'EditContact')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click="vm.openEditPartnerDialog('contactInfo')") {{"EDIT" | translate}}
-                                            br
-                                            button.btn.btn-primary.common-button-sm(ng-click='vm.getPartnerContactHistory()') {{"EDIT_HISTORY" | translate}}
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"REGISTRATION_TIME" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.registrationTime || 'NONE' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"own domain" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.ownDomain$ || 'NONE' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"REMARK" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.remarks || 'NONE' | translate}}
+                            .col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Partner', 'Partner', 'ResetPassword')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal",ng-click='vm.initResetPartnerPasswordModal()',data-target='#modalPartnerPasswordReset') {{"RESET_PASSWORD" | translate}}
 
-                                tr
-                                    td
-                                        div {{'WITHDRAW_INFO' | translate}}
-                                    td
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_NAME" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.allBankTypeList[vm.selectedSinglePartner.bankName] || vm.selectedSinglePartner.bankName || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_ACCOUNT_NAME" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.bankAccountName || 'Unknown' | translate}}
-                                            //.col-md-4
-                                            //    .row
-                                            //        .col-sm-4
-                                            //            label {{"BANK_ACCOUNT_TYPE" | translate}}
-                                            //        .col-sm-8
-                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==2 || vm.selectedSinglePartner.bankAccountType=="2"') {{'Debit Card '|translate}}
-                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==1 || vm.selectedSinglePartner.bankAccountType=="1"') {{'Credit Card '|translate}}
-                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==3 || vm.selectedSinglePartner.bankAccountType=="3"') {{'储存卡'|translate}}
-                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==4 || vm.selectedSinglePartner.bankAccountType=="4"') {{'储蓄卡'|translate}}
-                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==5 || vm.selectedSinglePartner.bankAccountType=="5"') {{'商务理财卡'|translate}}
-                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==6 || vm.selectedSinglePartner.bankAccountType=="6"') {{'工商银行一卡通'|translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_ACCOUNT" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.encodedBankAccount || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_ACCOUNT_PROVINCE" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.showProvinceStr ? vm.showProvinceStr : 'Unknown' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_ACCOUNT_CITY" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.showCityStr ? vm.showCityStr : 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"BANK_ACCOUNT_DISTRICT" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.showDistrictStr ? vm.showDistrictStr : 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"Bank Address" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.bankAddress || 'Unknown' | translate}}
+                    div
+                        h5 {{'CONTACT_INFO' | translate}}
+                        hr
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-5
+                                .col-sm-3
+                                    label {{"TELEPHONE" | translate}}
+                                .col-sm-8
+                                    text.
+                                        {{vm.selectedSinglePartner.phoneNumber || 'Unknown' | translate}}&nbsp;
+                                        ({{vm.selectedSinglePartner.phoneCity || 'Unknown' | translate}},&nbsp;
+                                        {{vm.selectedSinglePartner.phoneProvince || 'Unknown' | translate}}/
+                                        {{vm.selectedSinglePartner.phoneType || 'Unknown' | translate}})
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"WECHAT" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.wechat || 'Unknown' | translate}}
+                            .col-sm-offset-6.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Partner', 'Partner', 'EditContact')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click="vm.openEditPartnerDialog('contactInfo')") {{"EDIT" | translate}}
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"QQ" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.qq || 'Unknown' | translate}}
+                            .col-sm-offset-6.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-click='vm.getPartnerContactHistory()') {{"EDIT_HISTORY" | translate}}
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"EMAIL" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.email || 'Unknown' | translate}}
 
-                                        td.text-left
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'BankDetail')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click="vm.openEditPartnerDialog('withdrawInfo');") {{"EDIT" | translate}}
-                                            br
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'PaymentInformationHistory')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
+                    div
+                        h5 {{'WITHDRAW_INFO' | translate}}
+                        hr
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.allBankTypeList[vm.selectedSinglePartner.bankName] || vm.selectedSinglePartner.bankName || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.bankAccountName || 'Unknown' | translate}}
 
-                                tr
-                                    td
-                                        div {{'IP' | translate}}
-                                    td
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"IP" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.lastLoginIp || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{'COUNTRY' | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.country || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{"CITY" | translate}}
-                                                    .col-sm-8
-                                                        text {{vm.selectedSinglePartner.city || 'Unknown' | translate}}
-                                        .row
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4
-                                                        label {{'Registration Domain' | translate}}
-                                                    .col-sm-8
-                                                        a(href='{{vm.selectedSinglePartner.domain}}', title='{{vm.selectedSinglePartner.domain}}', target='_blank') {{vm.selectedSinglePartner.$displayDomain || 'Unknown' | translate}}
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.encodedBankAccount || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_PROVINCE" | translate}}
+                                .col-sm-7
+                                    text {{vm.showProvinceStr ? vm.showProvinceStr : 'Unknown' | translate}}
+                            .col-sm-offset-3.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Partner', 'Partner', 'BankDetail')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click="vm.openEditPartnerDialog('withdrawInfo');") {{"EDIT" | translate}}
 
-                                    td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-click='vm.showPartnerIPHistory()') {{"View Details" | translate}}
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_CITY" | translate}}
+                                .col-sm-7
+                                    text {{vm.showCityStr ? vm.showCityStr : 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_DISTRICT" | translate}}
+                                .col-sm-7
+                                    text {{vm.showDistrictStr ? vm.showDistrictStr : 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"Bank Address" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePartner.bankAddress || 'Unknown' | translate}}
+                            .col-sm-offset-3.col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Partner', 'Partner', 'PaymentInformationHistory')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
 
-                                tr
-                                    td
-                                        div {{'Partner Architecture' | translate}}
-                                    td
-                                        .row
-                                            .col-md-4
-                                                div
-                                                    label {{"Parent Partner Name" | translate}}
-                                                    text.margin-left-5 {{vm.selectedSinglePartner.parent.partnerName || 'NONE' | translate}}
-                                        .row
-                                            .col-md-4
-                                                div
-                                                    label {{'Child Partner Headcount' | translate}}
-                                                    text.margin-left-5 ({{vm.selectedSinglePartner.childrencount || 0}})
+                        div
+                            h5 {{'IP' | translate}}
+                            hr
+                            div.col-xs-12
+                                .col-sm-offset-1.col-sm-3
+                                    .col-sm-5
+                                        label {{"IP" | translate}}
+                                    .col-sm-7
+                                        text {{vm.selectedSinglePartner.lastLoginIp || 'Unknown' | translate}}
+                                .col-sm-3
+                                    .col-sm-5
+                                        label {{'Registration Domain' | translate}}
+                                    .col-sm-7
+                                        text {{vm.selectedSinglePartner.country || 'Unknown' | translate}}
+                                .col-sm-offset-3.col-sm-2
+                                    button.btn.btn-primary.vertical-button-group(ng-click='vm.showPartnerIPHistory()') {{"View Details" | translate}}
 
-                                    td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'EditChildPartner')", data-toggle="modal", ng-click='vm.initEditChildPartner()', data-target='#modalEditChildPartner') {{"EDIT" | translate}}
+                            div.col-xs-12
+                                .col-sm-offset-1.col-sm-3
+                                    .col-sm-5
+                                        label {{'COUNTRY' | translate}}
+                                    .col-sm-7
+                                        text {{vm.selectedSinglePartner.country || 'Unknown' | translate}}
+
+                                .col-sm-3
+                                    .col-sm-5
+                                        label {{"CITY" | translate}}
+                                    .col-sm-7
+                                        text {{vm.selectedSinglePartner.city || 'Unknown' | translate}}
+
+                        div
+                            h5 {{'Partner Architecture' | translate}}
+                            hr
+                            div.col-xs-12
+                                .col-sm-offset-1.col-sm-3
+                                    .col-sm-5
+                                        label {{"Parent Partner Name" | translate}}
+                                    .col-sm-7
+                                        text {{vm.selectedSinglePartner.parent.partnerName || 'NONE' | translate}}
+                                .col-sm-offset-6.col-sm-2
+                                    button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Partner', 'Partner', 'EditChildPartner')", data-toggle="modal", ng-click='vm.initEditChildPartner()', data-target='#modalEditChildPartner') {{"EDIT" | translate}}
+
+                            div.col-xs-12
+                                .col-sm-offset-1.col-sm-3
+                                    .col-sm-5
+                                        label {{'Child Partner Headcount' | translate}}
+                                    .col-sm-7
+                                        text ({{vm.selectedSinglePartner.childrencount || 0}})
 
                 div(ng-if="vm.selectedPartnerCommissionPreview")
                     table.simple-table
@@ -625,7 +558,7 @@ p
                                 button.btn.btn-primary(ng-click='vm.getPagePartnerReferralPlayers(true)') {{'SEARCH' | translate}}
 
                         label {{"Total" | translate}} {{vm.totalReferralPlayer.totalCount}} {{"records" | translate}}
-                        table#totalReferralPlayersTable.common-table.display(style='width:100%')
+                        table#totalReferralPlayersTable.common-table.display.widthto100
                         #totalReferralPlayersTablePage
 
 
@@ -913,7 +846,7 @@ p
                             .col-md-6
                                 label.control-label {{'REMARKS' | translate}}
                             .col-md-12.textareaDetail
-                                textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.partnerCreditChange.remark")
+                                textarea.form-control(name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.partnerCreditChange.remark")
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.partnerCreditChange.updateAmount', ng-click="vm.updatePartnerCredit();") {{"UPDATE" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
@@ -1104,7 +1037,7 @@ p
                                 td
                                     text.span {{calculateTotalSum(v.pastNettCommission, "", "")}} {{" ("}} {{v.pastNettCommission[0]? v.pastNettCommission[0] : "-" | translate}} {{","}} {{v.pastNettCommission[1]? v.pastNettCommission[1] : "-" | translate}} {{","}} {{v.pastNettCommission[2]? v.pastNettCommission[2] : "-" | translate}} {{")"}}
                                 td
-                                    select(ng-model='v.settleMethod', ng-init="v.settleMethod='1'")
+                                    select.form-control(ng-model='v.settleMethod', ng-init="v.settleMethod='1'")
                                         option(value='1', ) {{'NORMAL_EXECUTED' | translate}}
                                         option(value='2', ) {{'RESET_THEN_EXECUTED' | translate}}
                                         option(value='3', ) {{'EXECUTED_THEN_RESET' | translate}}
@@ -1112,12 +1045,11 @@ p
                                 td(ng-init="v.editRemark = false", ng-click="v.editRemark = true")
                                     a(href='', ng-if="!v.editRemark") {{v.remarks ? v.remarks : ""}}
                                     textarea.form-control(ng-if="v.editRemark", type="textarea", name="Remark", placeholder='{{"REMARKS" | translate}}', ng-model="v.remarks")
-
             .modal-footer
-                label.control-label.common-button.colorRed (ng-if="vm.partnerCommVar.checkedRemark") {{vm.partnerCommVar.checkedRemark | translate}}
-                button.btn.btn-primary.common-button(ng-click="vm.checkPartnerCommissionLogRemark()" ng-if="!vm.partnerSettlementSubmitted[vm.partnerCommVar.settMode]") {{"SUBMIT_COMMISSION" | translate}}
-                button.btn.btn-danger.common-button(data-dismiss="modal") {{"CLOSE" | translate}}
-                button.btn.btn-warning.common-button(data-dismiss="modal" ng-click="vm.cancelPreview()" ) {{"CANCEL PREVIEW" | translate}}
+                label.control-label.colorRed.btn-space(ng-if="vm.partnerCommVar.checkedRemark") {{vm.partnerCommVar.checkedRemark | translate}}
+                button.btn.btn-primary.btn-space(ng-click="vm.checkPartnerCommissionLogRemark()" ng-if="!vm.partnerSettlementSubmitted[vm.partnerCommVar.settMode]") {{"SUBMIT_COMMISSION" | translate}}
+                button.btn.btn-danger.btn-space(data-dismiss="modal") {{"CLOSE" | translate}}
+                button.btn.btn-warning.btn-space(data-dismiss="modal" ng-click="vm.cancelPreview()" ) {{"CANCEL PREVIEW" | translate}}
 
 #modalRewardFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

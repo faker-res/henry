@@ -11,56 +11,56 @@ ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
 
 
 #newPlayerListPanel.panel-body(ng-if="vm.playerModalTab === 'newPlayerListPanel'")
-    #newPlayerRecords.adminLogQueryDiv
-        .inlineBlk
+    #newPlayerRecords.well
+        .search-filters-item
             label {{'PLAYERNAME' | translate}}
             input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
-        .inlineBlk
+        .search-filters-item
             label {{'REGISTERED_PHONE_NUMBER' | translate}}
             input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.phoneNumber', required)
-        .inlineBlk
+        .search-filters-item
             label {{'START_DATE' | translate}}
             .startTime
-        .inlineBlk
+        .search-filters-item
             label {{'END_DATE' | translate}}
             .endTime
-        .inlineBlk
+        .search-filters-item
             label {{'STATUS' | translate}}
             select.form-control(ng-model='vm.queryPara.newPlayerList.status', ng-options='i as a | translate for (i,a) in vm.newPlayerListStatus')
                 option(value='',) {{'any' | translate}}
-        .inlineBlk
+        .text-right.widthto100
             button.btn.btn-primary(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}
-    .well
-        .row
-            .col-md-12
-                p
-                label {{"Total" | translate}} {{vm.newPlayerRecords.totalCount}} {{"records" | translate}}
-                i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
-                table#newPlayerListTable.common-table.display(style='width:100%')
-                #newPlayerListTablePage
+
+    .row
+        .col-md-12
+            p
+            label {{"Total" | translate}} {{vm.newPlayerRecords.totalCount}} {{"records" | translate}}
+            i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
+            table#newPlayerListTable.common-table.display(style='width:100%')
+            #newPlayerListTablePage
 
 #attemptNumberListPanel.panel-body(ng-if="vm.playerModalTab === 'attemptNumberListPanel'")
-    #attemptNumberRecords.adminLogQueryDiv
-        .inlineBlk
+    #attemptNumberRecords.well
+        .search-filters-item
             label {{'START_DATE' | translate}}
             .startTime
-        .inlineBlk
+        .search-filters-item
             label {{'END_DATE' | translate}}
             .endTime
-        .inlineBlk
+        .text-right.widthto100
             button.btn.btn-primary(ng-click='vm.getPlayerRegistrationSucccessRateListByFilter()') {{'SEARCH' | translate}}
-    .well
-        .row
-            .col-md-12
-                p
-                table#selfRegistrationSuccessRateTable.common-table.display(style='width:100%')
-                #selfRegistrationSuccessRateTablePage
-                table#registrationDistributionRecordsTable.common-table.display(style='width:100%')
-                #registrationDistributionRecordsTablePage
-                label {{"Total" | translate}} {{vm.playerRegistrationRecords.totalCount}} {{"records" | translate}}
-                i.fa.fa-spin.fa-spinner(ng-show='vm.playerRegistrationRecords.loading')
-                table#playerRegistrationIntentRecordsTable.common-table.display(style='width:100%')
-                #playerRegistrationIntentRecordsTablePage
+
+    .row
+        .col-md-12
+            p
+            table#selfRegistrationSuccessRateTable.common-table.display(style='width:100%')
+            #selfRegistrationSuccessRateTablePage
+            table#registrationDistributionRecordsTable.common-table.display(style='width:100%')
+            #registrationDistributionRecordsTablePage
+            label {{"Total" | translate}} {{vm.playerRegistrationRecords.totalCount}} {{"records" | translate}}
+            i.fa.fa-spin.fa-spinner(ng-show='vm.playerRegistrationRecords.loading')
+            table#playerRegistrationIntentRecordsTable.common-table.display(style='width:100%')
+            #playerRegistrationIntentRecordsTablePage
 
 
 #newPlayerModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

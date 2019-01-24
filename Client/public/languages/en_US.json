@@ -450,6 +450,7 @@
   "UpdatePlayerInfoPartner": "Update Player Partner",
   "UpdatePlayerInfoLevel": "Update Player Level",
   "UpdatePlayerInfoAccAdmin": "Update Player Acc Admin",
+  "FixPlayerCreditTransfer": "Fix Player Credit Transfer",
   "UpdatePlayerCredit":"Update Player Credit",
   "UpdatePlayerEmail":"Update Player Email",
   "UpdatePlayerQQ":"Update Player QQ",
@@ -1753,5 +1754,8 @@
   "MAX_REWARD": "Apply Max Reward Amount in interval",
   "ORDER_NO_REWARD_AMOUNT": "Order No & Reward Amount",
   "BET_AMOUNT": "Bet",
-  "ORIGINAL_REWARD_TOTAL": "This reward exceeds the limit, original reward total："
+  "ORIGINAL_REWARD_TOTAL": "This reward exceeds the limit, original reward total：",
+  "SUBMIT_TO_APPROVED": "（SUBMIT ～ APPROVED）",
+  "APPROVED_TO_SUCCESS": "（APPROVED ～ SUCCESS）",
+  "SUBMIT_TO_SUCCESS": "（SUBMIT ～ SUCCESS）"
 }

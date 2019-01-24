@@ -5467,6 +5467,8 @@ let dbPlayerReward = {
      */
     applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData, isPreview, isBulkApply) => {
         rewardData = rewardData || {};
+        let applyGroupRewardRunTime = 0;
+        let applyGroupRewardRunTimeStart = new Date().getTime();
 
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate).startTime : dbUtility.getTodaySGTime();
         rewardData.applyTargetDate = rewardData.applyTargetDate || todayTime.startTime;
@@ -5531,11 +5533,7 @@ let dbPlayerReward = {
             "data.platformObjId": playerData.platform._id,
             "data.playerObjId": playerData._id,
             "data.eventId": eventData._id,
-            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            $or: [
-                {"data.applyTargetDate": {$gte: todayTime.startTime, $lt: todayTime.endTime}},
-                {"data.applyTargetDate": {$exists: false}, createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}}
-            ],
+            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
         };
 
         if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {
@@ -6270,6 +6268,9 @@ let dbPlayerReward = {
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm]).then(
             data => {
+                let applyGroupRewardRunTimeEnd = new Date().getTime();
+                applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
+                console.log('applyGroupRewardRunTime===11', applyGroupRewardRunTime);
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
                 let rewardSpecificData = data[2];
@@ -6353,6 +6354,10 @@ let dbPlayerReward = {
                             }
 
                             if (eventData.condition.bankCardType && selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(selectedTopUp.bankCardType) === -1) {
+                                correctTopUpType = false;
+                            }
+
+                            if (eventData.condition.depositMethod && selectedTopUp.depositMethod && eventData.condition.depositMethod.length > 0 && eventData.condition.depositMethod.indexOf(selectedTopUp.depositMethod) === -1) {
                                 correctTopUpType = false;
                             }
 
@@ -6760,6 +6765,9 @@ let dbPlayerReward = {
 
                     // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
+                        let applyGroupRewardRunTimeEnd = new Date().getTime();
+                        applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
+                        console.log('applyGroupRewardRunTime===22', applyGroupRewardRunTime);
                         let consumptions = rewardSpecificData[0];
                         let totalConsumption = 0;
                         for (let x in consumptions) {
@@ -7178,6 +7186,9 @@ let dbPlayerReward = {
             }
         ).then(
             amountCheckComplete => {
+                let applyGroupRewardRunTimeEnd = new Date().getTime();
+                applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
+                console.log('applyGroupRewardRunTime===33', applyGroupRewardRunTime);
                 if (amountCheckComplete) {
 
                     if (isPreview){
@@ -7476,6 +7487,9 @@ let dbPlayerReward = {
 
                         return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
                             proposalData => {
+                                let applyGroupRewardRunTimeEnd = new Date().getTime();
+                                applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
+                                console.log('applyGroupRewardRunTime===44', applyGroupRewardRunTime);
                                 let postPropPromArr = [];
                                 // save a record for the playerRetentionRewardGroup
                                 if (eventData && eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP){
@@ -7553,6 +7567,9 @@ let dbPlayerReward = {
                                     }
 
                                     return Promise.all(postPropPromArr).then(() => {
+                                        let applyGroupRewardRunTimeEnd = new Date().getTime();
+                                        applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
+                                        console.log('applyGroupRewardRunTime===55', applyGroupRewardRunTime);
                                         return {
                                             rewardAmount: rewardAmount
                                         }
@@ -8419,6 +8436,11 @@ let dbPlayerReward = {
                         continue;
                     }
 
+                    if (!criteria.sourceProvider) {
+                        continue;
+                    }
+
+                    let betTypeBeforeHandling = JSON.parse(JSON.stringify(criteria.betType));
                     let betType = criteria.betType = handlingBaccaratBetTypeList(criteria.betType);
 
                     let consumptionMetQuery = {
@@ -8428,8 +8450,8 @@ let dbPlayerReward = {
                             $lt: intervalTime.endTime,
                         },
                         provider: criteria.sourceProvider,
-                        hostResult: Number(criteria.hostResult),
-                        playerResult: Number(criteria.playerResult),
+                        // hostResult: Number(criteria.hostResult),
+                        // playerResult: Number(criteria.playerResult),
                         betDetails: {
                             $elemMatch: {
                                 separatedBetType: {$in: betType},
@@ -8442,15 +8464,39 @@ let dbPlayerReward = {
                         consumptionMetQuery.bUsed = {$ne: true};
                     }
 
-                    let consumptionMetProm = dbConfig.collection_baccaratConsumption.find(consumptionMetQuery).sort({createTime: -1}).lean().then(
-                        bConsumptions => {
-                            if (!bConsumptions || !bConsumptions.length) {
-                                return false;
+                    let consumptionMetProm = dbConfig.collection_gameProvider.findOne({_id: criteria.sourceProvider}).lean().then(
+                        providerData => {
+                            if (!providerData) {
+                                return Promise.reject({message: "Provider not found"});
                             }
 
-                            return {bConsumptions, criteria}
-                        }
-                    );
+                            if (providerData.providerId == "56" && betTypeBeforeHandling == "闲对") { //ebet only
+                                if (criteria.pairResult) {
+                                    consumptionMetQuery.playerPairResult = criteria.pairResult
+                                } else {
+                                    consumptionMetQuery.playerPairResult = {$exists: true};
+                                }
+                            } else if (providerData.providerId == "56" && betTypeBeforeHandling == "庄对") {//ebet only
+                                if (criteria.pairResult) {
+                                    consumptionMetQuery.hostPairResult = criteria.pairResult
+                                } else {
+                                    consumptionMetQuery.hostPairResult = {$exists: true};
+                                }
+                            } else {
+                                consumptionMetQuery.hostResult = Number(criteria.hostResult);
+                                consumptionMetQuery.playerResult = Number(criteria.playerResult);
+                            }
+
+                            return dbConfig.collection_baccaratConsumption.find(consumptionMetQuery).sort({createTime: -1}).lean().then(
+                                bConsumptions => {
+                                    if (!bConsumptions || !bConsumptions.length) {
+                                        return false;
+                                    }
+
+                                    return {bConsumptions, criteria}
+                                }
+                            );
+                        });
 
                     proms.push(consumptionMetProm);
                 }
@@ -9100,6 +9146,9 @@ function getPlatformAndPlayerFromId(platformId, playerId) {
 }
 
 function handlingBaccaratBetTypeList (betType) {
+    if (!betType instanceof Array) {
+        betType = [betType];
+    }
     for (let i = 0; i < betType.length; i++) {
         if (betType[i] == "庄免佣、庄(免佣)") {
             betType.push("庄免佣");
@@ -9124,6 +9173,7 @@ function handlingBaccaratBetTypeList (betType) {
     }
 
     return betType;
+
 }
 
 var proto = dbPlayerRewardFunc.prototype;

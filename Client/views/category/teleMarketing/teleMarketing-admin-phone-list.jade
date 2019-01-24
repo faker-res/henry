@@ -2,86 +2,89 @@
     p(ng-if="!vm.curPlatformText")
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 div(ng-show="vm.curPlatformText")
-    #adminPhoneListManageTable-search-filter.block-query.col-md-12.well
-        div(style='max-width: 200px')
-            label.control-label {{'PHONE_LIST' | translate}}
+    #adminPhoneListManageTable-search-filter.col-md-12.well
+        .search-filters-item
+            label {{'PHONE_LIST' | translate}}
             select.spicker.form-control(ng-model='vm.queryAdminPhoneList.phoneListName', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.adminPhoneListName')
-        div(style='max-width: 200px')
+        .search-filters-item
             label {{"MY_LAST_FEEDBACK_RESULT"|translate}}
             select.spicker.form-control(ng-model='vm.queryAdminPhoneList.resultName', bsp, multiple, data-actions-box='true')
                 option(value= '') {{'NO_FEEDBACK' | translate}}
                 option(ng-repeat="(i,v) in vm.allPlayerFeedbackResults", value='{{v.value}}') {{v.value | translate}}
-        div(style='max-width: 200px')
+        .search-filters-item
             label {{"MY_LAST_FEEDBACK_TOPIC"|translate}}
             select.spicker.form-control(ng-model='vm.queryAdminPhoneList.topic', bsp, multiple, data-actions-box='true')
                 option(ng-repeat="(i,v) in vm.playerFeedbackTopic", value='{{v.value}}') {{v.value | translate}}
-        div
-            label.control-label {{'My last feedback time (start)' | translate}}
+        .search-filters-item
+            label {{'My last feedback time (start)' | translate}}
             #adminPhoneListLastFeedbackStart
-        div
-            label.control-label {{'My last feedback time (end)' | translate}}
+        .search-filters-item
+            label {{'My last feedback time (end)' | translate}}
             #adminPhoneListLastFeedbackEnd
-        div
-            label.control-label {{'My feedback times' | translate}}
-            select.form-control(ng-init='vm.queryAdminPhoneList.feedbackTimesOperator = ">="' ng-model="vm.queryAdminPhoneList.feedbackTimesOperator" style="width:75px;display:inline-block")
-                option(value='>=') {{'>='}}
-                option(value='=') {{'='}}
-                option(value='<=') {{'<='}}
-                option(value='range') {{'range'|translate}}
-            div(style="width:8px;display:inline-block")
-            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.feedbackTimes" style="width:80px;display:inline-block")
-            div.text-center(style="width:15px;display:inline-block" ng-if="vm.queryAdminPhoneList.feedbackTimesOperator === 'range'") ~
-            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.feedbackTimesTwo" style="width:80px;display:inline-block" ng-if="vm.queryAdminPhoneList.feedbackTimesOperator === 'range'")
-        div
-            label.control-label {{'Phone distributed time (start)' | translate}}
+
+        .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.queryAdminPhoneList.feedbackTimesOperator === "range")}')
+            label {{'My feedback times' | translate}}
+            div
+                select.threeBoxes.form-control(ng-init='vm.queryAdminPhoneList.feedbackTimesOperator = ">="' ng-model="vm.queryAdminPhoneList.feedbackTimesOperator")
+                    option(value='>=') {{'>='}}
+                    option(value='=') {{'='}}
+                    option(value='<=') {{'<='}}
+                    option(value='range') {{'range'|translate}}
+                input.threeBoxes.form-control(type="number" ng-model="vm.queryAdminPhoneList.feedbackTimes")
+                div.symbol(ng-if="vm.queryAdminPhoneList.feedbackTimesOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.queryAdminPhoneList.feedbackTimesTwo" ng-if="vm.queryAdminPhoneList.feedbackTimesOperator === 'range'")
+        .search-filters-item
+            label {{'Phone distributed time (start)' | translate}}
             #adminPhoneListDistributeStart
-        div
-            label.control-label {{'Phone distributed time (end)' | translate}}
+        .search-filters-item
+            label {{'Phone distributed time (end)' | translate}}
             #adminPhoneListDistributeEnd
-        div
+
+        .search-filters-item(ng-class='{"search-filters-threeBoxes": (vm.queryAdminPhoneList.reclaimDayOperator === "range")}')
             //label.control-label(style='display: block') {{'Phone number reclaim in X day' | translate}}
-            label.control-label {{'Phone number reclaim in X day' | translate}}
-            select.form-control(ng-init='vm.queryAdminPhoneList.reclaimDayOperator = ">="' ng-model="vm.queryAdminPhoneList.reclaimDayOperator" style="width:75px;display:inline-block")
-                option(value='>=') {{'>='}}
-                option(value='=') {{'='}}
-                option(value='<=') {{'<='}}
-                option(value='range') {{'range'|translate}}
-            div(style="width:8px;display:inline-block")
-            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.reclaimDays" style="width:80px;display:inline-block")
-            div.text-center(style="width:15px;display:inline-block" ng-if="vm.queryAdminPhoneList.reclaimDayOperator === 'range'") ~
-            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.reclaimDaysTwo" style="width:80px;display:inline-block" ng-if="vm.queryAdminPhoneList.reclaimDayOperator === 'range'")
-        div
-            label.control-label {{'Assign times (numerator)' | translate}}
-            select.form-control(ng-init='vm.queryAdminPhoneList.assignTimesOperator = ">="' ng-model="vm.queryAdminPhoneList.assignTimesOperator" style="width:75px;display:inline-block")
-                option(value='>=') {{'>='}}
-                option(value='=') {{'='}}
-                option(value='<=') {{'<='}}
-                option(value='range') {{'range'|translate}}
-            div(style="width:8px;display:inline-block")
-            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.assignTimes" style="width:80px;display:inline-block")
-            div.text-center(style="width:15px;display:inline-block" ng-if="vm.queryAdminPhoneList.assignTimesOperator === 'range'") ~
-            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.assignTimesTwo" style="width:80px;display:inline-block" ng-if="vm.queryAdminPhoneList.assignTimesOperator === 'range'")
-        div
-            label.control-label {{'Filter non-dial areas' | translate}}
+            label {{'Phone number reclaim in X day' | translate}}
+            div
+                select.threeBoxes.form-control(ng-init='vm.queryAdminPhoneList.reclaimDayOperator = ">="' ng-model="vm.queryAdminPhoneList.reclaimDayOperator")
+                    option(value='>=') {{'>='}}
+                    option(value='=') {{'='}}
+                    option(value='<=') {{'<='}}
+                    option(value='range') {{'range'|translate}}
+                input.threeBoxes.form-control(type="number" ng-model="vm.queryAdminPhoneList.reclaimDays")
+                div.symbol(ng-if="vm.queryAdminPhoneList.reclaimDayOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.queryAdminPhoneList.reclaimDaysTwo" ng-if="vm.queryAdminPhoneList.reclaimDayOperator === 'range'")
+
+        .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.queryAdminPhoneList.assignTimesOperator === "range")}')
+            label {{'Assign times (numerator)' | translate}}
+            div
+                select.threeBoxes.form-control(ng-init='vm.queryAdminPhoneList.assignTimesOperator = ">="' ng-model="vm.queryAdminPhoneList.assignTimesOperator")
+                    option(value='>=') {{'>='}}
+                    option(value='=') {{'='}}
+                    option(value='<=') {{'<='}}
+                    option(value='range') {{'range'|translate}}
+                input.threeBoxes.form-control(type="number" ng-model="vm.queryAdminPhoneList.assignTimes")
+                div.symbol(ng-if="vm.queryAdminPhoneList.assignTimesOperator === 'range'") ~
+                input.threeBoxes.form-control(type="number" ng-model="vm.queryAdminPhoneList.assignTimesTwo" ng-if="vm.queryAdminPhoneList.assignTimesOperator === 'range'")
+
+        .search-filters-item
+            label {{'Filter non-dial areas' | translate}}
             select.form-control(ng-init='vm.queryAdminPhoneList.isFilterDangerZone="true"' ng-model="vm.queryAdminPhoneList.isFilterDangerZone")
                 option(value='true') {{'YES' | translate}}
                 option(value='') {{'NO' | translate}}
-        div
+        .text-right.widthto100
             label &nbsp;
-            button.btn.btn-primary.common-button(ng-click="vm.searchAdminPhoneList(true);") {{'SEARCH' | translate}}
-            button.btn.btn-primary.common-button(ng-if="vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.toggleCallOutMissionStatus()') {{"Pause/Resume Mission" | translate}}
-            button.btn.btn-primary.common-button(ng-if="vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.stopCallOutMission()') {{"Stop Mission" | translate}}
+            button.btn.btn-primary.btn-space(ng-click="vm.searchAdminPhoneList(true);") {{'SEARCH' | translate}}
+            button.btn.btn-primary.btn-space(ng-if="vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton", ng-click='vm.toggleCallOutMissionStatus()') {{"Pause/Resume Mission" | translate}}
+            button.btn.btn-primary.btn-space(ng-if="vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton", ng-click='vm.stopCallOutMission()') {{"Stop Mission" | translate}}
             //button.btn.btn-warning.common-button(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkAddPlayerFeedback()') {{"Failed Call Player Feedback" | translate}}
-            button.btn.btn-warning.common-button(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkSMSToFailCallee()') {{"Bulk SMS to Failed Callee" | translate}}
-            button.btn.btn-success.common-button(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.endCallOutMission()') {{"Finish Mission" | translate}}
+            button.btn.btn-warning.btn-space(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton", ng-click='vm.initBulkSMSToFailCallee()') {{"Bulk SMS to Failed Callee" | translate}}
+            button.btn.btn-success.btn-space(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton", ng-click='vm.endCallOutMission()') {{"Finish Mission" | translate}}
             span#adminPhoneListTableSpin.collapse
                 i.fa.fa-spinner.fa-spin
-    .clearfix
-    div
-        .inlineBlk
-            label {{"Total" | translate}} {{vm.queryAdminPhoneList.totalCount}} {{"records" | translate}}
-        .inlineBlk
+    .widthto100
             .btn.btn-primary(ng-click="vm.createCallOutMission()" ng-if="!vm.ctiData.hasOnGoingMission") {{"BULK_CALL" | translate}}
+            .btn.btn-primary.btn-space(ng-click="vm.createCallOutMission(true)" ng-if="!vm.ctiData.hasOnGoingMission") {{"SELECTED_CALL" | translate}}
+        .inlineBlk.margin-top-5
+            label {{"Total" | translate}} {{vm.queryAdminPhoneList.totalCount}} {{"records" | translate}}
         .inlineBlk
             label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.callOutMissionStatus}}
             label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.ctiData.adminName}} : {{vm.callOutMissionStatusText}}  /  {{"Completed" | translate}} : ({{vm.callOutMissionProgressText}})

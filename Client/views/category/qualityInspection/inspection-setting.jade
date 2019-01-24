@@ -15,7 +15,7 @@
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "manualSummarizeLive800Record"}', ng-click='vm.configTabClicked("manualSummarizeLive800Record");vm.initManualSummarizeLive800Record();')
                         span {{"MANUAL_SUMMARIZE_LIVE800RECORD" | translate}}
 
-    .col-md-9(style="padding-left:0;padding-right:15px")
+    .col-md-9
         .panel.panel-primary
             .panel-heading.panel-heading-sm
                 label {{"CONFIGURATION_DETAIL" | translate}}
@@ -25,10 +25,10 @@
                     label.text-danger {{'Please select a type' | translate}}
 
                 div(ng-if='vm.selectedConfigTab=="definition" && checkViewPermission("QualityInspection", "QualityInsectionSetting", "Edit")')
-                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;')
+                    table.common-table.playerLvlTable
                         thead
                             tr
-                                th(style='width:30%') {{'PROFILE' | translate}}
+                                th {{'PROFILE' | translate}}
                                 th(colspan=2) {{'CONFIGURATION_DETAIL' | translate}}
 
                         tbody
@@ -36,36 +36,36 @@
                                 td(rowspan=3) {{'EFFECTIVE_CONVERSATION_DEFINITION' | translate}}
                                 td
                                     text {{'totalSec' | translate}} (>=)
-                                td
+                                td(width="150px")
                                     text(ng-show='!vm.configTableEdit') {{vm.conversationDefinition.totalSec}}
-                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.totalSec')
+                                    input.form-control.text-center(type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.totalSec')
                             tr
                                 td
                                     text ({{'AND' | translate}}) {{'askingSentence' | translate}} (>=)
-                                td
+                                td(width="150px")
                                     text(ng-show='!vm.configTableEdit') {{vm.conversationDefinition.askingSentence}}
-                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.askingSentence')
+                                    input.form-control.text-center(type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.askingSentence')
                             tr
                                 td
                                     text ({{'AND' | translate}}) {{'replyingSentence' | translate}} (>=)
-                                td
+                                td(width="150px")
                                     text(ng-show='!vm.configTableEdit') {{vm.conversationDefinition.replyingSentence}}
-                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.replyingSentence')
+                                    input.form-control.text-center(type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.replyingSentence')
                             br
                             // !!! take not on checkViewPermission !!!!
-                    div(style='float:right; margin:1em 0')
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
-                            text {{'EDIT' | translate}}
+                    .text-right.widthto100.margin-top-10
+                        button.btn.btn-primary.btn-space(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                             img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("definition")') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("definition")') {{"CONFIRM" | translate}}
+                            text {{'EDIT' | translate}}
+                        button.btn.btn-danger.btn-space(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("definition")') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.btn-space(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("definition")') {{"CONFIRM" | translate}}
 
 
                 div(ng-if='vm.selectedConfigTab=="setting" && checkViewPermission("QualityInspection", "QualityInsectionSetting", "Edit")')
-                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                    table.common-table.playerLvlTable
                         thead
                             tr
-                                th(style='width:20%') {{'PROFILE' | translate}}
+                                th(width='20%') {{'PROFILE' | translate}}
                                 th(colspan=4) {{'CONFIGURATION_DETAIL' | translate}}
 
                         tbody
@@ -88,27 +88,27 @@
                                     text {{v.presetMark}}
                                 td(style="background-color: {{v.color}}") {{v.color}}
                                 td
-                                    button.btn.btn-primary.common-button(ng-click="vm.configTableEdit=true")
-                                        i.fa.fa-pencil-square-o
+                                    button.btn.btn-primary.btn-space(ng-click="vm.configTableEdit=true")
+                                        i.fa.fa-pencil-square-o.symbol
                                         text {{'EDIT' | translate}}
-                                    button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeleteSetting', ng-click="vm.getDeleteIndex = [v._id, $index, v.conversationInterval]")
-                                        i.fa.fa-trash
+                                    button.btn.btn-danger.btn-space(data-toggle="modal", data-target='#modalDeleteSetting', ng-click="vm.getDeleteIndex = [v._id, $index, v.conversationInterval]")
+                                        i.fa.fa-trash.symbol
                                         text {{'DELETE' | translate}} {{vm.configDeleteIndex}}
 
                             tr(ng-repeat="(i,v) in vm.overtimeSetting", ng-show='vm.configTableEdit')
                                 td
-                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="v.conversationInterval")
+                                    input.form-control.text-center(type="text", ng-model="v.conversationInterval")
 
                                 td
-                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="v.presetMark")
+                                    input.form-control.text-center(type="text", ng-model="v.presetMark")
                                 td(style="background-color: {{v.color}}")
-                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", colorpicker="rgb", type="text", ng-model="v.color")
+                                    input.form-control.text-center(colorpicker="rgb", type="text", ng-model="v.color")
                                 td
-                                    button.btn.btn-success.common-button(ng-click='vm.configTableEdit=false; vm.configSubmitUpdate("setting")')
-                                        i.fa.fa-floppy-o
+                                    button.btn.btn-success.btn-space(ng-click='vm.configTableEdit=false; vm.configSubmitUpdate("setting")')
+                                        i.fa.fa-floppy-o.symbol
                                         text {{'SAVE' | translate}}
-                                    button.btn.btn-danger.common-button(ng-click="vm.configTableEdit=false")
-                                        i.fa.fa-times
+                                    button.btn.btn-danger.btn-space(ng-click="vm.configTableEdit=false")
+                                        i.fa.fa-times.symbol
                                         text {{'CANCEL' | translate}}
 
                             tr(ng-if='vm.overtimeSettingAdd')
@@ -117,52 +117,53 @@
                             tr(ng-if='vm.overtimeSettingAdd')
                                 td
                                 td
-                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.newOvertimeSetting.conversationInterval", required)
+                                    input.form-control.text-center(type="text", ng-model="vm.newOvertimeSetting.conversationInterval", required)
                                 td
                                     input.form-control(type='text', ng-model='vm.newOvertimeSetting.presetMark', required)
                                 td
                                     input.form-control(colorpicker="rgb", style="background-color:{{vm.newOvertimeSetting.color}}", type="text", placeholder="{{'COLOR_CODE' | translate}}", ng-model="vm.newOvertimeSetting.color")
                                 td(ng-click='vm.overtimeSetting.push(vm.newOvertimeSetting); vm.newOvertimeSetting={};')
-                                    i.fa.fa-plus(style="font-size:2em", ng-if='vm.newOvertimeSetting.conversationInterval && vm.newOvertimeSetting.presetMark')
+                                    i.fa.fa-plus(ng-if='vm.newOvertimeSetting.conversationInterval && vm.newOvertimeSetting.presetMark')
                             br
                             // !!! take not on checkViewPermission !!!!
-                    .pull-right(style='margin:1em 0')
-                        button.btn.btn-primary.common-button(ng-if="!vm.overtimeSettingAdd", ng-click='vm.overtimeSettingAdd=!vm.overtimeSettingAdd')
-                            i.fa.fa-plus
+                    .widthto100.text-right.margin-top-10
+                        button.btn.btn-primary.btn-space(ng-if="!vm.overtimeSettingAdd", ng-click='vm.overtimeSettingAdd=!vm.overtimeSettingAdd')
+                            i.fa.fa-plus.symbol
                             text {{'ADD' | translate}}
-                        button.btn.btn-danger.common-button(ng-if='vm.overtimeSettingAdd||vm.confirmDelete', ng-click='vm.overtimeSettingAdd=!vm.overtimeSettingAdd;')
-                            i.fa.fa-ban
+                        button.btn.btn-danger.btn-space(ng-if='vm.overtimeSettingAdd||vm.confirmDelete', ng-click='vm.overtimeSettingAdd=!vm.overtimeSettingAdd;')
+                            i.fa.fa-ban.symbol
                             text {{"CANCEL" | translate}}
-                        button.btn.btn-success.common-button(ng-if='vm.overtimeSettingAdd', ng-click='vm.overtimeSettingAdd=!vm.overtimeSettingAdd;vm.configSubmitUpdate("setting")')
-                            i.fa.fa-check
+                        button.btn.btn-success.btn-space(ng-if='vm.overtimeSettingAdd', ng-click='vm.overtimeSettingAdd=!vm.overtimeSettingAdd;vm.configSubmitUpdate("setting")')
+                            i.fa.fa-check.symbol
                             text {{"SAVE" | translate}}
 
 
 
                 div(ng-if='vm.selectedConfigTab=="manualSummarizeLive800Record" && checkViewPermission("QualityInspection", "QualityInsectionSetting", "Edit")')
-                    .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'queryByQualityInspectionDate')")
+                    .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'queryByQualityInspectionDate')")
                         label {{'START_DATE' | translate}}
                         #live800SummarizeStartDatetimePicker.input-append.form-control
-                            input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd", type='text')
+                            input(data-format="yyyy/MM/dd", type='text')
                             span.add-on
                                 i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                    .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'queryByQualityInspectionDate')")
+                    .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'queryByQualityInspectionDate')")
                         label {{'END_DATE' | translate}}
                         br
                         #live800SummarizeEndDatetimePicker.input-append.form-control
-                            input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd', type='text')
+                            input(data-format='yyyy/MM/dd', type='text')
                             span.add-on
                                 i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                             // !!! take not on checkViewPermission !!!!
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.summarizeLive800Record()')
-                        text {{'SUBMIT' | translate}}
-                        img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.getSummarizedLive800RecordCount()')
-                        text {{'CHECK_RECORDED_RECORD' | translate}}
-                        img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.resummarizeLive800Record()')
-                        text {{'Resummarize' | translate}}
-                        img.img-edit
+                    .text-right.widthto100
+                        button.btn.btn-primary.btn-space(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.summarizeLive800Record()')
+                            img.img-edit
+                            text {{'SUBMIT' | translate}}
+                        button.btn.btn-primary.btn-space(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.getSummarizedLive800RecordCount()')
+                            img.img-edit
+                            text {{'CHECK_RECORDED_RECORD' | translate}}
+                        button.btn.btn-primary.btn-space(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.resummarizeLive800Record()')
+                            img.img-edit
+                            text {{'Resummarize' | translate}}
                     label(ng-show="vm.summarizedDataDetail") {{vm.summarizedDataDetail}}
                     .inlineBlk(ng-show='vm.loadingSummarizeLive800Record')
                         i.fa.fa-spin.fa-spinner
@@ -182,7 +183,7 @@
 //                    text {{"DOWNLOAD_CSV" | translate}}
 
 #modalDeleteSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')

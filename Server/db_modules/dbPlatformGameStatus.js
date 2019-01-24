@@ -279,23 +279,25 @@ var dbPlatformGameStatus = {
             data => {
                 platformGames = data;
                 let changedNameSearch = {};
-                let queryObj = {};
+                let queryObj = {
+                    $or: []
+                };
                 let queryField;
 
                 if (platformGames && platformGames.length > 0) {
-                    queryObj = {
-                        _id: {$in: platformGames.map(game => game.game)}
-                    };
-                } else {
-                    if (name && platformId) {
-                        // changedNameSearch[platformId] = {$regex: new RegExp(name)};
-                        queryField = 'changedName.' + platformId;
-                        changedNameSearch = {$regex: new RegExp(name)};
-                    }
+                    queryObj.$or.push({_id: {$in: platformGames.map(game => game.game)}});
+                }
 
-                    if (queryField && changedNameSearch) {
-                        queryObj[queryField] = changedNameSearch;
-                    }
+                if (name && platformId) {
+                    // changedNameSearch[platformId] = {$regex: new RegExp(name)};
+                    queryField = 'changedName.' + platformId;
+                    changedNameSearch = {$regex: new RegExp(name)};
+                }
+
+                if (queryField && changedNameSearch) {
+                    let customNameObj = {};
+                    customNameObj[queryField] = changedNameSearch;
+                    queryObj.$or.push(customNameObj);
                 }
 
                 if (playGameType) {

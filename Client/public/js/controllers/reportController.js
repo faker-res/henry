@@ -1459,6 +1459,15 @@ define(['js/app'], function (myApp) {
                         case "UpdatePlayerWeChat":
                             vm.allProposalType[x].seq = 4.06;
                             break;
+                        case "UpdatePlayerInfoPartner":
+                            vm.allProposalType[x].seq = 4.07;
+                            break;
+                        case "UpdatePlayerInfoLevel":
+                            vm.allProposalType[x].seq = 4.08;
+                            break;
+                        case "UpdatePlayerInfoAccAdmin":
+                            vm.allProposalType[x].seq = 4.09;
+                            break;
                         case "UpdatePartnerInfo":
                             vm.allProposalType[x].seq = 5.01;
                             break;
@@ -1666,47 +1675,46 @@ define(['js/app'], function (myApp) {
             // showing data with auto-assign card at pms.
 
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
-                findReportSearchTime();
-                $('#topupTableSpin').hide();
-                console.log('topup', data);
-                vm.queryTopup.totalCount = data.data.size;
-                vm.drawTopupReport(
-                    data.data.data.map(item => {
-                        item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                        item.status$ = $translate(item.status);
-                        item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
-                        item.merchantNoDisplay = item.data.merchantNo != null ? item.data.merchantNo
-                            : item.data.bankCardNo != null ? item.data.bankCardNo
-                            : item.data.wechatAccount != null ? item.data.wechatAccount
-                            : item.data.weChatAccount != null ? item.data.weChatAccount
-                            : item.data.alipayAccount != null ? item.data.alipayAccount
-                            : item.data.accountNo != null ? item.data.accountNo
-                            : '';
-                            item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
-                            item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
-                        if (item.type.name == 'PlayerTopUp') {
-                            //show detail topup type info for online topup.
-                            let typeID = item.data.topUpType || item.data.topupType
-                            item.topupTypeStr = typeID
-                                ? $translate($scope.merchantTopupTypeJson[typeID])
-                                : $translate("Unknown")
-                            let merchantNo = '';
-                            if(item.data.merchantNo){
-                                merchantNo = item.data.merchantNo;
+                $scope.$evalAsync(() => {
+                    findReportSearchTime();
+                    $('#topupTableSpin').hide();
+                    console.log('topup', data);
+                    vm.queryTopup.totalCount = data.data.size;
+                    vm.drawTopupReport(
+                        data.data.data.map(item => {
+                            item.amount$ = parseFloat(item.data.amount).toFixed(2);
+                            item.status$ = $translate(item.status);
+                            item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
+                            item.merchantNoDisplay = item.data.merchantNo != null ? item.data.merchantNo
+                                : item.data.bankCardNo != null ? item.data.bankCardNo
+                                : item.data.wechatAccount != null ? item.data.wechatAccount
+                                : item.data.weChatAccount != null ? item.data.weChatAccount
+                                : item.data.alipayAccount != null ? item.data.alipayAccount
+                                : item.data.accountNo != null ? item.data.accountNo
+                                : '';
+                                item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                                item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                            if (item.type.name == 'PlayerTopUp') {
+                                //show detail topup type info for online topup.
+                                let typeID = item.data.topUpType || item.data.topupType
+                                item.topupTypeStr = typeID
+                                    ? $translate($scope.merchantTopupTypeJson[typeID])
+                                    : $translate("Unknown")
+                                let merchantNo = '';
+                                if(item.data.merchantNo){
+                                    merchantNo = item.data.merchantNo;
+                                }
+                                item.merchantNoDisplay = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                            } else {
+                                //show topup type for other types
+                                item.topupTypeStr = $translate(item.type.name)
                             }
-                            item.merchantNoDisplay = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
-                        } else {
-                            //show topup type for other types
-                            item.topupTypeStr = $translate(item.type.name)
-                        }
-                        item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                        item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "";
-
-
-                        return item;
-                    }), data.data.size, {amount: data.data.total}, newSearch, isExport
-                );
-                $scope.$evalAsync();
+                            item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                            item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "";
+                            return item;
+                        }), data.data.size, {amount: data.data.total}, newSearch, isExport
+                    );
+                })
             }, function (err) {
                 console.log(err);
             }, true);
@@ -1859,11 +1867,7 @@ define(['js/app'], function (myApp) {
                 "paging": false,
                 fnInitComplete: function(settings){
                     $compile(angular.element('#' + settings.sTableId).contents())($scope);
-                },
-                fnDrawCallback: function () {
-                    $scope.$evalAsync();
                 }
-
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
@@ -8690,25 +8694,27 @@ define(['js/app'], function (myApp) {
 
         vm.getProvinceName = function (provinceId, fieldName) {
             socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-                var text = data.data.province ? data.data.province.name : '';
-                if (fieldName) {
-                    vm.selectedProposal.data[fieldName] = text;
-                } else {
-                    vm.selectedProposal.data.provinceName = text;
+                let text = data.data.province ? data.data.province.name : '';
+                if (text) {
+                    if (fieldName) {
+                        vm.selectedProposal.data[fieldName] = text;
+                    } else {
+                        vm.selectedProposal.data.provinceName = text;
+                    }
                 }
-                $scope.safeApply();
             });
         }
 
         vm.getCityName = function (cityId, fieldName) {
             socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-                var text = data.data.city ? data.data.city.name : '';
-                if (fieldName) {
-                    vm.selectedProposal.data[fieldName] = text;
-                } else {
-                    vm.selectedProposal.data.cityName = text;
+                let text = data.data.city ? data.data.city.name : '';
+                if (text) {
+                    if (fieldName) {
+                        vm.selectedProposal.data[fieldName] = text;
+                    } else {
+                        vm.selectedProposal.data.cityName = text;
+                    }
                 }
-                $scope.safeApply();
             });
         }
 
@@ -10079,7 +10085,7 @@ define(['js/app'], function (myApp) {
                         vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                         vm.feedbackQuery.limit = 10;
                         vm.feedbackQuery.index = 0;
-                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {pageSize:5000, maxPageSize:5000}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
                         });
                     })

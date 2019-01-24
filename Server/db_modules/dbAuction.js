@@ -9,10 +9,11 @@ const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGe
 const dbutility = require('./../modules/dbutility');
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 const errorUtils = require("./../modules/errorUtils");
-
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const proposalExecutor = require('./../modules/proposalExecutor');
 const dbProposalUtility = require("./../db_common/dbProposalUtility");
 const constPromoCodeStatus = require("./../const/constPromoCodeStatus");
+var constServerCode = require('../const/constServerCode');
 
 var dbAuction = {
     /**
@@ -715,15 +716,37 @@ var dbAuction = {
                 break;
         }
 
-        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        return dbconfig.collection_players.findOne({
+            _id: playerId
+        }).populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean().then(
+            player => {
+                if (!player){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cannot find player"
+                    })
+                }
+
+                playerData = player;
+                return dbPlayerUtil.setPlayerBState(player._id, "auctionBidding", true);
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    return dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+                } else {
+                    return Promise.reject({
+                        name: "DBError",
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        message: "Bidding Fail, please try again later"
+                    })
+                }
+            }
+        ).then(
             platformData => {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-                return platformData;
-            }
-        ).then(
-            platformData => {
                 platform = platformData;
                 platformObjId = platformData && platformData._id ? platformData._id : null;
 
@@ -731,12 +754,10 @@ var dbAuction = {
                     return Promise.reject({name: "DBError", message: "Proposal type not found"});
                 }
 
-                proposalTypeProm = dbconfig.collection_proposalType.findOne({
+                return proposalTypeProm = dbconfig.collection_proposalType.findOne({
                     platformId: platformObjId,
                     name: proposalType,
                 }).lean();
-
-                return proposalTypeProm;
             }
         ).then(
             proposalTypeData => {
@@ -765,14 +786,10 @@ var dbAuction = {
                     })
                 }
 
-                playerProm = dbconfig.collection_players.findOne({
-                    platform: platformObjId,
-                    _id: playerId,
-                }).populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean();
-
                 auctionProm = dbconfig.collection_auctionSystem.findOne({
                     platformObjId: platformObjId,
                     productName: productName,
+                    'rewardData.rewardType': rewardType
                 }).lean();
 
                 proposalProm = dbconfig.collection_proposal.findOne({
@@ -782,11 +799,17 @@ var dbAuction = {
                     type: proposalTypeId,
                 }).lean();
 
-                return Promise.all([playerProm, auctionProm, proposalProm]).then(data => {
+                return Promise.all([auctionProm, proposalProm]).then(data => {
                     if (data) {
-                        playerData = data[0];
-                        auctionData = data[1];
-                        proposalData = data[2];
+                        auctionData = data[0];
+                        proposalData = data[1];
+
+                        if (!auctionData){
+                            return Promise.reject({
+                                name: "DBError",
+                                message: "The bidding product is not found."
+                            })
+                        }
 
                         // check if the same player bidding again (consecutively)
                         if (proposalData && proposalData.data && proposalData.data.playerName && playerData && playerData.name){
@@ -868,7 +891,7 @@ var dbAuction = {
                         }
 
                         // deduct reward points from current bidder, if not enough reward points, will return error
-                        return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, platformObjId, -playerBidPrice, 'bid auction item', null, null, playerData.name, inputDevice);
+                        return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, platformObjId, -playerBidPrice, 'Bidding item: ' + auctionData.productName || "" , null, null, playerData.name, inputDevice);
                     }
                 }).then(
                     () => {
@@ -909,8 +932,9 @@ var dbAuction = {
                     proposalData => {
                         if (!proposalData) return true; // skip refund reward points
 
+                        let creator = proposalData.data.seller || 'System';
                         // return reward points to rejected bidder
-                        return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'refund bid', null, null, playerData.name, inputDevice);
+                        return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'Refund from bidding item: ' + auctionData.productName || "", null, null, creator, inputDevice);
                     }
                 ).then(
                     () => {
@@ -961,19 +985,50 @@ var dbAuction = {
                         if (playerName){
                             newProposal.data.playerName = playerName;
                         }
+                        // specially for auction product: reward promotion
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.unlockAmount && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.requiredUnlockAmount = auctionData.rewardData.unlockAmount;
+                        }
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.rewardAmount && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.rewardAmount = auctionData.rewardData.rewardAmount;
+                        }
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
+                        }
+                        if (platform && platform.hasOwnProperty("useProviderGroup") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                            newProposal.data.isGroupReward = platform.useProviderGroup;
+                        }
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("rewardPointsVariable")){
+                            newProposal.data.rewardPointsVariable = auctionData.rewardData.rewardPointsVariable;
+                        }
+
                         newProposal.data.isExclusive = auctionData.isExclusive;
                         newProposal.data.startingPrice = auctionData.startingPrice || null;
                         newProposal.data.directPurchasePrice = auctionData.directPurchasePrice || null;
 
                         return dbProposal.createProposalWithTypeId(proposalTypeId, newProposal).then(
                             data => {
+                                // Reset BState
+                                dbPlayerUtil.setPlayerBState(playerData._id, "auctionBidding", false).catch(errorUtils.reportError);
                                 return data;
                             }
                         );
                     }
                 );
             }
-        );
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerData._id, "auctionBidding", false).catch(errorUtils.reportError);
+                }
+
+                console.log('bidding error', playerId, err);
+                throw err;
+            }
+        )
     },
 };
 
