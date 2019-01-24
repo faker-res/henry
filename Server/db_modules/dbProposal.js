@@ -842,6 +842,18 @@ var proposal = {
                         type = constPlayerTopUpType.COMMON;
                     }
 
+                    if (type == constPlayerTopUpType.COMMON && status === constProposalStatus.SUCCESS) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Invalid proposal status",
+                            data: {
+                                proposalId: proposalId,
+                                orderStatus: orderStatus,
+                                depositId: requestId
+                            }
+                        });
+                    }
+
                     if (proposalData.status == constProposalStatus.PREPENDING
                         || (
                             (
@@ -982,7 +994,7 @@ var proposal = {
                             }
 
                             // Some extra data
-                            addDetailToProp(updObj.data, 'remark', remark);
+                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
                             addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
                             addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
                             addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);

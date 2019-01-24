@@ -498,6 +498,7 @@ var simplifiedChinese = {
     "Username should be alphanumeric": "用户名只能包含数字和字母",
     "Bet result does not satisfy the reward criteria. Please continue to test your luck.": "查询您注单的开奖结果记录不满足条件，请去游戏厅再试试手气吧",
     "Insufficient amount to transfer out": "无可用额度，请充值后进入游戏",
+    "Invalid proposal status": "提案状态无效",
 
     //todo::add missing messages here
 

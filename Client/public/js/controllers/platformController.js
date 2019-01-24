@@ -24932,25 +24932,27 @@ define(['js/app'], function (myApp) {
 
             vm.getProvinceName = function (provinceId, fieldName) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-                    var text = data.data.province ? data.data.province.name : '';
-                    if (fieldName) {
-                        vm.selectedProposal.data[fieldName] = text;
-                    } else {
-                        vm.selectedProposal.data.provinceName = text;
+                    let text = data.data.province ? data.data.province.name : '';
+                    if (text) {
+                        if (fieldName) {
+                            vm.selectedProposal.data[fieldName] = text;
+                        } else {
+                            vm.selectedProposal.data.provinceName = text;
+                        }
                     }
-                    $scope.safeApply();
                 });
             }
 
             vm.getCityName = function (cityId, fieldName) {
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-                    var text = data.data.city ? data.data.city.name : '';
-                    if (fieldName) {
-                        vm.selectedProposal.data[fieldName] = text;
-                    } else {
-                        vm.selectedProposal.data.cityName = text;
+                    let text = data.data.city ? data.data.city.name : '';
+                    if (text) {
+                        if (fieldName) {
+                            vm.selectedProposal.data[fieldName] = text;
+                        } else {
+                            vm.selectedProposal.data.cityName = text;
+                        }
                     }
-                    $scope.safeApply();
                 });
             }
 
