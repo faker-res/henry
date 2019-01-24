@@ -73,10 +73,6 @@ proto.run = function(){
             console.log("Close the connection");
         });
 
-        ws.on("error", function(event){
-            console.error("WebSocket error observed:", event);
-        });
-
         //todo::test code
         conn.broadcast("test broadcast");
     });
