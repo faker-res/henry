@@ -2437,10 +2437,6 @@ var dbPlayerConsumptionRecord = {
         return Promise.all([participantsProm, totalAmountProm]).then(
             data => {
                 let participantNumber = 0;
-                let consumptionTimes = 0;
-                let totalAmount = 0;
-                let validAmount = 0;
-                let bonusAmount = 0;
                 let returnData = [];
                 let totalSumData = data[1] ? data[1] : [];
                 let participantData = data[0] ? data[0] : [];
@@ -2457,6 +2453,7 @@ var dbPlayerConsumptionRecord = {
                     let participant;
                     let participantNumber = 0;
                     data[1].forEach(item => {
+                        // calculate the non-repeat player number
                         if (participantData && participantData.length > 0) {
                             participant = participantData.filter(party => {
                                 return party._id.gameType == item._id
@@ -2485,8 +2482,6 @@ var dbPlayerConsumptionRecord = {
                         return item;
                     });
                 }
-
-                // participantArr = participantArr.filter((x, index, array) => array.indexOf(x) == index)
                 summaryData.profit = ((-summaryData.bonusAmount / summaryData.validAmount * 100));
                 summaryData.participantArr = participantArr
                 return {
