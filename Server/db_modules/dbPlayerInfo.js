@@ -5636,6 +5636,7 @@ let dbPlayerInfo = {
                         return new Promise((resolve, reject) => {
                             console.log('rt playerLogin 2.2.1');
                             try {
+                                let bcrypt = require('bcrypt');
                                 bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
                                     console.log('rt playerLogin 2.2.2', err, isMatch);
                                     if (err) {
