@@ -598,6 +598,18 @@ const dbPlayerPayment = {
                     proposalType = constProposalType.PLAYER_COMMON_TOP_UP;
                 }
 
+                if (player.platform.topUpSystemType && topUpSystemConfig) {
+                    proposalData.topUpSystemType = player.platform.topUpSystemType;
+                    proposalData.topUpSystemName = topUpSystemConfig.name;
+                } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                    Object.keys(extConfig).forEach(key => {
+                        if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                            proposalData.topUpSystemType = Number(key);
+                            proposalData.topUpSystemName = extConfig[key].name;
+                        }
+                    });
+                }
+
                 if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                     if (rewardEvent.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP){
                         proposalData.topUpReturnCode = rewardEvent.code;
