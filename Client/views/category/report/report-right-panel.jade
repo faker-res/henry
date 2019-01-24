@@ -1911,19 +1911,21 @@
                     span.margin-left-5 {{vm.winRateReportLoadingStatus}}
             .clearfix
             label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
-            table#winRateTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
-            table.common-table.simple-table#winRateSummaryTable(style='margin-top:10px;font-size:12px')
+            table#winRateTable.common-table.display(ng-show="vm.winRateLayer1", style="width:100%;overflow: scroll;max-height:700px")
+            table.common-table.simple-table#winRateSummaryTable(ng-show="vm.winRateLayer1", style='margin-top:10px;font-size:12px')
                 thead
                     tr
-                        th {{'CONSUMPTION_PARTICIPANT' | translate}}
-                        th {{'TIMES_CONSUMED' | translate}}
-                        th {{'TOTAL_CONSUMPTION' | translate}}
-                        th {{'VALID_CONSUMPTION' | translate}}
-                        th {{'PLAYER_PROFIT_AMOUNT' | translate}}
-                        th {{'COMPANY_EARNING_RATIO' | translate}}
-                        th {{'DETAILS' | translate}}
+                        th(style='width:10%') {{'PROVIDER' | translate}}
+                        th(style='width:10%') {{'CONSUMPTION_PARTICIPANT' | translate}}
+                        th(style='width:10%') {{'TIMES_CONSUMED' | translate}}
+                        th(style='width:10%') {{'TOTAL_CONSUMPTION' | translate}}
+                        th(style='width:10%') {{'VALID_CONSUMPTION' | translate}}
+                        th(style='width:10%') {{'PLAYER_PROFIT_AMOUNT' | translate}}
+                        th(style='width:10%') {{'COMPANY_EARNING_RATIO' | translate}}
+                        th(style='width:10%') {{'DETAILS' | translate}}
                 tbody
                     tr
+                        td {{vm.winRateSummaryData.providerName | translate}}
                         td {{vm.winRateSummaryData.participantNumber}}
                         td {{vm.winRateSummaryData.consumptionTimes}}
                         td {{(vm.winRateSummaryData.totalAmount) | number : 2}}
@@ -1932,18 +1934,21 @@
                         td {{(-vm.winRateSummaryData.bonusAmount/vm.winRateSummaryData.validAmount*100 || 0) | number : 2 }}%
                         td(ng-click='vm.getWinRateAllPlatformReport(true)')
                             a {{'DETAILS' | translate}}
-
+            br
             #layer2
-            table#winRateLayer2Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
-            table.common-table.simple-table#winRateSummaryLayer2Table(style='margin-top:10px;font-size:12px')
+            div(ng-show="vm.winRateLayer2")
+                table#winRateLayer2Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                table.common-table.simple-table#winRateSummaryLayer2Table(style='margin-top:10px;font-size:12px')
 
             #layer3
-            table#winRateLayer3Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
-            table.common-table.simple-table#winRateSummaryLayer3Table(style='margin-top:10px;font-size:12px')
+            div(ng-show="vm.winRateLayer3")
+                table#winRateLayer3Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                table.common-table.simple-table#winRateSummaryLayer3Table(style='margin-top:10px;font-size:12px')
 
             #layer4
-            table#winRateLayer4Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
-            table.common-table.simple-table#winRateSummaryLayer4Table(style='margin-top:10px;font-size:12px')
+            div(ng-show="vm.winRateLayer4")
+                table#winRateLayer4Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                table.common-table.simple-table#winRateSummaryLayer4Table(style='margin-top:10px;font-size:12px')
 
         div(ng-if='vm.showPageName=="ONLINE_PAYMENT_MISMATCH_REPORT"')
             // 输赢报表

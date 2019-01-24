@@ -207,7 +207,7 @@ define([], function () {
                     // No need for this here.  It should now be detected by event listeners above.
                     //$(this).data('popoverShowing', show);
                 });
-                
+
                 elem = null;
             });
 
@@ -605,6 +605,7 @@ define([], function () {
                                 return getFloat(a) + getFloat(b);
                             })
                         }
+
                         pageValue = api.column(i, {page: 'current'}).data().reduce(function (a, b) {
                             return getFloat(a) + getFloat(b);
                         })
@@ -754,7 +755,31 @@ define([], function () {
                         totalValue = "".concat(totalValue, "%");
                         pageValue = totalValue;
                         htmlStr = gethtmlStr(pageValue, totalValue);
-                    } else {
+                    } else if (classes.indexOf('sumEarning') > -1) {
+                        let index = 0;
+                        let totalProfit = 0;
+                        api.column(i).data().each(function (item) {
+                            index += 1;
+                            totalProfit += item;
+                        })
+                        if( totalProfit == 0 ){
+                            totalValue = 0;
+                        }else{
+                            totalValue = totalProfit / index;
+                        }
+                        totalValue = getFloat(totalValue).toFixed(2) + "%";
+                        pageValue = getFloat(totalValue).toFixed(2) + "%";
+                        htmlStr = gethtmlStr(pageValue, totalValue);
+                    }else if (classes.indexOf('originTXT') > -1) {
+                        if (sumData && sumData[i]) {
+                            totalValue = sumData[i];
+                        }else{
+                            totalValue = 0;
+                        }
+                        totalValue = getInt(totalValue);
+                        pageValue = getInt(totalValue);
+                        htmlStr = gethtmlStr(pageValue, totalValue);
+                    }else {
                         $(this.footer()).html('');
                         return true;
                     }
