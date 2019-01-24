@@ -5638,11 +5638,6 @@ let dbPlayerInfo = {
                             try {
                                 let bcrypt = require('bcrypt');
 
-                                console.log('bcrypt', bcrypt);
-                                console.log('bcrypt.compare', bcrypt.compare);
-                                console.log('String(playerData.password)', String(playerData.password));
-                                console.log('db_password', db_password);
-
                                 bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
                                     console.log('rt playerLogin 2.2.2', err, isMatch);
                                     if (err) {

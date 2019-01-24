@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "adm-zip": "0.4.11",
-    "bcrypt": "^3.0.3",
+    "bcrypt": "^3.0.2",
     "bindings": "^1.2.1",
     "body-parser": "~1.13.2",
     "chance": "^1.0.1",
