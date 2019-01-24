@@ -5634,17 +5634,25 @@ let dbPlayerInfo = {
                     else {
                         console.log('rt playerLogin 2.2');
                         return new Promise((resolve, reject) => {
-                            bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
-                                if (err) {
-                                    reject({
-                                        name: "DataError",
-                                        message: "Error in matching password",
-                                        error: err
-                                    });
-                                }
-                                resolve(isMatch);
-                            });
-                        }).catch(err => console.log(err))
+                            console.log('rt playerLogin 2.2.1');
+                            try {
+                                bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
+                                    console.log('rt playerLogin 2.2.2', err, isMatch);
+                                    if (err) {
+                                        reject({
+                                            name: "DataError",
+                                            message: "Error in matching password",
+                                            error: err
+                                        });
+                                    }
+                                    resolve(isMatch);
+                                });
+                            } catch (err) {
+                                console.log('err', err);
+                                throw err;
+                            }
+
+                        })
                     }
                 }
                 else {
