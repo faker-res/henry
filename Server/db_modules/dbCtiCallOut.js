@@ -248,7 +248,7 @@ let dbCtiCallOut = {
         let param = {token};
         param.taskName = missionName;
 
-        return dbCtiCallOut.callCtiApiWithAllTry(platform.platformId, "getCallOutTaskStatus.do", param).then(
+        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "getCallOutTaskStatus.do", param).then(
             apiOutput => {
                 if (!apiOutput) {
                     console.error("getCallOutTaskStatus.do Did not receive result");
