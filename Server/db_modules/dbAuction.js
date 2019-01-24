@@ -599,66 +599,260 @@ var dbAuction = {
             return record.save();
         }
     },
-    auctionExecute: function(){
-        let endDate = new Date();
-        let proms = [];
-        let status = constProposalStatus.APPROVED;
-        let sendQuery = {
-            'rewardEndTime': {
-                '$lte':endDate
-            },
-            status:1,
-            publish:true
-        }
-        return dbconfig.collection_auctionSystem.find(sendQuery).then(data=>{
-            if(data && data.length > 0){
-                data.forEach(item=>{
-                    let sendQuery = {
-                        '_id': item._id,
-                        'platformObjId': item.platformObjId,
-                    };
-                    let prom = dbAuction.listAuctionMonitor(sendQuery, 1);
-                    proms.push(prom);
-                })
-            }
-            return Promise.all(proms);
-        }).then(data=>{
-            if( data && data.length > 0 ){
-                data.forEach(item=>{
-                    if(item[0] && item[0].proposal && item[0].proposal.length > 0){
-                        let proposal;
-                        let lastProposalData = item[0].proposal[0];
+    
+    auctionExecuteEnd: function() {
+        console.log("Auction end executing")
+        let curTime = dbutility.getLocalTime(new Date());
+        let curHour = new Date().getHours();
+        let curDay = new Date().getDay();
+        let curDate = new Date().getDate();
 
-                        return dbconfig.collection_proposal.findOneAndUpdate({
-                            _id: lastProposalData._id,
-                            status: constProposalStatus.PENDING,
-                            createTime: lastProposalData.createTime
-                        }, {
-                            status: status,
-                        }, {
-                            new: true
-                        }).populate({path: "type", model: dbconfig.collection_proposalType})
-                        .then(
-                            proposalData => {
-                                if (!proposalData) {
-                                    // someone changed the status in between these processes
-                                    return Promise.reject({message: "Proposal had been used"});
-                                }
-                                proposal = proposalData;
-                                let memo = '';
-                                return dbProposalUtility.createProposalProcessStep(proposal, null, status, memo).catch(errorUtils.reportError);
-                            }
-                        ).then(
-                            () => {
-                                return proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, true, proposal);
-                            }
-                        ).then(res=>{
-                            console.log(res);
-                        })
+        let endQuery = {
+            rewardStartTime: {$lte: curTime},
+            rewardEndTime: {$gte: curTime},
+            $or: [{
+                'rewardInterval': "weekly",
+                'rewardAppearPeriod.endDate': curDay,
+                'rewardAppearPeriod.endTime': curHour
+            }, {
+                'rewardInterval': "monthly",
+                'rewardAppearPeriod.endDate': curDate,
+                'rewardAppearPeriod.endTime': curHour
+            }],
+            publish: true,
+        };
+
+        return dbconfig.collection_auctionSystem.find(endQuery).then(auctionItems => {
+            console.log("auctionItems", auctionItems.length);
+            if (auctionItems.length){
+                let proms = [];
+
+                auctionItems.forEach( item => {
+                    if (item && item._id && item.platformObjId) {
+                        // get the highest bidder and send out the auction reward
+                        proms.push(runEndingAuctionProcess(item, curDay, curHour, curDate));
                     }
                 })
+
+                return Promise.all(proms);
             }
-        })
+        });
+
+        function runEndingAuctionProcess (auctionItem, curDay, curHour, curDate){
+            let updateProm = Promise.resolve([]);
+            let proposalTypeId = null;
+            let productName = auctionItem.productName;
+            let platformObjId = auctionItem.platformObjId;
+
+            let query = {
+                '_id': auctionItem._id,
+                'platformObjId': auctionItem.platformObjId,
+            };
+
+            let proposalTypeQuery = {
+                name: dbAuction.getProposalTypeByRewardType(auctionItem.rewardData.rewardType),
+                platformId: platformObjId
+            }
+            return dbconfig.collection_proposalType.findOne(proposalTypeQuery).lean().then(
+                proposalType => {
+                    if (proposalType){
+                        proposalTypeId = proposalType._id
+                    }
+                    else{
+                        return Promise.reject({
+                            name: "DBError",
+                            message: "Cannot get the proposalType."
+                        })
+                    }
+                    // get the highest bidder and send out the auction reward
+                    return dbAuction.listAuctionMonitor(query, 1);
+                }
+            ).then(
+                proposal => {
+                    //  update the highest bidder proposal that has not been processed yet
+                    if (proposal && proposal[0] && proposal[0].proposal && proposal[0].proposal[0] && proposal[0].proposal[0]._id && proposal[0].proposal[0].status == constProposalStatus.PENDING){
+                        let updateQuery = {
+                            status: constProposalStatus.SUCCESS
+                        };
+
+                        updateProm = dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(proposal[0].proposal[0]._id)}, updateQuery, {new: true}).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
+                    }
+                    return updateProm
+                }
+            ).then(
+                updatedProposal => {
+                    console.log("checking updatedProposal", updatedProposal)
+                    if (updatedProposal && updatedProposal.type && updatedProposal.type.executionType && updatedProposal.type.rejectionType){
+                        // execute the propoasl type
+                        return proposalExecutor.approveOrRejectProposal(updatedProposal.type.executionType, updatedProposal.type.rejectionType, true, updatedProposal);
+                    }
+                }
+            ).then(
+                () => {
+                    // find bid proposal in pending status
+                    if (platformObjId && proposalTypeId && productName){
+                        let intervalTime = dbAuction.convertAuctionDateToDateFormat(auctionItem, curDay, curHour, curDate);
+
+                        return dbconfig.collection_proposal.find(
+                            {
+                                type: proposalTypeId,
+                                'data.platformId': platformObjId,
+                                'data.productName': productName,
+                                status: constProposalStatus.PENDING,
+                                createTime: {
+                                    $gte: new Date(intervalTime.startTime),
+                                    $lt: new Date(intervalTime.endTime)
+                                }
+                            }
+                        ).lean();
+                    }
+
+                }
+            ).then(
+                proposalDataList => {
+                    let updateRejectProm = [];
+                    if (proposalDataList && proposalDataList.length) {
+                        // update the status to rejected
+                        proposalDataList.forEach(
+                            proposalData => {
+                                if (proposalData && proposalData._id) {
+                                    updateRejectProm.push(rejectProposalAndRefund(proposalData))
+                                }
+                            }
+                        )
+                    }
+
+                    return Promise.all(updateRejectProm);
+                }
+            ).catch(errorUtils.reportError)
+        }
+
+        function rejectProposalAndRefund(proposalData){
+           return dbconfig.collection_proposal.findOneAndUpdate(
+               {
+                   _id: proposalData._id,
+
+               },
+               {
+                   $set: {
+                       status: constProposalStatus.REJECTED
+                   }
+               },
+               {new: true}
+           ).lean().then(
+               proposalDetail => {
+                   if (proposalDetail && proposalDetail.data) {
+                       let creator = proposalDetail.data.seller || 'System';
+                       // return reward points to rejected bidder
+                       return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalDetail.data.playerObjId, proposalDetail.data.platformId, proposalDetail.data.currentBidPrice, 'Refund from bidding item: ' + proposalDetail.data.productName || "", null, null, creator, proposalDetail.inputDevice);
+                   }
+               }
+           )
+        }
+
+    },
+
+    convertAuctionDateToDateFormat: function (auctionItem, curDay, curHour, curDate){
+        let periodData = null;
+        let endHour = null;
+        let startHour = null;
+        let startDate = null;
+        let endDate = null;
+        let calEndTime = null
+        let calStartTime = null;
+        let tempDate = new Date();
+
+        if (auctionItem.rewardInterval == "weekly" && auctionItem.rewardAppearPeriod){
+            if (auctionItem.rewardAppearPeriod.length == 1){
+                periodData = auctionItem.rewardAppearPeriod[0];
+            }
+            else{
+                // search for the time interval
+                let segmentIndex = auctionItem.rewardAppearPeriod.findIndex( p => p.endTime == curHour && p.endDate == curDay);
+                if (segmentIndex != -1){
+                    periodData = auctionItem.rewardAppearPeriod[segmentIndex];
+                }
+            }
+
+            console.log("checking periodData",  periodData)
+            if (periodData) {
+                endHour = parseInt(periodData.endTime);
+                startHour = parseInt(periodData.startTime);
+                startDate = parseInt(periodData.startDate);
+                endDate = parseInt(periodData.endDate);
+                let dayDiff = Math.abs(endDate - startDate);
+
+                calEndTime = new Date(tempDate.getFullYear(), tempDate.getMonth(), tempDate.getDate(), endHour, 0, 0, 0);
+                if (dayDiff == 0) {
+                    calStartTime = new Date(tempDate.getFullYear(), tempDate.getMonth(), tempDate.getDate(), startHour, 0, 0, 0);
+                } else {
+                    calStartTime = new Date(tempDate.getFullYear(), tempDate.getMonth(), tempDate.getDate() - dayDiff, startHour, 0, 0, 0)
+                }
+            }
+        }
+        else if (auctionItem.rewardInterval == "monthly" && auctionItem.rewardAppearPeriod){
+            if (auctionItem.rewardAppearPeriod.length == 1){
+                periodData = auctionItem.rewardAppearPeriod[0];
+            }
+            else{
+                // search for the time interval
+                let segmentIndex = auctionItem.rewardAppearPeriod.findIndex( p => p.endTime == curHour && p.endDate == curDate);
+                if (segmentIndex != -1){
+                    periodData = auctionItem.rewardAppearPeriod[segmentIndex];
+                }
+            }
+
+            console.log("checking periodData",  periodData)
+            if (periodData) {
+                endHour = parseInt(periodData.endTime);
+                startHour = parseInt(periodData.startTime);
+                startDate = parseInt(periodData.startDate);
+                endDate = parseInt(periodData.endDate);
+
+                calEndTime = new Date(tempDate.getFullYear(), tempDate.getMonth(), endDate, endHour, 0, 0, 0);
+                calStartTime = new Date(tempDate.getFullYear(), tempDate.getMonth(), startDate, startHour, 0, 0, 0);
+            }
+        }
+
+        if (!calStartTime || !calEndTime){
+            return Promise.reject({
+                name: "DBError",
+                message: "Cant find the startTime and endTime of the auction item",
+            })
+        }
+
+        console.log("checking calStartime", calStartTime)
+        console.log("checking calEndTime", calEndTime)
+        return {startTime: calStartTime, endTime: calEndTime};
+    },
+
+    getProposalTypeByRewardType: function(rewardType){
+        let proposalType = null;
+        switch (rewardType) {
+            case 'promoCode':
+                proposalType = constProposalType.AUCTION_PROMO_CODE;
+                break;
+            case 'openPromoCode':
+                proposalType = constProposalType.AUCTION_OPEN_PROMO_CODE;
+                break;
+            case 'promotion':
+                proposalType = constProposalType.AUCTION_REWARD_PROMOTION;
+                break;
+            case 'realPrize':
+                proposalType = constProposalType.AUCTION_REAL_PRIZE;
+                break;
+            case 'rewardPointsChange':
+                proposalType = constProposalType.AUCTION_REWARD_POINT_CHANGE;
+                break;
+        }
+
+        if (!proposalType){
+            return Promise.reject({
+                name: "DataError",
+                message: "Cannot find the proposalType based on the rewardType for auction item"
+            })
+        }
+        return proposalType
     },
 
     bidAuctionItem: function (inputData, platformId, productName, rewardType, playerId, inputDevice) {
