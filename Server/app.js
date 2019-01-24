@@ -92,6 +92,10 @@ app.use(function (err, req, res, next) {
     });
 });
 
+process.on('uncaughtException', function (err) {
+    console.log('Caught exception: ', err);
+});
+
 var http = require('http');
 var server = http.createServer(app);
 var socketIO = require('socket.io').listen(server);
