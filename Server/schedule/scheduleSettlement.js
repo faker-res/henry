@@ -98,7 +98,7 @@ var minuteJob = new CronJob('0 * * * * *', function () {
                     }
 
                     // refresh bankCard, wechat, alipay daily quota if using FPMS payment type
-                    if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                         task3 = () => dailyPlatformSettlement.startDailyRefreshPaymentQuota(platformData).then(
                             data => {
                                 if (data) {

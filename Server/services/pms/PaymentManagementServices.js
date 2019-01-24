@@ -77,7 +77,8 @@
                 "requestOnLinepayByUsername",
                 "requestWechatpayByUsername",
                 "requestAlipayByUsername",
-                "mandatoryMatch"
+                "mandatoryMatch",
+                "userDepositSettings"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
         };

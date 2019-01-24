@@ -50,7 +50,8 @@ var dbPlatformBankCardGroup = {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+
+                if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                     // do not sync when using FPMS payment method
                     return  dbconfig.collection_platformBankCardGroup.find({platform: platformId}).lean();
                 }
@@ -157,7 +158,8 @@ var dbPlatformBankCardGroup = {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+
+                if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                     return dbconfig.collection_platformBankCardList.find(
                         {
                             platformId: platformId,

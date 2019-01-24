@@ -132,7 +132,8 @@ var dbPlatformAlipayGroup = {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+
+                if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                     return dbconfig.collection_platformAlipayList.find(
                         {
                             platformId: platformId,
@@ -161,7 +162,8 @@ var dbPlatformAlipayGroup = {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+
+                if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                     return dbPlatformAlipayGroup.getAllAlipaysByGroupByFPMS(platformData, platformId, alipayGroupId);
                 } else {
                     return dbPlatformAlipayGroup.getAllAlipaysByAlipayGroupWithIsInGroup(platformData, platformId, alipayGroupId);

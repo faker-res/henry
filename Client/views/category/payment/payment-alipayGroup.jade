@@ -23,13 +23,13 @@
                         br
                         input#aliPayFPMSGroupSetting(type='radio' value='false' ng-model="vm.aliPayGroupPMS" ng-disabled="!checkViewPermission('Payment', 'AlipayGroup', 'UpdateCardGroupType')")
                         label.radio-space(for='aliPayFPMSGroupSetting') {{"FPMS Group" | translate}}
-                        input#aliPayPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.aliPayGroupPMS" ng-disabled="!checkViewPermission('Payment', 'AlipayGroup', 'UpdateCardGroupType')")
-                        label.radio-space(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' for='aliPayPMSGroupSetting') {{"PMS Group" | translate}}
+                        input#aliPayPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && !vm.selectedPlatform.data.isFPMSPaymentSystem' type='radio' value='true' ng-model="vm.aliPayGroupPMS" ng-disabled="!checkViewPermission('Payment', 'AlipayGroup', 'UpdateCardGroupType')")
+                        label.radio-space(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && !vm.selectedPlatform.data.isFPMSPaymentSystem' for='aliPayPMSGroupSetting') {{"PMS Group" | translate}}
                         br
                         button.btn.btn-primary(ng-click="vm.updateIsPMSGroup(vm.aliPayGroupPMS, 'aliPayGroupIsPMS')" ng-if="checkViewPermission('Payment', 'AlipayGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
                 br
                 .btn-group.text-center(role="group")
-                    button.btn.btn-primary.vertical-button-group(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'AlipayGroup', 'CreateAlipay')", data-toggle="modal", ng-click='vm.newAlipayAcc={};', data-target='#modalAddNewAlipay')
+                    button.btn.btn-primary.vertical-button-group(ng-if="((vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) || vm.selectedPlatform.data.isFPMSPaymentSystem) && checkViewPermission('Payment', 'AlipayGroup', 'CreateAlipay')", data-toggle="modal", ng-click='vm.newAlipayAcc={};', data-target='#modalAddNewAlipay')
                         img.img-create
                         text {{"CreateAlipay" | translate}}
                     button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Create') && vm.alipayGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.newAlipayGroup={};', data-target='#modalAddAlipayGroup')
@@ -106,7 +106,7 @@
                 .text-right.widthto100
                     button.btn.btn-info.btn-space(ng-click="vm.selectAlipay(true)" ng-if="vm.alipayGroupUsed != 'PMS'") {{"Select All" | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.selectAlipay(false)" ng-if="vm.alipayGroupUsed != 'PMS'") {{"Clear All" | translate}}
-                    button.btn.btn-primary.btn-space(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && vm.allAlipayList.length > 0 && checkViewPermission('Payment', 'AlipayGroup', 'EditAlipay') && vm.alipayGroupUsed != 'PMS'" ng-click="vm.showEditAlipayInfo()" ng-disabled="vm.disableEditAlipay()", data-toggle="modal", data-target='#modalEditAlipay')
+                    button.btn.btn-primary.btn-space(ng-if="((vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) || vm.selectedPlatform.data.isFPMSPaymentSystem) && vm.allAlipayList.length > 0 && checkViewPermission('Payment', 'AlipayGroup', 'EditAlipay') && vm.alipayGroupUsed != 'PMS'" ng-click="vm.showEditAlipayInfo()" ng-disabled="vm.disableEditAlipay()", data-toggle="modal", data-target='#modalEditAlipay')
                         img.img-edit.symbol
                         text {{"EditAlipay" | translate}}
                     button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update') && vm.alipayGroupUsed != 'PMS'" ng-click='vm.alipaytoAlipayGroup("attach")')
