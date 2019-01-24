@@ -27941,7 +27941,6 @@ define(['js/app'], function (myApp) {
             // region Payment System Config
             vm.getPaymentSystemConfigByPlatform = function () {
                 vm.paymentSystemConfig = vm.paymentSystemConfig || [];
-                vm.cloneOriPaymentSystemConfig = [];
                 vm.refreshPaymentSystem();
 
                 let sendData = {
@@ -27954,7 +27953,6 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         if (data && data.data) {
                             vm.paymentSystemConfig = data.data;
-                            vm.cloneOriPaymentSystemConfig = JSON.parse(JSON.stringify(data.data))
                         }
                     });
                 }, function (err) {
@@ -27981,10 +27979,48 @@ define(['js/app'], function (myApp) {
                     updateData: updateData
                 }
                 socketService.$socket($scope.AppSocket, 'updatePaymentSystemConfigByPlatform', sendData, function (data) {
-                    $scope.$evalAsync(() => {
                         console.log('updatePaymentSystemConfigByPlatform success ', data);
                         vm.getPaymentSystemConfigByPlatform();
-                    });
+                        loadPlatformData({loadAll: false});
+                        let indexNo = vm.paymentSystemConfig.findIndex(x => x && x.name && x.enableTopup && (x.name === 'FPMS') && (x.enableTopup.toString() == 'true'));
+                        if (indexNo != -1 && vm.paymentSystemConfig[indexNo] && (vm.selectedPlatform.data.isFPMSPaymentSystem != vm.paymentSystemConfig[indexNo].enableTopup)
+                            && (vm.paymentSystemConfig[indexNo].enableTopup == true)) {
+
+                            let sendDataBankCard = {
+                                query: {
+                                    platform: vm.selectedPlatform.id
+                                },
+                                update: {
+                                    banks: []
+                                }
+                            }
+                            let sendDataWechat = {
+                                query: {
+                                    platform: vm.selectedPlatform.id
+                                },
+                                update: {
+                                    wechats: []
+                                }
+                            }
+                            let sendDataAli = {
+                                query: {
+                                    platform: vm.selectedPlatform.id
+                                },
+                                update: {
+                                    alipays: []
+                                }
+                            }
+
+                            socketService.$socket($scope.AppSocket, 'updatePlatformAllBankCardGroup', sendDataBankCard, function (data) {
+                                console.log("update bank card group complete")
+                            });
+                            socketService.$socket($scope.AppSocket, 'updatePlatformAllWechatPayGroup', sendDataWechat, function (data) {
+                                console.log("update wechatPay group complete")
+                            });
+                            socketService.$socket($scope.AppSocket, 'updatePlatformAllAlipayGroup', sendDataAli, function (data) {
+                                console.log("update aliPay  group complete")
+                            });
+                        };
                 }, function (err) {
                     console.log('updatePaymentSystemConfigByPlatform fail ', err);
                 });

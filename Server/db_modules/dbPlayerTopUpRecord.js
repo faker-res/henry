@@ -2146,9 +2146,8 @@ var dbPlayerTopUpRecord = {
                     bPMSGroup = false;
                 }
                 if (player && player._id) {
-                    if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
-                        isFPMS = true;
-                    } else if (topUpSystemConfig && topUpSystemConfig.name === 'FPMS') {
+                    if ((player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) ||
+                        (player.platform && player.platform.isFPMSPaymentSystem)) {
                         isFPMS = true;
                     }
 
@@ -3349,9 +3348,8 @@ var dbPlayerTopUpRecord = {
                         }
                     }
                     if (player && player._id) {
-                        if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
-                            isFPMS = true;
-                        } else if (topUpSystemConfig && topUpSystemConfig.name === 'FPMS') {
+                        if ((player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) ||
+                            (player.platform && player.platform.isFPMSPaymentSystem)) {
                             isFPMS = true;
                         }
 
@@ -3773,7 +3771,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         let platformData = playerData.platform;
-                        if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                        if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                             prom = dbconfig.collection_platformWechatPayList.find({accountNumber: {$in: playerData.wechatPayGroup.wechats}, isFPMS: true}).lean().then(
                                 wechatpayListData => {
                                     return {data: wechatpayListData}
@@ -3854,7 +3852,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         let platformData = playerData.platform;
-                        if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                        if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                             aliPayProm = dbconfig.collection_platformAlipayList.find({accountNumber: {$in: playerData.alipayGroup.alipays}, isFPMS: true}).lean().then(
                                 alipayListData => {
                                     return {data: alipayListData}
@@ -4003,9 +4001,8 @@ var dbPlayerTopUpRecord = {
                         }
                     }
                     if (player && player._id) {
-                        if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
-                            isFPMS = true;
-                        } else if (topUpSystemConfig && topUpSystemConfig.name === 'FPMS') {
+                        if ((player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) ||
+                            (player.platform && player.platform.isFPMSPaymentSystem)) {
                             isFPMS = true;
                         }
 

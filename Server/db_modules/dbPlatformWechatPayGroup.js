@@ -148,7 +148,7 @@ let dbPlatformWechatPayGroup = {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
 
-                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                     return dbconfig.collection_platformWechatPayList.find(
                         {
                             platformId: platformId,
@@ -177,7 +177,8 @@ let dbPlatformWechatPayGroup = {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+
+                if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                     return dbPlatformWechatPayGroup.getAllWechatpaysByGroupByFPMS(platformData, platformId, wechatPayGroupId);
                 } else {
                     return dbPlatformWechatPayGroup.getAllWechatpaysByWechatpayGroupWithIsInGroup(platformData, platformId, wechatPayGroupId);
