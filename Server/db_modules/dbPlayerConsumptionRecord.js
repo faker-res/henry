@@ -2285,9 +2285,7 @@ var dbPlayerConsumptionRecord = {
                 {
                     $group: {
                         _id: groupById,
-                        playerId: {
-                            $addToSet: "$playerId"
-                        }
+                        playerId: { $addToSet: "$playerId" }
                     }
                 }
             ]);
@@ -2295,6 +2293,7 @@ var dbPlayerConsumptionRecord = {
             //find the number of player consumption (non-repeat), include all providers
             participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj);
         }
+
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
                 $match: matchObj
             },
@@ -2309,9 +2308,7 @@ var dbPlayerConsumptionRecord = {
             }
         ]);
 
-        let gameProviderProm = dbPlatform.getPlatform({
-            _id: platformId
-        }).then(data => {
+        let gameProviderProm = dbPlatform.getPlatform({ _id: platformId }).then(data => {
             let gameProviders = (data && data.gameProviders) ? data.gameProviders : [];
             return gameProviders;
         })
@@ -2329,12 +2326,13 @@ var dbPlayerConsumptionRecord = {
                 let participantData = data[0] ? data[0] : [];
 
                 if (!listAll && data && data[0] && data[1] && data[1][0]) {
-                    // return "all" provider winrate data
+                    // return sum of "all" provider winrate data
                     participantNumber = data[0].length;
                     consumptionTimes = data[1][0].consumptionTimes;
                     totalAmount = data[1][0].total_amount;
                     validAmount = data[1][0].validAmount;
                     bonusAmount = data[1][0].bonusAmount;
+
                     let gameProviderName = gameProviders.filter(provider => {
                         if (provider._id.equals(ObjectId(providerId))) {
                             return provider
@@ -2344,7 +2342,6 @@ var dbPlayerConsumptionRecord = {
                     if (!providerId) {
                         gameProviderName = 'AllProviders';
                     }
-
                     returnData = [{
                         providerId: providerId,
                         providerName: gameProviderName,
@@ -2354,12 +2351,12 @@ var dbPlayerConsumptionRecord = {
                         validAmount: validAmount,
                         bonusAmount: bonusAmount
                     }]
-
                 } else if (listAll && data && data[0] && data[1] && data[1][0]) {
+                    // return  detail of each provider's winrate data
                     let providerSum;
                     if (gameProviders && gameProviders.length > 0) {
                         gameProviders.forEach(provider => {
-                            //find how many user consumption (non-repeat)
+                            //count how many player consumption (non-repeat)
                             let participant;
                             let participantNumber = 0;
                             if (participantData && participantData.length > 0) {
@@ -2369,7 +2366,7 @@ var dbPlayerConsumptionRecord = {
                                 participant = (participant && participant[0]) ? participant[0] : null;
                                 participantNumber = (participant && participant.playerId) ? participant.playerId.length : 0;
                             }
-                            //pairing the provider from a result
+                            //pair the provider - dump aggregate data into that provider object
                             let sumData = totalSumData.filter(sum => {
                                 if (sum._id.equals(provider._id)) {
                                     return sum;
@@ -2397,6 +2394,7 @@ var dbPlayerConsumptionRecord = {
     },
 
     getWinRateByGameType: function (startTime, endTime, providerId, platformId, providerName) {
+        // display winrate data by specific gametype (in a provider)
         const matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
             platformId: ObjectId(platformId),
@@ -2407,6 +2405,7 @@ var dbPlayerConsumptionRecord = {
             matchObj.providerId = ObjectId(providerId);
         }
 
+        // the player are non-repeatable
         let participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
                 $match: matchObj
             },
@@ -2419,6 +2418,7 @@ var dbPlayerConsumptionRecord = {
                 }
             }
         ]);
+
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: matchObj
@@ -2434,12 +2434,7 @@ var dbPlayerConsumptionRecord = {
             }
         ]);
 
-        let gameProviderProm = dbPlatform.getPlatform({ _id: platformId}).then(data => {
-            let gameProviders = (data && data.gameProviders) ? data.gameProviders : [];
-            return gameProviders;
-        })
-
-        return Promise.all([participantsProm, totalAmountProm, gameProviderProm]).then(
+        return Promise.all([participantsProm, totalAmountProm]).then(
             data => {
                 let participantNumber = 0;
                 let consumptionTimes = 0;
@@ -2448,7 +2443,6 @@ var dbPlayerConsumptionRecord = {
                 let bonusAmount = 0;
                 let returnData = [];
                 let totalSumData = data[1] ? data[1] : [];
-                let gameProviders = data[2];
                 let participantData = data[0] ? data[0] : [];
                 let participantArr = [];
                 let summaryData = {
@@ -2528,12 +2522,7 @@ var dbPlayerConsumptionRecord = {
             }
         ]);
 
-        let gameProviderProm = dbPlatform.getPlatform({ _id: platformId}).then(data => {
-            let gameProviders = (data && data.gameProviders) ? data.gameProviders : [];
-            return gameProviders;
-        })
-
-        return Promise.all([participantsProm, totalAmountProm, gameProviderProm]).then(
+        return Promise.all([participantsProm, totalAmountProm]).then(
             data => {
                 let participantNumber = 0;
                 let consumptionTimes = 0;
@@ -2542,7 +2531,6 @@ var dbPlayerConsumptionRecord = {
                 let bonusAmount = 0;
                 let returnData = [];
                 let totalSumData = data[1] ? data[1] : [];
-                let gameProviders = data[2];
                 let playersProm = [];
                 let summaryData = {
                     consumptionTimes : 0,
