@@ -15979,20 +15979,41 @@ let dbPlayerInfo = {
             totalPlatformFeeEstimate: 0,
             totalOnlineTopUpFee: 0,
         };
+        let playerQuery = {
+            platform: platform,
+            isRealPlayer: true
+        };
+
+        if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+            let tempArr = [];
+            let isNoneExist = false;
+
+            query.credibilityRemarks.forEach(remark => {
+                if (remark == "") {
+                    isNoneExist = true;
+                } else {
+                    tempArr.push(remark);
+                }
+            });
+
+            if (isNoneExist && tempArr.length > 0) {
+                playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+            } else if (isNoneExist && !tempArr.length) {
+                playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}];
+            } else if (tempArr.length > 0 && !isNoneExist) {
+                playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+            }
+        }
 
         if (query.name) {
             isSinglePlayer = true;
-            getPlayerProm = dbconfig.collection_players.findOne({
-                name: query.name,
-                platform: platform,
-                isRealPlayer: true
-            }, {_id: 1}).lean();
+            playerQuery.name = query.name;
+            getPlayerProm = dbconfig.collection_players.findOne(playerQuery,{_id: 1}).lean();
         } else if (query.adminIds && query.adminIds.length) {
-            getPlayerProm = dbconfig.collection_players.find({
-                platform: platform,
-                isRealPlayer: true,
-                csOfficer: {$in: query.adminIds}
-            }, {_id: 1}).lean();
+            playerQuery.csOfficer= {$in: query.adminIds};
+            getPlayerProm = dbconfig.collection_players.find(playerQuery, {_id: 1}).lean();
+        }else if(query.credibilityRemarks && query.credibilityRemarks.length !== 0){
+            getPlayerProm = dbconfig.collection_players.find(playerQuery, {_id: 1}).lean();
         }
 
         // function getPlayerWithConsumptionInTimeFrame () {
@@ -16025,7 +16046,7 @@ let dbPlayerInfo = {
 
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
-                } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
                     relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
                 }
 
