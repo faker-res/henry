@@ -182,17 +182,6 @@ function socketActionReport(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByPlayers, [startTime, endTime, query.providerId, query.platformId, query.gameType], actionName, isValidData);
         },
 
-        winRateAllPlatformReport: function winRateAllPlatformReport(query) {
-            let actionName = arguments.callee.name;
-            let time = dbUtil.getYesterdaySGTime();
-            let startTime = query.startTime ? new Date(query.startTime) : time.startTime;
-            let endTime = query.endTime ? new Date(query.endTime) : time.endTime;
-            query.limit = query.limit || 10;
-            query.index = query.index || 0;
-            let isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateAllPlatformReport, [startTime, endTime, query.providerId, query.platformId], actionName, isValidData);
-        },
-
         /**
          * Create player consumption report by playerId based on providerId and consumed time
          * @param {json} query - query data. It has to contain correct data format

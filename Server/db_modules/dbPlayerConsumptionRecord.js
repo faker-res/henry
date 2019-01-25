@@ -2582,52 +2582,6 @@ var dbPlayerConsumptionRecord = {
         )
     },
 
-    winRateAllPlatformReport: function (startTime, endTime, providerId, platformId) {
-        let sendQuery = {
-            '_id': platformId
-        }
-        let result = [];
-        let proms = [];
-
-        return dbPlatform.getPlatform(sendQuery).then(data => {
-            let gameProviders = (data && data.gameProviders) ? data.gameProviders : [];
-            return gameProviders
-        }).then(gameProviders => {
-
-            if (gameProviders && gameProviders.length > 0) {
-                gameProviders.forEach(provider => {
-                    let matchObj = {
-                        createTime: {
-                            $gte: startTime,
-                            $lt: endTime
-                        },
-                        platformId: ObjectId(platformId),
-                        isDuplicate: {
-                            $ne: true
-                        }
-                    };
-                    matchObj.providerId = ObjectId(providerId);
-                    let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj);
-                    let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
-                        {
-                            $match: matchObj
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                total_amount: {$sum: "$amount"},
-                                validAmount: {$sum: "$validAmount"},
-                                consumptionTimes: {$sum: {$cond: ["$count", "$count", 1]}},
-                                bonusAmount: {$sum: "$bonusAmount"}
-                            }
-                        }
-                    ]);
-
-                })
-            }
-        })
-    },
-
     markDuplicatedConsumptionRecords: dupsSummaries => {
         if (dupsSummaries.length > 0) {
             let markDupsProm = [];
