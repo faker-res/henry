@@ -5885,6 +5885,16 @@ var dbPlatform = {
 
                         if (config.enableTopup && config.enableTopup.toString() === 'true') {
                             updateSelectedConfig.topUpSystemType = config.systemType;
+
+                            if (config.name === 'FPMS') {
+                                updateSelectedConfig.isFPMSPaymentSystem = true;
+                                updateSelectedConfig.bankCardGroupIsPMS = false;
+                                updateSelectedConfig.merchantGroupIsPMS = false;
+                                updateSelectedConfig.aliPayGroupIsPMS = false;
+                                updateSelectedConfig.wechatPayGroupIsPMS = false;
+                            } else {
+                                updateSelectedConfig.isFPMSPaymentSystem = false;
+                            }
                         }
 
                         if (config.enableBonus && config.enableBonus.toString() === 'true') {

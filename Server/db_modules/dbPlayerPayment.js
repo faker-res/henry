@@ -43,7 +43,7 @@ const dbPlayerPayment = {
                 if (data && data.platform && data.alipayGroup) {
                     playerData = data;
                     let platformData = playerData.platform;
-                    if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                         return dbconfig.collection_platformAlipayList.find({accountNumber: {$in: playerData.alipayGroup.alipays}, isFPMS: true}).lean().then(
                             alipayListData => {
                                 return {data: alipayListData}
@@ -220,7 +220,7 @@ const dbPlayerPayment = {
                 if( playerData ){
                     playerObj = playerData;
                     let platformData = playerData.platform;
-                    if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                         let accountArr = playerObj.bankCardGroup && playerObj.bankCardGroup.banks && playerObj.bankCardGroup.banks.length? playerObj.bankCardGroup.banks: [];
                         return dbconfig.collection_platformBankCardList.find(
                             {
