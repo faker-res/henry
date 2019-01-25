@@ -43,7 +43,7 @@ const dbPlayerPayment = {
                 if (data && data.platform && data.alipayGroup) {
                     playerData = data;
                     let platformData = playerData.platform;
-                    if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                         return dbconfig.collection_platformAlipayList.find({accountNumber: {$in: playerData.alipayGroup.alipays}, isFPMS: true}).lean().then(
                             alipayListData => {
                                 return {data: alipayListData}
@@ -220,7 +220,7 @@ const dbPlayerPayment = {
                 if( playerData ){
                     playerObj = playerData;
                     let platformData = playerData.platform;
-                    if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                         let accountArr = playerObj.bankCardGroup && playerObj.bankCardGroup.banks && playerObj.bankCardGroup.banks.length? playerObj.bankCardGroup.banks: [];
                         return dbconfig.collection_platformBankCardList.find(
                             {
@@ -596,6 +596,18 @@ const dbPlayerPayment = {
                     proposalData.aliPayGroupName = player.alipayGroup && player.alipayGroup.name || "";
 
                     proposalType = constProposalType.PLAYER_COMMON_TOP_UP;
+                }
+
+                if (player.platform.topUpSystemType && topUpSystemConfig) {
+                    proposalData.topUpSystemType = player.platform.topUpSystemType;
+                    proposalData.topUpSystemName = topUpSystemConfig.name;
+                } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                    Object.keys(extConfig).forEach(key => {
+                        if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                            proposalData.topUpSystemType = Number(key);
+                            proposalData.topUpSystemName = extConfig[key].name;
+                        }
+                    });
                 }
 
                 if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){

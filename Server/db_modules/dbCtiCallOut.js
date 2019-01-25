@@ -334,6 +334,82 @@ let dbCtiCallOut = {
         }
     },
 
+    callCtiApiWithAllTry: (platformId, path, param) => {
+        let urls = dbCtiCallOut.getCtiUrls(platformId);
+
+        let proms = urls.map(url => {
+            return tryCallCtiApi(url).catch(error => {error});
+        });
+
+        return Promise.all(proms).then(
+            output => {
+                if (!(output instanceof Array)) {
+                    return;
+                }
+
+                let mostRelevantError, errorObj;
+                for (let i = 0; i < output.length; i++) {
+                    if (output[i].result == 1) {
+                        return output[i];
+                    }
+
+                    if (output[i].result) {
+                        if (mostRelevantError) {
+                            mostRelevantError = Number(mostRelevantError) < Number(output[i].result) ? mostRelevantError : output[i].result;
+                        }
+                        else {
+                            mostRelevantError = output[i].result;
+                        }
+                    }
+
+                    if (!errorObj || output[i].error) {
+                        errorObj = output[i].error;
+                    }
+                }
+
+                if (mostRelevantError) {
+                    return {result: mostRelevantError};
+                }
+
+                return Promise.reject(errorObj);
+            }
+        );
+
+        function tryCallCtiApi(url) {
+            let link = url + path;
+            return new Promise((resolve, reject) => {
+                try {
+                    request.post(link, {form: param, timeout: 5000}, (err, resp, body) => {
+                        if (err || (resp && body && Number(JSON.parse(body).result) != 1)) {
+                            console.log("CTI try", link, body, err);
+
+                            if (body) {
+                                resolve({result: JSON.parse(body).result});
+                                return;
+                            }
+
+                            resolve(Promise.reject(err));
+                            return;
+                        }
+
+                        if (!resp) {
+                            // throw this to prevent passing undefined to JSON.parse function
+                            console.log("CTI try no.", link);
+                            console.error('CTI Post request get nothing for ' + link);
+                            reject({error: "empty response"});
+                            return;
+                        }
+
+                        resolve(JSON.parse(body));
+                    });
+                } catch (err) {
+                    console.error(err);
+                    reject(err);
+                }
+            });
+        }
+    },
+
 
 };
 

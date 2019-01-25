@@ -1,34 +1,33 @@
-#WechatRecordQuery.well.block-query.col-md-12.well(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
-    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
+#WechatRecordQuerycol-md-12.well(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
+    .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
         label {{'PRODUCT' | translate}}
-        select.form-control(style='max-width:155px', ng-change='vm.getWechatDeviceNickNameListForReport();',ng-model='vm.inspectionWechatReport.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
+        select.form-control(ng-change='vm.getWechatDeviceNickNameListForReport();',ng-model='vm.inspectionWechatReport.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
 
-    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
+    .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
         label {{'Create Device Name' | translate}}
-        select.form-control(style='max-width:155px',ng-model='vm.inspectionWechatReport.deviceName', ng-options='device for device in vm.wechatReportDeviceList', multiple, bsp, data-actions-box='true')
+        select.form-control(ng-model='vm.inspectionWechatReport.deviceName', ng-options='device for device in vm.wechatReportDeviceList', multiple, bsp, data-actions-box='true')
 
-    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
+    .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
         label {{'Customer Service Account (Input, Comma Added)' | translate}}
         input.form-control(type='text', ng-model='vm.inspectionWechatReport.csName')
 
-    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
+    .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
         label {{'Message Begin Time' | translate}}
         #wechatMessageReportBeginDatetimePicker.input-append.form-control
-            input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+            input(data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
             span.add-on
                 i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
 
-    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
+    .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
         label {{'Message End Time' | translate}}
         #wechatMessageReportEndDatetimePicker.input-append.form-control
-            input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+            input(data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
             span.add-on
                 i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
 
-    div
+    .text-right.widthto100
         label &nbsp;
-        button.button.common-button.btn.btn-primary(ng-click='vm.searchWechatConversationReport()' ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')") {{'SEARCH' | translate}}
-
+        button.btn.btn-primary.btn-space(ng-click='vm.searchWechatConversationReport()' ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')") {{'SEARCH' | translate}}
         span#wechatConversationReportTableSpin.collapse
             i.fa.fa-spinner.fa-spin
 .clearfix

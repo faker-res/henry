@@ -1,25 +1,25 @@
-#trashClassificationDecompositionListRightTable.panel.panel-danger(style='width:100%;display:inline-block')
+#trashClassificationDecompositionListRightTable.panel.panel-danger
     .panel-heading
-        .pull-left(style='margin-top: -5px;')
+        .pull-left
             a.fa.fa-chevron-circle-left.contractIcon(ng-show='!vm.hideLeftPanel', ng-click='vm.setPanel(true)')
             a.fa.fa-chevron-circle-right.contractIcon(ng-show='vm.hideLeftPanel', ng-click='vm.setPanel(false)')
         label {{vm.showPageName | translate}}
     .panel-body
         div(ng-if='vm.showPageName=="Trash Classification（Export）"')
-            #topUpReportQuery.block-query.col-md-12.well
-                div
-                    label.control-label {{'Name List (Decomposed / Last 10)' | translate}}
+            #topUpReportQuery.col-md-12.well
+                .search-filters-item
+                    label {{'Name List (Decomposed / Last 10)' | translate}}
                     select.spicker.form-control(ng-model='vm.trashClassificationTradeQuery.phoneLists' bsp multiple data-actions-box='true')
                         option(ng-repeat='(i,v) in vm.lastTenDecomposedPhontList' ng-if="v.status == '7'" value='{{v._id}}') {{v.name}}
-                div
-                    label.control-label {{'RECYCLE_TIME_START' | translate}}
+                .search-filters-item
+                    label {{'RECYCLE_TIME_START' | translate}}
                     #trashClassificationStartTimePicker
-                div
-                    label.control-label {{'RECYCLE_TIME_END' | translate}}
+                .search-filters-item
+                    label {{'RECYCLE_TIME_END' | translate}}
                     #trashClassificationEndTimePicker
-                div
+                .text-right.widthto100
                     label &nbsp;
-                    button#searchTrashClassification.btn.btn-primary.common-button-sm(style="margin-top:.5em; float:right;" ng-click="vm.searchTrashClassificationTrade(true)") {{'SEARCH' | translate}}
+                    button#searchTrashClassification.btn.btn-primary.btn-space(ng-click="vm.searchTrashClassificationTrade(true)") {{'SEARCH' | translate}}
                     span#trashClassificationTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -27,20 +27,20 @@
             #trashClassificationTradeTablePage
             br
             br
-            button.btn.btn-danger.common-button(data-target="#modalExportTsPhoneTrade" data-toggle="modal" ng-click="vm.initModalExportTsPhoneTrade()") {{"Manual Export to New Phone List" | translate}}
+            button.btn.btn-danger(data-target="#modalExportTsPhoneTrade" data-toggle="modal" ng-click="vm.initModalExportTsPhoneTrade()") {{"Manual Export to New Phone List" | translate}}
 
         div(ng-if='vm.showPageName=="New Phone"')
             div
-                #decomposedNewPhoneQuery.block-query.col-md-12.well
-                    div
+                #decomposedNewPhoneQuery.col-md-12.well
+                    .search-filters-item
                         label {{"Trade Time(Start)"|translate}}
                         .startTime
-                    div
+                    .search-filters-item
                         label {{"Trade Time(End)"|translate}}
                         .endTime
-                    div
+                    .text-right.widthto100
                         label &nbsp;
-                        button.btn.btn-success(ng-click='vm.searchDecomposedNewPhoneQuery(true)') {{'SEARCH' | translate}}
+                        button.btn.btn-success.btn-space(ng-click='vm.searchDecomposedNewPhoneQuery(true)') {{'SEARCH' | translate}}
                         span#decomposedNewPhoneTableSpin.collapse
                             i.fa.fa-spinner.fa-spin
                 .clearfix
@@ -49,7 +49,7 @@
                 #decomposedNewPhoneTablePage
             br
             br
-            div(style='text-align:right')
+            div.text-right
                 button.btn.btn-danger(data-target="#modalIMPORT_XLS_TS" data-toggle="modal", ng-click='vm.initModalImportTsPhoneTrade()', ng-disabled='!vm.multiDecomposedNewPhoneSelected.length') {{'IMPORT_XLS_TS' | translate}}
 
 #modalIMPORT_XLS_TS.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
@@ -63,7 +63,7 @@
                     .panel-body
                         .row
                             .col-md-12
-                                table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                                table.common-table.playerLvlTable
                                     thead
                                         tr
                                             th(colspan=2) {{'Import X numbers into telemarketing system' | translate}}
@@ -131,6 +131,6 @@
 
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px')
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="!vm.exportTsPhoneTrade.exportCount"
+                button.btn.btn-primary.btn-space(data-dismiss='modal', ng-disabled="!vm.exportTsPhoneTrade.exportCount"
                 data-target='#modalExportTsPhoneTrade', ng-click="vm.exportDecomposedPhones();") {{"CONFIRM" | translate}}
-                button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn.btn-danger.btn-space(data-dismiss='modal') {{"CANCEL" | translate}}

@@ -5555,6 +5555,7 @@ let dbPlayerInfo = {
      *  @param include name and password of the player and some more additional info to log the player's login
      */
     playerLogin: function (playerData, userAgent, inputDevice, mobileDetect) {
+        console.log('rt playerLogin start');
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -5569,6 +5570,7 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
+                console.log('rt playerLogin 1');
                 if (platformData) {
                     platformObj = platformData;
                     requireLogInCaptcha = platformData.requireLogInCaptcha || false;
@@ -5608,6 +5610,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                console.log('rt playerLogin 2');
                 if (data) {
                     playerObj = data;
 
@@ -5620,6 +5623,7 @@ let dbPlayerInfo = {
                     }
                     db_password = String(data.password); // hashedPassword from db
                     if (dbUtility.isMd5(db_password)) {
+                        console.log('rt playerLogin 2.1');
                         if (md5(playerData.password) == db_password) {
                             return Promise.resolve(true);
                         }
@@ -5628,17 +5632,28 @@ let dbPlayerInfo = {
                         }
                     }
                     else {
+                        console.log('rt playerLogin 2.2');
                         return new Promise((resolve, reject) => {
-                            bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
-                                if (err) {
-                                    reject({
-                                        name: "DataError",
-                                        message: "Error in matching password",
-                                        error: err
-                                    });
-                                }
-                                resolve(isMatch);
-                            });
+                            console.log('rt playerLogin 2.2.1');
+                            try {
+                                let bcrypt = require('bcrypt');
+
+                                bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
+                                    console.log('rt playerLogin 2.2.2', err, isMatch);
+                                    if (err) {
+                                        reject({
+                                            name: "DataError",
+                                            message: "Error in matching password",
+                                            error: err
+                                        });
+                                    }
+                                    resolve(isMatch);
+                                });
+                            } catch (err) {
+                                console.log('err', err);
+                                throw err;
+                            }
+
                         })
                     }
                 }
@@ -5652,6 +5667,7 @@ let dbPlayerInfo = {
             }
         ).then(
             isMatch => {
+                console.log('rt playerLogin 3');
                 if (!isMatch) {
                     return Promise.reject({
                         name: "DataError",
@@ -5750,6 +5766,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                console.log('rt playerLogin 4');
                 // Geo and ip related update
                 if (bUpdateIp) {
                     dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
@@ -5791,6 +5808,7 @@ let dbPlayerInfo = {
             }
         ).then(
             record => {
+                console.log('rt playerLogin 5');
                 updateAutoFeedbackLoginCount(record).catch(errorUtils.reportError);
                 dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
                     err => {
@@ -5817,6 +5835,7 @@ let dbPlayerInfo = {
             }
         ).then(
             res => {
+                console.log('rt playerLogin 6');
                 res.name = res.name.replace(platformPrefix, "");
                 retObj = res;
 
@@ -5836,11 +5855,13 @@ let dbPlayerInfo = {
             }
         ).then(
             zoneData => {
+                console.log('rt playerLogin 7');
                 retObj.bankAccountProvince = zoneData[0] && zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
                 retObj.bankAccountCity = zoneData[1] && zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                 retObj.bankAccountDistrict = zoneData[2] && zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
+                console.log('rt playerLogin end');
                 return retObj;
             }
         );
@@ -12448,7 +12469,8 @@ let dbPlayerInfo = {
                     platformId = platformData.platformId;
 
                     let sendQuery = {
-                        _id: gameId
+                        _id: gameId,
+                        status: {$ne: constGameStatus.DELETED}
                     }
 
                     if (Number(device)) {
@@ -12465,7 +12487,8 @@ let dbPlayerInfo = {
                                 // get the data from platformGameStatus to get the status information
                                 let queryObj = {
                                     game: data._id,
-                                    platform: platformObjId
+                                    platform: platformObjId,
+                                    status: {$ne: constGameStatus.DELETED}
                                 }
                                 return dbconfig.collection_platformGameStatus.findOne(queryObj).lean().then(platformGame => {
                                     if (platformGame) {
@@ -15979,20 +16002,41 @@ let dbPlayerInfo = {
             totalPlatformFeeEstimate: 0,
             totalOnlineTopUpFee: 0,
         };
+        let playerQuery = {
+            platform: platform,
+            isRealPlayer: true
+        };
+
+        if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+            let tempArr = [];
+            let isNoneExist = false;
+
+            query.credibilityRemarks.forEach(remark => {
+                if (remark == "") {
+                    isNoneExist = true;
+                } else {
+                    tempArr.push(remark);
+                }
+            });
+
+            if (isNoneExist && tempArr.length > 0) {
+                playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+            } else if (isNoneExist && !tempArr.length) {
+                playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}];
+            } else if (tempArr.length > 0 && !isNoneExist) {
+                playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+            }
+        }
 
         if (query.name) {
             isSinglePlayer = true;
-            getPlayerProm = dbconfig.collection_players.findOne({
-                name: query.name,
-                platform: platform,
-                isRealPlayer: true
-            }, {_id: 1}).lean();
+            playerQuery.name = query.name;
+            getPlayerProm = dbconfig.collection_players.findOne(playerQuery,{_id: 1}).lean();
         } else if (query.adminIds && query.adminIds.length) {
-            getPlayerProm = dbconfig.collection_players.find({
-                platform: platform,
-                isRealPlayer: true,
-                csOfficer: {$in: query.adminIds}
-            }, {_id: 1}).lean();
+            playerQuery.csOfficer= {$in: query.adminIds};
+            getPlayerProm = dbconfig.collection_players.find(playerQuery, {_id: 1}).lean();
+        }else if(query.credibilityRemarks && query.credibilityRemarks.length !== 0){
+            getPlayerProm = dbconfig.collection_players.find(playerQuery, {_id: 1}).lean();
         }
 
         // function getPlayerWithConsumptionInTimeFrame () {
@@ -16025,7 +16069,7 @@ let dbPlayerInfo = {
 
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
-                } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
                     relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
                 }
 

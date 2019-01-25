@@ -82,11 +82,11 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 label {{"CONTENT_TXT" | translate}}:
                                 p(style="word-wrap:break-word; width:100%") {{vm.contentTXT}}
                             .pull-right
-                                button.btn.btn-danger.common-button(ng-click="vm.resetTXT()")
-                                    i.fa.fa-refresh
+                                button.btn.btn-danger.btn-space(ng-click="vm.resetTXT()")
+                                    i.fa.fa-refresh.symbol
                                     text {{"RESET_TXT" | translate}}
-                                button.btn.btn-primary.common-button(ng-click="vm.phoneNumTXTResult=true;")
-                                    i.fa.fa-check
+                                button.btn.btn-primary.btn-space(ng-click="vm.phoneNumTXTResult=true;")
+                                    i.fa.fa-check.symbol
                                     text {{"SUBMIT" | translate}}
                     // display result
                     div(ng-if="vm.phoneNumTXTResult")
@@ -95,12 +95,12 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .well
                             label {{"DUPLICATE_PHONE" | translate}}:
                             | &nbsp;
-                            label(style="color:red") ({{vm.samePhoneTotalTXT}})
+                            label.colorRed ({{vm.samePhoneTotalTXT}})
                             p {{vm.samePhoneTXT}}
                         .well
                             label {{"NON_DUPLICATE_PHONE" | translate}}:
                             | &nbsp;
-                            label(style="color:red") ({{vm.diffPhoneTotalTXT}})
+                            label.colorRed ({{vm.diffPhoneTotalTXT}})
                             p {{vm.diffPhoneTXT}}
                         .pull-right
                             button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTXT' ng-click="vm.importPhoneResult = ''; vm.getAllDxMission();")
@@ -124,11 +124,11 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                     textarea.form-control(rows='5', placeholder="14444444444, 15555555555, 16666666666", ng-model="vm.inputNewPhoneNum")
                     br
                     .pull-right
-                        button.btn.btn-danger.common-button(ng-click="vm.resetTextarea()")
-                            i.fa.fa-refresh
+                        button.btn.btn-danger.btn-space(ng-click="vm.resetTextarea()")
+                            i.fa.fa-refresh.symbol
                             text {{"RESET_TEXTAREA" | translate}}
-                        button.btn.btn-primary.common-button(ng-click="vm.phoneNumListResult=true; vm.comparePhoneNum(vm.inputNewPhoneNum);")
-                            i.fa.fa-check
+                        button.btn.btn-primary.btn-space(ng-click="vm.phoneNumListResult=true; vm.comparePhoneNum(vm.inputNewPhoneNum);")
+                            i.fa.fa-check.symbol
                             text {{"SUBMIT" | translate}}
                     // display result
                     div(ng-if="vm.phoneNumListResult")
@@ -194,15 +194,15 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .pull-left(ng-if="vm.phoneNumXLSResult")
                             label {{"XLS_LENGTH" | translate}}:
                             | &nbsp;
-                            label(style="color:red") {{vm.xlsTotal}}
+                            label.colorRed {{vm.xlsTotal}}
                             br
                             label {{"DUPLICATE_PHONE" | translate}}:
                             | &nbsp;
-                            label(style="color:red") {{vm.samePhoneTotalXLS}}
+                            label.colorRed {{vm.samePhoneTotalXLS}}
                             br
                             label {{"NON_DUPLICATE_PHONE" | translate}}:
                             | &nbsp;
-                            label(style="color:red") {{vm.diffPhoneTotalXLS}}
+                            label.colorRed {{vm.diffPhoneTotalXLS}}
                         .pull-right
                             button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalNewTSPhoneListXLS' ng-click="vm.importPhoneResult = ''; vm.initFilterAndImportDXSystem();")
                                 i.fa.fa-upload

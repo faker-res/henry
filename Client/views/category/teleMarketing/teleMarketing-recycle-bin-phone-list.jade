@@ -4,28 +4,26 @@
             label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
     .col-md-12(ng-show="vm.curPlatformText")
         .col-md-12.search-filters-container#recycleBinPhoneListTable-search-filter.well
-            .search-filter.col-xs-12.col-sm-6.col-md-3
-                label.control-label {{'PHONE_LIST' | translate}}
+            .search-filters-item
+                label {{'PHONE_LIST' | translate}}
                 select.spicker.form-control#recycleBinPhoneListName(ng-model='vm.recycleBinPhoneListSearch.name', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.recycleBinPhoneListName')
-            .search-filter.col-xs-12.col-sm-6.col-md-3
+            .search-filters-item
                 label {{"SEND_STATUS"|translate}}
                 select.spicker.form-control#recycleBinPhoneListStatus(ng-model='vm.recycleBinPhoneListSearch.sendStatus', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.constTsPhoneListStatusStr')
-            .col-xs-12.col-sm-6.col-md-3(style='width: 250px !important')
-                label.control-label {{'RECYCLE_TIME_START' | translate}}
+            .search-filters-item
+                label {{'RECYCLE_TIME_START' | translate}}
                 #recycleBinPhoneListStartTimePicker
-            .col-xs-12.col-sm-6.col-md-3(style='width: 250px !important')
-                label.control-label {{'RECYCLE_TIME_END' | translate}}
+            .search-filters-item
+                label {{'RECYCLE_TIME_END' | translate}}
                 #recycleBinPhoneListEndTimePicker
-            .search-filter.col-md-3(style="padding-top: 25px;")
-                label.control-label
-                button#searchRecycleBinPhoneList.btn.btn-primary.common-button-sm(ng-click="vm.filterRecycleBinPhoneList(true);") {{'SEARCH' | translate}}
+            .text-right.widthto100
+                button#searchRecycleBinPhoneList.btn.btn-primary(ng-click="vm.filterRecycleBinPhoneList(true);") {{'SEARCH' | translate}}
     .col-md-12(ng-show="vm.curPlatformText")
         div
             table#recycleBinPhoneListTable.common-table.display(style="min-width:100% ;overflow: scroll")
             #recycleBinPhoneListTablePage
-        br
-        br
-        .clearfix
-            button.common-button.btn.btn-danger(title='{{"Reimport unregistered, unused phone number to system" | translate}}', ng-disabled='!vm.selectedTsPhoneList || vm.disableReimportRecycleBinPhone', data-toggle="modal",
-            data-target='#modalNewTSPhoneListXLS', ng-click="vm.importPhoneResult = ''; vm.initFilterAndImportDXSystem();") {{"REIMPORT_PHONE_TO_SYSTEM" | translate}}
-            button.common-button.btn.btn-success(ng-disabled='!vm.selectedTsPhoneList || vm.disableReimportRecycleBinPhone', ng-click="vm.decomposeTsPhoneList(); vm.disableReimportRecycleBinPhone = true") {{"Decompose / trash classification in advance" | translate}}
+
+    .col-md-12
+        button.btn.btn-danger(title='{{"Reimport unregistered, unused phone number to system" | translate}}', ng-disabled='!vm.selectedTsPhoneList || vm.disableReimportRecycleBinPhone', data-toggle="modal",
+        data-target='#modalNewTSPhoneListXLS', ng-click="vm.importPhoneResult = ''; vm.initFilterAndImportDXSystem();") {{"REIMPORT_PHONE_TO_SYSTEM" | translate}}
+        button.btn.btn-success.btn-space(ng-disabled='!vm.selectedTsPhoneList || vm.disableReimportRecycleBinPhone', ng-click="vm.decomposeTsPhoneList(); vm.disableReimportRecycleBinPhone = true") {{"Decompose / trash classification in advance" | translate}}

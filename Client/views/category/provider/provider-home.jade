@@ -17,25 +17,25 @@ div
                 .text-center
                     label.text-danger(ng-if='!vm.SelectedProvider') {{"NO_PROVIDER_MESSAGE" | translate}}
                 #providerGamesFilter.well
-                    .inlineBlk.margin-right-5
+                    .search-filters-item
                         .control-label {{"GAME_TITLE" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.filterGameName')
-                    .inlineBlk.margin-right-5
+                        input.form-control(type='text', ng-model='vm.filterGameName')
+                    .search-filters-item
                         .control-label {{"GAME_CODE" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.filterGameCode')
-                    .inlineBlk.margin-right-5
+                        input.form-control(type='text', ng-model='vm.filterGameCode')
+                    .search-filters-item
                         .control-label {{"GAME_TYPE" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterGameType', style='max-width:200px')
+                        select.form-control(ng-model='vm.filterGameType')
                             option(value='all') {{'any' | translate}}
                             option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v.gameTypeId}}') {{v.name}}&nbsp;({{v.description}})
-                    .inlineBlk.margin-right-5
+                    .search-filters-item
                         .control-label {{"Play Game Type" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterPlayGameType', style='max-width:200px')
+                        select.form-control(ng-model='vm.filterPlayGameType')
                             option(value='all') {{'any' | translate}}
                             option(value='1') {{'flash' | translate}}
                             option(value='2') {{'HTML5' | translate}}
-                    .inlineBlk
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.providerFilterClicked()") {{"FILTER" | translate}}
+                    .text-right.widthto100
+                        button.btn.btn-primary(data-dismiss='modal', ng-click="vm.providerFilterClicked()") {{"FILTER" | translate}}
                 div(ng-if="checkViewPermission('Provider', 'Game', 'Read')",style='height:370px;overflow-x:hidden;overflow-y:auto')
                     include ./game-blocks
                 br

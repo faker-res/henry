@@ -39,7 +39,7 @@
                 //    label.text-success(ng-show='vm.CPMSServerStatus') {{"Connected" | translate}}
                 //    label.blink.text-danger(ng-show='!vm.CPMSServerStatus') {{"Disconnected" | translate}}
 
-    .col-md-8(style="padding-left:0;padding-right:15px")
+    .col-md-8
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"GAME_STATUS" | translate}}&nbsp;:&nbsp;{{vm.SelectedProvider.name}}
@@ -49,28 +49,28 @@
                 .text-center(ng-if='!vm.SelectedProvider')
                     label.text-danger {{"NO_PROVIDER_MESSAGE" | translate}}
                 .well
-                    .inlineBlk.margin-right-5
-                        .control-label {{"GAME" | translate}} ID
-                        input.input-sm.form-control(type='text', ng-model='vm.filterGameId')
-                    .inlineBlk.margin-right-5
-                        .control-label {{"GAME_TITLE" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.filterGameName')
-                    .inlineBlk.margin-right-5
-                        .control-label {{"GAME_TYPE" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterGameType', style='max-width:150px')
+                    .search-filters-item
+                        label {{"GAME" | translate}} ID
+                        input.form-control(type='text', ng-model='vm.filterGameId')
+                    .search-filters-item
+                        label {{"GAME_TITLE" | translate}}
+                        input.form-control(type='text', ng-model='vm.filterGameName')
+                    .search-filters-item
+                        label {{"GAME_TYPE" | translate}}
+                        select.form-control(ng-model='vm.filterGameType')
                             option(value='all', ) {{'any' | translate}}
                             option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v.gameTypeId}}') {{v.name}}&nbsp;({{v.description}})
-                    .inlineBlk.margin-right-5
-                        .control-label {{"GAME_DESCRIPTION" | translate}}
-                        input.input-sm.form-control(type='text', ng-model='vm.filterGameDescription')
-                    .inlineBlk.margin-right-5
-                        .control-label {{"Play Game Type" | translate}}
-                        select.input-sm.form-control(ng-model='vm.filterPlayGameType', style='max-width:150px')
+                    .search-filters-item
+                        label {{"GAME_DESCRIPTION" | translate}}
+                        input.form-control(type='text', ng-model='vm.filterGameDescription')
+                    .search-filters-item
+                        label {{"Play Game Type" | translate}}
+                        select.form-control(ng-model='vm.filterPlayGameType')
                             option(value='all') {{'any' | translate}}
                             option(value='1') {{'flash' | translate}}
                             option(value='2') {{'HTML5' | translate}}
-                    .inlineBlk
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.providerClicked(1,vm.SelectedProvider)") {{"FILTER" | translate}}
+                    .text-right.widthto100
+                        button.btn.btn-primary(data-dismiss='modal', ng-click="vm.providerClicked(1,vm.SelectedProvider)") {{"FILTER" | translate}}
                 #gameList.panel-group(ng-if='vm.SelectedProvider')
                     label.text-danger(ng-if='vm.selectedGamesInGameGroup.length>0') {{vm.selectedGamesInGameGroup.length}}&nbsp;{{'game' | translate}}&nbsp;{{'is selected' | translate}}
                     .panel.panel-default
