@@ -505,7 +505,9 @@ var platformSchema = new Schema({
     // Switch Payment System - topup
     topUpSystemType: {type: Number},
     // Switch Payment System - bonus
-    bonusSystemType: {type: Number}
+    bonusSystemType: {type: Number},
+    // to identify current using FPMS payment method
+    isFPMSPaymentSystem: {type: Boolean, default: false}
 });
 
 //add platform id before save

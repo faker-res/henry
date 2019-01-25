@@ -28,13 +28,13 @@ style.
                         br
                         input#bankCardFPMSGroupSetting(type='radio' value='false' ng-model="vm.bankCardGroupPMS" ng-disabled="!checkViewPermission('Payment', 'BankCardGroup', 'UpdateCardGroupType')")
                         label.radio-space(for='bankCardFPMSGroupSetting') {{"FPMS Group" | translate}}
-                        input#bankCardPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.bankCardGroupPMS" ng-disabled="!checkViewPermission('Payment', 'BankCardGroup', 'UpdateCardGroupType')")
-                        label.radio-space(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' for='bankCardPMSGroupSetting') {{"PMS Group" | translate}}
+                        input#bankCardPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && !vm.selectedPlatform.data.isFPMSPaymentSystem' type='radio' value='true' ng-model="vm.bankCardGroupPMS" ng-disabled="!checkViewPermission('Payment', 'BankCardGroup', 'UpdateCardGroupType')")
+                        label.radio-space(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && !vm.selectedPlatform.data.isFPMSPaymentSystem' for='bankCardPMSGroupSetting') {{"PMS Group" | translate}}
                         br
                         button.btn.btn-primary(ng-click="vm.updateIsPMSGroup(vm.bankCardGroupPMS, 'bankCardGroupIsPMS')" ng-if="checkViewPermission('Payment', 'BankCardGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
                 br
                 .btn-group.text-center(role="group")
-                    button.btn.btn-primary.vertical-button-group(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'BankCardGroup', 'CreateBankCard')", data-toggle="modal", ng-click='vm.newBankCardAcc={};', data-target='#modalAddNewBankCard')
+                    button.btn.btn-primary.vertical-button-group(ng-if="((vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) || vm.selectedPlatform.data.isFPMSPaymentSystem) && checkViewPermission('Payment', 'BankCardGroup', 'CreateBankCard')", data-toggle="modal", ng-click='vm.newBankCardAcc={};', data-target='#modalAddNewBankCard')
                         img.img-create.
                         text {{"CreateBankCard" | translate}}
                     button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Create') && vm.groupUsed != 'PMS'", data-toggle="modal", ng-click='vm.newBankCardGroup={};vm.newBankCardGroup.parent=vm.SelectedBankCardGroupNode.id', data-target='#modalAddBankCardGroup')
@@ -247,7 +247,7 @@ style.
                     button.btn.btn-primary.btn-space(ng-click="vm.addBankCardToGroup()")
                         i.fa.fa-plus-square.symbol
                         text {{"INCLUDE" | translate}}
-                    button.btn.btn-primary.btn-space(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'BankCardGroup', 'EditBankCard')  && vm.allBankCards.length > 0" ng-click="vm.renderEditBankCardInfo()" ng-disabled="vm.disableEditBankCard()", data-toggle="modal", data-target='#modalEditBankCard')
+                    button.btn.btn-primary.btn-space(ng-if="((vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) || vm.selectedPlatform.data.isFPMSPaymentSystem) && checkViewPermission('Payment', 'BankCardGroup', 'EditBankCard')  && vm.allBankCards.length > 0" ng-click="vm.renderEditBankCardInfo()" ng-disabled="vm.disableEditBankCard()", data-toggle="modal", data-target='#modalEditBankCard')
                         img.img-edit.symbol
                         text {{"EditBankCard" | translate}}
                 //div(ng-if='vm.curBank')
