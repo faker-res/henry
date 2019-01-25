@@ -615,6 +615,9 @@ define([], () => {
                 if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
                     proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
                 }
+                if (vm.selectedProposal.data.hasOwnProperty("topUpSystemName")) {
+                    proposalDetail["topUpSystemName"] = vm.selectedProposal.data.topUpSystemName;
+                }
             }
             // endregion
 
@@ -655,6 +658,9 @@ define([], () => {
                 }
                 if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
                     proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("topUpSystemName")) {
+                    proposalDetail["topUpSystemName"] = vm.selectedProposal.data.topUpSystemName;
                 }
             }
             // endregion
@@ -700,6 +706,9 @@ define([], () => {
                 if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
                     proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
                 }
+                if (vm.selectedProposal.data.hasOwnProperty("topUpSystemName")) {
+                    proposalDetail["topUpSystemName"] = vm.selectedProposal.data.topUpSystemName;
+                }
             }
             // endregion
 
@@ -738,6 +747,9 @@ define([], () => {
                 }
                 if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
                     proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("topUpSystemName")) {
+                    proposalDetail["topUpSystemName"] = vm.selectedProposal.data.topUpSystemName;
                 }
             }
             // endregion

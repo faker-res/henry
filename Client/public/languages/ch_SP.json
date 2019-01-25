@@ -3119,6 +3119,7 @@
   "PlayerFKPTopUp": "快付充值",
   "PlayerCommonTopUp": "通用充值",
   "CommonTopUp": "通用充值",
+  "FKPTopUp": "快付充值",
   "requestAlipayTopup": "支付宝充值",
   "cancelAlipayTopup": "取消支付宝充值",
   "getAlipayTopupRequestList": "获取手工充值申请列表",
@@ -5253,5 +5254,6 @@
   "BET_AMOUNT": "下注",
   "Does not support": "不支援",
   "DEPOSIT_TOPUP_CHOOSE_ONE": "存款（下列则一）",
-  "DEPOSIT_BONUS_CHOOSE_ONE": "取款（下列则一）"
+  "DEPOSIT_BONUS_CHOOSE_ONE": "取款（下列则一）",
+  "topUpSystemName": "财务（结算）系统"
 }
