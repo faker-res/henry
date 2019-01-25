@@ -409,9 +409,15 @@ const dbPlayerPayment = {
                     let paymentUrl = env.paymentHTTPAPIUrl;
 
                     // currently set to platformId 4 use on it first
-                    if (playerData && playerData.platform && playerData.platform.platformId && playerData.platform.platformId === '4' && playerData.platform.topUpSystemType
-                        && extConfig && extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].topUpAPIAddr) {
+                    if (playerData && playerData.platform && playerData.platform.topUpSystemType && extConfig
+                        && extConfig[playerData.platform.topUpSystemType]
+                        && extConfig[playerData.platform.topUpSystemType].topUpAPIAddr
+                    ) {
                         paymentUrl = extConfig[playerData.platform.topUpSystemType].topUpAPIAddr;
+
+                        if (extConfig[playerData.platform.topUpSystemType].minMaxAPIAddr) {
+                            paymentUrl = extConfig[playerData.platform.topUpSystemType].minMaxAPIAddr;
+                        }
                     }
 
                     url =
@@ -420,6 +426,8 @@ const dbPlayerPayment = {
                         + "platformId=" + playerData.platform.platformId + "&"
                         + "username=" + playerData.name + "&"
                         + "clientType=" + clientType;
+
+                    console.log('getMinMaxCommonTopupAmount url', url);
 
                     return rp(url);
                 }
@@ -441,6 +449,14 @@ const dbPlayerPayment = {
                         maxDepositAmount: Number(ret.max) || 0
                     }
                 }
+            }
+        ).catch(
+            err => {
+                return Promise.reject({
+                    status: constServerCode.PAYMENT_NOT_AVAILABLE,
+                    message: "Payment is not available",
+                    err: err
+                });
             }
         )
     },
@@ -580,6 +596,18 @@ const dbPlayerPayment = {
                     proposalData.aliPayGroupName = player.alipayGroup && player.alipayGroup.name || "";
 
                     proposalType = constProposalType.PLAYER_COMMON_TOP_UP;
+                }
+
+                if (player.platform.topUpSystemType && topUpSystemConfig) {
+                    proposalData.topUpSystemType = player.platform.topUpSystemType;
+                    proposalData.topUpSystemName = topUpSystemConfig.name;
+                } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                    Object.keys(extConfig).forEach(key => {
+                        if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                            proposalData.topUpSystemType = Number(key);
+                            proposalData.topUpSystemName = extConfig[key].name;
+                        }
+                    });
                 }
 
                 if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){

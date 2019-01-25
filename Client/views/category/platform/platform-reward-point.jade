@@ -373,67 +373,74 @@ style.
                 div(ng-if='vm.selectedRewardPointTab=="rewardPointsLog" && checkViewPermission("Platform", "rewardPoints", "rewardPointsLog")')
                     .row
                         .col-md-12
-                            .well.feedbackAdminQueryDiv
-                                .inlineBlk
-                                    label.control-label {{'Member Account' | translate}}
+                            .well
+                                .search-filters-item
+                                    label {{'Member Account' | translate}}
                                     input.form-control(type="text" ng-model="vm.rewardPointsLogQuery.playerName")
-                                .inlineBlk
-                                    label.control-label {{'Reward Points Proposal No' | translate}}
+
+                                .search-filters-item
+                                    label {{'Reward Points Proposal No' | translate}}
                                     input.form-control(type="number" ng-model="vm.rewardPointsLogQuery.proposalId")
-                                .inlineBlk
-                                    label.control-label {{'Reward Points Type' | translate}}
+
+                                .search-filters-item
+                                    label {{'Reward Points Type' | translate}}
                                     select.form-control(ng-model='vm.rewardPointsLogQuery.category')
                                         option(value='all') {{'ALL' | translate}}
                                         option(ng-repeat='(i,v) in constRewardPointsLogCategory' value='{{i}}') {{ v | translate }}
-                                .inlineBlk
-                                    label.control-label {{'Reward Title' | translate}}
+
+                                .search-filters-item
+                                    label {{'Reward Title' | translate}}
                                     input.form-control(type="text" ng-model="vm.rewardPointsLogQuery.rewardTitle")
-                                .inlineBlk
-                                    label.control-label {{'userAgent' | translate}}
+
+                                .search-filters-item
+                                    label {{'userAgent' | translate}}
                                     select.form-control(ng-model='vm.rewardPointsLogQuery.userAgent')
                                         option(value='all') {{'ALL' | translate}}
                                         option(ng-repeat='(i,v) in constPlayerRegistrationInterface' value='{{i}}') {{ v | translate }}
-                                .inlineBlk
-                                    label.control-label {{'Reward Point Variable' | translate}}
+
+                                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.rewardPointsLogQuery.rewardPointsOperator === "range")}')
+                                    label {{'Reward Point Variable' | translate}}
                                     div
-                                        select.form-control(ng-model='vm.rewardPointsLogQuery.rewardPointsOperator' style="width:75px;display:inline-block")
+                                        select.threeBoxes.form-control(ng-model='vm.rewardPointsLogQuery.rewardPointsOperator')
                                             option(value='>=') >=
                                             option(value='=') =
                                             option(value='<=') <=
                                             option(value='range') {{'range' | translate}}
-                                        div(style= "width:8px;display:inline-block")
-                                        input.form-control(ng-model='vm.rewardPointsLogQuery.rewardPointsAmountOne' style="width:80px;display:inline-block" type = 'number')
-                                        div.text-center(style="width:15px;display:inline-block" ng-if="vm.rewardPointsLogQuery.rewardPointsOperator === 'range'") ~
-                                        input.form-control(type="number" ng-model="vm.rewardPointsLogQuery.rewardPointsAmountTwo" style="width:80px;display:inline-block" ng-if="vm.rewardPointsLogQuery.rewardPointsOperator === 'range'")
-                                .inlineBlk
-                                    label.control-label {{'Proposal Status' | translate}}
+                                        input.threeBoxes.form-control(ng-model='vm.rewardPointsLogQuery.rewardPointsAmountOne' type = 'number')
+                                        div.symbol(ng-if="vm.rewardPointsLogQuery.rewardPointsOperator === 'range'") ~
+                                        input.threeBoxes.form-control(type="number" ng-model="vm.rewardPointsLogQuery.rewardPointsAmountTwo" ng-if="vm.rewardPointsLogQuery.rewardPointsOperator === 'range'")
+
+                                .search-filters-item
+                                    label {{'Proposal Status' | translate}}
                                     select.form-control(ng-model='vm.rewardPointsLogQuery.status')
                                         option(value='all') {{'ALL' | translate}}
                                         option(ng-repeat='(i,v) in constRewardPointsLogStatus' value='{{i}}') {{ v | translate }}
-                                .inlineBlk
+
+                                .search-filters-item
                                     label {{'Create Time(Start)' | translate}}
                                     #rpRecordStartDate.input-append.form-control
-                                        input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                        input(data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
                                         span.add-on
                                             i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk
+
+                                .search-filters-item
                                     label {{'Create Time(End)' | translate}}
-                                    br
                                     #rpRecordEndDate.input-append.form-control
-                                        input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                        input(data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
                                         span.add-on
                                             i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'rewardPoints', 'Read')",ng-click='vm.submitRewardPointsLogQuery(true)') {{"SEARCH" | translate}}
-                                i#loadRewardPointsLogIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
+                                .text-right.widthto100
+                                    button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'rewardPoints', 'Read')",ng-click='vm.submitRewardPointsLogQuery(true)') {{"SEARCH" | translate}}
+                                    i#loadRewardPointsLogIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
                     .row.margin-top-bottom-small
                         .col-md-12
                             label.margin-left-5 {{"total" | translate}} {{vm.allRewardPointsLog.size}} {{"records" | translate}} &nbsp; &nbsp;
                             label.margin-left-5 {{"TOTAL_PLAYER_COUNT" | translate}} {{vm.allRewardPointsLog.playerCount}}
-                            table#allRewardPointsTable.display.common-table(style='min-width:100%;width:100%')
+                            table#allRewardPointsTable.display.common-table.widthto100
                             #allRewardPointsTablePage
 
 #modalDeleteRewardPointsRandom.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -452,7 +459,7 @@ style.
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalEditRewardPointsRandom.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -477,7 +484,7 @@ style.
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalDeleteRewardPointsEvent.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')

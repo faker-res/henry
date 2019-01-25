@@ -111,6 +111,11 @@ define(['js/app'], function (myApp) {
             vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
             vm.getPlatformGameData(vm.getProviderLatestTimeRecord);
+            commonService.getSMSTemplate($scope, vm.selectedPlatform._id).then(data => {
+                if (data) {
+                    vm.smsTemplate = data ? data : [];
+                }
+            }).catch(err => Promise.resolve([]));
             initPageParam();
             vm.initPlayerModal();
             $cookies.put("platform", vm.selectedPlatform.name);
@@ -1828,7 +1833,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initSendMultiMessage = function () {
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             vm.sendMultiMessage = {
                 totalCount: 0,
                 playerType: 'Real Player (all)',
@@ -2068,7 +2073,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
             // var rowData = JSON.parse(data);
             console.log(type, data);
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
@@ -2193,17 +2198,17 @@ define(['js/app'], function (myApp) {
             }).done();
         };
 
-        vm.getSMSTemplate = function () {
-            vm.smsTemplate = [];
-            $scope.$socketPromise('getMessageTemplatesForPlatform', {
-                platform: vm.selectedPlatform._id,
-                format: 'smstpl'
-            }).then(function (data) {
-                vm.smsTemplate = data.data;
-                console.log("vm.smsTemplate", vm.smsTemplate);
-                $scope.safeApply();
-            }).done();
-        };
+        // vm.getSMSTemplate = function () {
+        //     vm.smsTemplate = [];
+        //     $scope.$socketPromise('getMessageTemplatesForPlatform', {
+        //         platform: vm.selectedPlatform._id,
+        //         format: 'smstpl'
+        //     }).then(function (data) {
+        //         vm.smsTemplate = data.data;
+        //         console.log("vm.smsTemplate", vm.smsTemplate);
+        //         $scope.safeApply();
+        //     }).done();
+        // };
 
         vm.useSMSTemplate = function () {
             vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
@@ -2390,7 +2395,7 @@ define(['js/app'], function (myApp) {
 
         vm.callNewPlayerBtn = function (phoneNumber, data) {
 
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var phoneCall = {
                 playerId: data.playerId,
                 name: data.name,
@@ -2405,7 +2410,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.smsNewPlayerBtn = function (phoneNumber, data) {
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             vm.selectedSinglePlayer = data;
             vm.editPlayer = data.data ? data.data : "";
             vm.selectedPlayersCount = 1

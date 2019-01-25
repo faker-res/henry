@@ -137,6 +137,11 @@ const dbOtherPayment = {
                 };
                 proposalData.bankCode = bankCode;
 
+                if (extConfig && extConfig["1"] && extConfig["1"].name && extConfig["1"].name === '快付收银台') {
+                    proposalData.topUpSystemType = 1;
+                    proposalData.topUpSystemName = extConfig["1"].name;
+                }
+
                 if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                     if (rewardEvent.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name === constRewardType.PLAYER_TOP_UP_RETURN){
                         proposalData.topUpReturnCode = rewardEvent.code;

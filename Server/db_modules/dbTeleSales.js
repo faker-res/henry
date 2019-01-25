@@ -165,7 +165,7 @@ let dbTeleSales = {
 
                 let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
                 let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).skip(index).limit(limit)
-                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name"})
+                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name callerCycleCount"})
                     .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();
 
                 return Promise.all([tsDistributePhoneCountProm, tsDistributePhoneProm]);
@@ -213,7 +213,7 @@ let dbTeleSales = {
                 let phoneListQuery = {_id: {$in: data[0].distributedPhoneIds}};
                 let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
                 let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).skip(index).limit(limit)
-                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name"})
+                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name callerCycleCount"})
                     .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();
 
                 return Promise.all([tsDistributePhoneCountProm, tsDistributePhoneProm]);
@@ -517,8 +517,6 @@ let dbTeleSales = {
     },
 
     distributePhoneNumber: function (inputData) {
-        console.log("tsListObjId", inputData.tsListObjId);
-        console.log("tsListPlatform", inputData.platform);
         if (!(inputData.tsListObjId && inputData.platform)) {
             return Promise.reject({name: "DataError", message: "Invalid data"});
         }
@@ -1647,6 +1645,34 @@ let dbTeleSales = {
                 total: data[4] && data[4].length ? data[4].length : 0
             };
         });
+    },
+
+    debugTsPhoneList: function(tsPhoneListObjId) {
+        return dbconfig.collection_tsPhone.find({tsPhoneList: tsPhoneListObjId}).lean().then(
+            tsPhoneData => {
+                if (tsPhoneData && tsPhoneData.length) {
+                    tsPhoneData.forEach(tsPhone => {
+                        if (tsPhone.phoneNumber) {
+                            tsPhone.decryptedPhone = rsaCrypto.decrypt(tsPhone.phoneNumber);
+                        }
+                    })
+                }
+                return tsPhoneData;
+            }
+        );
+    },
+
+    debugTsPhone: function(tsPhoneObjId) {
+        let tsPhoneProm = dbconfig.collection_tsPhone.findOne({_id: tsPhoneObjId}).lean().then(
+            tsPhoneData => {
+                if (tsPhoneData && tsPhoneData.phoneNumber) {
+                    tsPhoneData.decryptedPhone = rsaCrypto.decrypt(tsPhoneData.phoneNumber);
+                }
+                return tsPhoneData;
+            }
+        );
+        let distributedPhone = dbconfig.collection_tsDistributedPhone.find({tsPhone: tsPhoneObjId}).lean();
+        return Promise.all([tsPhoneProm, distributedPhone]);
     }
 
 };

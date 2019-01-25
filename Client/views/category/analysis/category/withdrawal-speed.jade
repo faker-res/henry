@@ -25,7 +25,7 @@
                 button.btn.btn-primary.common-button(ng-click='vm.drawWithdrawSpeed();') {{'SEARCH' | translate}}
         .row
             .col-md-6
-                label.text-primary {{"WITHDRAWAL_SPEED_SUCCESS" | translate}} VS {{vm.queryPara.withdrawalSpeed.periodText | translate}}
+                label.text-primary {{"WITHDRAWAL_SPEED_SUCCESS" | translate}} VS {{vm.queryPara.withdrawalSpeed.periodText | translate}} {{"SUBMIT_TO_APPROVED" | translate}}
                 .graph
                     .panel.panel-default
                         #pie-withdrawSuccess.lineChart.graphDiv
@@ -76,23 +76,23 @@
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
                                     span {{ v.totalCount }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal1); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal1); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessDetailTableIsHide')")
                                     a {{ v.count1 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal2); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal2); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessDetailTableIsHide')")
                                     a {{ v.count2 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal3); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal3); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessDetailTableIsHide')")
                                     a {{ v.count3 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal4); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal4); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessDetailTableIsHide')")
                                     a {{ v.count4 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal5); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal5); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessDetailTableIsHide')")
                                     a {{ v.count5 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal6); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal6); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessDetailTableIsHide')")
                                     a {{ v.count6 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal7); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal7); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessDetailTableIsHide')")
                                     a {{ v.count7 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal8); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal8); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessDetailTableIsHide')")
                                     a {{ v.count8 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal9); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal9); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessDetailTableIsHide')")
                                     a {{ v.count9 }}
 
         #withdrawSuccessDetailTable
@@ -141,8 +141,123 @@
                                 span {{ v.remark$}}
 
 
+        .row.margin-top-bottom-20
+            .col-md-6
+                label.text-primary {{"WITHDRAWAL_SPEED_SUCCESS_PAY" | translate}} VS {{vm.queryPara.withdrawalSpeed.periodText | translate}} {{"APPROVED_TO_SUCCESS" | translate}}
+                .graph
+                    .panel.panel-default
+                        #pie-withdrawSuccessPay.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay', 'date')") {{ vm.queryPara.withdrawalSpeed.periodText | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay','totalCount')") {{"WITHDRAWAL_SUCCESS_TOTAL_TIMES"| translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay','count1')") 0~1{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay','count2')") 1~3{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay','count3')") 3~5{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay','count4')") 5~10{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay','count5')") 10~20{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay','count6')") 20~30{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay','count7')") 30~45{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay','count8')") 45~60{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPay','count9')") 60{{'mins' | translate}}{{'above' | translate}}
 
-        .row(style="margin-top:50px")
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.withdrawSuccessPayAvg.totalCount }}
+                                td
+                                    span {{ vm.withdrawSuccessPayAvg.count1 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayAvg.count2 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayAvg.count3 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayAvg.count4 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayAvg.count5 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayAvg.count6 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayAvg.count7 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayAvg.count8 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayAvg.count9 }}
+                            tr(ng-repeat='(i, v) in vm.withdrawSuccessPayData | orderBy: vm.dataSort.withdrawSuccessPay')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.totalCount }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayDetailTable'); vm.clickWithdrawDetail(v.proposal1); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayDetailTableIsHide')")
+                                    a {{ v.count1 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayDetailTable'); vm.clickWithdrawDetail(v.proposal2); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayDetailTableIsHide')")
+                                    a {{ v.count2 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayDetailTable'); vm.clickWithdrawDetail(v.proposal3); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayDetailTableIsHide')")
+                                    a {{ v.count3 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayDetailTable'); vm.clickWithdrawDetail(v.proposal4); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayDetailTableIsHide')")
+                                    a {{ v.count4 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayDetailTable'); vm.clickWithdrawDetail(v.proposal5); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayDetailTableIsHide')")
+                                    a {{ v.count5 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayDetailTable'); vm.clickWithdrawDetail(v.proposal6); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayDetailTableIsHide')")
+                                    a {{ v.count6 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayDetailTable'); vm.clickWithdrawDetail(v.proposal7); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayDetailTableIsHide')")
+                                    a {{ v.count7 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayDetailTable'); vm.clickWithdrawDetail(v.proposal8); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayDetailTableIsHide')")
+                                    a {{ v.count8 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayDetailTable'); vm.clickWithdrawDetail(v.proposal9); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayDetailTableIsHide')")
+                                    a {{ v.count9 }}
+        #withdrawSuccessPayDetailTable
+        .row(ng-if='vm.withdrawDataToDraw.length > 0 && !vm.withdrawSuccessPayDetailTableIsHide')
+            .col-md-12
+                button.btn.btn-primary.common-button.pull-right(style="margin-bottom: 0px;", ng-click='vm.withdrawSuccessPayDetailTableIsHide = !vm.withdrawSuccessPayDetailTableIsHide') {{ vm.withdrawSuccessPayDetailTableIsHide ? "expand" : "collapse" | translate}}
+            .col-md-12
+                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                    thead
+                        tr
+                            th {{ 'PROPOSAL ID' | translate}}
+                            th {{ 'CREATOR' | translate}}
+                            th {{ 'INPUT_DEVICE' | translate}}
+                            th {{ 'PROPOSAL TYPE' | translate}}
+                            th {{ 'PROPOSAL_SUB_TYPE' | translate}}
+                            th {{ 'Proposal Status' | translate}}
+                            th {{ 'INVOLVED_ACC' | translate}}
+                            th {{ 'Amount Involved' | translate}}
+                            th {{ 'START_TIME' | translate}}
+                            th {{ 'Player Level' | translate}}
+                            th {{ 'REMARKS' | translate}}
+
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.withdrawDataToDraw')
+                            td(ng-click="vm.showProposalModalNew(v.proposalId)")
+                                a {{ v.proposalId }}
+                            td
+                                span {{ v.creator$ }}
+                            td
+                                span {{ v.inputDevice$ }}
+                            td
+                                span {{ v.mainType$ }}
+                            td
+                                span {{ v.typeName$}}
+                            td
+                                span {{ v.status$}}
+                            td
+                                span {{ v.involvedAcc$}}
+                            td
+                                span {{ v.involveAmount$}}
+                            td
+                                span {{ v.createTime$}}
+                            td
+                                span {{ v.data.proposalPlayerLevel}}
+                            td
+                                span {{ v.remark$}}
+
+        .row.margin-top-bottom-20
             .col-md-6
                 label.text-primary {{"WITHDRAWAL_SPEED_FAILED" | translate}} VS {{vm.queryPara.withdrawalSpeed.periodText | translate}}
                 .graph
@@ -194,23 +309,23 @@
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
                                     span {{ v.totalCount }}
-                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal1); vm.withdrawSuccessDetailTableIsHide = true; vm.withdrawFailedDetailTableIsHide = false;")
+                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal1); vm.hideExpandWithdrawSpeedProposalDetail('withdrawFailedDetailTableIsHide')")
                                     a {{ v.count1 }}
-                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal2); vm.withdrawSuccessDetailTableIsHide = true; vm.withdrawFailedDetailTableIsHide = false;")
+                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal2); vm.hideExpandWithdrawSpeedProposalDetail('withdrawFailedDetailTableIsHide')")
                                     a {{ v.count2 }}
-                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal3); vm.withdrawSuccessDetailTableIsHide = true; vm.withdrawFailedDetailTableIsHide = false;")
+                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal3); vm.hideExpandWithdrawSpeedProposalDetail('withdrawFailedDetailTableIsHide')")
                                     a {{ v.count3 }}
-                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal4); vm.withdrawSuccessDetailTableIsHide = true; vm.withdrawFailedDetailTableIsHide = false;")
+                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal4); vm.hideExpandWithdrawSpeedProposalDetail('withdrawFailedDetailTableIsHide')")
                                     a {{ v.count4 }}
-                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal5); vm.withdrawSuccessDetailTableIsHide = true; vm.withdrawFailedDetailTableIsHide = false;")
+                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal5); vm.hideExpandWithdrawSpeedProposalDetail('withdrawFailedDetailTableIsHide')")
                                     a {{ v.count5 }}
-                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal6); vm.withdrawSuccessDetailTableIsHide = true; vm.withdrawFailedDetailTableIsHide = false;")
+                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal6); vm.hideExpandWithdrawSpeedProposalDetail('withdrawFailedDetailTableIsHide')")
                                     a {{ v.count6 }}
-                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal7); vm.withdrawSuccessDetailTableIsHide = true; vm.withdrawFailedDetailTableIsHide = false;")
+                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal7); vm.hideExpandWithdrawSpeedProposalDetail('withdrawFailedDetailTableIsHide')")
                                     a {{ v.count7 }}
-                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal8); vm.withdrawSuccessDetailTableIsHide = true; vm.withdrawFailedDetailTableIsHide = false;")
+                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal8); vm.hideExpandWithdrawSpeedProposalDetail('withdrawFailedDetailTableIsHide')")
                                     a {{ v.count8 }}
-                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal9); vm.withdrawSuccessDetailTableIsHide = true; vm.withdrawFailedDetailTableIsHide = false;")
+                                td(ng-click="vm.setAnchor('withdrawFailedDetailTable'); vm.clickWithdrawDetail(v.proposal9); vm.hideExpandWithdrawSpeedProposalDetail('withdrawFailedDetailTableIsHide')")
                                     a {{ v.count9 }}
 
         #withdrawFailedDetailTable
@@ -257,6 +372,124 @@
                                 span {{ v.data.proposalPlayerLevel}}
                             td
                                 span {{ v.remark$}}
+
+        .row.margin-top-bottom-20
+            .col-md-6
+                label.text-primary {{"WITHDRAWAL_SPEED_SUCCESS_PAY_TOTAL" | translate}} VS {{vm.queryPara.withdrawalSpeed.periodText | translate}} {{"SUBMIT_TO_SUCCESS" | translate}}
+                .graph
+                    .panel.panel-default
+                        #pie-withdrawSuccessPayTotal.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal', 'date')") {{ vm.queryPara.withdrawalSpeed.periodText | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal','totalCount')") {{"WITHDRAWAL_SUCCESS_TOTAL_TIMES"| translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal','count1')") 0~1{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal','count2')") 1~3{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal','count3')") 3~5{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal','count4')") 5~10{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal','count5')") 10~20{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal','count6')") 20~30{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal','count7')") 30~45{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal','count8')") 45~60{{'mins' | translate}}
+                                th(ng-click="vm.dataArraySort('withdrawSuccessPayTotal','count9')") 60{{'mins' | translate}}{{'above' | translate}}
+
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.withdrawSuccessPayTotalAvg.totalCount }}
+                                td
+                                    span {{ vm.withdrawSuccessPayTotalAvg.count1 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayTotalAvg.count2 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayTotalAvg.count3 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayTotalAvg.count4 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayTotalAvg.count5 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayTotalAvg.count6 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayTotalAvg.count7 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayTotalAvg.count8 }}
+                                td
+                                    span {{ vm.withdrawSuccessPayTotalAvg.count9 }}
+                            tr(ng-repeat='(i, v) in vm.withdrawSuccessPayTotalData | orderBy: vm.dataSort.withdrawSuccessPayTotal')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.totalCount }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayTotalDetailTable'); vm.clickWithdrawDetail(v.proposal1); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayTotalDetailTableIsHide')")
+                                    a {{ v.count1 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayTotalDetailTable'); vm.clickWithdrawDetail(v.proposal2); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayTotalDetailTableIsHide')")
+                                    a {{ v.count2 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayTotalDetailTable'); vm.clickWithdrawDetail(v.proposal3); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayTotalDetailTableIsHide')")
+                                    a {{ v.count3 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayTotalDetailTable'); vm.clickWithdrawDetail(v.proposal4); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayTotalDetailTableIsHide')")
+                                    a {{ v.count4 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayTotalDetailTable'); vm.clickWithdrawDetail(v.proposal5); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayTotalDetailTableIsHide')")
+                                    a {{ v.count5 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayTotalDetailTable'); vm.clickWithdrawDetail(v.proposal6); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayTotalDetailTableIsHide')")
+                                    a {{ v.count6 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayTotalDetailTable'); vm.clickWithdrawDetail(v.proposal7); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayTotalDetailTableIsHide')")
+                                    a {{ v.count7 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayTotalDetailTable'); vm.clickWithdrawDetail(v.proposal8); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayTotalDetailTableIsHide')")
+                                    a {{ v.count8 }}
+                                td(ng-click="vm.setAnchor('withdrawSuccessPayTotalDetailTable'); vm.clickWithdrawDetail(v.proposal9); vm.hideExpandWithdrawSpeedProposalDetail('withdrawSuccessPayTotalDetailTableIsHide')")
+                                    a {{ v.count9 }}
+
+
+        #withdrawSuccessPayTotalDetailTable
+            .row(ng-if='vm.withdrawDataToDraw.length > 0 && !vm.withdrawSuccessPayTotalDetailTableIsHide')
+                .col-md-12
+                    button.btn.btn-primary.common-button.pull-right(style="margin-bottom: 0px;", ng-click='vm.withdrawSuccessPayTotalDetailTableIsHide = !vm.withdrawSuccessPayTotalDetailTableIsHide') {{ vm.withdrawSuccessPayTotalDetailTableIsHide ? "expand" : "collapse" | translate}}
+                .col-md-12
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th {{ 'PROPOSAL ID' | translate}}
+                                th {{ 'CREATOR' | translate}}
+                                th {{ 'INPUT_DEVICE' | translate}}
+                                th {{ 'PROPOSAL TYPE' | translate}}
+                                th {{ 'PROPOSAL_SUB_TYPE' | translate}}
+                                th {{ 'Proposal Status' | translate}}
+                                th {{ 'INVOLVED_ACC' | translate}}
+                                th {{ 'Amount Involved' | translate}}
+                                th {{ 'START_TIME' | translate}}
+                                th {{ 'Player Level' | translate}}
+                                th {{ 'REMARKS' | translate}}
+
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.withdrawDataToDraw')
+                                td(ng-click="vm.showProposalModalNew(v.proposalId)")
+                                    a {{ v.proposalId }}
+                                td
+                                    span {{ v.creator$ }}
+                                td
+                                    span {{ v.inputDevice$ }}
+                                td
+                                    span {{ v.mainType$ }}
+                                td
+                                    span {{ v.typeName$}}
+                                td
+                                    span {{ v.status$}}
+                                td
+                                    span {{ v.involvedAcc$}}
+                                td
+                                    span {{ v.involveAmount$}}
+                                td
+                                    span {{ v.createTime$}}
+                                td
+                                    span {{ v.data.proposalPlayerLevel}}
+                                td
+                                    span {{ v.remark$}}
 
 
 #modalProposalDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

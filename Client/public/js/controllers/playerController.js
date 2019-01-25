@@ -814,7 +814,7 @@ define(['js/app'], function (myApp) {
              vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
              vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
              [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes, [vm.allGameProviders, vm.gameProvidersList],
-                vm.credibilityRemarks, vm.platformRewardtype, vm.allPlayerLvl
+                vm.credibilityRemarks, vm.platformRewardtype, vm.allPlayerLvl, vm.smsTemplate
             ] = await Promise.all([
                 commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -835,6 +835,7 @@ define(['js/app'], function (myApp) {
                 commonService.getCredibilityRemarks($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                 commonService.getPlatformRewardProposal($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerLevels($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
             ]);
 
             // 1st dependencies variable
@@ -1965,7 +1966,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initSendMultiMessage = function () {
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             vm.sendMultiMessage = {
                 totalCount: 0,
                 playerType: 'Real Player (all)',
@@ -2012,17 +2013,17 @@ define(['js/app'], function (myApp) {
             })
         };
 
-        vm.getSMSTemplate = function () {
-            vm.smsTemplate = [];
-            $scope.$socketPromise('getMessageTemplatesForPlatform', {
-                platform: vm.selectedPlatform.id,
-                format: 'smstpl'
-            }).then(function (data) {
-                vm.smsTemplate = data.data;
-                console.log("vm.smsTemplate", vm.smsTemplate);
-                $scope.safeApply();
-            }).done();
-        };
+        // vm.getSMSTemplate = function () {
+        //     vm.smsTemplate = [];
+        //     $scope.$socketPromise('getMessageTemplatesForPlatform', {
+        //         platform: vm.selectedPlatform.id,
+        //         format: 'smstpl'
+        //     }).then(function (data) {
+        //         vm.smsTemplate = data.data;
+        //         console.log("vm.smsTemplate", vm.smsTemplate);
+        //         $scope.safeApply();
+        //     }).done();
+        // };
 
         vm.useSMSTemplate = function () {
             vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
@@ -6305,6 +6306,10 @@ define(['js/app'], function (myApp) {
                             vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
+                            vm.selectedAllForbidRewardEvent = false;
+                            if (vm.forbidPromoCode && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
+                                vm.selectedAllForbidRewardEvent = true;
+                            }
                             $scope.safeApply();
                             return $compile($('#forbidRewardEventPopover').html())($scope);
                         },
@@ -7395,7 +7400,7 @@ define(['js/app'], function (myApp) {
 
         vm.callNewPlayerBtn = function (phoneNumber, data) {
 
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var phoneCall = {
                 playerId: data.playerId,
                 name: data.name,
@@ -7409,7 +7414,7 @@ define(['js/app'], function (myApp) {
             $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
         }
         vm.smsNewPlayerBtn = function (phoneNumber, data) {
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             vm.selectedSinglePlayer = data;
             vm.editPlayer = data.data ? data.data : "";
             vm.selectedPlayersCount = 1
@@ -7429,7 +7434,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
             // var rowData = JSON.parse(data);
             console.log(type, data);
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
@@ -10171,6 +10176,8 @@ define(['js/app'], function (myApp) {
             });
         };
         vm.applyPlayerReward = function (isForceApply = false) {
+            vm.applyPlayerRewardRunTime = 0;
+            vm.applyPlayerRewardRunTimeStart = new Date().getTime();
             vm.applyXM = true;
             let idArr = [];
             if (vm.playerApplyRewardShow.topUpRecordIds) {
@@ -10208,6 +10215,9 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
+                vm.applyPlayerRewardRunTimeEnd = new Date().getTime();
+                vm.applyPlayerRewardRunTime = (vm.applyPlayerRewardRunTimeEnd - vm.applyPlayerRewardRunTimeStart) / 1000;
+                console.log('vm.applyPlayerRewardRunTime===11', vm.applyPlayerRewardRunTime);
                 console.log('sent', data);
                 vm.applyXM = false;
                 vm.playerApplyEventResult = data;
@@ -18767,37 +18777,29 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getProvinceName = function (provinceId, fieldName) {
-
-            return new Promise((resolve, reject)=>{
-                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-                    var text = data.data.province ? data.data.province.name : '';
-                    if(vm.selectedProposal){
-                        if (fieldName) {
-                            vm.selectedProposal.data[fieldName] = text;
-                        } else {
-                            vm.selectedProposal.data.provinceName = text;
-                        }
+            socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
+                let text = data.data.province ? data.data.province.name : '';
+                if (text) {
+                    if (fieldName) {
+                        vm.selectedProposal.data[fieldName] = text;
+                    } else {
+                        vm.selectedProposal.data.provinceName = text;
                     }
-                    resolve(text);
-                });
-            })
-
+                }
+            });
         }
 
         vm.getCityName = function (cityId, fieldName) {
-            return new Promise((resolve, reject)=>{
-                socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-                    var text = data.data.city ? data.data.city.name : '';
-                    if(vm.selectedProposal){
-                        if (fieldName) {
-                            vm.selectedProposal.data[fieldName] = text;
-                        } else {
-                            vm.selectedProposal.data.cityName = text;
-                        }
+            socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
+                let text = data.data.city ? data.data.city.name : '';
+                if (text) {
+                    if (fieldName) {
+                        vm.selectedProposal.data[fieldName] = text;
+                    } else {
+                        vm.selectedProposal.data.cityName = text;
                     }
-                    resolve(text);
-                });
-            })
+                }
+            });
         }
 
         vm.showNewPlayerModal = function (data, templateNo) {

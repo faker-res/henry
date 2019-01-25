@@ -1607,27 +1607,35 @@ ul.roleList {
     font-size: 1.3em;
 
 }
-
-.common-button img.img-create {
-    content: url("./../images/icon/create1.png")
+img.img-create {
+    content: url("./../images/icon/create1.png");
+    width: 20px;
+    margin-right: .5em
 }
 
-.common-button img.img-delete {
-    content: url("./../images/icon/delete1.png")
+img.img-delete {
+    content: url("./../images/icon/delete1.png");
+    width: 20px;
+    margin-right: .5em
 }
 
-.common-button img.img-edit {
-    content: url("./../images/icon/rename1.png")
+img.img-edit {
+    content: url("./../images/icon/rename1.png");
+    width: 20px;
+    margin-right: .5em
 }
 
-.common-button img.img-move {
-    content: url("./../images/icon/move1.png")
-
+img.img-move {
+    content: url("./../images/icon/move1.png");
+    width: 20px;
+    margin-right: .5em
+}
+img.img-platform {
+    content: url("./../images/icon/platform1.png");
+    width: 20px;
+    margin-right: .5em
 }
 
-.common-button img.img-platform {
-    content: url("./../images/icon/platform1.png")
-}
 
 .modal > .modal-dialog {
     /*text-align: center;*/
@@ -3622,6 +3630,7 @@ tr.sn-selected, td.sn-selected {
 .input-append.form-control input {
     border: 0;
     padding: 0;
+    width: 150px;
 }
 
 .datepicker-days td:hover,
@@ -4304,6 +4313,83 @@ table.simple-table-single > thead > tr > th {
 .overAuction{
     background-color:#F17C67 !important;
 }
+
+/**************************************************New Style Guide****************************************************/
+/*Search Filter Container*/
+
+.search-filters-container {
+    margin: 8px 0;
+    border: 1px solid #337AB7;
+    border-radius: 9px;
+    padding: 12px 12px;
+}
+.search-filters-item {
+    width: 190px;
+    display: inline-block;
+    margin: .5em 1em;
+}
+.search-filters-twoBoxes {
+    width: 145px;
+    display: inline-block;
+    margin: .5em 1em;
+}
+.search-filters-threeBoxes {
+    width: 232px;
+    display: inline-block;
+    margin: .5em 1em;
+}
+.threeBoxes {
+    width: 65px;
+    display: inline-block;
+    margin-right:.5em;
+}
+.symbol {
+    display: inline-block;
+    margin-right: .5em!important;
+}
+.vertical-button-group {
+    width: 100%;
+    font-size: 13px;
+    padding: 0.2em;
+    margin-bottom: .2em;
+}
+.btn-space {
+    margin: 0 .25em;
+}
+.newcontanier textarea {
+    margin: .5em 1em;
+}
+.newcontanier {
+    border: 2px solid rgba(43, 102, 152, 0.5);
+    padding: 1em 2em;
+    margin-bottom: 2em;
+}
+hr {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.widthto100 {
+    width: 100%;
+    min-width: 100%;
+}
+.widthto50 {
+    width: 50%;
+    min-width: 50%;
+}
+.blue-annotation {
+    font-size: 10px;
+    color:rgb(0,0,255);
+}
+.black-annotation {
+    font-size: 12px;
+    color: black;
+}
+.red-annotation {
+    font-size: 12px;
+    color:red;
+}
+
+
 
 .navbar-right {
     padding-right: 10px !important;

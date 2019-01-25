@@ -522,6 +522,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     //     $scope.processes = data.processes;
     // });
 
+    $scope.pairResultType = ['', "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
+
     $scope.merchantUseTypeJson = {
         '1': 'MerchantUse_CreateAccount',
         '2': 'MerchantUse_Normal'
@@ -724,6 +726,41 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         22: "2200",
         23: "2300",
         24: "2400"
+    };
+
+    $scope.monthDate = {
+        "": "",
+        1: "01",
+        2: "02",
+        3: "03",
+        4: "04",
+        5: "05",
+        6: "06",
+        7: "07",
+        8: "08",
+        9: "09",
+        10: "10",
+        11: "11",
+        12: "12",
+        13: "13",
+        14: "14",
+        15: "15",
+        16: "16",
+        17: "17",
+        18: "18",
+        19: "19",
+        20: "20",
+        21: "21",
+        22: "22",
+        23: "23",
+        24: "24",
+        25: "25",
+        26: "26",
+        27: "27",
+        28: "28",
+        29: "29",
+        30: "30",
+        31: "31"
     };
 
     $scope.loseValueType = {
@@ -1519,7 +1556,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     function initPage() {
         if (!$scope.AppSocket.connected) {
-            $("#pageWrapper").html('<i class="fa fa-spin fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>');
+            $("#pageWrapper").hide();
+            $("#pageConnectionLoader").html('<i class="fa fa-spin fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>');
+        } else {
+            $("#pageWrapper").show();
+            $("#pageConnectionLoader").empty();
         }
 
         var location = $location.path().slice(1);

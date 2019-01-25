@@ -450,8 +450,8 @@ define(['js/app'], function (myApp) {
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListLastFeedbackEnd');
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListDistributeStart', utilService.getNdayagoStartTime(30));
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListDistributeEnd', utilService.getTodayEndTime());
-                        vm.queryAdminPhoneList.pageObj = utilService.createPageForPagingTable("#adminPhoneListTablePage", {}, $translate, function (curP, pageSize) {
-                            vm.commonPageChangeHandler(curP, pageSize, "queryAdminPhoneList", vm.searchAdminPhoneList)
+                        vm.queryAdminPhoneList.pageObj = utilService.createPageForPagingTable("#adminPhoneListTablePage", {maxPageSize: 100}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize > 100 ? 100 : pageSize, "queryAdminPhoneList", vm.searchAdminPhoneList)
                         });
                         $('.spicker').selectpicker('refresh');
                     })
@@ -519,12 +519,13 @@ define(['js/app'], function (myApp) {
             vm.getTsDistributedPhoneDetail($scope.tsDistributedPhoneObjId);
 
             // Zero dependencies variable
-            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults, vm.allTsPhoneList] = await Promise.all([
+            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults, vm.allTsPhoneList, vm.smsTemplate] = await Promise.all([
                 commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id}).catch(err => Promise.resolve([])),
                 commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
                 commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
             ]);
         };
 
@@ -574,7 +575,7 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.createCallOutMission = function () {
+        vm.createCallOutMission = function (isChosenPhoneOnly) {
             $('#adminPhoneListTableSpin').show();
             let sendQuery = {};
 
@@ -583,6 +584,21 @@ define(['js/app'], function (myApp) {
             sendQuery.searchQuery = JSON.stringify(vm.generateAdminPhoneQuery());
             sendQuery.searchFilter = sendQuery.searchQuery;
             sendQuery.sortCol = sendQuery.searchQuery.sortCol || {endTime: -1};
+            if (isChosenPhoneOnly) {
+                let selectedPhones = [];
+                $('.chosenPhone').each((i, phone)=>{
+                    let isChecked = $(phone).is(':checked');
+                    if(isChecked){
+                        let id = $(phone).attr('data-id');
+                        selectedPhones.push(id);
+                    }
+                });
+                if (selectedPhones.length) {
+                    sendQuery.selectedPhones = selectedPhones;
+                } else {
+                    return; // might need to show an error message here
+                }
+            }
 
             $scope.$socketPromise("createTsCallOutMission", sendQuery).then(data => {
                 console.log(data);
@@ -591,6 +607,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.generateAdminPhoneQuery = (newSearch) => {
+            vm.queryAdminPhoneList.limit = (vm.queryAdminPhoneList.limit > 100 ? 100 : vm.queryAdminPhoneList.limit) || 10;
             return {
                 platform: vm.selectedPlatform.id,
                 admin: authService.adminId,
@@ -612,7 +629,7 @@ define(['js/app'], function (myApp) {
                 assignTimesTwo: vm.queryAdminPhoneList.assignTimesTwo,
                 isFilterDangerZone: vm.queryAdminPhoneList.isFilterDangerZone,
                 index: newSearch ? 0 : (vm.queryAdminPhoneList.index || 0),
-                limit: vm.queryAdminPhoneList.limit || 10,
+                limit: vm.queryAdminPhoneList.limit,
                 sortCol: vm.queryAdminPhoneList.sortCol || {assignTimes: 1, endTime: 1}
             };
         };
@@ -664,6 +681,7 @@ define(['js/app'], function (myApp) {
                 searchFunc = "searchAdminPhoneReminderList";
             }
             utilService.clearPopovers();
+            $('#selectAllPhone').off();
             var tableOptions = {
                 data: data,
                 "order": vm[objKey].aaSorting ,
@@ -674,6 +692,13 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {
+                        title: '<div><input type="checkbox" id="selectAllPhone"></div>',
+                        visible: !vm.isCallOutMissionMode,
+                        render: function (data, type, row) {
+                            return $('<div>', {}).append($('<input type="checkbox" class="chosenPhone" data-id="'+row._id+'">', {}).text(data)).prop('outerHTML');
+                        }
+                    },
                     {title: $translate('NAME_LIST_TITLE'), data: "tsPhoneList.name"},
                     {
                         title: $translate('PHONENUMBER'), data: "encodedPhoneNumber$",
@@ -694,7 +719,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('ASSIGN_TIMES'),
                         render: function (data, type, row) {
-                            return '<span>' + row.assignTimes + "/" + row.tsPhone.assignTimes + '</span>';
+                            return '<span>' + row.assignTimes + "/" + row.tsPhoneList.callerCycleCount + '</span>';
                         }
                     },
                     {title: $translate('PHONE_DISTRIBUTED_TIME'), data: "startTime$"},
@@ -795,6 +820,8 @@ define(['js/app'], function (myApp) {
 
                         }
                     });
+
+                    $('#selectAllPhone').on('click', vm.selectAllPhone);
                 }
 
             }
@@ -809,6 +836,10 @@ define(['js/app'], function (myApp) {
             });
             $(tableId).resize();
         }
+
+        vm.selectAllPhone = function (e) {
+            $('.chosenPhone').prop('checked', Boolean($(e.currentTarget).is(':checked')));
+        };
 
         vm.showSelectedCredibility = function () {
             vm.tsCreditRemark = "";
@@ -1439,7 +1470,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToTsPhoneBtn = function (type, data) {
             vm.selectedTsDistributedPhoneId = data._id;
             console.log(type, data);
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                 if (!(data && data.tsPhone && data.tsPhone.phoneNumber)) {
@@ -2420,6 +2451,9 @@ define(['js/app'], function (myApp) {
                 }
 
                 $scope.safeApply();
+            }, err => {
+                vm.importPhoneResult = 'INVALID_PHONE_NUMBER_FORMAT';
+                $scope.$evalAsync();
             });
         };
 
@@ -2710,17 +2744,17 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.getSMSTemplate = function () {
-            vm.smsTemplate = [];
-            $scope.$socketPromise('getMessageTemplatesForPlatform', {
-                platform: vm.selectedPlatform.id,
-                format: 'smstpl'
-            }).then(function (data) {
-                vm.smsTemplate = data.data;
-                console.log("vm.smsTemplate", vm.smsTemplate);
-                $scope.safeApply();
-            }).done();
-        };
+        // vm.getSMSTemplate = function () {
+        //     vm.smsTemplate = [];
+        //     $scope.$socketPromise('getMessageTemplatesForPlatform', {
+        //         platform: vm.selectedPlatform.id,
+        //         format: 'smstpl'
+        //     }).then(function (data) {
+        //         vm.smsTemplate = data.data;
+        //         console.log("vm.smsTemplate", vm.smsTemplate);
+        //         $scope.safeApply();
+        //     }).done();
+        // };
 
         vm.useSMSTemplate = function () {
             vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
@@ -2775,9 +2809,9 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToPlayerBtn = function (type, data) {
             // var rowData = JSON.parse(data);
             console.log(type, data);
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var title, text;
-            if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+            if (type == 'msg') {
                 vm.smsPlayer = {
                     playerId: data.playerId,
                     name: data.name,
@@ -5996,7 +6030,7 @@ define(['js/app'], function (myApp) {
 
         vm.callNewPlayerBtn = function (phoneNumber, data) {
 
-            vm.getSMSTemplate();
+            //vm.getSMSTemplate();
             var phoneCall = {
                 playerId: data && data.playerObjId && data.playerObjId.playerId ? data.playerObjId.playerId : "",
                 name: data && data.playerObjId && data.playerObjId.name ? data.playerObjId.name : "",
@@ -8432,6 +8466,18 @@ define(['js/app'], function (myApp) {
         vm.dailyTradeTsPhone = function () {
             socketService.$socket($scope.AppSocket, 'dailyTradeTsPhone', {}, function (data) {
                 console.log("dailyTradeTsPhone", data)
+            })
+        }
+
+        vm.debugTsPhoneList = function (tsPhoneListObjId) { // for debug use only
+            socketService.$socket($scope.AppSocket, 'debugTsPhoneList', {tsPhoneList: tsPhoneListObjId}, function (data) {
+                console.log("all tsPhone in tsPhoneList", data)
+            })
+        }
+
+        vm.debugTsPhone = function (tsPhoneObjId) { // for debug use only
+            socketService.$socket($scope.AppSocket, 'debugTsPhone', {tsPhone: tsPhoneObjId}, function (data) {
+                console.log("tsPhone and all tsDistributedPhone", data)
             })
         }
 

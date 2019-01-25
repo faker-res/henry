@@ -44,6 +44,7 @@ const localization = require("../modules/localization");
 const proposalExecutor = require('./../modules/proposalExecutor');
 
 const rsaCrypto = require('./../modules/rsaCrypto');
+const extConfig = require('./../config/externalPayment/paymentSystems');
 
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 
@@ -152,6 +153,8 @@ var dbPlayerTopUpRecord = {
 
                 //concat both string type playerObjId and Object type playerObjId for searching in reward proposal
                 playerIds = playerIds.concat(stringPlayerId);
+                console.log("LH check player report 1------", startTime);
+                console.log("LH check player report 2------", endTime);
 
                 let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
                     [
@@ -215,7 +218,7 @@ var dbPlayerTopUpRecord = {
                             "data.playerObjId": {$in: playerIds},
                             "createTime": {
                                 "$gte": new Date(startTime),
-                                "$lte": new Date(endTime)
+                                "$lt": new Date(endTime)
                             },
                             "mainType": "PlayerBonus",
                             "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
@@ -236,7 +239,7 @@ var dbPlayerTopUpRecord = {
                             "data.playerObjId": {$in: playerIds},
                             "createTime": {
                                 "$gte": new Date(startTime),
-                                "$lte": new Date(endTime)
+                                "$lt": new Date(endTime)
                             },
                             "type": ObjectId(consumptionReturnTypeId),
                             "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
@@ -256,7 +259,7 @@ var dbPlayerTopUpRecord = {
                             "data.playerObjId": {$in: playerIds},
                             "createTime": {
                                 "$gte": new Date(startTime),
-                                "$lte": new Date(endTime)
+                                "$lt": new Date(endTime)
                             },
                             "mainType": "Reward",
                             "type": {"$ne": ObjectId(consumptionReturnTypeId)},
@@ -279,7 +282,7 @@ var dbPlayerTopUpRecord = {
                             "data.playerObjId": {$in: playerIds},
                             "createTime": {
                                 "$gte": new Date(startTime),
-                                "$lte": new Date(endTime)
+                                "$lt": new Date(endTime)
                             },
                             "mainType": "TopUp",
                             "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
@@ -419,7 +422,16 @@ var dbPlayerTopUpRecord = {
                                             }
 
                                             if(typeof playerReportDaySummary[indexNo].providerDetail != "undefined"){
-                                                playerReportDaySummary[indexNo].providerDetail = Object.assign(playerReportDaySummary[indexNo].providerDetail, providerDetail);
+                                                let providerId = providerDetail && Object.keys(providerDetail) && Object.keys(providerDetail).length ? Object.keys(providerDetail)[0] : null;
+                                                if(providerId && playerReportDaySummary[indexNo].providerDetail[providerId]){
+                                                    playerReportDaySummary[indexNo].providerDetail[providerId].count += providerDetail[providerId].count;
+                                                    playerReportDaySummary[indexNo].providerDetail[providerId].amount += providerDetail[providerId].amount;
+                                                    playerReportDaySummary[indexNo].providerDetail[providerId].validAmount += providerDetail[providerId].validAmount;
+                                                    playerReportDaySummary[indexNo].providerDetail[providerId].bonusAmount += providerDetail[providerId].bonusAmount;
+                                                    playerReportDaySummary[indexNo].providerDetail[providerId].bonusRatio = providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount;
+                                                }else{
+                                                    playerReportDaySummary[indexNo].providerDetail = Object.assign(playerReportDaySummary[indexNo].providerDetail, providerDetail);
+                                                }
                                             }else{
                                                 playerReportDaySummary[indexNo].providerDetail = providerDetail;
                                             }
@@ -506,7 +518,7 @@ var dbPlayerTopUpRecord = {
                                                 && onlineTopUpDetail.hasOwnProperty('merchantName') && onlineTopUpDetail.merchantName) {
                                                 let index = merchantList.findIndex(x => x && x.hasOwnProperty('merchantNo') && x.hasOwnProperty('name') && x.merchantNo && x.name && (x.merchantNo == onlineTopUpDetail.merchantNo) && (x.name == onlineTopUpDetail.merchantName));
 
-                                                let onlineTopUpAmount = onlineTopUpDetail && onlineTopUpDetail.oriAmount ? onlineTopUpDetail.oriAmount : onlineTopUpDetail.oriAmount || 0;
+                                                let onlineTopUpAmount = onlineTopUpDetail && onlineTopUpDetail.amount ? onlineTopUpDetail.amount : 0;
                                                 let rate = 0;
                                                 let onlineTopUpFee = 0;
 
@@ -595,8 +607,6 @@ var dbPlayerTopUpRecord = {
                 )
             }
         );
-
-
     },
 
     countPlatformFeeByPlayer: function(platformId, playerId, providerDetail){
@@ -839,7 +849,7 @@ var dbPlayerTopUpRecord = {
                 if(query.line){
                     queryObj['data.line'] = {$in: query.line};
                 }
-                return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
+                return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str}).lean();
             }
         ).then(
             proposalType => {
@@ -871,7 +881,7 @@ var dbPlayerTopUpRecord = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 50,
+                                batchSize: 100,
                                 makeRequest: function (proposals, request) {
                                     request("player", "topupRecordInsertRepeatCount", {
                                         proposals: proposals,
@@ -1050,8 +1060,8 @@ var dbPlayerTopUpRecord = {
                     nextSuccessQuery["$and"] = bankCardNoRegExp;
                 }
 
-                let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1);
-                let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).sort({createTime: 1}).limit(1);
+                let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1).lean();
+                let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).sort({createTime: 1}).limit(1).lean();
 
                 // for debug usage
                 // let pS, nS, fISQ;
@@ -1113,7 +1123,7 @@ var dbPlayerTopUpRecord = {
 
                         let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
                         let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
-                        let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).sort({createTime: 1}).limit(1);
+                        let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).sort({createTime: 1}).limit(1).lean();
 
                         return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
                     }
@@ -1156,13 +1166,13 @@ var dbPlayerTopUpRecord = {
                     createTime: {$lte: proposal.createTime},
                     "data.playerName": playerName,
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-                }).sort({createTime: -1}).limit(1);
+                }).sort({createTime: -1}).limit(1).lean();
                 let nextSuccessProm = dbconfig.collection_proposal.find({
                     type: {$in: typeIds},
                     createTime: {$gte: proposal.createTime},
                     "data.playerName": playerName,
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-                }).sort({createTime: 1}).limit(1);
+                }).sort({createTime: 1}).limit(1).lean();
 
                 return Promise.all([prevSuccessProm, nextSuccessProm]).then(
                     successData => {
@@ -1214,11 +1224,14 @@ var dbPlayerTopUpRecord = {
                         proposal.$playerAllCount = allCount;
                         proposal.$playerCurrentCount = currentCount;
 
-                        if (firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
+                        if (firstFailure && firstFailure.proposalId && proposal && proposal.proposalId && (firstFailure.proposalId.toString() === proposal.proposalId.toString())) {
                             proposal.$playerGapTime = 0;
-                        } else {
+                        } else if (firstFailure && firstFailure.createTime && proposal && proposal.createTime) {
                             proposal.$playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                        } else {
+                            proposal.$playerGapTime = 0;
                         }
+
                         return proposal;
                     }
                 );
@@ -1632,6 +1645,7 @@ var dbPlayerTopUpRecord = {
         let rewardEvent;
         let newProposal;
         let serviceChargeRate = 0;
+        let topUpSystemConfig;
 
         if (topupRequest.bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -1650,6 +1664,8 @@ var dbPlayerTopUpRecord = {
             ).then(
             playerData => {
                 player = playerData;
+                topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
+
                 if (player && player.platform && player.platform.merchantGroupIsPMS) {
                     bPMSGroup = true
                 } else {
@@ -1820,6 +1836,19 @@ var dbPlayerTopUpRecord = {
                 // if (rewardEvent && rewardEvent._id) {
                 //     proposalData.topUpReturnCode = rewardEvent.code;
                 // }
+
+                if (player.platform.topUpSystemType && topUpSystemConfig) {
+                    proposalData.topUpSystemType = player.platform.topUpSystemType;
+                    proposalData.topUpSystemName = topUpSystemConfig.name;
+                } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                    Object.keys(extConfig).forEach(key => {
+                        if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                            proposalData.topUpSystemType = Number(key);
+                            proposalData.topUpSystemName = extConfig[key].name;
+                        }
+                    });
+                }
+
                 if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                     if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
                         proposalData.topUpReturnCode = rewardEvent.code;
@@ -2075,6 +2104,7 @@ var dbPlayerTopUpRecord = {
         let isFPMS = false; // true - use FPMS to manage payment
         let newProposal;
         let proposalType;
+        let topUpSystemConfig;
 
         if(isPlayerAssign){
             proposalType = constProposalType.PLAYER_ASSIGN_TOP_UP;
@@ -2108,6 +2138,8 @@ var dbPlayerTopUpRecord = {
         ).then(
             playerData => {
                 player = playerData;
+                topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
+
                 if (player && player.platform && player.platform.bankCardGroupIsPMS) {
                     bPMSGroup = true
                 } else {
@@ -2116,7 +2148,10 @@ var dbPlayerTopUpRecord = {
                 if (player && player._id) {
                     if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                         isFPMS = true;
+                    } else if (topUpSystemConfig && topUpSystemConfig.name === 'FPMS') {
+                        isFPMS = true;
                     }
+
                     if (!topUpReturnCode) {
                         return Promise.resolve();
                     }
@@ -2235,6 +2270,18 @@ var dbPlayerTopUpRecord = {
                     id: playerId
                 };
 
+                if (player.platform.topUpSystemType && topUpSystemConfig) {
+                    proposalData.topUpSystemType = player.platform.topUpSystemType;
+                    proposalData.topUpSystemName = topUpSystemConfig.name;
+                } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                    Object.keys(extConfig).forEach(key => {
+                        if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                            proposalData.topUpSystemType = Number(key);
+                            proposalData.topUpSystemName = extConfig[key].name;
+                        }
+                    });
+                }
+
                 if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                     if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
                         proposalData.topUpReturnCode = rewardEvent.code;
@@ -2303,6 +2350,7 @@ var dbPlayerTopUpRecord = {
                     }
                 }
 
+                console.log('rt - prop error check', newProposal);
                 return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(
@@ -3274,6 +3322,7 @@ var dbPlayerTopUpRecord = {
         let rewardEvent;
         let isFPMS = false; // true - use FPMS to manage payment
         let newProposal;
+        let topUpSystemConfig;
 
         if (bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -3288,6 +3337,8 @@ var dbPlayerTopUpRecord = {
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
                     player = playerData;
+                    topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
+
                     if (fromFPMS) {
                         bPMSGroup = false
                     } else {
@@ -3300,7 +3351,10 @@ var dbPlayerTopUpRecord = {
                     if (player && player._id) {
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                             isFPMS = true;
+                        } else if (topUpSystemConfig && topUpSystemConfig.name === 'FPMS') {
+                            isFPMS = true;
                         }
+
                         if (!topUpReturnCode) {
                             return Promise.resolve();
                         }
@@ -3434,6 +3488,19 @@ var dbPlayerTopUpRecord = {
                     // if (rewardEvent && rewardEvent._id) {
                     //     proposalData.topUpReturnCode = rewardEvent.code;
                     // }
+
+                    if (player.platform.topUpSystemType && topUpSystemConfig) {
+                        proposalData.topUpSystemType = player.platform.topUpSystemType;
+                        proposalData.topUpSystemName = topUpSystemConfig.name;
+                    } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                        Object.keys(extConfig).forEach(key => {
+                            if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                                proposalData.topUpSystemType = Number(key);
+                                proposalData.topUpSystemName = extConfig[key].name;
+                            }
+                        });
+                    }
+
                     if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                         if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
                             proposalData.topUpReturnCode = rewardEvent.code;
@@ -3907,6 +3974,7 @@ var dbPlayerTopUpRecord = {
         let rewardEvent;
         let isFPMS = false; // true - use FPMS to manage payment
         let newProposal;
+        let topUpSystemConfig;
 
         if (bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -3923,6 +3991,8 @@ var dbPlayerTopUpRecord = {
             ).lean().then(
                 playerData => {
                     player = playerData;
+                    topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
+
                     if (fromFPMS) {
                         bPMSGroup = false
                     } else {
@@ -3935,7 +4005,10 @@ var dbPlayerTopUpRecord = {
                     if (player && player._id) {
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                             isFPMS = true;
+                        } else if (topUpSystemConfig && topUpSystemConfig.name === 'FPMS') {
+                            isFPMS = true;
                         }
+
                         if (!topUpReturnCode) {
                             return Promise.resolve();
                         }
@@ -4047,6 +4120,18 @@ var dbPlayerTopUpRecord = {
                             name: player.name,
                             id: playerId
                         };
+
+                        if (player.platform.topUpSystemType && topUpSystemConfig) {
+                            proposalData.topUpSystemType = player.platform.topUpSystemType;
+                            proposalData.topUpSystemName = topUpSystemConfig.name;
+                        } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                            Object.keys(extConfig).forEach(key => {
+                                if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                                    proposalData.topUpSystemType = Number(key);
+                                    proposalData.topUpSystemName = extConfig[key].name;
+                                }
+                            });
+                        }
 
                         if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                             if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
@@ -4627,12 +4712,18 @@ var dbPlayerTopUpRecord = {
         );
     },
 
-    forcePairingWithReferenceNumber: function(platformId, proposalObjId, proposalId, referenceNumber, adminId, adminObjId) {    //this ends up at PMS
-        return pmsAPI.foundation_mandatoryMatch({
-            platformId: platformId,
-            queryId: serverInstance.getQueryId(),
-            proposalId: proposalId,
-            depositId: referenceNumber
+    forcePairingWithReferenceNumber: function(platformId, proposalObjId, proposalId, referenceNumber) {
+        return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
+            if(proposal && proposal.data && new Date(proposal.data.validTime) < new Date) {
+                return Promise.reject({message: "提案已过期"});
+            }
+        }).then(()=>{
+            return pmsAPI.foundation_mandatoryMatch({
+                platformId: platformId,
+                queryId: serverInstance.getQueryId(),
+                proposalId: proposalId,
+                depositId: referenceNumber
+            })
         }).then(data => {
             console.log("forcePairingWithReferenceNumber data", data);
             if(data) {
@@ -4640,7 +4731,8 @@ var dbPlayerTopUpRecord = {
                 let remarks = "强制匹配：成功。";
                 return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
                     if(proposal && proposal.data) {
-                        let proposalRemark = proposal.data.remark ? proposal.data.remark + "; " + remarks : remarks;
+                        console.log("mandatoryMatch proposal", proposal.data.remark);
+                        let proposalRemark = proposal.data.remark && proposal.data.remark != 'undefined' ? proposal.data.remark + "; " + remarks : remarks;
                         return updateProposalRemark(proposal, proposalRemark).then(() => {return Promise.resolve(true)});
                     }
                 });

@@ -274,6 +274,10 @@ define([], () => {
                 .then(data => data.data.data);
         };
 
+        self.getSMSTemplate = function($scope, platformObjId) {
+            return $scope.$socketPromise("getMessageTemplatesForPlatform", {platform: platformObjId, format: 'smstpl'}).then(data => data.data)
+        };
+
         self.getPMSDevices = function(num){
             // PMS definition of device type
             // Web: 1, H5: 2, Both: 3, App:4
