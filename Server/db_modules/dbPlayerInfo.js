@@ -862,7 +862,18 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                    let checktsPhoneFeedback = Promise.resolve();
+                    if (!(inputData && inputData.tsPhone)) {
+                        checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
+                    }
+                    return checktsPhoneFeedback.then(
+                        tsPhoneFeedbackData => {
+                            if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
+                                inputData.csOfficer = ObjectId(tsPhoneFeedbackData.adminId);
+                            }
+                            return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                        }
+                    )
                 }
             ).then(
                 data => {
@@ -1868,7 +1879,7 @@ let dbPlayerInfo = {
                         dbconfig.collection_tsDistributedPhone.update({tsPhone: playerData.tsPhone}, {registered: true}, {multi: true}).catch(errorUtils.reportError);
                     } else {
                         if (playerData.phoneNumber) {
-                            checkTelesalesPhone(playerData.phoneNumber);
+                            checkTelesalesPhone(playerData.phoneNumber, platformData._id);
                         }
                     }
 
@@ -24133,8 +24144,23 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
     );
 }
 
-function checkTelesalesPhone(encryptedPhoneNumber) {
-    dbconfig.collection_tsPhone.find({phoneNumber: encryptedPhoneNumber, registered: false}).lean().then(
+function checkTelesalesFeedback(phoneNumber, platformObjId) {
+    let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+    return dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false, isSucceedBefore: true}, {_id: 1}).lean().then(
+        tsPhoneData => {
+            if (tsPhoneData && tsPhoneData.length) {
+                return dbconfig.collection_tsPhoneFeedback.findOne({
+                    tsPhone: {$in: tsPhoneData.map(tsPhone => tsPhone._id)}
+                }, {adminId: 1}).sort({createTime: -1}).lean();
+            } else {
+                return null;
+            }
+        }
+    );
+}
+
+function checkTelesalesPhone(encryptedPhoneNumber, platformObjId) {
+    dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).lean().then(
         tsPhoneData => {
             if (tsPhoneData && tsPhoneData.length) {
                 tsPhoneData.forEach(
