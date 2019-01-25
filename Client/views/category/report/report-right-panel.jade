@@ -33,7 +33,7 @@
                 .search-filters-item
                     label {{'3rd Party Platform' | translate}}
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.merchantGroup',ng-options='mer as mer.name for mer in vm.merchantGroupCloneList', multiple, bsp, data-actions-box='true')
-                
+
                 .search-filters-item
                     label {{'DEPOSIT_METHOD' | translate}}
                     select.form-control.merchantNoList(ng-model='vm.queryTopup.depositMethod', multiple, static-bsp, data-actions-box='true')
@@ -1892,14 +1892,14 @@
             table.common-table.simple-table#winRateSummaryTable(ng-show="vm.winRateLayer1", style='margin-top:10px;font-size:12px')
                 thead
                     tr
-                        th(style='width:10%') {{'PROVIDER' | translate}}
-                        th(style='width:10%') {{'CONSUMPTION_PARTICIPANT' | translate}}
-                        th(style='width:10%') {{'TIMES_CONSUMED' | translate}}
-                        th(style='width:10%') {{'TOTAL_CONSUMPTION' | translate}}
-                        th(style='width:10%') {{'VALID_CONSUMPTION' | translate}}
-                        th(style='width:10%') {{'PLAYER_PROFIT_AMOUNT' | translate}}
-                        th(style='width:10%') {{'COMPANY_EARNING_RATIO' | translate}}
-                        th(style='width:10%') {{'DETAILS' | translate}}
+                        th.widthto15 {{'PROVIDER' | translate}}
+                        th.widthto10 {{'CONSUMPTION_PARTICIPANT' | translate}}
+                        th.widthto10 {{'TIMES_CONSUMED' | translate}}
+                        th.widthto15 {{'TOTAL_CONSUMPTION' | translate}}
+                        th.widthto15 {{'VALID_CONSUMPTION' | translate}}
+                        th.widthto15 {{'PLAYER_PROFIT_AMOUNT' | translate}}
+                        th.widthto15 {{'COMPANY_EARNING_RATIO' | translate}}
+                        th.widthto10 {{'DETAILS' | translate}}
                 tbody
                     tr
                         td {{vm.winRateSummaryData.providerName | translate}}
