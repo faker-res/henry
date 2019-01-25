@@ -228,7 +228,7 @@
                 if (wsFunc.isSync) {
                     //append request id if needed
                     data = wsFunc.appendSyncKey(data, this.getRequestId());
-                    console.log("callAPIOnce:", data);
+                    // console.log("callAPIOnce:", data);
                     wsFunc.request(data);
                     var key = wsFunc.generateSyncKey(data);
                     console.log('callAPIOnce funcName and key', funcName, key)
