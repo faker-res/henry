@@ -2353,6 +2353,8 @@ var dbPlayerConsumptionRecord = {
         if (!providerId) {
             gameProviderName = 'AllProviders';
         }
+        let profit = (-bonusAmount / validAmount * 100) || 0
+        profit = profit.toFixed(2);
         result = [{
             providerId: providerId,
             providerName: gameProviderName,
@@ -2360,7 +2362,8 @@ var dbPlayerConsumptionRecord = {
             consumptionTimes: consumptionTimes,
             totalAmount: totalAmount,
             validAmount: validAmount,
-            bonusAmount: bonusAmount
+            bonusAmount: bonusAmount,
+            profit: profit
         }]
         return result;
     },
