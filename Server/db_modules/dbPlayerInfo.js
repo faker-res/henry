@@ -12469,7 +12469,8 @@ let dbPlayerInfo = {
                     platformId = platformData.platformId;
 
                     let sendQuery = {
-                        _id: gameId
+                        _id: gameId,
+                        status: {$ne: constGameStatus.DELETED}
                     }
 
                     if (Number(device)) {
@@ -12486,7 +12487,8 @@ let dbPlayerInfo = {
                                 // get the data from platformGameStatus to get the status information
                                 let queryObj = {
                                     game: data._id,
-                                    platform: platformObjId
+                                    platform: platformObjId,
+                                    status: {$ne: constGameStatus.DELETED}
                                 }
                                 return dbconfig.collection_platformGameStatus.findOne(queryObj).lean().then(platformGame => {
                                     if (platformGame) {
