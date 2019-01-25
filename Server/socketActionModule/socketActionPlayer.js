@@ -1382,12 +1382,6 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerObjId);
             socketUtil.emitter(self.socket, dbPlayerInfo.clearPlayerState, [data.playerObjId], actionName, isValidData);
-        },
-
-        syncPMSTopupStatus: function syncPMSTopupStatus(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.syncPMSTopupStatus, [data.platformId], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

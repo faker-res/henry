@@ -129,9 +129,6 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'ClearPlayerState')" ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearPlayerState', ng-click='vm.prepareClearPlayerState()')
             text {{"ClearPlayerState" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'SyncPMSTopupStatus')" ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalSyncPMSTopupStatus', ng-click='vm.prepareSyncPMSTopupStatus()')
-            text {{"SyncPMSTopupStatus" | translate}}
-            img.img-edit
 
 // Sub-views
 #modalCreatePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

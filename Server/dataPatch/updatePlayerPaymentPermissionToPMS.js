@@ -1,10 +1,7 @@
-const Q = require("q");
-const env = require("../config/env").config();
 const dbconfig = require("../modules/dbproperties");
-const rsaCrypto = require("../modules/rsaCrypto");
 const dbPlayerInfo = require("../db_modules/dbPlayerInfo");
 
-let platformId = "6";
+let platformId = process.env.platformId;
 
 dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
     platformData => {

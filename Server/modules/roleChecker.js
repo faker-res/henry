@@ -219,8 +219,7 @@ var roleChecker = {
                 TriggerAutoProposal: ['triggerAutoProposal'],
                 playerApiLog: ['getPlayerApiLog'],
                 UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
-                ClearPlayerState: ['resetPlayerState'],
-                SyncPMSTopupStatus: ['syncPMSTopupStatus']
+                ClearPlayerState: ['resetPlayerState']
             },
             "Reward": {
                 AddRewardTask: ['createPlayerRewardTask'],
