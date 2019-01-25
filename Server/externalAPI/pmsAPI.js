@@ -108,6 +108,10 @@ const pmsAPI = {
         return callPMSAPI("foundation", "mandatoryMatch", data);
     },
 
+    foundation_userDepositSettings: (data) => {
+        return callPMSAPI("foundation", "userDepositSettings", data);
+    },
+
     //platform service
     platform_add: function (data) {
         return callPMSAPI("platform", "add", data);
