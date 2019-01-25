@@ -868,9 +868,8 @@ let dbPlayerInfo = {
                     }
                     return checktsPhoneFeedback.then(
                         tsPhoneFeedbackData => {
-                            if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId && tsPhoneFeedbackData.adminId._id && tsPhoneFeedbackData.adminId.adminName) {
-                                inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName;
-                                inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
+                            if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
+                                inputData.csOfficer = ObjectId(tsPhoneFeedbackData.adminId);
                             }
                             return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
                         }
@@ -24152,11 +24151,7 @@ function checkTelesalesFeedback(phoneNumber, platformObjId) {
             if (tsPhoneData && tsPhoneData.length) {
                 return dbconfig.collection_tsPhoneFeedback.findOne({
                     tsPhone: {$in: tsPhoneData.map(tsPhone => tsPhone._id)}
-                }, {adminId: 1}).populate({
-                    path: "adminId",
-                    model: dbconfig.collection_admin,
-                    select: "adminName"
-                }).sort({createTime: -1}).lean();
+                }, {adminId: 1}).sort({createTime: -1}).lean();
             } else {
                 return null;
             }
