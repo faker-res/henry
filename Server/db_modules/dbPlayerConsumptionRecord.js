@@ -2367,7 +2367,7 @@ var dbPlayerConsumptionRecord = {
 
     getProvidersWinRate: function (gameProviders, participantData, totalSumData) {
         // return  detail of each provider's winrate data
-        let returnData = [];
+        let result = [];
         if (gameProviders && gameProviders.length > 0) {
             gameProviders.forEach(provider => {
                 //count how many player consumption (non-repeat)
@@ -2399,9 +2399,10 @@ var dbPlayerConsumptionRecord = {
                     profit: (-sumData.bonusAmount / sumData.validAmount * 100) || 0
                 }
                 providerSum.profit = (Math.round(providerSum.profit * 100) / 100) || 0
-                returnData.push(providerSum);
+                result.push(providerSum);
             })
         }
+        return result;
 
     },
 
@@ -2452,13 +2453,13 @@ var dbPlayerConsumptionRecord = {
                 let result = [];
                 let totalSumData = data[1] ? data[1] : [];
                 let participantData = data[0] ? data[0] : [];
-                result = dbPlayerConsumptionRecord.getGameTypeWinRateData(participantNumber, totalSumData, participantData);
+                result = dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
                 return result;
             }
         )
     },
 
-    getGameTypeWinRateData: function (participantNumber, totalSumData, participantData) {
+    getGameTypeWinRateData: function (providerId, providerName, participantNumber, totalSumData, participantData) {
         let participantArr = [];
         let summaryData = {
             consumptionTimes: 0,
@@ -2471,6 +2472,7 @@ var dbPlayerConsumptionRecord = {
             let providerSum;
             let participant;
             let participantNumber = 0;
+            let consumptionTimes = 0;
             totalSumData.forEach(item => {
                 // calculate the non-repeat player number
                 if (participantData && participantData.length > 0) {
