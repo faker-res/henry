@@ -22661,33 +22661,22 @@ let dbPlayerInfo = {
         )
     },
 
-    syncPMSTopupStatus: (platformId) => {
-        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
-            platformData => {
-                if (platformData) {
-                    let cursor = dbconfig.collection_players.find({platform: platformData._id}).cursor();
-                    let i = 0;
-                    return cursor.eachAsync(
-                        playerData => {
-                            i++;
-                            return dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformId, playerData._id).then(
-                                () => console.log('done', i)
-                            );
-                        }
-                    );
-                }
-            }
-        );
-    },
-
     updatePMSPlayerTopupChannelPermission: (platformId, playerObjId, updateObj) => {
         return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
-            updateObj => {
-                if (updateObj) {
+            sendObj => {
+                if (
+                    sendObj
+                    && (
+                        sendObj.manualRechargeMethod === 1
+                        || sendObj.onlineRechargeMethod === 1
+                        || sendObj.alipayRechargeMethod === 1
+                        || sendObj.wechatRechargeMethod === 1
+                    )
+                ) {
                     return pmsAPI.foundation_userDepositSettings(
                         {
                             queryId: +new Date() + serverInstance.getQueryId(),
-                            data: [updateObj]
+                            data: [sendObj]
                         }
                     ).then(
                         updateStatus => {

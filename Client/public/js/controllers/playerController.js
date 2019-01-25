@@ -14997,17 +14997,6 @@ define(['js/app'], function (myApp) {
                 })
             });
         }
-
-        vm.prepareSyncPMSTopupStatus = function () {
-            $scope.$socketPromise("syncPMSTopupStatus", {platformId: vm.selectedPlatform.data.platformId}).then(
-                () => {
-                    socketService.showConfirmMessage($translate("Success"), 1000);
-                },
-                error => {
-                    socketService.showErrorMessage($translate(error.error.error));
-                }
-            )
-        }
         ///////////////////////////////// player feedback //////////////////////////////////////////
 
         vm.setQueryRole = (modal) => {
