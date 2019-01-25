@@ -2288,10 +2288,10 @@ var dbPlayerConsumptionRecord = {
                         playerId: { $addToSet: "$playerId" }
                     }
                 }
-            ]);
+            ]).read("secondaryPreferred");
         } else {
             //find the number of player consumption (non-repeat), include all providers
-            participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj);
+            participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
         }
 
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
@@ -2306,7 +2306,7 @@ var dbPlayerConsumptionRecord = {
                     bonusAmount: { $sum: "$bonusAmount" }
                 }
             }
-        ]);
+        ]).read("secondaryPreferred");
 
         let gameProviderProm = dbPlatform.getPlatform({ _id: platformId }).then(data => {
             return (data && data.gameProviders) ? data.gameProviders : [];
@@ -2430,7 +2430,7 @@ var dbPlayerConsumptionRecord = {
                     }
                 }
             }
-        ]);
+        ]).read("secondaryPreferred");
 
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
@@ -2445,7 +2445,7 @@ var dbPlayerConsumptionRecord = {
                     bonusAmount: {$sum: "$bonusAmount"}
                 }
             }
-        ]);
+        ]).read("secondaryPreferred");
 
         return Promise.all([participantsProm, totalAmountProm]).then(
             data => {
@@ -2520,7 +2520,7 @@ var dbPlayerConsumptionRecord = {
 
         matchObj.providerId = ObjectId(providerId);
         matchObj.gameType = gameType;
-        let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj);
+        let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: matchObj
@@ -2534,7 +2534,7 @@ var dbPlayerConsumptionRecord = {
                     bonusAmount: {$sum: "$bonusAmount"}
                 }
             }
-        ]);
+        ]).read("secondaryPreferred");
 
         return Promise.all([participantsProm, totalAmountProm]).then(
             data => {
@@ -2560,7 +2560,7 @@ var dbPlayerConsumptionRecord = {
                         item.playerName = player.name;
                         item.totalAmount = item.total_amount;
                         item.profit = (-item.bonusAmount/item.validAmount*100) || 0;
-                        item.profit = Math.round(item.profit * 100) / 100
+                        item.profit = Math.round(item.profit * 100) / 100;
 
                         summaryData.consumptionTimes += item.consumptionTimes;
                         summaryData.totalAmount += item.total_amount;
