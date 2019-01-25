@@ -14,7 +14,7 @@ dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().
             cursor.eachAsync(
                 playerData => {
                     i++;
-                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformData._id, playerData._id).then(
+                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformData.platformId, playerData._id).then(
                         () => console.log('done', i)
                     );
                 }
