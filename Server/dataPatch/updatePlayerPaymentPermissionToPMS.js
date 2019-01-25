@@ -4,16 +4,18 @@ const dbconfig = require("../modules/dbproperties");
 const rsaCrypto = require("../modules/rsaCrypto");
 const dbPlayerInfo = require("../db_modules/dbPlayerInfo");
 
-let platformId = "4";
+let platformId = "6";
 
 dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
     platformData => {
         if (platformData) {
             let cursor = dbconfig.collection_players.find({platform: platformData._id}).cursor();
+            let i = 0;
             cursor.eachAsync(
                 playerData => {
-                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformId, playerData._id).then(
-                        () => console.log('done')
+                    i++;
+                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformData._id, playerData._id).then(
+                        () => console.log('done', i)
                     );
                 }
             );
