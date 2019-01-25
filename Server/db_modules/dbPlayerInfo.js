@@ -22670,7 +22670,7 @@ let dbPlayerInfo = {
                     return cursor.eachAsync(
                         playerData => {
                             i++;
-                            return dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformData.platformId, playerData._id).then(
+                            return dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformId, playerData._id).then(
                                 () => console.log('done', i)
                             );
                         }
