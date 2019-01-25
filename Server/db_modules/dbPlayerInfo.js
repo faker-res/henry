@@ -22687,25 +22687,25 @@ let dbPlayerInfo = {
                         retObj = {
                             username: player.name,
                             platformId: platformId,
-                            manualRechargeMethod: player.permission.topupManual ? 1 : 0,
-                            onlineRechargeMethod: player.permission.topupOnline ? 1 : 0,
-                            alipayRechargeMethod: player.permission.alipayTransaction ? 1 : 0,
-                            wechatRechargeMethod: player.permission.disableWechatPay ? 0 : 1,
+                            manualRechargeMethod: player.permission.topupManual ? 0 : 1,
+                            onlineRechargeMethod: player.permission.topupOnline ? 0 : 1,
+                            alipayRechargeMethod: player.permission.alipayTransaction ? 0 : 1,
+                            wechatRechargeMethod: player.permission.disableWechatPay ? 1 : 0,
                         }
                     }
 
                     if (updateObj) {
                         if (updateObj.hasOwnProperty('topupManual')) {
-                            retObj.manualRechargeMethod = updateObj.topupManual ? 1 : 0;
+                            retObj.manualRechargeMethod = updateObj.topupManual ? 0 : 1;
                         }
                         if (updateObj.hasOwnProperty('topupOnline')) {
-                            retObj.onlineRechargeMethod = updateObj.topupOnline ? 1 : 0;
+                            retObj.onlineRechargeMethod = updateObj.topupOnline ? 0 : 1;
                         }
                         if (updateObj.hasOwnProperty('alipayTransaction')) {
-                            retObj.alipayRechargeMethod = updateObj.alipayTransaction ? 1 : 0;
+                            retObj.alipayRechargeMethod = updateObj.alipayTransaction ? 0 : 1;
                         }
                         if (updateObj.hasOwnProperty('disableWechatPay')) {
-                            retObj.wechatRechargeMethod = updateObj.disableWechatPay ? 0 : 1;
+                            retObj.wechatRechargeMethod = updateObj.disableWechatPay ? 1 : 0;
                         }
                     }
 
