@@ -58,6 +58,7 @@ define(['js/app'], function (myApp) {
             ALIPAY: 3,
             WechatPay: 4,
             CommonTopUp: 6,
+            FKPTopUp: 100
         };
         vm.feedbackResultList = {
             NORMAL: "Normal",
