@@ -6,7 +6,7 @@ let platformId = process.env.platformId;
 dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
     platformData => {
         if (platformData) {
-            let cursor = dbconfig.collection_players.find({platform: platformData._id}).cursor();
+            let cursor = dbconfig.collection_players.find({platform: platformData._id, isTestPlayer: {$ne: true}}).cursor();
             let i = 0;
             cursor.eachAsync(
                 playerData => {
