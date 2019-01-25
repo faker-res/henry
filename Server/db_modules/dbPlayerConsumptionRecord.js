@@ -29,6 +29,7 @@ let dbUtility = require('./../modules/dbutility');
 let dbGameProvider = require('../db_modules/dbGameProvider');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
+let dbPlatform = require("../db_modules/dbPlatform.js");
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -2257,7 +2258,159 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
-    winRateReport: function (startTime, endTime, providerId, platformId) {
+    winRateReport: function (startTime, endTime, providerId, platformId, listAll) {
+        let participantsProm;
+        const matchObj = {
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+            platformId: ObjectId(platformId),
+            isDuplicate: {
+                $ne: true
+            }
+        };
+
+        if (providerId && providerId !== 'all') {
+            matchObj.providerId = ObjectId(providerId);
+        }
+
+        let groupById = null;
+        if (listAll) {
+            //find the number of player consumption (non-repeat), with different provider
+            groupById = "$providerId"
+            participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
+                    $match: matchObj
+                },
+                {
+                    $group: {
+                        _id: groupById,
+                        playerId: { $addToSet: "$playerId" }
+                    }
+                }
+            ]).read("secondaryPreferred");
+        } else {
+            //find the number of player consumption (non-repeat), include all providers
+            participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
+        }
+
+        let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: groupById,
+                    total_amount: { $sum: "$amount"},
+                    validAmount: { $sum: "$validAmount"},
+                    consumptionTimes: { $sum: { $cond: ["$count", "$count", 1] }},
+                    bonusAmount: { $sum: "$bonusAmount" }
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let gameProviderProm = dbPlatform.getPlatform({ _id: platformId }).then(data => {
+            return (data && data.gameProviders) ? data.gameProviders : [];
+        })
+
+        return Promise.all([participantsProm, totalAmountProm, gameProviderProm]).then(
+            data => {
+                let participantNumber = 0;
+                let consumptionTimes = 0;
+                let totalAmount = 0;
+                let validAmount = 0;
+                let bonusAmount = 0;
+                let returnData = [];
+                let totalSumData = data[1] ? data[1] : [];
+                let gameProviders = data[2];
+                let participantData = data[0] ? data[0] : [];
+
+                if (!listAll && data && data[0] && data[1] && data[1][0]) {
+                    participantNumber = data[0].length;
+                    consumptionTimes = data[1][0].consumptionTimes;
+                    totalAmount = data[1][0].total_amount;
+                    validAmount = data[1][0].validAmount;
+                    bonusAmount = data[1][0].bonusAmount;
+                    // return sum of "all" provider winrate data
+                    returnData = dbPlayerConsumptionRecord.getAllSumWinRate(providerId, gameProviders, participantNumber, consumptionTimes, totalAmount, validAmount, bonusAmount);
+                } else if (listAll && data && data[0] && data[1] && data[1][0]) {
+                    // return  detail of each provider's winrate data
+                    returnData = dbPlayerConsumptionRecord.getProvidersWinRate(gameProviders, participantData, totalSumData);
+                }
+                return returnData;
+            }
+        );
+    },
+
+    getAllSumWinRate: function (providerId, gameProviders, participantNumber, consumptionTimes, totalAmount, validAmount, bonusAmount) {
+        // return sum of "all" provider winrate data
+        let result = [];
+        let gameProviderName = gameProviders.filter(provider => {
+            if (provider._id.equals(ObjectId(providerId))) {
+                return provider
+            }
+        })
+        gameProviderName = (gameProviderName && gameProviderName[0] && gameProviderName[0].name) ? gameProviderName[0].name : '';
+        if (!providerId) {
+            gameProviderName = 'AllProviders';
+        }
+        let profit = (-bonusAmount / validAmount * 100) || 0
+        profit = profit.toFixed(2);
+        result = [{
+            providerId: providerId,
+            providerName: gameProviderName,
+            participantNumber: participantNumber,
+            consumptionTimes: consumptionTimes,
+            totalAmount: totalAmount,
+            validAmount: validAmount,
+            bonusAmount: bonusAmount,
+            profit: profit
+        }]
+        return result;
+    },
+
+    getProvidersWinRate: function (gameProviders, participantData, totalSumData) {
+        // return  detail of each provider's winrate data
+        let result = [];
+        if (gameProviders && gameProviders.length > 0) {
+            gameProviders.forEach(provider => {
+                //count how many player consumption (non-repeat)
+                let providerSum;
+                let participant;
+                let participantNumber = 0;
+                if (participantData && participantData.length > 0) {
+                    participant = participantData.filter(item => {
+                        return item._id.equals(provider._id);
+                    })
+                    participant = (participant && participant[0]) ? participant[0] : null;
+                    participantNumber = (participant && participant.playerId) ? participant.playerId.length : 0;
+                }
+                //pair the provider - dump aggregate data into that provider object
+                let sumData = totalSumData.filter(sum => {
+                    if (sum._id.equals(provider._id)) {
+                        return sum;
+                    }
+                })
+                sumData = (sumData && sumData[0]) ? sumData[0] : [];
+                providerSum = {
+                    providerId: provider._id,
+                    providerName: provider.name,
+                    participantNumber: participantNumber || 0,
+                    consumptionTimes: sumData.consumptionTimes || 0,
+                    totalAmount: sumData.total_amount || 0,
+                    validAmount: sumData.validAmount || 0,
+                    bonusAmount: sumData.bonusAmount || 0,
+                    profit: (-sumData.bonusAmount / sumData.validAmount * 100) || 0
+                }
+                providerSum.profit = (Math.round(providerSum.profit * 100) / 100) || 0
+                result.push(providerSum);
+            })
+        }
+        return result;
+
+    },
+
+    getWinRateByGameType: function (startTime, endTime, providerId, platformId, providerName) {
+        // display winrate data by specific gametype (in a provider)
         const matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
             platformId: ObjectId(platformId),
@@ -2268,7 +2421,19 @@ var dbPlayerConsumptionRecord = {
             matchObj.providerId = ObjectId(providerId);
         }
 
-        let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj);
+        // the player are non-repeatable
+        let participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: {"providerId":"$providerId", "gameType": "$gameType"},
+                    playerId: {
+                        $addToSet: "$playerId"
+                    }
+                }
+            }
+        ]).read("secondaryPreferred");
 
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
@@ -2276,14 +2441,103 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id: null,
+                    _id: '$gameType',
                     total_amount: {$sum: "$amount"},
                     validAmount: {$sum: "$validAmount"},
                     consumptionTimes: {$sum: {$cond: ["$count", "$count", 1]}},
                     bonusAmount: {$sum: "$bonusAmount"}
                 }
             }
-        ]);
+        ]).read("secondaryPreferred");
+
+        return Promise.all([participantsProm, totalAmountProm]).then(
+            data => {
+                let participantNumber = 0;
+                let result = [];
+                let totalSumData = data[1] ? data[1] : [];
+                let participantData = data[0] ? data[0] : [];
+                result = dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
+                return result;
+            }
+        )
+    },
+
+    getGameTypeWinRateData: function (providerId, providerName, participantNumber, totalSumData, participantData) {
+        let participantArr = [];
+        let summaryData = {
+            consumptionTimes: 0,
+            totalAmount: 0,
+            validAmount: 0,
+            bonusAmount: 0,
+            profit: 0
+        };
+        if (participantData && totalSumData && totalSumData.length > 0) {
+            let providerSum;
+            let participant;
+            let participantNumber = 0;
+            let consumptionTimes = 0;
+            totalSumData.forEach(item => {
+                // calculate the non-repeat player number
+                if (participantData && participantData.length > 0) {
+                    participant = participantData.filter(party => {
+                        return party._id.gameType == item._id
+                    })
+                    participant = (participant && participant.length) ? participant[0] : null;
+                    participantNumber = (participant && participant.playerId && participant.playerId.length) ? participant.playerId.length : 0
+
+                    if (participant && participant.playerId && participant.playerId.length) {
+                        participant.playerId.forEach(player => {
+                            participantArr.push(player);
+                        })
+                    }
+                }
+                item.gameType = item._id;
+                item.totalAmount = item.total_amount;
+                item.providerName = providerName;
+                item.participantNumber = participantNumber;
+                item.providerId = providerId;
+                item.profit = (-item.bonusAmount / item.validAmount * 100);
+                item.profit = Math.round(item.profit * 100) / 100
+
+                summaryData.consumptionTimes += consumptionTimes;
+                summaryData.totalAmount += item.total_amount;
+                summaryData.validAmount += item.validAmount;
+                summaryData.bonusAmount += item.bonusAmount;
+                return item;
+            });
+        }
+        summaryData.profit = ((-summaryData.bonusAmount / summaryData.validAmount * 100));
+        summaryData.participantArr = participantArr
+        return {
+            data: totalSumData,
+            summaryData: summaryData
+        }
+    },
+
+    getWinRateByPlayers: function (startTime, endTime, providerId, platformId, gameType) {
+        const matchObj = {
+            createTime: {$gte: startTime, $lt: endTime},
+            platformId: ObjectId(platformId),
+            isDuplicate: {$ne: true}
+        };
+
+        matchObj.providerId = ObjectId(providerId);
+        matchObj.gameType = gameType;
+        let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
+        let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: '$playerId',
+                    total_amount: {$sum: "$amount"},
+                    validAmount: {$sum: "$validAmount"},
+                    consumptionTimes: {$sum: {$cond: ["$count", "$count", 1]}},
+                    bonusAmount: {$sum: "$bonusAmount"}
+                }
+            }
+        ]).read("secondaryPreferred");
 
         return Promise.all([participantsProm, totalAmountProm]).then(
             data => {
@@ -2292,26 +2546,40 @@ var dbPlayerConsumptionRecord = {
                 let totalAmount = 0;
                 let validAmount = 0;
                 let bonusAmount = 0;
-                if (data && data[0] && data[1] && data[1][0]) {
-                    participantNumber = data[0].length;
-                    consumptionTimes = data[1][0].consumptionTimes;
-                    totalAmount = data[1][0].total_amount;
-                    validAmount = data[1][0].validAmount;
-                    bonusAmount = data[1][0].bonusAmount;
-                }
-
-                let returnData = {
-                    participantNumber: participantNumber,
-                    consumptionTimes: consumptionTimes,
-                    totalAmount: totalAmount,
-                    validAmount: validAmount,
-                    bonusAmount: bonusAmount
+                let returnData = [];
+                let totalSumData = data[1] ? data[1] : [];
+                let playersProm = [];
+                let summaryData = {
+                    consumptionTimes : 0,
+                    totalAmount: 0,
+                    validAmount: 0,
+                    bonusAmount: 0,
+                    profit:0
                 };
 
-                return returnData;
-            }
-        );
+                let providerSum;
+                totalSumData.forEach((item) => {
+                    let playerProm = dbconfig.collection_players.findOne({_id : Object(item._id)}, {_id : 1, name : 1}).then(player =>{
+                        item.playerName = player.name;
+                        item.totalAmount = item.total_amount;
+                        item.profit = (-item.bonusAmount/item.validAmount*100) || 0;
+                        item.profit = Math.round(item.profit * 100) / 100;
 
+                        summaryData.consumptionTimes += item.consumptionTimes;
+                        summaryData.totalAmount += item.total_amount;
+                        summaryData.validAmount += item.validAmount;
+                        summaryData.bonusAmount += item.bonusAmount;
+                        return item;
+                    })
+                    playersProm.push(playerProm);
+                });
+
+                return Promise.all(playersProm).then(players => {
+                    summaryData.profit = (-summaryData.bonusAmount/summaryData.validAmount*100)|| 0;
+                    return { data: players, summaryData:summaryData }
+                })
+            }
+        )
     },
 
     markDuplicatedConsumptionRecords: dupsSummaries => {
