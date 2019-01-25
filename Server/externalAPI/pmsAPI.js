@@ -30,7 +30,6 @@ function callPMSAPI(service, functionName, data) {
     clientAPIInstance.createAPIConnectionInMode("PaymentAPI").then(
         con => {
             bOpen = true;
-            console.log('callPMSAPI 2', service, functionName, data);
             return con.callAPIOnce(service, functionName, data).then(
                 data => {
                     if (con && typeof con.disconnect == "function") {
