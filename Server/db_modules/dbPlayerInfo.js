@@ -2633,7 +2633,11 @@ let dbPlayerInfo = {
         let pmsUpdateProm = Promise.resolve(true);
 
         if (isUpdatePMSPermission) {
-            pmsUpdateProm = dbPlayerInfo.updatePMSPlayerTopupChannelPermission(query.platform, query._id, permission);
+            pmsUpdateProm = dbconfig.collection_platform.findOne({_id: query.platform}).then(
+                platformData => {
+                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformData.platformId, query._id, permission);
+                }
+            )
         }
 
         return pmsUpdateProm.then(
@@ -22652,12 +22656,12 @@ let dbPlayerInfo = {
 
     updatePMSPlayerTopupChannelPermission: (platformId, playerObjId, updateObj) => {
         return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
-            updateArr => {
-                if (updateArr) {
+            updateObj => {
+                if (updateObj) {
                     return pmsAPI.foundation_userDepositSettings(
                         {
                             queryId: serverInstance.getQueryId(),
-                            data: updateArr
+                            data: [updateObj]
                         }
                     ).then(
                         updateStatus => {
