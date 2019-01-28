@@ -24297,7 +24297,7 @@ function checkTelesalesFeedback(phoneNumber, platformObjId) {
             if (tsPhoneData && tsPhoneData.length) {
                 return dbconfig.collection_tsPhoneFeedback.findOne({
                     tsPhone: {$in: tsPhoneData.map(tsPhone => tsPhone._id)}
-                }, {adminId: 1}).sort({createTime: -1}).lean();
+                }, {adminId: 1,tsPhone: 1}).sort({createTime: -1}).lean();
             } else {
                 return null;
             }
