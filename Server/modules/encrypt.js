@@ -49,6 +49,7 @@ var encrypt = {
         var playerId = data.hasOwnProperty('playerId') ? data.playerId : "";
         var playerType = data.hasOwnProperty('playerType') ? data.playerType : "";
         var trustLevel = data.hasOwnProperty('trustLevel') ? data.trustLevel : "";
+        var csOfficer = data.hasOwnProperty('csOfficer') ? data.csOfficer : "";
         var playerLevel = data.hasOwnProperty('playerLevel') ? data.playerLevel : "";
         var isTestPlayer = data.hasOwnProperty('isTestPlayer') ? data.isTestPlayer : "";
         var isRealPlayer = data.hasOwnProperty('isRealPlayer') ? data.isRealPlayer : "";
@@ -97,6 +98,9 @@ var encrypt = {
         }
         if (trustLevel !== '') {
             query["trustLevel"] = trustLevel;
+        }
+        if (csOfficer !== '') {
+            query["csOfficer"] = csOfficer;
         }
         if (playerLevel !== '') {
             query["playerLevel"] = playerLevel;

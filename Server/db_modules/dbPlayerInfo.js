@@ -865,7 +865,21 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                    let checktsPhoneFeedback = Promise.resolve();
+                    if (!(inputData && inputData.tsPhone)) {
+                        checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
+                    }
+                    return checktsPhoneFeedback.then(
+                        tsPhoneFeedbackData => {
+                            if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
+                                inputData.csOfficer = ObjectId(tsPhoneFeedbackData.adminId);
+                                if (tsPhoneFeedbackData.tsPhone) {
+                                    inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
+                                }
+                            }
+                            return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                        }
+                    )
                 }
             ).then(
                 data => {
@@ -1871,7 +1885,7 @@ let dbPlayerInfo = {
                         dbconfig.collection_tsDistributedPhone.update({tsPhone: playerData.tsPhone}, {registered: true}, {multi: true}).catch(errorUtils.reportError);
                     } else {
                         if (playerData.phoneNumber) {
-                            checkTelesalesPhone(playerData.phoneNumber);
+                            checkTelesalesPhone(playerData.phoneNumber, platformData._id);
                         }
                     }
 
@@ -2632,17 +2646,17 @@ let dbPlayerInfo = {
 
         let pmsUpdateProm = Promise.resolve(true);
 
+
         if (isUpdatePMSPermission) {
             pmsUpdateProm = dbconfig.collection_platform.findOne({_id: query.platform}).then(
                 platformData => {
-                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformData.platformId, query._id, permission);
+                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission);
                 }
             )
         }
 
         return pmsUpdateProm.then(
             updatePMSSuccess => {
-                console.log('updatePMSSuccess', updatePMSSuccess);
                 if (updatePMSSuccess) {
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
                         playerData => {
@@ -2693,41 +2707,27 @@ let dbPlayerInfo = {
         );
     },
     updateBatchPlayerPermission: function (query, admin, permission, remark) {
-
-        var updateObj = {};
-
-        for (var key in permission) {
-            updateObj["permission." + key] = permission[key];
-        }
         let players = query.playerNames;
         let proms = [];
-        let errorList = [];
+
         players.forEach(item => {
             let playerName = item.trim() || '';
             let playerQuery = {'name': playerName, 'platform': query.platformObjId};
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
-                function (suc) {
-                    var oldData = {};
-                    for (var i in permission) {
-                        oldData[i] = suc.permission[i];
+
+            let prom = dbconfig.collection_players.findOne(playerQuery, {_id: 1}).lean().then(
+                playerData => {
+                    if (playerData && playerData._id) {
+                        let updQ = {
+                            _id: playerData._id,
+                            platform: query.platformObjId
+                        }
+                        return dbPlayerInfo.updatePlayerPermission(updQ, admin, permission, remark);
                     }
-                    var newLog = new dbconfig.collection_playerPermissionLog({
-                        admin: admin,
-                        platform: playerQuery.platform,
-                        player: suc._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
-                },
-                function (error) {
-                    errorList.push(error.query.name);
-                    return error.query.name
                 }
-            )
-            proms.push(prom)
-        })
+            );
+            proms.push(prom);
+        });
+
         return Promise.all(proms);
     },
     /**
@@ -5370,6 +5370,30 @@ let dbPlayerInfo = {
             advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i');
         }
 
+        if (data.csOfficer && data.csOfficer.length) {
+            let noneCSOfficerQuery = {}, csOfficerArr = [];
+
+            data.csOfficer.forEach(item => {
+                if (item == "") {
+                    noneCSOfficerQuery = {csOfficer: {$exists: false}};
+                } else {
+                    csOfficerArr.push(ObjectId(item));
+                }
+            });
+
+            if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0 && csOfficerArr.length > 0) {
+                data.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
+                delete data.csOfficer;
+
+            } else if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && !csOfficerArr.length) {
+                data.csOfficer = {$exists: false};
+
+            } else if (csOfficerArr.length > 0 && !Object.keys(noneCSOfficerQuery).length){
+                data.csOfficer = {$in: csOfficerArr};
+
+            }
+        }
+
         if (data.email) {
             let tempEmail = data.email;
             delete data.email;
@@ -5480,7 +5504,7 @@ let dbPlayerInfo = {
                                     let playerId = playerData[ind]._id;
                                     let platformId = playerData[ind].platform;
                                     let fullPhoneNumber = playerData[ind].fullPhoneNumber;
-                                    let registrationIp = playerData[ind].loginIps[0] || "";
+                                    let registrationIp = playerData[ind].loginIps && playerData[ind].loginIps[0] || "";
                                     let adminName = 'System';
                                     delete playerData[ind].fullPhoneNumber;
                                     let playerLoginIps = playerData[ind].loginIps;
@@ -12647,53 +12671,11 @@ let dbPlayerInfo = {
             model: dbconfig.collection_gameProvider
         }).lean();
 
-        function transferCreditToProvider(transferAmount) {
-            bTransferIn = Boolean(transferAmount && ((parseFloat(transferAmount.playerCredit) + parseFloat(transferAmount.rewardCredit)) >= 1));
-
-            //console.log("bTransferIn:", bTransferIn, transferAmount);
-            if (transferAmount && gameData && gameData.provider) {
-                //transfer in to current provider
-                if (bTransferIn) {
-                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1).then(
-                        data => data,
-                        error => {
-                            if(isApplyBonusDoubledReward){
-                                return Promise.reject(error);
-                            }
-
-                            return false;
-                        }
-                    );
-                }
-                else {
-                    //allow player to login if player doesn't have enough credit
-                    return Promise.resolve(true);
-                    // if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId == gameData.provider.providerId) {
-                    //     return true;
-                    // }
-                    // else {
-                    //     //todo::update code here later, for now, it doesn't require credit
-                    //     if (gameId == "19D207EB-C09C-4E87-8CFE-0C0DF71CE232") {
-                    //         return;
-                    //     }
-                    //     else {
-                    //         return Q.reject({
-                    //             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                    //             name: "DataError",
-                    //             errorMessage: "Player does not have enough credit."
-                    //         });
-                    //     }
-                    // }
-                }
-            } else {
-                return Promise.reject({name: "DataError", message: "Cannot find game"});
-            }
-        }
-
-        return Promise.all([playerProm, gameProm])
-            .then(data => {
+        return Promise.all([playerProm, gameProm]).then(
+            data => {
                 resultData = data;
-                if(data && data[0]){
+
+                if (data && data[0]) {
                     let query = {
                         playerObjId : data[0]._id || null,
                         platformObjId: data[0].platform && data[0].platform._id ? data[0].platform._id : null,
@@ -12701,15 +12683,16 @@ let dbPlayerInfo = {
                     };
                     return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query);
                 }
-            }).then(
-                playerApplyBonusDoubledRewardResult => {
-                    if(playerApplyBonusDoubledRewardResult){
-                        isApplyBonusDoubledReward = true;
-                    }
-
-                    return resultData;
+            }
+        ).then(
+            playerApplyBonusDoubledRewardResult => {
+                if (playerApplyBonusDoubledRewardResult) {
+                    isApplyBonusDoubledReward = true;
                 }
-            ).then(
+
+                return resultData;
+            }
+        ).then(
             data => {
                 //check if its a demo player
                 if (data && data[0] && data[0].isTestPlayer) {
@@ -12735,27 +12718,18 @@ let dbPlayerInfo = {
                     // check if the player is ban for particular game - in other words
                     // check if the provider of login game is in the forbidden list
                     else if (playerData.permission.forbidPlayerFromEnteringGame) {
-                        // var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
-                        // if (isForbidden) {
                         return Promise.reject({
                             name: "DataError",
                             status: constServerCode.PLAYER_IS_FORBIDDEN,
                             message: "Player is forbidden to the game",
                             playerStatus: playerData.status
                         });
-                        // }
-                        // } else if (playerData.status === constPlayerStatus.BANNED) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_IS_FORBIDDEN,
-                        //         name: "DataError",
-                        //         message: "Player is banned",
-                        //         playerStatus: playerData.status
-                        //     });
                     }
 
                     if (playerData.forbidProviders && playerData.forbidProviders.length > 0) {
                         for (let i = 0, len = playerData.forbidProviders.length; i < len; i++) {
                             let forbidProvider = playerData.forbidProviders[i];
+
                             if (gameData.provider._id.toString() === forbidProvider.toString()) {
                                 return Promise.reject({
                                     name: "DataError",
@@ -12786,15 +12760,7 @@ let dbPlayerInfo = {
                         });
                     }
 
-                    // let providerEnabled = true;
-                    // let providerInfo = playerData.platform.gameProviderInfo[String(gameData.provider._id)];
-                    //
-                    // if (providerInfo) {
-                    //     providerEnabled = providerInfo.isEnabled;
-                    // }
-
                     // Added checking for platform level disable game provider
-
                     let providerStatus = dbUtility.getPlatformSpecificProviderStatus(gameData.provider, platform.platformId);
                     if (providerStatus != constProviderStatus.NORMAL) {
                         return Q.reject({
@@ -12830,88 +12796,79 @@ let dbPlayerInfo = {
                                     });
                                 }
 
-                                if (playerData.platform.useProviderGroup) {
-                                    let retData = {
-                                        playerCredit: playerData.validCredit,
-                                        rewardCredit: 0
-                                    };
+                                let retData = {
+                                    playerCredit: playerData.validCredit,
+                                    rewardCredit: 0
+                                };
 
-                                    let transferProm = Promise.resolve();
+                                let transferProm = Promise.resolve();
 
-                                    if (playerData.validCredit >= 1) {
-                                        transferProm = transferCreditToProvider(retData);
-                                    } else {
-                                        // Not enough credit to play with local credit
-                                        // Check credits in reward task group
-                                        transferProm = dbconfig.collection_rewardTaskGroup.find({
-                                            platformId: playerData.platform._id,
-                                            playerId: playerData._id,
-                                            status: {$in: [constRewardTaskStatus.STARTED]}
-                                        }).then(
-                                            rewardGroupData => {
-                                                if (rewardGroupData) {
-                                                    retData.rewardCredit = rewardGroupData.reduce(
-                                                        (arr, inc) => arr + inc.rewardAmt, 0
-                                                    );
-                                                }
-
-                                                // Still not enough credit in RTG, transfer out from last provider
-                                                if (retData.rewardCredit < 1
-                                                    && playerData.lastPlayedProvider
-                                                    && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE
-                                                    && playerData.lastPlayedProvider.providerId != gameData.provider.providerId
-                                                ) {
-                                                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id,
-                                                        playerData.lastPlayedProvider.providerId, -1, null, true);
-                                                }
-
-                                                return retData;
-                                            }
-                                        ).then(
-                                            data => {
-                                                return transferCreditToProvider(data);
-                                            },
-                                            err => {
-                                                if(isApplyBonusDoubledReward){
-                                                    return Promise.reject(err);
-                                                }
-
-                                                errorUtils.reportError(err);
-                                                // Error transfer out from last provider, insufficent amount
-                                                //return Promise.reject({name: "DataError", message: "Insufficient amount to enter game"});
-                                            }
-                                        );
-                                    }
-                                    //if it's ipm ,ky or some providers, don't use async here
-                                    if (
-                                        providerData
-                                        && (
-                                            providerData.providerId == "51"
-                                            || providerData.providerId == "57"
-                                            || providerData.providerId == "41"
-                                            || providerData.providerId == "70"
-                                            || providerData.providerId == "82" // IG
-                                            || providerData.providerId == "83"
-                                            || providerData.providerId == "86" // SABA
-                                            || isApplyBonusDoubledReward
-                                        )
-                                    ) {
-                                        return transferProm;
-                                    }
-                                    else {
-                                        transferProm.catch(errorUtils.reportError);
-                                        return true;
-                                    }
+                                if (playerData.validCredit >= 1) {
+                                    transferProm = transferCreditToProvider(retData);
                                 } else {
-                                    if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
-                                        return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true).then(transferCreditToProvider, errorUtils.reportError);
-                                    }
-                                    else {
-                                        return transferCreditToProvider({
-                                            playerCredit: playerData.validCredit,
-                                            rewardCredit: playerData.lockedCredit
-                                        });
-                                    }
+                                    // Not enough credit to play with local credit
+                                    // Check credits in reward task group
+                                    transferProm = dbconfig.collection_rewardTaskGroup.find({
+                                        platformId: playerData.platform._id,
+                                        playerId: playerData._id,
+                                        status: {$in: [constRewardTaskStatus.STARTED]}
+                                    }).then(
+                                        rewardGroupData => {
+                                            if (rewardGroupData) {
+                                                retData.rewardCredit = rewardGroupData.reduce(
+                                                    (arr, inc) => arr + inc.rewardAmt, 0
+                                                );
+                                            }
+
+                                            // Still not enough credit in RTG, transfer out from last provider
+                                            if (retData.rewardCredit < 1
+                                                && playerData.lastPlayedProvider
+                                                && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE
+                                                && playerData.lastPlayedProvider.providerId != gameData.provider.providerId
+                                            ) {
+                                                return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id,
+                                                    playerData.lastPlayedProvider.providerId, -1, null, true);
+                                            }
+
+                                            return retData;
+                                        }
+                                    ).then(
+                                        data => {
+                                            return transferCreditToProvider(data);
+                                        },
+                                        err => {
+                                            if(isApplyBonusDoubledReward){
+                                                return Promise.reject(err);
+                                            }
+
+                                            errorUtils.reportError(err);
+                                            // Error transfer out from last provider, insufficent amount
+                                            //return Promise.reject({name: "DataError", message: "Insufficient amount to enter game"});
+                                        }
+                                    );
+                                }
+                                //if it's ipm ,ky or some providers, don't use async here
+                                if (
+                                    providerData
+                                    && (
+                                        providerData.providerId == "51"
+                                        || providerData.providerId == "57" // ISBSLOTS
+                                        || providerData.providerId == "41"
+                                        || providerData.providerId == "70"
+                                        || providerData.providerId == "82" // IG
+                                        || providerData.providerId == "83"
+                                        || providerData.providerId == "86" // SABA
+                                        || providerData.providerId == "94" // CQ9
+                                        || isApplyBonusDoubledReward
+                                    )
+                                ) {
+                                    console.log('RT - transfer using sync', playerData.name);
+                                    return transferProm;
+                                }
+                                else {
+                                    console.log('RT - transfer using async', playerData.name);
+                                    transferProm.catch(errorUtils.reportError);
+                                    return true;
                                 }
                             }
                             else {
@@ -12968,6 +12925,32 @@ let dbPlayerInfo = {
                 return Promise.reject(err);
             }
         );
+
+        function transferCreditToProvider(transferAmount) {
+            bTransferIn = Boolean(transferAmount && ((parseFloat(transferAmount.playerCredit) + parseFloat(transferAmount.rewardCredit)) >= 1));
+
+            if (transferAmount && gameData && gameData.provider) {
+                //transfer in to current provider
+                if (bTransferIn) {
+                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1).then(
+                        data => data,
+                        error => {
+                            if(isApplyBonusDoubledReward){
+                                return Promise.reject(error);
+                            }
+
+                            return false;
+                        }
+                    );
+                }
+                else {
+                    //allow player to login if player doesn't have enough credit
+                    return Promise.resolve(true);
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Cannot find game"});
+            }
+        }
     },
 
     getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
@@ -13290,6 +13273,8 @@ let dbPlayerInfo = {
 
         var proposal = null;
         var bonusId = null;
+        console.log("LH check bonus cancel issue 1 ------", playerId);
+        console.log("LH check bonus cancel issue 2 ------", proposalId);
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
@@ -13320,6 +13305,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                console.log("LH check bonus cancel issue 3 ------", proposal);
                 if (proposal) {
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
@@ -14435,8 +14421,6 @@ let dbPlayerInfo = {
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type, forceSettled) {
         console.log('Apply reward event', playerId, code);
-        let applyRewardEventRunTime = 0;
-        let applyRewardEventRunTimeStart = new Date().getTime();
         data = data || {};
         let dbPlayerUtil = require('../db_common/dbPlayerUtility');
         let isFrontEnd = data.isFrontEnd || false;
@@ -14770,9 +14754,6 @@ let dbPlayerInfo = {
                 if (data && isPreview){
                     return data;
                 }
-                let applyRewardEventRunTimeEnd = new Date().getTime();
-                applyRewardEventRunTime = (applyRewardEventRunTimeEnd - applyRewardEventRunTimeStart) / 1000;
-                console.log('applyRewardEventRunTime===11', applyRewardEventRunTime);
                 // Reset BState
                 dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 return data;
@@ -14785,10 +14766,6 @@ let dbPlayerInfo = {
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 }
-
-                let applyRewardEventRunTimeEnd = new Date().getTime();
-                applyRewardEventRunTime = (applyRewardEventRunTimeEnd - applyRewardEventRunTimeStart) / 1000;
-                console.log('applyRewardEventRunTime===22', applyRewardEventRunTime);
 
                 console.log('applyRewardEvent error', playerId, err);
                 throw err;
@@ -22654,14 +22631,69 @@ let dbPlayerInfo = {
         )
     },
 
-    updatePMSPlayerTopupChannelPermission: (platformId, playerObjId, updateObj) => {
+    updatePMSPlayerTopupChannelPermission: (platformId, playerObjArr) => {
+        let sendObjArr = [];
+
+        playerObjArr.forEach(playerData => {
+            let sendObj = getPlayerTopupChannelPermission(playerData);
+
+            if (
+                sendObj
+                && (
+                    sendObj.manualRechargeMethod === 1
+                    || sendObj.onlineRechargeMethod === 1
+                    || sendObj.alipayRechargeMethod === 1
+                    || sendObj.wechatRechargeMethod === 1
+                )
+            ) {
+                sendObjArr.push(sendObj);
+            }
+        });
+
+        if (sendObjArr.length) {
+            return pmsAPI.foundation_userDepositSettings(
+                {
+                    queryId: +new Date() + serverInstance.getQueryId(),
+                    data: sendObjArr
+                }
+            ).then(
+                updateStatus => {
+                    console.log('foundation_userDepositSettings success', updateStatus);
+                    return updateStatus;
+                },
+                error => {
+                    console.log('foundation_userDepositSettings failed', error);
+                    throw error;
+                }
+            )
+        }
+
+        function getPlayerTopupChannelPermission (player) {
+            let retObj = {};
+
+            if (player && player.permission) {
+                retObj = {
+                    username: player.name,
+                    platformId: platformId,
+                    manualRechargeMethod: player.permission.topupManual ? 0 : 1,
+                    onlineRechargeMethod: player.permission.topupOnline ? 0 : 1,
+                    alipayRechargeMethod: player.permission.alipayTransaction ? 0 : 1,
+                    wechatRechargeMethod: player.permission.disableWechatPay ? 1 : 0,
+                }
+            }
+
+            return retObj;
+        }
+    },
+
+    updatePMSPlayerTopupChannelPermissionTemp: (platformId, playerObjId, updateObj) => {
         return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
-            updateObj => {
-                if (updateObj) {
+            sendObj => {
+                if (sendObj) {
                     return pmsAPI.foundation_userDepositSettings(
                         {
-                            queryId: serverInstance.getQueryId(),
-                            data: [updateObj]
+                            queryId: +new Date() + serverInstance.getQueryId(),
+                            data: [sendObj]
                         }
                     ).then(
                         updateStatus => {
@@ -24220,8 +24252,23 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
     );
 }
 
-function checkTelesalesPhone(encryptedPhoneNumber) {
-    dbconfig.collection_tsPhone.find({phoneNumber: encryptedPhoneNumber, registered: false}).lean().then(
+function checkTelesalesFeedback(phoneNumber, platformObjId) {
+    let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+    return dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false, isSucceedBefore: true}, {_id: 1}).lean().then(
+        tsPhoneData => {
+            if (tsPhoneData && tsPhoneData.length) {
+                return dbconfig.collection_tsPhoneFeedback.findOne({
+                    tsPhone: {$in: tsPhoneData.map(tsPhone => tsPhone._id)}
+                }, {adminId: 1,tsPhone: 1}).sort({createTime: -1}).lean();
+            } else {
+                return null;
+            }
+        }
+    );
+}
+
+function checkTelesalesPhone(encryptedPhoneNumber, platformObjId) {
+    dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).lean().then(
         tsPhoneData => {
             if (tsPhoneData && tsPhoneData.length) {
                 tsPhoneData.forEach(

@@ -1846,6 +1846,7 @@
   "PRODUCT_START_TIME_DESCRIPTION": "优惠周期前X分钟显示在前端",
   "PRODUCT_END_TIME_DESCRIPTION": "优惠周期后X分钟消失在前端",
   "Product List": "商品列表",
+  "Disable All": "全部禁用",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
@@ -3119,6 +3120,7 @@
   "PlayerFKPTopUp": "快付充值",
   "PlayerCommonTopUp": "通用充值",
   "CommonTopUp": "通用充值",
+  "FKPTopUp": "快付充值",
   "requestAlipayTopup": "支付宝充值",
   "cancelAlipayTopup": "取消支付宝充值",
   "getAlipayTopupRequestList": "获取手工充值申请列表",
@@ -5061,6 +5063,7 @@
   "Alipay-Line": "支付宝-线路",
   "line:": "线路",
   "( All )": "(全部)",
+  "AllProviders": "全部",
   "( include not longer exist )": "(包含已不存在的卡)",
   "EditServiceChargeRatio": "编辑手续费",
   "Actual Amount": "实际到帐",
@@ -5253,5 +5256,6 @@
   "BET_AMOUNT": "下注",
   "Does not support": "不支援",
   "DEPOSIT_TOPUP_CHOOSE_ONE": "存款（下列则一）",
-  "DEPOSIT_BONUS_CHOOSE_ONE": "取款（下列则一）"
+  "DEPOSIT_BONUS_CHOOSE_ONE": "取款（下列则一）",
+  "topUpSystemName": "财务（结算）系统"
 }

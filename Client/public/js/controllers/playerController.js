@@ -6477,7 +6477,9 @@ define(['js/app'], function (myApp) {
                             var thisPopover = utilService.$getPopoverID(this);
                             var $remark = $(thisPopover + ' .permissionRemark');
                             var $submit = $(thisPopover + ' .submit');
+                            var $disableAllMainPermission = $(thisPopover + ' .disableAllMainPermission');
                             var $selectedMainPermission = $(thisPopover + ' .selectedMainPermission');
+                            var row = JSON.parse(this.dataset.row);
                             $submit.prop('disabled', true);
                             $selectedMainPermission.prop('disabled', false);
 
@@ -6488,11 +6490,64 @@ define(['js/app'], function (myApp) {
                                 $(thisPopover + ' .' + key).toggleClass('hide');
                                 $submit.prop('disabled', $remark.val() == '');
                                 $selectedMainPermission.prop('disabled', true);
-                            })
+                            });
 
                             $remark.on('input selectionchange propertychange', function () {
                                 $submit.prop('disabled', this.value.length === 0 || changeObj == {})
-                            })
+                            });
+
+                            $disableAllMainPermission.on('click', function () {
+                                if (row.isRealPlayer) {
+                                    changeObj.applyBonus = false;
+                                    changeObj.allTopUp = false;
+                                    changeObj.topupOnline = false;
+                                    changeObj.topupManual = false;
+                                    changeObj.alipayTransaction = false;
+                                    changeObj.disableWechatPay = false;
+                                    changeObj.topUpCard = false;
+                                    changeObj.banReward = false;
+                                    changeObj.rewardPointsTask = false;
+                                    changeObj.levelChange = false;
+
+                                    $(thisPopover + ' .permitOn.applyBonus').addClass('hide');
+                                    $(thisPopover + ' .permitOn.allTopUp').addClass('hide');
+                                    $(thisPopover + ' .permitOn.topupOnline').addClass('hide');
+                                    $(thisPopover + ' .permitOn.topupManual').addClass('hide');
+                                    $(thisPopover + ' .permitOn.alipayTransaction').addClass('hide');
+                                    $(thisPopover + ' .permitOn.disableWechatPay').addClass('hide');
+                                    $(thisPopover + ' .permitOn.topUpCard').addClass('hide');
+                                    $(thisPopover + ' .permitOn.banReward').addClass('hide');
+                                    $(thisPopover + ' .permitOn.rewardPointsTask').addClass('hide');
+                                    $(thisPopover + ' .permitOn.levelChange').addClass('hide');
+
+                                    $(thisPopover + ' .permitOff.applyBonus').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.allTopUp').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.topupOnline').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.topupManual').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.alipayTransaction').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.disableWechatPay').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.topUpCard').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.banReward').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.rewardPointsTask').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.levelChange').removeClass('hide');
+                                }
+
+                                changeObj.forbidPlayerFromLogin = false;
+                                changeObj.forbidPlayerFromEnteringGame = false;
+                                changeObj.phoneCallFeedback = false;
+                                changeObj.SMSFeedBack = false;
+
+                                $(thisPopover + ' .permitOn.forbidPlayerFromLogin').addClass('hide');
+                                $(thisPopover + ' .permitOn.forbidPlayerFromEnteringGame').addClass('hide');
+                                $(thisPopover + ' .permitOn.phoneCallFeedback').addClass('hide');
+                                $(thisPopover + ' .permitOn.SMSFeedBack').addClass('hide');
+
+                                $(thisPopover + ' .permitOff.forbidPlayerFromLogin').removeClass('hide');
+                                $(thisPopover + ' .permitOff.forbidPlayerFromEnteringGame').removeClass('hide');
+                                $(thisPopover + ' .permitOff.phoneCallFeedback').removeClass('hide');
+                                $(thisPopover + ' .permitOff.SMSFeedBack').removeClass('hide');
+                            });
+
                             $submit.on('click', function () {
                                 $submit.off('click');
                                 $(thisPopover + " .togglePlayer").off('click');
@@ -10176,8 +10231,6 @@ define(['js/app'], function (myApp) {
             });
         };
         vm.applyPlayerReward = function (isForceApply = false) {
-            vm.applyPlayerRewardRunTime = 0;
-            vm.applyPlayerRewardRunTimeStart = new Date().getTime();
             vm.applyXM = true;
             let idArr = [];
             if (vm.playerApplyRewardShow.topUpRecordIds) {
@@ -10215,9 +10268,6 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
-                vm.applyPlayerRewardRunTimeEnd = new Date().getTime();
-                vm.applyPlayerRewardRunTime = (vm.applyPlayerRewardRunTimeEnd - vm.applyPlayerRewardRunTimeStart) / 1000;
-                console.log('vm.applyPlayerRewardRunTime===11', vm.applyPlayerRewardRunTime);
                 console.log('sent', data);
                 vm.applyXM = false;
                 vm.playerApplyEventResult = data;
