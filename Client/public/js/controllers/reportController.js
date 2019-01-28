@@ -2702,7 +2702,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate('PROVIDER'), data: "providerName"},
-                    {title: $translate('GAME'), data: "cpGameType", "width": "7%"},
+                    {title: $translate('GAME_TYPE'), data: "cpGameType", "width": "7%"},
                     {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", sClass: 'originTXT textRight'},
                     {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt textRight'},
                     {
