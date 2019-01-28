@@ -36186,6 +36186,22 @@ define(['js/app'], function (myApp) {
                         if (vm.auctionProductReward && vm.auctionProductReward.rewardType){
                             vm.selectedAuctionRewardType = vm.auctionProductReward.rewardType;
                         }
+                        if(vm.auctionSystemProduct.rewardAppearPeriod && vm.auctionSystemProduct.rewardAppearPeriod.length > 0) {
+                            vm.auctionSystemProduct.rewardAppearPeriod.forEach(item => {
+                                if(item.hasOwnProperty('startDate')) {
+                                    item.startDate = item.startDate.toString();
+                                }
+                                if(item.hasOwnProperty('startTime')) {
+                                    item.startTime = item.startTime.toString();
+                                }
+                                if(item.hasOwnProperty('endDate')) {
+                                    item.endDate = item.endDate.toString();
+                                }
+                                if(item.hasOwnProperty('endTime')) {
+                                    item.endTime = item.endTime.toString();
+                                }
+                            });
+                        }
                     });
                 });
             }
