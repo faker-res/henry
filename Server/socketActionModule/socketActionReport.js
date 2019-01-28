@@ -179,7 +179,7 @@ function socketActionReport(socketIO, socket) {
             query.limit = query.limit || 10;
             query.index = query.index || 0;
             let isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByPlayers, [startTime, endTime, query.providerId, query.platformId, query.gameId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByPlayers, [startTime, endTime, query.providerId, query.platformId, query.cpGameType], actionName, isValidData);
         },
 
         /**
