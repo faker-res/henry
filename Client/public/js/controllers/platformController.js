@@ -2739,6 +2739,33 @@ define(['js/app'], function (myApp) {
                             break;
                     }
                 }
+
+                let admins = [];
+
+                if (vm.sendMultiMessage.departments) {
+                    if (vm.sendMultiMessage.roles) {
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && (vm.sendMultiMessage.roles.indexOf(e._id) >= 0)) {
+                                e.users.map(f => admins.push(f._id))
+                            }
+                        })
+                    } else {
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f._id != "") {
+                                        admins.push(f._id)
+                                    }
+                                })
+                            }
+                        })
+                    }
+                }
+
+                if ( (vm.sendMultiMessage.admins && vm.sendMultiMessage.admins.length > 0) || admins.length) {
+                    playerQuery.csOfficer = vm.sendMultiMessage.admins && vm.sendMultiMessage.admins.length > 0 ? vm.sendMultiMessage.admins : admins;
+                }
+
                 var sendQuery = {
                     platformId: vm.selectedPlatform.id,
                     query: playerQuery,
@@ -16755,7 +16782,15 @@ define(['js/app'], function (myApp) {
                             }
                         })
                     } else {
-                        vm.queryRoles.map(e => e.users.map(f => {if (f._id != "") {admins.push(f._id)}}))
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f._id != "") {
+                                        admins.push(f._id)
+                                    }
+                                })
+                            }
+                        })
                     }
                 }
 

@@ -5370,6 +5370,30 @@ let dbPlayerInfo = {
             advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i');
         }
 
+        if (data.csOfficer && data.csOfficer.length) {
+            let noneCSOfficerQuery = {}, csOfficerArr = [];
+
+            data.csOfficer.forEach(item => {
+                if (item == "") {
+                    noneCSOfficerQuery = {csOfficer: {$exists: false}};
+                } else {
+                    csOfficerArr.push(ObjectId(item));
+                }
+            });
+
+            if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0 && csOfficerArr.length > 0) {
+                data.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
+                delete data.csOfficer;
+
+            } else if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && !csOfficerArr.length) {
+                data.csOfficer = {$exists: false};
+
+            } else if (csOfficerArr.length > 0 && !Object.keys(noneCSOfficerQuery).length){
+                data.csOfficer = {$in: csOfficerArr};
+
+            }
+        }
+
         if (data.email) {
             let tempEmail = data.email;
             delete data.email;
@@ -5480,7 +5504,7 @@ let dbPlayerInfo = {
                                     let playerId = playerData[ind]._id;
                                     let platformId = playerData[ind].platform;
                                     let fullPhoneNumber = playerData[ind].fullPhoneNumber;
-                                    let registrationIp = playerData[ind].loginIps[0] || "";
+                                    let registrationIp = playerData[ind].loginIps && playerData[ind].loginIps[0] || "";
                                     let adminName = 'System';
                                     delete playerData[ind].fullPhoneNumber;
                                     let playerLoginIps = playerData[ind].loginIps;
