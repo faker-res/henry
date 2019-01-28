@@ -2649,6 +2649,7 @@ let dbPlayerInfo = {
         if (isUpdatePMSPermission) {
             pmsUpdateProm = dbconfig.collection_platform.findOne({_id: query.platform}).then(
                 platformData => {
+                    console.log('updatePMSPlayerTopupChannelPermissionTemp', platformData.platformId, query._id, permission);
                     return dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission);
                 }
             )
