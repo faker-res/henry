@@ -2278,7 +2278,7 @@ var dbPlayerConsumptionRecord = {
         let groupById = null;
         if (listAll) {
             //find the number of player consumption (non-repeat), with different provider
-            groupById = "$providerId",
+            groupById = "$providerId";
             participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
                     $match: matchObj
                 },
