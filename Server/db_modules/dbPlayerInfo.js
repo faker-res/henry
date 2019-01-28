@@ -5370,6 +5370,30 @@ let dbPlayerInfo = {
             advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i');
         }
 
+        if (data.csOfficer && data.csOfficer.length) {
+            let noneCSOfficerQuery = {}, csOfficerArr = [];
+
+            data.csOfficer.forEach(item => {
+                if (item == "") {
+                    noneCSOfficerQuery = {csOfficer: {$exists: false}};
+                } else {
+                    csOfficerArr.push(ObjectId(item));
+                }
+            });
+
+            if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0 && csOfficerArr.length > 0) {
+                data.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
+                delete data.csOfficer;
+
+            } else if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && !csOfficerArr.length) {
+                data.csOfficer = {$exists: false};
+
+            } else if (csOfficerArr.length > 0 && !Object.keys(noneCSOfficerQuery).length){
+                data.csOfficer = {$in: csOfficerArr};
+
+            }
+        }
+
         if (data.email) {
             let tempEmail = data.email;
             delete data.email;
@@ -5480,7 +5504,7 @@ let dbPlayerInfo = {
                                     let playerId = playerData[ind]._id;
                                     let platformId = playerData[ind].platform;
                                     let fullPhoneNumber = playerData[ind].fullPhoneNumber;
-                                    let registrationIp = playerData[ind].loginIps[0] || "";
+                                    let registrationIp = playerData[ind].loginIps && playerData[ind].loginIps[0] || "";
                                     let adminName = 'System';
                                     delete playerData[ind].fullPhoneNumber;
                                     let playerLoginIps = playerData[ind].loginIps;
@@ -12887,7 +12911,7 @@ let dbPlayerInfo = {
                                         providerData
                                         && (
                                             providerData.providerId == "51"
-                                            || providerData.providerId == "57"
+                                            || providerData.providerId == "57" // ISBSLOTS
                                             || providerData.providerId == "41"
                                             || providerData.providerId == "70"
                                             || providerData.providerId == "82" // IG
@@ -22650,8 +22674,10 @@ let dbPlayerInfo = {
     },
 
     updatePMSPlayerTopupChannelPermission: (platformId, playerObjArr) => {
-        playerObjArr.forEach(async playerData => {
-            let sendObj = await getPlayerTopupChannelPermission(playerData);
+        let sendObjArr = [];
+
+        playerObjArr.forEach(playerData => {
+            let sendObj = getPlayerTopupChannelPermission(playerData);
 
             if (
                 sendObj
@@ -22662,24 +22688,27 @@ let dbPlayerInfo = {
                     || sendObj.wechatRechargeMethod === 1
                 )
             ) {
-                return pmsAPI.foundation_userDepositSettings(
-                    {
-                        queryId: +new Date() + serverInstance.getQueryId(),
-                        data: [sendObj]
-                    }
-                ).then(
-                    updateStatus => {
-                        console.log('foundation_userDepositSettings success', updateStatus);
-                        return updateStatus;
-                    },
-                    error => {
-                        console.log('foundation_userDepositSettings failed', error);
-                        throw error;
-                    }
-                )
+                sendObjArr.push(sendObj);
             }
-        })
+        });
 
+        if (sendObjArr.length) {
+            return pmsAPI.foundation_userDepositSettings(
+                {
+                    queryId: +new Date() + serverInstance.getQueryId(),
+                    data: sendObjArr
+                }
+            ).then(
+                updateStatus => {
+                    console.log('foundation_userDepositSettings success', updateStatus);
+                    return updateStatus;
+                },
+                error => {
+                    console.log('foundation_userDepositSettings failed', error);
+                    throw error;
+                }
+            )
+        }
 
         function getPlayerTopupChannelPermission (player) {
             let retObj = {};
