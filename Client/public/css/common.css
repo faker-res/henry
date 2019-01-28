@@ -3304,14 +3304,6 @@ hr {
     width: 100%;
     min-width: 100%;
 }
-.widthto10 {
-    width: 10%;
-    min-width: 10%;
-}
-.widthto15 {
-    width: 15%;
-    min-width: 15%;
-}
 .widthto50 {
     width: 50%;
     min-width: 50%;
@@ -3328,3 +3320,5 @@ hr {
     font-size: 12px;
     color:red;
 }
+
+
