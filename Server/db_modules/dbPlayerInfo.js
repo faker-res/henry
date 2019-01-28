@@ -873,6 +873,9 @@ let dbPlayerInfo = {
                         tsPhoneFeedbackData => {
                             if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
                                 inputData.csOfficer = ObjectId(tsPhoneFeedbackData.adminId);
+                                if (tsPhoneFeedbackData.tsPhone) {
+                                    inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
+                                }
                             }
                             return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
                         }
