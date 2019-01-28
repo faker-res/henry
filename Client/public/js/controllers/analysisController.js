@@ -1779,11 +1779,15 @@ define(['js/app'], function (myApp) {
                         item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
                         item.typeName = $translate(item.type.name || "Unknown");
                         item.mainType$ = $translate(item.mainType || "Unknown");
-                        if (item.mainType === "PlayerBonus")
-                            item.mainType$ = $translate("Bonus");
                         item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
                         if (item.data && item.data.remark) {
                             item.remark$ = item.data.remark;
+                        }
+                        if (item.mainType === "PlayerBonus") {
+                            item.mainType$ = $translate("Bonus");
+                            if (item.data && item.data.autoAuditRemarkChinese) {
+                                item.remark$ = item.remark$ ? item.remark$ + ';' + item.data.autoAuditRemarkChinese : item.data.autoAuditRemarkChinese;
+                            }
                         }
                         item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
 

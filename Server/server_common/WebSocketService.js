@@ -60,7 +60,11 @@ var rootObj = {};
         if (!funcName || !this._connection)
             return;
         var packageData = {service: this.name, functionName: funcName, data: data};
-        console.log("_sendRequest:", packageData);
+
+        if (funcName !== 'queryCredit') {
+            console.log("_sendRequest:", packageData);
+        }
+
         this._connection.send(JSON.stringify(packageData));
     };
 

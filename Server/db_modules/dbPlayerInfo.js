@@ -108,6 +108,9 @@ let dbDemoPlayer = require('../db_modules/dbDemoPlayer');
 let dbApiLog = require("../db_modules/dbApiLog");
 let dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 
+// Others
+const paymentChannelPermission = ['topupOnline', 'topupManual', 'alipayTransaction', 'disableWechatPay'];
+
 let dbPlayerInfo = {
 
     /**
@@ -862,7 +865,21 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                    let checktsPhoneFeedback = Promise.resolve();
+                    if (!(inputData && inputData.tsPhone)) {
+                        checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
+                    }
+                    return checktsPhoneFeedback.then(
+                        tsPhoneFeedbackData => {
+                            if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
+                                inputData.csOfficer = ObjectId(tsPhoneFeedbackData.adminId);
+                                if (tsPhoneFeedbackData.tsPhone) {
+                                    inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
+                                }
+                            }
+                            return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                        }
+                    )
                 }
             ).then(
                 data => {
@@ -1868,7 +1885,7 @@ let dbPlayerInfo = {
                         dbconfig.collection_tsDistributedPhone.update({tsPhone: playerData.tsPhone}, {registered: true}, {multi: true}).catch(errorUtils.reportError);
                     } else {
                         if (playerData.phoneNumber) {
-                            checkTelesalesPhone(playerData.phoneNumber);
+                            checkTelesalesPhone(playerData.phoneNumber, platformData._id);
                         }
                     }
 
@@ -2613,22 +2630,56 @@ let dbPlayerInfo = {
             permission = {};
             permission[selected.mainPermission] = selected.status;
         }
-        var updateObj = {};
-        for (var key in permission) {
-            updateObj["permission." + key] = permission[key];
-        }
-        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
-            function (suc) {
-                var oldData = {};
-                for (var i in permission) {
-                    // if (suc.permission[i] != permission[i]) {
-                    //     oldData[i] = suc.permission[i];
-                    // } else {
-                    //     delete permission[i];
-                    // }
-                    oldData[i] = suc && suc.permission ? suc.permission[i] : "";
+
+        let isUpdatePMSPermission = false;
+        let updateObj = {};
+
+        for (let key in permission) {
+            if (permission.hasOwnProperty(key)) {
+                updateObj["permission." + key] = permission[key];
+
+                if (paymentChannelPermission.includes(key)) {
+                    isUpdatePMSPermission = true;
                 }
-                // if (Object.keys(oldData).length !== 0) {
+            }
+        }
+
+        let pmsUpdateProm = Promise.resolve(true);
+
+        if (isUpdatePMSPermission) {
+            pmsUpdateProm = dbconfig.collection_platform.findOne({_id: query.platform}).then(
+                platformData => {
+                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission);
+                }
+            )
+        }
+
+        return pmsUpdateProm.then(
+            updatePMSSuccess => {
+                console.log('updatePMSSuccess', updatePMSSuccess);
+                if (updatePMSSuccess) {
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
+                        playerData => {
+                            if (playerData) {
+                                return dbconfig.collection_platform.populate(playerData, {
+                                    path: 'platform',
+                                    model: dbconfig.collection_platform,
+                                    select: "platformId"
+                                })
+                            }
+                        }
+                    )
+                }
+            },
+            function (error) {
+                return Promise.reject({name: "DBError", message: "Error updating PMS player permission.", error: error});
+            }
+        ).then(
+            playerData => {
+                let oldData = {};
+                for (let i in permission) {
+                    oldData[i] = playerData && playerData.permission ? playerData.permission[i] : "";
+                }
                 var newLog = new dbconfig.collection_playerPermissionLog({
                     admin: admin,
                     platform: query.platform,
@@ -2638,7 +2689,6 @@ let dbPlayerInfo = {
                     newData: permission,
                 });
                 return newLog.save();
-                // } else return true;
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
@@ -2657,41 +2707,27 @@ let dbPlayerInfo = {
         );
     },
     updateBatchPlayerPermission: function (query, admin, permission, remark) {
-
-        var updateObj = {};
-
-        for (var key in permission) {
-            updateObj["permission." + key] = permission[key];
-        }
         let players = query.playerNames;
         let proms = [];
-        let errorList = [];
+
         players.forEach(item => {
             let playerName = item.trim() || '';
             let playerQuery = {'name': playerName, 'platform': query.platformObjId};
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
-                function (suc) {
-                    var oldData = {};
-                    for (var i in permission) {
-                        oldData[i] = suc.permission[i];
+
+            let prom = dbconfig.collection_players.findOne(playerQuery, {_id: 1}).lean().then(
+                playerData => {
+                    if (playerData && playerData._id) {
+                        let updQ = {
+                            _id: playerData._id,
+                            platform: query.platformObjId
+                        }
+                        return dbPlayerInfo.updatePlayerPermission(updQ, admin, permission, remark);
                     }
-                    var newLog = new dbconfig.collection_playerPermissionLog({
-                        admin: admin,
-                        platform: playerQuery.platform,
-                        player: suc._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
-                },
-                function (error) {
-                    errorList.push(error.query.name);
-                    return error.query.name
                 }
-            )
-            proms.push(prom)
-        })
+            );
+            proms.push(prom);
+        });
+
         return Promise.all(proms);
     },
     /**
@@ -5555,7 +5591,6 @@ let dbPlayerInfo = {
      *  @param include name and password of the player and some more additional info to log the player's login
      */
     playerLogin: function (playerData, userAgent, inputDevice, mobileDetect) {
-        console.log('rt playerLogin start');
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -5570,7 +5605,6 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
-                console.log('rt playerLogin 1');
                 if (platformData) {
                     platformObj = platformData;
                     requireLogInCaptcha = platformData.requireLogInCaptcha || false;
@@ -5610,7 +5644,6 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                console.log('rt playerLogin 2');
                 if (data) {
                     playerObj = data;
 
@@ -5632,9 +5665,7 @@ let dbPlayerInfo = {
                         }
                     }
                     else {
-                        console.log('rt playerLogin 2.2');
                         return new Promise((resolve, reject) => {
-                            console.log('rt playerLogin 2.2.1');
                             try {
                                 let bcrypt = require('bcrypt');
 
@@ -5667,7 +5698,6 @@ let dbPlayerInfo = {
             }
         ).then(
             isMatch => {
-                console.log('rt playerLogin 3');
                 if (!isMatch) {
                     return Promise.reject({
                         name: "DataError",
@@ -5766,7 +5796,6 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                console.log('rt playerLogin 4');
                 // Geo and ip related update
                 if (bUpdateIp) {
                     dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
@@ -5808,7 +5837,6 @@ let dbPlayerInfo = {
             }
         ).then(
             record => {
-                console.log('rt playerLogin 5');
                 updateAutoFeedbackLoginCount(record).catch(errorUtils.reportError);
                 dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
                     err => {
@@ -5835,7 +5863,6 @@ let dbPlayerInfo = {
             }
         ).then(
             res => {
-                console.log('rt playerLogin 6');
                 res.name = res.name.replace(platformPrefix, "");
                 retObj = res;
 
@@ -5855,7 +5882,6 @@ let dbPlayerInfo = {
             }
         ).then(
             zoneData => {
-                console.log('rt playerLogin 7');
                 retObj.bankAccountProvince = zoneData[0] && zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
                 retObj.bankAccountCity = zoneData[1] && zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                 retObj.bankAccountDistrict = zoneData[2] && zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
@@ -12867,6 +12893,7 @@ let dbPlayerInfo = {
                                             || providerData.providerId == "82" // IG
                                             || providerData.providerId == "83"
                                             || providerData.providerId == "86" // SABA
+                                            || providerData.providerId == "94" // CQ9
                                             || isApplyBonusDoubledReward
                                         )
                                     ) {
@@ -22626,6 +22653,136 @@ let dbPlayerInfo = {
                 return false;
             }
         )
+    },
+
+    updatePMSPlayerTopupChannelPermission: (platformId, playerObjId, updateObj) => {
+        return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
+            sendObj => {
+                if (
+                    sendObj
+                    && (
+                        sendObj.manualRechargeMethod === 1
+                        || sendObj.onlineRechargeMethod === 1
+                        || sendObj.alipayRechargeMethod === 1
+                        || sendObj.wechatRechargeMethod === 1
+                    )
+                ) {
+                    return pmsAPI.foundation_userDepositSettings(
+                        {
+                            queryId: +new Date() + serverInstance.getQueryId(),
+                            data: [sendObj]
+                        }
+                    ).then(
+                        updateStatus => {
+                            console.log('foundation_userDepositSettings success', updateStatus);
+                            return updateStatus;
+                        },
+                        error => {
+                            console.log('foundation_userDepositSettings failed', error);
+                            throw error;
+                        }
+                    )
+                }
+
+            }
+        );
+
+        function getPlayerTopupChannelPermission (playerObjId) {
+            return dbconfig.collection_players.findOne(playerObjId).then(
+                player => {
+                    let retObj = {};
+
+                    if (player && player.permission) {
+                        retObj = {
+                            username: player.name,
+                            platformId: platformId,
+                            manualRechargeMethod: player.permission.topupManual ? 0 : 1,
+                            onlineRechargeMethod: player.permission.topupOnline ? 0 : 1,
+                            alipayRechargeMethod: player.permission.alipayTransaction ? 0 : 1,
+                            wechatRechargeMethod: player.permission.disableWechatPay ? 1 : 0,
+                        }
+                    }
+
+                    if (updateObj) {
+                        if (updateObj.hasOwnProperty('topupManual')) {
+                            retObj.manualRechargeMethod = updateObj.topupManual ? 0 : 1;
+                        }
+                        if (updateObj.hasOwnProperty('topupOnline')) {
+                            retObj.onlineRechargeMethod = updateObj.topupOnline ? 0 : 1;
+                        }
+                        if (updateObj.hasOwnProperty('alipayTransaction')) {
+                            retObj.alipayRechargeMethod = updateObj.alipayTransaction ? 0 : 1;
+                        }
+                        if (updateObj.hasOwnProperty('disableWechatPay')) {
+                            retObj.wechatRechargeMethod = updateObj.disableWechatPay ? 1 : 0;
+                        }
+                    }
+
+                    return retObj;
+                }
+            )
+        }
+    },
+
+    updatePMSPlayerTopupChannelPermissionTemp: (platformId, playerObjId, updateObj) => {
+        return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
+            sendObj => {
+                if (sendObj) {
+                    return pmsAPI.foundation_userDepositSettings(
+                        {
+                            queryId: +new Date() + serverInstance.getQueryId(),
+                            data: [sendObj]
+                        }
+                    ).then(
+                        updateStatus => {
+                            console.log('foundation_userDepositSettings success', updateStatus);
+                            return updateStatus;
+                        },
+                        error => {
+                            console.log('foundation_userDepositSettings failed', error);
+                            throw error;
+                        }
+                    )
+                }
+
+            }
+        );
+
+        function getPlayerTopupChannelPermission (playerObjId) {
+            return dbconfig.collection_players.findOne(playerObjId).then(
+                player => {
+                    let retObj = {};
+
+                    if (player && player.permission) {
+                        retObj = {
+                            username: player.name,
+                            platformId: platformId,
+                            manualRechargeMethod: player.permission.topupManual ? 0 : 1,
+                            onlineRechargeMethod: player.permission.topupOnline ? 0 : 1,
+                            alipayRechargeMethod: player.permission.alipayTransaction ? 0 : 1,
+                            wechatRechargeMethod: player.permission.disableWechatPay ? 1 : 0,
+                        }
+                    }
+
+                    if (updateObj) {
+                        if (updateObj.hasOwnProperty('topupManual')) {
+                            retObj.manualRechargeMethod = updateObj.topupManual ? 0 : 1;
+                        }
+                        if (updateObj.hasOwnProperty('topupOnline')) {
+                            retObj.onlineRechargeMethod = updateObj.topupOnline ? 0 : 1;
+                        }
+                        if (updateObj.hasOwnProperty('alipayTransaction')) {
+                            retObj.alipayRechargeMethod = updateObj.alipayTransaction ? 0 : 1;
+                        }
+                        if (updateObj.hasOwnProperty('disableWechatPay')) {
+                            retObj.wechatRechargeMethod = updateObj.disableWechatPay ? 1 : 0;
+                        }
+                    }
+
+                    return retObj;
+                }
+            )
+        }
     }
 };
 
@@ -24133,8 +24290,23 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
     );
 }
 
-function checkTelesalesPhone(encryptedPhoneNumber) {
-    dbconfig.collection_tsPhone.find({phoneNumber: encryptedPhoneNumber, registered: false}).lean().then(
+function checkTelesalesFeedback(phoneNumber, platformObjId) {
+    let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+    return dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false, isSucceedBefore: true}, {_id: 1}).lean().then(
+        tsPhoneData => {
+            if (tsPhoneData && tsPhoneData.length) {
+                return dbconfig.collection_tsPhoneFeedback.findOne({
+                    tsPhone: {$in: tsPhoneData.map(tsPhone => tsPhone._id)}
+                }, {adminId: 1,tsPhone: 1}).sort({createTime: -1}).lean();
+            } else {
+                return null;
+            }
+        }
+    );
+}
+
+function checkTelesalesPhone(encryptedPhoneNumber, platformObjId) {
+    dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).lean().then(
         tsPhoneData => {
             if (tsPhoneData && tsPhoneData.length) {
                 tsPhoneData.forEach(
