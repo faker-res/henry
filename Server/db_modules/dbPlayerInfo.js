@@ -12884,7 +12884,7 @@ let dbPlayerInfo = {
                                         providerData
                                         && (
                                             providerData.providerId == "51"
-                                            || providerData.providerId == "57"
+                                            || providerData.providerId == "57" // ISBSLOTS
                                             || providerData.providerId == "41"
                                             || providerData.providerId == "70"
                                             || providerData.providerId == "82" // IG
@@ -22653,8 +22653,10 @@ let dbPlayerInfo = {
     },
 
     updatePMSPlayerTopupChannelPermission: (platformId, playerObjArr) => {
-        playerObjArr.forEach(async playerData => {
-            let sendObj = await getPlayerTopupChannelPermission(playerData);
+        let sendObjArr = [];
+
+        playerObjArr.forEach(playerData => {
+            let sendObj = getPlayerTopupChannelPermission(playerData);
 
             if (
                 sendObj
@@ -22665,24 +22667,27 @@ let dbPlayerInfo = {
                     || sendObj.wechatRechargeMethod === 1
                 )
             ) {
-                return pmsAPI.foundation_userDepositSettings(
-                    {
-                        queryId: +new Date() + serverInstance.getQueryId(),
-                        data: [sendObj]
-                    }
-                ).then(
-                    updateStatus => {
-                        console.log('foundation_userDepositSettings success', updateStatus);
-                        return updateStatus;
-                    },
-                    error => {
-                        console.log('foundation_userDepositSettings failed', error);
-                        throw error;
-                    }
-                )
+                sendObjArr.push(sendObj);
             }
-        })
+        });
 
+        if (sendObjArr.length) {
+            return pmsAPI.foundation_userDepositSettings(
+                {
+                    queryId: +new Date() + serverInstance.getQueryId(),
+                    data: sendObjArr
+                }
+            ).then(
+                updateStatus => {
+                    console.log('foundation_userDepositSettings success', updateStatus);
+                    return updateStatus;
+                },
+                error => {
+                    console.log('foundation_userDepositSettings failed', error);
+                    throw error;
+                }
+            )
+        }
 
         function getPlayerTopupChannelPermission (player) {
             let retObj = {};
