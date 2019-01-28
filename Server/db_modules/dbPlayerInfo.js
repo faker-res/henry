@@ -2646,10 +2646,10 @@ let dbPlayerInfo = {
 
         let pmsUpdateProm = Promise.resolve(true);
 
+
         if (isUpdatePMSPermission) {
             pmsUpdateProm = dbconfig.collection_platform.findOne({_id: query.platform}).then(
                 platformData => {
-                    console.log('updatePMSPlayerTopupChannelPermissionTemp', platformData.platformId, query._id, permission);
                     return dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission);
                 }
             )
@@ -2657,7 +2657,6 @@ let dbPlayerInfo = {
 
         return pmsUpdateProm.then(
             updatePMSSuccess => {
-                console.log('updatePMSSuccess', updatePMSSuccess);
                 if (updatePMSSuccess) {
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
                         playerData => {

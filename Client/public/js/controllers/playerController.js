@@ -6587,8 +6587,6 @@ define(['js/app'], function (myApp) {
                                 let selectedMainPermission = $selectedMainPermission.val() ? $selectedMainPermission.val() : "";
                                 let status = selectedMainPermission && vm.permissionPlayer.permission ? vm.permissionPlayer.permission[selectedMainPermission] : "";
 
-                                console.log('changeObj', changeObj);
-
                                 // if permission has any changes
                                 if (!$.isEmptyObject(changeObj)) {
                                     selectedMainPermission = "";
