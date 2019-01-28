@@ -1757,5 +1757,6 @@
   "ORIGINAL_REWARD_TOTAL": "This reward exceeds the limit, original reward total：",
   "SUBMIT_TO_APPROVED": "（SUBMIT ～ APPROVED）",
   "APPROVED_TO_SUCCESS": "（APPROVED ～ SUCCESS）",
-  "SUBMIT_TO_SUCCESS": "（SUBMIT ～ SUCCESS）"
+  "SUBMIT_TO_SUCCESS": "（SUBMIT ～ SUCCESS）",
+  "topUpSystemName": "Financial（Settlement）System"
 }

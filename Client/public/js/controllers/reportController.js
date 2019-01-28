@@ -58,6 +58,7 @@ define(['js/app'], function (myApp) {
             ALIPAY: 3,
             WechatPay: 4,
             CommonTopUp: 6,
+            FKPTopUp: 100
         };
         vm.feedbackResultList = {
             NORMAL: "Normal",
@@ -2499,34 +2500,329 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
             $('#winRateTableSpin').show();
-            $('#winRateTable').hide();
-            $('#winRateSummaryTable').hide();
+
+            vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
+            vm.curWinRateQuery.providerId = vm.curWinRateQuery.providerId == "all" ? null : vm.curWinRateQuery.providerId;
+            vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
+            vm.curWinRateQuery.limit = 0;
+            vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
+            vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+            console.log('vm.curWinRateQuery', vm.curWinRateQuery);
+
+            socketService.$socket($scope.AppSocket, 'winRateReport', vm.curWinRateQuery, function(data) {
+                findReportSearchTime();
+                vm.winRateReportLoadingStatus = "";
+                $('#winRateTableSpin').hide();
+                vm.winRateSummaryData = (data.data && data.data[0]) ? data.data[0] : [];
+                if (vm.curWinRateQuery.providerId && vm.curWinRateQuery.providerId != 'all') {
+                    vm.winRateLayer1 = false;
+                    vm.winRateLayer2 = true;
+                    vm.winRateLayer3 = false;
+                    vm.winRateLayer4 = false;
+                    vm.drawWinRateLayer2Report(data, data.length, {}, true);
+                } else {
+                    vm.winRateLayer1 = true;
+                    vm.winRateLayer2 = true;
+                    vm.winRateLayer3 = false;
+                    vm.winRateLayer4 = false;
+                }
+                $scope.$evalAsync();
+            }, function(err) {
+                $('#winRateTableSpin').hide();
+                vm.winRateReportLoadingStatus = err.message;
+                $scope.$evalAsync();
+            }, true);
+        };
+
+        vm.getWinRateAllPlatformReport = function (listAll) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            // hide table and show 'loading'
+            $('#winRateTableSpin').show();
+            vm.winRateLayer2 = true;
+            vm.winRateLayer3 = false;
+            vm.winRateLayer4 = false;
 
             vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
             vm.curWinRateQuery.providerId = vm.curWinRateQuery.providerId == "all" ? null : vm.curWinRateQuery.providerId;
             vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
 
             vm.curWinRateQuery.limit = 0;
+            vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
+            vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+            if (listAll) {
+                vm.curWinRateQuery.listAll = true;
+            }
+
+            console.log('vm.curWinRateQuery', vm.curWinRateQuery);
+            socketService.$socket($scope.AppSocket, 'winRateReport', vm.curWinRateQuery, function(data) {
+                vm.drawWinRateLayer2Report(data, data.length, {}, true);
+                findReportSearchTime();
+                vm.winRateReportLoadingStatus = "";
+                $('#winRateTableSpin').hide();
+                $scope.$evalAsync();
+            }, function(err) {
+                $('#winRateTableSpin').hide();
+                vm.winRateReportLoadingStatus = err.message;
+                $scope.$evalAsync();
+            }, true);
+        };
+
+        vm.getWinRateByGameType = function (providerId, providerName) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            // hide table and show 'loading'
+            $('#winRateTableSpin').show();
+            vm.winRateLayer3 = true;
+            vm.winRateLayer4 = false;
+
+            vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
+            vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
+            vm.curWinRateQuery.providerName = providerName;
+            vm.curWinRateQuery.limit = 0;
+            vm.curWinRateQuery.providerId = providerId;
 
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
 
-            console.log('vm.curWinRateQuery', vm.curWinRateQuery);
-            socketService.$socket($scope.AppSocket, 'winRateReport', vm.curWinRateQuery, function (data) {
-                findReportSearchTime();
-                vm.winRateReportLoadingStatus = "";
+            socketService.$socket($scope.AppSocket, 'getWinRateByGameType', vm.curWinRateQuery, function(data) {
+                // hide 'loading' gif
                 $('#winRateTableSpin').hide();
-                $('#winRateTable').show();
-                $('#winRateSummaryTable').show();
-                console.log('win rate report data', data);
-                vm.winRateSummaryData = data.data;
-                $scope.safeApply();
-            }, function (err) {
+                // calculate the sum of non-repeat participant;
+                if (data.data && data.data.summaryData && data.data.summaryData.participantArr) {
+                    let participantArr = data.data.summaryData.participantArr;
+                    let uniqueParticipant = participantArr.filter((x, index, array) => array.indexOf(x) == index)
+                    data.data.summaryData.participantNumber = uniqueParticipant.length;
+                }
+                vm.drawWinRateLayer3Report(data.data, data.length, data.data.summaryData, true);
+                $scope.$evalAsync();
+            }, function(err) {
                 $('#winRateTableSpin').hide();
-                vm.winRateReportLoadingStatus = err.message;
-                $scope.safeApply();
+                $scope.$evalAsync();
             }, true);
-        };
+        }
+
+        vm.getWinRateByPlayers = function (gameId, providerId) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            // hide table and show 'loading'
+            $('#winRateTableSpin').show();
+            vm.winRateLayer4 = true;
+
+            vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
+            vm.curWinRateQuery.providerId = providerId;
+            vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
+
+            vm.curWinRateQuery.limit = 0;
+            vm.curWinRateQuery.gameId = gameId;
+            vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
+            vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+
+            socketService.$socket($scope.AppSocket, 'getWinRateByPlayers', vm.curWinRateQuery, function(data) {
+                // hide 'loading' gif
+                $('#winRateTableSpin').hide();
+                vm.drawWinRateLayer4Report(data.data, data.length, data.data.summaryData, true);
+            }, function(err) {
+                $('#winRateTableSpin').hide();
+            }, true);
+        }
+
+        vm.drawWinRateLayer2Report = function (data, size, summary, newSearch, isExport) {
+            var tableOptions = {
+                data: data.data,
+                "order": [[0, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'providerName', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'participantNumber', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'profit', bSortable: true, 'aTargets': [6]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PROVIDER'), data: "providerName"},
+                    {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber"},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes"},
+                    {
+                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'textRight',
+                        render: function (data, type, row){
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'textRight',
+                        render: function (data, type, row){
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'textRight',
+                        render: function (data, type, row){
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'textRight',
+                        render: function (data, type, row){
+                            let result = data;
+                            return "<div>" + result + "%</div>";
+                        }
+                    },
+                    {
+                        title: $translate('DETAILS'),
+                        render: function (data, type, row){
+                            let txt = $translate('DETAILS');
+                            return "<div ng-click='vm.getWinRateByGameType(\"" + row.providerId +'\",\"'+ row.providerName+"\")'><a>" + txt + "</a></div>";
+                        }
+                    },
+
+                ],
+                "paging": false,
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                }
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            vm.winRateSummaryLayer2Table = utilService.createDatatableWithFooter('#winRateSummaryLayer2Table', tableOptions);
+        }
+        vm.drawWinRateLayer3Report = function (data, size, summary, newSearch, isExport) {
+            var tableOptions = {
+                data: data.data,
+                "order": [[0, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'participantNumber', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'profit', bSortable: true, 'aTargets': [7]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PROVIDER'), data: "providerName"},
+                    {title: $translate('GAME'), data: "gameName", "width": "7%"},
+                    {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", sClass: 'originTXT textRight'},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt textRight'},
+                    {
+                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'sumFloat textRight',
+                        render: function (data, type, row){
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'sumFloat textRight',
+                        render: function (data, type, row){
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight',
+                        render: function (data, type, row){
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'sumEarning textRight',
+                        render: function (data, type, row){
+                            let result = data;
+                            return "<div>" + result + "%</div>";
+                        }
+                    },
+                    {
+                        title: $translate('DETAILS'),
+                        render: function (data, type, row){
+                            let txt = $translate('DETAILS');
+                            return "<div ng-click='vm.getWinRateByPlayers(\"" + row._id +'\",\"'+ row.providerId+"\")'><a>" + txt + "</a></div>";
+                        }
+                    }
+                ],
+                "paging": false,
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                }
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            vm.winRateSummaryLayer3Table = utilService.createDatatableWithFooter('#winRateSummaryLayer3Table', tableOptions, {
+                2: summary.participantNumber,
+                3: summary.consumptionTimes,
+                4: summary.totalAmount,
+                5: summary.validAmount,
+                6: summary.bonusAmount,
+                7: summary.profit
+            }, true);
+            $('#winRateLayer3Table').resize();
+        }
+
+        vm.drawWinRateLayer4Report = function (data, size, summary, newSearch, isExport) {
+            var tableOptions = {
+                data: data.data,
+                "order": [[0, 'asc']],
+                aoColumnDefs: [
+                    {'sortCol': 'playerName', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'profit', bSortable: true, 'aTargets': [6]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        title: $translate('order'),
+                        render: function (data, type, row, meta){
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {title: $translate('MEMBERSHIP_ACCOUNT_NUMBER'), data: "playerName"},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt textRight'},
+                    {
+                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'sumFloat textRight',
+                        render: function (data, type, row){
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'sumFloat textRight',
+                        render: function (data, type, row){
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight',
+                        render: function (data, type, row){
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'sumEarning textRight',
+                        render: function (data, type, row){
+                            let result = data;
+                            return "<div>" + result + "%</div>";
+                        }
+                    }
+                ],
+                "paging": false,
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                }
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            vm.winRateSummaryLayer3Table = utilService.createDatatableWithFooter('#winRateSummaryLayer4Table', tableOptions, {
+                5: summary.consumptionTimes,
+                6: summary.totalAmount,
+                7: summary.validAmount,
+                8: summary.bonusAmount,
+                9: summary.profit
+            }, true);
+        }
 
         vm.getNumberQueryStr = function (operator, formal, later) {
             if (operator && formal != null) {
@@ -9702,14 +9998,21 @@ define(['js/app'], function (myApp) {
                     vm.searchNewPlayerRecord(true);
                 });
             } else if (choice == "WINRATE_REPORT") {
-                vm.winRateQuery = {};
-                vm.winRateSummaryData = {};
-                vm.winRateQuery.providerId = 'all';
-                vm.reportSearchTime = 0;
-                utilService.actionAfterLoaded("#winRateTable", function () {
-                    vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
+
+                $scope.$evalAsync(()=>{
+                    vm.winRateQuery = {};
+                    vm.winRateSummaryData = {};
+                    vm.winRateQuery.providerId = 'all';
+                    vm.reportSearchTime = 0;
+                    vm.winRateLayer1 = true;
+                    vm.winRateLayer2 = false;
+                    vm.winRateLayer3 = false;
+                    vm.winRateLayer4 = false;
+                    utilService.actionAfterLoaded("#winRateTable", function () {
+                        vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
+                    });
+
                 });
-                $scope.safeApply();
             // } else if (choice == "FINANCIAL_REPORT") {
             //     vm.financialReport = {};
             //     vm.winRateSummaryData = {};
@@ -9775,7 +10078,7 @@ define(['js/app'], function (myApp) {
                         vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
                         vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                        vm.feedbackQuery.limit = 10;
+                        vm.feedbackQuery.limit = 5000;
                         vm.feedbackQuery.index = 0;
                         vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {pageSize:5000, maxPageSize:5000}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)

@@ -59,13 +59,13 @@ define(['js/app'], function (myApp) {
 
         //build platform list based on platform data from server
         function buildPlatformList (data) {
-            vm.platformList = [];
+            vm.platformTreeList = [];
             for (var i = 0; i < data.length; i++) {
-                vm.platformList.push(vm.createPlatformNode(data[i]));
+                vm.platformTreeList.push(vm.createPlatformNode(data[i]));
             }
-            //var platformsToDisplay = vm.platformList;
+            //var platformsToDisplay = vm.platformTreeList;
             var searchText = (vm.platformSearchText || '').toLowerCase();
-            var platformsToDisplay = vm.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
+            var platformsToDisplay = vm.platformTreeList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
             $('#platformTree').treeview(
                 {
                     data: platformsToDisplay,

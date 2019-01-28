@@ -5,6 +5,7 @@ const constServerCode = require("../const/constServerCode");
 const clientAPIInstance = require("../modules/clientApiInstances");
 
 function callPMSAPI(service, functionName, data) {
+    console.log('callPMSAPI', service, functionName, data);
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }

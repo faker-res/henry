@@ -280,7 +280,7 @@ let dbCtiCallOut = {
 
         return tryCallCtiApi();
 
-        function tryCallCtiApi (triedTimes, mostRelevantError) {
+        function tryCallCtiApi (triedTimes, mostRelevantError, isRetryLink) {
             triedTimes = triedTimes || 0;
             if (triedTimes >= urls.length) {
                 console.error("CTI API Fail All Tries:", path, param, mostRelevantError);
@@ -310,6 +310,9 @@ let dbCtiCallOut = {
                                 else {
                                     mostRelevantError = currentCtiError;
                                 }
+                            } else if (!isRetryLink) {
+                                resolve(tryCallCtiApi(triedTimes, mostRelevantError, true));
+                                return;
                             }
 
                             resolve(tryCallCtiApi(nextTriedTimes, mostRelevantError));
