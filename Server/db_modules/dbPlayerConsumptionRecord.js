@@ -2453,9 +2453,6 @@ var dbPlayerConsumptionRecord = {
         let gamesDataProm = dbconfig.collection_game.find({provider: providerId, status: {$ne: constGameStatus.DELETED}}).lean().then(
             (gamesData) => {
                 return gamesData
-            },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error finding game for provider.", error: error});
             }
         );
 
