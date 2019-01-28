@@ -2646,7 +2646,7 @@ let dbPlayerInfo = {
         if (isUpdatePMSPermission) {
             pmsUpdateProm = dbconfig.collection_platform.findOne({_id: query.platform}).then(
                 platformData => {
-                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformData.platformId, query._id, permission);
+                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission);
                 }
             )
         }
@@ -22664,6 +22664,67 @@ let dbPlayerInfo = {
                         || sendObj.wechatRechargeMethod === 1
                     )
                 ) {
+                    return pmsAPI.foundation_userDepositSettings(
+                        {
+                            queryId: +new Date() + serverInstance.getQueryId(),
+                            data: [sendObj]
+                        }
+                    ).then(
+                        updateStatus => {
+                            console.log('foundation_userDepositSettings success', updateStatus);
+                            return updateStatus;
+                        },
+                        error => {
+                            console.log('foundation_userDepositSettings failed', error);
+                            throw error;
+                        }
+                    )
+                }
+
+            }
+        );
+
+        function getPlayerTopupChannelPermission (playerObjId) {
+            return dbconfig.collection_players.findOne(playerObjId).then(
+                player => {
+                    let retObj = {};
+
+                    if (player && player.permission) {
+                        retObj = {
+                            username: player.name,
+                            platformId: platformId,
+                            manualRechargeMethod: player.permission.topupManual ? 0 : 1,
+                            onlineRechargeMethod: player.permission.topupOnline ? 0 : 1,
+                            alipayRechargeMethod: player.permission.alipayTransaction ? 0 : 1,
+                            wechatRechargeMethod: player.permission.disableWechatPay ? 1 : 0,
+                        }
+                    }
+
+                    if (updateObj) {
+                        if (updateObj.hasOwnProperty('topupManual')) {
+                            retObj.manualRechargeMethod = updateObj.topupManual ? 0 : 1;
+                        }
+                        if (updateObj.hasOwnProperty('topupOnline')) {
+                            retObj.onlineRechargeMethod = updateObj.topupOnline ? 0 : 1;
+                        }
+                        if (updateObj.hasOwnProperty('alipayTransaction')) {
+                            retObj.alipayRechargeMethod = updateObj.alipayTransaction ? 0 : 1;
+                        }
+                        if (updateObj.hasOwnProperty('disableWechatPay')) {
+                            retObj.wechatRechargeMethod = updateObj.disableWechatPay ? 1 : 0;
+                        }
+                    }
+
+                    return retObj;
+                }
+            )
+        }
+    },
+
+    updatePMSPlayerTopupChannelPermissionTemp: (platformId, playerObjId, updateObj) => {
+        return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
+            sendObj => {
+                if (sendObj) {
                     return pmsAPI.foundation_userDepositSettings(
                         {
                             queryId: +new Date() + serverInstance.getQueryId(),
