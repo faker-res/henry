@@ -16,7 +16,7 @@ dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().
                     playerArr.push(playerData);
                     i++;
 
-                    if (i === 10) {
+                    if (i === 100) {
                         dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformId, playerArr);
                         done += i;
                         console.log('done', done);
