@@ -13286,6 +13286,8 @@ let dbPlayerInfo = {
 
         var proposal = null;
         var bonusId = null;
+        console.log("LH check bonus cancel issue 1 ------", playerId);
+        console.log("LH check bonus cancel issue 2 ------", proposalId);
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
@@ -13316,6 +13318,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                console.log("LH check bonus cancel issue 3 ------", proposal);
                 if (proposal) {
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
