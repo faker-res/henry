@@ -2639,39 +2639,39 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('PROVIDER'), data: "providerName", "width": "15%"},
-                    {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", "width": "10%"},
-                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", "width": "10%"},
+                    {title: $translate('PROVIDER'), data: "providerName"},
+                    {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber"},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes"},
                     {
-                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'textRight', "width": "15%",
+                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'textRight',
                         render: function (data, type, row){
                             let result = data.toFixed(2);
                             return "<div>" + result + "</div>";
                         }
                     },
                     {
-                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'textRight', "width": "15%",
+                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'textRight',
                         render: function (data, type, row){
                             let result = data.toFixed(2);
                             return "<div>" + result + "</div>";
                         }
                     },
                     {
-                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'textRight', "width": "15%",
+                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'textRight',
                         render: function (data, type, row){
                             let result = data.toFixed(2);
                             return "<div>" + result + "</div>";
                         }
                     },
                     {
-                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'textRight', "width": "15%",
+                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'textRight',
                         render: function (data, type, row){
                             let result = data;
                             return "<div>" + result + "%</div>";
                         }
                     },
                     {
-                        title: $translate('DETAILS'), "width": "10%",
+                        title: $translate('DETAILS'),
                         render: function (data, type, row){
                             let txt = $translate('DETAILS');
                             return "<div ng-click='vm.getWinRateByGameType(\"" + row.providerId +'\",\"'+ row.providerName+"\")'><a>" + txt + "</a></div>";
@@ -2701,46 +2701,46 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('PROVIDER'), data: "providerName", "width": "8%"},
+                    {title: $translate('PROVIDER'), data: "providerName"},
                     {
-                        title: $translate('GameType'), data: "gameType", "width": "7%",
+                        title: $translate('GameType'), data: "gameType",
                         render: function (data, type, row){
                             let result = vm.allGameTypes[data];
                             return "<div>" + result + "</div>";
                         }
                     },
-                    {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", sClass: 'originTXT textRight', "width": "10%"},
-                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt textRight', "width": "10%"},
+                    {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", sClass: 'originTXT textRight'},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt textRight'},
                     {
-                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'sumFloat textRight', "width": "15%",
+                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'sumFloat textRight',
                         render: function (data, type, row){
                             let result = data.toFixed(2);
                             return "<div>" + result + "</div>";
                         }
                     },
                     {
-                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'sumFloat textRight', "width": "15%",
+                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'sumFloat textRight',
                         render: function (data, type, row){
                             let result = data.toFixed(2);
                             return "<div>" + result + "</div>";
                         }
                     },
                     {
-                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight', "width": "15%",
+                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight',
                         render: function (data, type, row){
                             let result = data.toFixed(2);
                             return "<div>" + result + "</div>";
                         }
                     },
                     {
-                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'sumEarning textRight', "width": "15%",
+                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'sumEarning textRight',
                         render: function (data, type, row){
                             let result = data;
                             return "<div>" + result + "%</div>";
                         }
                     },
                     {
-                        title: $translate('DETAILS'), "width": "10%",
+                        title: $translate('DETAILS'),
                         render: function (data, type, row){
                             let txt = $translate('DETAILS');
                             return "<div ng-click='vm.getWinRateByPlayers(\"" + row._id +'\",\"'+ row.providerId+"\")'><a>" + txt + "</a></div>";
@@ -2767,6 +2767,7 @@ define(['js/app'], function (myApp) {
         vm.drawWinRateLayer4Report = function (data, size, summary, newSearch, isExport) {
             var tableOptions = {
                 data: data.data,
+                "order": [[0, 'asc']],
                 aoColumnDefs: [
                     {'sortCol': 'playerName', bSortable: true, 'aTargets': [1]},
                     {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [2]},
@@ -2778,36 +2779,36 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {
-                        title: $translate('order'), "width": "8%",
+                        title: $translate('order'),
                         render: function (data, type, row, meta){
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    {title: $translate('MEMBERSHIP_ACCOUNT_NUMBER'), data: "playerName", "width": "15%"},
-                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt textRight', "width": "10%"},
+                    {title: $translate('MEMBERSHIP_ACCOUNT_NUMBER'), data: "playerName"},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt textRight'},
                     {
-                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'sumFloat textRight', "width": "15%",
+                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'sumFloat textRight',
                         render: function (data, type, row){
                             let result = data.toFixed(2);
                             return "<div>" + result + "</div>";
                         }
                     },
                     {
-                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'sumFloat textRight', "width": "15%",
+                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'sumFloat textRight',
                         render: function (data, type, row){
                             let result = data.toFixed(2);
                             return "<div>" + result + "</div>";
                         }
                     },
                     {
-                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight', "width": "15%",
+                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight',
                         render: function (data, type, row){
                             let result = data.toFixed(2);
                             return "<div>" + result + "</div>";
                         }
                     },
                     {
-                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'sumEarning textRight', "width": "15%",
+                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'sumEarning textRight',
                         render: function (data, type, row){
                             let result = data;
                             return "<div>" + result + "%</div>";
