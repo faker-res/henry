@@ -1846,6 +1846,7 @@
   "PRODUCT_START_TIME_DESCRIPTION": "优惠周期前X分钟显示在前端",
   "PRODUCT_END_TIME_DESCRIPTION": "优惠周期后X分钟消失在前端",
   "Product List": "商品列表",
+  "Disable All": "全部禁用",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
