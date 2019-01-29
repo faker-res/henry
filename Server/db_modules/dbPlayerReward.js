@@ -5467,8 +5467,6 @@ let dbPlayerReward = {
      */
     applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData, isPreview, isBulkApply) => {
         rewardData = rewardData || {};
-        let applyGroupRewardRunTime = 0;
-        let applyGroupRewardRunTimeStart = new Date().getTime();
 
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate).startTime : dbUtility.getTodaySGTime();
         rewardData.applyTargetDate = rewardData.applyTargetDate || todayTime.startTime;
@@ -6286,9 +6284,6 @@ let dbPlayerReward = {
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm]).then(
             data => {
-                let applyGroupRewardRunTimeEnd = new Date().getTime();
-                applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
-                console.log('applyGroupRewardRunTime===11', applyGroupRewardRunTime);
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
                 let rewardSpecificData = data[2];
@@ -6783,9 +6778,6 @@ let dbPlayerReward = {
 
                     // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
-                        let applyGroupRewardRunTimeEnd = new Date().getTime();
-                        applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
-                        console.log('applyGroupRewardRunTime===22', applyGroupRewardRunTime);
                         let consumptions = rewardSpecificData[0];
                         let totalConsumption = 0;
                         for (let x in consumptions) {
@@ -7204,9 +7196,6 @@ let dbPlayerReward = {
             }
         ).then(
             amountCheckComplete => {
-                let applyGroupRewardRunTimeEnd = new Date().getTime();
-                applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
-                console.log('applyGroupRewardRunTime===33', applyGroupRewardRunTime);
                 if (amountCheckComplete) {
 
                     if (isPreview){
@@ -7505,9 +7494,6 @@ let dbPlayerReward = {
 
                         return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
                             proposalData => {
-                                let applyGroupRewardRunTimeEnd = new Date().getTime();
-                                applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
-                                console.log('applyGroupRewardRunTime===44', applyGroupRewardRunTime);
                                 let postPropPromArr = [];
                                 // save a record for the playerRetentionRewardGroup
                                 if (eventData && eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP){
@@ -7585,9 +7571,6 @@ let dbPlayerReward = {
                                     }
 
                                     return Promise.all(postPropPromArr).then(() => {
-                                        let applyGroupRewardRunTimeEnd = new Date().getTime();
-                                        applyGroupRewardRunTime = (applyGroupRewardRunTimeEnd - applyGroupRewardRunTimeStart) / 1000;
-                                        console.log('applyGroupRewardRunTime===55', applyGroupRewardRunTime);
                                         return {
                                             rewardAmount: rewardAmount
                                         }

@@ -10231,8 +10231,6 @@ define(['js/app'], function (myApp) {
             });
         };
         vm.applyPlayerReward = function (isForceApply = false) {
-            vm.applyPlayerRewardRunTime = 0;
-            vm.applyPlayerRewardRunTimeStart = new Date().getTime();
             vm.applyXM = true;
             let idArr = [];
             if (vm.playerApplyRewardShow.topUpRecordIds) {
@@ -10270,9 +10268,6 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
-                vm.applyPlayerRewardRunTimeEnd = new Date().getTime();
-                vm.applyPlayerRewardRunTime = (vm.applyPlayerRewardRunTimeEnd - vm.applyPlayerRewardRunTimeStart) / 1000;
-                console.log('vm.applyPlayerRewardRunTime===11', vm.applyPlayerRewardRunTime);
                 console.log('sent', data);
                 vm.applyXM = false;
                 vm.playerApplyEventResult = data;
