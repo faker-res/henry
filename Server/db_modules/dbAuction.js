@@ -691,7 +691,7 @@ var dbAuction = {
                 () => {
                     // find bid proposal in pending status
                     if (platformObjId && proposalTypeId && productName){
-                        let intervalTime = dbAuction.convertAuctionDateToDateFormat(auctionItem, curDay, curHour, curDate);
+                        let intervalTime = dbAuction.convertMatchingAuctionDateToDateFormat(auctionItem, curDay, curHour, curDate);
 
                         return dbconfig.collection_proposal.find(
                             {
@@ -752,7 +752,7 @@ var dbAuction = {
 
     },
 
-    convertAuctionDateToDateFormat: function (auctionItem, curDay, curHour, curDate){
+    convertMatchingAuctionDateToDateFormat: function (auctionItem, curDay, curHour, curDate){
         let periodData = null;
         let endHour = null;
         let startHour = null;
@@ -780,7 +780,9 @@ var dbAuction = {
                 startHour = parseInt(periodData.startTime);
                 startDate = parseInt(periodData.startDate);
                 endDate = parseInt(periodData.endDate);
-                let dayDiff = Math.abs(endDate - startDate);
+
+                let diff = endDate - startDate;
+                let dayDiff = diff < 0 ? diff + 7 : diff;
 
                 calEndTime = new Date(tempDate.getFullYear(), tempDate.getMonth(), tempDate.getDate(), endHour, 0, 0, 0);
                 if (dayDiff == 0) {
@@ -821,7 +823,7 @@ var dbAuction = {
             })
         }
 
-        console.log("checking calStartime", calStartTime)
+        console.log("checking calStartTime", calStartTime)
         console.log("checking calEndTime", calEndTime)
         return {startTime: calStartTime, endTime: calEndTime};
     },
@@ -876,6 +878,7 @@ var dbAuction = {
         let proposalData = null;
         let proposalTypeId = null;
         let timeNow = new Date().getTime();
+        let curTime = dbutility.getUTC8Time(new Date());
 
         if (!playerId) {
             return Promise.reject({name: "DBError", message: "Player is not found"});
@@ -983,7 +986,9 @@ var dbAuction = {
                 auctionProm = dbconfig.collection_auctionSystem.findOne({
                     platformObjId: platformObjId,
                     productName: productName,
-                    'rewardData.rewardType': rewardType
+                    rewardStartTime: {$lte: new Date(timeNow)},
+                    rewardEndTime: {$gte: new Date(timeNow)},
+                    publish: true,
                 }).lean();
 
                 proposalProm = dbconfig.collection_proposal.findOne({
@@ -1002,6 +1007,26 @@ var dbAuction = {
                             return Promise.reject({
                                 name: "DBError",
                                 message: "The bidding product is not found."
+                            })
+                        }
+
+                        let isWithinInterval = false;
+                        if (auctionData.rewardAppearPeriod && auctionData.rewardAppearPeriod.length){
+                            for (let i = 0; i < auctionData.rewardAppearPeriod.length; i ++){
+                                let interval = auctionData.rewardAppearPeriod[i];
+                                if (interval && interval.hasOwnProperty('endDate') && interval.hasOwnProperty('endTime') &&interval.hasOwnProperty('startDate') && interval.hasOwnProperty('startTime')){
+                                    isWithinInterval = isWithinAuctionTimeInterval(interval, auctionData.rewardInterval, curTime, new Date(timeNow))
+                                    if (isWithinInterval){
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!isWithinInterval){
+                            return Promise.reject({
+                                name: "DBError",
+                                message: "The bidding is not started yet or has already ended for the product."
                             })
                         }
 
@@ -1223,6 +1248,99 @@ var dbAuction = {
                 throw err;
             }
         )
+
+        function isWithinAuctionTimeInterval(periodData, intervalMode, currentTime, currentISOTime) {
+            let intervalDate= null;
+            let isWithin = false;
+            let endHour = parseInt(periodData.endTime);
+            let startHour = parseInt(periodData.startTime);
+            let startDate = parseInt(periodData.startDate);
+            let endDate = parseInt(periodData.endDate);
+
+            if (intervalMode == "weekly") {
+                intervalDate = generateDateForWeekDay(startDate, startHour, endDate, endHour, currentTime);
+
+            } else if (intervalMode == "monthly") {
+                intervalDate = generateDateForMonth(startDate, startHour, endDate, endHour, currentTime);
+            }
+
+            console.log("checking currentISOTime)", currentISOTime)
+            console.log("checking intervalDate)", intervalDate)
+            return intervalDate && intervalDate.startTime <= currentISOTime && intervalDate.endTime >= currentISOTime ? true : false;
+        }
+
+        function generateDateForWeekDay(startDay, startHour, endDay, endHour, currentTime) {
+            let startInterval = null;
+            let endInterval = null;
+            let currentDay = new Date(currentTime).getDay();
+            currentDay = currentDay == 0 ? 7 : currentDay; // convert the day to the standard used in db
+
+            if (startDay < currentDay){
+                let dayDiff = currentDay - startDay;
+                startInterval = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() - dayDiff, startHour, 0, 0, 0)
+            }
+            else if (startDay > currentDay){
+
+                if(endDay >= startDay){
+                    let dayDiff = startDay - currentDay;
+                    startInterval = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() + dayDiff, startHour, 0, 0, 0)
+                }
+                else{
+                    let dayDiff2 = currentDay - startDay + 7;
+                    startInterval = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() - dayDiff2, startHour, 0, 0, 0)
+                }
+            }
+            else{
+                startInterval = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), startHour, 0, 0, 0)
+            }
+
+            if (endDay < startDay){
+                let dayDiff = endDay - startDay + 7;
+                endInterval = new Date(startInterval.getFullYear(), startInterval.getMonth(), startInterval.getDate() + dayDiff, endHour, 0, 0, 0)
+            }
+            else if (endDay > startDay){
+                let dayDiff = endDay - startDay;
+                endInterval = new Date(startInterval.getFullYear(), startInterval.getMonth(), startInterval.getDate() + dayDiff, endHour, 0, 0, 0)
+            }
+            else{
+                endInterval = new Date(startInterval.getFullYear(), startInterval.getMonth(), startInterval.getDate(), endHour, 0, 0, 0)
+            }
+
+            return {startTime: startInterval, endTime: endInterval};
+        }
+
+        function generateDateForMonth(startDate, startHour, endDate, endHour, currentTime) {
+            let startInterval = null;
+            let endInterval = null;
+            let currentDate = new Date(currentTime).getDate();
+
+            if (startDate < currentDate){
+                let dayDiff = currentDate - startDate;
+                startInterval = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() - dayDiff, startHour, 0, 0, 0)
+            }
+            else if (startDate > currentDate){
+                let dayDiff = startDate - currentDate;
+                startInterval = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() + dayDiff, startHour, 0, 0, 0)
+            }
+            else{
+                startInterval = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), startHour, 0, 0, 0)
+            }
+
+            if (endDate < startDate){
+                // which is not supposed to happen
+                let dayDiff = endDate - startDate
+                endInterval = new Date(startInterval.getFullYear(), startInterval.getMonth(), startInterval.getDate() - dayDiff, endHour, 0, 0, 0)
+            }
+            else if (endDate > startDate){
+                let dayDiff = endDate - startDate;
+                endInterval = new Date(startInterval.getFullYear(), startInterval.getMonth(), startInterval.getDate() + dayDiff, endHour, 0, 0, 0)
+            }
+            else{
+                endInterval = new Date(startInterval.getFullYear(), startInterval.getMonth(), startInterval.getDate(), endHour, 0, 0, 0)
+            }
+
+            return {startTime: startInterval, endTime: endInterval}
+        }
     },
 };
 
