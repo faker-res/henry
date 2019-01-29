@@ -5943,6 +5943,24 @@ let dbPlayerReward = {
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
 
+                    if (intervalTime) {
+                        consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                        if (allRewardProm) allRewardQuery.settleTime = {
+                            $gte: intervalTime.startTime,
+                            $lte: intervalTime.endTime
+                        };
+                    }
+
+                    if (rewardData.previewDate) {
+                        consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
+                        if (allRewardProm) allRewardQuery.settleTime = {
+                            $gte: intervalTime.startTime,
+                            $lte:  dbUtility.getSGTimeOf(rewardData.previewDate)
+                        };
+                    }
+
+                    console.log('checking consumptionQuery', consumptionQuery);
+
                     if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
                         let consumptionProviders = [];
                         eventData.condition.consumptionProvider.forEach(providerId => {

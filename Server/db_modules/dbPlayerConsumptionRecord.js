@@ -2427,7 +2427,7 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id: {"providerId":"$providerId", "gameId": "$gameId"},
+                    _id: {"providerId": "$providerId", "cpGameType": "$cpGameType"},
                     playerId: {
                         $addToSet: "$playerId"
                     }
@@ -2441,7 +2441,7 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id: '$gameId',
+                    _id: '$cpGameType',
                     total_amount: {$sum: "$amount"},
                     validAmount: {$sum: "$validAmount"},
                     consumptionTimes: {$sum: {$cond: ["$count", "$count", 1]}},
@@ -2450,26 +2450,19 @@ var dbPlayerConsumptionRecord = {
             }
         ]).read("secondaryPreferred");
 
-        let gamesDataProm = dbconfig.collection_game.find({provider: providerId, status: {$ne: constGameStatus.DELETED}}).lean().then(
-            (gamesData) => {
-                return gamesData
-            }
-        );
-
-        return Promise.all([participantsProm, totalAmountProm, gamesDataProm]).then(
+        return Promise.all([participantsProm, totalAmountProm]).then(
             data => {
                 let participantNumber = 0;
                 let result = [];
                 let participantData = data[0] ? data[0] : [];
                 let totalSumData = data[1] ? data[1] : [];
-                let gamesData = data[2];
-                result = dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData, gamesData);
+                result = dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
                 return result;
             }
         )
     },
 
-    getGameTypeWinRateData: function (providerId, providerName, participantNumber, totalSumData, participantData, gamesData) {
+    getGameTypeWinRateData: function (providerId, providerName, participantNumber, totalSumData, participantData) {
         let participantArr = [];
         let summaryData = {
             consumptionTimes: 0,
@@ -2487,7 +2480,9 @@ var dbPlayerConsumptionRecord = {
                 // calculate the non-repeat player number
                 if (participantData && participantData.length > 0) {
                     participant = participantData.filter(party => {
-                        return party._id.gameId.equals(item._id);
+                        if(party._id && party._id.cpGameType && party._id.cpGameType == item._id){
+                            return item;
+                        }
                     })
                     participant = (participant && participant.length) ? participant[0] : null;
                     participantNumber = (participant && participant.playerId && participant.playerId.length) ? participant.playerId.length : 0
@@ -2498,14 +2493,7 @@ var dbPlayerConsumptionRecord = {
                         })
                     }
                 }
-                // find the game name
-                let gameDetail = gamesData.filter(game =>{
-                    return game._id.equals(item._id);
-                })
-                gameDetail = (gameDetail && gameDetail[0]) ? gameDetail[0] : {};
-                item.gameType = item._id;
-                item.gameId = item._id;
-                item.gameName = (gameDetail && gameDetail.name) ? gameDetail.name : '';
+                item.cpGameType = item._id;
                 item.totalAmount = item.total_amount;
                 item.providerName = providerName;
                 item.participantNumber = participantNumber;
@@ -2528,7 +2516,7 @@ var dbPlayerConsumptionRecord = {
         }
     },
 
-    getWinRateByPlayers: function (startTime, endTime, providerId, platformId, gameId) {
+    getWinRateByPlayers: function (startTime, endTime, providerId, platformId, cpGameType) {
         const matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
             platformId: ObjectId(platformId),
@@ -2536,7 +2524,10 @@ var dbPlayerConsumptionRecord = {
         };
 
         matchObj.providerId = ObjectId(providerId);
-        matchObj.gameId = ObjectId(gameId);
+        matchObj.cpGameType = cpGameType;
+        if(!cpGameType || cpGameType == 'null'){
+            matchObj.cpGameType = { $exists: false }
+        }
         let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {

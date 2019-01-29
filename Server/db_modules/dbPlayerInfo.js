@@ -2646,6 +2646,7 @@ let dbPlayerInfo = {
 
         let pmsUpdateProm = Promise.resolve(true);
 
+
         if (isUpdatePMSPermission) {
             pmsUpdateProm = dbconfig.collection_platform.findOne({_id: query.platform}).then(
                 platformData => {
@@ -2656,7 +2657,6 @@ let dbPlayerInfo = {
 
         return pmsUpdateProm.then(
             updatePMSSuccess => {
-                console.log('updatePMSSuccess', updatePMSSuccess);
                 if (updatePMSSuccess) {
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
                         playerData => {
@@ -12671,53 +12671,11 @@ let dbPlayerInfo = {
             model: dbconfig.collection_gameProvider
         }).lean();
 
-        function transferCreditToProvider(transferAmount) {
-            bTransferIn = Boolean(transferAmount && ((parseFloat(transferAmount.playerCredit) + parseFloat(transferAmount.rewardCredit)) >= 1));
-
-            //console.log("bTransferIn:", bTransferIn, transferAmount);
-            if (transferAmount && gameData && gameData.provider) {
-                //transfer in to current provider
-                if (bTransferIn) {
-                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1).then(
-                        data => data,
-                        error => {
-                            if(isApplyBonusDoubledReward){
-                                return Promise.reject(error);
-                            }
-
-                            return false;
-                        }
-                    );
-                }
-                else {
-                    //allow player to login if player doesn't have enough credit
-                    return Promise.resolve(true);
-                    // if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId == gameData.provider.providerId) {
-                    //     return true;
-                    // }
-                    // else {
-                    //     //todo::update code here later, for now, it doesn't require credit
-                    //     if (gameId == "19D207EB-C09C-4E87-8CFE-0C0DF71CE232") {
-                    //         return;
-                    //     }
-                    //     else {
-                    //         return Q.reject({
-                    //             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                    //             name: "DataError",
-                    //             errorMessage: "Player does not have enough credit."
-                    //         });
-                    //     }
-                    // }
-                }
-            } else {
-                return Promise.reject({name: "DataError", message: "Cannot find game"});
-            }
-        }
-
-        return Promise.all([playerProm, gameProm])
-            .then(data => {
+        return Promise.all([playerProm, gameProm]).then(
+            data => {
                 resultData = data;
-                if(data && data[0]){
+
+                if (data && data[0]) {
                     let query = {
                         playerObjId : data[0]._id || null,
                         platformObjId: data[0].platform && data[0].platform._id ? data[0].platform._id : null,
@@ -12725,15 +12683,16 @@ let dbPlayerInfo = {
                     };
                     return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query);
                 }
-            }).then(
-                playerApplyBonusDoubledRewardResult => {
-                    if(playerApplyBonusDoubledRewardResult){
-                        isApplyBonusDoubledReward = true;
-                    }
-
-                    return resultData;
+            }
+        ).then(
+            playerApplyBonusDoubledRewardResult => {
+                if (playerApplyBonusDoubledRewardResult) {
+                    isApplyBonusDoubledReward = true;
                 }
-            ).then(
+
+                return resultData;
+            }
+        ).then(
             data => {
                 //check if its a demo player
                 if (data && data[0] && data[0].isTestPlayer) {
@@ -12759,27 +12718,18 @@ let dbPlayerInfo = {
                     // check if the player is ban for particular game - in other words
                     // check if the provider of login game is in the forbidden list
                     else if (playerData.permission.forbidPlayerFromEnteringGame) {
-                        // var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
-                        // if (isForbidden) {
                         return Promise.reject({
                             name: "DataError",
                             status: constServerCode.PLAYER_IS_FORBIDDEN,
                             message: "Player is forbidden to the game",
                             playerStatus: playerData.status
                         });
-                        // }
-                        // } else if (playerData.status === constPlayerStatus.BANNED) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_IS_FORBIDDEN,
-                        //         name: "DataError",
-                        //         message: "Player is banned",
-                        //         playerStatus: playerData.status
-                        //     });
                     }
 
                     if (playerData.forbidProviders && playerData.forbidProviders.length > 0) {
                         for (let i = 0, len = playerData.forbidProviders.length; i < len; i++) {
                             let forbidProvider = playerData.forbidProviders[i];
+
                             if (gameData.provider._id.toString() === forbidProvider.toString()) {
                                 return Promise.reject({
                                     name: "DataError",
@@ -12810,15 +12760,7 @@ let dbPlayerInfo = {
                         });
                     }
 
-                    // let providerEnabled = true;
-                    // let providerInfo = playerData.platform.gameProviderInfo[String(gameData.provider._id)];
-                    //
-                    // if (providerInfo) {
-                    //     providerEnabled = providerInfo.isEnabled;
-                    // }
-
                     // Added checking for platform level disable game provider
-
                     let providerStatus = dbUtility.getPlatformSpecificProviderStatus(gameData.provider, platform.platformId);
                     if (providerStatus != constProviderStatus.NORMAL) {
                         return Q.reject({
@@ -12854,89 +12796,79 @@ let dbPlayerInfo = {
                                     });
                                 }
 
-                                if (playerData.platform.useProviderGroup) {
-                                    let retData = {
-                                        playerCredit: playerData.validCredit,
-                                        rewardCredit: 0
-                                    };
+                                let retData = {
+                                    playerCredit: playerData.validCredit,
+                                    rewardCredit: 0
+                                };
 
-                                    let transferProm = Promise.resolve();
+                                let transferProm = Promise.resolve();
 
-                                    if (playerData.validCredit >= 1) {
-                                        transferProm = transferCreditToProvider(retData);
-                                    } else {
-                                        // Not enough credit to play with local credit
-                                        // Check credits in reward task group
-                                        transferProm = dbconfig.collection_rewardTaskGroup.find({
-                                            platformId: playerData.platform._id,
-                                            playerId: playerData._id,
-                                            status: {$in: [constRewardTaskStatus.STARTED]}
-                                        }).then(
-                                            rewardGroupData => {
-                                                if (rewardGroupData) {
-                                                    retData.rewardCredit = rewardGroupData.reduce(
-                                                        (arr, inc) => arr + inc.rewardAmt, 0
-                                                    );
-                                                }
-
-                                                // Still not enough credit in RTG, transfer out from last provider
-                                                if (retData.rewardCredit < 1
-                                                    && playerData.lastPlayedProvider
-                                                    && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE
-                                                    && playerData.lastPlayedProvider.providerId != gameData.provider.providerId
-                                                ) {
-                                                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id,
-                                                        playerData.lastPlayedProvider.providerId, -1, null, true);
-                                                }
-
-                                                return retData;
-                                            }
-                                        ).then(
-                                            data => {
-                                                return transferCreditToProvider(data);
-                                            },
-                                            err => {
-                                                if(isApplyBonusDoubledReward){
-                                                    return Promise.reject(err);
-                                                }
-
-                                                errorUtils.reportError(err);
-                                                // Error transfer out from last provider, insufficent amount
-                                                //return Promise.reject({name: "DataError", message: "Insufficient amount to enter game"});
-                                            }
-                                        );
-                                    }
-                                    //if it's ipm ,ky or some providers, don't use async here
-                                    if (
-                                        providerData
-                                        && (
-                                            providerData.providerId == "51"
-                                            || providerData.providerId == "57" // ISBSLOTS
-                                            || providerData.providerId == "41"
-                                            || providerData.providerId == "70"
-                                            || providerData.providerId == "82" // IG
-                                            || providerData.providerId == "83"
-                                            || providerData.providerId == "86" // SABA
-                                            || providerData.providerId == "94" // CQ9
-                                            || isApplyBonusDoubledReward
-                                        )
-                                    ) {
-                                        return transferProm;
-                                    }
-                                    else {
-                                        transferProm.catch(errorUtils.reportError);
-                                        return true;
-                                    }
+                                if (playerData.validCredit >= 1) {
+                                    transferProm = transferCreditToProvider(retData);
                                 } else {
-                                    if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
-                                        return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true).then(transferCreditToProvider, errorUtils.reportError);
-                                    }
-                                    else {
-                                        return transferCreditToProvider({
-                                            playerCredit: playerData.validCredit,
-                                            rewardCredit: playerData.lockedCredit
-                                        });
-                                    }
+                                    // Not enough credit to play with local credit
+                                    // Check credits in reward task group
+                                    transferProm = dbconfig.collection_rewardTaskGroup.find({
+                                        platformId: playerData.platform._id,
+                                        playerId: playerData._id,
+                                        status: {$in: [constRewardTaskStatus.STARTED]}
+                                    }).then(
+                                        rewardGroupData => {
+                                            if (rewardGroupData) {
+                                                retData.rewardCredit = rewardGroupData.reduce(
+                                                    (arr, inc) => arr + inc.rewardAmt, 0
+                                                );
+                                            }
+
+                                            // Still not enough credit in RTG, transfer out from last provider
+                                            if (retData.rewardCredit < 1
+                                                && playerData.lastPlayedProvider
+                                                && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE
+                                                && playerData.lastPlayedProvider.providerId != gameData.provider.providerId
+                                            ) {
+                                                return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id,
+                                                    playerData.lastPlayedProvider.providerId, -1, null, true);
+                                            }
+
+                                            return retData;
+                                        }
+                                    ).then(
+                                        data => {
+                                            return transferCreditToProvider(data);
+                                        },
+                                        err => {
+                                            if(isApplyBonusDoubledReward){
+                                                return Promise.reject(err);
+                                            }
+
+                                            errorUtils.reportError(err);
+                                            // Error transfer out from last provider, insufficent amount
+                                            //return Promise.reject({name: "DataError", message: "Insufficient amount to enter game"});
+                                        }
+                                    );
+                                }
+                                //if it's ipm ,ky or some providers, don't use async here
+                                if (
+                                    providerData
+                                    && (
+                                        providerData.providerId == "51"
+                                        || providerData.providerId == "57" // ISBSLOTS
+                                        || providerData.providerId == "41"
+                                        || providerData.providerId == "70"
+                                        || providerData.providerId == "82" // IG
+                                        || providerData.providerId == "83"
+                                        || providerData.providerId == "86" // SABA
+                                        || providerData.providerId == "94" // CQ9
+                                        || isApplyBonusDoubledReward
+                                    )
+                                ) {
+                                    console.log('RT - transfer using sync', playerData.name);
+                                    return transferProm;
+                                }
+                                else {
+                                    console.log('RT - transfer using async', playerData.name);
+                                    transferProm.catch(errorUtils.reportError);
+                                    return true;
                                 }
                             }
                             else {
@@ -12993,6 +12925,32 @@ let dbPlayerInfo = {
                 return Promise.reject(err);
             }
         );
+
+        function transferCreditToProvider(transferAmount) {
+            bTransferIn = Boolean(transferAmount && ((parseFloat(transferAmount.playerCredit) + parseFloat(transferAmount.rewardCredit)) >= 1));
+
+            if (transferAmount && gameData && gameData.provider) {
+                //transfer in to current provider
+                if (bTransferIn) {
+                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1).then(
+                        data => data,
+                        error => {
+                            if(isApplyBonusDoubledReward){
+                                return Promise.reject(error);
+                            }
+
+                            return false;
+                        }
+                    );
+                }
+                else {
+                    //allow player to login if player doesn't have enough credit
+                    return Promise.resolve(true);
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Cannot find game"});
+            }
+        }
     },
 
     getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
