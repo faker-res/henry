@@ -1681,6 +1681,7 @@ define(['js/app'], function (myApp) {
                     $('#topupTableSpin').hide();
                     console.log('topup', data);
                     vm.queryTopup.totalCount = data.data.size;
+                    vm.queryTopup.totalPlayer = data.data.totalPlayer;
                     vm.drawTopupReport(
                         data.data.data.map(item => {
                             item.amount$ = parseFloat(item.data.amount).toFixed(2);
@@ -6200,6 +6201,7 @@ define(['js/app'], function (myApp) {
                 })
                 $('#proposalTableSpin').hide();
                 vm.proposalQuery.totalCount = data.data.size;
+                vm.proposalQuery.totalPlayer = data.data.totalPlayer;
                 $scope.safeApply();
                 vm.drawProposalReportNew(datatoDraw, vm.proposalQuery.totalCount, data.data.summary, newSearch, isExport);
             }, function (err) {
@@ -9209,6 +9211,7 @@ define(['js/app'], function (myApp) {
                 case "TOPUP_REPORT":
                     vm.queryTopup = {'merchantNo':[]};
                     vm.queryTopup.totalCount = 0;
+                    vm.queryTopup.totalPlayer = 0;
                     vm.resetTopupRecord();
                     vm.reportSearchTime = 0;
                     $('#topupTable').remove();
@@ -9234,6 +9237,7 @@ define(['js/app'], function (myApp) {
                     vm.proposalQuery.status = 'all';
                     vm.proposalQuery.promoType = '';
                     vm.proposalQuery.totalCount = 0;
+                    vm.proposalQuery.totalPlayer = 0;
                     vm.proposalQuery.proposalTypeId = '';
                     vm.reportSearchTime = 0;
 
