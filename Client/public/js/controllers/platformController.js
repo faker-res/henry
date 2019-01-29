@@ -16366,7 +16366,15 @@ define(['js/app'], function (myApp) {
                             }
                         })
                     } else {
-                        vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                        vm.queryRoles.map(e => {
+                            if (e && e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f && f._id != "") {
+                                        admins.push(f._id);
+                                    }
+                                });
+                            }
+                        });
                     }
                 }
 
