@@ -5811,15 +5811,15 @@ define(['js/app'], function (myApp) {
                 var datatoDraw = data.data.data.map(item => {
                     item.involveAmount$ = 0;
                     if (item.data.updateAmount) {
-                        item.involveAmount$ = item.data.updateAmount;
+                        item.involveAmount$ = parseFloat(item.data.updateAmount).toFixed(2);
                     } else if (item.data.amount) {
-                        item.involveAmount$ = item.data.amount;
+                        item.involveAmount$ = parseFloat(item.data.amount).toFixed(2);
                     } else if (item.data.rewardAmount) {
-                        item.involveAmount$ = item.data.rewardAmount;
+                        item.involveAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
                     } else if (item.data.commissionAmount) {
-                        item.involveAmount$ = item.data.commissionAmount;
+                        item.involveAmount$ = parseFloat(item.data.commissionAmount).toFixed(2);
                     } else if (item.data.negativeProfitAmount) {
-                        item.involveAmount$ = item.data.negativeProfitAmount;
+                        item.involveAmount$ = parseFloat(item.data.negativeProfitAmount).toFixed(2);
                     }
                     item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
                     item.typeName = $translate(item.type.name || "Unknown");
@@ -6194,15 +6194,15 @@ define(['js/app'], function (myApp) {
                 var datatoDraw = data.data.data.map(item => {
                     item.involveAmount$ = 0;
                     if (item.data.updateAmount) {
-                        item.involveAmount$ = item.data.updateAmount;
+                        item.involveAmount$ = parseFloat(item.data.updateAmount).toFixed(2);
                     } else if (item.data.amount) {
-                        item.involveAmount$ = item.data.amount;
+                        item.involveAmount$ = parseFloat(item.data.amount).toFixed(2);
                     } else if (item.data.rewardAmount) {
-                        item.involveAmount$ = item.data.rewardAmount;
+                        item.involveAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
                     } else if (item.data.commissionAmount) {
-                        item.involveAmount$ = item.data.commissionAmount;
+                        item.involveAmount$ = parseFloat(item.data.commissionAmount).toFixed(2);
                     } else if (item.data.negativeProfitAmount) {
-                        item.involveAmount$ = item.data.negativeProfitAmount;
+                        item.involveAmount$ = parseFloat(item.data.negativeProfitAmount).toFixed(2);
                     }
                     item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
                     item.typeName = $translate(item.type.name || "Unknown");
@@ -7680,9 +7680,9 @@ define(['js/app'], function (myApp) {
                         (record.sumTotalReturnAmount ? $noRoundTwoDecimalPlaces(record.sumTotalReturnAmount) :
                             (record.sumTotalAmount ? $noRoundTwoDecimalPlaces(record.sumTotalAmount) : 0));
                     record.countPlayerApplied = record.countPlayerApplied ? record.countPlayerApplied : 0;
-                    record.sumTotalTopupAmount = record.sumTotalTopupAmount ? record.sumTotalTopupAmount : 0;
-                    record.sumTotalBonusAmount = record.sumTotalBonusAmount ? record.sumTotalBonusAmount : 0;
-                    record.sumPlayerProfit = record.sumPlayerProfit ? record.sumPlayerProfit : 0;
+                    record.sumTotalTopupAmount = record.sumTotalTopupAmount ? $noRoundTwoDecimalPlaces(record.sumTotalTopupAmount) : 0;
+                    record.sumTotalBonusAmount = record.sumTotalBonusAmount ? $noRoundTwoDecimalPlaces(record.sumTotalBonusAmount) : 0;
+                    record.sumPlayerProfit = record.sumPlayerProfit ? $noRoundTwoDecimalPlaces(record.sumPlayerProfit) : 0;
                     return record
                 }
             );
@@ -7797,19 +7797,19 @@ define(['js/app'], function (myApp) {
                         //     item.data.rewardAmount :
                         //     (item.data.returnAmount ? item.data.returnAmount : 0);
                         if (item.data.rewardAmount) {
-                            item.$amount = item.data.rewardAmount;
+                            item.$amount = parseFloat(item.data.rewardAmount).toFixed(2);
                         } else if (item.data.returnAmount) {
-                            item.$amount = item.data.returnAmount;
+                            item.$amount = parseFloat(item.data.returnAmount).toFixed(2);
                         } else if (item.data.updateAmount) {
-                            item.$amount = item.data.updateAmount;
+                            item.$amount = parseFloat(item.data.updateAmount).toFixed(2);
                         } else if (item.data.amount) {
-                            item.$amount = item.data.amount;
+                            item.$amount = parseFloat(item.data.amount).toFixed(2);
                         } else {
                             item.$amount = 0;
                         }
 
                         item.$amount = parseFloat(item.$amount).toFixed(2);
-                        item.$applyAmount = item.data.applyAmount || 0;
+                        item.$applyAmount = parseFloat(item.data.applyAmount).toFixed(2) || 0;
                         item.$createTime = utilService.$getTimeFromStdTimeFormat(item.createTime);
                         if (vm.rewardTypeName == 'ALL') {
                             item.type.name$ = $translate(item.type.name);
