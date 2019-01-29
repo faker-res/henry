@@ -2600,7 +2600,7 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.getWinRateByPlayers = function (gameId, providerId) {
+        vm.getWinRateByPlayers = function (cpGameType, providerId) {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
             $('#winRateTableSpin').show();
@@ -2611,7 +2611,7 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
 
             vm.curWinRateQuery.limit = 0;
-            vm.curWinRateQuery.gameId = gameId;
+            vm.curWinRateQuery.cpGameType = cpGameType;
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
 
@@ -2702,7 +2702,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate('PROVIDER'), data: "providerName"},
-                    {title: $translate('GAME'), data: "gameName", "width": "7%"},
+                    {title: $translate('GAME_TYPE'), data: "cpGameType", "width": "7%"},
                     {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", sClass: 'originTXT textRight'},
                     {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt textRight'},
                     {
