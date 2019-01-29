@@ -6478,6 +6478,7 @@ define(['js/app'], function (myApp) {
                             var $remark = $(thisPopover + ' .permissionRemark');
                             var $submit = $(thisPopover + ' .submit');
                             var $disableAllMainPermission = $(thisPopover + ' .disableAllMainPermission');
+                            var $enableAllMainPermission = $(thisPopover + ' .enableAllMainPermission');
                             var $selectedMainPermission = $(thisPopover + ' .selectedMainPermission');
                             var row = JSON.parse(this.dataset.row);
                             $submit.prop('disabled', true);
@@ -6546,6 +6547,58 @@ define(['js/app'], function (myApp) {
                                 $(thisPopover + ' .permitOff.forbidPlayerFromEnteringGame').removeClass('hide');
                                 $(thisPopover + ' .permitOff.phoneCallFeedback').removeClass('hide');
                                 $(thisPopover + ' .permitOff.SMSFeedBack').removeClass('hide');
+                            });
+                            
+                            $enableAllMainPermission.on('click', function () {
+                                if (row.isRealPlayer) {
+                                    changeObj.applyBonus = true;
+                                    changeObj.allTopUp = true;
+                                    changeObj.topupOnline = true;
+                                    changeObj.topupManual = true;
+                                    changeObj.alipayTransaction = true;
+                                    changeObj.disableWechatPay = true;
+                                    changeObj.topUpCard = true;
+                                    changeObj.banReward = true;
+                                    changeObj.rewardPointsTask = true;
+                                    changeObj.levelChange = true;
+
+                                    $(thisPopover + ' .permitOn.applyBonus').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.allTopUp').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.topupOnline').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.topupManual').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.alipayTransaction').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.disableWechatPay').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.topUpCard').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.banReward').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.rewardPointsTask').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.levelChange').removeClass('hide');
+
+                                    $(thisPopover + ' .permitOff.applyBonus').addClass('hide');
+                                    $(thisPopover + ' .permitOff.allTopUp').addClass('hide');
+                                    $(thisPopover + ' .permitOff.topupOnline').addClass('hide');
+                                    $(thisPopover + ' .permitOff.topupManual').addClass('hide');
+                                    $(thisPopover + ' .permitOff.alipayTransaction').addClass('hide');
+                                    $(thisPopover + ' .permitOff.disableWechatPay').addClass('hide');
+                                    $(thisPopover + ' .permitOff.topUpCard').addClass('hide');
+                                    $(thisPopover + ' .permitOff.banReward').addClass('hide');
+                                    $(thisPopover + ' .permitOff.rewardPointsTask').addClass('hide');
+                                    $(thisPopover + ' .permitOff.levelChange').addClass('hide');
+                                }
+
+                                changeObj.forbidPlayerFromLogin = true;
+                                changeObj.forbidPlayerFromEnteringGame = true;
+                                changeObj.phoneCallFeedback = true;
+                                changeObj.SMSFeedBack = true;
+
+                                $(thisPopover + ' .permitOn.forbidPlayerFromLogin').removeClass('hide');
+                                $(thisPopover + ' .permitOn.forbidPlayerFromEnteringGame').removeClass('hide');
+                                $(thisPopover + ' .permitOn.phoneCallFeedback').removeClass('hide');
+                                $(thisPopover + ' .permitOn.SMSFeedBack').removeClass('hide');
+
+                                $(thisPopover + ' .permitOff.forbidPlayerFromLogin').addClass('hide');
+                                $(thisPopover + ' .permitOff.forbidPlayerFromEnteringGame').addClass('hide');
+                                $(thisPopover + ' .permitOff.phoneCallFeedback').addClass('hide');
+                                $(thisPopover + ' .permitOff.SMSFeedBack').addClass('hide');
                             });
 
                             $submit.on('click', function () {
