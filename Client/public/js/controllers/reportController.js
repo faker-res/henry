@@ -9952,7 +9952,7 @@ define(['js/app'], function (myApp) {
                     vm.playerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                     vm.playerQuery.end = utilService.createDatePicker('#endingEndDateTimePicker');
                     vm.playerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerQuery", vm.searchPlayerReport);
                     });
                     vm.setupRemarksMultiInput();
@@ -10100,7 +10100,7 @@ define(['js/app'], function (myApp) {
                         vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                         // vm.feedbackQuery.limit = 5000;
                         vm.feedbackQuery.index = 0;
-                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {pageSize:30, maxPageSize:5000}, $translate, function (curP, pageSize) {
+                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {maxPageSize:5000}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
                         });
                     })
