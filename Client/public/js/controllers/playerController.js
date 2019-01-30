@@ -5062,7 +5062,6 @@ define(['js/app'], function (myApp) {
                 ],
                 "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
                 columns: [
-                    // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                     {
                         title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                         render: function (data, type, row) {
@@ -5088,38 +5087,6 @@ define(['js/app'], function (myApp) {
                             return value;
                         }
                     },
-                    // {
-                    //     title: $translate('STATUS'), data: 'status',
-                    //     render: function (data, type, row) {
-                    //         var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
-                    //         var textClass = '';
-                    //         if (data == 4) {
-                    //             textClass = "text-black";
-                    //         } else if (data == 5) {
-                    //             textClass = "text-danger";
-                    //         } else if (data === 6) {
-                    //             textClass = "text-warning";
-                    //         }
-                    //
-                    //         return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                    //             'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                    //             .attr('data-row', JSON.stringify(row))
-                    //             .text(showText)
-                    //             .addClass(textClass)
-                    //             .prop('outerHTML');
-                    //     },
-                    //     advSearch: true,
-                    //     filterConfig: {
-                    //         type: "dropdown",
-                    //         options: vm.allPlayersStatusKeys.map(function (status) {
-                    //             return {
-                    //                 value: vm.allPlayersStatusString[status],
-                    //                 text: $translate(status)
-                    //             };
-                    //         })
-                    //     },
-                    //     "sClass": ""
-                    // },
                     {
                         // this object is use for column show
                         // credibility remark advsearch column's object will appear later in the code
@@ -5213,31 +5180,6 @@ define(['js/app'], function (myApp) {
                         },
                         "sClass": "alignLeft"
                     },
-                    // {
-                    //     title: $translate('VALID_CREDIT'),
-                    //     "visible": false,
-                    //     data: 'validCredit',
-                    //     orderable: false,
-                    //     advSearch: true,
-                    //     filterConfig: {
-                    //         type: "dropdown",
-                    //         options: [
-                    //             //{ value:      "<0", text: '<0'       },
-                    //             {value: "0-10", text: '0-10'},
-                    //             {value: "10-100", text: '10-100'},
-                    //             {value: "100-500", text: '100-500'},
-                    //             {value: ">500", text: '>500'}
-                    //         ]
-                    //     },
-                    //     render: function (data, type, row) {
-                    //         return $('<a class="playerCreditPopover" href="" ng-click="vm.creditChangeLogPlayerName = \'' + row.name + '\'; " ' +
-                    //             'data-toggle="popover" data-trigger="focus" data-placement="bottom" data-container="body" ></a>')
-                    //             .attr('data-row', JSON.stringify(row))
-                    //             .text(data)
-                    //             .prop('outerHTML');
-                    //     },
-                    //     "sClass": "alignLeft"
-                    // },
                     {
                         title: $translate('CREDIT'),
                         data: 'validCredit',
@@ -5648,49 +5590,6 @@ define(['js/app'], function (myApp) {
                                 }));
                             }
 
-                            // link.append($('<i>', {
-                            //     'class': 'fa fa-share-square margin-right-5 ' + (perm.transactionReward === true ? "text-primary" : "text-danger"),
-                            // }));
-                            //
-                            // // Inverted
-                            // link.append($('<i>', {
-                            //     'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
-                            // }));
-                            //
-                            //
-                            //
-                            // link.append($('<i>', {
-                            //     'class': 'fa fa-repeat margin-right-5 ' + (perm.forbidPlayerConsumptionReturn === true ? "text-danger" : "text-primary"),
-                            // }));
-                            // link.append($('<i>', {
-                            //     'class': 'fa fa-tint margin-right-5 ' + (perm.advanceConsumptionReward === true ? "text-primary" : "text-danger"),
-                            // }));
-                            // link.append($('<i>', {
-                            //     'class': 'fa fa-ambulance margin-right-5 ' + (perm.forbidPlayerConsumptionIncentive === true ? "text-danger" : "text-primary"),
-                            // }));
-                            // link.append($('<i>', {
-                            //     'class': 'fa fa-plus-square margin-right-5 ' + (perm.PlayerTopUpReturn === false ? "text-danger" : "text-primary"),
-                            // }));
-                            // link.append($('<i>', {
-                            //     'class': 'fa fa-plus-square-o margin-right-5 ' + (perm.PlayerDoubleTopUpReturn === false ? "text-danger" : "text-primary"),
-                            // }));
-                            //
-                            // link.append($('<i>', {
-                            //     'class': 'fa fa-forward margin-right-5 ' + (perm.playerConsecutiveConsumptionReward === false ? "text-danger" : "text-primary"),
-                            // }));
-                            // link.append($('<i>', {
-                            //     'class': 'fa fa-umbrella margin-right-5 ' + (perm.PlayerPacketRainReward === false ? "text-danger" : "text-primary"),
-                            // }));
-                            // link.append($('<i>', {
-                            //     'class': 'fa fa-bullseye margin-right-5 ' + (perm.PlayerLimitedOfferReward === false ? "text-danger" : "text-primary"),
-                            // }));
-
-
-                            // let link2 = $('<a class="prohibitGamePopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                            //     'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                            //     .attr('data-row', JSON.stringify(row))
-                            //     .text($translate("DisableGame"));
-
                             return link.prop('outerHTML') + "&nbsp;";
                         },
                         "sClass": "alignLeft"
@@ -5784,70 +5683,6 @@ define(['js/app'], function (myApp) {
                         "sClass": "alignRight"
                     },
                     {title: $translate('REFERRAL'), orderable: false, data: "referralName$", "sClass": "alignRight"},
-
-                    // {
-                    //     title: "<div>" + $translate('FEEDBACK') + "</div><div>" + $translate('TIMES') + "</div>",
-                    //     data: 'feedbackTimes',
-                    //     render: function (data, type, row) {
-                    //         var link = $('<a>', {
-                    //             'class': "playerFeedbackPopover",
-                    //             'style': "z-index: auto",
-                    //             'data-toggle': "popover",
-                    //             'data-container': "body",
-                    //             'data-placement': "bottom",
-                    //             'data-trigge': "focus",
-                    //             'data-row': JSON.stringify(row),
-                    //         }).text(data);
-                    //         return link.prop('outerHTML');
-                    //     },
-                    //     "sClass": "alignRight"
-                    // },
-                    // {title: $translate('PHONENUMBER'), data: "phoneNumber", advSearch: true, visible: false,},
-                    // {title: $translate("BANK_ACCOUNT"), visible: false, data: "bankAccount", advSearch: true},
-                    // {title: $translate("EMAIL"), visible: false, data: "email", advSearch: true},
-                    // {title: $translate("LOGIN_IP"), visible: false, data: "loginIps", advSearch: true},
-                    // {
-                    //     // this object is used for search filter
-                    //     title: $translate("CREDIBILITY_REMARK"),
-                    //     data: "credibilityRemarks",
-                    //     advSearch: true,
-                    //     orderable: false,
-                    //     visible: false,
-                    //     filterConfig: {
-                    //         type: "multi",
-                    //         options: vm.credibilityRemarks.map(function (remark) {
-                    //             return {
-                    //                 value: remark._id,
-                    //                 text: remark.name
-                    //             };
-                    //         })
-                    //     }
-                    // },
-                    // {
-                    //     visible: false,
-                    //     title: $translate('PLAYER_TYPE'),
-                    //     advSearch: true,
-                    //     filterConfig: {
-                    //         type: "dropdown",
-                    //         options: [
-                    //             {value: "TEST", text: $translate('Test')},
-                    //             {value: "REAL", text: $translate('Real')}
-                    //         ],
-                    //         writeOwnQueryParameters: function (value, queryValues) {
-                    //             if (value === "TEST") {
-                    //                 delete queryValues.isRealPlayer;
-                    //                 queryValues.isTestPlayer = true;
-                    //             } else if (value === "REAL") {
-                    //                 delete queryValues.isTestPlayer;
-                    //                 queryValues.isRealPlayer = true;
-                    //             } else {
-                    //                 // "any"
-                    //                 delete queryValues.isTestPlayer;
-                    //                 delete queryValues.isRealPlayer;
-                    //             }
-                    //         }
-                    //     }
-                    // },
                     {
                         // keep for date time
                         // todo :: use createDatePicker after it load instead
@@ -6807,118 +6642,6 @@ define(['js/app'], function (myApp) {
             //     })
             // })
         }
-
-        function createPartnerAdvancedSearchFilters(config) {
-            var currentQueryValues = {};
-            $(config.filtersElement).empty();
-
-            function getRegTimeQueryValue() {
-                let startValue = $('#regDateTimePicker2').data('datetimepicker').getLocalDate();
-                let endValue = $('#regEndDateTimePicker2').data('datetimepicker').getLocalDate();
-                let queryValue = {};
-                if ($('#regDateTimePicker2 input').val()) {
-                    queryValue["$gte"] = startValue;
-                }
-                if ($('#regEndDateTimePicker2 input').val()) {
-                    queryValue["$lt"] = endValue;
-                }
-                return $.isEmptyObject(queryValue) ? null : queryValue;
-            }
-
-            function getAccessTimeQueryValue() {
-                let startValue = $('#lastAccessDateTimePicker2').data('datetimepicker').getLocalDate();
-                let endValue = $('#lastAccessEndDateTimePicker2').data('datetimepicker').getLocalDate();
-                let queryValue = {};
-                if ($('#lastAccessDateTimePicker2 input').val()) {
-                    queryValue["$gte"] = startValue;
-                }
-                if ($('#lastAccessEndDateTimePicker2 input').val()) {
-                    queryValue["$lt"] = endValue;
-                }
-                return $.isEmptyObject(queryValue) ? null : queryValue;
-            }
-
-            config.tableOptions.columns.forEach(function (columnConfig, i) {
-                var shouldBeSearchable = columnConfig.advSearch;
-                if (shouldBeSearchable) {
-                    var fieldName = columnConfig.data;
-
-                    // Add the search filter textbox for this field
-                    var label = $('<label class="control-label">').text(columnConfig.title);
-                    var filterConfig = columnConfig.filterConfig;
-                    var input = getFilterInputForColumn(filterConfig).addClass('form-control');
-                    var newFilter = $('<div class="search-filter col-xs-12 col-sm-6 col-md-3">')
-                        .append(label).append(input);
-                    $(config.filtersElement).append(newFilter);
-
-                    if (fieldName === "registrationTime") {
-                        $('#regDateTimePicker2').datetimepicker().off('changeDate');
-                        $('#regDateTimePicker2').datetimepicker().on('changeDate', function () {
-                            getQueryFunction(config, filterConfig, 'registrationTime', getRegTimeQueryValue(), true);
-                        });
-                    }
-
-                    if (fieldName === "registrationEndTime") {
-                        $('#regEndDateTimePicker2').datetimepicker().off('changeDate');
-                        $('#regEndDateTimePicker2').datetimepicker().on('changeDate', function () {
-                            getQueryFunction(config, filterConfig, 'registrationTime', getRegTimeQueryValue(), true);
-                        });
-                    }
-
-                    if (fieldName === "lastAccessTime") {
-                        $('#lastAccessDateTimePicker2').datetimepicker().off('changeDate');
-                        $('#lastAccessDateTimePicker2').datetimepicker().on('changeDate', function () {
-                            getQueryFunction(config, filterConfig, 'lastAccessTime', getAccessTimeQueryValue(), true);
-                        });
-                    }
-
-                    if (fieldName === "lastAccessEndTime") {
-                        $('#lastAccessEndDateTimePicker2').datetimepicker().off('changeDate');
-                        $('#lastAccessEndDateTimePicker2').datetimepicker().on('changeDate', function () {
-                            getQueryFunction(config, filterConfig, 'lastAccessTime', getAccessTimeQueryValue(), true);
-                        });
-                    }
-
-                    // Listen for user editing the textbox, and pass the search to datatable
-                    //var ptCol = vm.playerTable.columns(i);
-                    input.on('keyup change', (function (evt) {
-                        //Text inputs do not fire the change event until they lose focus.
-                        if (evt.currentTarget.tagName === "INPUT" && evt.type === 'change') return;
-                        let queryValue = '';
-                        // Do Additional listening to the keyup event of datetime picker by the className of the div
-                        if (this.className === 'datetimepicker form-control') {
-                            // assign the value of input (firstchild of the div) to queryValue
-                            if (evt.currentTarget.id === "regDateTimePicker2" || evt.currentTarget.id === "regEndDateTimePicker2") {
-                                queryValue = getRegTimeQueryValue();
-                                getQueryFunction(config, filterConfig, "registrationTime", queryValue, false);
-                            } else if (evt.currentTarget.id === "lastAccessDateTimePicker2" || evt.currentTarget.id === "lastAccessEndDateTimePicker2") {
-                                queryValue = getAccessTimeQueryValue();
-                                getQueryFunction(config, filterConfig, "lastAccessTime", queryValue, false);
-                            }
-                        }
-                        else if (filterConfig && filterConfig.type === "multi") {
-                            let values = [];
-                            let options = this && this.options;
-                            for (let i = 0; i < options.length; i++) {
-                                let option = options[i];
-                                if (option.selected && option.text !== "—") {
-                                    values.push(option.value || option.text);
-                                }
-                            }
-
-                            if (values.length === 0) {
-                                values = null;
-                            }
-                            getQueryFunction(config, filterConfig, fieldName, values, false);
-                        }
-                        else {
-                            queryValue = this.value;
-                            getQueryFunction(config, filterConfig, fieldName, queryValue, false);
-                        }
-                    }));
-                }
-            });
-        };
 
         function getQueryFunction(config, filterConfig, fieldName, queryValue, isDateTimePicker) {
 
