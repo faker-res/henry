@@ -12,13 +12,7 @@ function callCPMSAPI(service, functionName, data, fileData) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
-    // var wsClient = serverInstance.getCPAPIClient();
-    // if (!wsClient || !wsClient.isOpen()) {
-    //     return Q.reject({
-    //         status: 400,
-    //         errMessage: "Invalid WebSocket client connection!  (No CPMSAPI stored for this instance.)"
-    //     });
-    // }
+
     let bOpen = false;
     var deferred = Q.defer();
     //if can't connect in 30 seconds, treat as timeout
@@ -26,7 +20,8 @@ function callCPMSAPI(service, functionName, data, fileData) {
         if (!bOpen) {
             return deferred.reject({
                 status: constServerCode.CP_NOT_AVAILABLE,
-                message: "Game is not available"
+                message: "Request timeout",
+                errorMessage: "Request timeout"
             });
         }
     }, 60 * 1000);

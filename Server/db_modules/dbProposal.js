@@ -3274,6 +3274,7 @@ var proposal = {
         let queryData = reqData;
         let resultArray = null;
         let totalSize = 0;
+        let totalPlayer = 0;
         let summary = {};
         let isApprove = false;
         let isSuccess = false;
@@ -3375,7 +3376,11 @@ var proposal = {
                             }
                         }
                     ]).read("secondaryPreferred");
-                    return Promise.all([a, b, c]);
+                    let d = dbconfig.collection_proposal.distinct('data.playerName', {
+                        type: {$in: proposalTypeIdList},
+                        $and: [queryData]
+                    });
+                    return Promise.all([a, b, c, d]);
                 },
                 function (error) {
                     return Promise.reject({
@@ -3388,6 +3393,7 @@ var proposal = {
                 function (data) {
                     if (data && data[1]) {
                         totalSize = data[0];
+                        totalPlayer = data[3] && data[3].length || 0;
                         resultArray = Object.assign([], data[1]);
                         summary = data[2];
 
@@ -3695,6 +3701,7 @@ var proposal = {
 
                 return {
                     size: totalSize,
+                    totalPlayer: totalPlayer,
                     data: resultArray,
                     summary: {amount: total}, //parseFloat(total).toFixed(2)
                 };
@@ -9420,7 +9427,7 @@ function rearrangeSumTopUpDetailByDepositGroup (depositGroupRecord, topUpDetailD
                             if (indexNo != -1) {
                                 totalAmountList[indexNo].totalAmount += detail.amount;
                             } else {
-                                totalAmountList.push({platformId: detail.platformId, platformName: detail.platformName, totalAmount: detail.amount});
+                                totalAmountList.push({platformId: detail.platformId, platformName: detail.platformName, totalAmount: dbutility.noRoundTwoDecimalPlaces(detail.amount)});
                             }
                         });
 

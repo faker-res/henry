@@ -806,7 +806,7 @@ define([], function () {
                 maxPage: 0,
                 pageSize: (tblObj && tblObj.pageSize) ? tblObj.pageSize : 10
             };
-            let maxPageSize = (tblObj && tblObj.maxPageSize) ? tblObj.maxPageSize : 2000;
+            let maxPageSize = (tblObj && tblObj.maxPageSize) ? tblObj.maxPageSize : 5000;
             $(id).append(newPage.prop('innerHTML'));
             $(id).find(".jumpText").text(trans("Jump to"));
             $(id).find(".first_page").text(1).hide();
@@ -914,6 +914,18 @@ define([], function () {
                 funcName.call(this, retObj.curPage, retObj.pageSize);
             };
             return retObj;
+        };
+        this.getDataTablePageSize = function (tablePageId, tblObj, pageSize) {
+            let inputPageSize = Number($(tablePageId + " .pageSize").val());
+            if (tblObj && !tblObj.limit && tblObj.pageObj) {
+                if (inputPageSize) {
+                    tblObj.limit = inputPageSize;
+                    tblObj.pageObj.pageSize = tblObj.limit;
+                } else if (pageSize) {
+                    tblObj.limit = pageSize;
+                    tblObj.pageObj.pageSize = tblObj.limit;
+                }
+            }
         };
         this.format2 = function (number) {
             if (parseFloat(number) !== NaN) {

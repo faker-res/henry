@@ -2739,6 +2739,33 @@ define(['js/app'], function (myApp) {
                             break;
                     }
                 }
+
+                let admins = [];
+
+                if (vm.sendMultiMessage.departments) {
+                    if (vm.sendMultiMessage.roles) {
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && (vm.sendMultiMessage.roles.indexOf(e._id) >= 0)) {
+                                e.users.map(f => admins.push(f._id))
+                            }
+                        })
+                    } else {
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f._id != "") {
+                                        admins.push(f._id)
+                                    }
+                                })
+                            }
+                        })
+                    }
+                }
+
+                if ( (vm.sendMultiMessage.admins && vm.sendMultiMessage.admins.length > 0) || admins.length) {
+                    playerQuery.csOfficer = vm.sendMultiMessage.admins && vm.sendMultiMessage.admins.length > 0 ? vm.sendMultiMessage.admins : admins;
+                }
+
                 var sendQuery = {
                     platformId: vm.selectedPlatform.id,
                     query: playerQuery,
@@ -16339,7 +16366,15 @@ define(['js/app'], function (myApp) {
                             }
                         })
                     } else {
-                        vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                        vm.queryRoles.map(e => {
+                            if (e && e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f && f._id != "") {
+                                        admins.push(f._id);
+                                    }
+                                });
+                            }
+                        });
                     }
                 }
 
@@ -16755,7 +16790,15 @@ define(['js/app'], function (myApp) {
                             }
                         })
                     } else {
-                        vm.queryRoles.map(e => e.users.map(f => {if (f._id != "") {admins.push(f._id)}}))
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f._id != "") {
+                                        admins.push(f._id)
+                                    }
+                                })
+                            }
+                        })
                     }
                 }
 
@@ -36185,6 +36228,22 @@ define(['js/app'], function (myApp) {
                         vm.auctionProductReward = data && data.data.rewardData ? data.data.rewardData : {};
                         if (vm.auctionProductReward && vm.auctionProductReward.rewardType){
                             vm.selectedAuctionRewardType = vm.auctionProductReward.rewardType;
+                        }
+                        if(vm.auctionSystemProduct.rewardAppearPeriod && vm.auctionSystemProduct.rewardAppearPeriod.length > 0) {
+                            vm.auctionSystemProduct.rewardAppearPeriod.forEach(item => {
+                                if(item.hasOwnProperty('startDate')) {
+                                    item.startDate = item.startDate.toString();
+                                }
+                                if(item.hasOwnProperty('startTime')) {
+                                    item.startTime = item.startTime.toString();
+                                }
+                                if(item.hasOwnProperty('endDate')) {
+                                    item.endDate = item.endDate.toString();
+                                }
+                                if(item.hasOwnProperty('endTime')) {
+                                    item.endTime = item.endTime.toString();
+                                }
+                            });
                         }
                     });
                 });

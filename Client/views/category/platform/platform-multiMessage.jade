@@ -61,6 +61,15 @@
                             input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValue" )
                             div.symbol(ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'") ~
                             input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValueTwo" ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'")
+                    .search-filters-item
+                        label {{"REGISTRATION_DEPARTMENT"|translate}}
+                        select.spicker.form-control(ng-model='vm.sendMultiMessage.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.sendMultiMessage)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
+                    .search-filters-item
+                        label {{"REGISTRATION_ROLE"|translate}}
+                        select.spicker.form-control(ng-model='vm.sendMultiMessage.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.sendMultiMessage)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
+                    .search-filters-item
+                        label {{"REGISTRATION_ADMIN"|translate}}
+                        select.spicker.form-control(ng-model='vm.sendMultiMessage.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
                     //.inlineBlk
                         label {{"Length Per Page" | translate}}
                         input.form-control(type='number',ng-model='vm.sendMultiMessage.pageNumber', style='width:70px')

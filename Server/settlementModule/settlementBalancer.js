@@ -103,6 +103,12 @@ proto.pipeStreamTo = function (stream, prepareRequest, processResponse) {
         });
 
         stream.on('data', function (data) {
+                if (data && data.length) {
+                    console.log('stream data===', data.length);
+                    for (let x in data) {
+                        console.log('data[x]._id===', data[x]._id);
+                    }
+                }
                 if (ignoring) {
                     return;
                 }

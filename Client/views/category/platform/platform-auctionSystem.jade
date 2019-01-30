@@ -450,9 +450,9 @@ form(name='form_auctionSystem').row
                     div(style="display:inline-block;" ng-if="vm.auctionSystemEditStatus")
                         input.form-control(type="text" ng-model="vm.auctionSystemProduct.productName" ng-disabled="true")
                 .full-width-input-block
-                    label {{"Seller" | translate}}
+                    label *{{"Seller" | translate}}
                     div(style="display:inline-block;")
-                        input.form-control(type="text" ng-model="vm.auctionSystemProduct.seller")
+                        input.form-control(type="text" ng-model="vm.auctionSystemProduct.seller" required)
                 .full-width-input-block
                     label *{{"Reserve Price" | translate}}
                         i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'RESERVE_PRICE_DESCRIPTION' | translate}}" required)

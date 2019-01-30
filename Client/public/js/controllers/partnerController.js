@@ -5528,7 +5528,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('phoneNumber'), data: "phoneNumber", advSearch: true, "sClass": "", //"visible": false,
                             render: function (data, type, row) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                    'ng-click': 'vm.showPartnerInfoModal("' + row.partnerName + '")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -5609,7 +5609,7 @@ define(['js/app'], function (myApp) {
                             "sClass": "alignRight sumFloat",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                    'ng-click': 'vm.showPartnerInfoModal("' + row.partnerName + '")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }

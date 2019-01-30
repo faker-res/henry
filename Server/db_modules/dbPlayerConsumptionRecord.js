@@ -23,7 +23,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const constProposalType = require('./../const/constProposalType');
 const constProposalStatus = require('./../const/constProposalStatus');
 const errorUtils = require('./../modules/errorUtils');
-
+const constGameStatus = require('../const/constGameStatus');
 let dbUtility = require('./../modules/dbutility');
 
 let dbGameProvider = require('../db_modules/dbGameProvider');
@@ -2278,7 +2278,7 @@ var dbPlayerConsumptionRecord = {
         let groupById = null;
         if (listAll) {
             //find the number of player consumption (non-repeat), with different provider
-            groupById = "$providerId"
+            groupById = "$providerId";
             participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
                     $match: matchObj
                 },
@@ -2427,7 +2427,7 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id: {"providerId":"$providerId", "gameType": "$gameType"},
+                    _id: {"providerId": "$providerId", "cpGameType": "$cpGameType"},
                     playerId: {
                         $addToSet: "$playerId"
                     }
@@ -2441,7 +2441,7 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id: '$gameType',
+                    _id: '$cpGameType',
                     total_amount: {$sum: "$amount"},
                     validAmount: {$sum: "$validAmount"},
                     consumptionTimes: {$sum: {$cond: ["$count", "$count", 1]}},
@@ -2454,8 +2454,8 @@ var dbPlayerConsumptionRecord = {
             data => {
                 let participantNumber = 0;
                 let result = [];
-                let totalSumData = data[1] ? data[1] : [];
                 let participantData = data[0] ? data[0] : [];
+                let totalSumData = data[1] ? data[1] : [];
                 result = dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
                 return result;
             }
@@ -2480,7 +2480,9 @@ var dbPlayerConsumptionRecord = {
                 // calculate the non-repeat player number
                 if (participantData && participantData.length > 0) {
                     participant = participantData.filter(party => {
-                        return party._id.gameType == item._id
+                        if(party._id && party._id.cpGameType && party._id.cpGameType == item._id){
+                            return item;
+                        }
                     })
                     participant = (participant && participant.length) ? participant[0] : null;
                     participantNumber = (participant && participant.playerId && participant.playerId.length) ? participant.playerId.length : 0
@@ -2491,7 +2493,7 @@ var dbPlayerConsumptionRecord = {
                         })
                     }
                 }
-                item.gameType = item._id;
+                item.cpGameType = item._id;
                 item.totalAmount = item.total_amount;
                 item.providerName = providerName;
                 item.participantNumber = participantNumber;
@@ -2514,7 +2516,7 @@ var dbPlayerConsumptionRecord = {
         }
     },
 
-    getWinRateByPlayers: function (startTime, endTime, providerId, platformId, gameType) {
+    getWinRateByPlayers: function (startTime, endTime, providerId, platformId, cpGameType) {
         const matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
             platformId: ObjectId(platformId),
@@ -2522,7 +2524,10 @@ var dbPlayerConsumptionRecord = {
         };
 
         matchObj.providerId = ObjectId(providerId);
-        matchObj.gameType = gameType;
+        matchObj.cpGameType = cpGameType;
+        if(!cpGameType || cpGameType == 'null'){
+            matchObj.cpGameType = { $exists: false }
+        }
         let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
