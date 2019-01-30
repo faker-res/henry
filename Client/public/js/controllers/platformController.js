@@ -36690,7 +36690,7 @@ define(['js/app'], function (myApp) {
             }
             vm.removeExclusiveAuction = function(){
                 GeneralModal.confirm({
-                    title: $translate("CONFIRM TO DELETE?"),
+                    title: $translate("AuctionSystem"),
                     text: $translate("CONFIRM TO DELETE?")
                 }).then(function () {
                     let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
