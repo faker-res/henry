@@ -4364,7 +4364,11 @@ let dbPlayerReward = {
                         playerArr.push(item.playerName);
                     }
                 })
-                return {totalPlayer: playerArr.length, data: monitorObjs.splice(beginIndex, limit)};
+                return {
+                    totalCount: monitorObjs && monitorObjs.length || 0,
+                    totalPlayer: playerArr.length,
+                    data: monitorObjs.splice(beginIndex, limit)
+                };
             }
         )
     },

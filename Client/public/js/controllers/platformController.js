@@ -25591,7 +25591,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPromoCodesMonitor', sendObj, function (data) {
                     $('#promoCodeTypeBMonitorTableSpin').hide();
                     console.log('getPromoCodesTypeBMonitor', data);
-                    vm.promoCodeTypeBMonitor.totalCount = data.data.data.length;
+                    vm.promoCodeTypeBMonitor.totalCount = data.data.totalCount;
                     vm.promoCodeTypeBMonitor.totalPlayer = data.data.totalPlayer;
                     $scope.safeApply();
                     vm.drawPromoCodeTypeBMonitorTable(data.data.data.map(
@@ -25599,7 +25599,7 @@ define(['js/app'], function (myApp) {
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
                             return item;
                         }
-                    ), data.data.data.length, {}, isNewSearch);
+                    ), data.data.totalCount, {}, isNewSearch);
                 }, function (err) {
                     console.error(err);
                 }, true);
@@ -25628,7 +25628,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPromoCodesMonitor', sendObj, function (data) {
                     $('#promoCodeMonitorTableSpin').hide();
                     console.log('getPromoCodesMonitor', data);
-                    vm.promoCodeMonitor.totalCount = data.data.data.length;
+                    vm.promoCodeMonitor.totalCount = data.data.totalCount;
                     vm.promoCodeMonitor.totalPlayer = data.data.totalPlayer;
                     $scope.safeApply();
                     vm.drawPromoCodeMonitorTable(data.data.data.map(
@@ -25636,7 +25636,7 @@ define(['js/app'], function (myApp) {
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
                             return item;
                         }
-                    ), data.data.data.length, {}, isNewSearch);
+                    ), data.data.totalCount, {}, isNewSearch);
                 }, function (err) {
                     console.error(err);
                 }, true);
