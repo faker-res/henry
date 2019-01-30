@@ -11186,7 +11186,7 @@ function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime)
                 }
                 else {
                     pastThreeActiveDownLines.push(record.activeDownLines);
-                    pastThreeNettCommission.push(record.nettCommission);
+                    pastThreeNettCommission.push(dbutility.twoDecimalPlacesToFixed(record.nettCommission));
                 }
             });
 

@@ -9427,7 +9427,7 @@ function rearrangeSumTopUpDetailByDepositGroup (depositGroupRecord, topUpDetailD
                             if (indexNo != -1) {
                                 totalAmountList[indexNo].totalAmount += detail.amount;
                             } else {
-                                totalAmountList.push({platformId: detail.platformId, platformName: detail.platformName, totalAmount: detail.amount});
+                                totalAmountList.push({platformId: detail.platformId, platformName: detail.platformName, totalAmount: dbutility.noRoundTwoDecimalPlaces(detail.amount)});
                             }
                         });
 
