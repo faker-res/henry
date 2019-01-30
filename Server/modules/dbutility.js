@@ -1634,6 +1634,7 @@ var dbUtility = {
     retrieveAgent: (agentInfo) => {
         let registrationInterface = '';
         let userAgent = agentInfo;
+        console.log("checking agentInfo for ANALYSIS_REPORT_ISSUE", userAgent)
         if (userAgent == '') {
             registrationInterface = 1;
         } else {
