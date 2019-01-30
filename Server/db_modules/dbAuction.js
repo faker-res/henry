@@ -620,6 +620,7 @@ var dbAuction = {
                 'rewardAppearPeriod.endTime': curHour
             }],
             publish: true,
+            status: 1
         };
 
         return dbconfig.collection_auctionSystem.find(endQuery).then(auctionItems => {
@@ -858,9 +859,8 @@ var dbAuction = {
     },
 
     bidAuctionItem: function (inputData, platformId, productName, rewardType, playerId, inputDevice) {
-        let playerProm = Promise.resolve(true);
-        let auctionProm = Promise.resolve(true);
-        let proposalProm = Promise.resolve(true);
+        let proposalCountProm = Promise.resolve(0);
+        let proposalPendingProm = Promise.resolve([]);
         let proposalTypeProm = Promise.resolve(true);
         let bidAmount = inputData && inputData.bidAmount ? inputData.bidAmount : null;
         let proposalType = null;
@@ -869,8 +869,6 @@ var dbAuction = {
         let platformObjId = null;
         let playerObjId = null;
         let playerName = null;
-        let auctionProductPublishStartTime = null;
-        let auctionProductPublishEndTime = null;
         let auctionProductDirectPurchasePrice = null;
         let playerBidPrice = null;
         let playerData = null;
@@ -879,6 +877,9 @@ var dbAuction = {
         let proposalTypeId = null;
         let timeNow = new Date().getTime();
         let curTime = dbutility.getUTC8Time(new Date());
+        let isWithinInterval = false;
+        let withinIntervalData = null;
+        let currentInterval = null;
 
         if (!playerId) {
             return Promise.reject({name: "DBError", message: "Player is not found"});
@@ -967,271 +968,257 @@ var dbAuction = {
                     })
                 }
 
-                let query = {
-                    'data.platformId': platformObjId,
-                    'data.productName': productName,
-                    status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                    type: proposalTypeId,
-                };
-                return dbconfig.collection_proposal.find(query).count();
-            }
-        ).then(
-            successCount => {
-                if (successCount){
-                    return Promise.reject({
-                        message: "This product has already sold out"
-                    })
-                }
-
-                auctionProm = dbconfig.collection_auctionSystem.findOne({
+                return dbconfig.collection_auctionSystem.findOne({
                     platformObjId: platformObjId,
                     productName: productName,
                     rewardStartTime: {$lte: new Date(timeNow)},
                     rewardEndTime: {$gte: new Date(timeNow)},
                     publish: true,
+                    status: 1
                 }).lean();
+            }
+        ).then(
+            auctionItem => {
+                if (!auctionItem) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "The bidding product is not found."
+                    })
+                }
 
-                proposalProm = dbconfig.collection_proposal.findOne({
-                    'data.platformId': platformObjId,
-                    'data.productName': productName,
-                    status: constProposalStatus.PENDING,
-                    type: proposalTypeId,
-                }).lean();
+                auctionData = auctionItem;
 
-                return Promise.all([auctionProm, proposalProm]).then(data => {
-                    if (data) {
-                        auctionData = data[0];
-                        proposalData = data[1];
-
-                        if (!auctionData){
-                            return Promise.reject({
-                                name: "DBError",
-                                message: "The bidding product is not found."
-                            })
-                        }
-
-                        let isWithinInterval = false;
-                        if (auctionData.rewardAppearPeriod && auctionData.rewardAppearPeriod.length){
-                            for (let i = 0; i < auctionData.rewardAppearPeriod.length; i ++){
-                                let interval = auctionData.rewardAppearPeriod[i];
-                                if (interval && interval.hasOwnProperty('endDate') && interval.hasOwnProperty('endTime') &&interval.hasOwnProperty('startDate') && interval.hasOwnProperty('startTime')){
-                                    isWithinInterval = isWithinAuctionTimeInterval(interval, auctionData.rewardInterval, curTime, new Date(timeNow))
-                                    if (isWithinInterval){
-                                        break;
-                                    }
-                                }
+                if (auctionData.rewardAppearPeriod && auctionData.rewardAppearPeriod.length) {
+                    for (let i = 0; i < auctionData.rewardAppearPeriod.length; i++) {
+                        let interval = auctionData.rewardAppearPeriod[i];
+                        if (interval && interval.hasOwnProperty('endDate') && interval.hasOwnProperty('endTime') && interval.hasOwnProperty('startDate') && interval.hasOwnProperty('startTime')) {
+                            withinIntervalData = isWithinAuctionTimeInterval(interval, auctionData.rewardInterval, curTime, new Date(timeNow))
+                            if (withinIntervalData && withinIntervalData.interval && withinIntervalData.state) {
+                                currentInterval = withinIntervalData.interval;
+                                isWithinInterval = true;
+                                break;
                             }
                         }
+                    }
+                }
 
-                        if (!isWithinInterval){
+                if (!isWithinInterval) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "The bidding is not started yet or has already ended for the product."
+                    })
+                }
+
+                if (currentInterval && proposalTypeId){
+                    let proposalCountQuery = {
+                        'data.platformId': platformObjId,
+                        'data.productName': productName,
+                        status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        type: proposalTypeId,
+                        createTime: {$gte: currentInterval.startTime, $lte: currentInterval.endTime}
+                    };
+                    proposalCountProm = dbconfig.collection_proposal.find(proposalCountQuery).count();
+
+                    let proposalPendingQuery = {
+                        'data.platformId': platformObjId,
+                        'data.productName': productName,
+                        status: constProposalStatus.PENDING,
+                        type: proposalTypeId,
+                        createTime: {$gte: currentInterval.startTime, $lte: currentInterval.endTime}
+                    };
+                    proposalPendingProm = dbconfig.collection_proposal.findOne(proposalPendingQuery).lean();
+                }
+
+                return Promise.all([proposalCountProm, proposalPendingProm])
+            }
+        ).then(
+            retData => {
+                if (retData && retData.length == 2) {
+                    let successCount = retData[0];
+                    proposalData = retData[1];
+                    if (successCount) {
+                        return Promise.reject({
+                            message: "This product has already sold out"
+                        })
+                    }
+
+                    // check if the same player bidding again (consecutively)
+                    if (proposalData && proposalData.data && proposalData.data.playerName && playerData && playerData.name) {
+                        if (proposalData.data.playerName == playerData.name) {
                             return Promise.reject({
                                 name: "DBError",
-                                message: "The bidding is not started yet or has already ended for the product."
+                                message: "You have just bid, the highest bidder is still you."
                             })
                         }
+                    }
 
-                        // check if the same player bidding again (consecutively)
-                        if (proposalData && proposalData.data && proposalData.data.playerName && playerData && playerData.name){
-                            if (proposalData.data.playerName == playerData.name){
-                                return Promise.reject({
-                                    name: "DBError",
-                                    message: "You have just bid, the highest bidder is still you."
-                                })
+                    playerObjId = playerData && playerData._id ? playerData._id : null;
+                    playerName = playerData && playerData.name ? playerData.name : null;
+                    let playerRewardPoints = playerData && playerData.rewardPointsObjId && playerData.rewardPointsObjId.points ? playerData.rewardPointsObjId.points : 0;
+                    let auctionProductIsPublish = auctionData && auctionData.publish ? auctionData.publish : false;
+                    /** price **/
+                    let auctionProductStartingPrice = auctionData && auctionData.startingPrice ? auctionData.startingPrice : null;
+                    let auctionProductPriceIncrement = auctionData && auctionData.priceIncrement ? auctionData.priceIncrement : null;
+                    auctionProductDirectPurchasePrice = auctionData && auctionData.directPurchasePrice ? auctionData.directPurchasePrice : null;
+                    let auctionProposalCurrentBidPrice = proposalData && proposalData.data && proposalData.data.currentBidPrice ? proposalData.data.currentBidPrice : null;
+
+                    if (!bidAmount) {
+                        playerBidPrice = auctionProposalCurrentBidPrice && auctionProductPriceIncrement ?
+                            parseInt(auctionProposalCurrentBidPrice) + parseInt(auctionProductPriceIncrement) :
+                            auctionProductStartingPrice + parseInt(auctionProductPriceIncrement);
+                    } else {
+                        playerBidPrice = parseInt(bidAmount);
+                    }
+
+                    if (!auctionProductIsPublish) {
+                        return Promise.reject({name: "DBError", message: "This product has not been published yet"});
+                    }
+
+                    if (playerBidPrice == null) {
+                        return Promise.reject({
+                                name: "DBError",
+                                message: "The bid amount is not available"
                             }
-                        }
-
-                        playerObjId = playerData && playerData._id ? playerData._id : null;
-                        playerName = playerData && playerData.name ? playerData.name : null;
-                        let playerRewardPoints = playerData && playerData.rewardPointsObjId && playerData.rewardPointsObjId.points ? playerData.rewardPointsObjId.points : 0;
-                        let auctionProductIsPublish = auctionData && auctionData.publish ? auctionData.publish : false;
-                        /** time **/
-                        let auctionProductRewardStartTime = auctionData && auctionData.rewardStartTime ? auctionData.rewardStartTime : null;
-                        let auctionProductRewardEndTime = auctionData && auctionData.rewardEndTime ? auctionData.rewardEndTime : null;
-                        let auctionProductProductStartTime = auctionData && auctionData.productStartTime ? auctionData.productStartTime : null; // in minutes
-                        let auctionProductProductEndTime = auctionData && auctionData.productEndTime ? auctionData.productEndTime : null; // in minutes
-                        auctionProductPublishStartTime = auctionProductRewardStartTime && auctionProductProductStartTime ? auctionProductRewardStartTime.getTime() - (auctionProductProductStartTime * 60 * 1000) : null; // before reward time
-                        auctionProductPublishEndTime = auctionProductRewardEndTime && auctionProductProductEndTime ? auctionProductRewardEndTime.getTime() + (auctionProductProductEndTime * 60 * 1000) : null; // after reward time
-                        /** price **/
-                        let auctionProductStartingPrice = auctionData && auctionData.startingPrice ? auctionData.startingPrice : null;
-                        let auctionProductPriceIncrement = auctionData && auctionData.priceIncrement ? auctionData.priceIncrement : null;
-                        auctionProductDirectPurchasePrice = auctionData && auctionData.directPurchasePrice ? auctionData.directPurchasePrice : null;
-                        let auctionProposalCurrentBidPrice = proposalData && proposalData.data && proposalData.data.currentBidPrice ? proposalData.data.currentBidPrice : null;
-
-                        if (!bidAmount) {
-                            playerBidPrice = auctionProposalCurrentBidPrice && auctionProductPriceIncrement ? parseInt(auctionProposalCurrentBidPrice) + parseInt(auctionProductPriceIncrement) : null;
+                        )
+                    }
+                    if (playerRewardPoints < auctionProductStartingPrice) {
+                        return Promise.reject({name: "DBError", message: "Player does not have enough reward points"});
+                    }
+                    // check if the bid price is larger than the startingPrice
+                    if (playerBidPrice <= auctionProductStartingPrice) {
+                        return Promise.reject({
+                            name: "DBError",
+                            message: "Your bid price is lower or equal to the starting price, please bid higher"
+                        });
+                    }
+                    if (playerBidPrice <= auctionProposalCurrentBidPrice) {
+                        let msg = "Your bid price is equal or lower than current highest bid price (" + auctionProposalCurrentBidPrice + "), please bid higher";
+                        return Promise.reject({name: "DBError", message: msg});
+                    }
+                    // check if the bid amount is smaller than the pre-set price increment
+                    if (auctionProductPriceIncrement) {
+                        let priceDiff;
+                        if (auctionProposalCurrentBidPrice) {
+                            // if there is current bid price, the price difference = new bid price - current bid price
+                            priceDiff = playerBidPrice - auctionProposalCurrentBidPrice
                         } else {
-                            playerBidPrice = parseInt(bidAmount);
+                            priceDiff = playerBidPrice - auctionProductStartingPrice
                         }
 
-                        if (timeNow < auctionProductPublishStartTime) {
-                            return Promise.reject({name: "DBError", message: "Auction bidding has not started"});
-                        }
-                        if (timeNow > auctionProductPublishEndTime) {
-                            return Promise.reject({name: "DBError", message: "Auction bidding has already ended"});
-                        }
-                        if (!auctionProductIsPublish) {
-                            return Promise.reject({name: "DBError", message: "This product has not been published yet"});
-                        }
-
-                        if (playerBidPrice == null){
+                        if (priceDiff < auctionProductPriceIncrement) {
                             return Promise.reject({
                                 name: "DBError",
-                                message: "The bid amount is not available"}
-                            )
+                                message: "The increment in bidding is lower than the pre-set amount"
+                            })
                         }
-                        if (playerRewardPoints < auctionProductStartingPrice) {
-                            return Promise.reject({name: "DBError", message: "Player does not have enough reward points"});
-                        }
-                        // check if the bid price is larger than the startingPrice
-                        if (playerBidPrice <= auctionProductStartingPrice) {
-                            return Promise.reject({name: "DBError", message: "Your bid price is lower or equal to the starting price, please bid higher"});
-                        }
-                        if (playerBidPrice <= auctionProposalCurrentBidPrice) {
-                            let msg = "Your bid price is equal or lower than current highest bid price (" + auctionProposalCurrentBidPrice + "), please bid higher";
-                            return Promise.reject({name: "DBError", message: msg});
-                        }
-                        // check if the bid amount is smaller than the pre-set price increment
-                        if (auctionProductPriceIncrement){
-                            let priceDiff;
-                            if (auctionProposalCurrentBidPrice){
-                                // if there is current bid price, the price difference = new bid price - current bid price
-                                priceDiff = playerBidPrice - auctionProposalCurrentBidPrice
-                            }
-                            else{
-                                priceDiff = playerBidPrice - auctionProductStartingPrice
-                            }
-
-                            if (priceDiff < auctionProductPriceIncrement){
-                                return Promise.reject({
-                                    name: "DBError",
-                                    message: "The increment in bidding is lower than the pre-set amount"
-                                })
-                            }
-                        }
-
-                        // deduct reward points from current bidder, if not enough reward points, will return error
-                        return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, platformObjId, -playerBidPrice, 'Bidding item: ' + auctionData.productName || "" , null, null, playerData.name, inputDevice);
                     }
-                }).then(
-                    () => {
-                        // find bid proposal in pending status
-                        return dbconfig.collection_proposal.findOne(
-                            {
-                                type: proposalTypeId,
-                                'data.platformId': platformObjId,
-                                'data.productName': productName,
-                                status: constProposalStatus.PENDING,
-                                createTime: {
-                                    $gte: new Date(auctionProductPublishStartTime),
-                                    $lt: new Date(auctionProductPublishEndTime)
-                                }
-                            }
-                        );
-                    }
-                ).then(
-                    proposalData => {
-                        if (!proposalData) return false; // skip reject proposal
 
-                        // previous bid proposal will be rejected and return their reward points
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {
-                                _id: proposalData._id,
-                                createTime: proposalData.createTime,
-                                type: proposalData.type,
-                            },
-                            {
-                                $set: {
-                                    status: constProposalStatus.REJECTED
-                                }
-                            },
-                            {new: true}
-                        ).exec();
-                    }
-                ).then(
-                    proposalData => {
-                        if (!proposalData) return true; // skip refund reward points
+                    // deduct reward points from current bidder, if not enough reward points, will return error
+                    return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, platformObjId, -playerBidPrice, 'Bidding item: ' + auctionData.productName || "", null, null, playerData.name, inputDevice);
+                }
+            }
+        ).then(
+            () => {
+                if (!proposalData) return false; // skip reject proposal
 
-                        let creator = proposalData.data.seller || 'System';
-                        // return reward points to rejected bidder
-                        return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'Refund from bidding item: ' + auctionData.productName || "", null, null, creator, inputDevice);
-                    }
-                ).then(
-                    () => {
-                        let proposalStatus = constProposalStatus.PENDING;
+                // previous bid proposal will be rejected and return their reward points
+                return dbconfig.collection_proposal.findOneAndUpdate(
+                    {
+                        _id: proposalData._id,
+                        createTime: proposalData.createTime,
+                        type: proposalData.type,
+                    },
+                    {
+                        $set: {
+                            status: constProposalStatus.REJECTED
+                        }
+                    },
+                    {new: true}
+                ).lean();
+            }
+        ).then(
+            proposalData => {
+                if (!proposalData) return true; // skip refund reward points
 
-                        // if player bid equal or higher than direct purchase price, proposal become Success
-                        if (playerBidPrice >= auctionProductDirectPurchasePrice) {
-                            proposalStatus = constProposalStatus.SUCCESS;
-                        }
+                let creator = proposalData.data.seller || 'System';
+                // return reward points to rejected bidder
+                return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'Refund from bidding item: ' + auctionData.productName || "", null, null, creator, inputDevice);
+            }
+        ).then(
+            () => {
+                let proposalStatus = constProposalStatus.PENDING;
 
-                        let newProposal = {
-                            data: {
-                                playerObjId: playerObjId,
-                                platformId: platformObjId,
-                                productName: productName,
-                                currentBidPrice: playerBidPrice,
-                                remark: remark,
-                                auction: auctionData._id ? auctionData._id : '',
-                                updateAmount: playerBidPrice
-                            },
-                            creator: {
-                                name: auctionData && auctionData.seller ? auctionData.seller : playerName || null
-                            },
-                            status: proposalStatus,
-                            type: proposalTypeId
-                        };
-                        if (inputDevice) {
-                            newProposal.inputDevice = inputDevice;
-                        }
-                        if (auctionData && auctionData.rewardData && auctionData.rewardData.templateObjId){
-                            newProposal.data.templateObjId = auctionData.rewardData.templateObjId;
-                        }
-                        if (auctionData && auctionData.seller){
-                            newProposal.data.seller = auctionData.seller;
-                        }
-                        if (auctionData && auctionData.rewardData.hasOwnProperty("isSharedWithXima")){
-                            newProposal.data.isSharedWithXima = auctionData.rewardData.isSharedWithXima;
-                        }
-                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("isForbidWithdrawal")){
-                            newProposal.data.isForbidWithdrawal = auctionData.rewardData.isForbidWithdrawal;
-                        }
-                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption")){
-                            newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
-                        }
-                        if (auctionData && auctionData.rewardData && auctionData.rewardData.gameProviderGroup){
-                            newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
-                        }
-                        if (playerName){
-                            newProposal.data.playerName = playerName;
-                        }
-                        // specially for auction product: reward promotion
-                        if (auctionData && auctionData.rewardData && auctionData.rewardData.unlockAmount && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
-                            newProposal.data.requiredUnlockAmount = auctionData.rewardData.unlockAmount;
-                        }
-                        if (auctionData && auctionData.rewardData && auctionData.rewardData.rewardAmount && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
-                            newProposal.data.rewardAmount = auctionData.rewardData.rewardAmount;
-                        }
-                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
-                            newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
-                        }
-                        if (platform && platform.hasOwnProperty("useProviderGroup") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
-                            newProposal.data.isGroupReward = platform.useProviderGroup;
-                        }
-                        if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("rewardPointsVariable")){
-                            newProposal.data.rewardPointsVariable = auctionData.rewardData.rewardPointsVariable;
-                        }
+                // if player bid equal or higher than direct purchase price, proposal become Success
+                if (playerBidPrice >= auctionProductDirectPurchasePrice) {
+                    proposalStatus = constProposalStatus.SUCCESS;
+                }
 
-                        newProposal.data.isExclusive = auctionData.isExclusive;
-                        newProposal.data.startingPrice = auctionData.startingPrice || null;
-                        newProposal.data.directPurchasePrice = auctionData.directPurchasePrice || null;
+                let newProposal = {
+                    data: {
+                        playerObjId: playerObjId,
+                        platformId: platformObjId,
+                        productName: productName,
+                        currentBidPrice: playerBidPrice,
+                        remark: remark,
+                        auction: auctionData._id ? auctionData._id : '',
+                        updateAmount: playerBidPrice
+                    },
+                    creator: {
+                        name: auctionData && auctionData.seller ? auctionData.seller : playerName || null
+                    },
+                    status: proposalStatus,
+                    type: proposalTypeId
+                };
+                if (inputDevice) {
+                    newProposal.inputDevice = inputDevice;
+                }
+                if (auctionData && auctionData.rewardData && auctionData.rewardData.templateObjId){
+                    newProposal.data.templateObjId = auctionData.rewardData.templateObjId;
+                }
+                if (auctionData && auctionData.seller){
+                    newProposal.data.seller = auctionData.seller;
+                }
+                if (auctionData && auctionData.rewardData.hasOwnProperty("isSharedWithXima")){
+                    newProposal.data.isSharedWithXima = auctionData.rewardData.isSharedWithXima;
+                }
+                if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("isForbidWithdrawal")){
+                    newProposal.data.isForbidWithdrawal = auctionData.rewardData.isForbidWithdrawal;
+                }
+                if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption")){
+                    newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
+                }
+                if (auctionData && auctionData.rewardData && auctionData.rewardData.gameProviderGroup){
+                    newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
+                }
+                if (playerName){
+                    newProposal.data.playerName = playerName;
+                }
+                // specially for auction product: reward promotion
+                if (auctionData && auctionData.rewardData && auctionData.rewardData.unlockAmount && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                    newProposal.data.requiredUnlockAmount = auctionData.rewardData.unlockAmount;
+                }
+                if (auctionData && auctionData.rewardData && auctionData.rewardData.rewardAmount && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                    newProposal.data.rewardAmount = auctionData.rewardData.rewardAmount;
+                }
+                if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                    newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
+                }
+                if (platform && platform.hasOwnProperty("useProviderGroup") && proposalType == constProposalType.AUCTION_REWARD_PROMOTION){
+                    newProposal.data.isGroupReward = platform.useProviderGroup;
+                }
+                if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("rewardPointsVariable")){
+                    newProposal.data.rewardPointsVariable = auctionData.rewardData.rewardPointsVariable;
+                }
 
-                        return dbProposal.createProposalWithTypeId(proposalTypeId, newProposal).then(
-                            data => {
-                                // Reset BState
-                                dbPlayerUtil.setPlayerBState(playerData._id, "auctionBidding", false).catch(errorUtils.reportError);
-                                return data;
-                            }
-                        );
+                newProposal.data.isExclusive = auctionData.isExclusive;
+                newProposal.data.startingPrice = auctionData.startingPrice || null;
+                newProposal.data.directPurchasePrice = auctionData.directPurchasePrice || null;
+
+                return dbProposal.createProposalWithTypeId(proposalTypeId, newProposal).then(
+                    data => {
+                        // Reset BState
+                        dbPlayerUtil.setPlayerBState(playerData._id, "auctionBidding", false).catch(errorUtils.reportError);
+                        return data;
                     }
                 );
             }
@@ -1247,7 +1234,7 @@ var dbAuction = {
                 console.log('bidding error', playerId, err);
                 throw err;
             }
-        )
+        );
 
         function isWithinAuctionTimeInterval(periodData, intervalMode, currentTime, currentISOTime) {
             let intervalDate= null;
@@ -1266,7 +1253,8 @@ var dbAuction = {
 
             console.log("checking currentISOTime)", currentISOTime)
             console.log("checking intervalDate)", intervalDate)
-            return intervalDate && intervalDate.startTime <= currentISOTime && intervalDate.endTime >= currentISOTime ? true : false;
+            let state = intervalDate && intervalDate.startTime <= currentISOTime && intervalDate.endTime >= currentISOTime ? true : false;
+            return {interval: intervalDate, state: state};
         }
 
         function generateDateForWeekDay(startDay, startHour, endDay, endHour, currentTime) {
