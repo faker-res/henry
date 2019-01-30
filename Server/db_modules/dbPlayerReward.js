@@ -4246,7 +4246,9 @@ let dbPlayerReward = {
         })
     },
 
-    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeType3Name) => {
+    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeType3Name, index, limit) => {
+        index = index || 0;
+        limit = limit || 10;
         let monitorObjs;
         let promoCodeQuery = {
             'data.platformId': platformObjId,
@@ -4260,7 +4262,17 @@ let dbPlayerReward = {
             promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeType3Name
         }
 
-        return dbProposalUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_PROMO_CODE_REWARD, promoCodeQuery).then(
+        return dbConfig.collection_proposalType.findOne({
+            platformId: platformObjId,
+            name: constProposalType.PLAYER_PROMO_CODE_REWARD
+        }).lean().then(
+            proposalType => {
+                promoCodeQuery.type = proposalType._id;
+                return dbConfig.collection_proposal.find(promoCodeQuery).sort({createTime: -1}).populate(
+                    {path: "process", model: dbConfig.collection_proposalProcess}
+                ).lean();
+            }
+        ).then(
             promoCodeData => {
                 let delProm = [];
 
@@ -4340,7 +4352,16 @@ let dbPlayerReward = {
                 return Promise.all(proms);
             }
         ).then(
-            () => monitorObjs
+            () => {
+                let beginIndex = index * limit;
+                let playerArr = []; // to count total player
+                monitorObjs.forEach(item => {
+                    if (item.playerName && !playerArr.includes(item.playerName)) {
+                        playerArr.push(item.playerName);
+                    }
+                })
+                return {totalPlayer: playerArr.length, data: monitorObjs.splice(beginIndex, limit)};
+            }
         )
     },
 
