@@ -398,6 +398,9 @@ const dbPlayerPayment = {
     // region Common payment
     getMinMaxCommonTopupAmount: (playerId, clientType, loginIp) => {
         let url = "";
+        let topUpSystemConfig;
+        let platformMinTopUpAmount = 0;
+        let result = {};
 
         return dbconfig.collection_players.findOne({
             playerId: playerId
@@ -408,45 +411,58 @@ const dbPlayerPayment = {
                 if (playerData) {
                     let paymentUrl = env.paymentHTTPAPIUrl;
 
-                    // currently set to platformId 4 use on it first
-                    if (playerData && playerData.platform && playerData.platform.topUpSystemType && extConfig
-                        && extConfig[playerData.platform.topUpSystemType]
-                        && extConfig[playerData.platform.topUpSystemType].topUpAPIAddr
-                    ) {
-                        paymentUrl = extConfig[playerData.platform.topUpSystemType].topUpAPIAddr;
+                    topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
-                        if (extConfig[playerData.platform.topUpSystemType].minMaxAPIAddr) {
-                            paymentUrl = extConfig[playerData.platform.topUpSystemType].minMaxAPIAddr;
+                    if (playerData.platform && playerData.platform.minTopUpAmount) {
+                        platformMinTopUpAmount = playerData.platform.minTopUpAmount;
+                    }
+
+                    if (topUpSystemConfig && topUpSystemConfig.topUpAPIAddr) {
+                        paymentUrl = topUpSystemConfig.topUpAPIAddr;
+
+                        if (topUpSystemConfig.minMaxAPIAddr) {
+                            paymentUrl = topUpSystemConfig.minMaxAPIAddr;
                         }
                     }
 
-                    url =
-                        paymentUrl
-                        + "foundation/payMinAndMax.do?"
-                        + "platformId=" + playerData.platform.platformId + "&"
-                        + "username=" + playerData.name + "&"
-                        + "clientType=" + clientType;
+                    if ((topUpSystemConfig && topUpSystemConfig.name === 'PMS' || topUpSystemConfig.name === 'PMS2') || !topUpSystemConfig) {
+                        url =
+                            paymentUrl
+                            + "foundation/payMinAndMax.do?"
+                            + "platformId=" + playerData.platform.platformId + "&"
+                            + "username=" + playerData.name + "&"
+                            + "clientType=" + clientType;
 
-                    console.log('getMinMaxCommonTopupAmount url', url);
+                        console.log('getMinMaxCommonTopupAmount url', url);
 
-                    return rp(url);
+                        return rp(url);
+                    } else {
+                        return true;
+                    }
                 }
             }
         ).then(
             ret => {
                 if (ret) {
-                    ret = JSON.parse(ret);
+                    if ((topUpSystemConfig && (topUpSystemConfig.name === 'PMS' || topUpSystemConfig.name === 'PMS2')) || !topUpSystemConfig) {
+                        ret = JSON.parse(ret);
 
-                    if (ret.code && Number(ret.code) === 1) {
-                        return Promise.reject({
-                            status: constServerCode.PAYMENT_NOT_AVAILABLE,
-                            message: "Payment is not available",
-                        });
-                    }
+                        if (ret.code && Number(ret.code) === 1) {
+                            return Promise.reject({
+                                status: constServerCode.PAYMENT_NOT_AVAILABLE,
+                                message: "Payment is not available",
+                            });
+                        }
 
-                    return {
-                        minDepositAmount: Number(ret.min) || 0,
-                        maxDepositAmount: Number(ret.max) || 0
+                        result.minDepositAmount = Number(ret.min) || 0;
+                        result.maxDepositAmount = Number(ret.max) || 0
+
+                        return result;
+
+                    } else {
+                        result.minDepositAmount = Number(platformMinTopUpAmount);
+
+                        return result;
                     }
                 }
             }
