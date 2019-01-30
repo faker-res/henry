@@ -101,8 +101,17 @@ proto.pipeStreamTo = function (stream, prepareRequest, processResponse) {
                 reject(new Error('Client closed while streaming.  (Probably one of the settlement servers crashed or restarted.)'));
             });
         });
+        if (readyClients && readyClients.length) {
+            console.log('readyClients.length===', readyClients.length);
+        }
 
         stream.on('data', function (data) {
+                if (data && data.length) {
+                    console.log('stream data===', data.length);
+                    for (let x in data) {
+                        console.log('data[x]._id===', data[x]._id);
+                    }
+                }
                 if (ignoring) {
                     return;
                 }
@@ -124,11 +133,16 @@ proto.pipeStreamTo = function (stream, prepareRequest, processResponse) {
                     service[functionName].request(params);
                     //service[functionName].once(handleResponse);
                     //service[functionName].
+                    console.log('serviceName===', serviceName);
+                    console.log('functionName===', functionName);
+                    console.log('params===', params);
                     if (service[functionName]._requestListeners.length <= 0) {
                         service[functionName].addListener(handleResponse);
                     }
+                    console.log('here===99');
                 });
                 function handleResponse(responseData) {
+                    console.log('responseData===', responseData);
                     processResponse(responseData);
                     if (client.activeRequests === config.maximumRequestPerClient) {
                         readyClients.unshift(client);
@@ -137,6 +151,13 @@ proto.pipeStreamTo = function (stream, prepareRequest, processResponse) {
                     client.processedRequests++;
                     totalActiveRequests--;
                     totalCompletedRequests++;
+                    if (readyClients && readyClients.length) {
+                        console.log('readyClients.length===', readyClients.length);
+                    }
+                    console.log('client.activeRequests===', client.activeRequests);
+                    console.log('client.processedRequests===', client.processedRequests);
+                    console.log('totalActiveRequests===', totalActiveRequests);
+                    console.log('totalCompletedRequests===', totalCompletedRequests);
                     // console.log("Client %s responded with:", client.url, responseData);
                     // console.log("now total: %s active: %s process: %d", client.url, client.activeRequests, totalActiveRequests, totalCompletedRequests);
                     if (responseData.errorMessage) {

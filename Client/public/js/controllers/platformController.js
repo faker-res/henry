@@ -2739,6 +2739,33 @@ define(['js/app'], function (myApp) {
                             break;
                     }
                 }
+
+                let admins = [];
+
+                if (vm.sendMultiMessage.departments) {
+                    if (vm.sendMultiMessage.roles) {
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && (vm.sendMultiMessage.roles.indexOf(e._id) >= 0)) {
+                                e.users.map(f => admins.push(f._id))
+                            }
+                        })
+                    } else {
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f._id != "") {
+                                        admins.push(f._id)
+                                    }
+                                })
+                            }
+                        })
+                    }
+                }
+
+                if ( (vm.sendMultiMessage.admins && vm.sendMultiMessage.admins.length > 0) || admins.length) {
+                    playerQuery.csOfficer = vm.sendMultiMessage.admins && vm.sendMultiMessage.admins.length > 0 ? vm.sendMultiMessage.admins : admins;
+                }
+
                 var sendQuery = {
                     platformId: vm.selectedPlatform.id,
                     query: playerQuery,
@@ -16339,7 +16366,15 @@ define(['js/app'], function (myApp) {
                             }
                         })
                     } else {
-                        vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                        vm.queryRoles.map(e => {
+                            if (e && e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f && f._id != "") {
+                                        admins.push(f._id);
+                                    }
+                                });
+                            }
+                        });
                     }
                 }
 
@@ -16755,7 +16790,15 @@ define(['js/app'], function (myApp) {
                             }
                         })
                     } else {
-                        vm.queryRoles.map(e => e.users.map(f => {if (f._id != "") {admins.push(f._id)}}))
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f._id != "") {
+                                        admins.push(f._id)
+                                    }
+                                })
+                            }
+                        })
                     }
                 }
 
@@ -25280,9 +25323,9 @@ define(['js/app'], function (myApp) {
             vm.drawPromoCodeMonitorTable = function (data, size, summary, newSearch) {
                 let tableOptions = {
                     data: data,
-                    "order": vm.promoCodeMonitor.aaSorting || [[0, 'desc']],
+                    // "order": vm.promoCodeMonitor.aaSorting || [[0, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                        // {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -25460,14 +25503,15 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPromoCodesMonitor', sendObj, function (data) {
                     $('#promoCodeMonitorTableSpin').hide();
                     console.log('getPromoCodesMonitor', data);
-                    vm.promoCodeMonitor.totalCount = data.data.length;
+                    vm.promoCodeMonitor.totalCount = data.data.data.length;
+                    vm.promoCodeMonitor.totalPlayer = data.data.totalPlayer;
                     $scope.safeApply();
-                    vm.drawPromoCodeMonitorTable(data.data.map(
+                    vm.drawPromoCodeMonitorTable(data.data.data.map(
                         item => {
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
                             return item;
                         }
-                    ), data.data.length, {}, isNewSearch);
+                    ), data.data.data.length, {}, isNewSearch);
                 }, function (err) {
                     console.error(err);
                 }, true);
@@ -36186,6 +36230,22 @@ define(['js/app'], function (myApp) {
                         if (vm.auctionProductReward && vm.auctionProductReward.rewardType){
                             vm.selectedAuctionRewardType = vm.auctionProductReward.rewardType;
                         }
+                        if(vm.auctionSystemProduct.rewardAppearPeriod && vm.auctionSystemProduct.rewardAppearPeriod.length > 0) {
+                            vm.auctionSystemProduct.rewardAppearPeriod.forEach(item => {
+                                if(item.hasOwnProperty('startDate')) {
+                                    item.startDate = item.startDate.toString();
+                                }
+                                if(item.hasOwnProperty('startTime')) {
+                                    item.startTime = item.startTime.toString();
+                                }
+                                if(item.hasOwnProperty('endDate')) {
+                                    item.endDate = item.endDate.toString();
+                                }
+                                if(item.hasOwnProperty('endTime')) {
+                                    item.endTime = item.endTime.toString();
+                                }
+                            });
+                        }
                     });
                 });
             }
@@ -36638,14 +36698,20 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.removeExclusiveAuction = function(){
-                let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
-                let sendQuery = {
-                    platformId:vm.selectedPlatform.id,
-                    auctionItems:auctionItems
-                };
-                socketService.$socket($scope.AppSocket, 'removeExclusiveAuction', sendQuery, function (data) {
-                    vm.listAuctionItem();
+                GeneralModal.confirm({
+                    title: $translate("AuctionSystem"),
+                    text: $translate("CONFIRM TO DELETE?")
+                }).then(function () {
+                    let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
+                    let sendQuery = {
+                        platformId:vm.selectedPlatform.id,
+                        auctionItems:auctionItems
+                    };
+                    socketService.$socket($scope.AppSocket, 'removeExclusiveAuction', sendQuery, function (data) {
+                        vm.listAuctionItem();
+                    });
                 });
+
             }
 
             vm.removeNotAvailableAuction = function(){

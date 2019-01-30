@@ -43,6 +43,8 @@ const thirdPartyAPIConfig = {
         topUpAPICallback: "http://devtest.wsweb.me:7100",
         withdrawAPIAddr: "http://52.221.143.107:9001/v1/withdraw-proposal", // POST
         withdrawAPICallback: "http://devtest.wsweb.me:7100",
+        topUpStatusAPIAddr: "http://52.221.143.107:9001/v1/playerDepositStatus", // PATCH
+        batchTopUpStatusAPIAddr: "http://52.221.143.107:9004/v1/batch/playerDepositStatus", //PATCH
 
         //financial settlement
         name: 'PMS2',

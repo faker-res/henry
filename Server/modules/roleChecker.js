@@ -408,7 +408,7 @@ var roleChecker = {
                 Update: []
             },
             "Feedback": {
-                Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
+                Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks', 'getDepartmentDetailsByPlatformObjId'],
                 Export: [],
                 Create: ['createPlayerFeedback'],
                 BulkCall: [],
@@ -538,7 +538,7 @@ var roleChecker = {
                 Update: ['updateMessageTemplate']
             },
             "groupMessage": {
-                Read: ['sendSMStoNumber'],
+                Read: ['sendSMStoNumber','getDepartmentDetailsByPlatformObjId'],
                 SMSSendLog: ['searchSMSLog'],
                 SendGroupMessage: []
             },

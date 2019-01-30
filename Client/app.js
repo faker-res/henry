@@ -1,6 +1,4 @@
-/**
- * Module dependencies
- */
+// const fs = require('fs');
 
 var express = require('express'),
     bodyParser = require('body-parser'),
@@ -104,55 +102,3 @@ app.post('/uploadImage', upload.single('file'), function (req, res, next) {
 http.createServer(app).listen(app.get('port'), function () {
     console.log("Express server listening on port: " + app.get('port'));
 });
-
-//TODO::temp code to be deleted
-//if (env !== 'local') {
-//    var cluster = require('cluster');
-//    var numCPUs = require('os').cpus().length;
-//    if (cluster.isMaster) {
-//        // Fork workers.
-//        for (var i = 0; i < numCPUs; i++) {
-//            cluster.fork();
-//        }
-//
-//        cluster.on('exit', function (worker, code, signal) {
-//            console.log('worker ' + worker.process.pid + ' died');
-//        });
-//    } else {
-//        // TODO:: upgrade to https
-//        http.createServer(app).listen(app.get('port'), function () {
-//            console.log("Express server listening on port: " + app.get('port'));
-//        });
-//    }
-//}
-
-//http.createServer( function(req, res){
-//
-//    var host = req.headers['host'];
-//    // replace the port in the host
-//    host = host.replace(/:\d+$/, ":" + '3030');
-//    // determine the redirect destination
-//    var destination = ['https://', host, req.url].join('');
-//
-//    //return res.redirect(destination);
-//    res.writeHead(301, { "Location": destination });
-//    res.end();
-//
-//}).listen(app.get('port'), function () {
-//    console.log('Express server listening on port ' + app.get('port'));
-//});
-//
-//var https = require('https'),
-//    fs = require('fs');
-//
-//var sslOptions = {
-//    key: fs.readFileSync('./ssl/server.key'),
-//    cert: fs.readFileSync('./ssl/server.crt'),
-//    ca: fs.readFileSync('./ssl/ca.crt'),
-//    requestCert: true,
-//    rejectUnauthorized: false
-//};
-//
-//var secureServer = https.createServer(sslOptions,app).listen('3030', function(){
-//    console.log("Secure Express server listening on port 3030");
-//});

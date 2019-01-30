@@ -862,6 +862,7 @@ var dbPlayerTopUpRecord = {
                 queryObj.type = {$in: typeIds};
 
                 let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
+                let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
                 let totalAmountProm = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
                     $group: {
                         _id: null,
@@ -899,14 +900,15 @@ var dbPlayerTopUpRecord = {
                     );
                 });
 
-                return Q.all([totalCountProm, totalAmountProm, topupRecordProm])
+                return Q.all([totalCountProm, totalAmountProm, topupRecordProm, totalPlayerProm])
             }
         ).then(
             data => {
                 let totalCount = data[0];
                 let totalAmountResult = data[1][0];
+                let totalPlayerResult = data[3] && data[3].length || 0;
 
-                return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0};
+                return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
             }
         )
 
@@ -1650,6 +1652,8 @@ var dbPlayerTopUpRecord = {
         let serviceChargeRate = 0;
         let topUpSystemConfig;
 
+        console.log("checking userAgentStr for ANALYSIS_REPORT_ISSUE", userAgentStr)
+
         if (topupRequest.bonusCode && topUpReturnCode) {
             return Q.reject({
                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -1814,9 +1818,11 @@ var dbPlayerTopUpRecord = {
                     }
                 }
 
+                console.log("checking userAgent before for ANALYSIS_REPORT_ISSUE", userAgent)
                 if (userAgent) {
                     userAgent = dbUtility.retrieveAgent(userAgent);
                 }
+                console.log("checking userAgent after for ANALYSIS_REPORT_ISSUE", userAgent)
 
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
@@ -1840,6 +1846,7 @@ var dbPlayerTopUpRecord = {
                 //     proposalData.topUpReturnCode = rewardEvent.code;
                 // }
 
+                console.log("checking proposalData.userAgent for ANALYSIS_REPORT_ISSUE",  proposalData.userAgent)
                 if (player.platform.topUpSystemType && topUpSystemConfig) {
                     proposalData.topUpSystemType = player.platform.topUpSystemType;
                     proposalData.topUpSystemName = topUpSystemConfig.name;
