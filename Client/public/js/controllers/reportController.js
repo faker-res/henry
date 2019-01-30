@@ -1642,7 +1642,7 @@ define(['js/app'], function (myApp) {
                     }
                 })
             }
-            utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup);
+            utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup, 30);
             var sendObj = {
                 playerName: vm.queryTopup.playerName,
                 proposalNo: vm.queryTopup.proposalID,
@@ -2322,7 +2322,7 @@ define(['js/app'], function (myApp) {
                     // Fetch the report
                     vm.operationReportLoadingStatus = (settlementResult.failureReportMessage || "") + $translate("Fetching report");
                     $scope.safeApply();
-                    utilService.getDataTablePageSize("#playerExpenseTablePage", vm.playerExpenseQuery);
+                    utilService.getDataTablePageSize("#playerExpenseTablePage", vm.playerExpenseQuery, 30);
                     var sendData = {
                         startTime: startTime,
                         endTime: endTime,
@@ -3900,7 +3900,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            utilService.getDataTablePageSize("#playerDomainReportTablePage", vm.playerDomain);
+            utilService.getDataTablePageSize("#playerDomainReportTablePage", vm.playerDomain, 30);
 
             var sendquery = {
                 platform: vm.curPlatformId,
@@ -5651,7 +5651,7 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerPartnerRecord = function (newSearch, isExport = false) {
             vm.reportSearchTimeStart = new Date().getTime();
 
-            utilService.getDataTablePageSize("#playerPartnerTablePage", vm.partnerQuery);
+            utilService.getDataTablePageSize("#playerPartnerTablePage", vm.partnerQuery, 30);
             vm.newPartnerQuery = $.extend(true, {}, vm.partnerQuery);
             $('#playerPartnerTableSpin').show();
             //$('#playerPartnerTable').hide();
@@ -5775,7 +5775,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
-            utilService.getDataTablePageSize("#financialPointsTablePage", vm.financialQuery);
+            utilService.getDataTablePageSize("#financialPointsTablePage", vm.financialQuery, 30);
             let newproposalQuery = $.extend(true, {}, vm.financialQuery);
 
             let financialPointsType = $('select#selectFinancialPointsType').multipleSelect("getSelects");
@@ -5967,7 +5967,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
-            utilService.getDataTablePageSize("#consumptionModeTablePage", vm.consumptionModeQuery);
+            utilService.getDataTablePageSize("#consumptionModeTablePage", vm.consumptionModeQuery, 30);
 
             let newConsumptionQuery = $.extend(true, {}, vm.consumptionModeQuery);
 
@@ -6111,7 +6111,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
-            utilService.getDataTablePageSize("#proposalTablePage", vm.proposalQuery);
+            utilService.getDataTablePageSize("#proposalTablePage", vm.proposalQuery, 30);
             let newproposalQuery = $.extend(true, {}, vm.proposalQuery);
             newproposalQuery.proposalTypeId = [];
             newproposalQuery.rewardTypeName = [];
@@ -7247,7 +7247,7 @@ define(['js/app'], function (myApp) {
             var startTime = vm.partnerPlayerBonusQuery.startTime.data('datetimepicker').getLocalDate();
             var endTime = vm.partnerPlayerBonusQuery.endTime.data('datetimepicker').getLocalDate();
 
-            utilService.getDataTablePageSize("#partnerPlayerBonusTablePage", vm.partnerPlayerBonusQuery);
+            utilService.getDataTablePageSize("#partnerPlayerBonusTablePage", vm.partnerPlayerBonusQuery, 30);
 
             var sendData = {
                 platformId: vm.curPlatformId,
@@ -7360,7 +7360,7 @@ define(['js/app'], function (myApp) {
                 }
             ).then(
                 () => {
-                    utilService.getDataTablePageSize("#partnerCommissionTablePage", vm.partnerCommissionQuery);
+                    utilService.getDataTablePageSize("#partnerCommissionTablePage", vm.partnerCommissionQuery, 30);
                     var sendData = {
                         platformId: vm.curPlatformId,
                         partnerName: vm.partnerCommissionQuery.partnerName,
@@ -7485,7 +7485,7 @@ define(['js/app'], function (myApp) {
             let loadingSpinner = $('#partnerSettlementTableSpin');
             let commissionType = vm.partnerSettlementQuery.commissionType;
             let partnerName = vm.partnerSettlementQuery.partnerName;
-            utilService.getDataTablePageSize("#partnerSettlementTablePage", vm.partnerSettlementQuery);
+            utilService.getDataTablePageSize("#partnerSettlementTablePage", vm.partnerSettlementQuery, 30);
             let sendData = {
                 platformObjId: vm.selectedPlatform._id,
                 startTime: new Date(vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate()),
@@ -7718,7 +7718,7 @@ define(['js/app'], function (myApp) {
             vm["#generalRewardProposalQuery"] = {};
             vm["#generalRewardProposalQuery"].startTime = startTime;
             vm["#generalRewardProposalQuery"].endTime = endTime;
-            utilService.getDataTablePageSize("#generalRewardProposalTablePage", vm.generalRewardProposalQuery);
+            utilService.getDataTablePageSize("#generalRewardProposalTablePage", vm.generalRewardProposalQuery, 30);
 
             var sendData = {
                 platformId: vm.curPlatformId || vm.selectedPlatform._id,
@@ -8195,7 +8195,7 @@ define(['js/app'], function (myApp) {
             vm["#generalRewardTaskQuery"] = {};
             vm["#generalRewardTaskQuery"].startTime = startTime;
             vm["#generalRewardTaskQuery"].endTime = endTime;
-            utilService.getDataTablePageSize("#generalRewardTaskTablePage", vm.generalRewardTaskQuery);
+            utilService.getDataTablePageSize("#generalRewardTaskTablePage", vm.generalRewardTaskQuery, 30);
 
             var deferred = Q.defer();
             var query = {
