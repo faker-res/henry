@@ -1130,7 +1130,7 @@ define(['js/app'], function (myApp) {
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#generalRewardProposalTablePage", function () {
                     vm.commonInitTime(vm.generalRewardProposalQuery, '#generalRewardProposalQuery', true);
-                    vm.generalRewardProposalQuery.pageObj = utilService.createPageForPagingTable("#generalRewardProposalTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.generalRewardProposalQuery.pageObj = utilService.createPageForPagingTable("#generalRewardProposalTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "generalRewardProposalQuery", vm.generalRewardProposalSearch)
                     });
                 })
@@ -1142,7 +1142,7 @@ define(['js/app'], function (myApp) {
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#generalRewardTaskTablePage", function () {
                     vm.commonInitTime(vm.generalRewardTaskQuery, '#generalRewardTaskQuery', true);
-                    vm.generalRewardTaskQuery.pageObj = utilService.createPageForPagingTable("#generalRewardTaskTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.generalRewardTaskQuery.pageObj = utilService.createPageForPagingTable("#generalRewardTaskTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "generalRewardTaskQuery", vm.searchGeneralRewardTask)
                     });
                 })
@@ -1642,7 +1642,7 @@ define(['js/app'], function (myApp) {
                     }
                 })
             }
-
+            utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup);
             var sendObj = {
                 playerName: vm.queryTopup.playerName,
                 proposalNo: vm.queryTopup.proposalID,
@@ -2322,7 +2322,7 @@ define(['js/app'], function (myApp) {
                     // Fetch the report
                     vm.operationReportLoadingStatus = (settlementResult.failureReportMessage || "") + $translate("Fetching report");
                     $scope.safeApply();
-
+                    utilService.getDataTablePageSize("#playerExpenseTablePage", vm.playerExpenseQuery);
                     var sendData = {
                         startTime: startTime,
                         endTime: endTime,
@@ -2331,7 +2331,7 @@ define(['js/app'], function (myApp) {
                         playerName: vm.newPlayerExpenseQuery.playerName,
                         providerId: vm.newPlayerExpenseQuery.providerId,
                         index: isExport ? 0 : (newSearch ? 0 : vm.newPlayerExpenseQuery.index),
-                        limit: isExport ? 5000 : (vm.newPlayerExpenseQuery.limit || 10),
+                        limit: isExport ? 5000 : (vm.playerExpenseQuery.limit || 10),
                         sortCol: vm.newPlayerExpenseQuery.sortCol || {}
                     };
                     console.log('sendData', sendData);
@@ -3488,6 +3488,8 @@ define(['js/app'], function (myApp) {
 
             vm.feedbackQuery.sortCol = vm.feedbackQuery.sortCol || {createTime$: -1};
 
+            utilService.getDataTablePageSize("#feedbackReportTablePage", vm.feedbackQuery, 5000);
+
             let sendquery = {
                 platformId: vm.curPlatformId,
                 query: query,
@@ -3906,6 +3908,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            utilService.getDataTablePageSize("#playerDomainReportTablePage", vm.playerDomain);
 
             var sendquery = {
                 platform: vm.curPlatformId,
@@ -4199,7 +4202,8 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-
+            console.log("wahahaha")
+            utilService.getDataTablePageSize("#playerReportTablePage", vm.playerQuery, 5000);
             var sendquery = {
                 platformId: vm.curPlatformId,
                 query: {
@@ -5665,6 +5669,7 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerPartnerRecord = function (newSearch, isExport = false) {
             vm.reportSearchTimeStart = new Date().getTime();
 
+            utilService.getDataTablePageSize("#playerPartnerTablePage", vm.partnerQuery);
             vm.newPartnerQuery = $.extend(true, {}, vm.partnerQuery);
             $('#playerPartnerTableSpin').show();
             //$('#playerPartnerTable').hide();
@@ -5788,6 +5793,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
+            utilService.getDataTablePageSize("#financialPointsTablePage", vm.financialQuery);
             let newproposalQuery = $.extend(true, {}, vm.financialQuery);
 
             let financialPointsType = $('select#selectFinancialPointsType').multipleSelect("getSelects");
@@ -5979,6 +5985,8 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
+            utilService.getDataTablePageSize("#consumptionModeTablePage", vm.consumptionModeQuery);
+
             let newConsumptionQuery = $.extend(true, {}, vm.consumptionModeQuery);
 
             let consumptiionBetType = $('select#selectBetType').multipleSelect("getSelects");
@@ -6121,6 +6129,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
+            utilService.getDataTablePageSize("#proposalTablePage", vm.proposalQuery);
             let newproposalQuery = $.extend(true, {}, vm.proposalQuery);
             newproposalQuery.proposalTypeId = [];
             newproposalQuery.rewardTypeName = [];
@@ -7256,6 +7265,8 @@ define(['js/app'], function (myApp) {
             var startTime = vm.partnerPlayerBonusQuery.startTime.data('datetimepicker').getLocalDate();
             var endTime = vm.partnerPlayerBonusQuery.endTime.data('datetimepicker').getLocalDate();
 
+            utilService.getDataTablePageSize("#partnerPlayerBonusTablePage", vm.partnerPlayerBonusQuery);
+
             var sendData = {
                 platformId: vm.curPlatformId,
                 partnerName: vm.partnerPlayerBonusQuery.partnerName,
@@ -7367,6 +7378,7 @@ define(['js/app'], function (myApp) {
                 }
             ).then(
                 () => {
+                    utilService.getDataTablePageSize("#partnerCommissionTablePage", vm.partnerCommissionQuery);
                     var sendData = {
                         platformId: vm.curPlatformId,
                         partnerName: vm.partnerCommissionQuery.partnerName,
@@ -7491,6 +7503,7 @@ define(['js/app'], function (myApp) {
             let loadingSpinner = $('#partnerSettlementTableSpin');
             let commissionType = vm.partnerSettlementQuery.commissionType;
             let partnerName = vm.partnerSettlementQuery.partnerName;
+            utilService.getDataTablePageSize("#partnerSettlementTablePage", vm.partnerSettlementQuery);
             let sendData = {
                 platformObjId: vm.selectedPlatform._id,
                 startTime: new Date(vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate()),
@@ -7553,7 +7566,7 @@ define(['js/app'], function (myApp) {
                     parent.appendChild(tableElem);
                     parent.appendChild(tablePageElem);
                 }
-                vm.partnerSettlementQuery.pageObj = utilService.createPageForPagingTable("#partnerSettlementTablePage", {}, $translate, function (curP, pageSize) {
+                vm.partnerSettlementQuery.pageObj = utilService.createPageForPagingTable("#partnerSettlementTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "partnerSettlementQuery", vm.searchPartnerSettlementHistory)
                 });
                 vm.drawPartnerSettlementHistoryTable(searchResult, vm.partnerSettlementQuery.totalCount, newSearch, isExport);
@@ -7723,6 +7736,8 @@ define(['js/app'], function (myApp) {
             vm["#generalRewardProposalQuery"] = {};
             vm["#generalRewardProposalQuery"].startTime = startTime;
             vm["#generalRewardProposalQuery"].endTime = endTime;
+            utilService.getDataTablePageSize("#generalRewardProposalTablePage", vm.generalRewardProposalQuery);
+
             var sendData = {
                 platformId: vm.curPlatformId || vm.selectedPlatform._id,
                 startTime: startTime,
@@ -8198,6 +8213,7 @@ define(['js/app'], function (myApp) {
             vm["#generalRewardTaskQuery"] = {};
             vm["#generalRewardTaskQuery"].startTime = startTime;
             vm["#generalRewardTaskQuery"].endTime = endTime;
+            utilService.getDataTablePageSize("#generalRewardTaskTablePage", vm.generalRewardTaskQuery);
 
             var deferred = Q.defer();
             var query = {
@@ -8206,7 +8222,7 @@ define(['js/app'], function (myApp) {
                 endTime: endTime,
                 type: vm.currentRewardTaskName,//'FIRST_TOP_UP'
                 index: newSearch ? 0 : vm.generalRewardTaskQuery.index,
-                limit: newSearch ? 10 : vm.generalRewardTaskQuery.limit,
+                limit: vm.generalRewardTaskQuery.limit || 10,
                 sortCol: vm.generalRewardTaskQuery.sortCol || {},
                 eventId: vm.currentEventId
             }
@@ -9243,7 +9259,7 @@ define(['js/app'], function (myApp) {
                         // },50)
                         vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
                         vm.queryTopup.merchantType = null;
-                        vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "queryTopup", vm.searchTopupRecord)
                         });
                         $scope.$evalAsync();
@@ -9330,7 +9346,7 @@ define(['js/app'], function (myApp) {
                         });
                         $("select#selectRewardType").multipleSelect("checkAll");
 
-                        vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
+                        vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {pageSize: 30}, $translate, vm.proposalTablePageChange);
                     });
                     break;
                 case "FINANCIAL_POINTS_REPORT":
@@ -9373,7 +9389,7 @@ define(['js/app'], function (myApp) {
                         });
                         $("select#selectFinancialPointsType").multipleSelect("checkAll");
 
-                        vm.financialQuery.pageObj = utilService.createPageForPagingTable("#financialPointsTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.financialQuery.pageObj = utilService.createPageForPagingTable("#financialPointsTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "financialQuery", vm.searchFinancialPointsRecord)
                         });
                     });
@@ -9423,7 +9439,7 @@ define(['js/app'], function (myApp) {
 
                                 $("select#selectBetType").multipleSelect("checkAll");
 
-                                vm.consumptionModeQuery.pageObj = utilService.createPageForPagingTable("#consumptionModeTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.consumptionModeQuery.pageObj = utilService.createPageForPagingTable("#consumptionModeTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                                     vm.commonPageChangeHandler(curP, pageSize, "consumptionModeQuery", vm.searchConsumptionModeRecord)
                                 });
                             });
@@ -9561,7 +9577,7 @@ define(['js/app'], function (myApp) {
                         );
 
                         vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
-                        vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainReport)
                         });
                         vm.searchPlayerDomainReport(true);
@@ -9943,7 +9959,7 @@ define(['js/app'], function (myApp) {
                     vm.playerQuery = {};
                     vm.playerQuery.totalCount = 0;
                     vm.playerQuery.sortCol = {validConsumptionAmount: -1};
-                    vm.playerQuery.limit = 5000;
+                    // vm.playerQuery.limit = 5000;
                     vm.playerQuery.consumptionTimesOperator = ">=";
                     vm.playerQuery.profitAmountOperator = ">=";
                     vm.playerQuery.topUpTimesOperator = ">=";
@@ -9954,7 +9970,7 @@ define(['js/app'], function (myApp) {
                     vm.playerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                     vm.playerQuery.end = utilService.createDatePicker('#endingEndDateTimePicker');
                     vm.playerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
+                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerQuery", vm.searchPlayerReport);
                     });
                     vm.setupRemarksMultiInput();
@@ -10007,7 +10023,7 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded("#playerExpenseTablePage", function () {
                     vm.commonInitTime(vm.playerExpenseQuery, '#playerExpenseReportQuery');
                     vm.playerExpenseQuery.providerId = "all";
-                    vm.playerExpenseQuery.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerExpenseQuery.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerExpenseQuery", vm.searchProviderPlayerRecord)
                     });
                 })
@@ -10100,9 +10116,9 @@ define(['js/app'], function (myApp) {
                         vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
                         vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                        vm.feedbackQuery.limit = 5000;
+                        // vm.feedbackQuery.limit = 5000;
                         vm.feedbackQuery.index = 0;
-                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {pageSize:5000, maxPageSize:5000}, $translate, function (curP, pageSize) {
+                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {pageSize:30, maxPageSize:5000}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
                         });
                     })
@@ -10147,7 +10163,7 @@ define(['js/app'], function (myApp) {
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#playerPartnerTable", function () {
                     vm.commonInitTime(vm.partnerQuery, '#playerPartnerReportQuery');
-                    vm.partnerQuery.pageObj = utilService.createPageForPagingTable("#playerPartnerTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.partnerQuery.pageObj = utilService.createPageForPagingTable("#playerPartnerTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "partnerQuery", vm.searchPlayerPartnerRecord)
                     });
                     $scope.safeApply();
@@ -10242,7 +10258,7 @@ define(['js/app'], function (myApp) {
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#partnerPlayerBonusTablePage", function () {
                     vm.commonInitTime(vm.partnerPlayerBonusQuery, '#partnerPlayerBonusQuery')
-                    vm.partnerPlayerBonusQuery.pageObj = utilService.createPageForPagingTable("#partnerPlayerBonusTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.partnerPlayerBonusQuery.pageObj = utilService.createPageForPagingTable("#partnerPlayerBonusTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "partnerPlayerBonusQuery", vm.searchPartnerPlayerBonusData)
                     });
                 })
@@ -10263,7 +10279,7 @@ define(['js/app'], function (myApp) {
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#partnerCommissionTablePage", function () {
                     vm.commonInitTime(vm.partnerCommissionQuery, '#partnerCommissionQuery')
-                    vm.partnerCommissionQuery.pageObj = utilService.createPageForPagingTable("#partnerCommissionTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.partnerCommissionQuery.pageObj = utilService.createPageForPagingTable("#partnerCommissionTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "partnerCommissionQuery", vm.searchPartnerCommissionData)
                     });
                 })
