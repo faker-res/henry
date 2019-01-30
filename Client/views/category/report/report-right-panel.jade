@@ -72,7 +72,7 @@
                     span#topupTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}} / {{"Total" | translate}} {{vm.queryTopup.totalPlayer}} {{"PLAYERS_IN_TOTAL" | translate}}
             table#topupTable.common-table.display.widthto100
             #topupTablePage
             table#topupExcelTable.common-table.display(style="min-width:100% ;overflow: scroll; display; none !important")
@@ -130,7 +130,7 @@
                     span#proposalTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.proposalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.proposalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}} / {{"Total" | translate}} {{vm.proposalQuery.totalPlayer}} {{"PLAYERS_IN_TOTAL" | translate}}
             table.common-table#proposalTable.display(style="width:100%;overflow: scroll;max-height:700px")
             #proposalTablePage
             table.common-table#proposalExcelTable.display(style="width:100%;overflow: scroll;max-height:700px")

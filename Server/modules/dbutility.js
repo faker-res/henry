@@ -1546,6 +1546,12 @@ var dbUtility = {
         return parseFloat(tempNum);
     },
 
+    twoDecimalPlacesToFixed: (value) => {
+        value = value || 0;
+
+        return Number(parseFloat(value).toFixed(2));
+    },
+
     sliceTimeFrameToDaily: (startTime, endTime, fullDayOnly) => {
         let timeFrames = [];
 
