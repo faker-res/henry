@@ -36689,14 +36689,20 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.removeExclusiveAuction = function(){
-                let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
-                let sendQuery = {
-                    platformId:vm.selectedPlatform.id,
-                    auctionItems:auctionItems
-                };
-                socketService.$socket($scope.AppSocket, 'removeExclusiveAuction', sendQuery, function (data) {
-                    vm.listAuctionItem();
+                GeneralModal.confirm({
+                    title: $translate("CONFIRM TO DELETE?"),
+                    text: $translate("CONFIRM TO DELETE?")
+                }).then(function () {
+                    let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
+                    let sendQuery = {
+                        platformId:vm.selectedPlatform.id,
+                        auctionItems:auctionItems
+                    };
+                    socketService.$socket($scope.AppSocket, 'removeExclusiveAuction', sendQuery, function (data) {
+                        vm.listAuctionItem();
+                    });
                 });
+
             }
 
             vm.removeNotAvailableAuction = function(){
