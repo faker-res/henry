@@ -17368,6 +17368,7 @@ let dbPlayerInfo = {
 
         return getPlayerProm.then(
             player => {
+                console.log('player.length===', player.length);
                 if (player && player.length) {
                     for (let i = 0; i < player.length; i++) {
                         playerObjArr.push(ObjectId(player[i]._id));
@@ -17378,6 +17379,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
+                console.log('playerObjArrData===', playerObjArrData);
                 let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).read("secondaryPreferred").lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
@@ -17387,7 +17389,8 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
+                                // batchSize: constSystemParam.BATCH_SIZE,
+                                batchSize: 5,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platformObjId,
@@ -17406,6 +17409,7 @@ let dbPlayerInfo = {
                                 },
                                 processResponse: function (record) {
                                     result = result.concat(record.data);
+                                    console.log('result.length===', result.length);
                                 }
                             }
                         )
