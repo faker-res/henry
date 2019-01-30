@@ -178,7 +178,7 @@ function socketActionPromoCode(socketIO, socket) {
         getPromoCodesMonitor: function getPromoCodesMonitor(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodesMonitor, [ObjectId(data.platformObjId), data.startAcceptedTime, data.endAcceptedTime, data.promoCodeType3Name, data.index, data.limit], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodesMonitor, [ObjectId(data.platformObjId), data.startAcceptedTime, data.endAcceptedTime, data.promoCodeTypeName, data.isTypeCPromo, data.index, data.limit], actionName, isValidData);
         },
 
         getPromoCodesAnalysisByType: function getPromoCodesAnalysisByType(data) {

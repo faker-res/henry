@@ -23125,6 +23125,26 @@ define(['js/app'], function (myApp) {
                             });
                         });
                         break;
+                    case 'monitorTypeB':
+                        vm.promoCodeTypeBMonitor = {};
+
+                        utilService.actionAfterLoaded('#promoCodeTypeBMonitorQuery', function () {
+                            vm.promoCodeTypeBMonitor.startAcceptedTime = utilService.createDatePicker('#promoCodeTypeBMonitorQuery .startAcceptedTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeTypeBMonitor.startAcceptedTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                            vm.promoCodeTypeBMonitor.endAcceptedTime = utilService.createDatePicker('#promoCodeTypeBMonitorQuery .endAcceptedTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeTypeBMonitor.endAcceptedTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                            vm.promoCodeTypeBMonitor.pageObj = utilService.createPageForPagingTable("#promoCodeTypeBMonitorTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "promoCodeTypeBMonitor", vm.getPromoCodeTypeBMonitor)
+                            });
+                        });
+                        break;
                     case 'monitor':
                         vm.promoCodeMonitor = {};
 
@@ -24271,6 +24291,7 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     $scope.$evalAsync(() => {
                         vm.promoCodeTypes = data.data;
+                        vm.promoCodeTypeB = [];
 
                         vm.promoCodeTypes.forEach(entry => {
                             if (entry.type == 1 && entry.hasOwnProperty("smsTitle")) {
@@ -24284,6 +24305,8 @@ define(['js/app'], function (myApp) {
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                             }
                         });
+
+                        vm.promoCodeTypeB = vm.promoCodeType1.concat(vm.promoCodeType2);
                     })
 
 
@@ -25312,6 +25335,79 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.drawPromoCodeTypeBMonitorTable = function (data, size, summary, newSearch) {
+                let tableOptions = {
+                    data: data,
+                    // "order": vm.promoCodeTypeBMonitor.aaSorting || [[0, 'desc']],
+                    aoColumnDefs: [
+                        // {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('ACCOUNT'),
+                            data: "playerName"
+                        },
+                        {
+                            title: $translate('topUpAmount(A)'),
+                            data: "topUpAmount"
+                        },
+                        {
+                            title: $translate('PROMO_REWARD_AMOUNT'),
+                            data: "rewardAmount"
+                        },
+                        {
+                            title: $translate('PROMO_CODE_TYPE'),
+                            data: "promoCodeType"
+                        },
+                        {
+                            title: $translate('requiredConsumption'),
+                            data: "spendingAmount"
+                        },
+                        {
+                            title: $translate('SHARE_WITH_XIMA'),
+                            data: "isSharedWithXIMA$"
+                        },
+                        {
+                            title: $translate('withdrawConsumption'),
+                            data: "consumptionBeforeWithdraw"
+                        },
+                        {
+                            title: $translate('withdrawAmount'),
+                            data: "nextWithdrawAmount"
+                        },
+                        {
+                            title: $translate('playerCredit'),
+                            data: "playerCredit"
+                        },
+                        {
+                            title: $translate('nextTopUpAmount'),
+                            data: "nextTopUpAmount"
+                        },
+                        {
+                            title: $translate('nextWithdrawProposalId'),
+                            data: "nextWithdrawProposalId",
+                        },
+                        {
+                            title: $translate('promoCodeProposalId'),
+                            data: "promoCodeProposalId"
+                        }
+                    ],
+                    "paging": false
+                };
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+
+                let promoCodeTypeBMonitorTable = utilService.createDatatableWithFooter('#promoCodeTypeBMonitorTable', tableOptions, {}, true);
+
+                vm.promoCodeTypeBMonitor.pageObj.init({maxCount: size}, newSearch);
+
+                $('#promoCodeMonitorTable').off('order.dt');
+                $('#promoCodeMonitorTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'promoCodeQuery', vm.getPromoCodeMonitor);
+                });
+                $('#promoCodeTypeBMonitorTable').resize();
+            };
+
             vm.drawPromoCodeMonitorTable = function (data, size, summary, newSearch) {
                 let tableOptions = {
                     data: data,
@@ -25474,6 +25570,42 @@ define(['js/app'], function (myApp) {
                 }, true);
             };
 
+            vm.getPromoCodeTypeBMonitor = function (isNewSearch) {
+                vm.promoCodeTypeBMonitor.platformId = vm.selectedPlatform.id;
+                $('#promoCodeMonitorTableSpin').show();
+
+                vm.promoCodeTypeBMonitor.index = isNewSearch ? 0 : (vm.promoCodeTypeBMonitor.index || 0);
+
+                let sendObj = {
+                    startAcceptedTime: vm.promoCodeTypeBMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
+                    endAcceptedTime: vm.promoCodeTypeBMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
+                    promoCodeTypeName: vm.promoCodeTypeBMonitor.promoCodeTypeName || '',
+                    platformObjId: vm.promoCodeTypeBMonitor.platformId,
+                    index: vm.promoCodeTypeBMonitor.index || 0,
+                    limit: vm.promoCodeTypeBMonitor.limit || 10,
+                    sortCol: vm.promoCodeTypeBMonitor.sortCol
+                };
+
+                console.log('sendObj', sendObj);
+
+                socketService.$socket($scope.AppSocket, 'getPromoCodesMonitor', sendObj, function (data) {
+                    $('#promoCodeTypeBMonitorTableSpin').hide();
+                    console.log('getPromoCodesTypeBMonitor', data);
+                    vm.promoCodeTypeBMonitor.totalCount = data.data.data.length;
+                    vm.promoCodeTypeBMonitor.totalPlayer = data.data.totalPlayer;
+                    $scope.safeApply();
+                    vm.drawPromoCodeTypeBMonitorTable(data.data.data.map(
+                        item => {
+                            item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                            return item;
+                        }
+                    ), data.data.data.length, {}, isNewSearch);
+                }, function (err) {
+                    console.error(err);
+                }, true);
+
+            };
+
             vm.getPromoCodeMonitor = function (isNewSearch) {
                 vm.promoCodeMonitor.platformId = vm.selectedPlatform.id;
                 $('#promoCodeMonitorTableSpin').show();
@@ -25483,8 +25615,9 @@ define(['js/app'], function (myApp) {
                 let sendObj = {
                     startAcceptedTime: vm.promoCodeMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
-                    promoCodeType3Name: vm.promoCodeMonitor.promoCodeType3Name || '',
+                    promoCodeTypeName: vm.promoCodeMonitor.promoCodeTypeName || '',
                     platformObjId: vm.promoCodeMonitor.platformId,
+                    isTypeCPromo: true,
                     index: vm.promoCodeMonitor.index || 0,
                     limit: vm.promoCodeMonitor.limit || 10,
                     sortCol: vm.promoCodeMonitor.sortCol
