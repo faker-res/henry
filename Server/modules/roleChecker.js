@@ -651,7 +651,8 @@ var roleChecker = {
                 ACTIONLOG_REPORT: ['getActionLogPageReport'],
                 ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
                 LIMITED_OFFER_REPORT: ['getLimitedOfferReport'],
-                WECHAT_GROUP_REPORT:['getWechatControlSession']
+                WECHAT_GROUP_REPORT:['getWechatControlSession'],
+                PROVIDER_CONSUMPTION_REPORT:['getProviderConsumptionReport']
             },
             Proposal: {
                 "Force Pairing": ['forcePairingWithReferenceNumber']

@@ -2971,6 +2971,87 @@ define(['js/app'], function (myApp) {
             }
         }
 
+        vm.searchProviderConsumptionReport = function(newSearch, isExport) {
+            $('#providerConsumptionReportTableSpin').show();
+
+            let sendObj = {
+                query: {
+                    creditibilityRemarkList: vm.providerConsumptionQuery.credibility,
+                    startTime: vm.providerConsumptionQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.providerConsumptionQuery.endTime.data('datetimepicker').getLocalDate(),
+                    platformIds: vm.providerConsumptionQuery.platform
+                },
+                index: isExport? 0: (newSearch ? 0 : (vm.providerConsumptionQuery.index || 0)),
+                limit: isExport? 5000: vm.providerConsumptionQuery.limit || 10,
+                sortCol: vm.providerConsumptionQuery.sortCol || {createTime: -1}
+            };
+
+            vm.reportSearchTimeStart = new Date().getTime();
+            socketService.$socket($scope.AppSocket, 'getProviderConsumptionReport', sendObj, function (data) {
+                $('#providerConsumptionReportTableSpin').hide();
+                findReportSearchTime();
+                vm.providerConsumptionQuery.totalCount = data.data.size || 0;
+                vm.drawProviderConsumptionReport(data.data.data, data.data.size, {}, newSearch, isExport);
+
+                $scope.$evalAsync();
+            }, function (err) {
+                $('#providerConsumptionReportTableSpin').hide();
+                console.log(err);
+            }, true);
+        };
+
+        vm.drawProviderConsumptionReport = function (data, size, summary, newSearch, isExport) {
+            let columns = [{title: "", data: "credibilityRemark"}];
+
+            //create table columns
+            if(vm.allProviders && vm.allProviders.length > 0){
+                vm.allProviders.forEach(
+                    provider => {
+                        if(provider && provider.name){
+                            columns.push(
+                                {
+                                    title: $translate(provider.name),
+                                    data: provider.name,
+                                    render: function (data, type, row) {
+                                        return typeof data != "undefined" ? data : 0;
+                                    }
+                                }
+                            );
+                        }
+                    }
+                );
+            }
+
+            var tableOptions = {
+                data: data,
+                "order": vm.providerConsumptionQuery.aaSorting ,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: columns,
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                },
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            if(isExport){
+                var proposalTbl = utilService.createDatatableWithFooter('#providerConsumptionReportExcelTable', tableOptions, {});
+                $('#providerConsumptionReportExcelTable_wrapper').hide();
+                vm.exportToExcel("providerConsumptionReportExcelTable", "PROVIDER_CONSUMPTION_REPORT");
+            }else {
+                utilService.createDatatableWithFooter('#providerConsumptionReportTable', tableOptions, {});
+                vm.providerConsumptionQuery.pageObj.init({maxCount: size}, newSearch);
+
+                $('#providerConsumptionReportTable').off('order.dt');
+                $('#providerConsumptionReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'providerConsumptionQuery', vm.searchWechatControlSession);
+                });
+                $('#providerConsumptionReportTable').resize();
+            }
+        }
+
         vm.getLimitedOfferReport = function (newSearch) {
             vm.reportSearchTimeStart = new Date().getTime();
             $('#limitedOfferTableSpin').show();
@@ -9870,6 +9951,18 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.changePlayerCredibility = function () {
+                if(vm.providerConsumptionQuery.platform){
+                    socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.providerConsumptionQuery.platform}, function (data) {
+                        $scope.$evalAsync(() => {
+                            if(data && data.data){
+                                vm.playerCredibilityRemark =  data.data;
+                            }
+                        });
+                    });
+                }
+            };
+
             function createMerGroupList(nameObj, listObj) {
                 if (!nameObj || !listObj) return [];
                 let obj = [];
@@ -10145,6 +10238,16 @@ define(['js/app'], function (myApp) {
                     });
                 });
                 $scope.safeApply();
+            } else if (choice == "PROVIDER_CONSUMPTION_REPORT"){
+                vm.providerConsumptionQuery = {};
+                vm.reportSearchTime = 0;
+                utilService.actionAfterLoaded("#providerConsumptionReportTablePage", function () {
+                    vm.commonInitTime(vm.providerConsumptionQuery, '#providerConsumptionQuery');
+                    vm.providerConsumptionQuery.pageObj = utilService.createPageForPagingTable("#providerConsumptionReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "providerConsumptionQuery", vm.searchProviderConsumptionReport)
+                    });
+                });
+                $scope.$evalAsync();
             } else if (choice == "LIMITED_OFFER_REPORT") {
                 vm.limitedOfferQuery = {};
                 vm.limitedOfferDetail = {};
