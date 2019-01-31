@@ -22662,10 +22662,14 @@ let dbPlayerInfo = {
                 )
 
             } else if (topUpSystemName === 'PMS2') {
+                let data = {
+                    requests: sendObjArr
+                };
+
                 let options = {
-                    method: 'PATCH',
+                    method: 'POST',
                     uri: extConfig[topUpSystemType].batchTopUpStatusAPIAddr,
-                    body: sendObjArr,
+                    body: data,
                     json: true
                 };
 
@@ -22708,6 +22712,8 @@ let dbPlayerInfo = {
                         )
 
                     } else if (topUpSystemName === 'PMS2') {
+                        sendObj.timestamp = Date.now();
+
                         let options = {
                             method: 'PATCH',
                             uri: extConfig[topUpSystemType].topUpStatusAPIAddr,
@@ -22761,7 +22767,6 @@ function getPlayerTopupChannelPermissionRequestData (player, platformId, updateO
             retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
             retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
             retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
-            retObj.timestamp = Date.now();
             if (updateRemark) {
                 retObj.remark = updateRemark;
             }
