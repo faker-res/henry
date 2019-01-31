@@ -16977,7 +16977,7 @@ let dbPlayerInfo = {
                                             playerData = playerIdObjs;
                                             return playerIdObj._id;
                                         }),
-                                        isPromoteWay: true,
+                                        // isPromoteWay: true,
                                         option: {
                                             isDepositReport: true
                                         }
@@ -17390,7 +17390,7 @@ let dbPlayerInfo = {
                             {
                                 stream: stream,
                                 // batchSize: constSystemParam.BATCH_SIZE,
-                                batchSize: 5,
+                                batchSize: 100,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platformObjId,
@@ -17401,7 +17401,7 @@ let dbPlayerInfo = {
                                             playerData = playerIdObjs;
                                             return playerIdObj._id;
                                         }),
-                                        isPromoteWay: true,
+                                        // isPromoteWay: true,
                                         option: {
                                             isDepositReport: true
                                         }
