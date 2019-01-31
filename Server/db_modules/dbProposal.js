@@ -43,6 +43,7 @@ const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalUserType = require('./../const/constProposalUserType');
 const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbGameProvider = require('./../db_modules/dbGameProvider');
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -7649,6 +7650,7 @@ var proposal = {
         let endDate = new Date(query.endTime);
         let credibilityRemarkProm;
         let totalCredibilityRemarkProm;
+        let finalResult;
 
         if(query.creditibilityRemarkList && query.creditibilityRemarkList.length > 0) {
             totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).count();
@@ -7683,6 +7685,16 @@ var proposal = {
                         return {data: consumptionSummary, size: totalSize};
                     }
                 );
+            }
+        ).then(
+            result => {
+                finalResult = result;
+                let providerList = [];
+                return dbGameProvider.getGameProviderByPlatformList(query.platformIds);
+            }
+        ).then(
+            gameProviderDetail => {
+                return Object.assign(finalResult, {gameProviderDetail: gameProviderDetail});
             }
         );
     },
@@ -7732,14 +7744,18 @@ var proposal = {
         ).then(
             providerDetails => {
                 let returnedObj = {credibilityRemark: credibilityRemarkName};
-
+                let totalValidConsumptionByCredibilityRemark = 0;
                 if(providerDetails && providerDetails.length > 0){
                     providerDetails.forEach(
                         provider => {
+                            let objectKey = Object.keys(provider)[0];
+                            totalValidConsumptionByCredibilityRemark += parseFloat(provider[objectKey]);
                             returnedObj = Object.assign(returnedObj, provider);
                         }
                     )
                 }
+
+                returnedObj = Object.assign(returnedObj, {totalValidConsumption: totalValidConsumptionByCredibilityRemark});
 
                 return returnedObj;
             }
