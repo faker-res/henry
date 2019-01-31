@@ -2055,6 +2055,32 @@
                 #wechatGroupReportTablePage
                 table#wechatGroupReportExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
 
+        div(ng-if='vm.showPageName == "PROVIDER_CONSUMPTION_REPORT"')
+            #providerConsumptionQuery.col-md-12.well
+                .search-filters-item
+                    label.control-label  {{'PRODUCT' | translate}}
+                    select.form-control.spicker(ng-model='vm.providerConsumptionQuery.platform', ng-options="a._id as a.name  for a in vm.platformList", ng-change="vm.changePlayerCredibility()", multiple, bsp, data-actions-box='true')
+                .search-filters-item
+                    label.control-label  {{'CREDIBILITY' | translate}}
+                    select.form-control.spicker(ng-model='vm.providerConsumptionQuery.credibility', ng-options="a._id as a.name  for a in vm.playerCredibilityRemark", multiple, bsp, data-actions-box='true')
+                .search-filters-item
+                    label {{"Start date"|translate}}
+                    .startTime
+                .search-filters-item
+                    label {{"End date"|translate}}
+                    .endTime
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchProviderConsumptionReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.btn-space(ng-click='vm.loadPage("PROVIDER_CONSUMPTION_REPORT")') {{'Reset' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchProviderConsumptionReport(true, true)') {{'EXPORT_EXCEL' | translate}}
+                    span#providerConsumptionReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+                label {{"Total" | translate}} {{vm.providerConsumptionQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+                table#providerConsumptionReportTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                #providerConsumptionReportTablePage
+                table#providerConsumptionReportExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+
 #modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content

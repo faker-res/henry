@@ -22599,58 +22599,89 @@ let dbPlayerInfo = {
         )
     },
 
-    updatePMSPlayerTopupChannelPermission: (platformId, playerObjArr) => {
+    updatePMSPlayerTopupChannelPermission: (platformId, playerObjArr, topUpSystemType) => {
         let sendObjArr = [];
+        let topUpSystemConfig;
+        let topUpSystemName = 'PMS';
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        if ((topUpSystemConfig && topUpSystemConfig.name === 'PMS') || !topUpSystemConfig) {
+            topUpSystemName = topUpSystemConfig && topUpSystemConfig.name ? topUpSystemConfig.name : 'PMS';
+        } else if (topUpSystemConfig && topUpSystemConfig.name === 'PMS2') {
+            topUpSystemName = topUpSystemConfig.name;
+        }
 
         playerObjArr.forEach(playerData => {
             let sendObj = getPlayerTopupChannelPermission(playerData);
 
-            if (
-                sendObj
-                && (
-                    sendObj.manualRechargeMethod === 1
-                    || sendObj.onlineRechargeMethod === 1
-                    || sendObj.alipayRechargeMethod === 1
-                    || sendObj.wechatRechargeMethod === 1
-                )
-            ) {
-                sendObjArr.push(sendObj);
+            if (topUpSystemName === 'PMS') {
+                if (
+                    sendObj
+                    && (
+                        sendObj.manualRechargeMethod === 1
+                        || sendObj.onlineRechargeMethod === 1
+                        || sendObj.alipayRechargeMethod === 1
+                        || sendObj.wechatRechargeMethod === 1
+                    )
+                ) {
+                    sendObjArr.push(sendObj);
+                }
+            } else if (topUpSystemName === 'PMS2') {
+                if (
+                    sendObj
+                    && (
+                        sendObj.topupManual === 0
+                        || sendObj.topupOnline === 0
+                        || sendObj.alipay === 0
+                        || sendObj.wechatpay === 0
+                    )
+                ) {
+                    sendObjArr.push(sendObj);
+                }
             }
+
         });
 
         if (sendObjArr.length) {
-            return pmsAPI.foundation_userDepositSettings(
-                {
-                    queryId: +new Date() + serverInstance.getQueryId(),
-                    data: sendObjArr
-                }
-            ).then(
-                updateStatus => {
-                    console.log('foundation_userDepositSettings success', updateStatus);
-                    return updateStatus;
-                },
-                error => {
-                    console.log('foundation_userDepositSettings failed', error);
-                    throw error;
-                }
-            )
+            if (topUpSystemName === 'PMS') {
+                return pmsAPI.foundation_userDepositSettings(
+                    {
+                        queryId: +new Date() + serverInstance.getQueryId(),
+                        data: sendObjArr
+                    }
+                ).then(
+                    updateStatus => {
+                        console.log('foundation_userDepositSettings success', updateStatus);
+                        return updateStatus;
+                    },
+                    error => {
+                        console.log('foundation_userDepositSettings failed', error);
+                        throw error;
+                    }
+                )
+
+            } else if (topUpSystemName === 'PMS2') {
+                let options = {
+                    method: 'PATCH',
+                    uri: extConfig[topUpSystemType].batchTopUpStatusAPIAddr,
+                    body: sendObjArr,
+                    json: true
+                };
+
+                return rp(options)
+                    .then(function (updateStatus) {
+                        console.log('batch playerDepositStatus success', updateStatus);
+                        return updateStatus;
+                    }, error => {
+                        console.log('batch playerDepositStatus failed', error);
+                        throw error;
+                    })
+            }
         }
 
         function getPlayerTopupChannelPermission (player) {
-            let retObj = {};
-
-            if (player && player.permission) {
-                retObj = {
-                    username: player.name,
-                    platformId: platformId,
-                    manualRechargeMethod: player.permission.topupManual ? 0 : 1,
-                    onlineRechargeMethod: player.permission.topupOnline ? 0 : 1,
-                    alipayRechargeMethod: player.permission.alipayTransaction ? 0 : 1,
-                    wechatRechargeMethod: player.permission.disableWechatPay ? 1 : 0,
-                }
-            }
-
-            return retObj;
+            return getPlayerTopupChannelPermissionRequestData(player, platformId, null, null, topUpSystemName)
         }
     },
 
@@ -22731,7 +22762,9 @@ function getPlayerTopupChannelPermissionRequestData (player, platformId, updateO
             retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
             retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
             retObj.timestamp = Date.now();
-            retObj.remark = updateRemark;
+            if (updateRemark) {
+                retObj.remark = updateRemark;
+            }
 
         }
     }
