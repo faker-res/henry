@@ -24306,7 +24306,19 @@ define(['js/app'], function (myApp) {
                             }
                         });
 
-                        vm.promoCodeTypeB = vm.promoCodeType1.concat(vm.promoCodeType2);
+                        vm.promoCodeTypeB = JSON.parse(JSON.stringify(vm.promoCodeType1.concat(vm.promoCodeType2)));
+                        if (vm.promoCodeTypeB && vm.promoCodeTypeB.length) {
+                            vm.promoCodeTypeB.forEach(item=> {
+                                if (item.type) {
+                                    if (item.type == 1) {
+                                        item.groupName = $translate("DEPOSIT_REQUIRED");
+                                    } else if (item.type == 2) {
+                                        item.groupName = $translate("NO_DEPOSIT_REQUIRED");
+                                    }
+
+                                }
+                            })
+                        }
                     })
 
 
