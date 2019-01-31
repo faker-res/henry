@@ -1711,3 +1711,21 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                 button.btn.common-button.btn-primary(data-dismiss='modal' ng-click="vm.bulkSMSToFailCallee()", ng-disabled="!vm.smsPlayer.message || !vm.smsPlayer.channel") {{"SEND" | translate}}
                 button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
 
+#modalRegisteredPlayerList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%; top: 20vh;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"TS_REGISTERED_PLAYER_LIST" | translate}}
+            .modal-body
+                table#registeredPlayerListTbl.noWrap.text-center.display(style='width:100%')
+                    thead
+                        tr
+                            th {{'PLAYER_NAME' | translate}}
+                            th {{'REGISTERED_TIME' | translate}}
+                            th {{'Create Account Cs Name' | translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.registeredPlayerList')
+                            td {{v.name}}
+                            td {{v.registrationTime$}}
+                            td {{v.csOfficer && v.csOfficer.adminName || ''}}
