@@ -639,6 +639,13 @@ function socketActionReport(socketIO, socket) {
 
             socketUtil.emitter(self.socket, dbProposal.getFinancialReportBySum, [data], actionName, isValidData);
         },
+
+        getProviderConsumptionReport: function getProviderConsumptionReport(data){
+            var actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query);
+
+            socketUtil.emitter(self.socket, dbProposal.getProviderConsumptionReport, [data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        }
     };
     socketActionReport.actions = this.actions;
 };

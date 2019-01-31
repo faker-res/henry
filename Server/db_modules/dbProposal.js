@@ -7638,7 +7638,126 @@ var proposal = {
                 console.log("rejectPendingProposalIfAvailable error", err);
             }
         );
-    }
+    },
+
+    getProviderConsumptionReport: function(query, index, limit, sortCol){
+        limit = limit ? limit : 20;
+        index = index ? index : 0;
+        query = query ? query : {};
+
+        let startDate = new Date(query.startTime);
+        let endDate = new Date(query.endTime);
+        let credibilityRemarkProm;
+        let totalCredibilityRemarkProm;
+
+        if(query.creditibilityRemarkList && query.creditibilityRemarkList.length > 0) {
+            totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).count();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+        }else if(query.platformIds && query.platformIds.length > 0){
+            totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: query.platformIds}}, {_id: 1, name: 1}).count();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: query.platformIds}}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+        }else{
+            totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({}, {_id: 1, name: 1}).count();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+        }
+
+        return credibilityRemarkProm.then(
+            credibilityRemarkList => {
+                let consumptionSummaryProm = [];
+                if(credibilityRemarkList && credibilityRemarkList.length > 0){
+                    credibilityRemarkList.forEach(
+                        credibilityRemark => {
+                            if(credibilityRemark){
+                                consumptionSummaryProm.push(proposal.calculateTotalValidConsumptionByProvider(credibilityRemark._id, credibilityRemark.name, startDate, endDate));
+                            }
+                        }
+                    )
+                }
+
+                return Promise.all(consumptionSummaryProm);
+            }
+        ).then(
+            consumptionSummary => {
+                return totalCredibilityRemarkProm.then(
+                    totalSize => {
+                        return {data: consumptionSummary, size: totalSize};
+                    }
+                );
+            }
+        );
+    },
+
+    calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, startDate, endDate){
+        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).then(
+            playerList => {
+                if(playerList && playerList.length > 0){
+                    let playerObjIds = playerList.map(playerIdObj => ObjectId(playerIdObj._id));
+                    let query = {
+                        createTime: {
+                            $gte: startDate,
+                            $lt: endDate
+                        },
+                        playerId: {$in: playerObjIds}
+                    };
+
+                    return dbconfig.collection_playerConsumptionRecord.aggregate(
+                        {
+                            $match: query
+                        },
+                        {
+                            $group: {
+                                _id: "$providerId",
+                                totalValidConsumption: {"$sum": "$validAmount"}
+                            }
+                        }
+                    ).read("secondaryPreferred");
+                }
+            }
+        ).then(
+            playerConsumptionSummary => {
+                let providerProm = [];
+                if(playerConsumptionSummary && playerConsumptionSummary.length > 0){
+
+                    playerConsumptionSummary.forEach(
+                        playerConsumption => {
+                            if(playerConsumption && playerConsumption._id){
+                                providerProm.push(proposal.getProviderName(playerConsumption._id, playerConsumption.totalValidConsumption));
+                            }
+                        }
+                    )
+                }
+
+                return Promise.all(providerProm);
+            }
+        ).then(
+            providerDetails => {
+                let returnedObj = {credibilityRemark: credibilityRemarkName};
+
+                if(providerDetails && providerDetails.length > 0){
+                    providerDetails.forEach(
+                        provider => {
+                            returnedObj = Object.assign(returnedObj, provider);
+                        }
+                    )
+                }
+
+                return returnedObj;
+            }
+        );
+    },
+
+    getProviderName: function(providerObjId, totalValidConsumption){
+        return dbconfig.collection_gameProvider.findOne({_id: providerObjId}, {name: 1}).then(
+            providerDetail => {
+                if(providerDetail && providerDetail.name){
+                    let returnedObj = {};
+                    returnedObj[providerDetail.name] = totalValidConsumption;
+
+                    return returnedObj;
+                }
+            }
+        );
+    },
 
 };
 

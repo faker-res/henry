@@ -5262,5 +5262,6 @@
   "DEPOSIT_TOPUP_CHOOSE_ONE": "存款（下列则一）",
   "DEPOSIT_BONUS_CHOOSE_ONE": "取款（下列则一）",
   "PLAYERS_IN_TOTAL": "位玩家",
-  "topUpSystemName": "财务（结算）系统"
+  "topUpSystemName": "财务（结算）系统",
+  "PROVIDER_CONSUMPTION_REPORT": "提供商投注报表"
 }
