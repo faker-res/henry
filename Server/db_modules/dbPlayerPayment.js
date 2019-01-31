@@ -585,6 +585,10 @@ const dbPlayerPayment = {
                     id: playerId
                 };
 
+                if (topupRequest.userAgent) {
+                    proposalData.userAgent = dbUtil.retrieveAgent(topupRequest.userAgent);
+                }
+
                 if (topUpSystemConfig && topUpSystemConfig.name === '快付收银台') {
                     proposalData.bankCode = topupRequest.bankCode || 'CASHIER';
 
