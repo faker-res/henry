@@ -2991,7 +2991,7 @@ define(['js/app'], function (myApp) {
                 $('#providerConsumptionReportTableSpin').hide();
                 findReportSearchTime();
                 vm.providerConsumptionQuery.totalCount = data.data.size || 0;
-                vm.drawProviderConsumptionReport(data.data.data, data.data.size, {}, newSearch, isExport);
+                vm.drawProviderConsumptionReport(data.data.data, data.data.size, {}, newSearch, isExport, data.data.gameProviderDetail);
 
                 $scope.$evalAsync();
             }, function (err) {
@@ -3000,17 +3000,17 @@ define(['js/app'], function (myApp) {
             }, true);
         };
 
-        vm.drawProviderConsumptionReport = function (data, size, summary, newSearch, isExport) {
+        vm.drawProviderConsumptionReport = function (data, size, summary, newSearch, isExport, providerList) {
             let columns = [{title: "", data: "credibilityRemark"}];
 
             //create table columns
-            if(vm.allProviders && vm.allProviders.length > 0){
-                vm.allProviders.forEach(
+            if(providerList && providerList.length > 0){
+                providerList.forEach(
                     provider => {
                         if(provider && provider.name){
                             columns.push(
                                 {
-                                    title: $translate(provider.name),
+                                    title: "<div style='word-wrap:break-word;'>" + $translate(provider.name) + "</div>",
                                     data: provider.name,
                                     render: function (data, type, row) {
                                         return typeof data != "undefined" ? data : 0;
@@ -3021,6 +3021,14 @@ define(['js/app'], function (myApp) {
                     }
                 );
             }
+
+            columns.push(                                {
+                title: $translate("Total"),
+                data: "totalValidConsumption",
+                render: function (data, type, row) {
+                    return typeof data != "undefined" ? data : 0;
+                }
+            });
 
             var tableOptions = {
                 data: data,
