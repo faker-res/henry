@@ -553,6 +553,7 @@ var roleChecker = {
                 createPromoCode: ['generatePromoCode', 'checkPlayerHasPromoCode'],
                 promoCodeHistory: ['getPromoCodesHistory'],
                 sendSMS: [],
+                monitorTypeB: [],
                 monitor: [],
                 smsContentConfig: [],
                 userGroupConfig: [],

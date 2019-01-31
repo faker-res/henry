@@ -263,7 +263,7 @@ let dbCtiCallOut = {
                         case -2:
                             return Promise.reject({message: "token错误"});
                         case -3:
-                            return Promise.reject({message: "CTI任务不存在"});
+                            return Promise.reject({message: "CTI任务不存在【请再搜索一次看看是否能找到】"});
                         case -4:
                             return Promise.reject({message: "CTI系统错误"});
                         default:
