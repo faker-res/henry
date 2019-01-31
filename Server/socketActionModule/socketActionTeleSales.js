@@ -313,6 +313,11 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getTsPhoneCountDetail, [data.tsPhoneListObjId], actionName, isValidData);
         },
 
+        getRegisteredPlayerFromPhoneList: function getRegisteredPlayerFromPhoneList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.tsPhoneListObjId);
+            socketUtil.emitter(self.socket, dbTeleSales.getRegisteredPlayerFromPhoneList, [data.tsPhoneListObjId], actionName, isValidData);
+        },
     };
     socketActionTeleSales.actions = this.actions;
 }
