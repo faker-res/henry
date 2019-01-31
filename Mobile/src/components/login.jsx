@@ -1,15 +1,26 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { ServerResponse } from 'http';
+// import { ServerResponse } from 'http';
 import $ from 'jquery';
+import WSCONFIG from '../wsconfig.js';
 
 class Login extends Component {
-    state = {
-        isFocus: false
-    };
     constructor(props){
-        super(props)
+        super(props);
+        // let servers = {
+        //     "Fastest Server": {}
+        // }
+        
+        this.state = {
+            isFocus: false,
+            fastestServer: '',
+            fastestServerUrl: '',
+            lowestLatency: 9999,
+            servers: WSCONFIG,
+            selectedServer: 'Fastest Server'
+        };
         this.inputRef = React.createRef();
+        this.pingAllServers();
     }
 
     handleFocus = () => {
@@ -21,22 +32,67 @@ class Login extends Component {
     }
 
     handleChange = (ev, key) => {
-        // this.setState({selectValue:e.target.value});
-        console.log(ev.currentTarget.value);
-        console.log(key);
+        console.log("***change happened , triggered***");
         let setObject = {};
         setObject[key] = ev.currentTarget.value;
         this.setState(setObject);
     }
 
+    pingAllServers = () =>{
+        console.log("pingAllServers");
+        let servers = this.state.servers;
+        for(let server in servers) {
+            if (server === 'Default') {
+                this.pingHTTPServer(servers[server].MANAGEMENT_SERVER_URL, server);
+            } else {
+                this.pingHTTPServer(servers[server].socketURL, server);
+            }
+        }
+    }
+    
+    pingHTTPServer= (serverURL, server) =>{
+        if(serverURL) {
+            let WSCONFIG = this.state.servers;
+            let sendTime, receiveTime, latency;
+            let self = this;
+
+            if (!serverURL.startsWith("http")) {
+                serverURL = "http://" + serverURL;
+            }
+
+            $.ajax({
+                type: "HEAD",
+                url: serverURL,
+                timeout: 30000,
+                beforeSend: () => {
+                    sendTime = (new Date()).getTime();
+                },
+                success: function () {
+                    receiveTime = (new Date()).getTime();
+                    latency = receiveTime - sendTime;
+                    WSCONFIG[server].latency = latency;
+                    if (server !== 'cstest' && (latency < self.state.lowestLatency)) {
+                        self.state.lowestLatency = latency;
+                        self.state.fastestServer = server;
+                        self.state.fastestServerUrl = serverURL;
+                    }
+                    WSCONFIG[server].isAvailable = true;
+                    console.log(server,": ",latency,"ms  -->   ", serverURL);
+                },
+                error: function (data) {
+                    WSCONFIG[server].isAvailable = false;
+                }
+            });
+        }
+    }
+    
     populateServerWithLatency = ()=>{
-        let servers = this.props.servers;
-        // let list = [<option key={server} value={servers[server].socketURL} disabled> {server + ": " + "ms" }</option>];
+        let servers = this.state.servers;
         let list = []
         for(let server in servers) {
             if(servers.hasOwnProperty(server)) {
                 if(isNaN(parseInt(servers[server].latency))) {
-                    list.push(<option key={server} value={servers[server].socketURL} disabled> {server + ": " + "ms" }</option>)
+                    list.push(<option key={server} value={servers[server].socketURL} disabled> {`$server : ms`}</option>)
                 } else {
                     list.push(<option key={server} value={servers[server].socketURL}> {server + ": " + servers[server].latency + "ms" }</option>)
                 }
@@ -46,24 +102,26 @@ class Login extends Component {
     }
 
     login() {
-        console.log("connecting...");
-        console.log($('#mgntServer').value+'/login');
-        console.log(this.state.selectedServer+'/login');
-        $.ajax({
+        console.log("login...");
+        let url = this.state.selectedServer === "Fastest Server" ? this.state.fastestServerUrl : this.state.selectedServer;
+        let sendData = {
             type: 'post',
             data: {
                 username: this.state.username,
                 password: this.state.password
             },
-            url: this.state.selectedServer + '/login',
+            url: url + '/login',
             timeout: 5000
-        }).done(data => {
+        }
+        console.log("Login --> Send Data", sendData);
+        $.ajax(sendData).done(data => {
             console.log("success!");
             console.log(data);
         })
     }
     
     render() { 
+        console.log("Rendering...");
         return (
             <div className="container centerMenu">
                 <div className="card">
@@ -82,7 +140,8 @@ class Login extends Component {
                     </div>
 
                     <div className="login-group">
-                        <select onFocus={this.handleFocus} onBlur={this.handleBlur} className="login-control" id="mgntServer" onChange={(e)=>{this.handleChange(e,'selectedServer')}}>
+                        <select onFocus={this.handleFocus} onBlur={this.handleBlur} className="login-control" id="mgntServer" value={this.state.selectedServer} onChange={(e)=>{this.handleChange(e,'selectedServer')}}>
+                            <option key="Fastest Server" value="Fastest Server">Fastest Server</option>
                             {this.populateServerWithLatency()}
                         </select>
                         <label htmlFor="mgntServer">Select Server</label><FontAwesomeIcon className={this.getfocusClasses()} icon="angle-down" />
@@ -108,7 +167,7 @@ class Login extends Component {
 
     getfocusClasses() {
         let classes = "icon ";
-        classes += this.state.isFocus == true ? "focusClass" : "";
+        classes += this.state.isFocus === true ? "focusClass" : "";
         return classes;
       }
       
