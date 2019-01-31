@@ -1842,6 +1842,7 @@ var dbPlayerTopUpRecord = {
                 //     proposalData.topUpReturnCode = rewardEvent.code;
                 // }
 
+                console.log("checking proposalData.userAgent for ANALYSIS_REPORT_ISSUE",  proposalData.userAgent)
                 if (player.platform.topUpSystemType && topUpSystemConfig) {
                     proposalData.topUpSystemType = player.platform.topUpSystemType;
                     proposalData.topUpSystemName = topUpSystemConfig.name;

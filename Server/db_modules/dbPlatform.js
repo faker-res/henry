@@ -5804,6 +5804,7 @@ var dbPlatform = {
             }
         ).then(
             paymentSystemConfig => {
+
                 if (paymentSystemConfig && paymentSystemConfig.length > 0) {
                     let indexNo = paymentSystemConfig.findIndex(x => x && x.name && x.name === 'PMS');
 
@@ -5824,6 +5825,8 @@ var dbPlatform = {
                                         paymentSystemConfig[indexNo].curFinancialSettlementPoint = curFinancialSettlementPoint;
                                     }
 
+                                    return paymentSystemConfig;
+                                } else {
                                     return paymentSystemConfig;
                                 }
                             }
