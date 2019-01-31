@@ -102,7 +102,7 @@
                                     span {{ detail.amount || 0 }}
                             tr
                                 td(style="min-width:230px; height:50px;color:red; border-left:none; border-bottom:none" ng-repeat="sum in topUp.totalAmountList | orderBy: 'platformId'")
-                                    span {{ sum.totalAmount || 0 }}
+                                    span {{ $fixTwoDecimalStr(sum.totalAmount) || 0 }}
 
                 tr.no-border(ng-repeat="bonus in vm.sumFinancialReportList.bonusList" style="padding:0 !important;")
                     td(style="min-width:230px") {{'All Withdrawal' | translate}}
