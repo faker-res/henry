@@ -7710,7 +7710,7 @@ var proposal = {
                                 totalValidConsumption: {"$sum": "$validAmount"}
                             }
                         }
-                    );
+                    ).read("secondaryPreferred");
                 }
             }
         ).then(
