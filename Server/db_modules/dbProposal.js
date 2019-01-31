@@ -558,6 +558,7 @@ var proposal = {
                                 && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
                                 && data[0].name != constProposalType.PLAYER_LEVEL_UP
                                 && data[0].name != constProposalType.BULK_EXPORT_PLAYERS_DATA
+                                && data[0].name != constProposalType.PLAYER_FKP_TOP_UP
                                 && data[0].name !== constProposalType.PLAYER_COMMON_TOP_UP
                                 && data[0].name !== constProposalType.AUCTION_PROMO_CODE // player can bid other product has the same proposal type
                                 && data[0].name !== constProposalType.AUCTION_OPEN_PROMO_CODE
