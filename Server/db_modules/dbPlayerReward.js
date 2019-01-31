@@ -3828,6 +3828,7 @@ let dbPlayerReward = {
             proposalTypeData => {
                 // determine applyAmount
                 let applyAmt = topUpProp && topUpAmount ? topUpAmount : 0;
+                let topUpAmt = applyAmt; // for promocode type 1 and 2
 
                 if (promoCodeObj.promoCodeTypeObjId.type === 1) { applyAmt = 0 }
 
@@ -3865,6 +3866,10 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS
                 };
                 proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
+
+                if (promoCodeObj && promoCodeObj.promoCodeTypeObjId && promoCodeObj.promoCodeTypeObjId.type !== 3) {
+                    proposalData.data.topUpAmount = promoCodeObj.promoCodeTypeObjId.type === 1 && topUpAmt? topUpAmt : 0
+                }
 
                 if (promoCodeObj.allowedProviders) {
                     if (promoCodeObj.isProviderGroup) {
@@ -4246,7 +4251,7 @@ let dbPlayerReward = {
         })
     },
 
-    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeType3Name, index, limit) => {
+    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeTypeName, isTypeCPromo, index, limit) => {
         index = index || 0;
         limit = limit || 10;
         let monitorObjs;
@@ -4254,12 +4259,11 @@ let dbPlayerReward = {
             'data.platformId': platformObjId,
             settleTime: {$gte: startAcceptedTime, $lt: endAcceptedTime},
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            // We only want type 3 promo code
-            "data.promoCodeTypeValue": 3
+            "data.promoCodeTypeValue": isTypeCPromo? 3: {$ne: 3}
         };
 
-        if (promoCodeType3Name) {
-            promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeType3Name
+        if (promoCodeTypeName) {
+            promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeTypeName;
         }
 
         return dbConfig.collection_proposalType.findOne({
@@ -4282,7 +4286,7 @@ let dbPlayerReward = {
                         platformObjId: p.data.platformId,
                         playerObjId: p.data.playerObjId,
                         playerName: p.data.playerName,
-                        topUpAmount: p.data.applyAmount,
+                        topUpAmount: isTypeCPromo? p.data.applyAmount: p.data.topUpAmount || 0,
                         rewardAmount: p.data.rewardAmount,
                         promoCodeType: p.data.PROMO_CODE_TYPE,
                         spendingAmount: p.data.spendingAmount,
@@ -4360,7 +4364,11 @@ let dbPlayerReward = {
                         playerArr.push(item.playerName);
                     }
                 })
-                return {totalPlayer: playerArr.length, data: monitorObjs.splice(beginIndex, limit)};
+                return {
+                    totalCount: monitorObjs && monitorObjs.length || 0,
+                    totalPlayer: playerArr.length,
+                    data: monitorObjs.splice(beginIndex, limit)
+                };
             }
         )
     },
