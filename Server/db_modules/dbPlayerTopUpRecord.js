@@ -1652,8 +1652,6 @@ var dbPlayerTopUpRecord = {
         let serviceChargeRate = 0;
         let topUpSystemConfig;
 
-        console.log("checking userAgentStr for ANALYSIS_REPORT_ISSUE", userAgentStr)
-
         if (topupRequest.bonusCode && topUpReturnCode) {
             return Q.reject({
                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -1818,11 +1816,9 @@ var dbPlayerTopUpRecord = {
                     }
                 }
 
-                console.log("checking userAgent before for ANALYSIS_REPORT_ISSUE", userAgent)
                 if (userAgent) {
                     userAgent = dbUtility.retrieveAgent(userAgent);
                 }
-                console.log("checking userAgent after for ANALYSIS_REPORT_ISSUE", userAgent)
 
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;

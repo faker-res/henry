@@ -7046,13 +7046,24 @@ var proposal = {
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                 let proms = [];
+                let inputDeviceArr;
                 let merchantData;
                 // loop for userAgent
                 for(let i =1; i<=3; i++) {
+                    if (i == 2){
+                        inputDeviceArr = [constPlayerRegistrationInterface.APP_PLAYER, constPlayerRegistrationInterface.APP_AGENT]
+                    }
+                    else if (i == 3){
+                        inputDeviceArr = [constPlayerRegistrationInterface.H5_PLAYER, constPlayerRegistrationInterface.H5_AGENT]
+                    }
+                    else{
+                        inputDeviceArr = [constPlayerRegistrationInterface.WEB_AGENT, constPlayerRegistrationInterface.WEB_PLAYER]
+                    }
+
                     let matchObj = {
                         createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                         type: onlineTopupType._id,
-                        "data.userAgent": i,
+                        inputDevice: {$in: inputDeviceArr},
                         $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}/*, {'data.topupType': {$type: 'number'}}*/],
                     };
 
