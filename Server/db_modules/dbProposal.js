@@ -559,6 +559,7 @@ var proposal = {
                                 && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
                                 && data[0].name != constProposalType.PLAYER_LEVEL_UP
                                 && data[0].name != constProposalType.BULK_EXPORT_PLAYERS_DATA
+                                && data[0].name != constProposalType.PLAYER_FKP_TOP_UP
                                 && data[0].name !== constProposalType.PLAYER_COMMON_TOP_UP
                                 && data[0].name !== constProposalType.AUCTION_PROMO_CODE // player can bid other product has the same proposal type
                                 && data[0].name !== constProposalType.AUCTION_OPEN_PROMO_CODE
@@ -1036,6 +1037,13 @@ var proposal = {
 
                             addDetailToProp(updObj.data, 'rate', topupRate);
                             addDetailToProp(updObj.data, 'actualAmountReceived', topupActualAmt);
+
+                            // add alipay "line" fieldName , and remark for "line"
+                            if (propTypeName === constProposalType.PLAYER_ALIPAY_TOP_UP && callbackData.line) {
+                                let remark = getRemark(callbackData.line, callbackData.remark);
+                                addDetailToProp(updObj.data, 'line', callbackData.line);
+                                addDetailToProp(updObj.data, 'remark', remark);
+                            }
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -7047,13 +7055,24 @@ var proposal = {
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                 let proms = [];
+                let inputDeviceArr;
                 let merchantData;
                 // loop for userAgent
                 for(let i =1; i<=3; i++) {
+                    if (i == 2){
+                        inputDeviceArr = [constPlayerRegistrationInterface.APP_PLAYER, constPlayerRegistrationInterface.APP_AGENT]
+                    }
+                    else if (i == 3){
+                        inputDeviceArr = [constPlayerRegistrationInterface.H5_PLAYER, constPlayerRegistrationInterface.H5_AGENT]
+                    }
+                    else{
+                        inputDeviceArr = [constPlayerRegistrationInterface.WEB_AGENT, constPlayerRegistrationInterface.WEB_PLAYER]
+                    }
+
                     let matchObj = {
                         createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                         type: onlineTopupType._id,
-                        "data.userAgent": i,
+                        inputDevice: {$in: inputDeviceArr},
                         $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}/*, {'data.topupType': {$type: 'number'}}*/],
                     };
 
@@ -9801,6 +9820,20 @@ function getWithdrawalSpeed (matchObj, groupTimeDiff, groupObj, nullObj) {
             return nullObj;
         }
     });
+}
+
+function getRemark (lineNo, callbackRemark) {
+    let remark = callbackRemark;
+    let remarkMsg = {
+        '2':[", 线路二：不匹配昵称、支付宝帐号", "线路二：不匹配昵称、支付宝帐号"],
+        '3':[", 网赚", "网赚"]
+    }
+    if (callbackRemark) {
+        remark += (remarkMsg[lineNo] && remarkMsg[lineNo][0]) ? remarkMsg[lineNo][0] : '';
+    } else {
+        remark = (remarkMsg[lineNo] && remarkMsg[lineNo][1] && lineNo!= "1") ? remarkMsg[lineNo][1] : '';
+    }
+    return remark;
 }
 
 var proto = proposalFunc.prototype;

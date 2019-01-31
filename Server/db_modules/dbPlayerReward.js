@@ -4342,7 +4342,7 @@ let dbPlayerReward = {
                                     settleTime: {$gt: elem.nextWithdrawTime},
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                                     mainType: "TopUp",
-                                    'data.promoCode': {$exists: true}
+                                    // 'data.promoCode': {$exists: true}
                                 }).sort({settleTime: 1}).limit(1).lean();
                             }
                         ).then(

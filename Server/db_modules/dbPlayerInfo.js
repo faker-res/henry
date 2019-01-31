@@ -877,6 +877,7 @@ let dbPlayerInfo = {
                                 inputData.csOfficer = ObjectId(tsPhoneFeedbackData.adminId);
                                 if (tsPhoneFeedbackData.tsPhone) {
                                     inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
+                                    inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
                                 }
                             }
                             return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
@@ -16941,7 +16942,7 @@ let dbPlayerInfo = {
                                             playerData = playerIdObjs;
                                             return playerIdObj._id;
                                         }),
-                                        isPromoteWay: true,
+                                        // isPromoteWay: true,
                                         option: {
                                             isDepositReport: true
                                         }
@@ -17354,7 +17355,7 @@ let dbPlayerInfo = {
                             {
                                 stream: stream,
                                 // batchSize: constSystemParam.BATCH_SIZE,
-                                batchSize: 5,
+                                batchSize: 100,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platformObjId,
@@ -17365,7 +17366,7 @@ let dbPlayerInfo = {
                                             playerData = playerIdObjs;
                                             return playerIdObj._id;
                                         }),
-                                        isPromoteWay: true,
+                                        // isPromoteWay: true,
                                         option: {
                                             isDepositReport: true
                                         }
@@ -22662,10 +22663,14 @@ let dbPlayerInfo = {
                 )
 
             } else if (topUpSystemName === 'PMS2') {
+                let data = {
+                    requests: sendObjArr
+                };
+
                 let options = {
-                    method: 'PATCH',
+                    method: 'POST',
                     uri: extConfig[topUpSystemType].batchTopUpStatusAPIAddr,
-                    body: sendObjArr,
+                    body: data,
                     json: true
                 };
 
@@ -22708,6 +22713,8 @@ let dbPlayerInfo = {
                         )
 
                     } else if (topUpSystemName === 'PMS2') {
+                        sendObj.timestamp = Date.now();
+
                         let options = {
                             method: 'PATCH',
                             uri: extConfig[topUpSystemType].topUpStatusAPIAddr,
@@ -22761,7 +22768,6 @@ function getPlayerTopupChannelPermissionRequestData (player, platformId, updateO
             retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
             retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
             retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
-            retObj.timestamp = Date.now();
             if (updateRemark) {
                 retObj.remark = updateRemark;
             }
@@ -24370,7 +24376,7 @@ function checkTelesalesFeedback(phoneNumber, platformObjId) {
             if (tsPhoneData && tsPhoneData.length) {
                 return dbconfig.collection_tsPhoneFeedback.findOne({
                     tsPhone: {$in: tsPhoneData.map(tsPhone => tsPhone._id)}
-                }, {adminId: 1,tsPhone: 1}).sort({createTime: -1}).lean();
+                }, {adminId: 1, tsPhone: 1, tsPhoneList: 1}).sort({createTime: -1}).lean();
             } else {
                 return null;
             }

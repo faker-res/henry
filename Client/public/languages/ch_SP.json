@@ -1478,6 +1478,8 @@
   "PROMO_CODE_TYPE": "优惠類型",
   "PROMO_CODE_SUB_TYPE": "优惠子類型",
   "PROMO_CODE_TYPE_1": "优惠類型-B(需存款)",
+  "DEPOSIT_REQUIRED": "需存款",
+  "NO_DEPOSIT_REQUIRED": "不需存款",
   "PROMO_CODE_TYPE_2": "优惠類型-B(不存款)",
   "PROMO_CODE_TYPE_3": "优惠类型-C",
   "PROMO_REWARD_AMOUNT": "优惠金額(X)",
@@ -4943,6 +4945,7 @@
 
   "Bet result does not satisfy the reward criteria. Please continue to test your luck.": "查询您注单的开奖结果记录不满足条件，请去游戏厅再试试手气吧",
   "Bulk SMS to Failed Callee": "群发短信给拨电失败名单",
+  "TS_REGISTERED_PLAYER_LIST": "已注册玩家名单",
 
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",

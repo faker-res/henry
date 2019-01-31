@@ -1678,6 +1678,20 @@ let dbTeleSales = {
         });
     },
 
+    getRegisteredPlayerFromPhoneList: function(tsPhoneListObjId) {
+        return dbconfig.collection_tsPhoneList.findOne({_id: tsPhoneListObjId}, {platform: 1}).lean().then(tsPhoneList => {
+            if (!tsPhoneList) {
+                return [];
+            }
+
+            return dbconfig.collection_players.find({tsPhoneList: tsPhoneList._id, platform: tsPhoneList.platform}, {name: 1, registrationTime:1, csOfficer: 1})
+                .sort({registrationTime: -1})
+                .populate({path: 'csOfficer', select: 'adminName', model: dbconfig.collection_admin})
+                .lean();
+        });
+    },
+
+
     debugTsPhoneList: function(tsPhoneListObjId) {
         return dbconfig.collection_tsPhone.find({tsPhoneList: tsPhoneListObjId}).lean().then(
             tsPhoneData => {

@@ -305,7 +305,7 @@ var playerSchema = new Schema({
     //adding easter egg
     applyingEasterEgg: {type: Boolean, default: false},
     // credibility remarks
-    credibilityRemarks: [{type: Schema.ObjectId, ref: 'playerCredibilityRemark'}],
+    credibilityRemarks: [{type: Schema.ObjectId, ref: 'playerCredibilityRemark', index: true}],
     // the game providers' name that player had played their games
     gameProviderPlayed: [{type: Schema.ObjectId, ref: 'gameProvider'}],
     // player value score
@@ -363,6 +363,7 @@ playerSchema.index({loginIps: 1});
 playerSchema.index({"loginIps.0": 1});
 playerSchema.index({"loginIps.0": 1, platform: 1, isRealPlayer: 1, _id: 1});
 playerSchema.index({blacklistIp: 1});
+playerSchema.index({credibilityRemarks: 1, depositTrackingGroup: 1});
 
 playerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('playerId'));
 
