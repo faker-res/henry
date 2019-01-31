@@ -1642,7 +1642,7 @@ define(['js/app'], function (myApp) {
                     }
                 })
             }
-            utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup);
+            utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup, 30);
             var sendObj = {
                 playerName: vm.queryTopup.playerName,
                 proposalNo: vm.queryTopup.proposalID,
@@ -2322,7 +2322,7 @@ define(['js/app'], function (myApp) {
                     // Fetch the report
                     vm.operationReportLoadingStatus = (settlementResult.failureReportMessage || "") + $translate("Fetching report");
                     $scope.safeApply();
-                    utilService.getDataTablePageSize("#playerExpenseTablePage", vm.playerExpenseQuery);
+                    utilService.getDataTablePageSize("#playerExpenseTablePage", vm.playerExpenseQuery, 30);
                     var sendData = {
                         startTime: startTime,
                         endTime: endTime,
@@ -2968,6 +2968,87 @@ define(['js/app'], function (myApp) {
                     vm.commonSortChangeHandler(a, 'wechatGroupQuery', vm.searchWechatControlSession);
                 });
                 $('#wechatGroupReportTable').resize();
+            }
+        }
+
+        vm.searchProviderConsumptionReport = function(newSearch, isExport) {
+            $('#providerConsumptionReportTableSpin').show();
+
+            let sendObj = {
+                query: {
+                    creditibilityRemarkList: vm.providerConsumptionQuery.credibility,
+                    startTime: vm.providerConsumptionQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.providerConsumptionQuery.endTime.data('datetimepicker').getLocalDate(),
+                    platformIds: vm.providerConsumptionQuery.platform
+                },
+                index: isExport? 0: (newSearch ? 0 : (vm.providerConsumptionQuery.index || 0)),
+                limit: isExport? 5000: vm.providerConsumptionQuery.limit || 10,
+                sortCol: vm.providerConsumptionQuery.sortCol || {createTime: -1}
+            };
+
+            vm.reportSearchTimeStart = new Date().getTime();
+            socketService.$socket($scope.AppSocket, 'getProviderConsumptionReport', sendObj, function (data) {
+                $('#providerConsumptionReportTableSpin').hide();
+                findReportSearchTime();
+                vm.providerConsumptionQuery.totalCount = data.data.size || 0;
+                vm.drawProviderConsumptionReport(data.data.data, data.data.size, {}, newSearch, isExport);
+
+                $scope.$evalAsync();
+            }, function (err) {
+                $('#providerConsumptionReportTableSpin').hide();
+                console.log(err);
+            }, true);
+        };
+
+        vm.drawProviderConsumptionReport = function (data, size, summary, newSearch, isExport) {
+            let columns = [{title: "", data: "credibilityRemark"}];
+
+            //create table columns
+            if(vm.allProviders && vm.allProviders.length > 0){
+                vm.allProviders.forEach(
+                    provider => {
+                        if(provider && provider.name){
+                            columns.push(
+                                {
+                                    title: $translate(provider.name),
+                                    data: provider.name,
+                                    render: function (data, type, row) {
+                                        return typeof data != "undefined" ? data : 0;
+                                    }
+                                }
+                            );
+                        }
+                    }
+                );
+            }
+
+            var tableOptions = {
+                data: data,
+                "order": vm.providerConsumptionQuery.aaSorting ,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: columns,
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                },
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            if(isExport){
+                var proposalTbl = utilService.createDatatableWithFooter('#providerConsumptionReportExcelTable', tableOptions, {});
+                $('#providerConsumptionReportExcelTable_wrapper').hide();
+                vm.exportToExcel("providerConsumptionReportExcelTable", "PROVIDER_CONSUMPTION_REPORT");
+            }else {
+                utilService.createDatatableWithFooter('#providerConsumptionReportTable', tableOptions, {});
+                vm.providerConsumptionQuery.pageObj.init({maxCount: size}, newSearch);
+
+                $('#providerConsumptionReportTable').off('order.dt');
+                $('#providerConsumptionReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'providerConsumptionQuery', vm.searchWechatControlSession);
+                });
+                $('#providerConsumptionReportTable').resize();
             }
         }
 
@@ -3908,7 +3989,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            utilService.getDataTablePageSize("#playerDomainReportTablePage", vm.playerDomain);
+            utilService.getDataTablePageSize("#playerDomainReportTablePage", vm.playerDomain, 30);
 
             var sendquery = {
                 platform: vm.curPlatformId,
@@ -5669,7 +5750,7 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerPartnerRecord = function (newSearch, isExport = false) {
             vm.reportSearchTimeStart = new Date().getTime();
 
-            utilService.getDataTablePageSize("#playerPartnerTablePage", vm.partnerQuery);
+            utilService.getDataTablePageSize("#playerPartnerTablePage", vm.partnerQuery, 30);
             vm.newPartnerQuery = $.extend(true, {}, vm.partnerQuery);
             $('#playerPartnerTableSpin').show();
             //$('#playerPartnerTable').hide();
@@ -5793,7 +5874,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
-            utilService.getDataTablePageSize("#financialPointsTablePage", vm.financialQuery);
+            utilService.getDataTablePageSize("#financialPointsTablePage", vm.financialQuery, 30);
             let newproposalQuery = $.extend(true, {}, vm.financialQuery);
 
             let financialPointsType = $('select#selectFinancialPointsType').multipleSelect("getSelects");
@@ -5985,7 +6066,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
-            utilService.getDataTablePageSize("#consumptionModeTablePage", vm.consumptionModeQuery);
+            utilService.getDataTablePageSize("#consumptionModeTablePage", vm.consumptionModeQuery, 30);
 
             let newConsumptionQuery = $.extend(true, {}, vm.consumptionModeQuery);
 
@@ -6129,7 +6210,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
-            utilService.getDataTablePageSize("#proposalTablePage", vm.proposalQuery);
+            utilService.getDataTablePageSize("#proposalTablePage", vm.proposalQuery, 30);
             let newproposalQuery = $.extend(true, {}, vm.proposalQuery);
             newproposalQuery.proposalTypeId = [];
             newproposalQuery.rewardTypeName = [];
@@ -7265,7 +7346,7 @@ define(['js/app'], function (myApp) {
             var startTime = vm.partnerPlayerBonusQuery.startTime.data('datetimepicker').getLocalDate();
             var endTime = vm.partnerPlayerBonusQuery.endTime.data('datetimepicker').getLocalDate();
 
-            utilService.getDataTablePageSize("#partnerPlayerBonusTablePage", vm.partnerPlayerBonusQuery);
+            utilService.getDataTablePageSize("#partnerPlayerBonusTablePage", vm.partnerPlayerBonusQuery, 30);
 
             var sendData = {
                 platformId: vm.curPlatformId,
@@ -7378,7 +7459,7 @@ define(['js/app'], function (myApp) {
                 }
             ).then(
                 () => {
-                    utilService.getDataTablePageSize("#partnerCommissionTablePage", vm.partnerCommissionQuery);
+                    utilService.getDataTablePageSize("#partnerCommissionTablePage", vm.partnerCommissionQuery, 30);
                     var sendData = {
                         platformId: vm.curPlatformId,
                         partnerName: vm.partnerCommissionQuery.partnerName,
@@ -7503,7 +7584,7 @@ define(['js/app'], function (myApp) {
             let loadingSpinner = $('#partnerSettlementTableSpin');
             let commissionType = vm.partnerSettlementQuery.commissionType;
             let partnerName = vm.partnerSettlementQuery.partnerName;
-            utilService.getDataTablePageSize("#partnerSettlementTablePage", vm.partnerSettlementQuery);
+            utilService.getDataTablePageSize("#partnerSettlementTablePage", vm.partnerSettlementQuery, 30);
             let sendData = {
                 platformObjId: vm.selectedPlatform._id,
                 startTime: new Date(vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate()),
@@ -7736,7 +7817,7 @@ define(['js/app'], function (myApp) {
             vm["#generalRewardProposalQuery"] = {};
             vm["#generalRewardProposalQuery"].startTime = startTime;
             vm["#generalRewardProposalQuery"].endTime = endTime;
-            utilService.getDataTablePageSize("#generalRewardProposalTablePage", vm.generalRewardProposalQuery);
+            utilService.getDataTablePageSize("#generalRewardProposalTablePage", vm.generalRewardProposalQuery, 30);
 
             var sendData = {
                 platformId: vm.curPlatformId || vm.selectedPlatform._id,
@@ -8213,7 +8294,7 @@ define(['js/app'], function (myApp) {
             vm["#generalRewardTaskQuery"] = {};
             vm["#generalRewardTaskQuery"].startTime = startTime;
             vm["#generalRewardTaskQuery"].endTime = endTime;
-            utilService.getDataTablePageSize("#generalRewardTaskTablePage", vm.generalRewardTaskQuery);
+            utilService.getDataTablePageSize("#generalRewardTaskTablePage", vm.generalRewardTaskQuery, 30);
 
             var deferred = Q.defer();
             var query = {
@@ -9870,6 +9951,18 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.changePlayerCredibility = function () {
+                if(vm.providerConsumptionQuery.platform){
+                    socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.providerConsumptionQuery.platform}, function (data) {
+                        $scope.$evalAsync(() => {
+                            if(data && data.data){
+                                vm.playerCredibilityRemark =  data.data;
+                            }
+                        });
+                    });
+                }
+            };
+
             function createMerGroupList(nameObj, listObj) {
                 if (!nameObj || !listObj) return [];
                 let obj = [];
@@ -9970,7 +10063,7 @@ define(['js/app'], function (myApp) {
                     vm.playerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                     vm.playerQuery.end = utilService.createDatePicker('#endingEndDateTimePicker');
                     vm.playerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerQuery", vm.searchPlayerReport);
                     });
                     vm.setupRemarksMultiInput();
@@ -10118,7 +10211,7 @@ define(['js/app'], function (myApp) {
                         vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                         // vm.feedbackQuery.limit = 5000;
                         vm.feedbackQuery.index = 0;
-                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {pageSize:30, maxPageSize:5000}, $translate, function (curP, pageSize) {
+                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {maxPageSize:5000}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
                         });
                     })
@@ -10145,6 +10238,16 @@ define(['js/app'], function (myApp) {
                     });
                 });
                 $scope.safeApply();
+            } else if (choice == "PROVIDER_CONSUMPTION_REPORT"){
+                vm.providerConsumptionQuery = {};
+                vm.reportSearchTime = 0;
+                utilService.actionAfterLoaded("#providerConsumptionReportTablePage", function () {
+                    vm.commonInitTime(vm.providerConsumptionQuery, '#providerConsumptionQuery');
+                    vm.providerConsumptionQuery.pageObj = utilService.createPageForPagingTable("#providerConsumptionReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "providerConsumptionQuery", vm.searchProviderConsumptionReport)
+                    });
+                });
+                $scope.$evalAsync();
             } else if (choice == "LIMITED_OFFER_REPORT") {
                 vm.limitedOfferQuery = {};
                 vm.limitedOfferDetail = {};

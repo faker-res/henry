@@ -3828,6 +3828,7 @@ let dbPlayerReward = {
             proposalTypeData => {
                 // determine applyAmount
                 let applyAmt = topUpProp && topUpAmount ? topUpAmount : 0;
+                let topUpAmt = applyAmt; // for promocode type 1 and 2
 
                 if (promoCodeObj.promoCodeTypeObjId.type === 1) { applyAmt = 0 }
 
@@ -3865,6 +3866,10 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS
                 };
                 proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
+
+                if (promoCodeObj && promoCodeObj.promoCodeTypeObjId && promoCodeObj.promoCodeTypeObjId.type !== 3) {
+                    proposalData.data.topUpAmount = promoCodeObj.promoCodeTypeObjId.type === 1 && topUpAmt? topUpAmt : 0
+                }
 
                 if (promoCodeObj.allowedProviders) {
                     if (promoCodeObj.isProviderGroup) {
@@ -4246,21 +4251,32 @@ let dbPlayerReward = {
         })
     },
 
-    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeType3Name) => {
+    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeTypeName, isTypeCPromo, index, limit) => {
+        index = index || 0;
+        limit = limit || 10;
         let monitorObjs;
         let promoCodeQuery = {
             'data.platformId': platformObjId,
             settleTime: {$gte: startAcceptedTime, $lt: endAcceptedTime},
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            // We only want type 3 promo code
-            "data.promoCodeTypeValue": 3
+            "data.promoCodeTypeValue": isTypeCPromo? 3: {$ne: 3}
         };
 
-        if (promoCodeType3Name) {
-            promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeType3Name
+        if (promoCodeTypeName) {
+            promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeTypeName;
         }
 
-        return dbProposalUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_PROMO_CODE_REWARD, promoCodeQuery).then(
+        return dbConfig.collection_proposalType.findOne({
+            platformId: platformObjId,
+            name: constProposalType.PLAYER_PROMO_CODE_REWARD
+        }).lean().then(
+            proposalType => {
+                promoCodeQuery.type = proposalType._id;
+                return dbConfig.collection_proposal.find(promoCodeQuery).sort({createTime: -1}).populate(
+                    {path: "process", model: dbConfig.collection_proposalProcess}
+                ).lean();
+            }
+        ).then(
             promoCodeData => {
                 let delProm = [];
 
@@ -4270,7 +4286,7 @@ let dbPlayerReward = {
                         platformObjId: p.data.platformId,
                         playerObjId: p.data.playerObjId,
                         playerName: p.data.playerName,
-                        topUpAmount: p.data.applyAmount,
+                        topUpAmount: isTypeCPromo? p.data.applyAmount: p.data.topUpAmount || 0,
                         rewardAmount: p.data.rewardAmount,
                         promoCodeType: p.data.PROMO_CODE_TYPE,
                         spendingAmount: p.data.spendingAmount,
@@ -4326,7 +4342,7 @@ let dbPlayerReward = {
                                     settleTime: {$gt: elem.nextWithdrawTime},
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                                     mainType: "TopUp",
-                                    'data.promoCode': {$exists: true}
+                                    // 'data.promoCode': {$exists: true}
                                 }).sort({settleTime: 1}).limit(1).lean();
                             }
                         ).then(
@@ -4340,7 +4356,20 @@ let dbPlayerReward = {
                 return Promise.all(proms);
             }
         ).then(
-            () => monitorObjs
+            () => {
+                let beginIndex = index * limit;
+                let playerArr = []; // to count total player
+                monitorObjs.forEach(item => {
+                    if (item.playerName && !playerArr.includes(item.playerName)) {
+                        playerArr.push(item.playerName);
+                    }
+                })
+                return {
+                    totalCount: monitorObjs && monitorObjs.length || 0,
+                    totalPlayer: playerArr.length,
+                    data: monitorObjs.splice(beginIndex, limit)
+                };
+            }
         )
     },
 

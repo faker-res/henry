@@ -1640,6 +1640,7 @@ var dbUtility = {
     retrieveAgent: (agentInfo) => {
         let registrationInterface = '';
         let userAgent = agentInfo;
+      
         if (userAgent == '') {
             registrationInterface = 1;
         } else {
