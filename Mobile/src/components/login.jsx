@@ -1,15 +1,11 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-// import { ServerResponse } from 'http';
 import $ from 'jquery';
 import WSCONFIG from '../wsconfig.js';
 
 class Login extends Component {
     constructor(props){
         super(props);
-        // let servers = {
-        //     "Fastest Server": {}
-        // }
         
         this.state = {
             isFocus: false,
