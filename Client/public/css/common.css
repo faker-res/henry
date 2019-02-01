@@ -3320,5 +3320,10 @@ hr {
     font-size: 12px;
     color:red;
 }
-
+.widthto80 {
+    width: 80%;
+}
+.widthto20 {
+    width: 20%;
+}
 
