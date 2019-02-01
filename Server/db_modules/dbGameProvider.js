@@ -595,6 +595,39 @@ var dbGameProvider = {
         });
 
         return Promise.all(promArr).then(() => retData);
+    },
+
+    getGameProviderByPlatformList: function(platformIdList){
+        let providerList = [];
+        if(platformIdList && platformIdList.length > 0){
+            return dbconfig.collection_platform.find({_id: {$in: platformIdList}}).then(
+                platformDetails => {
+                    if(platformDetails && platformDetails.length > 0){
+                        platformDetails.forEach(
+                            platform => {
+                                if(platform && platform.gameProviders && platform.gameProviders.length > 0){
+                                    platform.gameProviders.forEach(
+                                        gameProvider => {
+                                            if(gameProvider){
+                                                let indexNo = providerList.findIndex(p => p == gameProvider);
+
+                                                if(indexNo == -1){
+                                                    providerList.push(gameProvider);
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+
+                    return dbconfig.collection_gameProvider.find({_id: {$in: providerList}},{_id: 1, name: 1});
+                }
+            );
+        }else{
+            return dbconfig.collection_gameProvider.find({},{_id: 1, name: 1});
+        }
     }
 };
 

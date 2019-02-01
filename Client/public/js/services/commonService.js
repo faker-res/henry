@@ -1056,11 +1056,11 @@ define([], () => {
                 proposalDetail["PARENT_PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["PARENT_PARTNER_ID"] = vm.selectedProposal.data.partnerId;
                 proposalDetail["PARENT_PARTNER_COMMISSION_RATE"] = vm.selectedProposal.data.parentCommissionRate + "%";
-                proposalDetail["PARENT_PARTNER_COMMISSION_FEE"] = vm.selectedProposal.data.amount;
+                proposalDetail["PARENT_PARTNER_COMMISSION_FEE"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.amount);
                 proposalDetail["CHILD_PARTNER_NAME"] = vm.selectedProposal.data.childPartnerName;
                 proposalDetail["CHILD_PARTNER_DOWNLINES"] = vm.selectedProposal.data.childPartnerTotalDownLines;
                 proposalDetail["CHILD_PARTNER_COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.childPartnerCommissionType]);
-                proposalDetail["CHILD_PARTNER_TOTAL_WINLOSE"] = vm.selectedProposal.data.childPlayerTotalWinLose;
+                proposalDetail["CHILD_PARTNER_TOTAL_WINLOSE"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.childPlayerTotalWinLose);
                 proposalDetail["CHILD_PARTNER_RELATED_PROPOSAL_NO"] = vm.selectedProposal.data.relatedProposalId;
             }
             // end region
