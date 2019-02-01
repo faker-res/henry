@@ -819,7 +819,16 @@ var proposal = {
                     proposalObj = proposalData;
                     remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
-                    if (callbackData && callbackData.amount && proposalData.data.amount && Math.floor(callbackData.amount) !== Math.floor(proposalData.data.amount)) {
+                    if (
+                        callbackData
+                        && callbackData.amount
+                        && proposalData.data.amount
+                        && (
+                            // Allow only 0~1 (inclusive) difference
+                            Math.floor(callbackData.amount) - Math.floor(proposalData.data.amount) < 0
+                            || Math.floor(callbackData.amount) - Math.floor(proposalData.data.amount) > 1
+                        )
+                    ) {
                         console.log('callbackData.amount', callbackData.amount, Math.floor(callbackData.amount));
                         console.log('proposalData.data.amount', proposalData.data.amount, Math.floor(proposalData.data.amount));
                         return Promise.reject({
