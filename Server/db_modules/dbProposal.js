@@ -7788,12 +7788,16 @@ var proposal = {
             providerDetails => {
                 let returnedObj = {credibilityRemark: credibilityRemarkName};
                 let totalValidConsumptionByCredibilityRemark = 0;
+                console.log("LH Check providerConsumption Report 1------------------", providerDetails);
                 if(providerDetails && providerDetails.length > 0){
                     providerDetails.forEach(
                         provider => {
-                            let objectKey = Object.keys(provider)[0];
-                            totalValidConsumptionByCredibilityRemark += parseFloat(provider[objectKey]);
-                            returnedObj = Object.assign(returnedObj, provider);
+                            console.log("LH Check providerConsumption Report 2------------------", provider);
+                            if(provider){
+                                let objectKey = Object.keys(provider)[0];
+                                totalValidConsumptionByCredibilityRemark += parseFloat(provider[objectKey]);
+                                returnedObj = Object.assign(returnedObj, provider);
+                            }
                         }
                     )
                 }
