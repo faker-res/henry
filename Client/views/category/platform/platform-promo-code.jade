@@ -4,9 +4,9 @@
             span {{"CREATE_PROMO_CODE" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "history"}', ng-click='vm.promoCodeTabClicked("history")')
             span {{"PROMO_CODE_HISTORY" | translate}}
-        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "monitorTypeB"}', ng-click='vm.promoCodeTabClicked("monitorTypeB")')
+        button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform", "promoCode", "monitorTypeB")', ng-class='{active: vm.selectedPromoCodeTab === "monitorTypeB"}', ng-click='vm.promoCodeTabClicked("monitorTypeB")')
             span {{"PROMO_CODE_TYPE_B_MONITOR" | translate}}
-        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "monitor"}', ng-click='vm.promoCodeTabClicked("monitor")')
+        button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform", "promoCode", "monitor")',ng-class='{active: vm.selectedPromoCodeTab === "monitor"}', ng-click='vm.promoCodeTabClicked("monitor")')
             span {{"PROMO_CODE_TYPE_3_MONITOR" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "activatePromoCode"}', ng-click='vm.promoCodeTabClicked("activatePromoCode")')
             span {{"ACTIVATE_PROMO_CODE" | translate}}
