@@ -6544,6 +6544,7 @@ define(['js/app'], function (myApp) {
                 if(data && data.data){
                     $scope.$evalAsync(() => {
                         vm.tsAssignees = data.data;
+                        vm.tsAssigneesOriginal = $.extend(true, [], data.data);
                         vm.updateTsAssigneesDisplay();
                         vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
                         setTimeout(()=>{
@@ -6653,10 +6654,12 @@ define(['js/app'], function (myApp) {
         vm.cancelDistributionSettingsEdit = () => {
             vm.newAssignees = [];
             vm.assigneeRemovalList = [];
+            vm.tsAssignees = $.extend(true, [], vm.tsAssigneesOriginal);
             vm.tsAssigneesDisplay = vm.tsAssignees;
             vm.allowDistributionSettingsEdit = false;
             vm.updateTsAssigneesDisplay();
             vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
+            $scope.$evalAsync();
         };
 
         vm.checkUpdateTsAssignee = () => {
