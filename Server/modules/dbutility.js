@@ -305,6 +305,11 @@ var dbUtility = {
         return Q.resolve(dbUtility.getLastWeekSGTime());
     },
 
+    getCurrentWeekInYear: function(time){
+        let result = moment(time, "YYYY MM DD").format("W");
+        return result;
+    },
+
     getCurrentWeekSGTime: function () {
         var startTime = dbUtility.getPreviousSGMonday();
         var endTime = moment(startTime).add(1, 'week').toDate();

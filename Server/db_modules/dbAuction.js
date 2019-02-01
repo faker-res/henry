@@ -193,6 +193,7 @@ var dbAuction = {
                 }
 
                 let auctionQuery = {$and: []};
+                auctionQuery.status = 1;
 
                 if (!playerData.isRealPlayer) {
                     auctionQuery.playerType = 'Test Player';
@@ -394,7 +395,63 @@ var dbAuction = {
                     auctionQuery.$and.push({$or: orQuery});
                 }
 
-                return dbconfig.collection_auctionSystem.find(auctionQuery).lean();
+                let orQuery = [];
+                let currentTime = new Date();
+                // find which week in this year
+                let isoWeek = dbutility.getCurrentWeekInYear(currentTime);
+                isoWeek = parseInt(isoWeek);
+                // only show when in the appearPeriod interval.
+                orQuery.push({rewardAppearStartPeriod: {$lte: currentTime}, rewardAppearEndPeriod: {$gte: currentTime} });
+                auctionQuery.$and.push({$or: orQuery});
+
+                return dbconfig.collection_auctionSystem.aggregate([
+                    { $unwind : "$rewardAppearPeriod"}, //ungroup field for easy conversion at each apperPeriod.
+                    { $addFields : {
+                        //do a date conversion for query purpose.
+                        rewardAppearStartPeriod: {
+                            // find what is the start period in this weekly / month interval
+                            $cond: {
+                                if: { $eq: [ "$rewardInterval", "monthly" ] },
+                                then: { $dateFromParts: { 'year' : new Date().getFullYear(), 'month' : new Date().getMonth()+1, 'day':"$rewardAppearPeriod.startDate", 'hour' : "$rewardAppearPeriod.startTime"  }},
+                                else: { $dateFromParts: { 'isoWeekYear' : new Date().getFullYear(), 'isoWeek':isoWeek, 'isoDayOfWeek':"$rewardAppearPeriod.startDate", 'hour' : "$rewardAppearPeriod.startTime"  }}
+                            }
+                        },
+                        rewardAppearEndPeriod: {
+                            // find what is the end period in this weekly / month interval
+                            $cond: {
+                                if: { $eq: [ "$rewardInterval", "monthly" ] },
+                                then: { $dateFromParts: { 'year' : new Date().getFullYear(), 'month' : new Date().getMonth()+1, 'day':"$rewardAppearPeriod.endDate", 'hour' : "$rewardAppearPeriod.endTime"  }},
+                                else: { $dateFromParts: { 'isoWeekYear' : new Date().getFullYear(), 'isoWeek':isoWeek, 'isoDayOfWeek':"$rewardAppearPeriod.endDate", 'hour' : "$rewardAppearPeriod.endTime"  }}
+                            }
+                        }
+                    }
+                    },
+                    { $match : auctionQuery },
+                    {
+                        $group:{
+                            _id: "$_id",
+                            productName: { $first: "$productName"},
+                            registerStartTime: { $first: "$registerStartTime"},
+                            registerEndTime: { $first: "$registerEndTime"},
+                            startPeriod: {  $push: "$rewardAppearStartPeriod" }, // return a readable date to frontend
+                            endPeriod: {  $push: "$rewardAppearEndPeriod" }, // return a readable date to frontend
+                            reservePrice: { $first: "$reservePrice"},
+                            startingPrice: { $first: "$startingPrice"},
+                            priceIncrement: { $first: "$priceIncrement"},
+                            directPurchasePrice: { $first: "$directPurchasePrice"},
+                            productStartTime: { $first: "$productStartTime"},
+                            productEndTime: { $first: "$productEndTime"},
+                            rewardInterval: { $first: "$rewardInterval"},
+                            seller: { $first: "$seller"},
+                            rewardData: { $first: "$rewardData"},
+                            isExclusive: { $first: "$isExclusive"},
+                            publish: { $first: "$publish"},
+                            status: { $first: "$status"}
+                        }
+                    }
+                ]).then(data=>{
+                    return data;
+                })
             }
         )
     },
@@ -599,7 +656,7 @@ var dbAuction = {
             return record.save();
         }
     },
-    
+
     auctionExecuteEnd: function() {
         console.log("Auction end executing")
         let curTime = dbutility.getLocalTime(new Date());
