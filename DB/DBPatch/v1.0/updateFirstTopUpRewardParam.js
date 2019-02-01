@@ -905,7 +905,12 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Check if this portable device has received the reward",
                     detail: "Check the IMEI value/unique code of each handset when applying through APP"
-                }
+                },
+                needSMSVerification: {
+                    index: 30,
+                    type: "checkbox",
+                    des: "Need SMS verification"
+                },
             }
         },
         param: {

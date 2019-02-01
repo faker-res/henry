@@ -5770,6 +5770,13 @@ let dbPlayerReward = {
             // check reward apply restriction on ip, phone and IMEI
             let checkHasReceivedProm = dbProposalUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
             promArr.push(checkHasReceivedProm);
+
+            // check sms verification
+            let checkSMSProm = Promise.resolve(true); // default promise as true if sms checking is not required
+            if (eventData.condition.needSMSVerification && !adminInfo) {
+                checkSMSProm = dbPlayerMail.verifySMSValidationCode(playerData.phoneNumber, playerData.platform, rewardData.smsCode);
+            }
+            promArr.push(checkSMSProm.then(data => {console.log('checkSMSProm'); return data;}));
         }
 
 
