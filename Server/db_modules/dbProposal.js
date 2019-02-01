@@ -43,6 +43,7 @@ const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalUserType = require('./../const/constProposalUserType');
 const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbGameProvider = require('./../db_modules/dbGameProvider');
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -558,6 +559,7 @@ var proposal = {
                                 && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
                                 && data[0].name != constProposalType.PLAYER_LEVEL_UP
                                 && data[0].name != constProposalType.BULK_EXPORT_PLAYERS_DATA
+                                && data[0].name != constProposalType.PLAYER_FKP_TOP_UP
                                 && data[0].name !== constProposalType.PLAYER_COMMON_TOP_UP
                                 && data[0].name !== constProposalType.AUCTION_PROMO_CODE // player can bid other product has the same proposal type
                                 && data[0].name !== constProposalType.AUCTION_OPEN_PROMO_CODE
@@ -3428,7 +3430,7 @@ var proposal = {
                 reqData.type = {$in: arr}
             }
 
-            let a, b, c;
+            let a, b, c, d;
             if(isApprove){
                 let searchQuery = {
                     platformId: ObjectId(reqData.platformId),
@@ -3562,6 +3564,28 @@ var proposal = {
                                 }
                             }
                         ]).read("secondaryPreferred");
+
+                        d = dbconfig.collection_proposalType.find(searchQuery).lean().then(
+                            proposalType => {
+                                delete reqData.platformId;
+                                if(proposalType && proposalType.length > 0){
+                                    let proposalTypeIdList = [];
+                                    proposalType.forEach(p => {
+                                        if(p && p._id){
+                                            let indexNo = reqData.type.$in.findIndex(r => r == p.id);
+
+                                            if(indexNo != -1){
+                                                proposalTypeIdList.push(p._id);
+                                            }
+                                        }
+                                    });
+
+                                    reqData.type = {$in: proposalTypeIdList};
+                                }
+
+                                return dbconfig.collection_proposal.distinct('data.playerName', reqData);
+                            }
+                        );
                     }
                 );
             }else{
@@ -3634,13 +3658,15 @@ var proposal = {
                         }
                     }
                 ]).read("secondaryPreferred");
+                d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
             }
 
-            prom = Promise.all([a, b, c]).then(
+            prom = Promise.all([a, b, c, d]).then(
                 function (data) {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
+                    totalPlayer = data[3] && data[3].length || 0;
 
                     if(resultArray && resultArray.length > 0 && isSuccess){
                         resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
@@ -7667,6 +7693,7 @@ var proposal = {
         let endDate = new Date(query.endTime);
         let credibilityRemarkProm;
         let totalCredibilityRemarkProm;
+        let finalResult;
 
         if(query.creditibilityRemarkList && query.creditibilityRemarkList.length > 0) {
             totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).count();
@@ -7701,6 +7728,16 @@ var proposal = {
                         return {data: consumptionSummary, size: totalSize};
                     }
                 );
+            }
+        ).then(
+            result => {
+                finalResult = result;
+                let providerList = [];
+                return dbGameProvider.getGameProviderByPlatformList(query.platformIds);
+            }
+        ).then(
+            gameProviderDetail => {
+                return Object.assign(finalResult, {gameProviderDetail: gameProviderDetail});
             }
         );
     },
@@ -7750,14 +7787,18 @@ var proposal = {
         ).then(
             providerDetails => {
                 let returnedObj = {credibilityRemark: credibilityRemarkName};
-
+                let totalValidConsumptionByCredibilityRemark = 0;
                 if(providerDetails && providerDetails.length > 0){
                     providerDetails.forEach(
                         provider => {
+                            let objectKey = Object.keys(provider)[0];
+                            totalValidConsumptionByCredibilityRemark += parseFloat(provider[objectKey]);
                             returnedObj = Object.assign(returnedObj, provider);
                         }
                     )
                 }
+
+                returnedObj = Object.assign(returnedObj, {totalValidConsumption: totalValidConsumptionByCredibilityRemark});
 
                 return returnedObj;
             }

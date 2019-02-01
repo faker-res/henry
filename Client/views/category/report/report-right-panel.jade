@@ -2077,7 +2077,7 @@
                         i.fa.fa-spinner.fa-spin
             .clearfix
                 label {{"Total" | translate}} {{vm.providerConsumptionQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
-                table#providerConsumptionReportTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                table#providerConsumptionReportTable.common-table.simple-table.display(style="overflow: scroll;max-height:700px;word-wrap:break-word;")
                 #providerConsumptionReportTablePage
                 table#providerConsumptionReportExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
 

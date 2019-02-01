@@ -12,6 +12,7 @@ const JS = [
     'angular-ui-router/release/angular-ui-router.min.js',
     'bootstrap/dist/js/bootstrap.min.js',
     'bootstrap-select/dist/js/bootstrap-select.min.js',
+    'bootstrap-select/dist/js/i18n/defaults-zh_TW.min.js',
     'datatables/media/js/jquery.dataTables.min.js',
     'datatables.net-bs/js/dataTables.bootstrap.js',
     'eyecon-bootstrap-datepicker/bootstrap-datepicker.js',
