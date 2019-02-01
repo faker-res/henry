@@ -4,9 +4,9 @@
             span {{"CREATE_PROMO_CODE" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "history"}', ng-click='vm.promoCodeTabClicked("history")')
             span {{"PROMO_CODE_HISTORY" | translate}}
-        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "monitorTypeB"}', ng-click='vm.promoCodeTabClicked("monitorTypeB")')
+        button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform", "promoCode", "monitorTypeB")', ng-class='{active: vm.selectedPromoCodeTab === "monitorTypeB"}', ng-click='vm.promoCodeTabClicked("monitorTypeB")')
             span {{"PROMO_CODE_TYPE_B_MONITOR" | translate}}
-        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "monitor"}', ng-click='vm.promoCodeTabClicked("monitor")')
+        button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform", "promoCode", "monitor")',ng-class='{active: vm.selectedPromoCodeTab === "monitor"}', ng-click='vm.promoCodeTabClicked("monitor")')
             span {{"PROMO_CODE_TYPE_3_MONITOR" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "activatePromoCode"}', ng-click='vm.promoCodeTabClicked("activatePromoCode")')
             span {{"ACTIVATE_PROMO_CODE" | translate}}
@@ -377,7 +377,7 @@
                             .endAcceptedTime
                         .search-filters-item
                             label.control-label {{"PROMO_CODE_TYPE_B" | translate}}
-                            select.form-control(ng-model='vm.promoCodeTypeBMonitor.promoCodeTypeName' ng-options="type.name as type.name for type in vm.promoCodeTypeB")
+                            select.form-control(ng-model='vm.promoCodeTypeBMonitor.promoCodeTypeName' ng-options="type.name as type.name group by type.groupName for type in vm.promoCodeTypeB")
                                 option(value='') {{'any' | translate}}
                         .text-right.widthto100
                             button.btn.btn-success(ng-click='vm.getPromoCodeTypeBMonitor(true)') {{'SEARCH' | translate}}
@@ -845,12 +845,12 @@
                             span#promoCodeAnaysis2TableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
-                    label(ng-if="vm.promoCodeAnalysis.totalCount") {{"Promo Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis.totalCount}} {{"records" | translate}}
+                    label(ng-if="vm.promoCodeAnalysis.totalCount") {{"Promo Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis.totalCount}} {{"records" | translate}} / {{vm.promoCodeAnalysis.sendCount}} {{"sendCount" | translate}}
                     table#promoCodeAnalysisTable.common-table.display(style="min-width:100% ;overflow: scroll")
                     #promoCodeAnalysisTablePage.col-md-12
 
                     .clearfix
-                    label(ng-if="vm.promoCodeAnalysis2.totalCount") {{"Player Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis2.totalCount}} {{"records" | translate}}
+                    label(ng-if="vm.promoCodeAnalysis2.totalCount") {{"Player Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis2.totalCount}} {{"records" | translate}} / {{vm.promoCodeAnalysis2.sendCount}} {{"sendCount" | translate}}
                     table#promoCodeAnalysis2Table.common-table.display(style="min-width:100% ;overflow: scroll")
                     #promoCodeAnalysis2TablePage.col-md-12
 

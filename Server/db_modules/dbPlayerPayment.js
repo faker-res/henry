@@ -399,6 +399,7 @@ const dbPlayerPayment = {
     getMinMaxCommonTopupAmount: (playerId, clientType, loginIp) => {
         let url = "";
         let topUpSystemConfig;
+        let topUpSystemName;
         let platformMinTopUpAmount = 0;
         let result = {};
 
@@ -413,6 +414,10 @@ const dbPlayerPayment = {
 
                     topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
+                    if (topUpSystemConfig && topUpSystemConfig.name) {
+                        topUpSystemName = topUpSystemConfig.name;
+                    }
+
                     if (playerData.platform && playerData.platform.minTopUpAmount) {
                         platformMinTopUpAmount = playerData.platform.minTopUpAmount;
                     }
@@ -425,7 +430,7 @@ const dbPlayerPayment = {
                         }
                     }
 
-                    if ((topUpSystemConfig && topUpSystemConfig.name === 'PMS' || topUpSystemConfig.name === 'PMS2') || !topUpSystemConfig) {
+                    if (!topUpSystemConfig || topUpSystemName === 'PMS' || topUpSystemName === 'PMS2') {
                         url =
                             paymentUrl
                             + "foundation/payMinAndMax.do?"
@@ -444,7 +449,7 @@ const dbPlayerPayment = {
         ).then(
             ret => {
                 if (ret) {
-                    if ((topUpSystemConfig && (topUpSystemConfig.name === 'PMS' || topUpSystemConfig.name === 'PMS2')) || !topUpSystemConfig) {
+                    if (!topUpSystemConfig || topUpSystemName === 'PMS' || topUpSystemName === 'PMS2') {
                         ret = JSON.parse(ret);
 
                         if (ret.code && Number(ret.code) === 1) {

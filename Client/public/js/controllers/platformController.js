@@ -24314,7 +24314,19 @@ define(['js/app'], function (myApp) {
                             }
                         });
 
-                        vm.promoCodeTypeB = vm.promoCodeType1.concat(vm.promoCodeType2);
+                        vm.promoCodeTypeB = JSON.parse(JSON.stringify(vm.promoCodeType1.concat(vm.promoCodeType2)));
+                        if (vm.promoCodeTypeB && vm.promoCodeTypeB.length) {
+                            vm.promoCodeTypeB.forEach(item=> {
+                                if (item.type) {
+                                    if (item.type == 1) {
+                                        item.groupName = $translate("DEPOSIT_REQUIRED");
+                                    } else if (item.type == 2) {
+                                        item.groupName = $translate("NO_DEPOSIT_REQUIRED");
+                                    }
+
+                                }
+                            })
+                        }
                     })
 
 
@@ -25741,6 +25753,7 @@ define(['js/app'], function (myApp) {
 
                     let table1Data = data.data[0];
                     vm.promoCodeAnalysis.totalCount = data.data[1].length;
+                    vm.promoCodeAnalysis.sendCount = data.data[2][0].sendCount;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p = Promise.resolve();
@@ -25848,6 +25861,7 @@ define(['js/app'], function (myApp) {
 
                     let table2Data = data.data[0];
                     vm.promoCodeAnalysis2.totalCount = data.data[1].length;
+                    vm.promoCodeAnalysis2.sendCount = data.data[2][0].sendCount;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p1 = Promise.resolve();

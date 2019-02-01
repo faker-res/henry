@@ -465,7 +465,14 @@ const dbPlayerMail = {
                         }
                         if (purpose && purpose === constSMSPurpose.RESET_PASSWORD && inputData.name) {
                             playerQuery.name = inputData.name;
-                        }else if(purpose && purpose === constSMSPurpose.INQUIRE_ACCOUNT && inputData.phoneNumber){
+                        } else if (
+                            purpose
+                            && inputData.phoneNumber
+                            && (
+                                purpose === constSMSPurpose.INQUIRE_ACCOUNT
+                                || purpose === constSMSPurpose.PLAYER_LOGIN
+                            )
+                        ) {
                             playerQuery.phoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
                         } else {
                             playerQuery.playerId = inputData.playerId;
@@ -522,12 +529,20 @@ const dbPlayerMail = {
             }
         ).then(
             () => {
-                if (purpose && (purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.PARTNER_REGISTRATION) && inputData && inputData.lastLoginIp) {
+                if (
+                    purpose
+                    && inputData && inputData.lastLoginIp
+                    && (
+                        purpose === constSMSPurpose.REGISTRATION
+                        || purpose === constSMSPurpose.PARTNER_REGISTRATION
+                        || purpose === constSMSPurpose.PLAYER_LOGIN
+                    )
+                ) {
                     return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                         blacklistIpData => {
                             if (blacklistIpData && blacklistIpData.length && blacklistIpData.length > 0) {
                                 blacklistIPDetected = true;
-                                return Q.reject({
+                                return Promise.reject({
                                     status: constServerCode.BLACKLIST_IP,
                                     name: "DBError",
                                     message: localization.localization.translate("SMS function under maintenance, please try again later.")
