@@ -396,7 +396,7 @@ var dbAuction = {
                 }
 
                 let orQuery = [];
-                let currentTime = new Date();
+                let currentTime = dbutility.getUTC8Time(new Date());
                 // find which week in this year
                 let isoWeek = dbutility.getCurrentWeekInYear(currentTime);
                 isoWeek = parseInt(isoWeek);
