@@ -7768,7 +7768,7 @@ var proposal = {
                 if(providerDetails && providerDetails.length > 0){
                     providerDetails.forEach(
                         provider => {
-                            console.log("LH Check providerConsumption Report 1------------------", provider);
+                            console.log("LH Check providerConsumption Report 2------------------", provider);
                             if(provider){
                                 let objectKey = Object.keys(provider)[0];
                                 totalValidConsumptionByCredibilityRemark += parseFloat(provider[objectKey]);
