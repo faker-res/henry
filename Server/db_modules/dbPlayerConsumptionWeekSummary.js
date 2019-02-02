@@ -258,9 +258,11 @@ var dbPlayerConsumptionWeekSummary = {
                             };
 
                             // Get this period settled xima proposal
-                            let todayTime = dbutility.getTodayConsumptionReturnSGTime();
+                            let thisPeriodTime = eventData.settlementPeriod == constSettlementPeriod.DAILY
+                                ? dbutility.getTodayConsumptionReturnSGTime()
+                                : dbutility.getCurrentWeekConsumptionReturnSGTime();
                             let thisPeriodProposal = {
-                                createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                                createTime: {$gte: thisPeriodTime.startTime, $lt: thisPeriodTime.endTime},
                                 'data.platformId': platformId,
                                 'data.playerObjId': playerData._id,
                                 'data.eventCode': eventData.code,
