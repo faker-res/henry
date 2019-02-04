@@ -16845,6 +16845,8 @@ let dbPlayerInfo = {
                             if (player) {
                                 proposalQuery['data.playerObjId'] = player._id;
                             }
+                            console.log('startDate===', startDate);
+                            console.log('dayEndTime===', dayEndTime);
 
                             proposalProm.push(dbconfig.collection_proposal.aggregate([
                                 {$match: proposalQuery},
@@ -16888,6 +16890,7 @@ let dbPlayerInfo = {
                                 }
                             }
                         }
+                        console.log('proposalData===', proposalData);
 
                         proposalData.forEach(function (proposal) {
                             groupedPlayers[proposal._id] = (groupedPlayers[proposal._id] || 0) + proposal.reachTargetDay;
@@ -17098,6 +17101,13 @@ let dbPlayerInfo = {
                 }
             }
 
+            console.log('startDate===', startDate);
+            console.log('dayEndTime===', dayEndTime);
+            console.log('playerObjId===', playerObjId);
+            console.log('timezoneAdjust.year===', timezoneAdjust.year);
+            console.log('timezoneAdjust.month===', timezoneAdjust.month);
+            console.log('timezoneAdjust.day===', timezoneAdjust.day);
+
             topUpProm.push(dbconfig.collection_proposal.aggregate([
                 {
                     $match: {
@@ -17161,6 +17171,8 @@ let dbPlayerInfo = {
 
             topUpRecord = [].concat(...topUpRecord);
             bonusRecord = [].concat(...bonusRecord);
+            console.log('topUpRecord===', topUpRecord);
+            console.log('bonusRecord===', bonusRecord);
 
             let outputData = [];
 
@@ -17177,6 +17189,7 @@ let dbPlayerInfo = {
 
             outputData.forEach(output => {
                 bonusRecord.forEach(bonus => {
+                    console.log('bonus===1', bonus);
                     if (!bonus.bUsed) {  // only check bonus not used
                         let outputDate = new Date(output.date.year, output.date.month, output.date.day);
                         let bonusDate = new Date(bonus._id.year, bonus._id.month, bonus._id.day);
@@ -17193,6 +17206,7 @@ let dbPlayerInfo = {
 
             // for scenario when that month doesn't have top up record
             bonusRecord.forEach(bonus => {
+                console.log('bonus===2', bonus);
                 if (!bonus.bUsed) {
                     outputData.push({
                         date: bonus._id,
