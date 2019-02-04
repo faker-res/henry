@@ -564,7 +564,7 @@
                             td
                                 a(data-toggle="modal", data-target='#modalPlayerDepositTrackingMonthlyDetailsTable', ng-click="vm.getPlayerDepositTrackingMonthlyDetails(playerData._id)") {{'DETAILS' | translate}}
                             td
-                                a(ng-click="vm.removePlayerFromDepositTrackingReport(playerData._id)") {{'DELETE' | translate}}
+                                a.text-danger(ng-click="vm.removePlayerFromDepositTrackingReport(playerData._id)") {{'DELETE' | translate}}
                     br
                 br
 
