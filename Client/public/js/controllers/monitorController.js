@@ -116,11 +116,8 @@ define(['js/app'], function (myApp) {
             $scope.$broadcast('socketReady', 'monitorControllerSocketReady');
         });
         $scope.$on("childchildControllerLoaded", function (e, d) {
-            vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
-
             if ($scope.AppSocket) {
                 vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
-                console.log('AA');
             }
         })
 
