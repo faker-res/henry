@@ -1385,7 +1385,7 @@ var proposal = {
                                 () => {
                                     let updateData = {status: status, isLocked: null};
                                     return dbconfig.collection_proposal.findOneAndUpdate(
-                                        {_id: proposalData._id, createTime: proposalData.createTime},
+                                        {_id: proposalData._id, createTime: proposalData.createTime, status: proposalData.status},
                                         updateData,
                                         {new: true}
                                     ).then(data => {
