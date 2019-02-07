@@ -12,14 +12,16 @@ define(['js/app'], function (myApp) {
         vm.showPlatformList = true;
 
         vm.setPlatform = function (platObj) {
-            vm.operSelPlatform = false;
-            vm.selectedPlatform = JSON.parse(platObj);
-            vm.curPlatformId = vm.selectedPlatform._id;
-            $cookies.put("platform", vm.selectedPlatform.name);
-            console.log('vm.selectedPlatform', vm.selectedPlatform);
-            vm.loadPage(vm.showPageName);
-            $scope.$broadcast('setPlatform');
-            // $scope.safeApply();
+            $scope.$evalAsync(() => {
+                vm.operSelPlatform = false;
+                vm.selectedPlatform = JSON.parse(platObj);
+                vm.curPlatformId = vm.selectedPlatform._id;
+                $cookies.put("platform", vm.selectedPlatform.name);
+                console.log('vm.selectedPlatform', vm.selectedPlatform);
+                vm.loadPage(vm.showPageName);
+                $scope.$broadcast('setPlatform');
+                // $scope.safeApply();
+            });
         };
 
         vm.setPlatformById = function (id) {
@@ -85,18 +87,14 @@ define(['js/app'], function (myApp) {
                 vm.seleDataType["PAYMENT_MONITOR"] = 'bg-bright';
             }else if(window.location.pathname == "/monitor/paymentTotal"){
                 vm.seleDataType["PAYMENT_MONITOR_TOTAL"] = 'bg-bright';
-                vm.showPlatformList = false;
             }else if(window.location.pathname == "/monitor/wechatGroup") {
                 vm.seleDataType["WECHAT_GROUP_CONTROL_MONITOR"] = 'bg-bright';
-                vm.showPlatformList = false;
                 $('#wechatMonitor.collapse').addClass('in');
                 $('#paymentMonitor.collapse').removeClass('in');
             }else if(window.location.pathname == "/monitor/consumptionRecord") {
                 vm.seleDataType["CONSUMPTION_RECORD_MONITOR"] = 'bg-bright';
-                vm.showPlatformList = false;
             }else if(window.location.pathname == "/monitor/attemptCreate") {
                 vm.seleDataType["ATTEMPT_CREATE_MONITOR"] = 'bg-bright';
-                vm.showPlatformList = false;
             }
         };
 
@@ -118,8 +116,11 @@ define(['js/app'], function (myApp) {
             $scope.$broadcast('socketReady', 'monitorControllerSocketReady');
         });
         $scope.$on("childchildControllerLoaded", function (e, d) {
+            vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
+
             if ($scope.AppSocket) {
                 vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
+                console.log('AA');
             }
         })
 
