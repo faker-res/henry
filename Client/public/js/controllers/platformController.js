@@ -24275,6 +24275,13 @@ define(['js/app'], function (myApp) {
                 vm.openPromoCodeTemplateData.map(promoCode => {
                     allNames.push(promoCode.name);
                 });
+
+                if (vm.promoCodeTemplateData && vm.promoCodeTemplateData.length) {
+                    vm.promoCodeTemplateData.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+
                 if(vm.excludeAuctionItem && vm.excludeAuctionItem.length){
                     let InPromoCodeProduct = vm.excludeAuctionItem.filter(p => p.rewardData && p.rewardData.hasOwnProperty("templateObjId"));
                     InPromoCodeProduct.map(auctionItem => {
