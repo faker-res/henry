@@ -21497,7 +21497,7 @@ let dbPlayerInfo = {
                                 winRatio: {$first: "$winRatio"}
                             }
                         }
-                    ]).then(
+                    ]).allowDiskUse(true).then(
                         consumptionRecord => {
                             function sortRankingRecord(a, b) {
                                 if (a.winRatio < b.winRatio)
@@ -21518,6 +21518,10 @@ let dbPlayerInfo = {
                             let sortedData = consumptionRecord.sort(sortRankingRecord);
                             let playerRanking;
                             for (let i = 0; i < sortedData.length; i++) {
+                                if (sortedData[i].winRatio) {
+                                    //round to 2 decimal places
+                                    sortedData[i].winRatio = Math.round(sortedData[i].winRatio * 100) / 100;
+                                }
                                 sortedData[i].rank = i + 1;
                                 if (playerObj && playerObj.name) {
                                     if (sortedData[i]._id.toString() == playerObj._id.toString()) {
