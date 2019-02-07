@@ -199,10 +199,7 @@ var minuteJob = new CronJob('0 * * * * *', function () {
         return promiseUtils.each([task1], task => task && task() );
     }
 
-    return processProviders().then(() => {
-        processTsPhone().catch(errorUtils.reportError);
-        return processPlatforms();
-    });
+    return Promise.all([processProviders, processTsPhone, processPlatforms]);
 
 }, function () {
         console.log("Daily Settlement Done", Date());
