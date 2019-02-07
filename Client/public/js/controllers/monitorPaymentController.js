@@ -4951,6 +4951,8 @@ define(['js/app'], function (myApp) {
             }
         });
 
+        $scope.$emit('childchildControllerLoaded', 'monitorProposalAndPaymentControllerLoaded');
+
         $scope.$on("setPlatform", function (e, d) {
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
