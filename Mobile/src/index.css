@@ -13,7 +13,7 @@
   appearance: none;
   -moz-appearance:none; /* Firefox */
   -webkit-appearance:none; /* Safari and Chrome */
-  -webkit-transition : border-color 2s; 
+  -webkit-transition : border-color 2s;
   -moz-transition : border-color 2s;
   transition : border-color 2s  ;
 }
@@ -30,11 +30,11 @@ label{
   right: 10%;
   bottom: 40.5%
 }
-.card{
+.login{
   padding: 2em;
-  width: 370px;
   text-align: left;
-  margin-top: 7em;
+  margin-top: 5em;
+  width: 370px!important;
 }
 
 .card, .card a{
@@ -61,3 +61,67 @@ input:focus+label ,select:focus+label  {
   font-weight: bold;
 }
 
+.customize-cardHeader{
+  color:white!important;
+  padding: 1em 1em 0 1em!important;
+}
+
+.customize-cardFooter{
+  background-color:white!important;
+  border-top: none!important;
+}
+
+.onlinePlayer-cardColor{
+  background-color:#5cb85c!important;
+  border-color:#5cb85c!important;
+}
+
+.topup-cardColor{
+  background-color:#2B6698!important;
+  border-color:#2B6698!important;
+}
+
+.withdrawal-cardColor{
+  background-color:#4B0082!important;
+  border-color:#4B0082!important;
+}
+
+.bet-cardColor{
+  background-color:#f39c12!important;
+  border-color:#f39c12!important;
+}
+
+.newPlayer-cardColor{
+  background-color: #d9534f!important;
+  border-color:#d9534f!important;
+}
+
+.bigWord{
+  font-size: 2rem;
+}
+
+.smallWord{
+  font-size:16px
+}
+
+.onlinePlayer-footer{color: #5cb85c;}
+.topup-footer{color: #2B6698;}
+.withdrawal-footer{color: #4B0082;}
+.bet-footer{color: #f39c12;}
+.newPlayer-footer{color: #d9534f;}
+
+@media screen and (min-width: 576px) {
+
+  .smallWord, .bigWord{
+    font-size: 12px;
+  }
+}
+
+@media screen and (min-width: 992px) {
+  .bigWord{
+    font-size: 1.5rem;
+  }
+  .smallWord{
+    font-size:15px
+  }
+}
