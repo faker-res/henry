@@ -20,7 +20,6 @@ define(['js/app'], function (myApp) {
                 console.log('vm.selectedPlatform', vm.selectedPlatform);
                 vm.loadPage(vm.showPageName);
                 $scope.$broadcast('setPlatform');
-                // $scope.safeApply();
             });
         };
 
@@ -29,7 +28,6 @@ define(['js/app'], function (myApp) {
             console.log("platObj:", platObj);
             vm.showPageName = '';
             vm.setPlatform(JSON.stringify(platObj));
-            // $scope.safeApply();
         };
 
         vm.getPlatformByAdminId = function (adminId) {
@@ -39,7 +37,6 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     vm.platformList = data.data;
                     console.log("platformList", vm.platformList);
-                    // $scope.safeApply();
                     resolve();
                 }, function (err) {
                     console.error(err);
