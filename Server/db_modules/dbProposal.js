@@ -1001,7 +1001,7 @@ var proposal = {
                                 callbackData.count
                                 && callbackData.count === '1'
                                 && Number(callbackData.amount) !== Number(proposalObj.data.amount)
-                                && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
+                                && Number(callbackData.amount) - Number(proposalObj.data.amount) <= 1
                             ) {
                                 updObj.data.amount = Number(callbackData.amount);
                             }
