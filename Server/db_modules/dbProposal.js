@@ -1045,11 +1045,15 @@ var proposal = {
                                 addDetailToProp(updObj, 'settleTime', new Date());
                             }
 
+                            console.log('merchantRate===', merchantRate);
                             // Add merchant rate and actualReceivedAmount
                             topupRate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
                             topupActualAmt = merchantRate && merchantRate.customizeRate ?
                                 (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
                                 : proposalObj.data.amount;
+                            if (updObj && updObj.data && updObj.data.amount) {
+                                topupActualAmt = Number(updObj.data.amount) - Number(topupRate);
+                            }
 
                             addDetailToProp(updObj.data, 'rate', topupRate);
                             addDetailToProp(updObj.data, 'actualAmountReceived', topupActualAmt);
