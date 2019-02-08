@@ -102,6 +102,9 @@ const dbPlayerUtility = {
                         allowExec = true;
                     }
                 }
+                if (!allowExec) {
+                    console.log("Player B state concurrent", playerObjId, stateName);
+                }
                 return allowExec;
             },
             err => {
