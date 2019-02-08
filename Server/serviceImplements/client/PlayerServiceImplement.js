@@ -1073,7 +1073,7 @@ let PlayerServiceImplement = function () {
     this.getPlayerBillBoard.expectsData = 'smsCode: String';
     this.getPlayerBillBoard.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && (data.platformId || data.playerId) && ((data.hourCheck && data.hourCheck <= 24) || data.periodCheck) && !(data.hourCheck && data.periodCheck) && data.mode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.prepareGetPlayerBillBoard, [Number(data.platformId), data.periodCheck, data.hourCheck, data.recordCount, data.playerId, data.mode, data.providerId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.prepareGetPlayerBillBoard, [data.platformId, data.periodCheck, data.hourCheck, data.recordCount, data.playerId, data.mode, data.providerId], isValidData, false, false, true);
     };
 
     this.authenticate.expectsData = 'playerId: String, token: String';
