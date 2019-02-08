@@ -782,6 +782,9 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
         && extConfig && extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].topUpAPICallback) {
         paymentCallbackUrl = extConfig[playerData.platform.topUpSystemType].topUpAPICallback;
     }
+    console.log('playerData.platform.platformId===', playerData.platform.platformId);
+    console.log('playerData.platform.topUpSystemType===', playerData.platform.topUpSystemType);
+    console.log('paymentCallbackUrl===', paymentCallbackUrl);
 
     url += "?";
     url += playerData.platform.platformId + delimiter;
