@@ -1051,8 +1051,9 @@ var proposal = {
                             topupActualAmt = merchantRate && merchantRate.customizeRate ?
                                 (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
                                 : proposalObj.data.amount;
+
                             if (updObj && updObj.data && updObj.data.amount) {
-                                topupActualAmt = Number(updObj.data.amount) - Number(topupRate);
+                                topupActualAmt = (Number(updObj.data.amount) - Number(updObj.data.amount) * Number(topupRate)).toFixed(2);
                             }
 
                             addDetailToProp(updObj.data, 'rate', topupRate);
