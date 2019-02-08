@@ -24281,6 +24281,36 @@ define(['js/app'], function (myApp) {
                         allNames.push(promoCode.name);
                     });
                 }
+                if (vm.openPromoCodeTemplate1 && vm.openPromoCodeTemplate1.length) {
+                    vm.openPromoCodeTemplate1.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.openPromoCodeTemplate2 && vm.openPromoCodeTemplate2.length) {
+                    vm.openPromoCodeTemplate2.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.openPromoCodeTemplate3 && vm.openPromoCodeTemplate3.length) {
+                    vm.openPromoCodeTemplate3.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.promoCodeType1 && vm.promoCodeType1.length) {
+                    vm.promoCodeType1.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.promoCodeType2 && vm.promoCodeType2.length) {
+                    vm.promoCodeType2.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.promoCodeType3 && vm.promoCodeType3.length) {
+                    vm.promoCodeType3.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
 
                 if(vm.excludeAuctionItem && vm.excludeAuctionItem.length){
                     let InPromoCodeProduct = vm.excludeAuctionItem.filter(p => p.rewardData && p.rewardData.hasOwnProperty("templateObjId"));
