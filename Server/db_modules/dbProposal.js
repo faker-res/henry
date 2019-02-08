@@ -1001,7 +1001,7 @@ var proposal = {
                                 callbackData.count
                                 && callbackData.count === '1'
                                 && Number(callbackData.amount) !== Number(proposalObj.data.amount)
-                                && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
+                                && Number(callbackData.amount) - Number(proposalObj.data.amount) <= 1
                             ) {
                                 updObj.data.amount = Number(callbackData.amount);
                             }
@@ -1045,11 +1045,16 @@ var proposal = {
                                 addDetailToProp(updObj, 'settleTime', new Date());
                             }
 
+                            console.log('merchantRate===', merchantRate);
                             // Add merchant rate and actualReceivedAmount
                             topupRate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
                             topupActualAmt = merchantRate && merchantRate.customizeRate ?
                                 (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
                                 : proposalObj.data.amount;
+
+                            if (updObj && updObj.data && updObj.data.amount) {
+                                topupActualAmt = (Number(updObj.data.amount) - Number(updObj.data.amount) * Number(topupRate)).toFixed(2);
+                            }
 
                             addDetailToProp(updObj.data, 'rate', topupRate);
                             addDetailToProp(updObj.data, 'actualAmountReceived', topupActualAmt);
