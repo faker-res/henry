@@ -20629,7 +20629,23 @@ let dbPlayerInfo = {
         )
     },
 
-    getPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode) {
+    prepareGetPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerIds) {
+        if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE].includes(mode) && providerIds && providerIds.length) {
+            return dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {_id: 1}).lean().then(
+                gameProviderData => {
+                    let gameProviderIds = [];
+                    if (gameProviderData && gameProviderData.length) {
+                        gameProviderIds = gameProviderData.map(provider => provider._id);
+                    }
+                    return dbPlayerInfo.getPlayerBillBoard(platformId, periodCheck, hourCheck, recordCount, playerId, mode, gameProviderIds);
+                }
+            )
+        } else {
+            return dbPlayerInfo.getPlayerBillBoard(platformId, periodCheck, hourCheck, recordCount, playerId, mode);
+        }
+    },
+
+    getPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerObjIds) {
         let prom;
         let playerDataField;
         let consumptionField;
@@ -21139,6 +21155,10 @@ let dbPlayerInfo = {
                         };
                     }
 
+                    if (providerObjIds && providerObjIds.length) {
+                        matchQuery.$match.providerId = {$in: providerObjIds};
+                    }
+
                     return dbconfig.collection_playerConsumptionRecord.aggregate([
                         matchQuery,
                         {
@@ -21311,6 +21331,10 @@ let dbPlayerInfo = {
                                 $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
+                    }
+
+                    if (providerObjIds && providerObjIds.length) {
+                        matchQuery.$match.providerId = {$in: providerObjIds};
                     }
 
                     return dbconfig.collection_playerConsumptionRecord.aggregate([
@@ -21497,6 +21521,10 @@ let dbPlayerInfo = {
                                 $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
+                    }
+
+                    if (providerObjIds && providerObjIds.length) {
+                        matchQuery.$match.providerId = {$in: providerObjIds};
                     }
 
                     return dbconfig.collection_playerConsumptionRecord.aggregate([
