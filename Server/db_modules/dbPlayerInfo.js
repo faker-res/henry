@@ -20890,7 +20890,7 @@ let dbPlayerInfo = {
                             for (let i = 0; i < sortedData.length; i++) {
                                 if (sortedData[i].amount) {
                                     //round to 2 decimal places
-                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2);
+                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
                                 }
                                 sortedData[i].rank = i + 1;
                                 if (playerObj && playerObj.name) {
