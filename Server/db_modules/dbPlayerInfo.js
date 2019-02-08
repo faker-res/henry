@@ -20690,7 +20690,7 @@ let dbPlayerInfo = {
                                 if (totalTopUpRanking) {
                                     for (let i = 0; i < totalTopUpRanking.length; i++) {
                                         totalTopUpRanking[i].rank = i + 1;
-                                        totalTopUpRanking[i].amount =  (Math.round(totalTopUpRanking[i][playerDataField] * 100) / 100) || 0;
+                                        totalTopUpRanking[i].amount =  Number(totalTopUpRanking[i][playerDataField].toFixed(2)) || 0;
                                         delete totalTopUpRanking[i][playerDataField];
                                         delete totalTopUpRanking[i]._id;
                                     }
@@ -20712,7 +20712,7 @@ let dbPlayerInfo = {
                                                     sameRankCount => {
                                                         returnData.allDeposit.playerRanking = {
                                                             name: playerObj.name,
-                                                            amount: (Math.round(playerObj[playerDataField] * 100) / 100) || 0,
+                                                            amount: Number(playerObj[playerDataField].toFixed(2)) || 0,
                                                             rank: rankCount + sameRankCount + 1
                                                         }
                                                         return returnData;
@@ -20772,7 +20772,7 @@ let dbPlayerInfo = {
                                 for (let i = 0; i < sortedData.length; i++) {
                                     if (sortedData[i].amount) {
                                         //round to 2 decimal places
-                                        sortedData[i].amount = Math.round(sortedData[i].amount * 100) / 100;
+                                        sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
                                     }
                                     sortedData[i].rank = i + 1;
                                     if (sortedData[i].createTime) {
@@ -20890,7 +20890,7 @@ let dbPlayerInfo = {
                             for (let i = 0; i < sortedData.length; i++) {
                                 if (sortedData[i].amount) {
                                     //round to 2 decimal places
-                                    sortedData[i].amount = Math.round(sortedData[i].amount * 100) / 100;
+                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2);
                                 }
                                 sortedData[i].rank = i + 1;
                                 if (playerObj && playerObj.name) {
@@ -20963,7 +20963,7 @@ let dbPlayerInfo = {
                                 if (totalWithdrawRanking) {
                                     for (let i = 0; i < totalWithdrawRanking.length; i++) {
                                         totalWithdrawRanking[i].rank = i + 1;
-                                        totalWithdrawRanking[i].amount = (Math.round(totalWithdrawRanking[i][playerDataField] * 100) / 100) || 0;
+                                        totalWithdrawRanking[i].amount = Number(totalWithdrawRanking[i][playerDataField].toFixed(2)) || 0;
                                         delete totalWithdrawRanking[i][playerDataField];
                                         delete totalWithdrawRanking[i]._id;
                                     }
@@ -20993,7 +20993,7 @@ let dbPlayerInfo = {
                                                     sameRankCount => {
                                                         returnData.allWithdraw.playerRanking = {
                                                             name: playerObj.name,
-                                                            amount: (Math.round(playerObj[playerDataField] * 100) / 100) || 0,
+                                                            amount: Number(playerObj[playerDataField].toFixed(2)) || 0,
                                                             rank: rankCount + sameRankCount + 1
                                                         };
                                                         return returnData;
@@ -21056,7 +21056,7 @@ let dbPlayerInfo = {
                                 for (let i = 0; i < sortedData.length; i++) {
                                     if (sortedData[i].amount) {
                                         //round to 2 decimal places
-                                        sortedData[i].amount = Math.round(sortedData[i].amount * 100) / 100;
+                                        sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
                                     }
                                     sortedData[i].rank = i + 1;
                                     if (sortedData[i].createTime) {
@@ -21179,7 +21179,7 @@ let dbPlayerInfo = {
                             for (let i = 0; i < sortedData.length; i++) {
                                 if (sortedData[i].amount) {
                                     //round to 2 decimal places
-                                    sortedData[i].amount = Math.round(sortedData[i].amount * 100) / 100;
+                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
                                 }
                                 sortedData[i].rank = i + 1;
                                 if (sortedData[i].createTime) {
@@ -21354,7 +21354,7 @@ let dbPlayerInfo = {
                             for (let i = 0; i < sortedData.length; i++) {
                                 if (sortedData[i].amount) {
                                     //round to 2 decimal places
-                                    sortedData[i].amount = Math.round(sortedData[i].amount * 100) / 100;
+                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
                                 }
                                 sortedData[i].rank = i + 1;
                                 if (sortedData[i].createTime) {
@@ -21540,15 +21540,15 @@ let dbPlayerInfo = {
                             for (let i = 0; i < sortedData.length; i++) {
                                 if (sortedData[i].winRatio) {
                                     //round to 2 decimal places
-                                    sortedData[i].winRatio = Math.round(sortedData[i].winRatio * 100) / 100;
+                                    sortedData[i].winRatio = Number(sortedData[i].winRatio.toFixed(2));
                                 }
                                 if (sortedData[i].bonusAmount) {
                                     //round to 2 decimal places
-                                    sortedData[i].bonusAmount = Math.round(sortedData[i].bonusAmount * 100) / 100;
+                                    sortedData[i].bonusAmount = Number(sortedData[i].bonusAmount.toFixed(2));
                                 }
                                 if (sortedData[i].validAmount) {
                                     //round to 2 decimal places
-                                    sortedData[i].validAmount = Math.round(sortedData[i].validAmount * 100) / 100;
+                                    sortedData[i].validAmount = Number(sortedData[i].validAmount.toFixed(2));
                                 }
                                 sortedData[i].rank = i + 1;
                                 if (playerObj && playerObj.name) {
