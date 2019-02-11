@@ -17194,8 +17194,8 @@ let dbPlayerInfo = {
                 bonusRecord.forEach(bonus => {
                     console.log('bonus===1', bonus);
                     if (!bonus.bUsed) {  // only check bonus not used
-                        let outputDate = new Date(output.date.year, output.date.month, output.date.day);
-                        let bonusDate = new Date(bonus._id.year, bonus._id.month, bonus._id.day);
+                        let outputDate = new Date(output.date.year, output.date.month - 1, output.date.day); //month start from 0 to 11
+                        let bonusDate = new Date(bonus._id.year, bonus._id.month - 1, bonus._id.day); //month start from 0 to 11
 
                         if (outputDate.getTime() === bonusDate.getTime()) {
                             output.bonusAmount = bonus.amount;
