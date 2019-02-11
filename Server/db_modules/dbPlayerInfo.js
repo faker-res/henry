@@ -18438,8 +18438,11 @@ let dbPlayerInfo = {
                 return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
                     proposalTypeData => {
                         proposalType = proposalTypeData;
+                        let calculatePlayerValueProms = [];
                         for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                             let prom;
+                            let calculateProm = dbPlayerCredibility.calculatePlayerValue(playerObjIds[p]);
+                            calculatePlayerValueProms.push(calculateProm);
 
                             if (option.isDX) {
                                 prom = dbconfig.collection_players.findOne({
@@ -18496,7 +18499,7 @@ let dbPlayerInfo = {
 
                         }
 
-                        return Promise.all(proms);
+                        return Promise.all(proms, calculatePlayerValueProms);
                     },
                     error => {
                         return Promise.reject(error)
