@@ -516,12 +516,14 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
                 console.log('proposal allData', data);
-                vm.proposals = data.data.data;
-                $('.proposalMessage > a > .fa').removeClass('fa-spin');
-                $('.proposalMessage').next().show();
+                $scope.$evalAsync(() => {
+                    vm.proposals = data.data.data;
+                    $('.proposalMessage > a > .fa').removeClass('fa-spin');
+                    $('.proposalMessage').next().show();
 
-                vm.queryProposal.totalCount = data.data.size;
-                vm.drawProposalTable(vm.proposals, data.data.size, data.data.summary, newSearch);
+                    vm.queryProposal.totalCount = data.data.size;
+                    vm.drawProposalTable(vm.proposals, data.data.size, data.data.summary, newSearch);
+                });
             });
         }
 
