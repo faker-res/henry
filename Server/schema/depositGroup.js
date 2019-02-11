@@ -13,7 +13,7 @@ var depositGroupSchema = new Schema({
     // topUpTypeId - 1 Manual, 2 Online, 3 Alipay, 4 Wechat
     topUpTypeId: {type: Number, index: true},
     // DepositMethodId or MerchantTopUpTypeId - null if topUpTypeId is alipay or wechat
-    topUpMethodId: {type: Number}
+    topUpMethodId: {type: Number, index: true}
 });
 
 //add smsID before save

@@ -15,7 +15,6 @@ class Login extends Component {
             servers: WSCONFIG,
             selectedServer: 'Fastest Server'
         };
-        this.inputRef = React.createRef();
         this.pingAllServers();
     }
 
@@ -120,7 +119,7 @@ class Login extends Component {
         console.log("Rendering...");
         return (
             <div className="container centerMenu">
-                <div className="card">
+                <div className="login card col-12">
                     <div className="text-center">
                         <h4>FMPS</h4>
                     </div>

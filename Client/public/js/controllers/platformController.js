@@ -24275,6 +24275,43 @@ define(['js/app'], function (myApp) {
                 vm.openPromoCodeTemplateData.map(promoCode => {
                     allNames.push(promoCode.name);
                 });
+
+                if (vm.promoCodeTemplateData && vm.promoCodeTemplateData.length) {
+                    vm.promoCodeTemplateData.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.openPromoCodeTemplate1 && vm.openPromoCodeTemplate1.length) {
+                    vm.openPromoCodeTemplate1.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.openPromoCodeTemplate2 && vm.openPromoCodeTemplate2.length) {
+                    vm.openPromoCodeTemplate2.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.openPromoCodeTemplate3 && vm.openPromoCodeTemplate3.length) {
+                    vm.openPromoCodeTemplate3.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.promoCodeType1 && vm.promoCodeType1.length) {
+                    vm.promoCodeType1.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.promoCodeType2 && vm.promoCodeType2.length) {
+                    vm.promoCodeType2.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.promoCodeType3 && vm.promoCodeType3.length) {
+                    vm.promoCodeType3.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+
                 if(vm.excludeAuctionItem && vm.excludeAuctionItem.length){
                     let InPromoCodeProduct = vm.excludeAuctionItem.filter(p => p.rewardData && p.rewardData.hasOwnProperty("templateObjId"));
                     InPromoCodeProduct.map(auctionItem => {
@@ -25753,6 +25790,7 @@ define(['js/app'], function (myApp) {
 
                     let table1Data = data.data[0];
                     vm.promoCodeAnalysis.totalCount = data.data[1].length;
+                    vm.promoCodeAnalysis.sendCount = data.data[2][0].sendCount;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p = Promise.resolve();
@@ -25860,6 +25898,7 @@ define(['js/app'], function (myApp) {
 
                     let table2Data = data.data[0];
                     vm.promoCodeAnalysis2.totalCount = data.data[1].length;
+                    vm.promoCodeAnalysis2.sendCount = data.data[2][0].sendCount;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p1 = Promise.resolve();

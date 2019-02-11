@@ -1797,6 +1797,9 @@ define(['js/app'], function (myApp) {
                 $scope.$emit('childchildControllerLoaded', 'monitorProposalAndPaymentControllerLoaded');
             }
         });
+
+        $scope.$emit('childchildControllerLoaded', 'monitorProposalAndPaymentControllerLoaded');
+
         $scope.$on("setPlatform", function (e, d) {
             vm.setPlatform();
             vm.hideLeftPanel = false;

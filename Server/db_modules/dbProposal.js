@@ -43,6 +43,7 @@ const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalUserType = require('./../const/constProposalUserType');
 const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbGameProvider = require('./../db_modules/dbGameProvider');
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -811,16 +812,32 @@ var proposal = {
         let proposalObj = null;
         let type = constPlayerTopUpType.ONLINE;
         let updObj, topupRate, topupActualAmt;
+        console.log('proposalId===', proposalId);
+        console.log('status===', status);
+        console.log('requestId===', requestId);
+        console.log('orderStatus===', orderStatus);
+        console.log('remark===', remark);
+        console.log('callbackData===', callbackData);
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: 'type', model: dbconfig.collection_proposalType
         }).lean().then(
             proposalData => {
+                console.log('proposalData===', proposalData);
                 if (proposalData && proposalData.data) {
                     proposalObj = proposalData;
                     remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
-                    if (callbackData && callbackData.amount && proposalData.data.amount && Math.floor(callbackData.amount) !== Math.floor(proposalData.data.amount)) {
+                    if (
+                        callbackData
+                        && callbackData.amount
+                        && proposalData.data.amount
+                        && (
+                            // Allow only 0~1 (inclusive) difference
+                            Math.floor(callbackData.amount) - Math.floor(proposalData.data.amount) < 0
+                            || Math.floor(callbackData.amount) - Math.floor(proposalData.data.amount) > 1
+                        )
+                    ) {
                         console.log('callbackData.amount', callbackData.amount, Math.floor(callbackData.amount));
                         console.log('proposalData.data.amount', proposalData.data.amount, Math.floor(proposalData.data.amount));
                         return Promise.reject({
@@ -984,7 +1001,7 @@ var proposal = {
                                 callbackData.count
                                 && callbackData.count === '1'
                                 && Number(callbackData.amount) !== Number(proposalObj.data.amount)
-                                && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
+                                && Number(callbackData.amount) - Number(proposalObj.data.amount) <= 1
                             ) {
                                 updObj.data.amount = Number(callbackData.amount);
                             }
@@ -1028,11 +1045,16 @@ var proposal = {
                                 addDetailToProp(updObj, 'settleTime', new Date());
                             }
 
+                            console.log('merchantRate===', merchantRate);
                             // Add merchant rate and actualReceivedAmount
                             topupRate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
                             topupActualAmt = merchantRate && merchantRate.customizeRate ?
                                 (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
                                 : proposalObj.data.amount;
+
+                            if (updObj && updObj.data && updObj.data.amount) {
+                                topupActualAmt = (Number(updObj.data.amount) - Number(updObj.data.amount) * Number(topupRate)).toFixed(2);
+                            }
 
                             addDetailToProp(updObj.data, 'rate', topupRate);
                             addDetailToProp(updObj.data, 'actualAmountReceived', topupActualAmt);
@@ -1043,6 +1065,7 @@ var proposal = {
                                 addDetailToProp(updObj.data, 'line', callbackData.line);
                                 addDetailToProp(updObj.data, 'remark', remark);
                             }
+                            console.log('updObj===', updObj);
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -1054,6 +1077,7 @@ var proposal = {
             }
         ).then(
             propData => {
+                console.log('propData===', propData);
                 let retObj = {
                     proposalId: proposalId,
                     orderStatus: orderStatus,
@@ -1062,6 +1086,7 @@ var proposal = {
                     rate: (Number(proposalObj.data.amount) * Number(topupRate)).toFixed(2),
                     actualAmountReceived: topupActualAmt
                 };
+                console.log('retObj===', retObj);
 
                 return retObj;
             },
@@ -1375,7 +1400,7 @@ var proposal = {
                                 () => {
                                     let updateData = {status: status, isLocked: null};
                                     return dbconfig.collection_proposal.findOneAndUpdate(
-                                        {_id: proposalData._id, createTime: proposalData.createTime},
+                                        {_id: proposalData._id, createTime: proposalData.createTime, status: proposalData.status},
                                         updateData,
                                         {new: true}
                                     ).then(data => {
@@ -3429,7 +3454,7 @@ var proposal = {
                 reqData.type = {$in: arr}
             }
 
-            let a, b, c;
+            let a, b, c, d;
             if(isApprove){
                 let searchQuery = {
                     platformId: ObjectId(reqData.platformId),
@@ -3563,6 +3588,28 @@ var proposal = {
                                 }
                             }
                         ]).read("secondaryPreferred");
+
+                        d = dbconfig.collection_proposalType.find(searchQuery).lean().then(
+                            proposalType => {
+                                delete reqData.platformId;
+                                if(proposalType && proposalType.length > 0){
+                                    let proposalTypeIdList = [];
+                                    proposalType.forEach(p => {
+                                        if(p && p._id){
+                                            let indexNo = reqData.type.$in.findIndex(r => r == p.id);
+
+                                            if(indexNo != -1){
+                                                proposalTypeIdList.push(p._id);
+                                            }
+                                        }
+                                    });
+
+                                    reqData.type = {$in: proposalTypeIdList};
+                                }
+
+                                return dbconfig.collection_proposal.distinct('data.playerName', reqData);
+                            }
+                        );
                     }
                 );
             }else{
@@ -3635,13 +3682,15 @@ var proposal = {
                         }
                     }
                 ]).read("secondaryPreferred");
+                d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
             }
 
-            prom = Promise.all([a, b, c]).then(
+            prom = Promise.all([a, b, c, d]).then(
                 function (data) {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
+                    totalPlayer = data[3] && data[3].length || 0;
 
                     if(resultArray && resultArray.length > 0 && isSuccess){
                         resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
@@ -7668,6 +7717,7 @@ var proposal = {
         let endDate = new Date(query.endTime);
         let credibilityRemarkProm;
         let totalCredibilityRemarkProm;
+        let finalResult;
 
         if(query.creditibilityRemarkList && query.creditibilityRemarkList.length > 0) {
             totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).count();
@@ -7702,6 +7752,16 @@ var proposal = {
                         return {data: consumptionSummary, size: totalSize};
                     }
                 );
+            }
+        ).then(
+            result => {
+                finalResult = result;
+                let providerList = [];
+                return dbGameProvider.getGameProviderByPlatformList(query.platformIds);
+            }
+        ).then(
+            gameProviderDetail => {
+                return Object.assign(finalResult, {gameProviderDetail: gameProviderDetail});
             }
         );
     },
@@ -7751,14 +7811,22 @@ var proposal = {
         ).then(
             providerDetails => {
                 let returnedObj = {credibilityRemark: credibilityRemarkName};
-
+                let totalValidConsumptionByCredibilityRemark = 0;
+                console.log("LH Check providerConsumption Report 1------------------", providerDetails);
                 if(providerDetails && providerDetails.length > 0){
                     providerDetails.forEach(
                         provider => {
-                            returnedObj = Object.assign(returnedObj, provider);
+                            console.log("LH Check providerConsumption Report 2------------------", provider);
+                            if(provider){
+                                let objectKey = Object.keys(provider)[0];
+                                totalValidConsumptionByCredibilityRemark += parseFloat(provider[objectKey]);
+                                returnedObj = Object.assign(returnedObj, provider);
+                            }
                         }
                     )
                 }
+
+                returnedObj = Object.assign(returnedObj, {totalValidConsumption: totalValidConsumptionByCredibilityRemark});
 
                 return returnedObj;
             }

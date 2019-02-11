@@ -874,7 +874,8 @@ let dbPlayerInfo = {
                     return checktsPhoneFeedback.then(
                         tsPhoneFeedbackData => {
                             if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
-                                inputData.csOfficer = ObjectId(tsPhoneFeedbackData.adminId);
+                                inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
+                                inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
                                 if (tsPhoneFeedbackData.tsPhone) {
                                     inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
                                     inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
@@ -8722,14 +8723,15 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject, userAgent) {
+        let errorData = player && player.name || "";
         if (!player) {
             throw Error("player was not provided!");
         }
         if (!player.playerLevel) {
-            throw Error("player's playerLevel is not populated!");
+            throw Error("player's playerLevel is not populated!" + errorData);
         }
         if (!playerLevels) {
-            throw Error("playerLevels was not provided!");
+            throw Error("playerLevels was not provided!" + errorData);
         }
 
         let errorMsg = '';
@@ -16845,6 +16847,8 @@ let dbPlayerInfo = {
                             if (player) {
                                 proposalQuery['data.playerObjId'] = player._id;
                             }
+                            console.log('startDate===', startDate);
+                            console.log('dayEndTime===', dayEndTime);
 
                             proposalProm.push(dbconfig.collection_proposal.aggregate([
                                 {$match: proposalQuery},
@@ -16888,6 +16892,7 @@ let dbPlayerInfo = {
                                 }
                             }
                         }
+                        console.log('proposalData===', proposalData);
 
                         proposalData.forEach(function (proposal) {
                             groupedPlayers[proposal._id] = (groupedPlayers[proposal._id] || 0) + proposal.reachTargetDay;
@@ -17098,6 +17103,13 @@ let dbPlayerInfo = {
                 }
             }
 
+            console.log('startDate===', startDate);
+            console.log('dayEndTime===', dayEndTime);
+            console.log('playerObjId===', playerObjId);
+            console.log('timezoneAdjust.year===', timezoneAdjust.year);
+            console.log('timezoneAdjust.month===', timezoneAdjust.month);
+            console.log('timezoneAdjust.day===', timezoneAdjust.day);
+
             topUpProm.push(dbconfig.collection_proposal.aggregate([
                 {
                     $match: {
@@ -17161,6 +17173,8 @@ let dbPlayerInfo = {
 
             topUpRecord = [].concat(...topUpRecord);
             bonusRecord = [].concat(...bonusRecord);
+            console.log('topUpRecord===', topUpRecord);
+            console.log('bonusRecord===', bonusRecord);
 
             let outputData = [];
 
@@ -17177,6 +17191,7 @@ let dbPlayerInfo = {
 
             outputData.forEach(output => {
                 bonusRecord.forEach(bonus => {
+                    console.log('bonus===1', bonus);
                     if (!bonus.bUsed) {  // only check bonus not used
                         let outputDate = new Date(output.date.year, output.date.month, output.date.day);
                         let bonusDate = new Date(bonus._id.year, bonus._id.month, bonus._id.day);
@@ -17193,6 +17208,7 @@ let dbPlayerInfo = {
 
             // for scenario when that month doesn't have top up record
             bonusRecord.forEach(bonus => {
+                console.log('bonus===2', bonus);
                 if (!bonus.bUsed) {
                     outputData.push({
                         date: bonus._id,
@@ -20613,7 +20629,23 @@ let dbPlayerInfo = {
         )
     },
 
-    getPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode) {
+    prepareGetPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerIds) {
+        if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE].includes(mode) && providerIds && providerIds.length) {
+            return dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {_id: 1}).lean().then(
+                gameProviderData => {
+                    let gameProviderIds = [];
+                    if (gameProviderData && gameProviderData.length) {
+                        gameProviderIds = gameProviderData.map(provider => provider._id);
+                    }
+                    return dbPlayerInfo.getPlayerBillBoard(platformId, periodCheck, hourCheck, recordCount, playerId, mode, gameProviderIds);
+                }
+            )
+        } else {
+            return dbPlayerInfo.getPlayerBillBoard(platformId, periodCheck, hourCheck, recordCount, playerId, mode);
+        }
+    },
+
+    getPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerObjIds) {
         let prom;
         let playerDataField;
         let consumptionField;
@@ -20675,7 +20707,7 @@ let dbPlayerInfo = {
                                 if (totalTopUpRanking) {
                                     for (let i = 0; i < totalTopUpRanking.length; i++) {
                                         totalTopUpRanking[i].rank = i + 1;
-                                        totalTopUpRanking[i].amount = totalTopUpRanking[i][playerDataField] || 0;
+                                        totalTopUpRanking[i].amount =  Number(totalTopUpRanking[i][playerDataField].toFixed(2)) || 0;
                                         delete totalTopUpRanking[i][playerDataField];
                                         delete totalTopUpRanking[i]._id;
                                     }
@@ -20697,7 +20729,7 @@ let dbPlayerInfo = {
                                                     sameRankCount => {
                                                         returnData.allDeposit.playerRanking = {
                                                             name: playerObj.name,
-                                                            amount: playerObj[playerDataField] || 0,
+                                                            amount: Number(playerObj[playerDataField].toFixed(2)) || 0,
                                                             rank: rankCount + sameRankCount + 1
                                                         }
                                                         return returnData;
@@ -20755,6 +20787,10 @@ let dbPlayerInfo = {
 
                                 let sortedData = topUpRecord.sort(sortRankingRecord);
                                 for (let i = 0; i < sortedData.length; i++) {
+                                    if (sortedData[i].amount) {
+                                        //round to 2 decimal places
+                                        sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                    }
                                     sortedData[i].rank = i + 1;
                                     if (sortedData[i].createTime) {
                                         delete sortedData[i].createTime;
@@ -20869,6 +20905,10 @@ let dbPlayerInfo = {
                             // }
                             // let sortedData = topUpRecord.sort(sortRankingRecord);
                             for (let i = 0; i < sortedData.length; i++) {
+                                if (sortedData[i].amount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                }
                                 sortedData[i].rank = i + 1;
                                 if (playerObj && playerObj.name) {
                                     if (sortedData[i]._id.toString() == playerObj._id.toString()) {
@@ -20940,7 +20980,7 @@ let dbPlayerInfo = {
                                 if (totalWithdrawRanking) {
                                     for (let i = 0; i < totalWithdrawRanking.length; i++) {
                                         totalWithdrawRanking[i].rank = i + 1;
-                                        totalWithdrawRanking[i].amount = totalWithdrawRanking[i][playerDataField] || 0;
+                                        totalWithdrawRanking[i].amount = Number(totalWithdrawRanking[i][playerDataField].toFixed(2)) || 0;
                                         delete totalWithdrawRanking[i][playerDataField];
                                         delete totalWithdrawRanking[i]._id;
                                     }
@@ -20970,7 +21010,7 @@ let dbPlayerInfo = {
                                                     sameRankCount => {
                                                         returnData.allWithdraw.playerRanking = {
                                                             name: playerObj.name,
-                                                            amount: playerObj[playerDataField] || 0,
+                                                            amount: Number(playerObj[playerDataField].toFixed(2)) || 0,
                                                             rank: rankCount + sameRankCount + 1
                                                         };
                                                         return returnData;
@@ -21031,6 +21071,10 @@ let dbPlayerInfo = {
                                 let sortedData = withdrawRecord.sort(sortRankingRecord);
 
                                 for (let i = 0; i < sortedData.length; i++) {
+                                    if (sortedData[i].amount) {
+                                        //round to 2 decimal places
+                                        sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                    }
                                     sortedData[i].rank = i + 1;
                                     if (sortedData[i].createTime) {
                                         delete sortedData[i].createTime;
@@ -21111,6 +21155,10 @@ let dbPlayerInfo = {
                         };
                     }
 
+                    if (providerObjIds && providerObjIds.length) {
+                        matchQuery.$match.providerId = {$in: providerObjIds};
+                    }
+
                     return dbconfig.collection_playerConsumptionRecord.aggregate([
                         matchQuery,
                         {
@@ -21150,6 +21198,10 @@ let dbPlayerInfo = {
                             let playerRanking;
                             let sortedData = consumptionRecord.sort(sortRankingRecord);
                             for (let i = 0; i < sortedData.length; i++) {
+                                if (sortedData[i].amount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                }
                                 sortedData[i].rank = i + 1;
                                 if (sortedData[i].createTime) {
                                     delete sortedData[i].createTime;
@@ -21281,6 +21333,10 @@ let dbPlayerInfo = {
                         };
                     }
 
+                    if (providerObjIds && providerObjIds.length) {
+                        matchQuery.$match.providerId = {$in: providerObjIds};
+                    }
+
                     return dbconfig.collection_playerConsumptionRecord.aggregate([
                         matchQuery,
                         {
@@ -21320,7 +21376,12 @@ let dbPlayerInfo = {
                             let playerRanking;
                             let sortedData = consumptionRecord.sort(sortRankingRecord);
 
+                            console.log("player bill board win all", sortedData)
                             for (let i = 0; i < sortedData.length; i++) {
+                                if (sortedData[i].amount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                }
                                 sortedData[i].rank = i + 1;
                                 if (sortedData[i].createTime) {
                                     delete sortedData[i].createTime;
@@ -21462,6 +21523,10 @@ let dbPlayerInfo = {
                         };
                     }
 
+                    if (providerObjIds && providerObjIds.length) {
+                        matchQuery.$match.providerId = {$in: providerObjIds};
+                    }
+
                     return dbconfig.collection_playerConsumptionRecord.aggregate([
                         matchQuery,
                         {
@@ -21482,7 +21547,7 @@ let dbPlayerInfo = {
                                 winRatio: {$first: "$winRatio"}
                             }
                         }
-                    ]).then(
+                    ]).allowDiskUse(true).then(
                         consumptionRecord => {
                             function sortRankingRecord(a, b) {
                                 if (a.winRatio < b.winRatio)
@@ -21503,6 +21568,18 @@ let dbPlayerInfo = {
                             let sortedData = consumptionRecord.sort(sortRankingRecord);
                             let playerRanking;
                             for (let i = 0; i < sortedData.length; i++) {
+                                if (sortedData[i].winRatio) {
+                                    //round to 2 decimal places
+                                    sortedData[i].winRatio = Number(sortedData[i].winRatio.toFixed(2));
+                                }
+                                if (sortedData[i].bonusAmount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].bonusAmount = Number(sortedData[i].bonusAmount.toFixed(2));
+                                }
+                                if (sortedData[i].validAmount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].validAmount = Number(sortedData[i].validAmount.toFixed(2));
+                                }
                                 sortedData[i].rank = i + 1;
                                 if (playerObj && playerObj.name) {
                                     if (sortedData[i]._id.toString() == playerObj._id.toString()) {
@@ -24376,7 +24453,11 @@ function checkTelesalesFeedback(phoneNumber, platformObjId) {
             if (tsPhoneData && tsPhoneData.length) {
                 return dbconfig.collection_tsPhoneFeedback.findOne({
                     tsPhone: {$in: tsPhoneData.map(tsPhone => tsPhone._id)}
-                }, {adminId: 1, tsPhone: 1, tsPhoneList: 1}).sort({createTime: -1}).lean();
+                }, {adminId: 1, tsPhone: 1, tsPhoneList: 1}).populate({
+                    path: "adminId",
+                    model: dbconfig.collection_admin,
+                    select: "adminName"
+                }).sort({createTime: -1}).lean();
             } else {
                 return null;
             }

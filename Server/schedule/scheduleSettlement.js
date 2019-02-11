@@ -128,7 +128,13 @@ var minuteJob = new CronJob('0 * * * * *', function () {
 
                     // hard code to reset player data at 00:00
                     if (curTime.getHours() == 0 && curTime.getMinutes() == 0) {
-                        task5 = () => dbPlatform.resetPlatformPlayerLevelData(platformData._id).catch(
+                        task5 = () => dbPlatform.resetPlatformPlayerLevelData(platformData._id).then(
+                            data => {
+                                if (data) {
+                                    console.log(new Date().toString() + "Daily reset player level data Done", platformData._id, data)
+                                }
+                            }
+                        ).catch(
                             error => {
                                 console.log({
                                     name: "DBError",
@@ -193,10 +199,7 @@ var minuteJob = new CronJob('0 * * * * *', function () {
         return promiseUtils.each([task1], task => task && task() );
     }
 
-    return processProviders().then(() => {
-        processTsPhone().catch(errorUtils.reportError);
-        return processPlatforms();
-    });
+    return Promise.all([processProviders(), processTsPhone(), processPlatforms()]);
 
 }, function () {
         console.log("Daily Settlement Done", Date());
