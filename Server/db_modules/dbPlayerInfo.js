@@ -18441,6 +18441,9 @@ let dbPlayerInfo = {
                         for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                             let prom;
 
+                            //recalculate player value
+                            dbPlayerCredibility.calculatePlayerValue(playerObjIds[p]);
+
                             if (option.isDX) {
                                 prom = dbconfig.collection_players.findOne({
                                     _id: playerObjIds[p]
