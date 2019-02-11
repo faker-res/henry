@@ -36898,6 +36898,24 @@ define(['js/app'], function (myApp) {
 
             }
 
+            vm.generateOpenPromoCodeAuctionItem = function(){
+                GeneralModal.confirm({
+                    title: $translate("AuctionSystem"),
+                    text: $translate("CONFIRM TO RE-GENERATE THE OPEN PROMO CODE? THE OLD PROMO CODE WILL NOT LONGER BE EFFECTIVE")
+                }).then(function () {
+                    if (vm.auctionProductReward && vm.auctionProductReward.templateObjId && vm.auctionSystemProduct && vm.auctionSystemProduct._id){
+                        let sendData = {
+                            templateObjId: vm.auctionProductReward.templateObjId,
+                            oldCode: vm.auctionProductReward.promoCode,
+                            auctionProductObjId: vm.auctionSystemProduct._id
+                        };
+                        socketService.$socket($scope.AppSocket, 'regenerateOpenPromoCode', sendData, function (data) {
+                            vm.auctionSystemTabClicked("createProduct");
+                        });
+                    }
+                });
+            };
+
             vm.removeNotAvailableAuction = function(){
                 let auctionItems = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');
                 let sendQuery = {

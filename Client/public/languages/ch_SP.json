@@ -3901,6 +3901,7 @@
   "DELETE_SPECIAL_MODULE_SETTING": "删除特殊模板",
   "Confirm to delete advertisement ?": "确定删除广告？",
   "Confirm to delete this special module setting ?": "确定删除这个特殊模板 ？",
+  "CONFIRM TO RE-GENERATE THE OPEN PROMO CODE? THE OLD PROMO CODE WILL NOT LONGER BE EFFECTIVE": "确定重新生成优惠代码？ 旧的代码将无效",
   "ADD NEW MODULE": "新增特殊模板",
   "'S DOMAIN_NAME": "的域名",
   "Confirm to turn advertisement on ?": "确定开启广告？",
