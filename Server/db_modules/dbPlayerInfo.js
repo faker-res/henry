@@ -12210,7 +12210,10 @@ let dbPlayerInfo = {
                     }
                 )
             }
-        );
+        ).catch(err=>{
+            console.log("dbPlayerInfo.updatePlayerTopupProposal()", proposalId, err);
+            return Promise.reject(err);
+        });
     },
 
     /*
