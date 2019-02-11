@@ -2330,10 +2330,16 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 unlockTime: createTime
                             };
 
+                            console.log("LH Check RTG unlock 1-------------", updatedRTG.currentAmt);
+                            console.log("LH Check RTG unlock 2-------------", platform.autoApproveLostThreshold);
+
                             // Check whether player has lost all credit
                             if (updatedRTG.currentAmt <= platform.autoApproveLostThreshold) {
                                 statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
                             }
+
+                            console.log("LH Check RTG unlock 3-------------", currentConsumption);
+                            console.log("LH Check RTG unlock 4-------------", targetConsumption);
 
                             if (currentConsumption >= targetConsumption) {
                                 statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
@@ -2347,6 +2353,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                    {new: true}
                                );
 
+                               console.log("LH Check RTG unlock 5-------------", statusUpdObj);
+                               console.log("LH Check RTG unlock 6-------------", updatedRTG.playerId);
                                return Promise.all([rewardTaskUnlockedProgress, updateProm]).then(
 
 
@@ -2356,6 +2364,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 //     {new: true}
                                 // ).then(
                                     res => {
+                                        console.log("LH Check RTG unlock 7-------------", res[1]);
                                         if (res[1]) {
                                             dbRewardTask.completeRewardTaskGroup(res[1], res[1].status).catch(errorUtils.reportError);
                                             console.log("checking---UnlockedRewardTasksRecord", res[0] || "could not find the record");
