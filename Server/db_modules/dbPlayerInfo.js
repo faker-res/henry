@@ -879,6 +879,7 @@ let dbPlayerInfo = {
                                 if (tsPhoneFeedbackData.tsPhone) {
                                     inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
                                     inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
+                                    inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
                                 }
                             }
                             return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
@@ -12210,7 +12211,10 @@ let dbPlayerInfo = {
                     }
                 )
             }
-        );
+        ).catch(err=>{
+            console.log("dbPlayerInfo.updatePlayerTopupProposal()", proposalId, err);
+            return Promise.reject(err);
+        });
     },
 
     /*
@@ -17194,8 +17198,8 @@ let dbPlayerInfo = {
                 bonusRecord.forEach(bonus => {
                     console.log('bonus===1', bonus);
                     if (!bonus.bUsed) {  // only check bonus not used
-                        let outputDate = new Date(output.date.year, output.date.month, output.date.day);
-                        let bonusDate = new Date(bonus._id.year, bonus._id.month, bonus._id.day);
+                        let outputDate = new Date(output.date.year, output.date.month - 1, output.date.day); //month start from 0 to 11
+                        let bonusDate = new Date(bonus._id.year, bonus._id.month - 1, bonus._id.day); //month start from 0 to 11
 
                         if (outputDate.getTime() === bonusDate.getTime()) {
                             output.bonusAmount = bonus.amount;
@@ -17352,7 +17356,6 @@ let dbPlayerInfo = {
 
         return getPlayerProm.then(
             player => {
-                console.log('player.length===', player.length);
                 if (player && player.length) {
                     for (let i = 0; i < player.length; i++) {
                         playerObjArr.push(ObjectId(player[i]._id));
@@ -17363,7 +17366,6 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                console.log('playerObjArrData===', playerObjArrData);
                 let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).read("secondaryPreferred").lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
@@ -17393,7 +17395,6 @@ let dbPlayerInfo = {
                                 },
                                 processResponse: function (record) {
                                     result = result.concat(record.data);
-                                    console.log('result.length===', result.length);
                                 }
                             }
                         )
