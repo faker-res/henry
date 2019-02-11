@@ -17187,6 +17187,7 @@ let dbPlayerInfo = {
                     isExceedDailyTotalDeposit: isExceedDailyTotalDeposit,
                 });
             }
+            console.log('outputData===11', outputData);
 
             outputData.forEach(output => {
                 bonusRecord.forEach(bonus => {
@@ -17218,6 +17219,7 @@ let dbPlayerInfo = {
                     bonus.bUsed = true;
                 }
             });
+            console.log('outputData===22', outputData);
 
             // convert date format
             for (let z = 0; z < outputData.length; z++) {
@@ -17232,6 +17234,7 @@ let dbPlayerInfo = {
             outputData.sort(function (a, b) {
                 return b.date - a.date
             });
+            console.log('outputData===33', outputData);
 
             //handle sum of field here
             for (let z = 0; z < outputData.length; z++) {
