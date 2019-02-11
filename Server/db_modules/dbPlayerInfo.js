@@ -8725,13 +8725,13 @@ let dbPlayerInfo = {
     checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject, userAgent) {
         let errorData = player && player.name || "";
         if (!player) {
-            throw Error("player was not provided!");
+            return Promise.reject("player was not provided!");
         }
         if (!player.playerLevel) {
-            throw Error("player's playerLevel is not populated!" + errorData);
+            return Promise.reject("player's playerLevel is not populated!" + errorData);
         }
         if (!playerLevels) {
-            throw Error("playerLevels was not provided!" + errorData);
+            return Promise.reject("playerLevels was not provided!" + errorData);
         }
 
         let errorMsg = '';
@@ -17188,6 +17188,7 @@ let dbPlayerInfo = {
                     isExceedDailyTotalDeposit: isExceedDailyTotalDeposit,
                 });
             }
+            console.log('outputData===11', outputData);
 
             outputData.forEach(output => {
                 bonusRecord.forEach(bonus => {
@@ -17219,6 +17220,7 @@ let dbPlayerInfo = {
                     bonus.bUsed = true;
                 }
             });
+            console.log('outputData===22', outputData);
 
             // convert date format
             for (let z = 0; z < outputData.length; z++) {
@@ -17233,6 +17235,7 @@ let dbPlayerInfo = {
             outputData.sort(function (a, b) {
                 return b.date - a.date
             });
+            console.log('outputData===33', outputData);
 
             //handle sum of field here
             for (let z = 0; z < outputData.length; z++) {
