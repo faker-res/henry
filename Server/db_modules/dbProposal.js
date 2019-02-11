@@ -1049,7 +1049,7 @@ var proposal = {
                             }
 
                             addDetailToProp(updObj.data, 'rate', topupRate);
-                            addDetailToProp(updObj.data, 'actualAmountReceived', topupActualAmt);
+                            addDetailToProp(updObj.data, 'actualAmountReceived', Number(topupActualAmt));
 
                             // add alipay "line" fieldName , and remark for "line"
                             if (propTypeName === constProposalType.PLAYER_ALIPAY_TOP_UP && callbackData.line) {
