@@ -8725,13 +8725,13 @@ let dbPlayerInfo = {
     checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject, userAgent) {
         let errorData = player && player.name || "";
         if (!player) {
-            throw Error("player was not provided!");
+            return Promise.reject("player was not provided!");
         }
         if (!player.playerLevel) {
-            throw Error("player's playerLevel is not populated!" + errorData);
+            return Promise.reject("player's playerLevel is not populated!" + errorData);
         }
         if (!playerLevels) {
-            throw Error("playerLevels was not provided!" + errorData);
+            return Promise.reject("playerLevels was not provided!" + errorData);
         }
 
         let errorMsg = '';
