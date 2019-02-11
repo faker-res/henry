@@ -9363,6 +9363,7 @@ define(['js/app'], function (myApp) {
                     vm.proposalQuery.totalPlayer = 0;
                     vm.proposalQuery.proposalTypeId = '';
                     vm.reportSearchTime = 0;
+                    vm.proposalQuery.limit = 30;
 
                     endLoadMultipleSelect('.select');
 
