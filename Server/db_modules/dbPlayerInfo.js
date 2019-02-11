@@ -8725,13 +8725,13 @@ let dbPlayerInfo = {
     checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject, userAgent) {
         let errorData = player && player.name || "";
         if (!player) {
-            throw Error("player was not provided!");
+            return Promise.reject("player was not provided!");
         }
         if (!player.playerLevel) {
-            throw Error("player's playerLevel is not populated!" + errorData);
+            return Promise.reject("player's playerLevel is not populated!" + errorData);
         }
         if (!playerLevels) {
-            throw Error("playerLevels was not provided!" + errorData);
+            return Promise.reject("playerLevels was not provided!" + errorData);
         }
 
         let errorMsg = '';
@@ -17191,13 +17191,14 @@ let dbPlayerInfo = {
                     isExceedDailyTotalDeposit: isExceedDailyTotalDeposit,
                 });
             }
+            console.log('outputData===11', outputData);
 
             outputData.forEach(output => {
                 bonusRecord.forEach(bonus => {
                     console.log('bonus===1', bonus);
                     if (!bonus.bUsed) {  // only check bonus not used
-                        let outputDate = new Date(output.date.year, output.date.month, output.date.day);
-                        let bonusDate = new Date(bonus._id.year, bonus._id.month, bonus._id.day);
+                        let outputDate = new Date(output.date.year, output.date.month - 1, output.date.day); //month start from 0 to 11
+                        let bonusDate = new Date(bonus._id.year, bonus._id.month - 1, bonus._id.day); //month start from 0 to 11
 
                         if (outputDate.getTime() === bonusDate.getTime()) {
                             output.bonusAmount = bonus.amount;
@@ -17222,6 +17223,7 @@ let dbPlayerInfo = {
                     bonus.bUsed = true;
                 }
             });
+            console.log('outputData===22', outputData);
 
             // convert date format
             for (let z = 0; z < outputData.length; z++) {
@@ -17236,6 +17238,7 @@ let dbPlayerInfo = {
             outputData.sort(function (a, b) {
                 return b.date - a.date
             });
+            console.log('outputData===33', outputData);
 
             //handle sum of field here
             for (let z = 0; z < outputData.length; z++) {
@@ -17352,7 +17355,6 @@ let dbPlayerInfo = {
 
         return getPlayerProm.then(
             player => {
-                console.log('player.length===', player.length);
                 if (player && player.length) {
                     for (let i = 0; i < player.length; i++) {
                         playerObjArr.push(ObjectId(player[i]._id));
@@ -17363,7 +17365,6 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                console.log('playerObjArrData===', playerObjArrData);
                 let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).read("secondaryPreferred").lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
@@ -17393,7 +17394,6 @@ let dbPlayerInfo = {
                                 },
                                 processResponse: function (record) {
                                     result = result.concat(record.data);
-                                    console.log('result.length===', result.length);
                                 }
                             }
                         )
@@ -18443,6 +18443,9 @@ let dbPlayerInfo = {
                         proposalType = proposalTypeData;
                         for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                             let prom;
+
+                            //recalculate player value
+                            dbPlayerCredibility.calculatePlayerValue(playerObjIds[p]);
 
                             if (option.isDX) {
                                 prom = dbconfig.collection_players.findOne({

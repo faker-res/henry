@@ -475,6 +475,41 @@ var dbAuction = {
         }
         return period;
     },
+
+    regenerateOpenPromoCode: (templateObjId, oldCode, auctionProductObjId) => {
+        let newCode = dbutility.generateRandomPositiveNumber(100, 999);
+
+        if (!oldCode || !newCode) {
+            return Promise.reject({
+                name: "DBError",
+                message: "promo code is not found"
+            })
+        }
+
+        while (oldCode == newCode) {
+            newCode = dbutility.generateRandomPositiveNumber(100, 999);
+        }
+        let query = {
+            _id: ObjectId(templateObjId)
+        }
+        return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate(query, {code: newCode, createTime: new Date(), expirationTime: new Date()}, {new: true}).lean().then(
+            updatedData => {
+                if (updatedData && updatedData.code){
+                    return dbconfig.collection_auctionSystem.findOneAndUpdate({_id: ObjectId(auctionProductObjId)}, {'rewardData.promoCode': updatedData.code}).lean();
+                }
+            }
+        ).catch(
+            err => {
+                return Promise.reject({
+                    name: "DBError",
+                    message: "Error updating open promo code for auction item.",
+                    error: error
+                })
+            }
+        );
+
+    },
+
     createAuctionProduct: function (auctionProduct) {
         let templateProm = Promise.resolve(true);
         let adminName = auctionProduct && auctionProduct.adminName ? auctionProduct.adminName : "";
@@ -598,6 +633,45 @@ var dbAuction = {
             let record = new dbconfig.collection_promoCodeTemplate(obj);
             return record.save();
         }
+    },
+
+    auctionExecuteStart: function (){
+        console.log("Auction start executing")
+        let curTime = dbutility.getLocalTime(new Date());
+        let curHour = new Date().getHours();
+        let curDay = new Date().getDay();
+        let curDate = new Date().getDate();
+
+        let endQuery = {
+            rewardStartTime: {$lte: curTime},
+            rewardEndTime: {$gte: curTime},
+            $or: [{
+                'rewardInterval': "weekly",
+                'rewardAppearPeriod.endDate': curDay,
+                'rewardAppearPeriod.startTime': curHour + 1
+            }, {
+                'rewardInterval': "monthly",
+                'rewardAppearPeriod.endDate': curDate,
+                'rewardAppearPeriod.startTime': curHour + 1
+            }],
+            publish: true,
+            status: 1
+        };
+
+        return dbconfig.collection_auctionSystem.find(endQuery).then(auctionItems => {
+            console.log("auctionItems", auctionItems.length);
+            if (auctionItems.length){
+                let proms = [];
+
+                auctionItems.forEach( item => {
+                    if (item && item._id && item.platformObjId && item.rewardData && item.rewardData.templateObjId && item.rewardData.rewardType == 'openPromoCode' && item.rewardData.promoCode) {
+                        proms.push(dbAuction.regenerateOpenPromoCode (item.rewardData.templateObjId, item.rewardData.promoCode, item._id));
+                    }
+                });
+
+                return Promise.all(proms);
+            }
+        });
     },
     
     auctionExecuteEnd: function() {
@@ -971,6 +1045,7 @@ var dbAuction = {
                 return dbconfig.collection_auctionSystem.findOne({
                     platformObjId: platformObjId,
                     productName: productName,
+                    'rewardData.rewardType': rewardType,
                     rewardStartTime: {$lte: new Date(timeNow)},
                     rewardEndTime: {$gte: new Date(timeNow)},
                     publish: true,

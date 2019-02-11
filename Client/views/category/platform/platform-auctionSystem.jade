@@ -328,8 +328,12 @@ form(name='form_auctionSystem').row
                     .full-width-input-block
                         label {{"PromoCode" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'The promo code will be generated automatically when launching; the promo code will be useless when a new round begins' | translate}}")
-                        div(style="display:inline-block;")
+                        div(style="display:inline-block;" ng-if="!vm.auctionSystemEditStatus")
                             input.form-control(type="text" ng-model="vm.auctionProductReward.promoCode" ng-disabled="true")
+                        div(style="display:inline-block;" ng-if="vm.auctionSystemEditStatus")
+                            input.form-control.widthto80(type="text" ng-model="vm.auctionProductReward.promoCode" ng-disabled="true")
+                            button.btn.btn-primary.widthto20(ng-if="vm.auctionSystemEditStatus", ng-click= 'vm.generateOpenPromoCodeAuctionItem();')
+                                text {{'GENERATE' | translate}}
                     .full-width-input-block
                         label {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
                         div(style="display:inline-block;")
@@ -500,7 +504,7 @@ form(name='form_auctionSystem').row
                             option(value='weekly') {{'Weekly' | translate}}
                             option(value='monthly') {{'Monthly' | translate}}
                 .full-width-input-block
-                    label {{"Period show reward" | translate}}
+                    label *{{"Period show reward" | translate}}
                     div(style="display:inline-block;")
                         table(id="rewardAppearPeriod" style="display:inline-table;width:100%")
                             thead
@@ -514,17 +518,17 @@ form(name='form_auctionSystem').row
                             tbody
                                 tr(ng-repeat='(index,val) in vm.auctionSystemProduct.rewardAppearPeriod')
                                     td
-                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="weekly"' ng-model='val.startDate' ng-options='i as v | translate for (i,v) in weekDay')
-                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="monthly"' ng-model='val.startDate' ng-options='n for n in monthDate')
+                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="weekly"' ng-model='val.startDate' ng-options='i as v | translate for (i,v) in weekDay' required)
+                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="monthly"' ng-model='val.startDate' ng-options='n for n in monthDate' required)
                                     td
-                                        select.form-control(ng-model='val.startTime' ng-options='i as v for (i,v) in dayTime')
+                                        select.form-control(ng-model='val.startTime' ng-options='i as v for (i,v) in dayTime' required)
                                     td
                                         -
                                     td
-                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="weekly"' ng-model='val.endDate' ng-options='i as v | translate for (i,v) in weekDay')
-                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="monthly"' ng-model='val.endDate' ng-options='n for n in monthDate')
+                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="weekly"' ng-model='val.endDate' ng-options='i as v | translate for (i,v) in weekDay' required)
+                                        select.form-control(ng-if='vm.auctionSystemProduct.rewardInterval=="monthly"' ng-model='val.endDate' ng-options='n for n in monthDate' required)
                                     td
-                                        select.form-control(ng-model='val.endTime' ng-options='i as v for (i,v) in dayTime')
+                                        select.form-control(ng-model='val.endTime' ng-options='i as v for (i,v) in dayTime' required)
                                     td
                                         i.fa.fa-minus(ng-click='vm.rewardAppearPeriodDeleteRow(index,vm.auctionSystemProduct.rewardAppearPeriod)' ng-show='index!=0')
                                         i.fa.fa-plus(ng-click='vm.rewardAppearPeriodNewRow(vm.auctionSystemProduct.rewardAppearPeriod)' ng-show='index==0')
