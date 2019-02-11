@@ -17411,7 +17411,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(new Date(utilService.getLocalTime(new Date()).getTime() - 30*60*1000 ));
 
-                    vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
+                    vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit, maxPageSize: 100}, $translate, function (curP, pageSize) {
                         var isChange = false;
                         if (pageSize != vm.playerFeedbackQuery.limit) {
                             isChange = true;
