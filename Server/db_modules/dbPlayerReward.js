@@ -6930,14 +6930,6 @@ let dbPlayerReward = {
                             })
                         }
 
-                        if (!topUpRecords || topUpRecords.length < 1) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                name: "DataError",
-                                message: "Not Valid for the reward."
-                            });
-                        }
-
                         let sameIPAddressHasReceived = checkHasReceived && checkHasReceived.sameIPAddressHasReceived ? checkHasReceived.sameIPAddressHasReceived : "";
                         let samePhoneNumHasReceived = checkHasReceived && checkHasReceived.samePhoneNumHasReceived ? checkHasReceived.samePhoneNumHasReceived : "";
                         let sameDeviceIdHasReceived = checkHasReceived && checkHasReceived.sameDeviceIdHasReceived ? checkHasReceived.sameDeviceIdHasReceived : "";
@@ -6970,6 +6962,14 @@ let dbPlayerReward = {
                             let meetTopUpCondition = false, meetConsumptionCondition = false;
                             if (topUpAmount >= (selectedRewardParam.requiredTopUpAmount? selectedRewardParam.requiredTopUpAmount: 0)) {
                                 let useTopupRecordAmount = 0;
+
+                                if (selectedRewardParam && selectedRewardParam.requiredTopUpAmount && (!topUpRecords || topUpRecords.length < 1)) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Not Valid for the reward."
+                                    });
+                                }
 
                                 //For set topup bDirty Use
                                 topUpRecords.forEach((topUpRecord) => {
