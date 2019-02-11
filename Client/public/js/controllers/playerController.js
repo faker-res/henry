@@ -12934,12 +12934,12 @@ define(['js/app'], function (myApp) {
                             || 0;
 
                         let forbidXIMAAmt = 0;
-                        let spendingAmount = proposalSpendingAmt;
+                        let spendingAmount = parseFloat(proposalSpendingAmt);
                         let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : null;
                         if (rewardTaskGroup) {
                             forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt : 0;
                         }
-                        currentMax = proposalSpendingAmt;
+                        currentMax = parseFloat(proposalSpendingAmt);
                         spendingAmt += spendingAmount;
                     }
                 }
