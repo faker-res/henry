@@ -1906,6 +1906,24 @@ var dbPlatform = {
 
     },
 
+    getUsableChannel: (platformId) => {
+        console.log('getUsableChannel platformId===', platformId);
+        let sendObj = {
+            platformId: platformId
+        };
+
+        return smsAPI.getUsableChannel_getUsableChannelList(sendObj).then(
+            retData => {
+                console.log('retData===', retData);
+                return retData;
+            },
+            retErr => {
+                console.log('retErr===', retErr);
+                return Promise.reject({message: retErr, error: retErr});
+            }
+        );
+    },
+
     searchSMSLog: function (data, index, limit) {
         if (data) {
             index = index || 0;

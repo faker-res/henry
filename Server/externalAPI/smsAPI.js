@@ -23,6 +23,9 @@ function callSMSAPI(service, functionName, data) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
+    console.log('service===', service);
+    console.log('functionName===', functionName);
+    console.log('data===', data);
 
     let bOpen = false;
     var deferred = Q.defer();
@@ -40,12 +43,14 @@ function callSMSAPI(service, functionName, data) {
             bOpen = true;
             return con.callAPIOnce(service, functionName, data).then(
                 data => {
+                    console.log('API data===', data);
                     if (con && typeof con.disconnect == "function") {
                         con.disconnect();
                     }
                     return data;
                 },
                 error => {
+                    console.log('API error===', error);
                     if (con && typeof con.disconnect == "function") {
                         con.disconnect();
                     }
@@ -88,6 +93,12 @@ const smsAPI = {
     //channel service
     channel_getChannelList: function(data){
         return callSMSAPI("channel", "getChannelList", data);
+    },
+
+    //channel service
+    getUsableChannel_getUsableChannelList: function(data){
+        console.log('HERE inside smsAPI getUsableChannel===', data);
+        return callSMSAPI("getUsableChannel", "getUsableChannelList", data);
     }
 
 };
