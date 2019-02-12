@@ -460,9 +460,9 @@ var dbAuction = {
                             status: { $first: "$status"}
                         }
                     }
-                ]).then(data=>{
+                ]).read("secondaryPreferred").then(data=>{
                     return data;
-                })
+                });
             }
         )
     },
