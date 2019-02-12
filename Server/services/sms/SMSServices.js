@@ -89,12 +89,30 @@
         rootObj.ChannelService = ChannelService;
     };
 
+    var defineGetUsableChannelService = function(sinonet){
+        var GetUsableChannelService = function(connection){
+            sinonet.WebSocketService.call(this, "getUsableChannel", connection);
+
+            //define functions
+            var functionNames = [
+                "getUsableChannelList"
+            ];
+            addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
+        };
+
+        GetUsableChannelService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        GetUsableChannelService.prototype.constructor = GetUsableChannelService;
+
+        rootObj.GetUsableChannelService = GetUsableChannelService;
+    };
+
     if(isNode){
         var sinonet = require("./../../server_common/WebSocketService");
         defineSendingService(sinonet);
         defineConnectionService(sinonet);
         definePlatformService(sinonet);
         defineChannelService(sinonet);
+        defineGetUsableChannelService(sinonet);
         module.exports = rootObj;
     } else {
         define(["common/WebSocketService"], function(sinonet){
@@ -102,6 +120,7 @@
             defineSendingService(sinonet);
             definePlatformService(sinonet);
             defineChannelService(sinonet);
+            defineGetUsableChannelService(sinonet);
             return rootObj;
         });
     }
