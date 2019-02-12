@@ -352,6 +352,7 @@ router.get('/auditLargeWithdrawalProposal', function (req, res, next) {
     }
 
     let hashedContent = "largeWithdrawalSnsoft" + proposalId + adminObjId + decision;
+    console.log(`email large withdrawal ${decision} ${proposalId} received`);
 
     bcrypt.compare(hashedContent, hash, function (err, isMatch) {
         if (err) {
@@ -361,9 +362,11 @@ router.get('/auditLargeWithdrawalProposal', function (req, res, next) {
             dbLargeWithdrawal.largeWithdrawalAudit(proposalId, adminObjId, decision, true).then(
                 data => {
                     res.send({success: true, data});
+                    console.log(`email large withdrawal ${decision} ${proposalId} succeeded`);
                 },
                 error => {
-                    res.send({success: false, error})
+                    res.send({success: false, error});
+                    console.log(`email large withdrawal ${decision} ${proposalId} failed`, JSON.stringify(error));
                 }
             );
         } else {
@@ -387,6 +390,7 @@ router.get('/auditPartnerLargeWithdrawalProposal', function (req, res, next) {
     }
 
     let hashedContent = "largeWithdrawalSnsoftPartner" + proposalId + adminObjId + decision;
+    console.log(`email p large withdrawal ${decision} ${proposalId} received`);
 
     bcrypt.compare(hashedContent, hash, function (err, isMatch) {
         if (err) {
@@ -396,9 +400,11 @@ router.get('/auditPartnerLargeWithdrawalProposal', function (req, res, next) {
             dbLargeWithdrawal.largeWithdrawalAudit(proposalId, adminObjId, decision, true, true).then(
                 data => {
                     res.send({success: true, data});
+                    console.log(`email p large withdrawal ${decision} ${proposalId} succeeded`);
                 },
                 error => {
                     res.send({success: false, error})
+                    console.log(`email p large withdrawal ${decision} ${proposalId} failed`, JSON.stringify(error));
                 }
             );
         } else {
