@@ -180,13 +180,21 @@ var dbAuction = {
             return dbconfig.collection_auctionSystem.update(matchObj, updateData, {multi:true, new: true});
         };
     },
-    isQualify: (playerObjId) => {
-        return dbconfig.collection_players.findOne({_id: playerObjId})
-            .populate({
-                path: "csOfficer",
-                model: dbconfig.collection_admin,
-                select: 'departments roles'
-            }).lean().then(
+    getAuctions: (playerObjId, platformId) => {
+        let platformObjId;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean()
+        .then(platformData =>{
+            if (!platformData) {
+                return Promise.reject({name: "DataError", message: "Cannot find platform"});
+            }
+            platformObjId = platformData._id;
+            return dbconfig.collection_players.findOne({_id: playerObjId})
+                .populate({
+                    path: "csOfficer",
+                    model: dbconfig.collection_admin,
+                    select: 'departments roles'
+                }).lean()
+        }).then(
             playerData => {
                 if (!playerData) {
                     return Promise.reject({name: "DataError", message: "Cannot find Player"});
@@ -194,6 +202,8 @@ var dbAuction = {
 
                 let auctionQuery = {$and: []};
                 auctionQuery.status = 1;
+                auctionQuery.publish = true;
+                auctionQuery.platformObjId = platformObjId;
 
                 if (!playerData.isRealPlayer) {
                     auctionQuery.playerType = 'Test Player';
@@ -405,6 +415,7 @@ var dbAuction = {
                 auctionQuery.$and.push({$or: orQuery});
 
                 return dbconfig.collection_auctionSystem.aggregate([
+                    { $match : { platformObjId: ObjectId(platformObjId), publish: true, status:1 } },
                     { $unwind : "$rewardAppearPeriod"}, //ungroup field for easy conversion at each apperPeriod.
                     { $addFields : {
                         //do a date conversion for query purpose.
