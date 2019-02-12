@@ -13,6 +13,7 @@ var WebSocketMessageClient = require("./server_common/WebSocketMessageClient");
 var constMessageClientTypes = require("./const/constMessageClientTypes");
 var socketActionMessage = require("./socketActionModule/socketActionMessage");
 var constMessageClientType = require("./const/constMessageClientTypes");
+var ebetRTN = require("./modules/ebetRTN");
 
 var WebSocketClient = require("./server_common/WebSocketClient");
 const serverInstance = require("./modules/serverInstance");
@@ -112,6 +113,18 @@ socketIO.sockets.on('connection', function (socket) {
 server.listen((process.env.PORT || 9000) , function () {
     console.log("Express server listening on port: " + (process.env.PORT || 9000));
 });
+
+ebetRTN.connect(5);
+//     .then(
+//     () => {
+//         return ebetRTN.query();
+//     }
+// ).then(
+//     data => {
+//         console.log("walaodata",data)
+//     }
+// )
+
 
 var url = env.messageServerUrl + "/" + constMessageClientTypes.MANAGEMENT;
 var messageClient = new WebSocketMessageClient(url, socketIO);

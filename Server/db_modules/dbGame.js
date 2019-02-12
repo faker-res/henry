@@ -5,6 +5,7 @@ var dbGameFunc = function () {
 module.exports = new dbGameFunc();
 
 const dbutility = require('./../modules/dbutility');
+var ebetRTN = require("./../modules/ebetRTN");
 var dbconfig = require('./../modules/dbproperties');
 var dbPlatformGameStatus = require('./../db_modules/dbPlatformGameStatus');
 var dbProposal = require('./../db_modules/dbProposal');
@@ -15,6 +16,7 @@ var constProviderStatus = require('../const/constProviderStatus');
 var constProposalEntryType = require('../const/constProposalEntryType');
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalType = require('../const/constProposalType');
+var constEBETBaccaratTableStatus = require('../const/constEBETBaccaratTableStatus');
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
 
@@ -759,6 +761,110 @@ var dbGame = {
 
     updateImageUrl: (data, fileData) => {
         return cpmsAPI.game_updateImageUrl(data, fileData);
+    },
+
+    getLiveGameInfo: (count) => {
+        const constTableStatus = { // refer constEBETBaccaratTableStatus
+            30001: 1,
+            30002: 2,
+            30003: 0
+        };
+        const constBaccaratResult = { // refer constEBETBaccaratResult
+            60: 0,
+            68: 2,
+            80: 1,
+        };
+        let sortedLuZhuData = {};
+        let returnData = {
+            stats: {totalCount: 0},
+            list: []
+        };
+        return ebetRTN.query(1, count).then(
+            luZhuData => {
+                if (!(luZhuData && luZhuData.data && luZhuData.data.length)) {
+                    return returnData;
+                }
+
+                luZhuData.data.forEach(
+                    luZhu => {
+                        let luZhuDetails = luZhu && luZhu.data;
+                        if (!sortedLuZhuData[luZhu.table]) {
+                            sortedLuZhuData[luZhu.table] = {
+                                tableNumber: luZhu.table,
+                                dealerName: luZhuDetails && luZhuDetails.dealer || "",
+                                status: constTableStatus[luZhu.notifyType],
+                                historyList: []
+                            };
+
+                            if (luZhuDetails && luZhuDetails.hasOwnProperty("betTimeSec")) {
+                                sortedLuZhuData[luZhu.table].countdown = luZhuDetails.betTimeSec
+                            }
+
+                        }
+                        if (!sortedLuZhuData[luZhu.table].dealerName && luZhuDetails && luZhuDetails.dealer) {
+                            sortedLuZhuData[luZhu.table].dealerName = luZhuDetails.dealer
+                        }
+
+                        if (luZhu.notifyType && luZhu.notifyType == constEBETBaccaratTableStatus.PAYOUT) {
+                            let luZhuBaccarat = luZhuDetails && luZhuDetails.result && luZhuDetails.result.baccarat;
+                            let baccaratWinner = luZhuBaccarat && luZhuBaccarat.winner;
+                            let bankerPoints;
+                            let playerPoints;
+                            let pairResult = 0;
+                            if (luZhuBaccarat && luZhuBaccarat.bankerCard && luZhuBaccarat.bankerCard.length) {
+                                bankerPoints = 0;
+                                luZhuBaccarat.bankerCard.forEach(
+                                    bankerCard => {
+                                        let points = Number(bankerCard.substring(1));
+                                        if (!isNaN(points)) {
+                                            bankerPoints += points;
+                                        }
+                                    }
+                                )
+                                bankerPoints %= 10;
+                            }
+
+                            if (luZhuBaccarat && luZhuBaccarat.playerCard && luZhuBaccarat.playerCard.length) {
+                                playerPoints = 0;
+                                luZhuBaccarat.playerCard.forEach(
+                                    playerCard => {
+                                        let points = Number(playerCard.substring(1));
+                                        if (!isNaN(points)) {
+                                            playerPoints += points;
+                                        }
+                                    }
+                                )
+                                playerPoints %= 10;
+                            }
+
+                            if (luZhuBaccarat.bankerPair && luZhuBaccarat.playerPair) {
+                                pairResult = 3;
+                            } else if (luZhuBaccarat.bankerPair) {
+                                pairResult = 1;
+                            } else if (luZhuBaccarat.playerPair) {
+                                pairResult = 2;
+                            }
+
+                            let historyObj = {
+                                bureauNo: luZhuDetails && luZhuDetails.roundId,
+                                result: baccaratWinner && constBaccaratResult[baccaratWinner],
+                                makersPoints: bankerPoints,
+                                playerPoints: playerPoints,
+                                pair: pairResult
+                            }
+                            sortedLuZhuData[luZhu.table].historyList.push(historyObj);
+                        }
+                    }
+                );
+
+                for (let key in sortedLuZhuData) {
+                    returnData.list.push(sortedLuZhuData[key]);
+                }
+
+                returnData.totalCount = returnData.list.length;
+                return returnData;
+            }
+        )
     },
 };
 

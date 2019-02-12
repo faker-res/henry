@@ -393,7 +393,8 @@
                 "searchGame",
                 "getGameGroupTreeInfo",
                 "searchGameByGroup",
-                "getGamePassword"
+                "getGamePassword",
+                "getLiveGameInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
