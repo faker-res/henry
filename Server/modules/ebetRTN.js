@@ -40,7 +40,7 @@ var ebetRTN = {
                     command: "subscribe",
                     requestId: "LZsubscribe", // hard code
                     data: {
-                        tableType: 8 // 8 for testing purpose
+                        tableType: 1 // 8 for testing purpose
                     }
                 };
                 let json = JSON.stringify(sendData);
