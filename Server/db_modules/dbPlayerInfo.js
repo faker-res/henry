@@ -879,6 +879,7 @@ let dbPlayerInfo = {
                                 if (tsPhoneFeedbackData.tsPhone) {
                                     inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
                                     inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
+                                    inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
                                 }
                             }
                             return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
@@ -1648,7 +1649,7 @@ let dbPlayerInfo = {
 
             }
 
-            if ((/*playerdata.password.length < 6 || playerdata.password.length > 20 ||*/ !playerdata.password.match(alphaNumRegex)) && !bFromBI) {
+            if ((/*playerdata.password.length < 6 || playerdata.password.length > 20 ||*/ !playerdata.password.match(alphaNumRegex)) && !bFromBI && !playerdata.guestDeviceId) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -12210,7 +12211,10 @@ let dbPlayerInfo = {
                     }
                 )
             }
-        );
+        ).catch(err=>{
+            console.log("dbPlayerInfo.updatePlayerTopupProposal()", proposalId, err);
+            return Promise.reject(err);
+        });
     },
 
     /*

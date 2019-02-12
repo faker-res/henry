@@ -1049,7 +1049,7 @@ var proposal = {
                             }
 
                             addDetailToProp(updObj.data, 'rate', topupRate);
-                            addDetailToProp(updObj.data, 'actualAmountReceived', topupActualAmt);
+                            addDetailToProp(updObj.data, 'actualAmountReceived', Number(topupActualAmt));
 
                             // add alipay "line" fieldName , and remark for "line"
                             if (propTypeName === constProposalType.PLAYER_ALIPAY_TOP_UP && callbackData.line) {
@@ -1206,9 +1206,7 @@ var proposal = {
         var proposalData = null;
         let proposalObj;
         let proposalProcessData;
-        let playerData;
-        let bankAccount = "";
-        let bankName = "";
+
         //find proposal
         dbconfig.collection_proposal.findOne({_id: proposalId}).populate(
             {
@@ -1248,8 +1246,6 @@ var proposal = {
 
                 //save bankAccount and bankName, put back objId to data.data.playerObjId to prevent error
                 if(data && data.data && data.data.playerObjId && data.data.playerObjId.bankAccount){
-                    // bankAccount = data.data.playerObjId.bankAccount;
-                    // bankName = data.data.playerObjId.bankName;
                     data.data.bankAccountWhenApprove = data.data.playerObjId.bankAccount;
                     data.data.bankNameWhenApprove = data.data.playerObjId.bankName;
                     data.data.playerObjId = data.data.playerObjId._id;
@@ -1374,9 +1370,12 @@ var proposal = {
                         );
                     }
                     else {
+                        console.log("LH Check Proposal Reject 1------------",proposalData);
                         return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bApprove, proposalData, true)
                             .then(
-                                data => dbconfig.collection_proposalProcess.findOneAndUpdate(
+                                data => {
+                                    console.log("LH Check Proposal Reject 2------------", data);
+                                    return dbconfig.collection_proposalProcess.findOneAndUpdate(
                                         {_id: proposalData.process._id, createTime: proposalData.process.createTime},
                                         {
                                             currentStep: null,
@@ -1385,16 +1384,21 @@ var proposal = {
                                         },
                                         {new: true}
                                     )
+                                },
+                                err => {
+                                    deferred.reject({name: "DBError", message: "Can't update proposal process step"});
+                                }
                             ).then(
                                 () => {
                                     let updateData = {status: status, isLocked: null};
+                                    console.log("LH Check Proposal Reject 3------------", updateData);
                                     return dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime, status: proposalData.status},
                                         updateData,
                                         {new: true}
                                     ).then(data => {
                                         proposalObj = data;
-
+                                        console.log("LH Check Proposal Reject 4------------", proposalObj);
                                         let prom = Promise.resolve(true);
 
                                         if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
@@ -1443,6 +1447,9 @@ var proposal = {
                                             return proposalObj;
                                         });
                                     })
+                                },
+                                err => {
+                                    deferred.reject({name: "DBError", message: "Can't update proposal process step"});
                                 }
                             );
                     }
