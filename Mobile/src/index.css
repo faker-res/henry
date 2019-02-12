@@ -1,0 +1,127 @@
+.centerMenu{
+  text-align: -webkit-center;
+}
+
+.login-control{
+  display: block;
+  width: 100%;
+  color: #495057;
+  background-color: #fff;
+  border: none;
+  border-bottom: 1px solid #ced4da;
+  border-radius: 0;
+  appearance: none;
+  -moz-appearance:none; /* Firefox */
+  -webkit-appearance:none; /* Safari and Chrome */
+  -webkit-transition : border-color 2s;
+  -moz-transition : border-color 2s;
+  transition : border-color 2s  ;
+}
+
+.login-group{
+  padding: .5em;
+  display: table;
+}
+label{
+  display: table-header-group!important;
+}
+.icon{
+  position: absolute;
+  right: 10%;
+  bottom: 40.5%
+}
+.login{
+  padding: 2em;
+  text-align: left;
+  margin-top: 5em;
+  width: 370px!important;
+}
+
+.card, .card a{
+  color: #747474;
+  font-weight: 100;
+}
+
+input[type="checkbox"]{
+  margin-right: .5em
+}
+
+input:focus, select:focus{
+  outline: none;
+  border-bottom:2px solid #343a40;
+}
+
+input:focus+label ,select:focus+label  {
+  color: #343a40;
+  font-weight: bold;
+}
+
+.focusClass{
+  color: #343a40;
+  font-weight: bold;
+}
+
+.customize-cardHeader{
+  color:white!important;
+  padding: 1em 1em 0 1em!important;
+}
+
+.customize-cardFooter{
+  background-color:white!important;
+  border-top: none!important;
+}
+
+.onlinePlayer-cardColor{
+  background-color:#5cb85c!important;
+  border-color:#5cb85c!important;
+}
+
+.topup-cardColor{
+  background-color:#2B6698!important;
+  border-color:#2B6698!important;
+}
+
+.withdrawal-cardColor{
+  background-color:#4B0082!important;
+  border-color:#4B0082!important;
+}
+
+.bet-cardColor{
+  background-color:#f39c12!important;
+  border-color:#f39c12!important;
+}
+
+.newPlayer-cardColor{
+  background-color: #d9534f!important;
+  border-color:#d9534f!important;
+}
+
+.bigWord{
+  font-size: 2rem;
+}
+
+.smallWord{
+  font-size:16px
+}
+
+.onlinePlayer-footer{color: #5cb85c;}
+.topup-footer{color: #2B6698;}
+.withdrawal-footer{color: #4B0082;}
+.bet-footer{color: #f39c12;}
+.newPlayer-footer{color: #d9534f;}
+
+@media screen and (min-width: 576px) {
+
+  .smallWord, .bigWord{
+    font-size: 12px;
+  }
+}
+
+@media screen and (min-width: 992px) {
+  .bigWord{
+    font-size: 1.5rem;
+  }
+  .smallWord{
+    font-size:15px
+  }
+}

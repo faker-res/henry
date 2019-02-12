@@ -89,6 +89,9 @@ proposalSchema.index({"data.deviceId": 1});
 proposalSchema.index({"data.depositMethod": 1});
 proposalSchema.index({"data.platformId": 1});
 proposalSchema.index({"data.line": 1});
+proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1});
+proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.depositMethod": 1});
+proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.topupType": 1});
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId
  proposalSchema.pre('validate', function (next) {

@@ -43,6 +43,7 @@ const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalUserType = require('./../const/constProposalUserType');
 const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbGameProvider = require('./../db_modules/dbGameProvider');
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -558,6 +559,7 @@ var proposal = {
                                 && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
                                 && data[0].name != constProposalType.PLAYER_LEVEL_UP
                                 && data[0].name != constProposalType.BULK_EXPORT_PLAYERS_DATA
+                                && data[0].name != constProposalType.PLAYER_FKP_TOP_UP
                                 && data[0].name !== constProposalType.PLAYER_COMMON_TOP_UP
                                 && data[0].name !== constProposalType.AUCTION_PROMO_CODE // player can bid other product has the same proposal type
                                 && data[0].name !== constProposalType.AUCTION_OPEN_PROMO_CODE
@@ -819,7 +821,16 @@ var proposal = {
                     proposalObj = proposalData;
                     remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
-                    if (callbackData && callbackData.amount && proposalData.data.amount && Math.floor(callbackData.amount) !== Math.floor(proposalData.data.amount)) {
+                    if (
+                        callbackData
+                        && callbackData.amount
+                        && proposalData.data.amount
+                        && (
+                            // Allow only 0~1 (inclusive) difference
+                            Math.floor(callbackData.amount) - Math.floor(proposalData.data.amount) < 0
+                            || Math.floor(callbackData.amount) - Math.floor(proposalData.data.amount) > 1
+                        )
+                    ) {
                         console.log('callbackData.amount', callbackData.amount, Math.floor(callbackData.amount));
                         console.log('proposalData.data.amount', proposalData.data.amount, Math.floor(proposalData.data.amount));
                         return Promise.reject({
@@ -983,7 +994,7 @@ var proposal = {
                                 callbackData.count
                                 && callbackData.count === '1'
                                 && Number(callbackData.amount) !== Number(proposalObj.data.amount)
-                                && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
+                                && Number(callbackData.amount) - Number(proposalObj.data.amount) <= 1
                             ) {
                                 updObj.data.amount = Number(callbackData.amount);
                             }
@@ -1033,8 +1044,19 @@ var proposal = {
                                 (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
                                 : proposalObj.data.amount;
 
+                            if (updObj && updObj.data && updObj.data.amount) {
+                                topupActualAmt = (Number(updObj.data.amount) - Number(updObj.data.amount) * Number(topupRate)).toFixed(2);
+                            }
+
                             addDetailToProp(updObj.data, 'rate', topupRate);
-                            addDetailToProp(updObj.data, 'actualAmountReceived', topupActualAmt);
+                            addDetailToProp(updObj.data, 'actualAmountReceived', Number(topupActualAmt));
+
+                            // add alipay "line" fieldName , and remark for "line"
+                            if (propTypeName === constProposalType.PLAYER_ALIPAY_TOP_UP && callbackData.line) {
+                                let remark = getRemark(callbackData.line, callbackData.remark);
+                                addDetailToProp(updObj.data, 'line', callbackData.line);
+                                addDetailToProp(updObj.data, 'remark', remark);
+                            }
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -1184,9 +1206,7 @@ var proposal = {
         var proposalData = null;
         let proposalObj;
         let proposalProcessData;
-        let playerData;
-        let bankAccount = "";
-        let bankName = "";
+
         //find proposal
         dbconfig.collection_proposal.findOne({_id: proposalId}).populate(
             {
@@ -1226,8 +1246,6 @@ var proposal = {
 
                 //save bankAccount and bankName, put back objId to data.data.playerObjId to prevent error
                 if(data && data.data && data.data.playerObjId && data.data.playerObjId.bankAccount){
-                    // bankAccount = data.data.playerObjId.bankAccount;
-                    // bankName = data.data.playerObjId.bankName;
                     data.data.bankAccountWhenApprove = data.data.playerObjId.bankAccount;
                     data.data.bankNameWhenApprove = data.data.playerObjId.bankName;
                     data.data.playerObjId = data.data.playerObjId._id;
@@ -1352,9 +1370,12 @@ var proposal = {
                         );
                     }
                     else {
+                        console.log("LH Check Proposal Reject 1------------",proposalData);
                         return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bApprove, proposalData, true)
                             .then(
-                                data => dbconfig.collection_proposalProcess.findOneAndUpdate(
+                                data => {
+                                    console.log("LH Check Proposal Reject 2------------", data);
+                                    return dbconfig.collection_proposalProcess.findOneAndUpdate(
                                         {_id: proposalData.process._id, createTime: proposalData.process.createTime},
                                         {
                                             currentStep: null,
@@ -1363,16 +1384,21 @@ var proposal = {
                                         },
                                         {new: true}
                                     )
+                                },
+                                err => {
+                                    deferred.reject({name: "DBError", message: "Can't update proposal process step"});
+                                }
                             ).then(
                                 () => {
                                     let updateData = {status: status, isLocked: null};
+                                    console.log("LH Check Proposal Reject 3------------", updateData);
                                     return dbconfig.collection_proposal.findOneAndUpdate(
-                                        {_id: proposalData._id, createTime: proposalData.createTime},
+                                        {_id: proposalData._id, createTime: proposalData.createTime, status: proposalData.status},
                                         updateData,
                                         {new: true}
                                     ).then(data => {
                                         proposalObj = data;
-
+                                        console.log("LH Check Proposal Reject 4------------", proposalObj);
                                         let prom = Promise.resolve(true);
 
                                         if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
@@ -1421,6 +1447,9 @@ var proposal = {
                                             return proposalObj;
                                         });
                                     })
+                                },
+                                err => {
+                                    deferred.reject({name: "DBError", message: "Can't update proposal process step"});
                                 }
                             );
                     }
@@ -3274,6 +3303,7 @@ var proposal = {
         let queryData = reqData;
         let resultArray = null;
         let totalSize = 0;
+        let totalPlayer = 0;
         let summary = {};
         let isApprove = false;
         let isSuccess = false;
@@ -3375,7 +3405,11 @@ var proposal = {
                             }
                         }
                     ]).read("secondaryPreferred");
-                    return Promise.all([a, b, c]);
+                    let d = dbconfig.collection_proposal.distinct('data.playerName', {
+                        type: {$in: proposalTypeIdList},
+                        $and: [queryData]
+                    });
+                    return Promise.all([a, b, c, d]);
                 },
                 function (error) {
                     return Promise.reject({
@@ -3388,6 +3422,7 @@ var proposal = {
                 function (data) {
                     if (data && data[1]) {
                         totalSize = data[0];
+                        totalPlayer = data[3] && data[3].length || 0;
                         resultArray = Object.assign([], data[1]);
                         summary = data[2];
 
@@ -3415,7 +3450,7 @@ var proposal = {
                 reqData.type = {$in: arr}
             }
 
-            let a, b, c;
+            let a, b, c, d;
             if(isApprove){
                 let searchQuery = {
                     platformId: ObjectId(reqData.platformId),
@@ -3549,6 +3584,28 @@ var proposal = {
                                 }
                             }
                         ]).read("secondaryPreferred");
+
+                        d = dbconfig.collection_proposalType.find(searchQuery).lean().then(
+                            proposalType => {
+                                delete reqData.platformId;
+                                if(proposalType && proposalType.length > 0){
+                                    let proposalTypeIdList = [];
+                                    proposalType.forEach(p => {
+                                        if(p && p._id){
+                                            let indexNo = reqData.type.$in.findIndex(r => r == p.id);
+
+                                            if(indexNo != -1){
+                                                proposalTypeIdList.push(p._id);
+                                            }
+                                        }
+                                    });
+
+                                    reqData.type = {$in: proposalTypeIdList};
+                                }
+
+                                return dbconfig.collection_proposal.distinct('data.playerName', reqData);
+                            }
+                        );
                     }
                 );
             }else{
@@ -3621,13 +3678,15 @@ var proposal = {
                         }
                     }
                 ]).read("secondaryPreferred");
+                d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
             }
 
-            prom = Promise.all([a, b, c]).then(
+            prom = Promise.all([a, b, c, d]).then(
                 function (data) {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
+                    totalPlayer = data[3] && data[3].length || 0;
 
                     if(resultArray && resultArray.length > 0 && isSuccess){
                         resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
@@ -3695,6 +3754,7 @@ var proposal = {
 
                 return {
                     size: totalSize,
+                    totalPlayer: totalPlayer,
                     data: resultArray,
                     summary: {amount: total}, //parseFloat(total).toFixed(2)
                 };
@@ -7039,13 +7099,24 @@ var proposal = {
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                 let proms = [];
+                let inputDeviceArr;
                 let merchantData;
                 // loop for userAgent
                 for(let i =1; i<=3; i++) {
+                    if (i == 2){
+                        inputDeviceArr = [constPlayerRegistrationInterface.APP_PLAYER, constPlayerRegistrationInterface.APP_AGENT]
+                    }
+                    else if (i == 3){
+                        inputDeviceArr = [constPlayerRegistrationInterface.H5_PLAYER, constPlayerRegistrationInterface.H5_AGENT]
+                    }
+                    else{
+                        inputDeviceArr = [constPlayerRegistrationInterface.WEB_AGENT, constPlayerRegistrationInterface.WEB_PLAYER]
+                    }
+
                     let matchObj = {
                         createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                         type: onlineTopupType._id,
-                        "data.userAgent": i,
+                        inputDevice: {$in: inputDeviceArr},
                         $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}/*, {'data.topupType': {$type: 'number'}}*/],
                     };
 
@@ -7631,7 +7702,145 @@ var proposal = {
                 console.log("rejectPendingProposalIfAvailable error", err);
             }
         );
-    }
+    },
+
+    getProviderConsumptionReport: function(query, index, limit, sortCol){
+        limit = limit ? limit : 20;
+        index = index ? index : 0;
+        query = query ? query : {};
+
+        let startDate = new Date(query.startTime);
+        let endDate = new Date(query.endTime);
+        let credibilityRemarkProm;
+        let totalCredibilityRemarkProm;
+        let finalResult;
+
+        if(query.creditibilityRemarkList && query.creditibilityRemarkList.length > 0) {
+            totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).count();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+        }else if(query.platformIds && query.platformIds.length > 0){
+            totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: query.platformIds}}, {_id: 1, name: 1}).count();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: query.platformIds}}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+        }else{
+            totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({}, {_id: 1, name: 1}).count();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+        }
+
+        return credibilityRemarkProm.then(
+            credibilityRemarkList => {
+                let consumptionSummaryProm = [];
+                if(credibilityRemarkList && credibilityRemarkList.length > 0){
+                    credibilityRemarkList.forEach(
+                        credibilityRemark => {
+                            if(credibilityRemark){
+                                consumptionSummaryProm.push(proposal.calculateTotalValidConsumptionByProvider(credibilityRemark._id, credibilityRemark.name, startDate, endDate));
+                            }
+                        }
+                    )
+                }
+
+                return Promise.all(consumptionSummaryProm);
+            }
+        ).then(
+            consumptionSummary => {
+                return totalCredibilityRemarkProm.then(
+                    totalSize => {
+                        return {data: consumptionSummary, size: totalSize};
+                    }
+                );
+            }
+        ).then(
+            result => {
+                finalResult = result;
+                let providerList = [];
+                return dbGameProvider.getGameProviderByPlatformList(query.platformIds);
+            }
+        ).then(
+            gameProviderDetail => {
+                return Object.assign(finalResult, {gameProviderDetail: gameProviderDetail});
+            }
+        );
+    },
+
+    calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, startDate, endDate){
+        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).then(
+            playerList => {
+                if(playerList && playerList.length > 0){
+                    let playerObjIds = playerList.map(playerIdObj => ObjectId(playerIdObj._id));
+                    let query = {
+                        createTime: {
+                            $gte: startDate,
+                            $lt: endDate
+                        },
+                        playerId: {$in: playerObjIds}
+                    };
+
+                    return dbconfig.collection_playerConsumptionRecord.aggregate(
+                        {
+                            $match: query
+                        },
+                        {
+                            $group: {
+                                _id: "$providerId",
+                                totalValidConsumption: {"$sum": "$validAmount"}
+                            }
+                        }
+                    ).read("secondaryPreferred");
+                }
+            }
+        ).then(
+            playerConsumptionSummary => {
+                let providerProm = [];
+                if(playerConsumptionSummary && playerConsumptionSummary.length > 0){
+
+                    playerConsumptionSummary.forEach(
+                        playerConsumption => {
+                            if(playerConsumption && playerConsumption._id){
+                                providerProm.push(proposal.getProviderName(playerConsumption._id, playerConsumption.totalValidConsumption));
+                            }
+                        }
+                    )
+                }
+
+                return Promise.all(providerProm);
+            }
+        ).then(
+            providerDetails => {
+                let returnedObj = {credibilityRemark: credibilityRemarkName};
+                let totalValidConsumptionByCredibilityRemark = 0;
+                console.log("LH Check providerConsumption Report 1------------------", providerDetails);
+                if(providerDetails && providerDetails.length > 0){
+                    providerDetails.forEach(
+                        provider => {
+                            console.log("LH Check providerConsumption Report 2------------------", provider);
+                            if(provider){
+                                let objectKey = Object.keys(provider)[0];
+                                totalValidConsumptionByCredibilityRemark += parseFloat(provider[objectKey]);
+                                returnedObj = Object.assign(returnedObj, provider);
+                            }
+                        }
+                    )
+                }
+
+                returnedObj = Object.assign(returnedObj, {totalValidConsumption: totalValidConsumptionByCredibilityRemark});
+
+                return returnedObj;
+            }
+        );
+    },
+
+    getProviderName: function(providerObjId, totalValidConsumption){
+        return dbconfig.collection_gameProvider.findOne({_id: providerObjId}, {name: 1}).then(
+            providerDetail => {
+                if(providerDetail && providerDetail.name){
+                    let returnedObj = {};
+                    returnedObj[providerDetail.name] = totalValidConsumption;
+
+                    return returnedObj;
+                }
+            }
+        );
+    },
 
 };
 
@@ -9420,7 +9629,7 @@ function rearrangeSumTopUpDetailByDepositGroup (depositGroupRecord, topUpDetailD
                             if (indexNo != -1) {
                                 totalAmountList[indexNo].totalAmount += detail.amount;
                             } else {
-                                totalAmountList.push({platformId: detail.platformId, platformName: detail.platformName, totalAmount: detail.amount});
+                                totalAmountList.push({platformId: detail.platformId, platformName: detail.platformName, totalAmount: dbutility.noRoundTwoDecimalPlaces(detail.amount)});
                             }
                         });
 
@@ -9659,6 +9868,20 @@ function getWithdrawalSpeed (matchObj, groupTimeDiff, groupObj, nullObj) {
             return nullObj;
         }
     });
+}
+
+function getRemark (lineNo, callbackRemark) {
+    let remark = callbackRemark;
+    let remarkMsg = {
+        '2':[", 线路二：不匹配昵称、支付宝帐号", "线路二：不匹配昵称、支付宝帐号"],
+        '3':[", 网赚", "网赚"]
+    }
+    if (callbackRemark) {
+        remark += (remarkMsg[lineNo] && remarkMsg[lineNo][0]) ? remarkMsg[lineNo][0] : '';
+    } else {
+        remark = (remarkMsg[lineNo] && remarkMsg[lineNo][1] && lineNo!= "1") ? remarkMsg[lineNo][1] : '';
+    }
+    return remark;
 }
 
 var proto = proposalFunc.prototype;

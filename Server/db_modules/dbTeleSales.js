@@ -993,6 +993,7 @@ let dbTeleSales = {
                 $in: adminNames
             }
         });
+        let assigneeAdminList = [];
 
         return Promise.all([phoneListProm, assigneeProm]).then(data => {
             let phoneList = data[0];
@@ -1028,9 +1029,11 @@ let dbTeleSales = {
                     }
                 ).catch(errorUtils.reportError);
 
-                let totalDistributed = phoneList.totalDistributed;
-                let totalUsed = phoneList.totalUsed;
-                let totalSuccess = phoneList.totalSuccess;
+
+                for (let i = 0; i < assignees.length; i++) {
+                    assigneeAdminList.push(assignees[i].admin);
+                }
+
                 assignees.forEach(assignee => {
                     currentHoldingCountProm.push(
                         dbconfig.collection_tsDistributedPhone.find({
@@ -1061,26 +1064,54 @@ let dbTeleSales = {
 
                 returnData = {
                     distributionDetails: distributionDetails,
-                    totalDistributed: totalDistributed,
-                    totalFulfilled: totalUsed,
-                    totalSuccess: totalSuccess
                 };
 
                 return Promise.all(currentHoldingCountProm);
             }
             return null;
         }).then(currentHoldingCount => {
-            currentHoldingCount.forEach(currentHolding => {
-                if(currentHolding && currentHolding.length > 0) {
-                    distributionDetails.forEach(detail => {
-                        if (currentHolding[0].assignee && detail.assigneeObjId && String(currentHolding[0].assignee) == String(detail.assigneeObjId)) {
-                            detail.currentListSize = currentHolding.length;
-                        }
-                    })
-                }
+            if (currentHoldingCount) {
+                currentHoldingCount.forEach(currentHolding => {
+                    if(currentHolding && currentHolding.length > 0) {
+                        distributionDetails.forEach(detail => {
+                            if (currentHolding[0].assignee && detail.assigneeObjId && String(currentHolding[0].assignee) == String(detail.assigneeObjId)) {
+                                detail.currentListSize = currentHolding.length;
+                            }
+                        })
+                    }
+                });
+            }
+
+            let totalDistributedProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
+                assignee: {$in: assigneeAdminList},
+                tsPhoneList: tsPhoneListObjId,
+                startTime: {$lt: new Date()},
             });
-            return returnData;
-        });
+
+            let totalFulfilledProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
+                assignee: {$in: assigneeAdminList},
+                tsPhoneList: tsPhoneListObjId,
+                startTime: {$lt: new Date()},
+                isUsed: true
+            });
+
+            let totalSuccessProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
+                assignee: {$in: assigneeAdminList},
+                tsPhoneList: tsPhoneListObjId,
+                startTime: {$lt: new Date()},
+                isSucceedBefore: true
+            });
+
+            return Promise.all([totalDistributedProm, totalFulfilledProm, totalSuccessProm]);
+        }).then(
+            ([totalDistributedTsPhone, totalFulfilledTsPhone, totalSuccessTsPhone]) => {
+                returnData.totalDistributed = totalDistributedTsPhone.length;
+                returnData.totalFulfilled = totalFulfilledTsPhone.length;
+                returnData.totalSuccess = totalSuccessTsPhone.length;
+
+                return returnData;
+            }
+        );
     },
 
     getTsWorkloadReport: (platformObjId, phoneListObjIds, startTime, endTime, adminObjIds) => {
@@ -1646,6 +1677,20 @@ let dbTeleSales = {
             };
         });
     },
+
+    getRegisteredPlayerFromPhoneList: function(tsPhoneListObjId) {
+        return dbconfig.collection_tsPhoneList.findOne({_id: tsPhoneListObjId}, {platform: 1}).lean().then(tsPhoneList => {
+            if (!tsPhoneList) {
+                return [];
+            }
+
+            return dbconfig.collection_players.find({tsPhoneList: tsPhoneList._id, platform: tsPhoneList.platform}, {name: 1, registrationTime:1, csOfficer: 1})
+                .sort({registrationTime: -1})
+                .populate({path: 'csOfficer', select: 'adminName', model: dbconfig.collection_admin})
+                .lean();
+        });
+    },
+
 
     debugTsPhoneList: function(tsPhoneListObjId) {
         return dbconfig.collection_tsPhone.find({tsPhoneList: tsPhoneListObjId}).lean().then(

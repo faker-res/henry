@@ -314,6 +314,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.setClickedHeaderIcon = function () {
         var location = $location.path().slice(1);
 
+        $('#cssmenu .navbar-brand  a').parent().removeClass('active');
+        $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('active');
+
         if (location == "platform")
             $('#cssmenu .navbar-brand  a[name*="platform"]').parent().addClass('clickedWebsiteBusiness');
         else

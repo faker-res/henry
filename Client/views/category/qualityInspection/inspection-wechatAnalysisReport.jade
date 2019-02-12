@@ -1,4 +1,4 @@
-#WechatRecordQuerycol-md-12.well(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
+#WechatRecordQuery.col-md-12.well(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
     .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
         label {{'PRODUCT' | translate}}
         select.form-control(ng-change='vm.getWechatDeviceNickNameListForReport();',ng-model='vm.inspectionWechatReport.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)

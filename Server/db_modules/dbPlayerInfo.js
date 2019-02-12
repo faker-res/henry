@@ -43,6 +43,8 @@ var constReferralStatus = require("./../const/constReferralStatus");
 var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 let constMessageType = require("../const/constMessageType");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
+const extConfig = require('../config/externalPayment/paymentSystems');
+const rp = require('request-promise');
 
 var moment = require('moment-timezone');
 var rewardUtility = require("../modules/rewardUtility");
@@ -872,9 +874,12 @@ let dbPlayerInfo = {
                     return checktsPhoneFeedback.then(
                         tsPhoneFeedbackData => {
                             if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
-                                inputData.csOfficer = ObjectId(tsPhoneFeedbackData.adminId);
+                                inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
+                                inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
                                 if (tsPhoneFeedbackData.tsPhone) {
                                     inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
+                                    inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
+                                    inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
                                 }
                             }
                             return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
@@ -1644,7 +1649,7 @@ let dbPlayerInfo = {
 
             }
 
-            if ((/*playerdata.password.length < 6 || playerdata.password.length > 20 ||*/ !playerdata.password.match(alphaNumRegex)) && !bFromBI) {
+            if ((/*playerdata.password.length < 6 || playerdata.password.length > 20 ||*/ !playerdata.password.match(alphaNumRegex)) && !bFromBI && !playerdata.guestDeviceId) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -2626,13 +2631,15 @@ let dbPlayerInfo = {
 
 
     updatePlayerPermission: function (query, admin, permission, remark, selected) {
+        let topUpSystemConfig;
+        let isUpdatePMSPermission = false;
+        let updateObj = {};
+        let pmsUpdateProm = Promise.resolve(true);
+
         if (selected && selected.mainPermission) {
             permission = {};
             permission[selected.mainPermission] = selected.status;
         }
-
-        let isUpdatePMSPermission = false;
-        let updateObj = {};
 
         for (let key in permission) {
             if (permission.hasOwnProperty(key)) {
@@ -2644,67 +2651,27 @@ let dbPlayerInfo = {
             }
         }
 
-        let pmsUpdateProm = Promise.resolve(true);
+        return dbconfig.collection_platform.findOne({_id: query.platform}, {platformId: 1, topUpSystemType: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    topUpSystemConfig = extConfig && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
+                    if (isUpdatePMSPermission && ((topUpSystemConfig && topUpSystemConfig.name === 'PMS') || !topUpSystemConfig)) {
+                        let topUpSystemName = topUpSystemConfig && topUpSystemConfig.name ? topUpSystemConfig.name : 'PMS';
+                        pmsUpdateProm = dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission, remark, topUpSystemName);
 
-        if (isUpdatePMSPermission) {
-            pmsUpdateProm = dbconfig.collection_platform.findOne({_id: query.platform}).then(
-                platformData => {
-                    return dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission);
-                }
-            )
-        }
+                    } else if (isUpdatePMSPermission && topUpSystemConfig && topUpSystemConfig.name === 'PMS2') {
+                        pmsUpdateProm = dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission, remark, topUpSystemConfig.name, platformData.topUpSystemType);
 
-        return pmsUpdateProm.then(
-            updatePMSSuccess => {
-                if (updatePMSSuccess) {
-                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
-                        playerData => {
-                            if (playerData) {
-                                return dbconfig.collection_platform.populate(playerData, {
-                                    path: 'platform',
-                                    model: dbconfig.collection_platform,
-                                    select: "platformId"
-                                })
-                            }
-                        }
-                    )
+                    }
+
+                    return startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission, admin, remark);
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Can not find platform"});
                 }
-            },
-            function (error) {
-                return Promise.reject({name: "DBError", message: "Error updating PMS player permission.", error: error});
             }
-        ).then(
-            playerData => {
-                let oldData = {};
-                for (let i in permission) {
-                    oldData[i] = playerData && playerData.permission ? playerData.permission[i] : "";
-                }
-                var newLog = new dbconfig.collection_playerPermissionLog({
-                    admin: admin,
-                    platform: query.platform,
-                    player: query._id,
-                    remark: remark,
-                    oldData: oldData,
-                    newData: permission,
-                });
-                return newLog.save();
-            },
-            function (error) {
-                return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
-            }
-        ).then(
-            function (suc) {
-                return true;
-            },
-            function (error) {
-                return Q.reject({
-                    name: "DBError",
-                    message: "Player permission updated. Error occurred when creating log.",
-                    error: error
-                });
-            }
-        );
+        )
     },
     updateBatchPlayerPermission: function (query, admin, permission, remark) {
         let players = query.playerNames;
@@ -8757,14 +8724,15 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     checkPlayerLevelMigration: function (player, playerLevels, checkLevelUp, checkLevelDown, checkPeriod, showReject, userAgent) {
+        let errorData = player && player.name || "";
         if (!player) {
-            throw Error("player was not provided!");
+            return Promise.reject("player was not provided!");
         }
         if (!player.playerLevel) {
-            throw Error("player's playerLevel is not populated!");
+            return Promise.reject("player's playerLevel is not populated!" + errorData);
         }
         if (!playerLevels) {
-            throw Error("playerLevels was not provided!");
+            return Promise.reject("playerLevels was not provided!" + errorData);
         }
 
         let errorMsg = '';
@@ -12243,7 +12211,10 @@ let dbPlayerInfo = {
                     }
                 )
             }
-        );
+        ).catch(err=>{
+            console.log("dbPlayerInfo.updatePlayerTopupProposal()", proposalId, err);
+            return Promise.reject(err);
+        });
     },
 
     /*
@@ -16880,6 +16851,8 @@ let dbPlayerInfo = {
                             if (player) {
                                 proposalQuery['data.playerObjId'] = player._id;
                             }
+                            console.log('startDate===', startDate);
+                            console.log('dayEndTime===', dayEndTime);
 
                             proposalProm.push(dbconfig.collection_proposal.aggregate([
                                 {$match: proposalQuery},
@@ -16923,6 +16896,7 @@ let dbPlayerInfo = {
                                 }
                             }
                         }
+                        console.log('proposalData===', proposalData);
 
                         proposalData.forEach(function (proposal) {
                             groupedPlayers[proposal._id] = (groupedPlayers[proposal._id] || 0) + proposal.reachTargetDay;
@@ -16977,7 +16951,7 @@ let dbPlayerInfo = {
                                             playerData = playerIdObjs;
                                             return playerIdObj._id;
                                         }),
-                                        isPromoteWay: true,
+                                        // isPromoteWay: true,
                                         option: {
                                             isDepositReport: true
                                         }
@@ -17133,6 +17107,13 @@ let dbPlayerInfo = {
                 }
             }
 
+            console.log('startDate===', startDate);
+            console.log('dayEndTime===', dayEndTime);
+            console.log('playerObjId===', playerObjId);
+            console.log('timezoneAdjust.year===', timezoneAdjust.year);
+            console.log('timezoneAdjust.month===', timezoneAdjust.month);
+            console.log('timezoneAdjust.day===', timezoneAdjust.day);
+
             topUpProm.push(dbconfig.collection_proposal.aggregate([
                 {
                     $match: {
@@ -17196,6 +17177,8 @@ let dbPlayerInfo = {
 
             topUpRecord = [].concat(...topUpRecord);
             bonusRecord = [].concat(...bonusRecord);
+            console.log('topUpRecord===', topUpRecord);
+            console.log('bonusRecord===', bonusRecord);
 
             let outputData = [];
 
@@ -17209,12 +17192,14 @@ let dbPlayerInfo = {
                     isExceedDailyTotalDeposit: isExceedDailyTotalDeposit,
                 });
             }
+            console.log('outputData===11', outputData);
 
             outputData.forEach(output => {
                 bonusRecord.forEach(bonus => {
+                    console.log('bonus===1', bonus);
                     if (!bonus.bUsed) {  // only check bonus not used
-                        let outputDate = new Date(output.date.year, output.date.month, output.date.day);
-                        let bonusDate = new Date(bonus._id.year, bonus._id.month, bonus._id.day);
+                        let outputDate = new Date(output.date.year, output.date.month - 1, output.date.day); //month start from 0 to 11
+                        let bonusDate = new Date(bonus._id.year, bonus._id.month - 1, bonus._id.day); //month start from 0 to 11
 
                         if (outputDate.getTime() === bonusDate.getTime()) {
                             output.bonusAmount = bonus.amount;
@@ -17228,6 +17213,7 @@ let dbPlayerInfo = {
 
             // for scenario when that month doesn't have top up record
             bonusRecord.forEach(bonus => {
+                console.log('bonus===2', bonus);
                 if (!bonus.bUsed) {
                     outputData.push({
                         date: bonus._id,
@@ -17238,6 +17224,7 @@ let dbPlayerInfo = {
                     bonus.bUsed = true;
                 }
             });
+            console.log('outputData===22', outputData);
 
             // convert date format
             for (let z = 0; z < outputData.length; z++) {
@@ -17252,6 +17239,7 @@ let dbPlayerInfo = {
             outputData.sort(function (a, b) {
                 return b.date - a.date
             });
+            console.log('outputData===33', outputData);
 
             //handle sum of field here
             for (let z = 0; z < outputData.length; z++) {
@@ -17387,7 +17375,8 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
+                                // batchSize: constSystemParam.BATCH_SIZE,
+                                batchSize: 100,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platformObjId,
@@ -17398,7 +17387,7 @@ let dbPlayerInfo = {
                                             playerData = playerIdObjs;
                                             return playerIdObj._id;
                                         }),
-                                        isPromoteWay: true,
+                                        // isPromoteWay: true,
                                         option: {
                                             isDepositReport: true
                                         }
@@ -18455,6 +18444,9 @@ let dbPlayerInfo = {
                         proposalType = proposalTypeData;
                         for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                             let prom;
+
+                            //recalculate player value
+                            dbPlayerCredibility.calculatePlayerValue(playerObjIds[p]);
 
                             if (option.isDX) {
                                 prom = dbconfig.collection_players.findOne({
@@ -19647,16 +19639,16 @@ let dbPlayerInfo = {
         let matchObj = {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}};
 
 
-        // arrayPhoneXLS = arrayPhoneXLS.filter(phoneNumber => !isNaN(phoneNumber));
+        arrayPhoneXLS = arrayPhoneXLS.filter(phoneNumber => !isNaN(phoneNumber) && String(phoneNumber).length === 11);
 
         for (let i = 0; i < arrayPhoneXLS.length; i++) {
             arrayPhoneXLS[i] = arrayPhoneXLS[i].trim();
-            if (isNaN(arrayPhoneXLS[i])) {
-                return Promise.reject({
-                    name: "DataError",
-                    message: "Invalid phone number"
-                });
-            }
+            // if (isNaN(arrayPhoneXLS[i])) {
+            //     return Promise.reject({
+            //         name: "DataError",
+            //         message: "Invalid phone number"
+            //     });
+            // }
             oldNewPhone.$in.push(arrayPhoneXLS[i]);
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneXLS[i]));
             oldNewPhone.$in.push(rsaCrypto.oldEncrypt(arrayPhoneXLS[i]));
@@ -20644,7 +20636,23 @@ let dbPlayerInfo = {
         )
     },
 
-    getPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode) {
+    prepareGetPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerIds) {
+        if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE].includes(mode) && providerIds && providerIds.length) {
+            return dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {_id: 1}).lean().then(
+                gameProviderData => {
+                    let gameProviderIds = [];
+                    if (gameProviderData && gameProviderData.length) {
+                        gameProviderIds = gameProviderData.map(provider => provider._id);
+                    }
+                    return dbPlayerInfo.getPlayerBillBoard(platformId, periodCheck, hourCheck, recordCount, playerId, mode, gameProviderIds);
+                }
+            )
+        } else {
+            return dbPlayerInfo.getPlayerBillBoard(platformId, periodCheck, hourCheck, recordCount, playerId, mode);
+        }
+    },
+
+    getPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerObjIds) {
         let prom;
         let playerDataField;
         let consumptionField;
@@ -20706,7 +20714,7 @@ let dbPlayerInfo = {
                                 if (totalTopUpRanking) {
                                     for (let i = 0; i < totalTopUpRanking.length; i++) {
                                         totalTopUpRanking[i].rank = i + 1;
-                                        totalTopUpRanking[i].amount = totalTopUpRanking[i][playerDataField] || 0;
+                                        totalTopUpRanking[i].amount =  Number(totalTopUpRanking[i][playerDataField].toFixed(2)) || 0;
                                         delete totalTopUpRanking[i][playerDataField];
                                         delete totalTopUpRanking[i]._id;
                                     }
@@ -20728,7 +20736,7 @@ let dbPlayerInfo = {
                                                     sameRankCount => {
                                                         returnData.allDeposit.playerRanking = {
                                                             name: playerObj.name,
-                                                            amount: playerObj[playerDataField] || 0,
+                                                            amount: Number(playerObj[playerDataField].toFixed(2)) || 0,
                                                             rank: rankCount + sameRankCount + 1
                                                         }
                                                         return returnData;
@@ -20786,6 +20794,10 @@ let dbPlayerInfo = {
 
                                 let sortedData = topUpRecord.sort(sortRankingRecord);
                                 for (let i = 0; i < sortedData.length; i++) {
+                                    if (sortedData[i].amount) {
+                                        //round to 2 decimal places
+                                        sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                    }
                                     sortedData[i].rank = i + 1;
                                     if (sortedData[i].createTime) {
                                         delete sortedData[i].createTime;
@@ -20900,6 +20912,10 @@ let dbPlayerInfo = {
                             // }
                             // let sortedData = topUpRecord.sort(sortRankingRecord);
                             for (let i = 0; i < sortedData.length; i++) {
+                                if (sortedData[i].amount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                }
                                 sortedData[i].rank = i + 1;
                                 if (playerObj && playerObj.name) {
                                     if (sortedData[i]._id.toString() == playerObj._id.toString()) {
@@ -20971,7 +20987,7 @@ let dbPlayerInfo = {
                                 if (totalWithdrawRanking) {
                                     for (let i = 0; i < totalWithdrawRanking.length; i++) {
                                         totalWithdrawRanking[i].rank = i + 1;
-                                        totalWithdrawRanking[i].amount = totalWithdrawRanking[i][playerDataField] || 0;
+                                        totalWithdrawRanking[i].amount = Number(totalWithdrawRanking[i][playerDataField].toFixed(2)) || 0;
                                         delete totalWithdrawRanking[i][playerDataField];
                                         delete totalWithdrawRanking[i]._id;
                                     }
@@ -21001,7 +21017,7 @@ let dbPlayerInfo = {
                                                     sameRankCount => {
                                                         returnData.allWithdraw.playerRanking = {
                                                             name: playerObj.name,
-                                                            amount: playerObj[playerDataField] || 0,
+                                                            amount: Number(playerObj[playerDataField].toFixed(2)) || 0,
                                                             rank: rankCount + sameRankCount + 1
                                                         };
                                                         return returnData;
@@ -21062,6 +21078,10 @@ let dbPlayerInfo = {
                                 let sortedData = withdrawRecord.sort(sortRankingRecord);
 
                                 for (let i = 0; i < sortedData.length; i++) {
+                                    if (sortedData[i].amount) {
+                                        //round to 2 decimal places
+                                        sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                    }
                                     sortedData[i].rank = i + 1;
                                     if (sortedData[i].createTime) {
                                         delete sortedData[i].createTime;
@@ -21142,6 +21162,10 @@ let dbPlayerInfo = {
                         };
                     }
 
+                    if (providerObjIds && providerObjIds.length) {
+                        matchQuery.$match.providerId = {$in: providerObjIds};
+                    }
+
                     return dbconfig.collection_playerConsumptionRecord.aggregate([
                         matchQuery,
                         {
@@ -21181,6 +21205,10 @@ let dbPlayerInfo = {
                             let playerRanking;
                             let sortedData = consumptionRecord.sort(sortRankingRecord);
                             for (let i = 0; i < sortedData.length; i++) {
+                                if (sortedData[i].amount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                }
                                 sortedData[i].rank = i + 1;
                                 if (sortedData[i].createTime) {
                                     delete sortedData[i].createTime;
@@ -21312,6 +21340,10 @@ let dbPlayerInfo = {
                         };
                     }
 
+                    if (providerObjIds && providerObjIds.length) {
+                        matchQuery.$match.providerId = {$in: providerObjIds};
+                    }
+
                     return dbconfig.collection_playerConsumptionRecord.aggregate([
                         matchQuery,
                         {
@@ -21351,7 +21383,12 @@ let dbPlayerInfo = {
                             let playerRanking;
                             let sortedData = consumptionRecord.sort(sortRankingRecord);
 
+                            console.log("player bill board win all", sortedData)
                             for (let i = 0; i < sortedData.length; i++) {
+                                if (sortedData[i].amount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                }
                                 sortedData[i].rank = i + 1;
                                 if (sortedData[i].createTime) {
                                     delete sortedData[i].createTime;
@@ -21493,6 +21530,10 @@ let dbPlayerInfo = {
                         };
                     }
 
+                    if (providerObjIds && providerObjIds.length) {
+                        matchQuery.$match.providerId = {$in: providerObjIds};
+                    }
+
                     return dbconfig.collection_playerConsumptionRecord.aggregate([
                         matchQuery,
                         {
@@ -21513,7 +21554,7 @@ let dbPlayerInfo = {
                                 winRatio: {$first: "$winRatio"}
                             }
                         }
-                    ]).then(
+                    ]).allowDiskUse(true).then(
                         consumptionRecord => {
                             function sortRankingRecord(a, b) {
                                 if (a.winRatio < b.winRatio)
@@ -21534,6 +21575,18 @@ let dbPlayerInfo = {
                             let sortedData = consumptionRecord.sort(sortRankingRecord);
                             let playerRanking;
                             for (let i = 0; i < sortedData.length; i++) {
+                                if (sortedData[i].winRatio) {
+                                    //round to 2 decimal places
+                                    sortedData[i].winRatio = Number(sortedData[i].winRatio.toFixed(2));
+                                }
+                                if (sortedData[i].bonusAmount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].bonusAmount = Number(sortedData[i].bonusAmount.toFixed(2));
+                                }
+                                if (sortedData[i].validAmount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].validAmount = Number(sortedData[i].validAmount.toFixed(2));
+                                }
                                 sortedData[i].rank = i + 1;
                                 if (playerObj && playerObj.name) {
                                     if (sortedData[i]._id.toString() == playerObj._id.toString()) {
@@ -22631,80 +22684,137 @@ let dbPlayerInfo = {
         )
     },
 
-    updatePMSPlayerTopupChannelPermission: (platformId, playerObjArr) => {
+    updatePMSPlayerTopupChannelPermission: (platformId, playerObjArr, topUpSystemType) => {
         let sendObjArr = [];
+        let topUpSystemConfig;
+        let topUpSystemName = 'PMS';
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        if ((topUpSystemConfig && topUpSystemConfig.name === 'PMS') || !topUpSystemConfig) {
+            topUpSystemName = topUpSystemConfig && topUpSystemConfig.name ? topUpSystemConfig.name : 'PMS';
+        } else if (topUpSystemConfig && topUpSystemConfig.name === 'PMS2') {
+            topUpSystemName = topUpSystemConfig.name;
+        }
 
         playerObjArr.forEach(playerData => {
             let sendObj = getPlayerTopupChannelPermission(playerData);
 
-            if (
-                sendObj
-                && (
-                    sendObj.manualRechargeMethod === 1
-                    || sendObj.onlineRechargeMethod === 1
-                    || sendObj.alipayRechargeMethod === 1
-                    || sendObj.wechatRechargeMethod === 1
-                )
-            ) {
-                sendObjArr.push(sendObj);
+            if (topUpSystemName === 'PMS') {
+                if (
+                    sendObj
+                    && (
+                        sendObj.manualRechargeMethod === 1
+                        || sendObj.onlineRechargeMethod === 1
+                        || sendObj.alipayRechargeMethod === 1
+                        || sendObj.wechatRechargeMethod === 1
+                    )
+                ) {
+                    sendObjArr.push(sendObj);
+                }
+            } else if (topUpSystemName === 'PMS2') {
+                if (
+                    sendObj
+                    && (
+                        sendObj.topupManual === 0
+                        || sendObj.topupOnline === 0
+                        || sendObj.alipay === 0
+                        || sendObj.wechatpay === 0
+                    )
+                ) {
+                    sendObjArr.push(sendObj);
+                }
             }
+
         });
 
         if (sendObjArr.length) {
-            return pmsAPI.foundation_userDepositSettings(
-                {
-                    queryId: +new Date() + serverInstance.getQueryId(),
-                    data: sendObjArr
-                }
-            ).then(
-                updateStatus => {
-                    console.log('foundation_userDepositSettings success', updateStatus);
-                    return updateStatus;
-                },
-                error => {
-                    console.log('foundation_userDepositSettings failed', error);
-                    throw error;
-                }
-            )
+            if (topUpSystemName === 'PMS') {
+                return pmsAPI.foundation_userDepositSettings(
+                    {
+                        queryId: +new Date() + serverInstance.getQueryId(),
+                        data: sendObjArr
+                    }
+                ).then(
+                    updateStatus => {
+                        console.log('foundation_userDepositSettings success', updateStatus);
+                        return updateStatus;
+                    },
+                    error => {
+                        console.log('foundation_userDepositSettings failed', error);
+                        throw error;
+                    }
+                )
+
+            } else if (topUpSystemName === 'PMS2') {
+                let data = {
+                    requests: sendObjArr
+                };
+
+                let options = {
+                    method: 'POST',
+                    uri: extConfig[topUpSystemType].batchTopUpStatusAPIAddr,
+                    body: data,
+                    json: true
+                };
+
+                return rp(options)
+                    .then(function (updateStatus) {
+                        console.log('batch playerDepositStatus success', updateStatus);
+                        return updateStatus;
+                    }, error => {
+                        console.log('batch playerDepositStatus failed', error);
+                        throw error;
+                    })
+            }
         }
 
         function getPlayerTopupChannelPermission (player) {
-            let retObj = {};
-
-            if (player && player.permission) {
-                retObj = {
-                    username: player.name,
-                    platformId: platformId,
-                    manualRechargeMethod: player.permission.topupManual ? 0 : 1,
-                    onlineRechargeMethod: player.permission.topupOnline ? 0 : 1,
-                    alipayRechargeMethod: player.permission.alipayTransaction ? 0 : 1,
-                    wechatRechargeMethod: player.permission.disableWechatPay ? 1 : 0,
-                }
-            }
-
-            return retObj;
+            return getPlayerTopupChannelPermissionRequestData(player, platformId, null, null, topUpSystemName)
         }
     },
 
-    updatePMSPlayerTopupChannelPermissionTemp: (platformId, playerObjId, updateObj) => {
+    updatePMSPlayerTopupChannelPermissionTemp: (platformId, playerObjId, updateObj, updateRemark, topUpSystemName, topUpSystemType) => {
         return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
             sendObj => {
+                console.log('getPlayerTopupChannelPermission sendObj :', sendObj);
                 if (sendObj) {
-                    return pmsAPI.foundation_userDepositSettings(
-                        {
-                            queryId: +new Date() + serverInstance.getQueryId(),
-                            data: [sendObj]
-                        }
-                    ).then(
-                        updateStatus => {
-                            console.log('foundation_userDepositSettings success', updateStatus);
-                            return updateStatus;
-                        },
-                        error => {
-                            console.log('foundation_userDepositSettings failed', error);
-                            throw error;
-                        }
-                    )
+                    if (topUpSystemName === 'PMS') {
+                        return pmsAPI.foundation_userDepositSettings(
+                            {
+                                queryId: +new Date() + serverInstance.getQueryId(),
+                                data: [sendObj]
+                            }
+                        ).then(
+                            updateStatus => {
+                                console.log('foundation_userDepositSettings success', updateStatus);
+                                return updateStatus;
+                            },
+                            error => {
+                                console.log('foundation_userDepositSettings failed', error);
+                                throw error;
+                            }
+                        )
+
+                    } else if (topUpSystemName === 'PMS2') {
+                        sendObj.timestamp = Date.now();
+
+                        let options = {
+                            method: 'PATCH',
+                            uri: extConfig[topUpSystemType].topUpStatusAPIAddr,
+                            body: sendObj,
+                            json: true
+                        };
+
+                        return rp(options)
+                            .then(function (updateStatus) {
+                                console.log('playerDepositStatus success', updateStatus);
+                                return updateStatus;
+                            }, error => {
+                                console.log('playerDepositStatus failed', error);
+                                throw error;
+                            })
+                    }
                 }
 
             }
@@ -22713,40 +22823,131 @@ let dbPlayerInfo = {
         function getPlayerTopupChannelPermission (playerObjId) {
             return dbconfig.collection_players.findOne(playerObjId).then(
                 player => {
-                    let retObj = {};
-
-                    if (player && player.permission) {
-                        retObj = {
-                            username: player.name,
-                            platformId: platformId,
-                            manualRechargeMethod: player.permission.topupManual ? 0 : 1,
-                            onlineRechargeMethod: player.permission.topupOnline ? 0 : 1,
-                            alipayRechargeMethod: player.permission.alipayTransaction ? 0 : 1,
-                            wechatRechargeMethod: player.permission.disableWechatPay ? 1 : 0,
-                        }
-                    }
-
-                    if (updateObj) {
-                        if (updateObj.hasOwnProperty('topupManual')) {
-                            retObj.manualRechargeMethod = updateObj.topupManual ? 0 : 1;
-                        }
-                        if (updateObj.hasOwnProperty('topupOnline')) {
-                            retObj.onlineRechargeMethod = updateObj.topupOnline ? 0 : 1;
-                        }
-                        if (updateObj.hasOwnProperty('alipayTransaction')) {
-                            retObj.alipayRechargeMethod = updateObj.alipayTransaction ? 0 : 1;
-                        }
-                        if (updateObj.hasOwnProperty('disableWechatPay')) {
-                            retObj.wechatRechargeMethod = updateObj.disableWechatPay ? 1 : 0;
-                        }
-                    }
-
-                    return retObj;
+                    return getPlayerTopupChannelPermissionRequestData(player, platformId, updateObj, updateRemark, topUpSystemName);
                 }
             )
         }
     }
 };
+
+function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {
+    let retObj = {};
+
+    if (player && player.permission) {
+        retObj = {
+            username: player.name,
+            platformId: platformId
+        }
+
+        if (topUpSystemName === 'PMS') {
+
+            retObj.manualRechargeMethod = player.permission.topupManual ? 0 : 1;
+            retObj.onlineRechargeMethod = player.permission.topupOnline ? 0 : 1;
+            retObj.alipayRechargeMethod = player.permission.alipayTransaction ? 0 : 1;
+            retObj.wechatRechargeMethod = player.permission.disableWechatPay ? 1 : 0;
+
+        } else if (topUpSystemName === 'PMS2') {
+
+            retObj.topupManual = player.permission.topupManual ? 1 : 0;
+            retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
+            retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
+            retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
+            if (updateRemark) {
+                retObj.remark = updateRemark;
+            }
+
+        }
+    }
+
+    if (updateObj) {
+        if (topUpSystemName === 'PMS') {
+
+            if (updateObj.hasOwnProperty('topupManual')) {
+                retObj.manualRechargeMethod = updateObj.topupManual ? 0 : 1;
+            }
+            if (updateObj.hasOwnProperty('topupOnline')) {
+                retObj.onlineRechargeMethod = updateObj.topupOnline ? 0 : 1;
+            }
+            if (updateObj.hasOwnProperty('alipayTransaction')) {
+                retObj.alipayRechargeMethod = updateObj.alipayTransaction ? 0 : 1;
+            }
+            if (updateObj.hasOwnProperty('disableWechatPay')) {
+                retObj.wechatRechargeMethod = updateObj.disableWechatPay ? 1 : 0;
+            }
+
+        } else if (topUpSystemName === 'PMS2') {
+
+            if (updateObj.hasOwnProperty('topupManual')) {
+                retObj.topupManual = updateObj.topupManual ? 1 : 0;
+            }
+            if (updateObj.hasOwnProperty('topupOnline')) {
+                retObj.topupOnline = updateObj.topupOnline ? 1 : 0;
+            }
+            if (updateObj.hasOwnProperty('alipayTransaction')) {
+                retObj.alipay = updateObj.alipayTransaction ? 1 : 0;
+            }
+            if (updateObj.hasOwnProperty('disableWechatPay')) {
+                retObj.wechatpay = updateObj.disableWechatPay ? 0 : 1;
+            }
+
+        }
+    }
+
+    return retObj;
+}
+
+function startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission, admin, remark) {
+    return pmsUpdateProm.then(
+        updatePMSSuccess => {
+            if (updatePMSSuccess) {
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
+                    playerData => {
+                        if (playerData) {
+                            return dbconfig.collection_platform.populate(playerData, {
+                                path: 'platform',
+                                model: dbconfig.collection_platform,
+                                select: "platformId"
+                            })
+                        }
+                    }
+                )
+            }
+        },
+        function (error) {
+            return Promise.reject({name: "DBError", message: "Error updating PMS player permission.", error: error});
+        }
+    ).then(
+        playerData => {
+            let oldData = {};
+            for (let i in permission) {
+                oldData[i] = playerData && playerData.permission ? playerData.permission[i] : "";
+            }
+            var newLog = new dbconfig.collection_playerPermissionLog({
+                admin: admin,
+                platform: query.platform,
+                player: query._id,
+                remark: remark,
+                oldData: oldData,
+                newData: permission,
+            });
+            return newLog.save();
+        },
+        function (error) {
+            return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
+        }
+    ).then(
+        function (suc) {
+            return true;
+        },
+        function (error) {
+            return Q.reject({
+                name: "DBError",
+                message: "Player permission updated. Error occurred when creating log.",
+                error: error
+            });
+        }
+    );
+}
 
 function createPlayerCreditTransferProposal(proposalId, platformId, playerObjId, providerGroup, amount, withdrawConsumption, proposalType, partnerObjId, partnerId, partnerName, adminInfo) {
     let playerData = null;
@@ -24259,7 +24460,11 @@ function checkTelesalesFeedback(phoneNumber, platformObjId) {
             if (tsPhoneData && tsPhoneData.length) {
                 return dbconfig.collection_tsPhoneFeedback.findOne({
                     tsPhone: {$in: tsPhoneData.map(tsPhone => tsPhone._id)}
-                }, {adminId: 1,tsPhone: 1}).sort({createTime: -1}).lean();
+                }, {adminId: 1, tsPhone: 1, tsPhoneList: 1}).populate({
+                    path: "adminId",
+                    model: dbconfig.collection_admin,
+                    select: "adminName"
+                }).sort({createTime: -1}).lean();
             } else {
                 return null;
             }

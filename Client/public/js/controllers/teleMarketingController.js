@@ -36,6 +36,7 @@ define(['js/app'], function (myApp) {
         vm.ctiData = {};
         vm.isCallOutMissionMode = true;
         vm.callOutMissionStatusText = "";
+        vm.registeredPlayerList = [];
 
         vm.updatePageTile = function () {
             window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -6543,6 +6544,7 @@ define(['js/app'], function (myApp) {
                 if(data && data.data){
                     $scope.$evalAsync(() => {
                         vm.tsAssignees = data.data;
+                        vm.tsAssigneesOriginal = $.extend(true, [], data.data);
                         vm.updateTsAssigneesDisplay();
                         vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
                         setTimeout(()=>{
@@ -6652,10 +6654,12 @@ define(['js/app'], function (myApp) {
         vm.cancelDistributionSettingsEdit = () => {
             vm.newAssignees = [];
             vm.assigneeRemovalList = [];
+            vm.tsAssignees = $.extend(true, [], vm.tsAssigneesOriginal);
             vm.tsAssigneesDisplay = vm.tsAssignees;
             vm.allowDistributionSettingsEdit = false;
             vm.updateTsAssigneesDisplay();
             vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
+            $scope.$evalAsync();
         };
 
         vm.checkUpdateTsAssignee = () => {
@@ -6878,12 +6882,19 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_REGISTERED'),
                         render: function(data, type, row, index){
-                            let divWithToolTip = $('<div>', {
+                            let clickFunctionStr = '';
+                            if (row && row._id) {
+                                clickFunctionStr = 'vm.getRegisteredPlayerFromPhoneList("' + row._id +'")';
+                            }
+                            let link = $('<a>', {
                                 'title': "已使用量当中，电话在系统有开户（不管帐号禁用与否）",
+                                'data-toggle': 'modal',
+                                'data-target': '#modalRegisteredPlayerList',
+                                'ng-click': clickFunctionStr,
                                 'text': row.totalRegistration || 0
                             });
 
-                            return divWithToolTip.prop('outerHTML');
+                            return link.prop('outerHTML');
                         }
                     },
                     {
@@ -7140,12 +7151,19 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_REGISTERED'),
                         render: function(data, type, row, index){
-                            let divWithToolTip = $('<div>', {
+                            let clickFunctionStr = '';
+                            if (row && row._id) {
+                                clickFunctionStr = 'vm.getRegisteredPlayerFromPhoneList("' + row._id +'")';
+                            }
+                            let link = $('<a>', {
                                 'title': "已使用量当中，电话在系统有开户（不管帐号禁用与否）",
+                                'data-toggle': 'modal',
+                                'data-target': '#modalRegisteredPlayerList',
+                                'ng-click': clickFunctionStr,
                                 'text': row.totalRegistration || 0
                             });
 
-                            return divWithToolTip.prop('outerHTML');
+                            return link.prop('outerHTML');
                         }
                     },
                     {
@@ -7364,6 +7382,24 @@ define(['js/app'], function (myApp) {
                     return "0";
                 }
             }
+        };
+
+        vm.getRegisteredPlayerFromPhoneList = (tsPhoneListObjId) => {
+            return $scope.$socketPromise("getRegisteredPlayerFromPhoneList", {tsPhoneListObjId}).then(
+                data => {
+                    if (!data || !data.data) {
+                        return;
+                    }
+
+                    for (let i = 0; i < data.data.length; i++) {
+                        let player = data.data[i];
+                        player.registrationTime$ = utilService.getFormatTime(player.registrationTime);
+                    }
+
+                    vm.registeredPlayerList = data.data;
+                    $scope.$evalAsync();
+                }
+            );
         };
 
         vm.initPlayerRetentionAnalysis = (tsPhoneList) => {

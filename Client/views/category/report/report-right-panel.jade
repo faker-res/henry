@@ -72,7 +72,7 @@
                     span#topupTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}} / {{"Total" | translate}} {{vm.queryTopup.totalPlayer}} {{"PLAYERS_IN_TOTAL" | translate}}
             table#topupTable.common-table.display.widthto100
             #topupTablePage
             table#topupExcelTable.common-table.display(style="min-width:100% ;overflow: scroll; display; none !important")
@@ -130,7 +130,7 @@
                     span#proposalTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.proposalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.proposalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}} / {{"Total" | translate}} {{vm.proposalQuery.totalPlayer}} {{"PLAYERS_IN_TOTAL" | translate}}
             table.common-table#proposalTable.display(style="width:100%;overflow: scroll;max-height:700px")
             #proposalTablePage
             table.common-table#proposalExcelTable.display(style="width:100%;overflow: scroll;max-height:700px")
@@ -564,7 +564,7 @@
                             td
                                 a(data-toggle="modal", data-target='#modalPlayerDepositTrackingMonthlyDetailsTable', ng-click="vm.getPlayerDepositTrackingMonthlyDetails(playerData._id)") {{'DETAILS' | translate}}
                             td
-                                a(ng-click="vm.removePlayerFromDepositTrackingReport(playerData._id)") {{'DELETE' | translate}}
+                                a.text-danger(ng-click="vm.removePlayerFromDepositTrackingReport(playerData._id)") {{'DELETE' | translate}}
                     br
                 br
 
@@ -2054,6 +2054,32 @@
                 table#wechatGroupReportTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 #wechatGroupReportTablePage
                 table#wechatGroupReportExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+
+        div(ng-if='vm.showPageName == "PROVIDER_CONSUMPTION_REPORT"')
+            #providerConsumptionQuery.col-md-12.well
+                .search-filters-item
+                    label.control-label  {{'PRODUCT' | translate}}
+                    select.form-control.spicker(ng-model='vm.providerConsumptionQuery.platform', ng-options="a._id as a.name  for a in vm.platformList", ng-change="vm.changePlayerCredibility()", multiple, bsp, data-actions-box='true')
+                .search-filters-item
+                    label.control-label  {{'CREDIBILITY' | translate}}
+                    select.form-control.spicker(ng-model='vm.providerConsumptionQuery.credibility', ng-options="a._id as a.name  for a in vm.playerCredibilityRemark", multiple, bsp, data-actions-box='true')
+                .search-filters-item
+                    label {{"Start date"|translate}}
+                    .startTime
+                .search-filters-item
+                    label {{"End date"|translate}}
+                    .endTime
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchProviderConsumptionReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.btn-space(ng-click='vm.loadPage("PROVIDER_CONSUMPTION_REPORT")') {{'Reset' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchProviderConsumptionReport(true, true)') {{'EXPORT_EXCEL' | translate}}
+                    span#providerConsumptionReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+                label {{"Total" | translate}} {{vm.providerConsumptionQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+                table#providerConsumptionReportTable.common-table.simple-table.display(style="overflow: scroll;max-height:700px;word-wrap:break-word;")
+                #providerConsumptionReportTablePage
+                table#providerConsumptionReportExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
 
 #modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

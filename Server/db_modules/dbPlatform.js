@@ -1171,7 +1171,7 @@ var dbPlatform = {
      */
     resetPlatformPlayerLevelData: function (platformObjId, bWeek) {
         //if daily settlement, and if it is the first day of the month, then reset monthly amount
-        var queryOrArray = [{dailyTopUpSum: {$gt: 0}}, {dailyConsumptionSum: {$gt: 0}}, {dailyWithdrawSum: {$gt: 0}}, {dailyBonusAmountSum: {$gt: 0}}, {dailyTopUpIncentiveAmount: {$gt: 0}}];
+        var queryOrArray = [{dailyTopUpSum: {$gt: 0}}, {dailyConsumptionSum: {$gt: 0}}, {dailyWithdrawSum: {$gt: 0}}, {dailyBonusAmountSum: {$ne: 0}}, {dailyTopUpIncentiveAmount: {$gt: 0}}];
         var updateData = {
             dailyTopUpSum: 0,
             dailyConsumptionSum: 0,
@@ -5804,6 +5804,7 @@ var dbPlatform = {
             }
         ).then(
             paymentSystemConfig => {
+
                 if (paymentSystemConfig && paymentSystemConfig.length > 0) {
                     let indexNo = paymentSystemConfig.findIndex(x => x && x.name && x.name === 'PMS');
 
@@ -5824,6 +5825,8 @@ var dbPlatform = {
                                         paymentSystemConfig[indexNo].curFinancialSettlementPoint = curFinancialSettlementPoint;
                                     }
 
+                                    return paymentSystemConfig;
+                                } else {
                                     return paymentSystemConfig;
                                 }
                             }

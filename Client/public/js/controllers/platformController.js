@@ -16366,7 +16366,15 @@ define(['js/app'], function (myApp) {
                             }
                         })
                     } else {
-                        vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                        vm.queryRoles.map(e => {
+                            if (e && e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f && f._id != "") {
+                                        admins.push(f._id);
+                                    }
+                                });
+                            }
+                        });
                     }
                 }
 
@@ -17403,7 +17411,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(new Date(utilService.getLocalTime(new Date()).getTime() - 30*60*1000 ));
 
-                    vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
+                    vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit, maxPageSize: 100}, $translate, function (curP, pageSize) {
                         var isChange = false;
                         if (pageSize != vm.playerFeedbackQuery.limit) {
                             isChange = true;
@@ -23125,6 +23133,26 @@ define(['js/app'], function (myApp) {
                             });
                         });
                         break;
+                    case 'monitorTypeB':
+                        vm.promoCodeTypeBMonitor = {};
+
+                        utilService.actionAfterLoaded('#promoCodeTypeBMonitorQuery', function () {
+                            vm.promoCodeTypeBMonitor.startAcceptedTime = utilService.createDatePicker('#promoCodeTypeBMonitorQuery .startAcceptedTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeTypeBMonitor.startAcceptedTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                            vm.promoCodeTypeBMonitor.endAcceptedTime = utilService.createDatePicker('#promoCodeTypeBMonitorQuery .endAcceptedTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeTypeBMonitor.endAcceptedTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                            vm.promoCodeTypeBMonitor.pageObj = utilService.createPageForPagingTable("#promoCodeTypeBMonitorTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "promoCodeTypeBMonitor", vm.getPromoCodeTypeBMonitor)
+                            });
+                        });
+                        break;
                     case 'monitor':
                         vm.promoCodeMonitor = {};
 
@@ -24247,6 +24275,43 @@ define(['js/app'], function (myApp) {
                 vm.openPromoCodeTemplateData.map(promoCode => {
                     allNames.push(promoCode.name);
                 });
+
+                if (vm.promoCodeTemplateData && vm.promoCodeTemplateData.length) {
+                    vm.promoCodeTemplateData.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.openPromoCodeTemplate1 && vm.openPromoCodeTemplate1.length) {
+                    vm.openPromoCodeTemplate1.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.openPromoCodeTemplate2 && vm.openPromoCodeTemplate2.length) {
+                    vm.openPromoCodeTemplate2.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.openPromoCodeTemplate3 && vm.openPromoCodeTemplate3.length) {
+                    vm.openPromoCodeTemplate3.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.promoCodeType1 && vm.promoCodeType1.length) {
+                    vm.promoCodeType1.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.promoCodeType2 && vm.promoCodeType2.length) {
+                    vm.promoCodeType2.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+                if (vm.promoCodeType3 && vm.promoCodeType3.length) {
+                    vm.promoCodeType3.map(promoCode => {
+                        allNames.push(promoCode.name);
+                    });
+                }
+
                 if(vm.excludeAuctionItem && vm.excludeAuctionItem.length){
                     let InPromoCodeProduct = vm.excludeAuctionItem.filter(p => p.rewardData && p.rewardData.hasOwnProperty("templateObjId"));
                     InPromoCodeProduct.map(auctionItem => {
@@ -24271,6 +24336,7 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     $scope.$evalAsync(() => {
                         vm.promoCodeTypes = data.data;
+                        vm.promoCodeTypeB = [];
 
                         vm.promoCodeTypes.forEach(entry => {
                             if (entry.type == 1 && entry.hasOwnProperty("smsTitle")) {
@@ -24284,6 +24350,20 @@ define(['js/app'], function (myApp) {
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                             }
                         });
+
+                        vm.promoCodeTypeB = JSON.parse(JSON.stringify(vm.promoCodeType1.concat(vm.promoCodeType2)));
+                        if (vm.promoCodeTypeB && vm.promoCodeTypeB.length) {
+                            vm.promoCodeTypeB.forEach(item=> {
+                                if (item.type) {
+                                    if (item.type == 1) {
+                                        item.groupName = $translate("DEPOSIT_REQUIRED");
+                                    } else if (item.type == 2) {
+                                        item.groupName = $translate("NO_DEPOSIT_REQUIRED");
+                                    }
+
+                                }
+                            })
+                        }
                     })
 
 
@@ -25312,12 +25392,85 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.drawPromoCodeTypeBMonitorTable = function (data, size, summary, newSearch) {
+                let tableOptions = {
+                    data: data,
+                    // "order": vm.promoCodeTypeBMonitor.aaSorting || [[0, 'desc']],
+                    aoColumnDefs: [
+                        // {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('ACCOUNT'),
+                            data: "playerName"
+                        },
+                        {
+                            title: $translate('topUpAmount(A)'),
+                            data: "topUpAmount"
+                        },
+                        {
+                            title: $translate('PROMO_REWARD_AMOUNT'),
+                            data: "rewardAmount"
+                        },
+                        {
+                            title: $translate('PROMO_CODE_TYPE'),
+                            data: "promoCodeType"
+                        },
+                        {
+                            title: $translate('requiredConsumption'),
+                            data: "spendingAmount"
+                        },
+                        {
+                            title: $translate('SHARE_WITH_XIMA'),
+                            data: "isSharedWithXIMA$"
+                        },
+                        {
+                            title: $translate('withdrawConsumption'),
+                            data: "consumptionBeforeWithdraw"
+                        },
+                        {
+                            title: $translate('withdrawAmount'),
+                            data: "nextWithdrawAmount"
+                        },
+                        {
+                            title: $translate('playerCredit'),
+                            data: "playerCredit"
+                        },
+                        {
+                            title: $translate('nextTopUpAmount'),
+                            data: "nextTopUpAmount"
+                        },
+                        {
+                            title: $translate('nextWithdrawProposalId'),
+                            data: "nextWithdrawProposalId",
+                        },
+                        {
+                            title: $translate('promoCodeProposalId'),
+                            data: "promoCodeProposalId"
+                        }
+                    ],
+                    "paging": false
+                };
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+
+                let promoCodeTypeBMonitorTable = utilService.createDatatableWithFooter('#promoCodeTypeBMonitorTable', tableOptions, {}, true);
+
+                vm.promoCodeTypeBMonitor.pageObj.init({maxCount: size}, newSearch);
+
+                $('#promoCodeMonitorTable').off('order.dt');
+                $('#promoCodeMonitorTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'promoCodeQuery', vm.getPromoCodeMonitor);
+                });
+                $('#promoCodeTypeBMonitorTable').resize();
+            };
+
             vm.drawPromoCodeMonitorTable = function (data, size, summary, newSearch) {
                 let tableOptions = {
                     data: data,
-                    "order": vm.promoCodeMonitor.aaSorting || [[0, 'desc']],
+                    // "order": vm.promoCodeMonitor.aaSorting || [[0, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                        // {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -25474,6 +25627,42 @@ define(['js/app'], function (myApp) {
                 }, true);
             };
 
+            vm.getPromoCodeTypeBMonitor = function (isNewSearch) {
+                vm.promoCodeTypeBMonitor.platformId = vm.selectedPlatform.id;
+                $('#promoCodeMonitorTableSpin').show();
+
+                vm.promoCodeTypeBMonitor.index = isNewSearch ? 0 : (vm.promoCodeTypeBMonitor.index || 0);
+
+                let sendObj = {
+                    startAcceptedTime: vm.promoCodeTypeBMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
+                    endAcceptedTime: vm.promoCodeTypeBMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
+                    promoCodeTypeName: vm.promoCodeTypeBMonitor.promoCodeTypeName || '',
+                    platformObjId: vm.promoCodeTypeBMonitor.platformId,
+                    index: vm.promoCodeTypeBMonitor.index || 0,
+                    limit: vm.promoCodeTypeBMonitor.limit || 10,
+                    sortCol: vm.promoCodeTypeBMonitor.sortCol
+                };
+
+                console.log('sendObj', sendObj);
+
+                socketService.$socket($scope.AppSocket, 'getPromoCodesMonitor', sendObj, function (data) {
+                    $('#promoCodeTypeBMonitorTableSpin').hide();
+                    console.log('getPromoCodesTypeBMonitor', data);
+                    vm.promoCodeTypeBMonitor.totalCount = data.data.totalCount;
+                    vm.promoCodeTypeBMonitor.totalPlayer = data.data.totalPlayer;
+                    $scope.safeApply();
+                    vm.drawPromoCodeTypeBMonitorTable(data.data.data.map(
+                        item => {
+                            item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                            return item;
+                        }
+                    ), data.data.totalCount, {}, isNewSearch);
+                }, function (err) {
+                    console.error(err);
+                }, true);
+
+            };
+
             vm.getPromoCodeMonitor = function (isNewSearch) {
                 vm.promoCodeMonitor.platformId = vm.selectedPlatform.id;
                 $('#promoCodeMonitorTableSpin').show();
@@ -25483,8 +25672,9 @@ define(['js/app'], function (myApp) {
                 let sendObj = {
                     startAcceptedTime: vm.promoCodeMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
-                    promoCodeType3Name: vm.promoCodeMonitor.promoCodeType3Name || '',
+                    promoCodeTypeName: vm.promoCodeMonitor.promoCodeTypeName || '',
                     platformObjId: vm.promoCodeMonitor.platformId,
+                    isTypeCPromo: true,
                     index: vm.promoCodeMonitor.index || 0,
                     limit: vm.promoCodeMonitor.limit || 10,
                     sortCol: vm.promoCodeMonitor.sortCol
@@ -25495,14 +25685,15 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPromoCodesMonitor', sendObj, function (data) {
                     $('#promoCodeMonitorTableSpin').hide();
                     console.log('getPromoCodesMonitor', data);
-                    vm.promoCodeMonitor.totalCount = data.data.length;
+                    vm.promoCodeMonitor.totalCount = data.data.totalCount;
+                    vm.promoCodeMonitor.totalPlayer = data.data.totalPlayer;
                     $scope.safeApply();
-                    vm.drawPromoCodeMonitorTable(data.data.map(
+                    vm.drawPromoCodeMonitorTable(data.data.data.map(
                         item => {
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
                             return item;
                         }
-                    ), data.data.length, {}, isNewSearch);
+                    ), data.data.totalCount, {}, isNewSearch);
                 }, function (err) {
                     console.error(err);
                 }, true);
@@ -25599,6 +25790,7 @@ define(['js/app'], function (myApp) {
 
                     let table1Data = data.data[0];
                     vm.promoCodeAnalysis.totalCount = data.data[1].length;
+                    vm.promoCodeAnalysis.sendCount = data.data[2][0].sendCount;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p = Promise.resolve();
@@ -25706,6 +25898,7 @@ define(['js/app'], function (myApp) {
 
                     let table2Data = data.data[0];
                     vm.promoCodeAnalysis2.totalCount = data.data[1].length;
+                    vm.promoCodeAnalysis2.sendCount = data.data[2][0].sendCount;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p1 = Promise.resolve();
@@ -36704,6 +36897,24 @@ define(['js/app'], function (myApp) {
                 });
 
             }
+
+            vm.generateOpenPromoCodeAuctionItem = function(){
+                GeneralModal.confirm({
+                    title: $translate("AuctionSystem"),
+                    text: $translate("CONFIRM TO RE-GENERATE THE OPEN PROMO CODE? THE OLD PROMO CODE WILL NOT LONGER BE EFFECTIVE")
+                }).then(function () {
+                    if (vm.auctionProductReward && vm.auctionProductReward.templateObjId && vm.auctionSystemProduct && vm.auctionSystemProduct._id){
+                        let sendData = {
+                            templateObjId: vm.auctionProductReward.templateObjId,
+                            oldCode: vm.auctionProductReward.promoCode,
+                            auctionProductObjId: vm.auctionSystemProduct._id
+                        };
+                        socketService.$socket($scope.AppSocket, 'regenerateOpenPromoCode', sendData, function (data) {
+                            vm.auctionSystemTabClicked("createProduct");
+                        });
+                    }
+                });
+            };
 
             vm.removeNotAvailableAuction = function(){
                 let auctionItems = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');

@@ -58,6 +58,11 @@ function socketActionAuction(socketIO, socket) {
             data.direction = 'removeExclusiveAuction';
             socketUtil.emitter(self.socket, dbAuction.moveTo, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
         },
+        regenerateOpenPromoCode: function regenerateOpenPromoCode(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.templateObjId && data.oldCode && data.auctionProductObjId);
+            socketUtil.emitter(self.socket, dbAuction.regenerateOpenPromoCode, [data.templateObjId, data.oldCode, data.auctionProductObjId], actionName, isValidData);
+        },
         removeNotAvailableAuction: function removeNotAvailableAuction(data){
             var actionName = arguments.callee.name;
             var isValidData = true;
