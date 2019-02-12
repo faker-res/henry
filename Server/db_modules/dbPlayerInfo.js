@@ -1649,7 +1649,7 @@ let dbPlayerInfo = {
 
             }
 
-            if ((/*playerdata.password.length < 6 || playerdata.password.length > 20 ||*/ !playerdata.password.match(alphaNumRegex)) && !bFromBI) {
+            if ((/*playerdata.password.length < 6 || playerdata.password.length > 20 ||*/ !playerdata.password.match(alphaNumRegex)) && !bFromBI && !playerdata.guestDeviceId) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
