@@ -394,7 +394,8 @@
                 "getGameGroupTreeInfo",
                 "searchGameByGroup",
                 "getGamePassword",
-                "getLiveGameInfo"
+                "getLiveGameInfo",
+                "notifyLiveGameStatus"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

@@ -5,6 +5,8 @@ var dbGameFunc = function () {
 module.exports = new dbGameFunc();
 
 const dbutility = require('./../modules/dbutility');
+const serverInstance = require("../modules/serverInstance");
+const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 var ebetRTN = require("./../modules/ebetRTN");
 var dbconfig = require('./../modules/dbproperties');
 var dbPlatformGameStatus = require('./../db_modules/dbPlatformGameStatus');
@@ -17,6 +19,7 @@ var constProposalEntryType = require('../const/constProposalEntryType');
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalType = require('../const/constProposalType');
 var constEBETBaccaratTableStatus = require('../const/constEBETBaccaratTableStatus');
+var constEBETBaccaratPairResult = require('../const/constEBETBaccaratPairResult');
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
 
@@ -810,7 +813,7 @@ var dbGame = {
                             let baccaratWinner = luZhuBaccarat && luZhuBaccarat.winner;
                             let bankerPoints;
                             let playerPoints;
-                            let pairResult = 0;
+                            let pairResult = constEBETBaccaratPairResult.NO_PAIR;
                             if (luZhuBaccarat && luZhuBaccarat.bankerCard && luZhuBaccarat.bankerCard.length) {
                                 bankerPoints = 0;
                                 luZhuBaccarat.bankerCard.forEach(
@@ -838,11 +841,11 @@ var dbGame = {
                             }
 
                             if (luZhuBaccarat.bankerPair && luZhuBaccarat.playerPair) {
-                                pairResult = 3;
+                                pairResult = constEBETBaccaratPairResult.BANK_PLAYER_PAIR;
                             } else if (luZhuBaccarat.bankerPair) {
-                                pairResult = 1;
+                                pairResult = constEBETBaccaratPairResult.BANKER_PAIR;
                             } else if (luZhuBaccarat.playerPair) {
-                                pairResult = 2;
+                                pairResult = constEBETBaccaratPairResult.PLAYER_PAIR;
                             }
 
                             let historyObj = {
@@ -865,6 +868,88 @@ var dbGame = {
                 return returnData;
             }
         )
+    },
+
+    notifyLiveGameStatus: (data) => {
+        var wsMessageClient = serverInstance.getWebSocketMessageClient();
+        if (wsMessageClient) {
+            const constTableStatus = { // refer constEBETBaccaratTableStatus
+                30001: 1,
+                30002: 2,
+                30003: 0
+            };
+
+            if (data && data.data) {
+                try {
+                    data.data = JSON.parse(data.data);
+                } catch (e) {
+                }
+            }
+
+            let luZhuData = data && data.data && data.data.tableEventData;
+            let sendData = {};
+
+
+            if (luZhuData) {
+                sendData.status = constTableStatus[luZhuData.notifyType];
+                sendData.tableNumber = luZhuData.table;
+                sendData.dealerName = luZhuData.data && luZhuData.data.dealer || ""
+
+                if (luZhuData.notifyType == constEBETBaccaratTableStatus.PAYOUT) {
+                    sendData.dealerName = luZhuData.data.dealer;
+
+                    let luZhuBaccarat = luZhuData && luZhuData.data && luZhuData.data.result && luZhuData.data.result.baccarat;
+                    let baccaratWinner = luZhuBaccarat && luZhuBaccarat.winner;
+                    let bankerPoints;
+                    let playerPoints;
+                    let pairResult = constEBETBaccaratPairResult.NO_PAIR;
+                    if (luZhuBaccarat && luZhuBaccarat.bankerCard && luZhuBaccarat.bankerCard.length) {
+                        bankerPoints = 0;
+                        luZhuBaccarat.bankerCard.forEach(
+                            bankerCard => {
+                                let points = Number(bankerCard.substring(1));
+                                if (!isNaN(points)) {
+                                    bankerPoints += points;
+                                }
+                            }
+                        )
+                        bankerPoints %= 10;
+                    }
+
+                    if (luZhuBaccarat && luZhuBaccarat.playerCard && luZhuBaccarat.playerCard.length) {
+                        playerPoints = 0;
+                        luZhuBaccarat.playerCard.forEach(
+                            playerCard => {
+                                let points = Number(playerCard.substring(1));
+                                if (!isNaN(points)) {
+                                    playerPoints += points;
+                                }
+                            }
+                        )
+                        playerPoints %= 10;
+                    }
+
+                    if (luZhuBaccarat.bankerPair && luZhuBaccarat.playerPair) {
+                        pairResult = constEBETBaccaratPairResult.BANK_PLAYER_PAIR;
+                    } else if (luZhuBaccarat.bankerPair) {
+                        pairResult = constEBETBaccaratPairResult.BANKER_PAIR;
+                    } else if (luZhuBaccarat.playerPair) {
+                        pairResult = constEBETBaccaratPairResult.PLAYER_PAIR;
+                    }
+
+                    sendData.result = baccaratWinner && constBaccaratResult[baccaratWinner];
+                    sendData.makersPoints = bankerPoints;
+                    sendData.playerPoints = playerPoints;
+                    sendData.pair = pairResult;
+
+
+                } else if (luZhuData.notifyType == constEBETBaccaratTableStatus.BETTING && luZhuData.data && luZhuData.data.hasOwnProperty("betTimeSec")) {
+                    sendData.countdown = luZhuData.data.betTimeSec
+                }
+            }
+            wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "game", "notifyLiveGameStatus", sendData);
+        }
+        return data;
     },
 };
 

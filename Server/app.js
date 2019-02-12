@@ -115,15 +115,6 @@ server.listen((process.env.PORT || 9000) , function () {
 });
 
 ebetRTN.connect(5);
-//     .then(
-//     () => {
-//         return ebetRTN.query();
-//     }
-// ).then(
-//     data => {
-//         console.log("walaodata",data)
-//     }
-// )
 
 
 var url = env.messageServerUrl + "/" + constMessageClientTypes.MANAGEMENT;

@@ -2,6 +2,7 @@ const WebSocket = require('ws')
 const EventEmitter = require('events').EventEmitter;
 var events = new EventEmitter();
 const constServerCode = require('./../const/constServerCode');
+const dbGame = require('./../db_modules/dbGame');
 var ebetRTNFunc = function () {
 };
 module.exports = new ebetRTNFunc();
@@ -62,13 +63,14 @@ var ebetRTN = {
 
 
             socket.on('message', function(data) {
-                data = JSON.parse(data);
-                // if (holder[queryId] instanceof Function) {
-                //     holder[queryId](data);
-                // }
+
+                try {
+                    data = JSON.parse(data);
+                } catch (e) {
+                }
+
                 if (data && data.command && data.command == "listen") {
-                    // events.emit(subscribeEvent, data);
-                    console.log("walaosubscribe", data)
+                    dbGame.notifyLiveGameStatus(data);
                 } else if (data && data.command && data.command == "query" && data.requestId) {
                     // data is sort by time
                     events.emit(data.requestId, data);

@@ -553,6 +553,14 @@
     <textarea></textarea>
 </div>
 
+<h3>Notify Live Game Status(服务器推送真人游戏变化)</h3>
+<div class="test-container">
+    <div>
+        <button data-api-name="notifyLiveGameStatus">Get</button>
+    </div>
+    <textarea></textarea>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientGameAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest' ,'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientGameAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
