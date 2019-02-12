@@ -225,6 +225,15 @@
         });
     };
 
+    proto.getUsableChannel = function (callback, requestData) {
+        this._service.getUsableChannel.request(requestData);
+        this._service.getUsableChannel.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlatformAPITest;
     } else {
