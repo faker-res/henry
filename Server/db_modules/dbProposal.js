@@ -1392,8 +1392,10 @@ var proposal = {
                                 () => {
                                     let updateData = {status: status, isLocked: null};
                                     console.log("LH Check Proposal Reject 3------------", updateData);
+                                    console.log("LH Check Proposal Reject 3.1------------", proposalData.status);
+
                                     return dbconfig.collection_proposal.findOneAndUpdate(
-                                        {_id: proposalData._id, createTime: proposalData.createTime, status: proposalData.status},
+                                        {_id: proposalData._id, createTime: proposalData.createTime},
                                         updateData,
                                         {new: true}
                                     ).then(data => {
