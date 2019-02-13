@@ -12624,7 +12624,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent, tableCode) {
         let providerData = null;
         let playerData = null;
         let platform = null;
@@ -12875,6 +12875,11 @@ let dbPlayerInfo = {
                     ip: ip,
                     clientType: clientType || 1
                 };
+
+                if (tableCode) {
+                    sendData.tableCode = tableCode
+                }
+                
                 return cpmsAPI.player_getLoginURL(sendData);
             },
             err => {
