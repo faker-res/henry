@@ -115,7 +115,7 @@ let dbApiLog = {
         }
     },
 
-    createProviderLoginActionLog: function (platform, playerObjId, providerId, ipAddress, domain, userAgent, inputDevice) {
+    createProviderLoginActionLog: function (platform, playerObjId, providerId, ipAddress, domain, userAgent, inputDevice, gameObjId) {
         let geoIpProm = Promise.resolve();
 
         let logData = {
@@ -138,6 +138,10 @@ let dbApiLog = {
             }else{
                 logData.ipArea = {'province':'', 'city':''};
             }
+        }
+
+        if (gameObjId) {
+            logData.gameObjId = gameObjId;
         }
 
         if (playerObjId) {
