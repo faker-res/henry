@@ -14069,7 +14069,6 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.playerCreditLog.limit : (vm.playerCreditLog.limit || 50),
                 sortCol: vm.playerCreditLog.sortCol || null
             };
-            console.log('sendQuery===', sendQuery);
             socketService.$socket($scope.AppSocket, 'getPlayerCreditsDaily', sendQuery, function (data) {
                 console.log('getPlayerDailyCredit', data);
                 var tblData = data && data.data ? data.data.data.map(item => {
