@@ -18,64 +18,69 @@ var ebetRTN = {
     connect: function (reconnecTimes) {
 
         return new Promise((resolve, reject) => {
-            socket = new WebSocket('ws://rtn-xindeli99.cpms8.me:7351/ebet');
-            let isOpen = false;
+            try {
+                socket = new WebSocket('ws://rtn-xindeli99.cpms8.me:7351/ebet');
 
-            // socket.onerror = function(event) {
-            //     console.log('Error: ' + JSON.stringify(event));
-            // }
+                let isOpen = false;
 
-            // socket.onmessage = function(event) {
-            //     console.log(JSON.parse(event.data))
-            //     console.log('Received: ' + JSON.stringify(JSON.parse(event.data),null,2));
-            // }
+                // socket.onerror = function(event) {
+                //     console.log('Error: ' + JSON.stringify(event));
+                // }
 
-            // socket.onclose = function(event) {
-            //     console.log('Closed connection 😱');
-            // }
+                // socket.onmessage = function(event) {
+                //     console.log(JSON.parse(event.data))
+                //     console.log('Received: ' + JSON.stringify(JSON.parse(event.data),null,2));
+                // }
 
-            socket.on('open', function() {
-                isOpen = true;
-                let sendData = {
-                    command: "subscribe",
-                    requestId: "LZsubscribe", // hard code
-                    data: {
-                        tableType: 1 // 8 for testing purpose
+                // socket.onclose = function(event) {
+                //     console.log('Closed connection 😱');
+                // }
+
+                socket.on('open', function () {
+                    isOpen = true;
+                    let sendData = {
+                        command: "subscribe",
+                        requestId: "LZsubscribe", // hard code
+                        data: {
+                            tableType: 1 // 8 for testing purpose
+                        }
+                    };
+                    let json = JSON.stringify(sendData);
+
+                    socket.send(json);
+                    resolve(true);
+                })
+
+                setTimeout(() => {
+                    if (!isOpen) {
+                        // resolve(false)
+                        if (reconnecTimes) {
+                            console.log("luzhu api reconnecting " + reconnecTimes);
+                            resolve(ebetRTN.connect(--reconnecTimes));
+                        } else {
+                            reject({message: "luzhu api connection failed"})
+                        }
                     }
-                };
-                let json = JSON.stringify(sendData);
+                }, 5000);
 
-                socket.send(json);
-                resolve(true);
-            })
 
-            setTimeout(() => {
-                if (!isOpen) {
-                    // resolve(false)
-                    if (reconnecTimes) {
-                        console.log("luzhu api reconnecting " + reconnecTimes);
-                        resolve(ebetRTN.connect(--reconnecTimes));
-                    } else {
-                        reject({message: "luzhu api connection failed"})
+                socket.on('message', function (data) {
+
+                    try {
+                        data = JSON.parse(data);
+                    } catch (e) {
                     }
-                }
-            }, 5000);
 
-
-            socket.on('message', function(data) {
-
-                try {
-                    data = JSON.parse(data);
-                } catch (e) {
-                }
-
-                if (data && data.command && data.command == "listen") {
-                    dbGame.notifyLiveGameStatus(data);
-                } else if (data && data.command && data.command == "query" && data.requestId) {
-                    // data is sort by time
-                    events.emit(data.requestId, data);
-                }
-            });
+                    if (data && data.command && data.command == "listen") {
+                        dbGame.notifyLiveGameStatus(data);
+                    } else if (data && data.command && data.command == "query" && data.requestId) {
+                        // data is sort by time
+                        events.emit(data.requestId, data);
+                    }
+                });
+            } catch (e) {
+                console.log("luzhu api connection failed")
+            }
         })
 
     },
