@@ -21,7 +21,7 @@ var constShardKeys = require("../const/constShardKeys");
 var constProposalType = require("../const/constProposalType");
 var dbUtil = require("../modules/dbutility.js");
 var errorUtils = require("../modules/errorUtils.js");
-var cpmsAPI = require("../externalAPI/cpmsAPI");
+//var cpmsAPI = require("../externalAPI/cpmsAPI");
 var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbGameProvider = require('../db_modules/dbGameProvider');
@@ -1735,6 +1735,8 @@ const dbRewardTask = {
                         let platform = data[0];
                         let providerGroup = data[1];
                         let promArr = [];
+                        let cpmsAPI = require("../externalAPI/cpmsAPI");
+
                         if(providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
                             providerGroup.providers.forEach(provider => {
                                 if(provider) {
