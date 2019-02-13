@@ -853,18 +853,6 @@ var proposal = {
                         type = constPlayerTopUpType.COMMON;
                     }
 
-                    if (type == constPlayerTopUpType.COMMON && status === constProposalStatus.SUCCESS) {
-                        return Promise.reject({
-                            name: "DataError",
-                            message: "Invalid proposal status",
-                            data: {
-                                proposalId: proposalId,
-                                orderStatus: orderStatus,
-                                depositId: requestId
-                            }
-                        });
-                    }
-
                     if (proposalData.status == constProposalStatus.PREPENDING
                         || (
                             (
@@ -918,6 +906,146 @@ var proposal = {
             }
         ).then(
             data => {
+                // Update proposal type for common top up proposal
+                let propTypeProm = Promise.resolve();
+                let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
+                let isCommonTopUp = false;
+                let merchantProm = Promise.resolve(false);
+
+                if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
+                    switch (Number(callbackData.topUpType)) {
+                        case 1:
+                            propTypeName = constProposalType.PLAYER_MANUAL_TOP_UP;
+                            break;
+                        case 2:
+                            propTypeName = constProposalType.PLAYER_TOP_UP;
+
+                            if (callbackData.merchantNo && proposalObj.data.platform) {
+                                merchantProm = dbconfig.collection_platformMerchantList.findOne({
+                                    platformId: proposalObj.data.platform,
+                                    merchantNo: callbackData.merchantNo,
+                                    topupType: callbackData.depositMethod,
+                                    customizeRate: {$exists: true}
+                                }, 'customizeRate').lean();
+                            };
+                            break;
+                        case 3:
+                            propTypeName = constProposalType.PLAYER_ALIPAY_TOP_UP;
+                            break;
+                        case 4:
+                            propTypeName = constProposalType.PLAYER_WECHAT_TOP_UP;
+                    }
+
+                    propTypeProm = dbconfig.collection_proposalType.findOne({
+                        platformId: proposalObj.data.platformId,
+                        name: propTypeName
+                    }, '_id').lean();
+
+                    isCommonTopUp = true;
+                }
+
+                return Promise.all([propTypeProm, merchantProm]).then(
+                    ([propType, merchantRate]) => {
+                        let updStatus = status || constProposalStatus.PREPENDING;
+                        updObj = {};
+
+                        if (status !== constProposalStatus.SUCCESS && status !== constProposalStatus.FAIL) {
+                            updObj.status = updStatus;
+                        }
+
+                        if (propType && propType._id) {
+                            updObj.type = propType._id;
+                        }
+
+                        updObj.data = Object.assign({}, proposalObj.data);
+
+                        // Record sub top up method into proposal
+                        if (callbackData && callbackData.depositMethod) {
+                            if (propTypeName === constProposalType.PLAYER_TOP_UP) {
+                                updObj.data.topupType = callbackData.depositMethod;
+                            }
+
+                            if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
+                                updObj.data.depositMethod = callbackData.depositMethod;
+                            }
+                        }
+
+                        // Update amount to be paid to include decimal
+                        if (
+                            Number(callbackData.amount) !== Number(proposalObj.data.amount)
+                            && Number(callbackData.amount) - Number(proposalObj.data.amount) <= 1
+                        ) {
+                            updObj.data.amount = Number(callbackData.amount);
+                        }
+
+                        // Mark this proposal as common top up
+                        if (isCommonTopUp) {
+                            updObj.data.isCommonTopUp = true;
+                        }
+
+                        // Some extra data
+                        addDetailToProp(updObj.data, 'remark', callbackData.remark);
+                        addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
+                        addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
+                        addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
+                        addDetailToProp(updObj.data, 'bankCardType', callbackData.bankTypeId);
+                        addDetailToProp(updObj.data, 'bankTypeId', callbackData.bankTypeId);
+                        addDetailToProp(updObj.data, 'cardOwner', callbackData.cardOwner);
+                        addDetailToProp(updObj.data, 'depositTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
+                        addDetailToProp(updObj.data, 'depositeTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
+                        addDetailToProp(updObj.data, 'validTime', callbackData.validTime ? new Date(callbackData.validTime.replace('+', ' ')) : '');
+                        addDetailToProp(updObj.data, 'cityName', callbackData.cityName);
+                        addDetailToProp(updObj.data, 'provinceName', callbackData.provinceName);
+                        addDetailToProp(updObj.data, 'orderNo', callbackData.billNo);
+                        addDetailToProp(updObj.data, 'requestId', callbackData.requestId);
+                        addDetailToProp(updObj.data, 'realName', callbackData.realName);
+
+                        addDetailToProp(updObj.data, 'userAlipayName', callbackData.userAlipayName);
+                        addDetailToProp(updObj.data, 'alipayAccount', callbackData.alipayAccount);
+                        addDetailToProp(updObj.data, 'alipayName', callbackData.alipayName);
+                        addDetailToProp(updObj.data, 'alipayQRCode', callbackData.alipayQRCode);
+                        addDetailToProp(updObj.data, 'qrcodeAddress', callbackData.qrcodeAddress);
+
+                        addDetailToProp(updObj.data, 'weChatAccount', callbackData.weChatAccount);
+                        addDetailToProp(updObj.data, 'weChatQRCode', callbackData.weChatQRCode);
+                        addDetailToProp(updObj.data, 'name', callbackData.name);
+                        addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
+
+                        // Add playername if cancelled
+                        if (status === constProposalStatus.CANCEL) {
+                            addDetailToProp(updObj.data, 'cancelBy', "玩家：" + callbackData.username);
+                            addDetailToProp(updObj, 'settleTime', new Date());
+                        }
+
+                        // Add merchant rate and actualReceivedAmount
+                        topupRate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
+                        topupActualAmt = merchantRate && merchantRate.customizeRate ?
+                            (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
+                            : proposalObj.data.amount;
+
+                        if (updObj && updObj.data && updObj.data.amount) {
+                            topupActualAmt = (Number(updObj.data.amount) - Number(updObj.data.amount) * Number(topupRate)).toFixed(2);
+                        }
+
+                        addDetailToProp(updObj.data, 'rate', topupRate);
+                        addDetailToProp(updObj.data, 'actualAmountReceived', Number(topupActualAmt));
+
+                        // add alipay "line" fieldName , and remark for "line"
+                        if (propTypeName === constProposalType.PLAYER_ALIPAY_TOP_UP && callbackData.line) {
+                            let remark = getRemark(callbackData.line, callbackData.remark);
+                            addDetailToProp(updObj.data, 'line', callbackData.line);
+                            addDetailToProp(updObj.data, 'remark', remark);
+                        }
+
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalObj._id, createTime: proposalObj.createTime},
+                            updObj
+                        );
+                    }
+                )
+            }
+        ).then(
+            data => {
                 if (status === constProposalStatus.SUCCESS) {
                     // Debug credit missing after top up issue
                     console.log('updatePlayerTopupProposal', proposalId);
@@ -925,150 +1053,10 @@ var proposal = {
                 } else if (status === constProposalStatus.FAIL) {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark, callbackData);
                 }
-                else {
-                    //update proposal for experiation
-                    // Update proposal type for common top up proposal
-                    let propTypeProm = Promise.resolve();
-                    let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
-                    let isCommonTopUp = false;
-                    let merchantProm = Promise.resolve(false);
-
-                    if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
-                        switch (Number(callbackData.topUpType)) {
-                            case 1:
-                                propTypeName = constProposalType.PLAYER_MANUAL_TOP_UP;
-                                break;
-                            case 2:
-                                propTypeName = constProposalType.PLAYER_TOP_UP;
-
-                                if (callbackData.merchantNo && proposalObj.data.platform) {
-                                    merchantProm = dbconfig.collection_platformMerchantList.findOne({
-                                        platformId: proposalObj.data.platform,
-                                        merchantNo: callbackData.merchantNo,
-                                        topupType: callbackData.depositMethod,
-                                        customizeRate: {$exists: true}
-                                    }, 'customizeRate').lean();
-                                };
-                                break;
-                            case 3:
-                                propTypeName = constProposalType.PLAYER_ALIPAY_TOP_UP;
-                                break;
-                            case 4:
-                                propTypeName = constProposalType.PLAYER_WECHAT_TOP_UP;
-                        }
-
-                        propTypeProm = dbconfig.collection_proposalType.findOne({
-                            platformId: proposalObj.data.platformId,
-                            name: propTypeName
-                        }, '_id').lean();
-
-                        isCommonTopUp = true;
-                    }
-
-                    return Promise.all([propTypeProm, merchantProm]).then(
-                        ([propType, merchantRate]) => {
-                            let updStatus = status || constProposalStatus.PREPENDING;
-                            updObj = {
-                                status: updStatus
-                            };
-
-                            if (propType && propType._id) {
-                                updObj.type = propType._id;
-                            }
-
-                            updObj.data = Object.assign({}, proposalObj.data);
-
-                            // Record sub top up method into proposal
-                            if (callbackData && callbackData.depositMethod) {
-                                if (propTypeName === constProposalType.PLAYER_TOP_UP) {
-                                    updObj.data.topupType = callbackData.depositMethod;
-                                }
-
-                                if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
-                                    updObj.data.depositMethod = callbackData.depositMethod;
-                                }
-                            }
-
-                            // Update amount to be paid to include decimal
-                            if (
-                                callbackData.count
-                                && callbackData.count === '1'
-                                && Number(callbackData.amount) !== Number(proposalObj.data.amount)
-                                && Number(callbackData.amount) - Number(proposalObj.data.amount) <= 1
-                            ) {
-                                updObj.data.amount = Number(callbackData.amount);
-                            }
-
-                            // Mark this proposal as common top up
-                            if (isCommonTopUp) {
-                                updObj.data.isCommonTopUp = true;
-                            }
-
-                            // Some extra data
-                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
-                            addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
-                            addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
-                            addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
-                            addDetailToProp(updObj.data, 'bankCardType', callbackData.bankTypeId);
-                            addDetailToProp(updObj.data, 'bankTypeId', callbackData.bankTypeId);
-                            addDetailToProp(updObj.data, 'cardOwner', callbackData.cardOwner);
-                            addDetailToProp(updObj.data, 'depositTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
-                            addDetailToProp(updObj.data, 'depositeTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
-                            addDetailToProp(updObj.data, 'validTime', callbackData.validTime ? new Date(callbackData.validTime.replace('+', ' ')) : '');
-                            addDetailToProp(updObj.data, 'cityName', callbackData.cityName);
-                            addDetailToProp(updObj.data, 'provinceName', callbackData.provinceName);
-                            addDetailToProp(updObj.data, 'orderNo', callbackData.billNo);
-                            addDetailToProp(updObj.data, 'requestId', callbackData.requestId);
-                            addDetailToProp(updObj.data, 'realName', callbackData.realName);
-
-                            addDetailToProp(updObj.data, 'userAlipayName', callbackData.userAlipayName);
-                            addDetailToProp(updObj.data, 'alipayAccount', callbackData.alipayAccount);
-                            addDetailToProp(updObj.data, 'alipayName', callbackData.alipayName);
-                            addDetailToProp(updObj.data, 'alipayQRCode', callbackData.alipayQRCode);
-                            addDetailToProp(updObj.data, 'qrcodeAddress', callbackData.qrcodeAddress);
-
-                            addDetailToProp(updObj.data, 'weChatAccount', callbackData.weChatAccount);
-                            addDetailToProp(updObj.data, 'weChatQRCode', callbackData.weChatQRCode);
-                            addDetailToProp(updObj.data, 'name', callbackData.name);
-                            addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
-
-                            // Add playername if cancelled
-                            if (status === constProposalStatus.CANCEL) {
-                                addDetailToProp(updObj.data, 'cancelBy', "玩家：" + callbackData.username);
-                                addDetailToProp(updObj, 'settleTime', new Date());
-                            }
-
-                            // Add merchant rate and actualReceivedAmount
-                            topupRate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
-                            topupActualAmt = merchantRate && merchantRate.customizeRate ?
-                                (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
-                                : proposalObj.data.amount;
-
-                            if (updObj && updObj.data && updObj.data.amount) {
-                                topupActualAmt = (Number(updObj.data.amount) - Number(updObj.data.amount) * Number(topupRate)).toFixed(2);
-                            }
-
-                            addDetailToProp(updObj.data, 'rate', topupRate);
-                            addDetailToProp(updObj.data, 'actualAmountReceived', Number(topupActualAmt));
-
-                            // add alipay "line" fieldName , and remark for "line"
-                            if (propTypeName === constProposalType.PLAYER_ALIPAY_TOP_UP && callbackData.line) {
-                                let remark = getRemark(callbackData.line, callbackData.remark);
-                                addDetailToProp(updObj.data, 'line', callbackData.line);
-                                addDetailToProp(updObj.data, 'remark', remark);
-                            }
-
-                            return dbconfig.collection_proposal.findOneAndUpdate(
-                                {_id: proposalObj._id, createTime: proposalObj.createTime},
-                                updObj
-                            );
-                        }
-                    )
-                }
             }
         ).then(
             propData => {
-                let retObj = {
+                return {
                     proposalId: proposalId,
                     orderStatus: orderStatus,
                     depositId: requestId,
@@ -1076,8 +1064,6 @@ var proposal = {
                     rate: (Number(proposalObj.data.amount) * Number(topupRate)).toFixed(2),
                     actualAmountReceived: topupActualAmt
                 };
-
-                return retObj;
             },
             error => {
                 errorUtils.reportError(error);
