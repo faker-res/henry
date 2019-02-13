@@ -16,7 +16,9 @@ var systemLogSchema = new Schema ({
     //Any associated error
     error: {type: String, required: false},
     //platforms of the admin creating the log
-    platforms: [{type: Schema.ObjectId, ref: 'platform'}]
+    platforms: [{type: Schema.ObjectId, ref: 'platform'}],
+    //local Ip address
+    localIp: String
 });
 
 module.exports = systemLogSchema;

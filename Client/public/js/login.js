@@ -61,73 +61,80 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
 
         /* login user button handler */
         $scope.login = function () {
-            let formData = {};
-            let userName = $('#username').val();
-            let password = $('#password').val();
-            let selectedServer = $('#mgntServer').val();
+            getUserLocalIP(
+                function(localIp){
+                    let formData = {};
+                    let userName = $('#username').val();
+                    let password = $('#password').val();
+                    let selectedServer = $('#mgntServer').val();
 
-            formData['username'] = userName;
-            formData['password'] = password;
+                    formData['username'] = userName;
+                    formData['password'] = password;
+                    formData['localIp'] = localIp;
 
-            $scope.showError = false;
+                    $scope.showError = false;
 
-            selectedServer = selectedServer === '' ? fastestServer : selectedServer;
-            $cookies.put('curFPMSServer', selectedServer);
-            let url = 'http://' + WSCONFIG[selectedServer].socketURL;
+                    selectedServer = selectedServer === '' ? fastestServer : selectedServer;
+                    $cookies.put('curFPMSServer', selectedServer);
+                    let url = 'http://' + WSCONFIG[selectedServer].socketURL;
 
-            if (selectedServer === 'Default') {
-                url = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL;
-            }
-
-            function gotoPage(page) {
-                if (page) {
-                    page = '/' + page.toLowerCase();
-                    $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + page;
-                } else {
-                    $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/platform";
-                }
-            }
-
-            $.ajax(
-                {
-                    type: 'post',
-                    data: formData,
-                    url: url + '/login',
-                    timeout: 5000
-                }
-            )
-                .done(function (data) {
-                    if (data.token && data.adminName) {
-                        var exp = new Date();
-                        //set token expiration time to be 5 hours from now(the same time on server)
-                        exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
-
-                        authService.storeAuth($cookies, localStorageService, data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
-                        setTimeout(
-                            function () {
-                                //Go to dashboard page after user login successfully
-                                var page = null;
-                                if (data && data.roles && data.roles[0] && data.roles[0].views) {
-                                    page = Object.keys(data.roles[0].views)[0];
-                                }
-                                gotoPage(page);
-                                // $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/dashboard";
-                            }, 500
-                        );
+                    if (selectedServer === 'Default') {
+                        url = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL;
                     }
-                    else {
-                        //if there is error, show the error message
-                        showError(data.error.message);
+
+                    function gotoPage(page) {
+                        if (page) {
+                            page = '/' + page.toLowerCase();
+                            $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + page;
+                        } else {
+                            $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/platform";
+                        }
                     }
-                })
-                .fail(function (error) {
-                    if (error.responseText) {
-                        showError(error.responseText);
-                    }
-                    else {
-                        showError('Service is not available, please try again later.');
-                    }
-                });
+
+                    $.ajax(
+                        {
+                            type: 'post',
+                            data: formData,
+                            url: url + '/login',
+                            timeout: 5000
+                        }
+                    )
+                    .done(function (data) {
+                        if (data.token && data.adminName) {
+                            var exp = new Date();
+                            //set token expiration time to be 5 hours from now(the same time on server)
+                            exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
+
+                            authService.storeAuth($cookies, localStorageService, data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
+                            setTimeout(
+                                function () {
+                                    //Go to dashboard page after user login successfully
+                                    var page = null;
+                                    if (data && data.roles && data.roles[0] && data.roles[0].views) {
+                                        page = Object.keys(data.roles[0].views)[0];
+                                    }
+                                    gotoPage(page);
+                                    // $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/dashboard";
+                                }, 500
+                            );
+                        }
+                        else {
+                            //if there is error, show the error message
+                            showError(data.error.message);
+                        }
+                    })
+                    .fail(function (error) {
+                        if (error.responseText) {
+                            showError(error.responseText);
+                        }
+                        else {
+                            showError('Service is not available, please try again later.');
+                        }
+                    });
+            },
+            function(err){
+                showError('Failed to get local Ip address.');
+            });
         };
 
         $scope.requestPasswordReset = function () {
@@ -228,6 +235,45 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
                     WSCONFIG[server].isAvailable = false;
                 }
             });
+        }
+
+        function getUserLocalIP(onNewIP) { //  onNewIp - your listener function for new IPs
+            //compatibility for firefox and chrome
+            var myPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
+            var pc = new myPeerConnection({
+                    iceServers: []
+                }),
+                noop = function() {},
+                localIPs = {},
+                ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/g,
+                key;
+
+            function iterateIP(ip) {
+
+                if (!localIPs[ip] && ip.length <= 15) onNewIP(ip);
+                localIPs[ip] = true;
+            }
+
+            //create a bogus data channel
+            pc.createDataChannel("");
+
+            // create offer and set local description
+            pc.createOffer().then(function(sdp) {
+                sdp.sdp.split('\n').forEach(function(line) {
+                    if (line.indexOf('candidate') < 0) return;
+                    line.match(ipRegex).forEach(iterateIP);
+                });
+
+                pc.setLocalDescription(sdp, noop, noop);
+            }).catch(function(reason) {
+                // An error occurred, so handle the failure to connect
+            });
+
+            //listen for candidate events
+            pc.onicecandidate = function(ice) {
+                if (!ice || !ice.candidate || !ice.candidate.candidate || !ice.candidate.candidate.match(ipRegex)) return;
+                ice.candidate.candidate.match(ipRegex).forEach(iterateIP);
+            };
         }
     });
 });
