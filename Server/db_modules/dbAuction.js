@@ -180,19 +180,30 @@ var dbAuction = {
             return dbconfig.collection_auctionSystem.update(matchObj, updateData, {multi:true, new: true});
         };
     },
-    isQualify: (playerObjId) => {
-        return dbconfig.collection_players.findOne({_id: playerObjId})
-            .populate({
-                path: "csOfficer",
-                model: dbconfig.collection_admin,
-                select: 'departments roles'
-            }).lean().then(
+    getAuctions: (playerObjId, platformId) => {
+        let platformObjId;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean()
+        .then(platformData =>{
+            if (!platformData) {
+                return Promise.reject({name: "DataError", message: "Cannot find platform"});
+            }
+            platformObjId = platformData._id;
+            return dbconfig.collection_players.findOne({_id: playerObjId})
+                .populate({
+                    path: "csOfficer",
+                    model: dbconfig.collection_admin,
+                    select: 'departments roles'
+                }).lean()
+        }).then(
             playerData => {
                 if (!playerData) {
                     return Promise.reject({name: "DataError", message: "Cannot find Player"});
                 }
 
                 let auctionQuery = {$and: []};
+                auctionQuery.status = 1;
+                auctionQuery.publish = true;
+                auctionQuery.platformObjId = platformObjId;
 
                 if (!playerData.isRealPlayer) {
                     auctionQuery.playerType = 'Test Player';
@@ -394,7 +405,64 @@ var dbAuction = {
                     auctionQuery.$and.push({$or: orQuery});
                 }
 
-                return dbconfig.collection_auctionSystem.find(auctionQuery).lean();
+                let orQuery = [];
+                let currentTime = dbutility.getUTC8Time(new Date());
+                // find which week in this year
+                let isoWeek = dbutility.getCurrentWeekInYear(currentTime);
+                isoWeek = parseInt(isoWeek);
+                // only show when in the appearPeriod interval.
+                orQuery.push({rewardAppearStartPeriod: {$lte: currentTime}, rewardAppearEndPeriod: {$gte: currentTime} });
+                auctionQuery.$and.push({$or: orQuery});
+
+                return dbconfig.collection_auctionSystem.aggregate([
+                    { $match : { platformObjId: ObjectId(platformObjId), publish: true, status:1 } },
+                    { $unwind : "$rewardAppearPeriod"}, //ungroup field for easy conversion at each apperPeriod.
+                    { $addFields : {
+                        //do a date conversion for query purpose.
+                        rewardAppearStartPeriod: {
+                            // find what is the start period in this weekly / month interval
+                            $cond: {
+                                if: { $eq: [ "$rewardInterval", "monthly" ] },
+                                then: { $dateFromParts: { 'year' : new Date().getFullYear(), 'month' : new Date().getMonth()+1, 'day':"$rewardAppearPeriod.startDate", 'hour' : "$rewardAppearPeriod.startTime"  }},
+                                else: { $dateFromParts: { 'isoWeekYear' : new Date().getFullYear(), 'isoWeek':isoWeek, 'isoDayOfWeek':"$rewardAppearPeriod.startDate", 'hour' : "$rewardAppearPeriod.startTime"  }}
+                            }
+                        },
+                        rewardAppearEndPeriod: {
+                            // find what is the end period in this weekly / month interval
+                            $cond: {
+                                if: { $eq: [ "$rewardInterval", "monthly" ] },
+                                then: { $dateFromParts: { 'year' : new Date().getFullYear(), 'month' : new Date().getMonth()+1, 'day':"$rewardAppearPeriod.endDate", 'hour' : "$rewardAppearPeriod.endTime"  }},
+                                else: { $dateFromParts: { 'isoWeekYear' : new Date().getFullYear(), 'isoWeek':isoWeek, 'isoDayOfWeek':"$rewardAppearPeriod.endDate", 'hour' : "$rewardAppearPeriod.endTime"  }}
+                            }
+                        }
+                    }
+                    },
+                    { $match : auctionQuery },
+                    {
+                        $group:{
+                            _id: "$_id",
+                            productName: { $first: "$productName"},
+                            registerStartTime: { $first: "$registerStartTime"},
+                            registerEndTime: { $first: "$registerEndTime"},
+                            startPeriod: {  $push: "$rewardAppearStartPeriod" }, // return a readable date to frontend
+                            endPeriod: {  $push: "$rewardAppearEndPeriod" }, // return a readable date to frontend
+                            reservePrice: { $first: "$reservePrice"},
+                            startingPrice: { $first: "$startingPrice"},
+                            priceIncrement: { $first: "$priceIncrement"},
+                            directPurchasePrice: { $first: "$directPurchasePrice"},
+                            productStartTime: { $first: "$productStartTime"},
+                            productEndTime: { $first: "$productEndTime"},
+                            rewardInterval: { $first: "$rewardInterval"},
+                            seller: { $first: "$seller"},
+                            rewardData: { $first: "$rewardData"},
+                            isExclusive: { $first: "$isExclusive"},
+                            publish: { $first: "$publish"},
+                            status: { $first: "$status"}
+                        }
+                    }
+                ]).read("secondaryPreferred").then(data=>{
+                    return data;
+                });
             }
         )
     },
@@ -673,7 +741,7 @@ var dbAuction = {
             }
         });
     },
-    
+
     auctionExecuteEnd: function() {
         console.log("Auction end executing")
         let curTime = dbutility.getLocalTime(new Date());

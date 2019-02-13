@@ -394,7 +394,9 @@
                 "searchGame",
                 "getGameGroupTreeInfo",
                 "searchGameByGroup",
-                "getGamePassword"
+                "getGamePassword",
+                "getLiveGameInfo",
+                "notifyLiveGameStatus"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -519,7 +521,7 @@
             var functionNames = [
                 "listAuctionItems",
                 "applyAuction",
-                "isQualify",
+                "getAuctions",
                 "bidAuctionItem",
             ];
             addServiceFunctions(sinonet, this, functionNames);

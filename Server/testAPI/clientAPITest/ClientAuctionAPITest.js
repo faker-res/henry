@@ -34,9 +34,9 @@
 
     }
 
-    proto.isQualify = function (callback, requestData) {
-        this._service.isQualify.request(requestData);
-        this._service.isQualify.once(function (data) {
+    proto.getAuctions = function (callback, requestData) {
+        this._service.getAuctions.request(requestData);
+        this._service.getAuctions.once(function (data) {
             if (callback && typeof callback === "function") {
                 callback(data);
             }

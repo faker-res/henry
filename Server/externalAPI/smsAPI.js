@@ -95,7 +95,7 @@ const smsAPI = {
         return callSMSAPI("channel", "getChannelList", data);
     },
 
-    //channel service
+    //getUsableChannel service
     getUsableChannel_getUsableChannelList: function(data){
         console.log('HERE inside smsAPI getUsableChannel===', data);
         return callSMSAPI("getUsableChannel", "getUsableChannelList", data);

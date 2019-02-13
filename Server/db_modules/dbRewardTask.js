@@ -1735,6 +1735,8 @@ const dbRewardTask = {
                         let platform = data[0];
                         let providerGroup = data[1];
                         let promArr = [];
+                        let cpmsAPI = require("../externalAPI/cpmsAPI");
+
                         if(providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
                             providerGroup.providers.forEach(provider => {
                                 if(provider) {
