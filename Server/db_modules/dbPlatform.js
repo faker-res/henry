@@ -1921,7 +1921,7 @@ var dbPlatform = {
                 console.log('retErr===', retErr);
                 return Promise.reject({message: retErr, error: retErr});
             }
-        );
+        ).catch(errorUtils.reportError);
     },
 
     searchSMSLog: function (data, index, limit) {

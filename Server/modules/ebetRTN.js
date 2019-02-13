@@ -36,6 +36,10 @@ var ebetRTN = {
                 //     console.log('Closed connection 😱');
                 // }
 
+                socket.on('error', function(err) {
+                    console.log('handle ws err', err)
+                });
+
                 socket.on('open', function () {
                     isOpen = true;
                     let sendData = {
@@ -79,7 +83,7 @@ var ebetRTN = {
                     }
                 });
             } catch (e) {
-                console.log("luzhu api connection failed")
+                reject({message: "luzhu api connection failed"})
             }
         })
 
