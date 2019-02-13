@@ -54,7 +54,7 @@ var ebetRTN = {
                     // resolve(false)
                     if (reconnecTimes) {
                         console.log("luzhu api reconnecting " + reconnecTimes);
-                        ebetRTN.connect(--reconnecTimes);
+                        resolve(ebetRTN.connect(--reconnecTimes));
                     } else {
                         reject({message: "luzhu api connection failed"})
                     }
