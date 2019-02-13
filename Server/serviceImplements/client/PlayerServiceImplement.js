@@ -271,6 +271,10 @@ let PlayerServiceImplement = function () {
             .done();
     };
 
+    this.getLastPlayedGameInfo.onRequest = function (wsFunc, conn, data) {
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLastPlayedGameInfo, [conn.playerObjId], true, false, false, false);
+    };
+
     //player create api handler
     this.playerQuickReg.expectsData = 'platformId: String, password: String';
     this.playerQuickReg.onRequest = function (wsFunc, conn, data) {

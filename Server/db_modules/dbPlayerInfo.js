@@ -523,55 +523,46 @@ let dbPlayerInfo = {
         )
     },
 
-//     let newPlayerData = data;
-//
-// newPlayerData.password = inputData.password ? inputData.password : (newPlayerData.password || "");
-// newPlayerData.inputDevice = inputData.inputDevice ? inputData.inputDevice : (newPlayerData.inputDevice || "");
-// newPlayerData.platformId = platformId ? platformId : (newPlayerData.platformId || "");
-// newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
-// newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
-// newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
-//
-// //after created new player, need to create login record and apply login reward
-// if (!adminName) { // except the case where player is created on backstage (by admin)
-//     dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
-// }
-//
-// if (data.lastLoginIp && data.lastLoginIp != "undefined") {
-//     dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
-//     dbPlayerInfo.checkPlayerIsIDCIp(platformObjId, data._id, data.lastLoginIp).catch(errorUtils.reportError);
-// }
-// // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
-// return data;
-// }
-// else {
-//     return data;
-// }
-// }
-// ).then(
-//     data => dbconfig.collection_players.findOne({_id: data._id})
-//         .populate({
-//             path: "playerLevel",
-//             model: dbconfig.collection_playerLevel
-//         }).lean().then(
-//             pdata => {
-//                 pdata.name = pdata.name.replace(platformPrefix, "");
-//                 pdata.platformId = platformId;
-//                 pdata.partnerId = inputData.partnerId;
-//                 pdata.partnerName = inputData.partnerName;
-//                 return pdata;
-//             }
-//         )
-// ).then(
-//     data => {
-//         if (data) {
-//             return dbPlayerInfo.createPlayerRewardPointsRecord(data.platform, data._id, false);
-//         }
-//         else {
-//             return data;
-//         }
-//     }
-// );
+    getLastPlayedGameInfo: async (playerObjId) => {
+        let games = [];
+        let searchTime = new Date();
+        let done = false;
+
+        while (games.length < 2 && !done) {
+            let lastGame = await getLastPlayedGameId(searchTime);
+
+            if (lastGame) {
+                games.push(lastGame);
+            }
+        }
+
+        return games;
+
+        function getLastPlayedGameId (fromTime) {
+            return dbconfig.collection_actionLog.findOne({
+                player: ObjectId(playerObjId),
+                action: 'login',
+                providerId: {$exists: true},
+                gameObjId: {$type: "objectId"},
+                operationTime: {$lt: fromTime}
+            }).sort({operationTime: -1}).populate({
+                path: "gameObjId",
+                model: dbconfig.collection_game
+            }).lean().then(
+                res => {
+                    if (res && res.operationTime) {
+                        searchTime = res.operationTime;
+
+                        return res.gameObjId;
+                    } else {
+                        done = true;
+                    }
+                }
+            )
+        }
+    },
+
+
     /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
@@ -12877,7 +12868,7 @@ let dbPlayerInfo = {
                     return loginData;
                 }
 
-                dbApiLog.createProviderLoginActionLog(playerData.platform._id, playerData._id, providerData._id, ip, clientDomainName, userAgent, inputDevice);
+                dbApiLog.createProviderLoginActionLog(playerData.platform._id, playerData._id, providerData._id, ip, clientDomainName, userAgent, inputDevice, gameData._id);
                 dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             },

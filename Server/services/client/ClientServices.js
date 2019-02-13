@@ -96,6 +96,7 @@
                 "loginJblShow",
                 "createDemoPlayer",
                 "createGuestPlayer",
+                "getLastPlayedGameInfo",
                 "getClientData",
                 "saveClientData",
                 "callBackToUser",
