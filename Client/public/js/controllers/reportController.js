@@ -8452,7 +8452,8 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {title: $translate("Operation Time"), data: "operationTime$"},
-                    {title: $translate("remark"), data: "error", bSortable: false}
+                    {title: $translate("remark"), data: "error", bSortable: false},
+                    {title: $translate("IP"), data: "localIp", bSortable: false}
                 ],
                 "paging": false,
                 "language": {

@@ -7250,7 +7250,7 @@ let dbPlayerInfo = {
                     gameProvider.forEach(
                         provider => {
                             if(provider){
-                                transferPlayerCreditFromProviderProm.push(checkAndStartTransferPlayerCreditFromProvider(provider, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState));
+                                transferPlayerCreditFromProviderProm.push(checkAndStartTransferPlayerCreditFromProvider(provider, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState, true));
                                 firstPlayerState = false;
                             }
                         }
@@ -7294,12 +7294,16 @@ let dbPlayerInfo = {
             }
         );
 
-        function checkAndStartTransferPlayerCreditFromProvider(gameProviderData, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState){
+        function checkAndStartTransferPlayerCreditFromProvider(gameProviderData, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState, isMultiProvider){
             if (dbUtility.getPlatformSpecificProviderStatus(gameProviderData, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
-                return Promise.reject({
-                    name: "DataError",
-                    message: "Provider is not available"
-                });
+                if(!isMultiProvider){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Provider is not available"
+                    });
+                }else{
+                    return;
+                }
             }
 
             if(firstPlayerState){

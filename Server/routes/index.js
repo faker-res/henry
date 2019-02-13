@@ -33,6 +33,7 @@ router.post('/login', function (req, res, next) {
 
     var username = req.body.username.toLowerCase();
     var userpassword = req.body.password;
+    var localIp = req.body.localIp;
     if (username && userpassword) {
         dbAdminInfo.getFullAdminInfo({adminName: username}).then(
             function (doc) {
@@ -72,6 +73,7 @@ router.post('/login', function (req, res, next) {
                             _id: doc._id,
                             adminName: doc.adminName,
                             password: doc.password,
+                            localIp: localIp
                             //roles: doc.roles
                         };
                         if( doc.departments && doc.departments.length > 0 ){
