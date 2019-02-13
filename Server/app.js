@@ -14,6 +14,7 @@ var constMessageClientTypes = require("./const/constMessageClientTypes");
 var socketActionMessage = require("./socketActionModule/socketActionMessage");
 var constMessageClientType = require("./const/constMessageClientTypes");
 var ebetRTN = require("./modules/ebetRTN");
+var errorUtils = require("./modules/errorUtils.js");
 
 var WebSocketClient = require("./server_common/WebSocketClient");
 const serverInstance = require("./modules/serverInstance");
@@ -114,7 +115,7 @@ server.listen((process.env.PORT || 9000) , function () {
     console.log("Express server listening on port: " + (process.env.PORT || 9000));
 });
 
-ebetRTN.connect(5);
+ebetRTN.connect(5).catch(errorUtils.reportError);
 
 
 var url = env.messageServerUrl + "/" + constMessageClientTypes.MANAGEMENT;
