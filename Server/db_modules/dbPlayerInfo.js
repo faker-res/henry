@@ -7295,13 +7295,15 @@ let dbPlayerInfo = {
         );
 
         function checkAndStartTransferPlayerCreditFromProvider(gameProviderData, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState, isMultiProvider){
-            if ((dbUtility.getPlatformSpecificProviderStatus(gameProviderData, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) && !isMultiProvider) {
-                return Promise.reject({
-                    name: "DataError",
-                    message: "Provider is not available"
-                });
-            }else{
-                return;
+            if (dbUtility.getPlatformSpecificProviderStatus(gameProviderData, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
+                if(!isMultiProvider){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Provider is not available"
+                    });
+                }else{
+                    return;
+                }
             }
 
             if(firstPlayerState){
