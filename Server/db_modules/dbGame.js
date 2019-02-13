@@ -864,7 +864,7 @@ var dbGame = {
                     returnData.list.push(sortedLuZhuData[key]);
                 }
 
-                returnData.totalCount = returnData.list.length;
+                returnData.stats.totalCount = returnData.list.length;
                 return returnData;
             }
         )
