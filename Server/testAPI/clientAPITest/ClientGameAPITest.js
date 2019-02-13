@@ -207,6 +207,20 @@
         this.gameService.searchGame.once(callback);
     };
 
+    proto.getLiveGameInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.gameService.getLiveGameInfo.request(data);
+        this.gameService.getLiveGameInfo.once(callback);
+    };
+
+
+    proto.notifyLiveGameStatus = function (callback, requestData) {
+        var responseFunc = function(data){
+            callback(data);
+        };
+        this.gameService.notifyLiveGameStatus.addListener(responseFunc);
+    };
+
     proto.searchGameByGroup = function (callback, requestData) {
         var data = requestData || {platformId: 4, groups: [3, 4, 5]};
         this.gameService.searchGameByGroup.request(data);

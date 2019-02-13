@@ -23,10 +23,10 @@ var AuctionServiceImplement = function(){
         );
     };
 
-    this.isQualify.expectsData = 'playerId: String';
-    this.isQualify.onRequest = function(wsFunc, conn, data){
+    this.getAuctions.expectsData = 'playerId: String';
+    this.getAuctions.onRequest = function(wsFunc, conn, data){
         var isValidData = Boolean(conn.playerObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbAuction.isQualify, [conn.playerObjId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbAuction.getAuctions, [conn.playerObjId, conn.platformId], isValidData);
     };
 
     this.bidAuctionItem.expectsData = 'platformId: String, productName: String, bidAmount: String, rewardType: String';

@@ -5,6 +5,9 @@ var dbGameFunc = function () {
 module.exports = new dbGameFunc();
 
 const dbutility = require('./../modules/dbutility');
+const serverInstance = require("../modules/serverInstance");
+const constMessageClientTypes = require("../const/constMessageClientTypes.js");
+var ebetRTN = require("./../modules/ebetRTN");
 var dbconfig = require('./../modules/dbproperties');
 var dbPlatformGameStatus = require('./../db_modules/dbPlatformGameStatus');
 var dbProposal = require('./../db_modules/dbProposal');
@@ -15,6 +18,8 @@ var constProviderStatus = require('../const/constProviderStatus');
 var constProposalEntryType = require('../const/constProposalEntryType');
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalType = require('../const/constProposalType');
+var constEBETBaccaratTableStatus = require('../const/constEBETBaccaratTableStatus');
+var constEBETBaccaratPairResult = require('../const/constEBETBaccaratPairResult');
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
 
@@ -759,6 +764,192 @@ var dbGame = {
 
     updateImageUrl: (data, fileData) => {
         return cpmsAPI.game_updateImageUrl(data, fileData);
+    },
+
+    getLiveGameInfo: (count) => {
+        const constTableStatus = { // refer constEBETBaccaratTableStatus
+            30001: 1,
+            30002: 2,
+            30003: 0
+        };
+        const constBaccaratResult = { // refer constEBETBaccaratResult
+            60: 0,
+            68: 2,
+            80: 1,
+        };
+        let sortedLuZhuData = {};
+        let returnData = {
+            stats: {totalCount: 0},
+            list: []
+        };
+        return ebetRTN.query(1, count).then(
+            luZhuData => {
+                if (!(luZhuData && luZhuData.data && luZhuData.data.length)) {
+                    return returnData;
+                }
+
+                luZhuData.data.forEach(
+                    luZhu => {
+                        let luZhuDetails = luZhu && luZhu.data;
+                        if (!sortedLuZhuData[luZhu.table]) {
+                            sortedLuZhuData[luZhu.table] = {
+                                tableNumber: luZhu.table,
+                                dealerName: luZhuDetails && luZhuDetails.dealer || "",
+                                status: constTableStatus[luZhu.notifyType],
+                                historyList: []
+                            };
+
+                            if (luZhuDetails && luZhuDetails.hasOwnProperty("betTimeSec")) {
+                                sortedLuZhuData[luZhu.table].countdown = luZhuDetails.betTimeSec
+                            }
+
+                        }
+                        if (!sortedLuZhuData[luZhu.table].dealerName && luZhuDetails && luZhuDetails.dealer) {
+                            sortedLuZhuData[luZhu.table].dealerName = luZhuDetails.dealer
+                        }
+
+                        if (luZhu.notifyType && luZhu.notifyType == constEBETBaccaratTableStatus.PAYOUT) {
+                            let luZhuBaccarat = luZhuDetails && luZhuDetails.result && luZhuDetails.result.baccarat;
+                            let baccaratWinner = luZhuBaccarat && luZhuBaccarat.winner;
+                            let bankerPoints;
+                            let playerPoints;
+                            let pairResult = constEBETBaccaratPairResult.NO_PAIR;
+                            if (luZhuBaccarat && luZhuBaccarat.bankerCard && luZhuBaccarat.bankerCard.length) {
+                                bankerPoints = 0;
+                                luZhuBaccarat.bankerCard.forEach(
+                                    bankerCard => {
+                                        let points = Number(bankerCard.substring(1));
+                                        if (!isNaN(points)) {
+                                            bankerPoints += points;
+                                        }
+                                    }
+                                )
+                                bankerPoints %= 10;
+                            }
+
+                            if (luZhuBaccarat && luZhuBaccarat.playerCard && luZhuBaccarat.playerCard.length) {
+                                playerPoints = 0;
+                                luZhuBaccarat.playerCard.forEach(
+                                    playerCard => {
+                                        let points = Number(playerCard.substring(1));
+                                        if (!isNaN(points)) {
+                                            playerPoints += points;
+                                        }
+                                    }
+                                )
+                                playerPoints %= 10;
+                            }
+
+                            if (luZhuBaccarat.bankerPair && luZhuBaccarat.playerPair) {
+                                pairResult = constEBETBaccaratPairResult.BANK_PLAYER_PAIR;
+                            } else if (luZhuBaccarat.bankerPair) {
+                                pairResult = constEBETBaccaratPairResult.BANKER_PAIR;
+                            } else if (luZhuBaccarat.playerPair) {
+                                pairResult = constEBETBaccaratPairResult.PLAYER_PAIR;
+                            }
+
+                            let historyObj = {
+                                bureauNo: luZhuDetails && luZhuDetails.roundId,
+                                result: baccaratWinner && constBaccaratResult[baccaratWinner],
+                                makersPoints: bankerPoints,
+                                playerPoints: playerPoints,
+                                pair: pairResult
+                            }
+                            sortedLuZhuData[luZhu.table].historyList.push(historyObj);
+                        }
+                    }
+                );
+
+                for (let key in sortedLuZhuData) {
+                    returnData.list.push(sortedLuZhuData[key]);
+                }
+
+                returnData.totalCount = returnData.list.length;
+                return returnData;
+            }
+        )
+    },
+
+    notifyLiveGameStatus: (data) => {
+        var wsMessageClient = serverInstance.getWebSocketMessageClient();
+        if (wsMessageClient) {
+            const constTableStatus = { // refer constEBETBaccaratTableStatus
+                30001: 1,
+                30002: 2,
+                30003: 0
+            };
+
+            if (data && data.data) {
+                try {
+                    data.data = JSON.parse(data.data);
+                } catch (e) {
+                }
+            }
+
+            let luZhuData = data && data.data && data.data.tableEventData;
+            let sendData = {};
+
+
+            if (luZhuData) {
+                sendData.status = constTableStatus[luZhuData.notifyType];
+                sendData.tableNumber = luZhuData.table;
+                sendData.dealerName = luZhuData.data && luZhuData.data.dealer || ""
+
+                if (luZhuData.notifyType == constEBETBaccaratTableStatus.PAYOUT) {
+                    sendData.dealerName = luZhuData.data.dealer;
+
+                    let luZhuBaccarat = luZhuData && luZhuData.data && luZhuData.data.result && luZhuData.data.result.baccarat;
+                    let baccaratWinner = luZhuBaccarat && luZhuBaccarat.winner;
+                    let bankerPoints;
+                    let playerPoints;
+                    let pairResult = constEBETBaccaratPairResult.NO_PAIR;
+                    if (luZhuBaccarat && luZhuBaccarat.bankerCard && luZhuBaccarat.bankerCard.length) {
+                        bankerPoints = 0;
+                        luZhuBaccarat.bankerCard.forEach(
+                            bankerCard => {
+                                let points = Number(bankerCard.substring(1));
+                                if (!isNaN(points)) {
+                                    bankerPoints += points;
+                                }
+                            }
+                        )
+                        bankerPoints %= 10;
+                    }
+
+                    if (luZhuBaccarat && luZhuBaccarat.playerCard && luZhuBaccarat.playerCard.length) {
+                        playerPoints = 0;
+                        luZhuBaccarat.playerCard.forEach(
+                            playerCard => {
+                                let points = Number(playerCard.substring(1));
+                                if (!isNaN(points)) {
+                                    playerPoints += points;
+                                }
+                            }
+                        )
+                        playerPoints %= 10;
+                    }
+
+                    if (luZhuBaccarat.bankerPair && luZhuBaccarat.playerPair) {
+                        pairResult = constEBETBaccaratPairResult.BANK_PLAYER_PAIR;
+                    } else if (luZhuBaccarat.bankerPair) {
+                        pairResult = constEBETBaccaratPairResult.BANKER_PAIR;
+                    } else if (luZhuBaccarat.playerPair) {
+                        pairResult = constEBETBaccaratPairResult.PLAYER_PAIR;
+                    }
+
+                    sendData.result = baccaratWinner && constBaccaratResult[baccaratWinner];
+                    sendData.makersPoints = bankerPoints;
+                    sendData.playerPoints = playerPoints;
+                    sendData.pair = pairResult;
+
+
+                } else if (luZhuData.notifyType == constEBETBaccaratTableStatus.BETTING && luZhuData.data && luZhuData.data.hasOwnProperty("betTimeSec")) {
+                    sendData.countdown = luZhuData.data.betTimeSec
+                }
+            }
+            wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "game", "notifyLiveGameStatus", sendData);
+        }
+        return data;
     },
 };
 
