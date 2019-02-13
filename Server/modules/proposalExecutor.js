@@ -4274,7 +4274,25 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                if (proposalData && proposalData.data && proposalData.data.topUpSystemType
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    let data = {
+                        proposalId: proposalData.proposalId
+                    };
+
+                    let options = {
+                        method: 'POST',
+                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
+                        body: data,
+                        json: true
+                    };
+
+                    return rp(options)
+                        .then(
+                            deferred.resolve, deferred.reject
+                        );
+
+                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     pmsAPI.payment_modifyManualTopupRequest({
                         requestId: proposalData.data.requestId,
                         operationType: constManualTopupOperationType.CANCEL,
@@ -4344,7 +4362,25 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                if (proposalData && proposalData.data && proposalData.data.topUpSystemType
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    let data = {
+                        proposalId: proposalData.proposalId
+                    };
+
+                    let options = {
+                        method: 'POST',
+                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
+                        body: data,
+                        json: true
+                    };
+
+                    return rp(options)
+                        .then(
+                            deferred.resolve, deferred.reject
+                        );
+
+                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     pmsAPI.payment_modifyManualTopupRequest({
                         requestId: proposalData.data.requestId,
                         operationType: constManualTopupOperationType.CANCEL,
@@ -4394,7 +4430,25 @@ var proposalExecutor = {
              * reject function for player manual top up
              */
             rejectManualPlayerTopUp: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                if (proposalData && proposalData.data && proposalData.data.topUpSystemType
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    let data = {
+                        proposalId: proposalData.proposalId
+                    };
+
+                    let options = {
+                        method: 'POST',
+                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
+                        body: data,
+                        json: true
+                    };
+
+                    return rp(options)
+                        .then(
+                            deferred.resolve, deferred.reject
+                        );
+
+                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
                         wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
@@ -4439,7 +4493,25 @@ var proposalExecutor = {
              * reject function for player assign manual top up
              */
             rejectPlayerAssignTopUp: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                if (proposalData && proposalData.data && proposalData.data.topUpSystemType
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    let data = {
+                        proposalId: proposalData.proposalId
+                    };
+
+                    let options = {
+                        method: 'POST',
+                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
+                        body: data,
+                        json: true
+                    };
+
+                    return rp(options)
+                        .then(
+                            deferred.resolve, deferred.reject
+                        );
+
+                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
                         wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
