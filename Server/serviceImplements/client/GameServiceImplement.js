@@ -293,6 +293,19 @@ var GameServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbGame.modifyGamePassword, [conn.playerId, data.providerId, data.newPassword, null, inputDevice], isValidData);
     };
 
+    this.getLiveGameInfo.onRequest = function (wsFunc, conn, data) {
+        var isValidData = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.getLiveGameInfo, [data.count], isValidData, false, false, true);
+    };
+
+    this.notifyLiveGameStatus.addListener(
+        function (data) {
+            // console.log("notifyNewMail:", data);
+            WebSocketUtil.notifyEBETLuZhuClient(self, "notifyLiveGameStatus", data);
+        }
+    );
+
+
 };
 
 var proto = GameServiceImplement.prototype = Object.create(GameService.prototype);

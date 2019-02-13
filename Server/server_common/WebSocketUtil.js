@@ -341,6 +341,19 @@ var WebSocketUtility = {
         ).catch(WebSocketUtility.errorHandler).done();
     },
 
+    notifyEBETLuZhuClient: function (service, functionName, data) {
+        if (service._wss && service._wss._wss && service._wss._wss.clients) {
+            var wss = service._wss._wss;
+            wss.clients.forEach(
+                client => {
+                    if (service[functionName]) {
+                        service[functionName].response(client, {status: 200, data: data});
+                    }
+                }
+            );
+        }
+    },
+
     /*
      * Send notification message to message client
      * @param {Object} service
