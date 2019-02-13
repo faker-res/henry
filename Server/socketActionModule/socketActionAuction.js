@@ -69,10 +69,10 @@ function socketActionAuction(socketIO, socket) {
             data.direction = 'removeNotAvailableAuction';
             socketUtil.emitter(self.socket, dbAuction.moveTo, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
         },
-        isQualify: function isQualify(data){
+        getAuctions: function getAuctions(data){
             var actionName = arguments.callee.name;
             var isValidData = true;
-            socketUtil.emitter(self.socket, dbAuction.isQualify, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbAuction.getAuctions, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
         },
 
         createAuctionProduct: function createAuctionProduct(data) {
