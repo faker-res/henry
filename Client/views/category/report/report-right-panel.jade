@@ -125,7 +125,7 @@
                 .text-right.widthto100
                     label &nbsp;
                     button.btn.btn-success.btn-space(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-warning.btn-space(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-warning.btn-space(ng-click='vm.loadPage(vm.showPageName, null, null, null, true)') {{'Reset' | translate}}
                     button.btn.btn-info.btn-space(ng-click='vm.searchProposalRecord(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#proposalTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
