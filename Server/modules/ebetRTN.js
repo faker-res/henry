@@ -19,7 +19,7 @@ var ebetRTN = {
 
         return new Promise((resolve, reject) => {
             try {
-                socket = new WebSocket('ws://52.175.17.28:7351/ebet');
+                socket = new WebSocket('ws://rtn-xindeli99.cpms8.me:7351/ebet');
 
                 let isOpen = false;
 
