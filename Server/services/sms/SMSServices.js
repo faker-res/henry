@@ -97,7 +97,7 @@
             var functionNames = [
                 "getUsableChannelList"
             ];
-            addServiceSyncFunctions(sinonet, this, functionNames);
+            addServiceSyncFunctions(sinonet, this, functionNames, ["platformId"]);
         };
 
         GetUsableChannelService.prototype = Object.create(sinonet.WebSocketService.prototype);
