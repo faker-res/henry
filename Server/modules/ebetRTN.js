@@ -3,6 +3,8 @@ const EventEmitter = require('events').EventEmitter;
 var events = new EventEmitter();
 const constServerCode = require('./../const/constServerCode');
 const dbGame = require('./../db_modules/dbGame');
+const env = require('./../config/env').config();
+
 var ebetRTNFunc = function () {
 };
 module.exports = new ebetRTNFunc();
@@ -19,7 +21,7 @@ var ebetRTN = {
 
         return new Promise((resolve, reject) => {
             try {
-                socket = new WebSocket('ws://rtn-xindeli99.cpms8.me:7351/ebet');
+                socket = new WebSocket(env.ebetRTNUrl);
 
                 let isOpen = false;
 
