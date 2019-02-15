@@ -766,7 +766,10 @@ var dbGame = {
         return cpmsAPI.game_updateImageUrl(data, fileData);
     },
 
-    getLiveGameInfo: (count) => {
+    getLiveGameInfo: (count, platformId, conn) => {
+        if (platformId && conn && !(conn.EBETPlatformId)) { // for notifyLiveGameStatus usage
+            conn.EBETPlatformId = platformId
+        }
         const constTableStatus = { // refer constEBETBaccaratTableStatus
             30001: 1,
             30002: 2,
