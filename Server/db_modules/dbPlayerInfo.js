@@ -13246,7 +13246,12 @@ let dbPlayerInfo = {
                         }
                         proposal = proposalData;
                         bonusId = proposalData.data.bonusId;
-                        return dbProposal.updateBonusProposal(proposalId, constProposalStatus.CANCEL, bonusId);
+
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {$inc: {processedTimes: 1}},
+                            {new: true}
+                        ).lean()
                     }
                     else {
                         return Q.reject({
@@ -13259,6 +13264,15 @@ let dbPlayerInfo = {
                 else {
                     return Q.reject({name: "DBError", message: 'Cannot find proposal'});
                 }
+            }
+        ).then(
+            updatedProposal => {
+                if (updatedProposal && updatedProposal.processedTimes && updatedProposal.processedTimes > 1) {
+                    console.log(updatedProposal.proposalId + " This proposal has been processed");
+                    return Promise.reject({message: "This proposal has been processed"});
+                }
+
+                return dbProposal.updateBonusProposal(proposalId, constProposalStatus.CANCEL, bonusId);
             }
         ).then(
             data => {
