@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 
 const encrypt = require('./../modules/encrypt');
 const dbAdminInfo = require('./../db_modules/dbAdminInfo');
@@ -12,10 +13,14 @@ const dblog = require('./../modules/dbLogger');
 const constSystemLogLevel = require('../const/constSystemLogLevel');
 const errorUtils = require("../modules/errorUtils.js");
 const dbOtherPayment = require('./../db_modules/externalAPI/dbOtherPayment');
+const dbconfig = require('./../modules/dbproperties');
+const ObjectId = mongoose.Types.ObjectId;
+var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+var dbPlayerLoginRecord = require('./../db_modules/dbPlayerLoginRecord');
+
 
 router.post('/fkpNotify', function(req, res, next) {
-    let isValidData =
-        req && req.body && req.body.merchantCode && req.body.orderNo && req.body.payOrderNo && Number.isFinite(Number(req.body.amount))
+    let isValidData = req && req.body && req.body.merchantCode && req.body.orderNo && req.body.payOrderNo && Number.isFinite(Number(req.body.amount))
         && req.body.orderStatus;
 
     if (isValidData) {
@@ -152,5 +157,26 @@ router.post('/login', function (req, res, next) {
         res.json({success: false, error: {name: "DataError", message: "Incorrect data"}});
     }
 });
+
+// router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
+//     let startDate = req.body.startDate;
+//     let endDate = req.body.endDate;
+//     let platform = req.body.platform;
+//     dbPlayerLoginRecord.countLoginPlayerbyPlatformWeek(startDate, endDate, platform).then(
+//         data=>{
+//             res.json({success:true, data:data});
+//
+//     })
+// });
+//
+// router.post('/countNewPlayerAllPlatform', function (req, res, next) {
+//     let startDate = new Date(req.body.startDate);
+//     let endDate = new Date(req.body.endDate);
+//     let platform = req.body.platform;
+//     dbPlayerInfo.countDailyNewPlayerByPlatform(platform, startDate, endDate).then(
+//         data=>{
+//             res.json({success:true, data:data});
+//     })
+// });
 
 module.exports = router;
