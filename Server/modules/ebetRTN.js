@@ -25,19 +25,6 @@ var ebetRTN = {
 
                 let isOpen = false;
 
-                // socket.onerror = function(event) {
-                //     console.log('Error: ' + JSON.stringify(event));
-                // }
-
-                // socket.onmessage = function(event) {
-                //     console.log(JSON.parse(event.data))
-                //     console.log('Received: ' + JSON.stringify(JSON.parse(event.data),null,2));
-                // }
-
-                // socket.onclose = function(event) {
-                //     console.log('Closed connection 😱');
-                // }
-
                 socket.on('error', function(err) {
                     console.log('handle ws err', err)
                 });
@@ -59,7 +46,6 @@ var ebetRTN = {
 
                 setTimeout(() => {
                     if (!isOpen) {
-                        // resolve(false)
                         if (reconnecTimes) {
                             console.log("luzhu api reconnecting " + reconnecTimes);
                             resolve(ebetRTN.connect(--reconnecTimes));
