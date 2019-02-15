@@ -76,7 +76,7 @@ var ebetRTN = {
                     }
 
                     if (data && data.command && data.command == "listen") {
-                        dbGame.notifyLiveGameStatus(data);
+                        // dbGame.notifyLiveGameStatus(data);
                     } else if (data && data.command && data.command == "query" && data.requestId) {
                         // data is sort by time
                         events.emit(data.requestId, data);
@@ -99,45 +99,51 @@ var ebetRTN = {
             console.log("luzhu API not connected")
             return ebetRTN.connect(2).then(
                 () => {
-                    return ebetRTN.query();
+                    return sendQueryCommand(tableType, size);
                 }
             );
         }
-        let requestId = "LZ" + new Date().getTime() + Math.random().toString(36).substr(2,4);
-        let sendData = {
-            command: "query",
-            requestId: requestId,
-            data: {
-                tableType: tableType || 1,
-                // table: "B2",
-                // size: 30
-            }
-        };
-        if (size) {
-            sendData.data.size = size;
-        }
-        var json = JSON.stringify(sendData);
 
-        socket.send(json);
+        return sendQueryCommand(tableType, size);
 
-        return new Promise((resolve, reject) => {
-            let handled = false;
-            events.once(requestId, function (data) {
-                handled = true;
-                resolve(data)
-            });
-
-            setTimeout(function() {
-                if (!handled) {
-                    events.removeListener(requestId);
-                    reject({code: constServerCode.EXTERNAL_API_TIMEOUT, message: "luzhu not available"});
-                }
-            }, 60000);
-        });
     },
 
     socket: () => socket,
 
+};
+
+function sendQueryCommand(tableType, size) {
+    let requestId = "LZ" + new Date().getTime() + Math.random().toString(36).substr(2,4);
+    let sendData = {
+        command: "query",
+        requestId: requestId,
+        data: {
+            tableType: tableType || 1,
+            // table: "B2",
+            // size: 30
+        }
+    };
+    if (size) {
+        sendData.data.size = size;
+    }
+    var json = JSON.stringify(sendData);
+
+    socket.send(json);
+
+    return new Promise((resolve, reject) => {
+        let handled = false;
+        events.once(requestId, function (data) {
+            handled = true;
+            resolve(data)
+        });
+
+        setTimeout(function() {
+            if (!handled) {
+                events.removeListener(requestId);
+                reject({code: constServerCode.EXTERNAL_API_TIMEOUT, message: "luzhu not available"});
+            }
+        }, 60000);
+    });
 };
 
 
