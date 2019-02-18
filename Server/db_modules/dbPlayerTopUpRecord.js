@@ -3052,7 +3052,25 @@ var dbPlayerTopUpRecord = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
-                    if (proposalData.data && proposalData.data.playerId == playerId) {
+                    if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.topUpSystemType
+                        && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                        proposal = proposalData;
+
+                        let data = {
+                            proposalId: proposalId,
+                            delayTime: delayTime
+                        };
+
+                        let options = {
+                            method: 'POST',
+                            uri: extConfig[proposalData.data.topUpSystemType].delayTopUpAPIAddr,
+                            body: data,
+                            json: true
+                        };
+
+                        return rp(options);
+                    }
+                    else if (proposalData.data && proposalData.data.playerId == playerId) {
                         proposal = proposalData;
 
                         if (proposalData.data.requestId) {
