@@ -3,6 +3,8 @@ const EventEmitter = require('events').EventEmitter;
 var events = new EventEmitter();
 const constServerCode = require('./../const/constServerCode');
 const dbGame = require('./../db_modules/dbGame');
+const env = require('./../config/env').config();
+
 var ebetRTNFunc = function () {
 };
 module.exports = new ebetRTNFunc();
@@ -19,22 +21,9 @@ var ebetRTN = {
 
         return new Promise((resolve, reject) => {
             try {
-                socket = new WebSocket('ws://rtn-xindeli99.cpms8.me:7351/ebet');
+                socket = new WebSocket(env.ebetRTNUrl);
 
                 let isOpen = false;
-
-                // socket.onerror = function(event) {
-                //     console.log('Error: ' + JSON.stringify(event));
-                // }
-
-                // socket.onmessage = function(event) {
-                //     console.log(JSON.parse(event.data))
-                //     console.log('Received: ' + JSON.stringify(JSON.parse(event.data),null,2));
-                // }
-
-                // socket.onclose = function(event) {
-                //     console.log('Closed connection 😱');
-                // }
 
                 socket.on('error', function(err) {
                     console.log('handle ws err', err)
@@ -57,7 +46,6 @@ var ebetRTN = {
 
                 setTimeout(() => {
                     if (!isOpen) {
-                        // resolve(false)
                         if (reconnecTimes) {
                             console.log("luzhu api reconnecting " + reconnecTimes);
                             resolve(ebetRTN.connect(--reconnecTimes));
