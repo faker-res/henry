@@ -16364,6 +16364,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerSummaryData => {
+                console.log("LH check player report summary 1");
                 if(playerSummaryData && playerSummaryData.length > 0){
                     playerSummaryData.forEach(
                         playerSummary => {
@@ -16405,7 +16406,7 @@ let dbPlayerInfo = {
                             }
                         }
                     )
-
+                    console.log("LH check player report summary 2");
                     // filter the summary result first
                     // Consumption Times Query Operator
                     if ((query.consumptionTimesValue || Number(query.consumptionTimesValue) === 0) && query.consumptionTimesValue !== null) {
@@ -16527,6 +16528,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerSummaryData => {
+                console.log("LH check player report summary 3");
                 if(playerSummaryData && playerSummaryData.length > 0){
                     playerReportSummaryData = playerSummaryData;
                     let playerIdList = playerReportSummaryData.map(data => data.playerId);
@@ -16595,6 +16597,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerData => {
+                console.log("LH check player report summary 4");
                 if(playerData && playerData.length > 0){
                     let finalPlayerReportSummaryData = [];
                     playerData.forEach(
@@ -16625,7 +16628,7 @@ let dbPlayerInfo = {
                             }
                         }
                     );
-
+                    console.log("LH check player report summary 5");
                     if (Object.keys(sortCol).length > 0) {
                         finalPlayerReportSummaryData.sort(function (a, b) {
                             if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
@@ -16644,7 +16647,7 @@ let dbPlayerInfo = {
                             }
                         });
                     }
-
+                    console.log("LH check player report summary 6");
                     //handle sum of field here
                     for (let z = 0; z < finalPlayerReportSummaryData.length; z++) {
                         resultSum.manualTopUpAmount += finalPlayerReportSummaryData[z].manualTopUpAmount;
@@ -16668,7 +16671,7 @@ let dbPlayerInfo = {
                         resultSum.totalOnlineTopUpFee += finalPlayerReportSummaryData[z].totalOnlineTopUpFee;
                     }
                     resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
-
+                    console.log("LH check player report summary 7");
                     let outputResult = [];
 
                     for (let i = 0, len = limit; i < len; i++) {
@@ -16709,6 +16712,7 @@ let dbPlayerInfo = {
                 twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
 
                 if(new Date(query.end) > twoDaysAgo ){
+                    console.log("LH check player report summary 8");
                     query.start = twoDaysAgo;
                     return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
                 }
@@ -16763,7 +16767,7 @@ let dbPlayerInfo = {
                         }
                     )
                 }
-
+                console.log("LH check player report summary 9");
                 if(twoDaysPlayerReportData && twoDaysPlayerReportData.total){
                     returnedObj.total.aliPayTopUpAmount += twoDaysPlayerReportData.total.aliPayTopUpAmount || 0;
                     returnedObj.total.bonusAmount += twoDaysPlayerReportData.total.bonusAmount || 0;
