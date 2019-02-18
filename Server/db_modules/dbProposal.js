@@ -8847,6 +8847,7 @@ function isBankInfoMatched(proposalData, playerId){
 }
 
 function getBonusDetail(platformId, startDate, endDate) {
+    console.log('RT - FR PE prom 0.3');
     return dbconfig.collection_proposalType.find(
         {
             name: {$in: [constProposalType.PLAYER_BONUS, constProposalType.PARTNER_BONUS]},
@@ -8854,6 +8855,7 @@ function getBonusDetail(platformId, startDate, endDate) {
         }, {_id: 1, name: 1}
     ).then(
         proposalTypeData => {
+            console.log('RT - FR PE prom 0.3.1');
             if (proposalTypeData && proposalTypeData.length > 0) {
                 let proposalObjIds = [];
                 let proposalTypeObj = {};
@@ -8902,6 +8904,7 @@ function getBonusDetail(platformId, startDate, endDate) {
                         }
                     ]).read("secondaryPreferred").then(
                         bonusData => {
+                            console.log('RT - FR PE prom 0.3.2');
                             if (bonusData && bonusData.length > 0) {
                                 for (let i = 0, len = bonusData.length; i < len; i++) {
                                     let bonus = bonusData[i];
@@ -8927,6 +8930,7 @@ function getBonusDetail(platformId, startDate, endDate) {
                                     return a;
                                 }, []);
 
+                                console.log('RT - FR PE prom 0.3.3');
                                 return tempBonusData;
                             }
                         }
@@ -8938,6 +8942,7 @@ function getBonusDetail(platformId, startDate, endDate) {
 }
 
 function getPlatformFeeEstimate (platformId, startDate, endDate) {
+    console.log('RT - FR PE prom 0.4');
     let query = {
         createTime: {
             $gte: new Date(startDate),
@@ -8978,7 +8983,7 @@ function getPlatformFeeEstimate (platformId, startDate, endDate) {
         }
     ]).allowDiskUse(true).read("secondaryPreferred").then(
         consumptionData => {
-
+            console.log('RT - FR PE prom 0.4.1');
             return dbconfig.collection_platformFeeEstimate.find({platform: {$in: platformId}}).populate({
                 path: 'platformFee.gameProvider',
                 model: dbconfig.collection_gameProvider
@@ -9016,6 +9021,7 @@ function getPlatformFeeEstimate (platformId, startDate, endDate) {
                             consumptionDetail.totalPlatformFeeEstimate = dbutility.noRoundTwoDecimalPlaces(tempTotalPlatformFeeEstimate);
                         }
 
+                        console.log('RT - FR PE prom 0.4.2');
                         return consumptionData;
                     }
                 }
@@ -9129,6 +9135,7 @@ function rearrangePlatformFeeEstimateDetailByMutilplePlatform(currentList, platf
 }
 
 function getTotalSumBonusDetail(platformId, startDate, endDate) {
+    console.log('RT - FR PE prom 0.5');
     return dbconfig.collection_proposalType.find(
         {
             name: {$in: [constProposalType.PLAYER_BONUS, constProposalType.PARTNER_BONUS]},
@@ -9136,6 +9143,7 @@ function getTotalSumBonusDetail(platformId, startDate, endDate) {
         }, {_id: 1, name: 1}
     ).then(
         proposalTypeData => {
+            console.log('RT - FR PE prom 0.5.1');
             if (proposalTypeData && proposalTypeData.length > 0) {
                 let proposalObjIds = [];
                 let proposalTypeObj = {};
@@ -9169,7 +9177,12 @@ function getTotalSumBonusDetail(platformId, startDate, endDate) {
                                 "amount": {"$sum": "$data.amount"}
                             }
                         }
-                    ]).read("secondaryPreferred");
+                    ]).read("secondaryPreferred").then(
+                        data => {
+                            console.log('RT - FR PE prom 0.5.2');
+                            return data;
+                        }
+                    );
                 }
             }
         }
@@ -9205,9 +9218,11 @@ function rearrangeSumBonus (currentList, platformRecord) {
 }
 
 function getDepositGroup() {
+    console.log('RT - FR PE prom 0.1');
     let groups = [];
     return dbconfig.collection_depositGroup.find({depositParentDepositId: -1}, {depositId: 1, depositName: 1}).lean().then(
         parentDepositData => {
+            console.log('RT - FR PE prom 0.1.1');
             return dbconfig.collection_depositGroup.aggregate([
                 {
                     "$match": {
@@ -9228,8 +9243,9 @@ function getDepositGroup() {
                         }
                     }
                 }
-            ]).then(
+            ]).read("secondaryPreferred").then(
                 depositGroup => {
+                    console.log('RT - FR PE prom 0.1.2');
                     if (parentDepositData && parentDepositData.length > 0) {
                         parentDepositData.forEach(parent => {
                             if (depositGroup && depositGroup.length > 0) {
@@ -9266,6 +9282,7 @@ function getDepositGroup() {
                             }
                         });
 
+                        console.log('RT - FR PE prom 0.1.3');
                         return groups;
                     }
                 }
