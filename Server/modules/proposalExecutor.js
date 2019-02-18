@@ -4976,8 +4976,12 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
                 rewardTaskGroup.forEach(
                     rtg => {
+                        console.log("LH Check RTG unlock 1 -------------------", rtg);
+                        console.log("LH Check RTG unlock 2 -------------------", platform.autoUnlockWhenInitAmtLessThanLostThreshold);
+                        console.log("LH Check RTG unlock 3 -------------------", platform.autoApproveLostThreshold );
                         if(rtg && platform && rtg._id && rtg.totalCredit && platform.autoUnlockWhenInitAmtLessThanLostThreshold
                             && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
+                            console.log("LH Check RTG unlock 4 -------------------");
                             rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
                             dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
                                 if (rewards){
