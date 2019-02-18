@@ -346,7 +346,7 @@ var WebSocketUtility = {
             var wss = service._wss._wss;
             wss.clients.forEach(
                 client => {
-                    if (service[functionName] && client.EBETPlatformId && client.playerId) {
+                    if (service[functionName] && client.EBETPlatformId && client.playerId && client.isSendEBETData) {
                         service[functionName].response(client, {status: 200, data: data});
                     }
                 }

@@ -507,7 +507,9 @@ var platformSchema = new Schema({
     // Switch Payment System - bonus
     bonusSystemType: {type: Number},
     // to identify current using FPMS payment method
-    isFPMSPaymentSystem: {type: Boolean, default: false}
+    isFPMSPaymentSystem: {type: Boolean, default: false},
+    // Switch EBET baccarat push data
+    isSendEBETData: {type: Boolean, default: false},
 });
 
 //add platform id before save
