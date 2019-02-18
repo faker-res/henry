@@ -33,6 +33,7 @@ var ObjectId = mongoose.Types.ObjectId;
 const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 // db_common
 const dbPropUtil = require("../db_common/dbProposalUtility");
+const extConfig = require('../config/externalPayment/paymentSystems');
 
 let env = require('../config/env').config();
 
@@ -2466,6 +2467,7 @@ let dbPartner = {
         let partner = null;
         // let bonusDetail = null;
         let bUpdateCredit = false;
+        let bonusSystemConfig;
         let resetCredit = function (partnerObjId, platformObjId, credit, error) {
             //reset partner credit if credit is incorrect
             return dbconfig.collection_partner.findOneAndUpdate(
@@ -2540,6 +2542,9 @@ let dbPartner = {
                     }
 
                     partner = partnerData;
+
+                    bonusSystemConfig =
+                        extConfig && partner.platform.bonusSystemType && extConfig[partner.platform.bonusSystemType];
 
                     let permissionProm = Promise.resolve(true);
                     let disablePermissionProm = Promise.resolve(true);
@@ -2700,6 +2705,19 @@ let dbPartner = {
                                         proposalData.remark = "禁用提款" + lastBonusRemark;
                                         proposalData.needCsApproved = true;
                                     }
+
+                                    if (partner.platform.bonusSystemType && bonusSystemConfig) {
+                                        proposalData.bonusSystemType = partner.platform.bonusSystemType;
+                                        proposalData.bonusSystemName = bonusSystemConfig.name;
+                                    } else if (!partner.platform.bonusSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                                        Object.keys(extConfig).forEach(key => {
+                                            if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                                                proposalData.bonusSystemType = Number(key);
+                                                proposalData.bonusSystemName = extConfig[key].name;
+                                            }
+                                        });
+                                    }
+
                                     var newProposal = {
                                         creator: proposalData.creator,
                                         data: proposalData,

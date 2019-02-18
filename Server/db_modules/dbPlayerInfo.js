@@ -11471,6 +11471,7 @@ let dbPlayerInfo = {
         let platform;
         let isUsingXima = false;
         let lastBonusRemark = "";
+        let bonusSystemConfig;
         let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
@@ -11543,6 +11544,9 @@ let dbPlayerInfo = {
                 playerData => {
                     if (playerData) {
                         player = playerData;
+
+                        bonusSystemConfig =
+                            extConfig && player.platform.bonusSystemType && extConfig[player.platform.bonusSystemType];
 
                         if (player.ximaWithdraw) {
                             ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
@@ -11807,6 +11811,19 @@ let dbPlayerInfo = {
                                                     proposalData.needCsApproved = true;
                                                 }
                                             }
+
+                                            if (player.platform.bonusSystemType && bonusSystemConfig) {
+                                                proposalData.bonusSystemType = player.platform.bonusSystemType;
+                                                proposalData.bonusSystemName = bonusSystemConfig.name;
+                                            } else if (!player.platform.bonusSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                                                Object.keys(extConfig).forEach(key => {
+                                                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                                                        proposalData.bonusSystemType = Number(key);
+                                                        proposalData.bonusSystemName = extConfig[key].name;
+                                                    }
+                                                });
+                                            }
+
                                             var newProposal = {
                                                 creator: proposalData.creator,
                                                 data: proposalData,
@@ -13246,7 +13263,12 @@ let dbPlayerInfo = {
                         }
                         proposal = proposalData;
                         bonusId = proposalData.data.bonusId;
-                        return dbProposal.updateBonusProposal(proposalId, constProposalStatus.CANCEL, bonusId);
+
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {$inc: {processedTimes: 1}},
+                            {new: true}
+                        ).lean()
                     }
                     else {
                         return Q.reject({
@@ -13259,6 +13281,15 @@ let dbPlayerInfo = {
                 else {
                     return Q.reject({name: "DBError", message: 'Cannot find proposal'});
                 }
+            }
+        ).then(
+            updatedProposal => {
+                if (updatedProposal && updatedProposal.processedTimes && updatedProposal.processedTimes > 1) {
+                    console.log(updatedProposal.proposalId + " This proposal has been processed");
+                    return Promise.reject({message: "This proposal has been processed"});
+                }
+
+                return dbProposal.updateBonusProposal(proposalId, constProposalStatus.CANCEL, bonusId);
             }
         ).then(
             data => {
@@ -20762,6 +20793,8 @@ let dbPlayerInfo = {
                                     sortedData.length = totalRecord;
                                 }
 
+                                returnData.allDeposit = {};
+
                                 if (sortedData && sortedData.length) {
                                     return dbconfig.collection_players.populate(sortedData, {
                                         path: '_id',
@@ -20769,7 +20802,7 @@ let dbPlayerInfo = {
                                         select: "name"
                                     }).then(
                                         populatedData => {
-                                            returnData.allDeposit = {};
+
                                             for (let i = 0; i < populatedData.length; i++) {
                                                 if (populatedData[i]._id && populatedData[i]._id.name) {
                                                     populatedData[i].name = censoredPlayerName(populatedData[i]._id.name);
@@ -20791,7 +20824,13 @@ let dbPlayerInfo = {
                                         }
                                     )
                                 } else {
-                                    return Promise.reject({name: "DataError", message: "No record to show"});
+                                    returnData.allDeposit.boardRanking = [];
+
+                                    if (playerObj) {
+                                        returnData.allDeposit.playerRanking = {};
+                                    }
+
+                                    return returnData;
                                 }
                             }
                         )
@@ -20878,6 +20917,8 @@ let dbPlayerInfo = {
                                 sortedData.length = totalRecord;
                             }
 
+                            returnData.singleDeposit = {};
+
                             if (sortedData && sortedData.length) {
                                 return dbconfig.collection_players.populate(sortedData, {
                                     path: '_id',
@@ -20885,7 +20926,6 @@ let dbPlayerInfo = {
                                     select: "name"
                                 }).then(
                                     populatedData => {
-                                        returnData.singleDeposit = {};
 
                                         for (let i = 0; i < populatedData.length; i++) {
                                             populatedData[i].rank = i + 1;
@@ -20908,7 +20948,13 @@ let dbPlayerInfo = {
                                     }
                                 );
                             } else {
-                                return Promise.reject({name: "DataError", message: "No record to show"});
+                                returnData.singleDeposit.boardRanking = [];
+
+                                if (playerObj) {
+                                    returnData.singleDeposit.playerRanking = {};
+                                }
+
+                                return returnData;
                             }
                         }
                     )
@@ -21046,6 +21092,8 @@ let dbPlayerInfo = {
                                     sortedData.length = totalRecord;
                                 }
 
+                                returnData.allWithdraw = {};
+
                                 if (sortedData && sortedData.length) {
                                     return dbconfig.collection_players.populate(sortedData, {
                                         path: '_id',
@@ -21053,7 +21101,7 @@ let dbPlayerInfo = {
                                         select: "name"
                                     }).then(
                                         populatedData => {
-                                            returnData.allWithdraw = {};
+
                                             for (let i = 0; i < populatedData.length; i++) {
                                                 if (populatedData[i]._id && populatedData[i]._id.name) {
                                                     populatedData[i].name = populatedData[i]._id.name;
@@ -21076,7 +21124,13 @@ let dbPlayerInfo = {
                                         }
                                     )
                                 } else {
-                                    return Promise.reject({name: "DataError", message: "No record to show"});
+                                    returnData.allWithdraw.boardRanking = [];
+
+                                    if (playerObj) {
+                                        returnData.allWithdraw.playerRanking = {};
+                                    }
+
+                                    return returnData;
                                 }
                             }
                         )
@@ -21175,6 +21229,8 @@ let dbPlayerInfo = {
                                 sortedData.push(playerRanking);
                             }
 
+                            returnData.allValidbet = {};
+
                             if (sortedData && sortedData.length) {
                                 return dbconfig.collection_players.populate(sortedData, [{
                                     path: '_id',
@@ -21238,7 +21294,6 @@ let dbPlayerInfo = {
                                             }
                                         }
 
-                                        returnData.allValidbet = {};
                                         if (playerObj) {
                                             returnData.allValidbet.playerRanking = {};
                                             if (playerRanking) {
@@ -21253,7 +21308,13 @@ let dbPlayerInfo = {
                                     }
                                 );
                             } else {
-                                return Promise.reject({name: "DataError", message: "No record to show"});
+                                returnData.allValidbet.boardRanking = [];
+
+                                if (playerObj) {
+                                    returnData.allValidbet.playerRanking = {};
+                                }
+
+                                return returnData;
                             }
                         }
                     )
@@ -21355,6 +21416,8 @@ let dbPlayerInfo = {
                                 sortedData.push(playerRanking);
                             }
 
+                            returnData.allWin = {};
+
                             if (sortedData && sortedData.length) {
                                 return dbconfig.collection_players.populate(sortedData, [{
                                     path: '_id',
@@ -21428,7 +21491,7 @@ let dbPlayerInfo = {
                                                 delete populatedProvider[i].providerId;
                                             }
                                         }
-                                        returnData.allWin = {};
+
                                         if (playerObj) {
                                             returnData.allWin.playerRanking = {};
                                             if (playerRanking) {
@@ -21443,7 +21506,13 @@ let dbPlayerInfo = {
                                     }
                                 );
                             } else {
-                                return Promise.reject({name: "DataError", message: "No record to show"});
+                                returnData.allWin.boardRanking = [];
+
+                                if (playerObj) {
+                                    returnData.allWin.playerRanking = {};
+                                }
+
+                                return returnData;
                             }
                         }
                     )
@@ -21550,6 +21619,8 @@ let dbPlayerInfo = {
                                 sortedData.push(playerRanking);
                             }
 
+                            returnData.singleWin = {};
+
                             if (sortedData && sortedData.length) {
                                 return dbconfig.collection_players.populate(sortedData, [{
                                     path: '_id',
@@ -21594,7 +21665,6 @@ let dbPlayerInfo = {
                                             }
                                         }
 
-                                        returnData.singleWin = {};
                                         if (playerObj) {
                                             returnData.singleWin.playerRanking = {};
                                             if (playerRanking) {
@@ -21609,7 +21679,13 @@ let dbPlayerInfo = {
                                     }
                                 );
                             } else {
-                                return Promise.reject({name: "DataError", message: "No record to show"});
+                                returnData.singleWin.boardRanking = [];
+
+                                if (playerObj) {
+                                    returnData.singleWin.playerRanking = {};
+                                }
+
+                                return returnData;
                             }
                         }
                     )

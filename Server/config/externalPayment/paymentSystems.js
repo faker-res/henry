@@ -46,6 +46,7 @@ const thirdPartyAPIConfig = {
         topUpStatusAPIAddr: "http://52.221.143.107:9001/v1/playerDepositStatus", // PATCH
         batchTopUpStatusAPIAddr: "http://52.221.143.107:9001/v1/batch/playerDepositStatus", //POST
         cancelTopUpAPIAddr: "http://52.221.143.107:9001/v1/deposit-proposal/cancel", //POST
+        delayTopUpAPIAddr: "http://52.221.143.107:9001/v1/deposit-proposal/delay", //POST
 
         //financial settlement
         name: 'PMS2',

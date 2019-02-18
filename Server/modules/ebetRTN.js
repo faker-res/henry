@@ -3,6 +3,8 @@ const EventEmitter = require('events').EventEmitter;
 var events = new EventEmitter();
 const constServerCode = require('./../const/constServerCode');
 const dbGame = require('./../db_modules/dbGame');
+const env = require('./../config/env').config();
+
 var ebetRTNFunc = function () {
 };
 module.exports = new ebetRTNFunc();
@@ -19,22 +21,9 @@ var ebetRTN = {
 
         return new Promise((resolve, reject) => {
             try {
-                socket = new WebSocket('ws://rtn-xindeli99.cpms8.me:7351/ebet');
+                socket = new WebSocket(env.ebetRTNUrl);
 
                 let isOpen = false;
-
-                // socket.onerror = function(event) {
-                //     console.log('Error: ' + JSON.stringify(event));
-                // }
-
-                // socket.onmessage = function(event) {
-                //     console.log(JSON.parse(event.data))
-                //     console.log('Received: ' + JSON.stringify(JSON.parse(event.data),null,2));
-                // }
-
-                // socket.onclose = function(event) {
-                //     console.log('Closed connection 😱');
-                // }
 
                 socket.on('error', function(err) {
                     console.log('handle ws err', err)
@@ -57,7 +46,6 @@ var ebetRTN = {
 
                 setTimeout(() => {
                     if (!isOpen) {
-                        // resolve(false)
                         if (reconnecTimes) {
                             console.log("luzhu api reconnecting " + reconnecTimes);
                             resolve(ebetRTN.connect(--reconnecTimes));
@@ -76,7 +64,7 @@ var ebetRTN = {
                     }
 
                     if (data && data.command && data.command == "listen") {
-                        dbGame.notifyLiveGameStatus(data);
+                        // dbGame.notifyLiveGameStatus(data);
                     } else if (data && data.command && data.command == "query" && data.requestId) {
                         // data is sort by time
                         events.emit(data.requestId, data);
@@ -99,45 +87,51 @@ var ebetRTN = {
             console.log("luzhu API not connected")
             return ebetRTN.connect(2).then(
                 () => {
-                    return ebetRTN.query();
+                    return sendQueryCommand(tableType, size);
                 }
             );
         }
-        let requestId = "LZ" + new Date().getTime() + Math.random().toString(36).substr(2,4);
-        let sendData = {
-            command: "query",
-            requestId: requestId,
-            data: {
-                tableType: tableType || 1,
-                // table: "B2",
-                // size: 30
-            }
-        };
-        if (size) {
-            sendData.data.size = size;
-        }
-        var json = JSON.stringify(sendData);
 
-        socket.send(json);
+        return sendQueryCommand(tableType, size);
 
-        return new Promise((resolve, reject) => {
-            let handled = false;
-            events.once(requestId, function (data) {
-                handled = true;
-                resolve(data)
-            });
-
-            setTimeout(function() {
-                if (!handled) {
-                    events.removeListener(requestId);
-                    reject({code: constServerCode.EXTERNAL_API_TIMEOUT, message: "luzhu not available"});
-                }
-            }, 60000);
-        });
     },
 
     socket: () => socket,
 
+};
+
+function sendQueryCommand(tableType, size) {
+    let requestId = "LZ" + new Date().getTime() + Math.random().toString(36).substr(2,4);
+    let sendData = {
+        command: "query",
+        requestId: requestId,
+        data: {
+            tableType: tableType || 1,
+            // table: "B2",
+            // size: 30
+        }
+    };
+    if (size) {
+        sendData.data.size = size;
+    }
+    var json = JSON.stringify(sendData);
+
+    socket.send(json);
+
+    return new Promise((resolve, reject) => {
+        let handled = false;
+        events.once(requestId, function (data) {
+            handled = true;
+            resolve(data)
+        });
+
+        setTimeout(function() {
+            if (!handled) {
+                events.removeListener(requestId);
+                reject({code: constServerCode.EXTERNAL_API_TIMEOUT, message: "luzhu not available"});
+            }
+        }, 60000);
+    });
 };
 
 

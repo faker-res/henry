@@ -1107,7 +1107,11 @@ var proposal = {
                         errorMessage = "Cannot find proposal";
                     }
                     else if (proposalData.status != constProposalStatus.APPROVED || proposalData.status == constProposalStatus.FAIL || proposalData.status == constProposalStatus.CANCEL) {
-                        errorMessage = "Invalid proposal status:" + proposalData.status;
+                        if (proposalData && proposalData.data && proposalData.data.bonusSystemType && proposalData.data.bonusSystemName === 'PMS2' && proposalData.status == constProposalStatus.SUCCESS) {
+                            errorMessage = "Proposal status already success";
+                        } else {
+                            errorMessage = "Invalid proposal status:" + proposalData.status;
+                        }
                     }
                     else if (proposalData.data && proposalData.data.bonusId != bonusId) {
                         errorMessage = "Invalid bonusId";
@@ -1353,11 +1357,23 @@ var proposal = {
                                 status: constProposalStatus.PENDING,
                                 isLocked: null
                             }
-                        );
+                        ).lean();
                     }
                     else {
                         console.log("LH Check Proposal Reject 1------------",proposalData);
-                        return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bApprove, proposalData, true)
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {$inc: {processedTimes: 1}},
+                            {new: true}
+                        ).lean().then(
+                            updatedProposal => {
+                                if (updatedProposal && updatedProposal.processedTimes && updatedProposal.processedTimes > 1) {
+                                    console.log(updatedProposal.proposalId + " This proposal has been processed");
+                                    return Promise.reject({message: "This proposal has been processed"});
+                                }
+                                return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bApprove, proposalData, true)
+                            }
+                        )
                             .then(
                                 data => {
                                     console.log("LH Check Proposal Reject 2------------", data);
@@ -1372,7 +1388,9 @@ var proposal = {
                                     )
                                 },
                                 err => {
-                                    deferred.reject({name: "DBError", message: "Can't update proposal process step"});
+                                    // the status will still change[next "then" chain of process] when this error is hit (there is any error in executing/rejecting), is this normal?
+                                    // todo :: might require to change status to 异常 when this error is hit, and prevent the next part of code (changing the status) to run
+                                    deferred.reject({name: "DBError", message: "Can't update proposal process step", error: err});
                                 }
                             ).then(
                                 () => {
@@ -1384,7 +1402,7 @@ var proposal = {
                                         {_id: proposalData._id, createTime: proposalData.createTime},
                                         updateData,
                                         {new: true}
-                                    ).then(data => {
+                                    ).lean().then(data => {
                                         proposalObj = data;
                                         console.log("LH Check Proposal Reject 4------------", proposalObj);
                                         let prom = Promise.resolve(true);
@@ -1437,7 +1455,8 @@ var proposal = {
                                     })
                                 },
                                 err => {
-                                    deferred.reject({name: "DBError", message: "Can't update proposal process step"});
+                                    console.log('Can\'t update proposal process step err', err);
+                                    deferred.reject({name: "DBError", message: "Can't update proposal process step", error: err});
                                 }
                             );
                     }
@@ -1471,11 +1490,13 @@ var proposal = {
     },
 
     cancelProposal: function (proposalId, adminId, remark, adminObjId) {
+        let proposalData;
         return dbconfig.collection_proposal.findOne({_id: proposalId})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .populate({path: "type", model: dbconfig.collection_proposalType})
             .then(
-                function (proposalData) {
+                function (proposal) {
+                    proposalData = proposal;
                     if (proposalData) {
                         var proposalStatus = proposalData.status || proposalData.process.status;
 
@@ -1483,26 +1504,11 @@ var proposal = {
                                 && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT || proposalStatus === constProposalStatus.CSPENDING))
                                 || (proposalData.creator.name.toString() == adminId.toString())
                                 && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
-                            return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
-                                .then(successData => {
-                                    let updateData = {
-                                        "data.lastSettleTime": new Date(),
-                                        settleTime: new Date(),
-                                        noSteps: true,
-                                        process: null,
-                                        status: constProposalStatus.CANCEL,
-                                        "data.cancelBy": "客服：" + adminId
-                                    };
-                                    if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
-                                        dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
-                                        delete updateData.process;
-                                    }
-                                    return dbconfig.collection_proposal.findOneAndUpdate(
-                                        {_id: proposalData._id, createTime: proposalData.createTime},
-                                        updateData,
-                                        {new: true}
-                                    );
-                                })
+                            return dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: proposalData._id, createTime: proposalData.createTime},
+                                {$inc: {processedTimes: 1}},
+                                {new: true}
+                            ).lean();
                         }
                         else {
                             return Q.reject({message: "incorrect proposal status or authentication."});
@@ -1512,7 +1518,34 @@ var proposal = {
                         return Q.reject({message: "incorrect proposal data!"});
                     }
                 }
-            );
+            ).then(
+                updatedProposal => {
+                    if (updatedProposal && updatedProposal.processedTimes && updatedProposal.processedTimes > 1) {
+                        console.log(updatedProposal.proposalId + " This proposal has been processed");
+                        return Promise.reject({message: "This proposal has been processed"});
+                    }
+
+                    return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true);
+                }
+            ).then(successData => {
+                let updateData = {
+                    "data.lastSettleTime": new Date(),
+                    settleTime: new Date(),
+                    noSteps: true,
+                    process: null,
+                    status: constProposalStatus.CANCEL,
+                    "data.cancelBy": "客服：" + adminId
+                };
+                if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
+                    dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
+                    delete updateData.process;
+                }
+                return dbconfig.collection_proposal.findOneAndUpdate(
+                    {_id: proposalData._id, createTime: proposalData.createTime},
+                    updateData,
+                    {new: true}
+                );
+            });
     },
 
     autoCancelProposal: function (proposalData) {
@@ -3934,6 +3967,7 @@ var proposal = {
     },
 
     getFinancialReportBySum: function (reqData) {
+        console.log('RT - FR PE start');
         reqData.platform = reqData.platform.map(id => ObjectId(id));
         let bonusTypeList = [constProposalType.PLAYER_BONUS, constProposalType.PARTNER_BONUS];
         let bonusDetail = [];
@@ -3950,6 +3984,7 @@ var proposal = {
 
         return Promise.all([depositGroupProm, platformProm, bonusProm, platformFeeEstimateProm, sumBonusTopUpProm]).then(
             data => {
+                console.log('RT - FR PE prom 1');
                 if(data) {
                     depositGroupRecord = data[0] ? data[0] : [];
                     platformRecord = data[1] ? data[1] : [];
@@ -3963,6 +3998,7 @@ var proposal = {
 
                         return Promise.all(topUpProms).then(
                             proposalData => {
+                                console.log('RT - FR PE prom 2');
                                 let tempTopUpDetail = [];
 
                                 if (proposalData && proposalData.length > 0) {
@@ -3979,7 +4015,7 @@ var proposal = {
                             }
                         ).then(
                             topUpDetailData => {
-
+                                console.log('RT - FR PE prom 3');
                                 let topUpRecord = rearrangeSumTopUpDetailByDepositGroup(depositGroupRecord, topUpDetailData, platformRecord);
 
                                 return topUpRecord;
@@ -3990,10 +4026,12 @@ var proposal = {
             }
         ).then(
             topUpData => {
+                console.log('RT - FR PE prom 4');
                 let bonus = rearrangeBonusDetailByMutilplePlatform(bonusTypeList, bonusDetail, platformRecord);
                 let platformFee = rearrangePlatformFeeEstimateDetailByMutilplePlatform(platformFeeEstimateDetail, platformRecord);
                 let sumBonusTopUp = rearrangeSumBonus(sumBonusDetail, platformRecord);
 
+                console.log('RT - FR PE end');
                 return {topUpList: topUpData ? topUpData : [], bonusList: bonus, platformFeeEstimateList: platformFee, totalSumBonusTopUp: sumBonusTopUp};
             }
         );
@@ -8813,6 +8851,7 @@ function isBankInfoMatched(proposalData, playerId){
 }
 
 function getBonusDetail(platformId, startDate, endDate) {
+    console.log('RT - FR PE prom 0.3');
     return dbconfig.collection_proposalType.find(
         {
             name: {$in: [constProposalType.PLAYER_BONUS, constProposalType.PARTNER_BONUS]},
@@ -8820,6 +8859,7 @@ function getBonusDetail(platformId, startDate, endDate) {
         }, {_id: 1, name: 1}
     ).then(
         proposalTypeData => {
+            console.log('RT - FR PE prom 0.3.1');
             if (proposalTypeData && proposalTypeData.length > 0) {
                 let proposalObjIds = [];
                 let proposalTypeObj = {};
@@ -8868,6 +8908,7 @@ function getBonusDetail(platformId, startDate, endDate) {
                         }
                     ]).read("secondaryPreferred").then(
                         bonusData => {
+                            console.log('RT - FR PE prom 0.3.2');
                             if (bonusData && bonusData.length > 0) {
                                 for (let i = 0, len = bonusData.length; i < len; i++) {
                                     let bonus = bonusData[i];
@@ -8893,6 +8934,7 @@ function getBonusDetail(platformId, startDate, endDate) {
                                     return a;
                                 }, []);
 
+                                console.log('RT - FR PE prom 0.3.3');
                                 return tempBonusData;
                             }
                         }
@@ -8904,6 +8946,7 @@ function getBonusDetail(platformId, startDate, endDate) {
 }
 
 function getPlatformFeeEstimate (platformId, startDate, endDate) {
+    console.log('RT - FR PE prom 0.4');
     let query = {
         createTime: {
             $gte: new Date(startDate),
@@ -8944,7 +8987,7 @@ function getPlatformFeeEstimate (platformId, startDate, endDate) {
         }
     ]).allowDiskUse(true).read("secondaryPreferred").then(
         consumptionData => {
-
+            console.log('RT - FR PE prom 0.4.1');
             return dbconfig.collection_platformFeeEstimate.find({platform: {$in: platformId}}).populate({
                 path: 'platformFee.gameProvider',
                 model: dbconfig.collection_gameProvider
@@ -8982,6 +9025,7 @@ function getPlatformFeeEstimate (platformId, startDate, endDate) {
                             consumptionDetail.totalPlatformFeeEstimate = dbutility.noRoundTwoDecimalPlaces(tempTotalPlatformFeeEstimate);
                         }
 
+                        console.log('RT - FR PE prom 0.4.2');
                         return consumptionData;
                     }
                 }
@@ -9095,6 +9139,7 @@ function rearrangePlatformFeeEstimateDetailByMutilplePlatform(currentList, platf
 }
 
 function getTotalSumBonusDetail(platformId, startDate, endDate) {
+    console.log('RT - FR PE prom 0.5');
     return dbconfig.collection_proposalType.find(
         {
             name: {$in: [constProposalType.PLAYER_BONUS, constProposalType.PARTNER_BONUS]},
@@ -9102,6 +9147,7 @@ function getTotalSumBonusDetail(platformId, startDate, endDate) {
         }, {_id: 1, name: 1}
     ).then(
         proposalTypeData => {
+            console.log('RT - FR PE prom 0.5.1');
             if (proposalTypeData && proposalTypeData.length > 0) {
                 let proposalObjIds = [];
                 let proposalTypeObj = {};
@@ -9135,7 +9181,12 @@ function getTotalSumBonusDetail(platformId, startDate, endDate) {
                                 "amount": {"$sum": "$data.amount"}
                             }
                         }
-                    ]).read("secondaryPreferred");
+                    ]).read("secondaryPreferred").then(
+                        data => {
+                            console.log('RT - FR PE prom 0.5.2');
+                            return data;
+                        }
+                    );
                 }
             }
         }
@@ -9171,9 +9222,11 @@ function rearrangeSumBonus (currentList, platformRecord) {
 }
 
 function getDepositGroup() {
+    console.log('RT - FR PE prom 0.1');
     let groups = [];
     return dbconfig.collection_depositGroup.find({depositParentDepositId: -1}, {depositId: 1, depositName: 1}).lean().then(
         parentDepositData => {
+            console.log('RT - FR PE prom 0.1.1');
             return dbconfig.collection_depositGroup.aggregate([
                 {
                     "$match": {
@@ -9194,8 +9247,9 @@ function getDepositGroup() {
                         }
                     }
                 }
-            ]).then(
+            ]).read("secondaryPreferred").then(
                 depositGroup => {
+                    console.log('RT - FR PE prom 0.1.2');
                     if (parentDepositData && parentDepositData.length > 0) {
                         parentDepositData.forEach(parent => {
                             if (depositGroup && depositGroup.length > 0) {
@@ -9232,6 +9286,7 @@ function getDepositGroup() {
                             }
                         });
 
+                        console.log('RT - FR PE prom 0.1.3');
                         return groups;
                     }
                 }
