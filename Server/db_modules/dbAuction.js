@@ -147,11 +147,11 @@ var dbAuction = {
                 obj.type = 1; // with top up requirement + fixed reward amount
             }
 
-            return dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: templateObjId}, obj).lean().then(
+            return dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: rewardData.templateObjId}, obj).lean().then(
                 retTemplate => {
                     if (retTemplate && !retTemplate.isDynamicRewardAmount){
                         if (retTemplate.hasOwnProperty("maxRewardAmount")){
-                            return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate({_id: ObjectId(retTemplate._id)}, {maxRewardAmount: null}, {new: true}).lean();
+                            return dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: ObjectId(retTemplate._id)}, {maxRewardAmount: null}, {new: true}).lean();
                         }
                     }
                     return retTemplate;
@@ -560,7 +560,7 @@ var dbAuction = {
         let query = {
             _id: ObjectId(templateObjId)
         }
-        return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate(query, {code: newCode, createTime: new Date(), expirationTime: new Date()}, {new: true}).lean().then(
+        return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate(query, {code: newCode, status: constPromoCodeStatus.DISABLE, createTime: new Date(), expirationTime: new Date()}, {new: true}).lean().then(
             updatedData => {
                 if (updatedData && updatedData.code){
                     return dbconfig.collection_auctionSystem.findOneAndUpdate({_id: ObjectId(auctionProductObjId)}, {'rewardData.promoCode': updatedData.code}).lean();
@@ -710,17 +710,29 @@ var dbAuction = {
         let curDay = new Date().getDay();
         let curDate = new Date().getDate();
 
+        if (curDay == 0){
+            curDay = 7;
+        }
+
         let endQuery = {
             rewardStartTime: {$lte: curTime},
             rewardEndTime: {$gte: curTime},
-            $or: [{
+            $or:[{
                 'rewardInterval': "weekly",
-                'rewardAppearPeriod.endDate': curDay,
-                'rewardAppearPeriod.startTime': curHour + 1
-            }, {
+                'rewardAppearPeriod': {
+                    $elemMatch: {
+                        'startDate': curDay,
+                        'startTime': curHour + 1
+                    }
+                }
+            },{
                 'rewardInterval': "monthly",
-                'rewardAppearPeriod.endDate': curDate,
-                'rewardAppearPeriod.startTime': curHour + 1
+                'rewardAppearPeriod': {
+                    $elemMatch: {
+                        'startDate': curDate,
+                        'startTime': curHour + 1
+                    }
+                }
             }],
             publish: true,
             status: 1
@@ -749,17 +761,29 @@ var dbAuction = {
         let curDay = new Date().getDay();
         let curDate = new Date().getDate();
 
+        if (curDay == 0){
+            curDay = 7;
+        }
+
         let endQuery = {
             rewardStartTime: {$lte: curTime},
             rewardEndTime: {$gte: curTime},
-            $or: [{
+            $or:[{
                 'rewardInterval': "weekly",
-                'rewardAppearPeriod.endDate': curDay,
-                'rewardAppearPeriod.endTime': curHour
-            }, {
+                'rewardAppearPeriod': {
+                    $elemMatch: {
+                        'endDate': curDay,
+                        'endTime': curHour
+                    }
+                }
+            },{
                 'rewardInterval': "monthly",
-                'rewardAppearPeriod.endDate': curDate,
-                'rewardAppearPeriod.endTime': curHour
+                'rewardAppearPeriod': {
+                    $elemMatch: {
+                        'endDate': curDate,
+                        'endTime': curHour
+                    }
+                }
             }],
             publish: true,
             status: 1
@@ -871,26 +895,25 @@ var dbAuction = {
         }
 
         function rejectProposalAndRefund(proposalData){
-           return dbconfig.collection_proposal.findOneAndUpdate(
-               {
-                   _id: proposalData._id,
-
-               },
-               {
-                   $set: {
-                       status: constProposalStatus.REJECTED
-                   }
-               },
-               {new: true}
-           ).lean().then(
-               proposalDetail => {
-                   if (proposalDetail && proposalDetail.data) {
-                       let creator = proposalDetail.data.seller || 'System';
-                       // return reward points to rejected bidder
-                       return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalDetail.data.playerObjId, proposalDetail.data.platformId, proposalDetail.data.currentBidPrice, 'Refund from bidding item: ' + proposalDetail.data.productName || "", null, null, creator, proposalDetail.inputDevice);
-                   }
-               }
-           )
+            return dbconfig.collection_proposal.findOneAndUpdate(
+                {
+                    _id: proposalData._id,
+                },
+                {
+                    $set: {
+                        status: constProposalStatus.REJECTED
+                    }
+                },
+                {new: true}
+            ).lean().then(
+                proposalDetail => {
+                    if (proposalDetail && proposalDetail.data) {
+                        let creator = proposalDetail.data.seller || 'System';
+                        // return reward points to rejected bidder
+                        return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalDetail.data.playerObjId, proposalDetail.data.platformId, proposalDetail.data.currentBidPrice, 'Refund from bidding item: ' + proposalDetail.data.productName || "", null, null, creator, proposalDetail.inputDevice);
+                    }
+                }
+            )
         }
 
     },
