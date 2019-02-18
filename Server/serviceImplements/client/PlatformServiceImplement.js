@@ -178,12 +178,6 @@ var PlatformServiceImplement = function () {
         let isValidData = Boolean(data.platformId && data.token && data.fileName && data.fileStream);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.sendFileFTP, [data.platformId, data.token, data.fileStream, data.fileName], isValidData, null, null, true);
     };
-
-    this.getUsableChannel.onRequest = function (wsFunc, conn, data) {
-        console.log("check getUsableChannel DATA --------------", data);
-        let isValidData = Boolean(data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getUsableChannel, [data.platformId], isValidData, null, null, true);
-    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);
