@@ -14489,13 +14489,20 @@ let dbPlayerInfo = {
 
                     //check valid time for reward event
                     let curTime = new Date();
-                    if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
-                        (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime())) {
+                    if (rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) {
                         console.log('RT -- Apply reward failed after top up', rewardEvent);
                         return Promise.reject({
                             status: constServerCode.REWARD_EVENT_INVALID,
                             name: "DataError",
                             message: "This reward event is not valid anymore"
+                        });
+                    }
+                    if (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime()) {
+                        console.log('RT -- Apply reward failed after top up', rewardEvent);
+                        return Promise.reject({
+                            status: constServerCode.REWARD_EVENT_INVALID,
+                            name: "DataError",
+                            message: "This reward event has ended, thank you for your support"
                         });
                     }
 

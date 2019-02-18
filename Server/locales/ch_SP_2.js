@@ -267,6 +267,7 @@ var simplifiedChinese = {
     "Player has pending manual topup request already.": "玩家已有手工充值记录",
     "The player has not unlocked the previous reward task. Not valid for new reward": "玩家已有奖励任务，无法申请新的奖励",
     "This reward event is not valid anymore": "活动未开始，敬请期待",
+    "This reward event has ended, thank you for your support": "活动已结束，谢谢支持",
     "Password is too short": "密码长度不够",
     "Player has pending proposal to update credit": "正在修改玩家额度",
     "Player or partner already has a pending proposal for this type": "有类似请求正在处理中",
