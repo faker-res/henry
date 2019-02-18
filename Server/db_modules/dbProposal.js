@@ -3963,6 +3963,7 @@ var proposal = {
     },
 
     getFinancialReportBySum: function (reqData) {
+        console.log('RT - FR PE start');
         reqData.platform = reqData.platform.map(id => ObjectId(id));
         let bonusTypeList = [constProposalType.PLAYER_BONUS, constProposalType.PARTNER_BONUS];
         let bonusDetail = [];
@@ -3979,6 +3980,7 @@ var proposal = {
 
         return Promise.all([depositGroupProm, platformProm, bonusProm, platformFeeEstimateProm, sumBonusTopUpProm]).then(
             data => {
+                console.log('RT - FR PE prom 1');
                 if(data) {
                     depositGroupRecord = data[0] ? data[0] : [];
                     platformRecord = data[1] ? data[1] : [];
@@ -3992,6 +3994,7 @@ var proposal = {
 
                         return Promise.all(topUpProms).then(
                             proposalData => {
+                                console.log('RT - FR PE prom 2');
                                 let tempTopUpDetail = [];
 
                                 if (proposalData && proposalData.length > 0) {
@@ -4008,7 +4011,7 @@ var proposal = {
                             }
                         ).then(
                             topUpDetailData => {
-
+                                console.log('RT - FR PE prom 3');
                                 let topUpRecord = rearrangeSumTopUpDetailByDepositGroup(depositGroupRecord, topUpDetailData, platformRecord);
 
                                 return topUpRecord;
@@ -4019,10 +4022,12 @@ var proposal = {
             }
         ).then(
             topUpData => {
+                console.log('RT - FR PE prom 4');
                 let bonus = rearrangeBonusDetailByMutilplePlatform(bonusTypeList, bonusDetail, platformRecord);
                 let platformFee = rearrangePlatformFeeEstimateDetailByMutilplePlatform(platformFeeEstimateDetail, platformRecord);
                 let sumBonusTopUp = rearrangeSumBonus(sumBonusDetail, platformRecord);
 
+                console.log('RT - FR PE end');
                 return {topUpList: topUpData ? topUpData : [], bonusList: bonus, platformFeeEstimateList: platformFee, totalSumBonusTopUp: sumBonusTopUp};
             }
         );
