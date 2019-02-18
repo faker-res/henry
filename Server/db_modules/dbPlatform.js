@@ -1906,7 +1906,7 @@ var dbPlatform = {
 
     },
 
-    getUsableChannel: (platformId) => {
+    getUsableChannelList: (platformId) => {
         console.log('getUsableChannel platformId===', platformId);
         let sendObj = {
             platformId: platformId
