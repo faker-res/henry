@@ -1107,7 +1107,11 @@ var proposal = {
                         errorMessage = "Cannot find proposal";
                     }
                     else if (proposalData.status != constProposalStatus.APPROVED || proposalData.status == constProposalStatus.FAIL || proposalData.status == constProposalStatus.CANCEL) {
-                        errorMessage = "Invalid proposal status:" + proposalData.status;
+                        if (proposalData && proposalData.data && proposalData.data.bonusSystemType && proposalData.data.bonusSystemType === 'PMS2' && proposalData.status == constProposalStatus.SUCCESS) {
+                            errorMessage = "Proposal status already success";
+                        } else {
+                            errorMessage = "Invalid proposal status:" + proposalData.status;
+                        }
                     }
                     else if (proposalData.data && proposalData.data.bonusId != bonusId) {
                         errorMessage = "Invalid bonusId";

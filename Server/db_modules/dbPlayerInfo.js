@@ -11471,6 +11471,7 @@ let dbPlayerInfo = {
         let platform;
         let isUsingXima = false;
         let lastBonusRemark = "";
+        let bonusSystemConfig;
         let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
@@ -11543,6 +11544,9 @@ let dbPlayerInfo = {
                 playerData => {
                     if (playerData) {
                         player = playerData;
+
+                        bonusSystemConfig =
+                            extConfig && player.platform.bonusSystemType && extConfig[player.platform.bonusSystemType];
 
                         if (player.ximaWithdraw) {
                             ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
@@ -11807,6 +11811,19 @@ let dbPlayerInfo = {
                                                     proposalData.needCsApproved = true;
                                                 }
                                             }
+
+                                            if (player.platform.bonusSystemType && bonusSystemConfig) {
+                                                proposalData.bonusSystemType = player.platform.bonusSystemType;
+                                                proposalData.bonusSystemName = bonusSystemConfig.name;
+                                            } else if (!player.platform.bonusSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                                                Object.keys(extConfig).forEach(key => {
+                                                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                                                        proposalData.bonusSystemType = Number(key);
+                                                        proposalData.bonusSystemName = extConfig[key].name;
+                                                    }
+                                                });
+                                            }
+
                                             var newProposal = {
                                                 creator: proposalData.creator,
                                                 data: proposalData,
