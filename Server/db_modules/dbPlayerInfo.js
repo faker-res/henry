@@ -12450,6 +12450,7 @@ let dbPlayerInfo = {
                             conn.playerId = playerId;
                             conn.playerObjId = playerData._id;
                             conn.platformId = playerData.platform.platformId;
+                            conn.isSendEBETData = playerData.platform.isSendEBETData;
 
                             // Online time trace
                             dbPlayerOnlineTime.authenticateTimeLog(playerData._id, token).catch(errorUtils.reportError);
