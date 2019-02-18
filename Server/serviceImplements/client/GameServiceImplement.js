@@ -294,8 +294,8 @@ var GameServiceImplement = function () {
     };
 
     this.getLiveGameInfo.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.getLiveGameInfo, [data.count, data.platformId, conn], isValidData);
+        var isValidData = Boolean(data);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.getLiveGameInfo, [data.count, data.switchNotify, conn], isValidData, false, false, true);
     };
 
     this.notifyLiveGameStatus.addListener(
