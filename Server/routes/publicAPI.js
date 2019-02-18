@@ -15,8 +15,8 @@ const errorUtils = require("../modules/errorUtils.js");
 const dbOtherPayment = require('./../db_modules/externalAPI/dbOtherPayment');
 const dbconfig = require('./../modules/dbproperties');
 const ObjectId = mongoose.Types.ObjectId;
-var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
-var dbPlayerLoginRecord = require('./../db_modules/dbPlayerLoginRecord');
+const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const dbPlayerLoginRecord = require('./../db_modules/dbPlayerLoginRecord');
 
 
 router.post('/fkpNotify', function(req, res, next) {
