@@ -1235,11 +1235,14 @@ var dbPlayerConsumptionRecord = {
         var prom0 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         var prom1 = dbconfig.collection_game.findOne({gameId: gameId});
         var prom2 = dbconfig.collection_players.findOne({playerId: playerId});
-        Q.all([prom0, prom1, prom2]).then(
+        var prom3 = dbconfig.collection_platform.find({}, { _id: 1, platformId: 1, name: 1}).lean();
+        let platformList;
+        Q.all([prom0, prom1, prom2, prom3]).then(
             function (id) {
                 var pid = id[0] ? id[0]._id : null;
                 var gid = id[1] ? id[1]._id : null;
                 var playerObjId = id[2] ? id[2]._id : null;
+                platformList = id[3] ? id[3] : null;
                 return dbPlayerConsumptionRecord.search(startTime, endTime, playerObjId, pid, gid, startIndex, count);
             }
         ).then(
@@ -1249,7 +1252,7 @@ var dbPlayerConsumptionRecord = {
                     for (var i = 0; i < data[0].length; i++) {
                         var record = Object.assign({}, data[0][i]);
                         record.totalAmount = record.validAmount + (record.bonusAmount || 0);
-                        record.name = data[0][i].gameId.name;
+                        record.name = dbPlayerConsumptionRecord.findGameName(platformList, record);
                         delete record.gameId;
                         records.push(record);
                     }
@@ -1290,7 +1293,17 @@ var dbPlayerConsumptionRecord = {
             });
         return deferred.promise;
     },
-
+    findGameName: function(platformList, gameData){
+        let gameName = '';
+        let platform = platformList.filter(item=> { return item._id.equals(gameData.platformId) });
+        let platformNo = (platform && platform[0] && platform[0].platformId ) ? platform[0].platformId : 0;
+        if( gameData.gameId && gameData.gameId.changedName && gameData.gameId.changedName[platformNo] ) {
+            gameName = gameData.gameId.changedName[platformNo];
+        }else{
+            gameName = (gameData && gameData.gameId && gameData.gameId.name) ? gameData.gameId.name : '';
+        }
+        return gameName;
+    },
     search: function (startTime, endTime, playerObjId, providerId, gameId, startIndex, count) {
         startIndex = startIndex || 0;
         startIndex = Number(startIndex);
