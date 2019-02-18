@@ -791,7 +791,13 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
     url += clientType + delimiter;
     url += ipAddress + delimiter;
     url += amount + delimiter;
-    url += proposalData.proposalId
+    if (playerData && playerData.platform && playerData.platform.topUpSystemType && extConfig &&
+        extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].name && extConfig[playerData.platform.topUpSystemType].name === 'PMS2') {
+        url += proposalData.proposalId + delimiter;
+        url += proposalData.entryType
+    } else {
+        url += proposalData.proposalId
+    }
 
     return url;
 }

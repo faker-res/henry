@@ -614,6 +614,18 @@ const dbLargeWithdrawal = {
                     console.log("You do not have the power of approving this proposal through email:", adminObjId);
                     return Promise.reject({message: "You do not have the power of approving this proposal through email"});
                 }
+                return dbconfig.collection_proposal.findOneAndUpdate(
+                    {_id: proposal._id, createTime: proposal.createTime},
+                    {$inc: {processedTimes: 1}},
+                    {new: true}
+                ).lean();
+            }
+        ).then(
+            updatedProposal => {
+                if (updatedProposal && updatedProposal.processedTimes && updatedProposal.processedTimes > 1) {
+                    console.log(updatedProposal.proposalId + " This proposal has been processed");
+                    return Promise.reject({message: "This proposal has been processed"});
+                }
 
                 return dbconfig.collection_proposal.findOneAndUpdate({
                     _id: proposal._id,

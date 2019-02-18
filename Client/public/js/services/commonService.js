@@ -1236,6 +1236,9 @@ define([], () => {
                 if(vm.selectedProposal.data.lastSettleTime) {
                     proposalDetail["lastSettleTime"] = vm.selectedProposal.data.lastSettleTime;
                 }
+                if(vm.selectedProposal.data.bonusSystemName) {
+                    proposalDetail["bonusSystemName"] = vm.selectedProposal.data.bonusSystemName;
+                }
             }
             //end region
 
@@ -1267,6 +1270,9 @@ define([], () => {
                         proposalDetail["pmsRemark"] = pmsRemark.substring(0, indexOfDivider);
                         proposalDetail["pmsOperator"] = pmsRemark.substring(indexOfDivider + 1, pmsRemark.length);
                     }
+                }
+                if(vm.selectedProposal.data.bonusSystemName) {
+                    proposalDetail["bonusSystemName"] = vm.selectedProposal.data.bonusSystemName;
                 }
             }
             // end region

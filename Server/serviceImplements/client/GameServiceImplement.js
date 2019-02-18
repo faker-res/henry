@@ -202,7 +202,7 @@ var GameServiceImplement = function () {
             os: ua.os.name || ''
         }];
 
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice, userAgent], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice, userAgent, data.tableId], isValidData);
     };
 
     this.getTestLoginURL.expectsData = 'gameId: String, clientDomainName: String';
@@ -294,13 +294,12 @@ var GameServiceImplement = function () {
     };
 
     this.getLiveGameInfo.onRequest = function (wsFunc, conn, data) {
-        var isValidData = true;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.getLiveGameInfo, [data.count], isValidData, false, false, true);
+        var isValidData = Boolean(data && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.getLiveGameInfo, [data.count, data.platformId, conn], isValidData);
     };
 
     this.notifyLiveGameStatus.addListener(
         function (data) {
-            // console.log("notifyNewMail:", data);
             WebSocketUtil.notifyEBETLuZhuClient(self, "notifyLiveGameStatus", data);
         }
     );
