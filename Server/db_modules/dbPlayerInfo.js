@@ -16379,7 +16379,7 @@ let dbPlayerInfo = {
                             providerDetail: 1
                         }
                     }
-                )
+                ).read("secondaryPreferred");
             }
         ).then(
             playerSummaryData => {
@@ -16611,7 +16611,7 @@ let dbPlayerInfo = {
                     }
 
                     return dbconfig.collection_players.find(playerQuery)
-                        .populate({path: "csOfficer", model: dbconfig.collection_admin});
+                        .populate({path: "csOfficer", model: dbconfig.collection_admin}).lean();
                 }
             }
         ).then(
