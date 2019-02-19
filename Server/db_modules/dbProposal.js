@@ -1196,6 +1196,7 @@ var proposal = {
         var proposalData = null;
         let proposalObj;
         let proposalProcessData;
+        let isProcessedBefore = false;
 
         //find proposal
         dbconfig.collection_proposal.findOne({_id: proposalId}).populate(
@@ -1369,6 +1370,7 @@ var proposal = {
                             updatedProposal => {
                                 if (updatedProposal && updatedProposal.processedTimes && updatedProposal.processedTimes > 1) {
                                     console.log(updatedProposal.proposalId + " This proposal has been processed");
+                                    isProcessedBefore = true;
                                     return Promise.reject({message: "This proposal has been processed"});
                                 }
                                 return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bApprove, proposalData, true)
@@ -1394,6 +1396,10 @@ var proposal = {
                                 }
                             ).then(
                                 () => {
+                                    if (isProcessedBefore) {
+                                        return Promise.resolve();
+                                    }
+
                                     let updateData = {status: status, isLocked: null};
                                     console.log("LH Check Proposal Reject 3------------", updateData);
                                     console.log("LH Check Proposal Reject 3.1------------", proposalData.status);
