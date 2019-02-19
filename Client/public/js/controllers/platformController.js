@@ -28047,6 +28047,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
                 vm.platformBasic.useEbetWallet = vm.selectedPlatform.data.useEbetWallet;
                 vm.platformBasic.isSendEBETData = vm.selectedPlatform.data.isSendEBETData;
+                vm.platformBasic.disableProviderAfterConsecutiveTimeoutCount = vm.selectedPlatform.data.disableProviderAfterConsecutiveTimeoutCount;
 
 
                 // $scope.safeApply();
@@ -29850,6 +29851,7 @@ define(['js/app'], function (myApp) {
                         display: srcData.display,
                         useEbetWallet: srcData.useEbetWallet,
                         isSendEBETData: srcData.isSendEBETData,
+                        disableProviderAfterConsecutiveTimeoutCount: srcData.disableProviderAfterConsecutiveTimeoutCount,
                     }
                 };
                 let isProviderGroupOn = false;

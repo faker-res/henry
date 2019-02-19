@@ -6,6 +6,9 @@ const constServerCode = require("../const/constServerCode");
 const request = require('request');
 const dbLogger = require("../modules/dbLogger");
 const clientAPIInstance = require("../modules/clientApiInstances");
+const dbconfig = require('../modules/dbproperties');
+const constPlayerCreditTransferStatus = require('../const/constPlayerCreditTransferStatus');
+const constGameStatus = require('../const/constGameStatus');
 let wsConn;
 
 function callCPMSAPI(service, functionName, data, fileData) {
@@ -18,6 +21,36 @@ function callCPMSAPI(service, functionName, data, fileData) {
     //if can't connect in 30 seconds, treat as timeout
     setTimeout(function () {
         if (!bOpen) {
+            if(data.platformId && data.providerId) {
+                let timeoutLimit = 0;
+                //check if last N times failed due to timed out
+                dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().exec().then(platform => {
+                    timeoutLimit = platform.disableProviderAfterConsecutiveTimeoutCount;
+                    if(timeoutLimit && timeoutLimit > 0) {
+                        return dbconfig.collection_playerCreditTransferLog.find({
+                            platformObjId: platform._id,
+                            providerId: data.providerId,
+                            $or: [
+                                {status: constPlayerCreditTransferStatus.SUCCESS},
+                                {status: constPlayerCreditTransferStatus.FAIL},
+                                {status: constPlayerCreditTransferStatus.TIMEOUT}
+                            ]
+                        }).sort({_id:-1}).limit(timeoutLimit).then(logs => {
+                            let count = 0;
+                            logs.forEach(log => {
+                                if(log.status == constPlayerCreditTransferStatus.TIMEOUT) {
+                                    count++;
+                                }
+
+                            });
+                            if(count >= timeoutLimit) {
+                                //set provider to maintenance status
+                                return dbconfig.collection_gameProvider.findOneAndUpdate({providerId: data.providerId},{status:constGameStatus.MAINTENANCE});
+                            }
+                        });
+                    }
+                });
+            }
             return deferred.reject({
                 status: constServerCode.CP_NOT_AVAILABLE,
                 message: "Request timeout",
