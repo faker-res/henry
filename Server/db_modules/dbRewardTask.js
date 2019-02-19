@@ -2276,6 +2276,11 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     }
                 };
 
+                console.log("LH Check RTG unlock 0-------------", currentAmt);
+                console.log("LH Check RTG unlock 0.1-------------", bonusAmt);
+                console.log("LH Check RTG unlock 0.2-------------", remainBonusAmt);
+                console.log("LH Check RTG unlock 0.3-------------", updObj);
+
                 return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                     {_id: rewardTaskGroup._id},
                     updObj,
@@ -2332,7 +2337,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 unlockTime: createTime
                             };
 
-                            console.log("LH Check RTG unlock 1-------------", updatedRTG.currentAmt);
+                            console.log("LH Check RTG unlock 1-------------", updatedRTG);
+                            console.log("LH Check RTG unlock 1.1-------------", updatedRTG.currentAmt);
                             console.log("LH Check RTG unlock 2-------------", platform.autoApproveLostThreshold);
 
                             // Check whether player has lost all credit
