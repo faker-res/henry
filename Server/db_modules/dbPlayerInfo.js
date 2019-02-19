@@ -14442,10 +14442,17 @@ let dbPlayerInfo = {
 
                     let playerState;
 
+                    console.log('data===', data);
+                    console.log('isBulkApply===', isBulkApply);
+                    console.log('isPreview===', isPreview);
+                    console.log('playerInfo._id===', playerInfo._id);
+
                     if (isBulkApply || isPreview) {
+                        console.log('playerState TRUE===');
                         // bypass player state for bulk apply
                         playerState = Promise.resolve(true);
                     } else {
+                        console.log('playerState FALSE===');
                         playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
                     }
 
