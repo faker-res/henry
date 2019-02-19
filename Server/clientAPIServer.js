@@ -43,7 +43,7 @@ var ClientAPIServer = serviceUtils.buildWSServer(
     process.env.USE_SSL
 );
 
-ebetRTN.connect(5).catch(errorUtils.reportError);
+// ebetRTN.connect(5).catch(errorUtils.reportError);
 
 var server = new ClientAPIServer(process.env.PORT || 9280);
 server._needAuth = true;

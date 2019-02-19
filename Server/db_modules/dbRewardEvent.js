@@ -226,12 +226,18 @@ var dbRewardEvent = {
                 }
                 //check valid time for reward event
                 let curTime = new Date();
-                if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
-                    (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime())) {
-                    return Q.reject({
+                if (rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) {
+                    return Promise.reject({
                         status: constServerCode.REWARD_EVENT_INVALID,
                         name: "DataError",
                         message: "This reward event is not valid anymore"
+                    });
+                }
+                if (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime()) {
+                    return Promise.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DataError",
+                        message: "This reward event has ended, thank you for your support"
                     });
                 }
                 let intervalTime;
