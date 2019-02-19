@@ -615,9 +615,47 @@ var dbPlatform = {
      */
 
     syncPlatform: function () {
+        dbPlatform.syncHTTPPMSPlatform();
         dbPlatform.syncPMSPlatform();
         dbPlatform.syncCPMSPlatform();
         dbPlatform.syncSMSPlatform();
+    },
+
+    syncHTTPPMSPlatform: function () {
+        if (env.mode != "local" && env.mode != "qa") {
+            if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                Object.keys(extConfig).forEach(key => {
+                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS2' && extConfig[key].syncPlatformAPIAddr) {
+                        return dbconfig.collection_platform.find().then(
+                            platformArr => {
+                                var sendObj = [];
+                                if (platformArr && platformArr.length > 0) {
+                                    for (var i in platformArr) {
+                                        var obj = {
+                                            platformId: platformArr[i].platformId,
+                                            name: platformArr[i].name,
+                                        }
+                                        sendObj.push(obj)
+                                    }
+
+                                    let data = {
+                                        platforms: sendObj
+                                    };
+
+                                    let options = {
+                                        method: 'POST',
+                                        uri: extConfig[key].syncPlatformAPIAddr,
+                                        body: data,
+                                        json: true
+                                    };
+                                    return rp(options);
+                                }
+                            }
+                        );
+                    }
+                });
+            }
+        }
     },
 
     syncPMSPlatform: function () {
