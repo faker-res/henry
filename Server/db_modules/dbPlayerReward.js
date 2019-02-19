@@ -6174,7 +6174,10 @@ let dbPlayerReward = {
                         // execute if IP is not empty
                         for (let i = 0; i < countReward.length; i++) {
                             // check if same IP address  has already received this reward
+                            console.log('playerData.lastLoginIp===', playerData.lastLoginIp);
+                            console.log('countReward[i].data.lastLoginIp===', countReward[i].data.lastLoginIp);
                             if (playerData.lastLoginIp === countReward[i].data.lastLoginIp) {
+                                console.log('SAME IP===');
                                 sameIPAddress++;
                             }
                         }
@@ -6865,6 +6868,8 @@ let dbPlayerReward = {
                                     message: localization.localization.translate("This player has applied for max reward times in event period")
                                 });
                             }
+
+                            console.log('matchIPAddress===', matchIPAddress);
 
                             if (!matchIPAddress) {
                                 return Q.reject({
