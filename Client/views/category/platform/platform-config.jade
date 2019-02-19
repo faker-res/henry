@@ -1109,6 +1109,10 @@
                                 td {{'Use eBet Wallet' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.useEbetWallet', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'EBET_LUZHU' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.isSendEBETData', ng-disabled='!vm.configTableEdit')
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}

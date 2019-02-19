@@ -28046,6 +28046,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
                 vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
                 vm.platformBasic.useEbetWallet = vm.selectedPlatform.data.useEbetWallet;
+                vm.platformBasic.isSendEBETData = vm.selectedPlatform.data.isSendEBETData;
 
 
                 // $scope.safeApply();
@@ -29848,6 +29849,7 @@ define(['js/app'], function (myApp) {
                         manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
                         display: srcData.display,
                         useEbetWallet: srcData.useEbetWallet,
+                        isSendEBETData: srcData.isSendEBETData,
                     }
                 };
                 let isProviderGroupOn = false;
