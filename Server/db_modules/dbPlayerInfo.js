@@ -5957,6 +5957,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerState => {
+                console.log('playerState===11', playerState);
                 if (playerState) {
                     return dbconfig.collection_playerRetentionRewardGroupRecord.find(query).populate({
                         path: "rewardEventObjId",
@@ -5966,6 +5967,7 @@ let dbPlayerInfo = {
                         model: dbconfig.collection_playerTopUpRecord
                     }).lean();
                 } else {
+                    console.log('retention concurrent -- apply reward fail===');
                     return Promise.reject({
                         name: "DBError",
                         status: constServerCode.CONCURRENT_DETECTED,
@@ -14440,15 +14442,23 @@ let dbPlayerInfo = {
 
                     let playerState;
 
+                    console.log('data===', data);
+                    console.log('isBulkApply===', isBulkApply);
+                    console.log('isPreview===', isPreview);
+                    console.log('playerInfo._id===', playerInfo._id);
+
                     if (isBulkApply || isPreview) {
+                        console.log('playerState TRUE===');
                         // bypass player state for bulk apply
                         playerState = Promise.resolve(true);
                     } else {
+                        console.log('playerState FALSE===');
                         playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
                     }
 
                     return playerState.then(
                         playerState => {
+                            console.log('playerState===22', playerState);
                             if (playerState || data.isClearConcurrent) {
                                 if (code === "MANUAL_PLAYER_LEVEL_UP_REWARD") {
                                     return {
@@ -14463,6 +14473,7 @@ let dbPlayerInfo = {
                                     code: code
                                 }).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
                             } else {
+                                console.log('applyRewardEvent concurrent -- apply reward fail===');
                                 return Promise.reject({
                                     name: "DBError",
                                     status: constServerCode.CONCURRENT_DETECTED,
@@ -16368,7 +16379,7 @@ let dbPlayerInfo = {
                             providerDetail: 1
                         }
                     }
-                )
+                ).read("secondaryPreferred");
             }
         ).then(
             playerSummaryData => {
@@ -16600,7 +16611,7 @@ let dbPlayerInfo = {
                     }
 
                     return dbconfig.collection_players.find(playerQuery)
-                        .populate({path: "csOfficer", model: dbconfig.collection_admin});
+                        .populate({path: "csOfficer", model: dbconfig.collection_admin}).lean();
                 }
             }
         ).then(
