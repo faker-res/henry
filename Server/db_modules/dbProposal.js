@@ -1066,7 +1066,7 @@ var proposal = {
                     type: type,
                     rate: (Number(proposalObj.data.amount) * Number(topupRate)).toFixed(2),
                     actualAmountReceived: topupActualAmt,
-                    realName: propData.data.realName
+                    realName: proposalObj.data.playerRealName
                 };
             },
             error => {
