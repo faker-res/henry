@@ -14761,6 +14761,7 @@ let dbPlayerInfo = {
                 if (data && isPreview){
                     return data;
                 }
+                console.log('reset bstate===11');
                 // Reset BState
                 dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 return data;
@@ -14770,6 +14771,7 @@ let dbPlayerInfo = {
                 if (err.status === constServerCode.CONCURRENT_DETECTED) {
                     // Ignore concurrent request for now
                 } else {
+                    console.log('reset bstate===22');
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 }
