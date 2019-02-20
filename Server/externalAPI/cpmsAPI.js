@@ -9,6 +9,7 @@ const clientAPIInstance = require("../modules/clientApiInstances");
 const dbconfig = require('../modules/dbproperties');
 const constPlayerCreditTransferStatus = require('../const/constPlayerCreditTransferStatus');
 const constGameStatus = require('../const/constGameStatus');
+const emailer = require("../modules/emailer");
 let wsConn;
 
 function callCPMSAPI(service, functionName, data, fileData) {
@@ -22,34 +23,7 @@ function callCPMSAPI(service, functionName, data, fileData) {
     setTimeout(function () {
         if (!bOpen) {
             if(data.platformId && data.providerId) {
-                let timeoutLimit = 0;
-                //check if last N times failed due to timed out
-                dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().exec().then(platform => {
-                    timeoutLimit = platform.disableProviderAfterConsecutiveTimeoutCount;
-                    if(timeoutLimit && timeoutLimit > 0) {
-                        return dbconfig.collection_playerCreditTransferLog.find({
-                            platformObjId: platform._id,
-                            providerId: data.providerId,
-                            $or: [
-                                {status: constPlayerCreditTransferStatus.SUCCESS},
-                                {status: constPlayerCreditTransferStatus.FAIL},
-                                {status: constPlayerCreditTransferStatus.TIMEOUT}
-                            ]
-                        }).sort({_id:-1}).limit(timeoutLimit).then(logs => {
-                            let count = 0;
-                            logs.forEach(log => {
-                                if(log.status == constPlayerCreditTransferStatus.TIMEOUT) {
-                                    count++;
-                                }
-
-                            });
-                            if(count >= timeoutLimit) {
-                                //set provider to maintenance status
-                                return dbconfig.collection_gameProvider.findOneAndUpdate({providerId: data.providerId},{status:constGameStatus.MAINTENANCE});
-                            }
-                        });
-                    }
-                });
+                gameProviderTimeoutAutoMaintenance(data.platformId, data.providerId);
             }
             return deferred.reject({
                 status: constServerCode.CP_NOT_AVAILABLE,
@@ -158,6 +132,80 @@ function httpGet(url) {
     return deferred.promise;
 };
 
+function gameProviderTimeoutAutoMaintenance(platformId, providerId) {
+    let timeoutLimit = 0;
+    let platformName = '';
+    let tenMinutesAgo = new Date(new Date().getTime() - 10*60*1000);
+    let lastTimeoutDateTime;
+
+    //check if last N times failed due to timed out
+    dbconfig.collection_platform.findOne({platformId: platformId}).lean().exec().then(platform => {
+        timeoutLimit = platform.disableProviderAfterConsecutiveTimeoutCount;
+        platformName = platform.platformName;
+        if(timeoutLimit && timeoutLimit > 0) {
+            return dbconfig.collection_playerCreditTransferLog.find({
+                platformObjId: platform._id,
+                providerId: providerId,
+                $or: [
+                    {status: constPlayerCreditTransferStatus.SUCCESS},
+                    {status: constPlayerCreditTransferStatus.FAIL},
+                    {status: constPlayerCreditTransferStatus.TIMEOUT}
+                ],
+                createTime: {$gte: tenMinutesAgo}
+            }).sort({_id:-1}).limit(timeoutLimit);
+        }
+    }).then(logs => {
+        let count = 0;
+        logs.forEach(log => {
+            if(log.status == constPlayerCreditTransferStatus.TIMEOUT || log.status == constPlayerCreditTransferStatus.FAIL) {
+                count++;
+            }
+        });
+        if(count >= timeoutLimit) {
+            lastTimeoutDateTime = logs[0].createTime;
+            //set provider to maintenance status
+            return dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId},{status:constGameStatus.MAINTENANCE},{new:true});
+        } else {
+            return null;
+        }
+    }).then(provider => {
+        if(provider) {
+            let providerName = provider.name;
+
+            let sender = env.mailerNoReply;
+            let recipient = env.providerTimeoutNotificationRecipient;
+            let subject = "[FPMS System] - " + providerName + " timeout limit reached, set status to maintenance.";
+            let content = `<b>Game provider [${providerName}] has reached maximum consecutive timeout limit, it has been changed to maintenance status.</b>
+                        <br/><br/>
+                        <span>Platform: ${platformName}</span><br/>
+                        <span>Game Provider Name: ${providerName}</span><br/>
+                        <span>Current Status: MAINTENANCE</span><br/>
+                        <span>Max Consecutive Timeout Limit: ${timeoutLimit}</span><br/>
+                        <span>Last Timeout Date Time: ${lastTimeoutDateTime}</span>
+                        <br/><br/>-<br/><br/>
+                        <b>游戏提供商 [${providerName}] 已连续超时${timeoutLimit}次，现已将其设置为维护状态。
+                        <br/><br/>
+                        <span>平台: ${platformName}</span><br/>
+                        <span>游戏提供商: ${providerName}</span><br/>
+                        <span>现今状态: 维护</span><br/>
+                        <span>最高连续超时限制设定: ${timeoutLimit}次</span><br/>
+                        <span>最后尝试并超时时间: ${lastTimeoutDateTime}</span>
+                        <br/><br/><br/><br/>
+                        <span>This is an automated email sent by FPMS. <b>DO NOT Reply</b>.</span><br/>
+                        <span>此邮件是由FPMS系统自动发出。<b>请勿回复。</b></span>`;
+
+            let emailConfig = {
+                sender: sender,
+                recipient: recipient,
+                subject: subject,
+                body: content,
+                isHTML: true
+            };
+
+            return emailer.sendEmail(emailConfig);
+        }
+    });
+}
 const cpmsAPI = {
     /*
      * function name format: <service>_<functionName>
