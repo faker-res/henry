@@ -1065,8 +1065,8 @@ var proposal = {
                     actualAmountReceived: topupActualAmt
                 };
 
-                if (callbackData && callbackData.count == 1) {
-                    retObj.realName = proposalObj.data.realName;
+                if (callbackData && callbackData.count && Number(callbackData.count) == 1) {
+                    retObj.realName = proposalObj.data.realName ? proposalObj.data.realName : '';
                 }
 
                 return retObj;
