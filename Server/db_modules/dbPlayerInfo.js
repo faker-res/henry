@@ -19780,7 +19780,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade) {
+    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade, isFeedbackPhoneTrade) {
         let tsPhoneList;
         if (phoneListDetail.length <= 0) {
             return Promise.reject("None of the phone has pass the filter");
@@ -19854,7 +19854,7 @@ let dbPlayerInfo = {
                             )
                         }
 
-                        if (isPhoneTrade) {
+                        if (isPhoneTrade) { // ts phone trade
                             prom = prom.then(
                                 tsPhoneData => {
                                     dbconfig.collection_tsPhoneTrade.update(
@@ -19865,6 +19865,21 @@ let dbPlayerInfo = {
                                         {
                                             targetTsPhone: tsPhoneData._id,
                                             targetTsPhoneList: tsPhoneList._id
+                                        }, {multi: true}).catch(errorUtils.reportError);
+                                    return tsPhoneData
+                                }
+                            )
+                        }
+
+                        if (isFeedbackPhoneTrade) { // from feedback
+                            prom = prom.then(
+                                tsPhoneData => {
+                                    dbconfig.collection_feedbackPhoneTrade.update(
+                                        {
+                                            _id: phone._id
+                                        },
+                                        {
+                                            isImportedPhoneList: true
                                         }, {multi: true}).catch(errorUtils.reportError);
                                     return tsPhoneData
                                 }
