@@ -1056,7 +1056,7 @@ var proposal = {
             }
         ).then(
             propData => {
-                return {
+                let retObj = {
                     proposalId: proposalId,
                     orderStatus: orderStatus,
                     depositId: requestId,
@@ -1064,6 +1064,12 @@ var proposal = {
                     rate: (Number(proposalObj.data.amount) * Number(topupRate)).toFixed(2),
                     actualAmountReceived: topupActualAmt
                 };
+
+                if (callbackData && callbackData.count == 1) {
+                    retObj.realName = proposalObj.data.realName;
+                }
+
+                return retObj;
             },
             error => {
                 errorUtils.reportError(error);
