@@ -492,7 +492,6 @@ let PlayerServiceImplement = function () {
                 conn.noOfAttempt = 0;
                 conn.viewInfo = playerData.viewInfo;
                 conn.platformId = data.platformId;
-                conn.isSendEBETData = playerData.platform && playerData.platform.isSendEBETData;
                 conn.onclose = function (event) {
                     dbPlayerInfo.playerLogout({playerId: playerData.playerId}).catch(
                         error => {
