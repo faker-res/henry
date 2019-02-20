@@ -30,6 +30,8 @@ var localConfig = {
     paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
     ebetRTNUrl: "ws://rtn-xindeli99.cpms8.me:7351/ebet",
+    mailerNoReply: "no-reply@snsoft.my",
+    providerTimeoutNotificationRecipient: "dev-fpms@monaco1.ph",
 };
 
 //for aws-development
@@ -205,7 +207,9 @@ var prodConfig = {
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     paymentHTTPAPIUrl: "http://pms-pay-dev.neweb.me/",
     internalRESTUrl: "http://devtest.wsweb.me:7100",
-    ebetRTNUrl: "ws://rtn-xindeli.cpms8.me:7351/ebet",
+    ebetRTNUrl: "ws://rtn-xindeli99.cpms8.me:7351/ebet",
+    mailerNoReply: "no-reply@snsoft.my",
+    providerTimeoutNotificationRecipient: "dev-fpms@monaco1.ph",
 };
 
 

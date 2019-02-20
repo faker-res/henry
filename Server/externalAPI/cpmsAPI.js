@@ -6,63 +6,83 @@ const constServerCode = require("../const/constServerCode");
 const request = require('request');
 const dbLogger = require("../modules/dbLogger");
 const clientAPIInstance = require("../modules/clientApiInstances");
+const dbconfig = require('../modules/dbproperties');
+const constPlayerCreditTransferStatus = require('../const/constPlayerCreditTransferStatus');
+const constGameStatus = require('../const/constGameStatus');
+const emailer = require("../modules/emailer");
 let wsConn;
 
 function callCPMSAPI(service, functionName, data, fileData) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
-
-    let bOpen = false;
-    var deferred = Q.defer();
-    //if can't connect in 30 seconds, treat as timeout
-    setTimeout(function () {
-        if (!bOpen) {
-            return deferred.reject({
-                status: constServerCode.CP_NOT_AVAILABLE,
-                message: "Request timeout",
-                errorMessage: "Request timeout"
+    //check if provider status is MAINTENANCE
+    return dbconfig.collection_gameProvider.findOne({providerId: data.providerId || 0}, {status: 1}).lean().exec().then(provider => {
+        if (provider && provider.status && provider.status == constGameStatus.MAINTENANCE) {
+            return Q.reject({
+                name: "DataError",
+                message: "Provider is not available"
             });
-        }
-    }, 60 * 1000);
-    clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
-        wsClient => {
-            bOpen = true;
-            // var reqTime = new Date().getTime();
-            // var resFunction = function (res) {
-            //     // var resTime = new Date().getTime();
-            //     // dbLogger.createAPIResponseTimeLog(service, functionName, data, res, (resTime - reqTime));
-            // };
-            return wsClient.callAPIOnce(service, functionName, data).then(
-                res => {
-                    if (wsClient && typeof wsClient.disconnect == "function") {
-                        wsClient.disconnect();
+        } else {
+            let bOpen = false;
+            var deferred = Q.defer();
+            //if can't connect in 30 seconds, treat as timeout
+            setTimeout(function () {
+                if (!bOpen) {
+                    if(data.platformId && data.providerId) {
+                        gameProviderTimeoutAutoMaintenance(data.platformId, data.providerId);
                     }
-                    return res;
+                    return deferred.reject({
+                        status: constServerCode.CP_NOT_AVAILABLE,
+                        message: "Request timeout",
+                        errorMessage: "Request timeout"
+                    });
+                }
+            }, 60 * 1000);
+            clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+                wsClient => {
+                    bOpen = true;
+                    // var reqTime = new Date().getTime();
+                    // var resFunction = function (res) {
+                    //     // var resTime = new Date().getTime();
+                    //     // dbLogger.createAPIResponseTimeLog(service, functionName, data, res, (resTime - reqTime));
+                    // };
+                    return wsClient.callAPIOnce(service, functionName, data).then(
+                        res => {
+                            if (wsClient && typeof wsClient.disconnect == "function") {
+                                wsClient.disconnect();
+                            }
+                            return res;
+                        },
+                        error => {
+                            // resFunction(error);
+                            if (wsClient && typeof wsClient.disconnect == "function") {
+                                wsClient.disconnect();
+                            }
+                            if (error.status) {
+                                return Q.reject(error);
+                            }
+                            else {
+                                return Q.reject({
+                                    status: constServerCode.CP_NOT_AVAILABLE,
+                                    message: "Game is not available",
+                                    error: error
+                                });
+                            }
+                        }
+                    );
                 },
                 error => {
-                    // resFunction(error);
-                    if (wsClient && typeof wsClient.disconnect == "function") {
-                        wsClient.disconnect();
-                    }
-                    if (error.status) {
-                        return Q.reject(error);
-                    }
-                    else {
-                        return Q.reject({
-                            status: constServerCode.CP_NOT_AVAILABLE,
-                            message: "Game is not available",
-                            error: error
-                        });
-                    }
+                    return Q.reject({
+                        status: constServerCode.CP_NOT_AVAILABLE,
+                        message: "Game is not available",
+                        error: error
+                    });
                 }
-            );
-        },
-        error => {
-            return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error: error});
+            ).then(deferred.resolve, deferred.reject);
+            return deferred.promise;
         }
-    ).then(deferred.resolve, deferred.reject);
-    return deferred.promise;
+    });
 };
 
 function callCPMSAPIWithFileData(service, functionName, data, fileData) {
@@ -125,6 +145,83 @@ function httpGet(url) {
     return deferred.promise;
 };
 
+function gameProviderTimeoutAutoMaintenance(platformId, providerId) {
+    const minute = 60*1000;
+    let timeoutLimit = 0;
+    let platformName = '';
+    let searchTimeFrame = 3 * minute;
+    let lastTimeoutDateTime;
+
+    //check if last N times failed due to timed out
+    dbconfig.collection_platform.findOne({platformId: platformId}).lean().exec().then(platform => {
+        timeoutLimit = platform.disableProviderAfterConsecutiveTimeoutCount;
+        searchTimeFrame = platform.providerConsecutiveTimeoutSearchTimeFrame ? platform.providerConsecutiveTimeoutSearchTimeFrame * minute : searchTimeFrame;
+        platformName = platform.platformName;
+        let searchTimeStart = new Date(new Date().getTime() - searchTimeFrame);
+        if(timeoutLimit && timeoutLimit > 0) {
+            return dbconfig.collection_playerCreditTransferLog.find({
+                platformObjId: platform._id,
+                providerId: providerId,
+                $or: [
+                    {status: constPlayerCreditTransferStatus.SUCCESS},
+                    {status: constPlayerCreditTransferStatus.FAIL},
+                    {status: constPlayerCreditTransferStatus.TIMEOUT}
+                ],
+                createTime: {$gte: searchTimeStart}
+            }).sort({_id:-1}).limit(5000);
+        }
+    }).then(logs => {
+        let count = 0;
+        logs.forEach(log => {
+            if(log.status == constPlayerCreditTransferStatus.TIMEOUT) {
+                count++;
+            }
+        });
+        if(count >= timeoutLimit) {
+            lastTimeoutDateTime = logs[0].createTime;
+            //set provider to maintenance status
+            return dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId},{status:constGameStatus.MAINTENANCE},{new:true});
+        } else {
+            return null;
+        }
+    }).then(provider => {
+        if(provider) {
+            let providerName = provider.name;
+
+            let sender = env.mailerNoReply;
+            let recipient = env.providerTimeoutNotificationRecipient;
+            let subject = "[FPMS System] - " + providerName + " timeout limit reached, set status to maintenance.";
+            let content = `<b>Game provider [${providerName}] has reached maximum consecutive timeout limit, it has been changed to maintenance status.</b>
+                        <br/><br/>
+                        <span>Platform: ${platformName}</span><br/>
+                        <span>Game Provider Name: ${providerName}</span><br/>
+                        <span>Current Status: MAINTENANCE</span><br/>
+                        <span>Max Consecutive Timeout Limit: ${timeoutLimit}</span><br/>
+                        <span>Last Timeout Date Time: ${lastTimeoutDateTime}</span>
+                        <br/><br/>-<br/><br/>
+                        <b>游戏提供商 [${providerName}] 已连续超时${timeoutLimit}次，现已将其设置为维护状态。</b>
+                        <br/><br/>
+                        <span>平台: ${platformName}</span><br/>
+                        <span>游戏提供商: ${providerName}</span><br/>
+                        <span>现今状态: 维护</span><br/>
+                        <span>最高连续超时限制设定: ${timeoutLimit}次</span><br/>
+                        <span>最后尝试并超时时间: ${lastTimeoutDateTime}</span>
+                        <br/><br/><br/><br/>
+                        <span>This is an automated email sent by FPMS. <b>DO NOT Reply</b>.</span><br/>
+                        <span>此邮件是由FPMS系统自动发出。<b>请勿回复。</b></span>`;
+
+            let emailConfig = {
+                sender: sender,
+                recipient: recipient,
+                subject: subject,
+                body: content,
+                isHTML: true
+            };
+
+            return emailer.sendEmail(emailConfig);
+        }
+    });
+}
 const cpmsAPI = {
     /*
      * function name format: <service>_<functionName>

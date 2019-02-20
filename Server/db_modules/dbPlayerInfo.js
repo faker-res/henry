@@ -12496,7 +12496,6 @@ let dbPlayerInfo = {
                             conn.playerId = playerId;
                             conn.playerObjId = playerData._id;
                             conn.platformId = playerData.platform.platformId;
-                            conn.isSendEBETData = playerData.platform.isSendEBETData;
 
                             // Online time trace
                             dbPlayerOnlineTime.authenticateTimeLog(playerData._id, token).catch(errorUtils.reportError);
@@ -14805,6 +14804,7 @@ let dbPlayerInfo = {
                 if (data && isPreview){
                     return data;
                 }
+                console.log('reset bstate===11');
                 // Reset BState
                 dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 return data;
@@ -14814,6 +14814,7 @@ let dbPlayerInfo = {
                 if (err.status === constServerCode.CONCURRENT_DETECTED) {
                     // Ignore concurrent request for now
                 } else {
+                    console.log('reset bstate===22');
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 }
@@ -16654,7 +16655,24 @@ let dbPlayerInfo = {
                         playerQuery.csOfficer = {$in: query.adminIds};
                     }
 
-                    return dbconfig.collection_players.find(playerQuery)
+                    let playerRequiredFields = {
+                        _id: 1,
+                        name: 1,
+                        city: 1,
+                        province: 1,
+                        consumptionBonusRatio: 1,
+                        credibilityRemarks: 1,
+                        csOfficer: 1,
+                        onlineTopUpFeeDetail: 1,
+                        phoneCity: 1,
+                        phoneProvince: 1,
+                        platformFeeEstimate: 1,
+                        playerLevel: 1,
+                        registrationTime: 1,
+                        valueScore: 1
+                    };
+
+                    return dbconfig.collection_players.find(playerQuery, playerRequiredFields)
                         .populate({path: "csOfficer", model: dbconfig.collection_admin}).lean();
                 }
             }
@@ -19807,7 +19825,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade) {
+    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade, isFeedbackPhoneTrade) {
         let tsPhoneList;
         if (phoneListDetail.length <= 0) {
             return Promise.reject("None of the phone has pass the filter");
@@ -19881,7 +19899,7 @@ let dbPlayerInfo = {
                             )
                         }
 
-                        if (isPhoneTrade) {
+                        if (isPhoneTrade) { // ts phone trade
                             prom = prom.then(
                                 tsPhoneData => {
                                     dbconfig.collection_tsPhoneTrade.update(
@@ -19892,6 +19910,21 @@ let dbPlayerInfo = {
                                         {
                                             targetTsPhone: tsPhoneData._id,
                                             targetTsPhoneList: tsPhoneList._id
+                                        }, {multi: true}).catch(errorUtils.reportError);
+                                    return tsPhoneData
+                                }
+                            )
+                        }
+
+                        if (isFeedbackPhoneTrade) { // from feedback
+                            prom = prom.then(
+                                tsPhoneData => {
+                                    dbconfig.collection_feedbackPhoneTrade.update(
+                                        {
+                                            _id: phone._id
+                                        },
+                                        {
+                                            isImportedPhoneList: true
                                         }, {multi: true}).catch(errorUtils.reportError);
                                     return tsPhoneData
                                 }

@@ -64,6 +64,7 @@ const dbPlayerUtility = {
         let updateQChild = {};
         updateQChild[stateName] = bFlag;
         let updateQ = {$set: updateQChild};
+        let stateNameWithUpdatedTime;
         //update time when set flag to false only
         if (lastUpdateTime) {
             if (bFlag) {
@@ -84,6 +85,16 @@ const dbPlayerUtility = {
                 updateQ.$currentDate[lastUpdateTime] = true;
             }
         }
+        // add the updatedTime for those do not have
+        else{
+            stateNameWithUpdatedTime = stateName + 'UpdatedTime';
+            // update the time when bFlag is true
+            if (bFlag){
+                updateQ.$currentDate = {};
+                updateQ.$currentDate[stateNameWithUpdatedTime] = true;
+            }
+        }
+
         let allowExec = true;
 
         return dbconfig.collection_playerBState.findOneAndUpdate(
@@ -95,16 +106,26 @@ const dbPlayerUtility = {
             }
         ).then(
             beforeRec => {
+                console.log('playerObjId===', playerObjId);
+                console.log('lastUpdateTime===', lastUpdateTime);
+                console.log('beforeRec===', beforeRec);
+                console.log('stateName===', stateName);
+                console.log('bFlag===', bFlag);
+                console.log('beforeRec[stateName]===', beforeRec[stateName]);
                 if (beforeRec && beforeRec[stateName] === bFlag) {
                     allowExec = false;
-                    // if state locked more than 5 minutes, allow execute (prevent state locked forever)
-                    if (lastUpdateTime && bFlag && beforeRec[lastUpdateTime] && (beforeRec[lastUpdateTime].getTime() <= new Date() - 300000)) {
+                    // if state locked more than 15 minutes, allow execute (prevent state locked forever)
+                    if (lastUpdateTime && bFlag && beforeRec[lastUpdateTime] && (beforeRec[lastUpdateTime].getTime() <= new Date() - 900000)) {
+                        allowExec = true;
+                    }
+                    if (stateNameWithUpdatedTime && bFlag && beforeRec[stateNameWithUpdatedTime] && (beforeRec[stateNameWithUpdatedTime].getTime() <= new Date() - 900000)) {
                         allowExec = true;
                     }
                 }
                 if (!allowExec) {
                     console.log("Player B state concurrent", playerObjId, stateName);
                 }
+                console.log('allowExec===', allowExec);
                 return allowExec;
             },
             err => {

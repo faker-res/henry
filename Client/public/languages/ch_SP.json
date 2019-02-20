@@ -293,6 +293,10 @@
   "CREATED_BY": "创建人",
   "INCLUDEDGAMES": "包含的游戏",
   "EXCLUDEDGAMES": "未包含的游戏",
+  "OTHER_DEPARTMENT_TS_LIST": "其他部门电维名单",
+  "EXPORT_DEPARTMENT": "导入部门",
+  "ORIGIN_DEPARTMENT": "原本部门",
+  "LAST_LOGIN_TIME": "最后登入时间",
   "CHANGE": "变更",
   "INCLUDE": "加入",
   "EXCLUDE": "移除",
@@ -5270,5 +5274,7 @@
   "PLAYERS_IN_TOTAL": "位玩家",
   "topUpSystemName": "财务（结算）系统",
   "bonusSystemName": "财务（结算）系统",
-  "PROVIDER_CONSUMPTION_REPORT": "提供商投注报表"
+  "PROVIDER_CONSUMPTION_REPORT": "提供商投注报表",
+  "Set provider to maintenance after consecutive timeout count": "在N次连续超时后将游戏提供商设为维护状态",
+  "Provider consecutive timeout count search time frame (minutes; default 3 minutes)": "游戏提供商连续超时搜索范围（最后N分钟；默认3分钟）"
 }

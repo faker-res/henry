@@ -2,6 +2,9 @@ let dbconfig = require('./../modules/dbproperties');
 let Q = require("q");
 let pmsAPI = require('../externalAPI/pmsAPI');
 let serverInstance = require("../modules/serverInstance");
+const extConfig = require('../config/externalPayment/paymentSystems');
+const rp = require('request-promise');
+const constAccountType = require('../const/constAccountType');
 
 let dbPlatformWechatPayGroup = {
 
@@ -142,11 +145,15 @@ let dbPlatformWechatPayGroup = {
     },
 
     getAllWechatpaysByWechatpayGroup: function(platformId){
+        let topUpSystemConfig;
+
         return dbconfig.collection_platform.findOne({platformId:platformId}).lean().then(
             platformData => {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
+
+                topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
                 if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                     return dbconfig.collection_platformWechatPayList.find(
@@ -159,6 +166,18 @@ let dbPlatformWechatPayGroup = {
                             return {data: wechatpatListData}; // to match existing code format
                         }
                     )
+                } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    let options = {
+                        method: 'POST',
+                        uri: topUpSystemConfig.bankCardListAPIAddr,
+                        body: {
+                            platformId: platformId,
+                            accountType: constAccountType.WECHAT
+                        },
+                        json: true
+                    };
+
+                    return rp(options);
                 } else {
                     return pmsAPI.weChat_getWechatList(
                         {

@@ -849,7 +849,7 @@ var proposal = {
                         type = constPlayerTopUpType.WECHAT;
                     }
 
-                    if (proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+                    if (proposalData.type && proposalData.type.name && proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
                         type = constPlayerTopUpType.COMMON;
                     }
 
@@ -1053,6 +1053,8 @@ var proposal = {
                 } else if (status === constProposalStatus.FAIL) {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark, callbackData);
                 }
+
+                return data;
             }
         ).then(
             propData => {
@@ -1062,7 +1064,8 @@ var proposal = {
                     depositId: requestId,
                     type: type,
                     rate: (Number(proposalObj.data.amount) * Number(topupRate)).toFixed(2),
-                    actualAmountReceived: topupActualAmt
+                    actualAmountReceived: topupActualAmt,
+                    realName: proposalObj.data.playerRealName
                 };
             },
             error => {
