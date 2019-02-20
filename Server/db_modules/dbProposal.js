@@ -819,6 +819,7 @@ var proposal = {
             proposalData => {
                 if (proposalData && proposalData.data) {
                     proposalObj = proposalData;
+                    console.log('xxx proposalObj', proposalObj)
                     remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
                     if (
@@ -1053,23 +1054,20 @@ var proposal = {
                 } else if (status === constProposalStatus.FAIL) {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark, callbackData);
                 }
+
+                return data;
             }
         ).then(
             propData => {
-                let retObj = {
+                return {
                     proposalId: proposalId,
                     orderStatus: orderStatus,
                     depositId: requestId,
                     type: type,
                     rate: (Number(proposalObj.data.amount) * Number(topupRate)).toFixed(2),
-                    actualAmountReceived: topupActualAmt
+                    actualAmountReceived: topupActualAmt,
+                    realName: propData.data.realName
                 };
-
-                if (callbackData && callbackData.count && Number(callbackData.count) == 1) {
-                    retObj.realName = proposalObj.data.realName ? proposalObj.data.realName : '';
-                }
-
-                return retObj;
             },
             error => {
                 errorUtils.reportError(error);
