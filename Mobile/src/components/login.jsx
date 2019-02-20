@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import $ from 'jquery';
 import WSCONFIG from '../wsconfig.js';
+import authService from '../services/authService.js';
+import navService from '../services/navService.js';
 
 class Login extends Component {
     constructor(props){
@@ -87,9 +89,9 @@ class Login extends Component {
         for(let server in servers) {
             if(servers.hasOwnProperty(server)) {
                 if(isNaN(parseInt(servers[server].latency))) {
-                    list.push(<option key={server} value={servers[server].socketURL} disabled> {`$server : ms`}</option>)
+                    list.push(<option key={server} value={servers[server].socketURL} disabled> {`${server} : ms`}</option>)
                 } else {
-                    list.push(<option key={server} value={servers[server].socketURL}> {server + ": " + servers[server].latency + "ms" }</option>)
+                    list.push(<option key={server} value={servers[server].socketURL}> {`${server}: ${servers[server].latency}ms`}</option>)
                 }
             }
         }
@@ -110,8 +112,16 @@ class Login extends Component {
         }
         console.log("Login --> Send Data", sendData);
         $.ajax(sendData).done(data => {
-            console.log("success!");
+            console.log("login done!");
             console.log(data);
+            if(data.success) {
+                let exp = new Date();
+                exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
+                authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
+                navService.goto('dashboard');
+            } else {
+                console.log(data.error.message);
+            }
         })
     }
     

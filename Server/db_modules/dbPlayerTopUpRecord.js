@@ -2147,7 +2147,9 @@ var dbPlayerTopUpRecord = {
                 player = playerData;
                 topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
 
-                if (player && player.platform && player.platform.bankCardGroupIsPMS) {
+                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    bPMSGroup = false;
+                } else if (player && player.platform && player.platform.bankCardGroupIsPMS) {
                     bPMSGroup = true
                 } else {
                     bPMSGroup = false;
@@ -2428,6 +2430,43 @@ var dbPlayerTopUpRecord = {
                     // console.log("requestData", requestData);
                     if (isFPMS) {
                         return dbPlayerTopUpRecord.manualTopUpValidate(requestData, fromFPMS);
+                    } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        delete requestData.groupBankcardList;
+
+                        let options = {
+                            method: 'POST',
+                            uri: topUpSystemConfig.createTopUpAPIAddr,
+                            body: requestData,
+                            json: true
+                        };
+
+                        return rp(options).then(manualTopUpCardData => {
+                            if (manualTopUpCardData && manualTopUpCardData.result && manualTopUpCardData.result.bankTypeId) {
+                                let options1 = {
+                                    method: 'POST',
+                                    uri: topUpSystemConfig.bankTypeAPIAddr,
+                                    body: {bankTypeId: manualTopUpCardData.result.bankTypeId},
+                                    json: true
+                                };
+
+                                return rp(options1).then(
+                                    bankData => {
+                                        if (bankData && bankData.data && bankData.data.name) {
+                                            manualTopUpCardData.result.bankName = bankData.data.name;
+                                        } else {
+                                            manualTopUpCardData.result.bankName = "";
+                                        }
+                                        return manualTopUpCardData;
+                                    }
+                                )
+                            } else {
+                                return Q.reject({
+                                    status: constServerCode.INVALID_DATA,
+                                    name: "DataError",
+                                    errorMessage: "Bank card not found"
+                                });
+                            }
+                        });
                     } else {
                         return pmsAPI.payment_requestManualBankCard(requestData).then(cardData => {
                             if (cardData && cardData.result && cardData.result.bankTypeId) {
@@ -2483,6 +2522,16 @@ var dbPlayerTopUpRecord = {
                     if (isFPMS && topupResult.result.hasOwnProperty("quotaUsed")) {
                         quotaUsedProm = Promise.resolve([{totalAmount:  topupResult.result.quotaUsed}]);
                     } else {
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            queryObj["data.topUpSystemName"] = topUpSystemConfig.name;
+                        } else {
+                            if (!queryObj.$and) {
+                                queryObj.$and = [];
+                            }
+
+                            queryObj.$and.push({$or: [{"data.topUpSystemName": {$ne: 'PMS2'}}, {"data.topUpSystemName": {$exists: false}}]});
+                        }
+
                         quotaUsedProm = dbconfig.collection_proposal.aggregate(
                             {$match: queryObj},
                             {
@@ -2539,7 +2588,7 @@ var dbPlayerTopUpRecord = {
 
                     let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
-                    updateManualTopUpProposalBankLimit(proposalQuery, request.result.bankCardNo, isFPMS, player.platform.platformId).catch(errorUtils.reportError);
+                    updateManualTopUpProposalBankLimit(proposalQuery, request.result.bankCardNo, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
 
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         proposalQuery,
@@ -5188,7 +5237,7 @@ proto = Object.assign(proto, dbPlayerTopUpRecord);
 // This make WebStorm navigation work
 module.exports = dbPlayerTopUpRecord;
 
-function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, platformId) {
+function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, platformId, topUpSystemConfig) {
     let prom;
     if (isFPMS && platformId) {
         prom = dbconfig.collection_platformBankCardList.findOne({accountNumber: bankCardNo, platformId: platformId}).lean().then(
@@ -5196,6 +5245,17 @@ function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, 
                 return {data: bankCardList}
             }
         );
+    } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+        let options = {
+            method: 'POST',
+            uri: topUpSystemConfig.bankCardAPIAddr,
+            body: {
+                accountNumber: bankCardNo
+            },
+            json: true
+        };
+
+        prom = rp(options);
     } else {
         prom = pmsAPI.bankcard_getBankcard({accountNumber: bankCardNo});
     }
