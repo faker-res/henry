@@ -4,6 +4,7 @@ var pmsAPI = require('../externalAPI/pmsAPI');
 var serverInstance = require("../modules/serverInstance");
 const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
+const constAccountType = require('../const/constAccountType');
 
 var dbPlatformBankCardGroup = {
 
@@ -181,7 +182,8 @@ var dbPlatformBankCardGroup = {
                         method: 'POST',
                         uri: topUpSystemConfig.bankCardListAPIAddr,
                         body: {
-                            platformId: platformId
+                            platformId: platformId,
+                            accountType: constAccountType.BANK_CARD
                         },
                         json: true
                     };
