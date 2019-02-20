@@ -698,9 +698,10 @@ const dbPlayerPayment = {
                         proposal = proposalObj;
                         let paymentUrl = env.paymentHTTPAPIUrl;
 
-                        // currently set to platformId 4 use on it first
-                        if (player && player.platform && player.platform.platformId && player.platform.platformId === '4' && player.platform.topUpSystemType
-                            && extConfig && extConfig[player.platform.topUpSystemType] && extConfig[player.platform.topUpSystemType].topUpAPIAddr) {
+                        if (player && player.platform && player.platform.topUpSystemType && extConfig
+                            && extConfig[player.platform.topUpSystemType]
+                            && extConfig[player.platform.topUpSystemType].topUpAPIAddr
+                        ) {
                             paymentUrl = extConfig[player.platform.topUpSystemType].topUpAPIAddr;
                         }
 
