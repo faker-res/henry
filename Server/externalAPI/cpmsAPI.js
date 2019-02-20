@@ -16,6 +16,63 @@ function callCPMSAPI(service, functionName, data, fileData) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
+
+    let bOpen = false;
+    var deferred = Q.defer();
+    //if can't connect in 30 seconds, treat as timeout
+    setTimeout(function () {
+        if (!bOpen) {
+            return deferred.reject({
+                status: constServerCode.CP_NOT_AVAILABLE,
+                message: "Request timeout",
+                errorMessage: "Request timeout"
+            });
+        }
+    }, 60 * 1000);
+    clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+        wsClient => {
+            bOpen = true;
+            // var reqTime = new Date().getTime();
+            // var resFunction = function (res) {
+            //     // var resTime = new Date().getTime();
+            //     // dbLogger.createAPIResponseTimeLog(service, functionName, data, res, (resTime - reqTime));
+            // };
+            return wsClient.callAPIOnce(service, functionName, data).then(
+                res => {
+                    if (wsClient && typeof wsClient.disconnect == "function") {
+                        wsClient.disconnect();
+                    }
+                    return res;
+                },
+                error => {
+                    // resFunction(error);
+                    if (wsClient && typeof wsClient.disconnect == "function") {
+                        wsClient.disconnect();
+                    }
+                    if (error.status) {
+                        return Q.reject(error);
+                    }
+                    else {
+                        return Q.reject({
+                            status: constServerCode.CP_NOT_AVAILABLE,
+                            message: "Game is not available",
+                            error: error
+                        });
+                    }
+                }
+            );
+        },
+        error => {
+            return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error: error});
+        }
+    ).then(deferred.resolve, deferred.reject);
+    return deferred.promise;
+};
+
+function callCPMSAPIWithAutoMaintenance(service, functionName, data, fileData) {
+    if (!data) {
+        return Q.reject(new Error("Invalid data!"));
+    }
     //check if provider status is MAINTENANCE
     return dbconfig.collection_gameProvider.findOne({providerId: data.providerId || 0}, {status: 1}).lean().exec().then(provider => {
         if (provider && provider.status && provider.status == constGameStatus.MAINTENANCE) {
@@ -265,16 +322,16 @@ const cpmsAPI = {
     },
 
     player_transferIn: function (data) {
-        return callCPMSAPI("player", "transferIn", data);
+        return callCPMSAPIWithAutoMaintenance("player", "transferIn", data);
     },
 
     player_queryCredit: function (data) {
         data.requestId = data.username + "_" + data.providerId + "_" + new Date().getTime();
-        return callCPMSAPI("player", "queryCredit", data);
+        return callCPMSAPIWithAutoMaintenance("player", "queryCredit", data);
     },
 
     player_transferOut: function (data) {
-        return callCPMSAPI("player", "transferOut", data);
+        return callCPMSAPIWithAutoMaintenance("player", "transferOut", data);
     },
 
     player_syncPlatforms: function (data) {
