@@ -16,60 +16,73 @@ function callCPMSAPI(service, functionName, data, fileData) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
-
-    let bOpen = false;
-    var deferred = Q.defer();
-    //if can't connect in 30 seconds, treat as timeout
-    setTimeout(function () {
-        if (!bOpen) {
-            if(data.platformId && data.providerId) {
-                gameProviderTimeoutAutoMaintenance(data.platformId, data.providerId);
-            }
-            return deferred.reject({
-                status: constServerCode.CP_NOT_AVAILABLE,
-                message: "Request timeout",
-                errorMessage: "Request timeout"
+    //check if provider status is MAINTENANCE
+    return dbconfig.collection_gameProvider.findOne({providerId: data.providerId || 0}, {status: 1}).lean().exec().then(provider => {
+        if (provider && provider.status && provider.status == constGameStatus.MAINTENANCE) {
+            return Q.reject({
+                name: "DataError",
+                message: "Provider is not available"
             });
-        }
-    }, 60 * 1000);
-    clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
-        wsClient => {
-            bOpen = true;
-            // var reqTime = new Date().getTime();
-            // var resFunction = function (res) {
-            //     // var resTime = new Date().getTime();
-            //     // dbLogger.createAPIResponseTimeLog(service, functionName, data, res, (resTime - reqTime));
-            // };
-            return wsClient.callAPIOnce(service, functionName, data).then(
-                res => {
-                    if (wsClient && typeof wsClient.disconnect == "function") {
-                        wsClient.disconnect();
+        } else {
+            let bOpen = false;
+            var deferred = Q.defer();
+            //if can't connect in 30 seconds, treat as timeout
+            setTimeout(function () {
+                if (!bOpen) {
+                    if(data.platformId && data.providerId) {
+                        gameProviderTimeoutAutoMaintenance(data.platformId, data.providerId);
                     }
-                    return res;
+                    return deferred.reject({
+                        status: constServerCode.CP_NOT_AVAILABLE,
+                        message: "Request timeout",
+                        errorMessage: "Request timeout"
+                    });
+                }
+            }, 60 * 1000);
+            clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+                wsClient => {
+                    bOpen = true;
+                    // var reqTime = new Date().getTime();
+                    // var resFunction = function (res) {
+                    //     // var resTime = new Date().getTime();
+                    //     // dbLogger.createAPIResponseTimeLog(service, functionName, data, res, (resTime - reqTime));
+                    // };
+                    return wsClient.callAPIOnce(service, functionName, data).then(
+                        res => {
+                            if (wsClient && typeof wsClient.disconnect == "function") {
+                                wsClient.disconnect();
+                            }
+                            return res;
+                        },
+                        error => {
+                            // resFunction(error);
+                            if (wsClient && typeof wsClient.disconnect == "function") {
+                                wsClient.disconnect();
+                            }
+                            if (error.status) {
+                                return Q.reject(error);
+                            }
+                            else {
+                                return Q.reject({
+                                    status: constServerCode.CP_NOT_AVAILABLE,
+                                    message: "Game is not available",
+                                    error: error
+                                });
+                            }
+                        }
+                    );
                 },
                 error => {
-                    // resFunction(error);
-                    if (wsClient && typeof wsClient.disconnect == "function") {
-                        wsClient.disconnect();
-                    }
-                    if (error.status) {
-                        return Q.reject(error);
-                    }
-                    else {
-                        return Q.reject({
-                            status: constServerCode.CP_NOT_AVAILABLE,
-                            message: "Game is not available",
-                            error: error
-                        });
-                    }
+                    return Q.reject({
+                        status: constServerCode.CP_NOT_AVAILABLE,
+                        message: "Game is not available",
+                        error: error
+                    });
                 }
-            );
-        },
-        error => {
-            return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error: error});
+            ).then(deferred.resolve, deferred.reject);
+            return deferred.promise;
         }
-    ).then(deferred.resolve, deferred.reject);
-    return deferred.promise;
+    });
 };
 
 function callCPMSAPIWithFileData(service, functionName, data, fileData) {
@@ -133,15 +146,18 @@ function httpGet(url) {
 };
 
 function gameProviderTimeoutAutoMaintenance(platformId, providerId) {
+    const minute = 60*1000;
     let timeoutLimit = 0;
     let platformName = '';
-    let tenMinutesAgo = new Date(new Date().getTime() - 10*60*1000);
+    let searchTimeFrame = 3 * minute;
     let lastTimeoutDateTime;
 
     //check if last N times failed due to timed out
     dbconfig.collection_platform.findOne({platformId: platformId}).lean().exec().then(platform => {
         timeoutLimit = platform.disableProviderAfterConsecutiveTimeoutCount;
+        searchTimeFrame = platform.providerConsecutiveTimeoutSearchTimeFrame ? platform.providerConsecutiveTimeoutSearchTimeFrame * minute : searchTimeFrame;
         platformName = platform.platformName;
+        let searchTimeStart = new Date(new Date().getTime() - searchTimeFrame);
         if(timeoutLimit && timeoutLimit > 0) {
             return dbconfig.collection_playerCreditTransferLog.find({
                 platformObjId: platform._id,
@@ -151,13 +167,13 @@ function gameProviderTimeoutAutoMaintenance(platformId, providerId) {
                     {status: constPlayerCreditTransferStatus.FAIL},
                     {status: constPlayerCreditTransferStatus.TIMEOUT}
                 ],
-                createTime: {$gte: tenMinutesAgo}
-            }).sort({_id:-1}).limit(timeoutLimit);
+                createTime: {$gte: searchTimeStart}
+            }).sort({_id:-1}).limit(5000);
         }
     }).then(logs => {
         let count = 0;
         logs.forEach(log => {
-            if(log.status == constPlayerCreditTransferStatus.TIMEOUT || log.status == constPlayerCreditTransferStatus.FAIL) {
+            if(log.status == constPlayerCreditTransferStatus.TIMEOUT) {
                 count++;
             }
         });

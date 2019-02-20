@@ -510,6 +510,8 @@ var platformSchema = new Schema({
     isFPMSPaymentSystem: {type: Boolean, default: false},
     // Set provider to maintenance status if consecutively timed out after N times
     disableProviderAfterConsecutiveTimeoutCount: {type: Number},
+    // provider consecutively timed out search time frame (last N minutes)
+    providerConsecutiveTimeoutSearchTimeFrame: {type: Number},
 });
 
 //add platform id before save
