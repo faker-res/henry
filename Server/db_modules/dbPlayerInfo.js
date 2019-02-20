@@ -16379,7 +16379,7 @@ let dbPlayerInfo = {
                             providerDetail: 1
                         }
                     }
-                )
+                ).read("secondaryPreferred");
             }
         ).then(
             playerSummaryData => {
@@ -16610,8 +16610,25 @@ let dbPlayerInfo = {
                         playerQuery.csOfficer = {$in: query.adminIds};
                     }
 
-                    return dbconfig.collection_players.find(playerQuery)
-                        .populate({path: "csOfficer", model: dbconfig.collection_admin});
+                    let playerRequiredFields = {
+                        _id: 1,
+                        name: 1,
+                        city: 1,
+                        province: 1,
+                        consumptionBonusRatio: 1,
+                        credibilityRemarks: 1,
+                        csOfficer: 1,
+                        onlineTopUpFeeDetail: 1,
+                        phoneCity: 1,
+                        phoneProvince: 1,
+                        platformFeeEstimate: 1,
+                        playerLevel: 1,
+                        registrationTime: 1,
+                        valueScore: 1
+                    };
+
+                    return dbconfig.collection_players.find(playerQuery, playerRequiredFields)
+                        .populate({path: "csOfficer", model: dbconfig.collection_admin}).lean();
                 }
             }
         ).then(
