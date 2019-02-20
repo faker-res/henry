@@ -183,7 +183,7 @@ function gameProviderTimeoutAutoMaintenance(platformId, providerId) {
                         <span>Max Consecutive Timeout Limit: ${timeoutLimit}</span><br/>
                         <span>Last Timeout Date Time: ${lastTimeoutDateTime}</span>
                         <br/><br/>-<br/><br/>
-                        <b>游戏提供商 [${providerName}] 已连续超时${timeoutLimit}次，现已将其设置为维护状态。
+                        <b>游戏提供商 [${providerName}] 已连续超时${timeoutLimit}次，现已将其设置为维护状态。</b>
                         <br/><br/>
                         <span>平台: ${platformName}</span><br/>
                         <span>游戏提供商: ${providerName}</span><br/>
