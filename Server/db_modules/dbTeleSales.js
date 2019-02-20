@@ -1484,10 +1484,23 @@ let dbTeleSales = {
         }).count();
     },
 
-    getTsPhone: function (query, isTSNewList, platformObjId) {
-       return dbconfig.collection_tsPhone.find(query).lean().then(
-            tsPhoneData => {
-                return getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId);
+    getfeedbackPhoneList: function (platformObjId) {
+        return dbconfig.collection_feedbackPhoneTrade.find({
+            targetPlatform: ObjectId(platformObjId),
+            isImportedPhoneList: {$ne: true}
+        }).count();
+    },
+
+    getTsPhone: function (query, isTSNewList, platformObjId, isFeedbackPhone) {
+        let prom;
+        if (isFeedbackPhone) {
+            prom = dbconfig.collection_feedbackPhoneTrade.find(query).lean();
+        } else {
+            prom = dbconfig.collection_tsPhone.find(query).lean();
+        }
+       return prom.then(
+            phoneData => {
+                return getNonDuplicateTsPhone(phoneData, isTSNewList, platformObjId, isFeedbackPhone);
             }
        )
     },
@@ -1520,6 +1533,58 @@ let dbTeleSales = {
                     let decomposedNewPhoneData = data[1] ? data[1] : [];
 
                     return {data: decomposedNewPhoneData, size: count};
+                }
+            }
+        );
+    },
+
+    getFeedbackPhoneRecord: function (platformObjId, sourcePlatform, topUpTimesOperator, topUpTimes, topUpTimesTwo, startTime, endTime, index, limit, sortCol) {
+        let query = {
+            createTime: {$gte: new Date(startTime), $lte: new Date(endTime)},
+            targetPlatform: ObjectId(platformObjId),
+            isImportedPhoneList: {$ne: true}
+        };
+
+        if (sourcePlatform) {
+            query.sourcePlatform = ObjectId(sourcePlatform);
+        }
+
+        if (topUpTimesOperator && topUpTimes != null) {
+            switch (topUpTimesOperator) {
+                case '<=':
+                    query.topUpTimes = {$lte: topUpTimes};
+                    break;
+                case '>=':
+                    query.topUpTimes = {$gte: topUpTimes};
+                    break;
+                case '=':
+                    query.topUpTimes = topUpTimes;
+                    break;
+                case 'range':
+                    if (topUpTimesTwo != null) {
+                        query.topUpTimes = {
+                            $gte: topUpTimes,
+                            $lte: topUpTimesTwo
+                        };
+                    }
+                    break;
+            }
+        }
+
+        let countProm = dbconfig.collection_feedbackPhoneTrade.find(query).count();
+        let feedbackPhoneProm = dbconfig.collection_feedbackPhoneTrade.find(query).populate({
+            path: "sourcePlatform",
+            model: dbconfig.collection_platform,
+            select: "name",
+        }).sort(sortCol).skip(index).limit(limit);
+
+        return Promise.all([countProm, feedbackPhoneProm]).then(
+            data => {
+                if (data) {
+                    let count = data[0] ? data[0] : 0;
+                    let feedbackPhoneData = data[1] ? data[1] : [];
+
+                    return {data: feedbackPhoneData, size: count};
                 }
             }
         );
@@ -1966,13 +2031,19 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     }
 }
 
-function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId) {
+function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedbackPhone) {
     let proms = [];
     if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId) {
         tsPhoneData.forEach(
             tsPhone => {
                 if(tsPhone && tsPhone.phoneNumber) {
-                    let prom = dbconfig.collection_tsPhone.findOne({phoneNumber: tsPhone.phoneNumber}, {phoneNumber: 1}).lean().then(
+                    let prom;
+                    if (isFeedbackPhone) {
+                        prom = dbconfig.collection_feedbackPhoneTrade.findOne({phoneNumber: tsPhone.phoneNumber}, {phoneNumber: 1}).lean()
+                    } else {
+                        prom = dbconfig.collection_tsPhone.findOne({phoneNumber: tsPhone.phoneNumber}, {phoneNumber: 1}).lean()
+                    }
+                    prom = prom.then(
                         isExist => {
                             if (isExist) {
                                 return false;
