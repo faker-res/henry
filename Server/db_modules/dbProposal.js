@@ -819,7 +819,6 @@ var proposal = {
             proposalData => {
                 if (proposalData && proposalData.data) {
                     proposalObj = proposalData;
-                    console.log('xxx proposalObj', proposalObj)
                     remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
                     if (
