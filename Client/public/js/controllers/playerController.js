@@ -6383,7 +6383,7 @@ define(['js/app'], function (myApp) {
                                 $(thisPopover + ' .permitOff.phoneCallFeedback').removeClass('hide');
                                 $(thisPopover + ' .permitOff.SMSFeedBack').removeClass('hide');
                             });
-                            
+
                             $enableAllMainPermission.on('click', function () {
                                 if (row.isRealPlayer) {
                                     changeObj.applyBonus = true;
@@ -11704,7 +11704,7 @@ define(['js/app'], function (myApp) {
                             item.requiredBonusAmount$ = item.requiredBonusAmount;
                             item.currentAmount$ = item.data.currentAmount;
 
-                            item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
+                            item.availableAmt$ = item.bonusAmount ? item.bonusAmount : (item.applyAmount || 0);
                             item.archivedAmt$ = 0;
                             if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
                                 vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
@@ -11725,6 +11725,7 @@ define(['js/app'], function (myApp) {
                                 item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
                             if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
+                                item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
                                 usedTopUp.push(item.topUpProposal)
                             }
 
@@ -13095,6 +13096,7 @@ define(['js/app'], function (myApp) {
             if (!vm.getRewardTaskGroupProposalLoading) {
                 vm.getRewardTaskGroupProposalLoading = true;
                 socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
+
                     console.log("vm.getRewardTaskGroupProposal data", data);
                     vm.rewardTaskProposalData = data.data.data;
                     vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
@@ -13129,7 +13131,7 @@ define(['js/app'], function (myApp) {
                         item.requiredBonusAmount$ = item.requiredBonusAmount;
                         item.currentAmount$ = item.data.currentAmount;
 
-                        item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
+                        item.availableAmt$ = item.bonusAmount ? item.bonusAmount : (item.applyAmount || 0);
                         item.archivedAmt$ = 0;
                         if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
                             vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
@@ -13151,9 +13153,9 @@ define(['js/app'], function (myApp) {
 
                         // exclude the proposal to be shown in the progress bar if the proposal is dynamicReward, type c promocode or limitedOffer
                         if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
+                            item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
                             usedTopUp.push(item.topUpProposal)
                         }
-
                     });
 
                     if (usedTopUp.length > 0) {
@@ -13173,7 +13175,8 @@ define(['js/app'], function (myApp) {
                     // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
                     vm.curRewardTask = data;
                     vm.getRewardTaskGroupProposalLoading = false;
-                })
+            })
+
             }
         };
 

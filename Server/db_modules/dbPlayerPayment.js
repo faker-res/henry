@@ -698,9 +698,10 @@ const dbPlayerPayment = {
                         proposal = proposalObj;
                         let paymentUrl = env.paymentHTTPAPIUrl;
 
-                        // currently set to platformId 4 use on it first
-                        if (player && player.platform && player.platform.platformId && player.platform.platformId === '4' && player.platform.topUpSystemType
-                            && extConfig && extConfig[player.platform.topUpSystemType] && extConfig[player.platform.topUpSystemType].topUpAPIAddr) {
+                        if (player && player.platform && player.platform.topUpSystemType && extConfig
+                            && extConfig[player.platform.topUpSystemType]
+                            && extConfig[player.platform.topUpSystemType].topUpAPIAddr
+                        ) {
                             paymentUrl = extConfig[player.platform.topUpSystemType].topUpAPIAddr;
                         }
 
@@ -777,9 +778,10 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
         url += 'phone/';
     }
 
-    // currently set to platformId 4 use on it first
-    if (playerData && playerData.platform && playerData.platform.platformId && playerData.platform.platformId === '4' && playerData.platform.topUpSystemType
-        && extConfig && extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].topUpAPICallback) {
+    if (playerData && playerData.platform && playerData.platform.platformId && playerData.platform.topUpSystemType
+        && extConfig && extConfig[playerData.platform.topUpSystemType]
+        && extConfig[playerData.platform.topUpSystemType].topUpAPICallback
+    ) {
         paymentCallbackUrl = extConfig[playerData.platform.topUpSystemType].topUpAPICallback;
     }
 
