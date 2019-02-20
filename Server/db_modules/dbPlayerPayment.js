@@ -801,6 +801,9 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
         url += proposalData.proposalId
     }
 
+    // log url before return
+    console.log('PMS HTTP - OUT', url);
+
     return url;
 }
 
