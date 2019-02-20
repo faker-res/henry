@@ -64,7 +64,7 @@ var ebetRTN = {
                     }
 
                     if (data && data.command && data.command == "listen") {
-                        // dbGame.notifyLiveGameStatus(data);
+                        dbGame.notifyLiveGameStatus(data);
                     } else if (data && data.command && data.command == "query" && data.requestId) {
                         // data is sort by time
                         events.emit(data.requestId, data);
@@ -85,7 +85,7 @@ var ebetRTN = {
     query: function (tableType, size) {
         if (!(socket && socket.readyState && socket.readyState == socket.OPEN)) {
             console.log("luzhu API not connected")
-            return ebetRTN.connect(2).then(
+            return ebetRTN.connect().then(
                 () => {
                     return sendQueryCommand(tableType, size);
                 }
