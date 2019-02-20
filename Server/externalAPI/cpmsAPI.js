@@ -74,7 +74,7 @@ function callCPMSAPIWithAutoMaintenance(service, functionName, data, fileData) {
         return Q.reject(new Error("Invalid data!"));
     }
     //check if provider status is MAINTENANCE
-    return dbconfig.collection_gameProvider.findOne({providerId: data.providerId || 0}, {status: 1}).lean().exec().then(provider => {
+    return dbconfig.collection_gameProvider.findOne({providerId: data.providerId}, {status: 1}).lean().exec().then(provider => {
         if (provider && provider.status && provider.status == constGameStatus.MAINTENANCE) {
             return Q.reject({
                 name: "DataError",
@@ -86,6 +86,9 @@ function callCPMSAPIWithAutoMaintenance(service, functionName, data, fileData) {
             //if can't connect in 30 seconds, treat as timeout
             setTimeout(function () {
                 if (!bOpen) {
+                    if(functionName == 'queryCredit') {
+                        recordQueryCreditTimeout(data);
+                    }
                     if(data.platformId && data.providerId) {
                         gameProviderTimeoutAutoMaintenance(data.platformId, data.providerId);
                     }
@@ -216,24 +219,23 @@ function gameProviderTimeoutAutoMaintenance(platformId, providerId) {
         platformName = platform.platformName;
         let searchTimeStart = new Date(new Date().getTime() - searchTimeFrame);
         if(timeoutLimit && timeoutLimit > 0) {
-            return dbconfig.collection_playerCreditTransferLog.find({
+            let searchTransferLogProm = dbconfig.collection_playerCreditTransferLog.find({
                 platformObjId: platform._id,
                 providerId: providerId,
-                $or: [
-                    {status: constPlayerCreditTransferStatus.SUCCESS},
-                    {status: constPlayerCreditTransferStatus.FAIL},
-                    {status: constPlayerCreditTransferStatus.TIMEOUT}
-                ],
+                status: constPlayerCreditTransferStatus.TIMEOUT,
                 createTime: {$gte: searchTimeStart}
-            }).sort({_id:-1}).limit(5000);
+            });
+            let searchQueryCreditTimeoutProm = dbconfig.collection_queryCreditTimeout.find({
+                createTime: {$gte: searchTimeStart}
+            });
+
+            return Promise.all([searchTransferLogProm, searchQueryCreditTimeoutProm]);
         }
     }).then(logs => {
-        let count = 0;
-        logs.forEach(log => {
-            if(log.status == constPlayerCreditTransferStatus.TIMEOUT) {
-                count++;
-            }
-        });
+        let transferLogs = logs[0];
+        let queryCreditLogs = logs[1];
+        let count = transferLogs.length + queryCreditLogs.length;
+
         if(count >= timeoutLimit) {
             lastTimeoutDateTime = logs[0].createTime;
             //set provider to maintenance status
@@ -279,6 +281,30 @@ function gameProviderTimeoutAutoMaintenance(platformId, providerId) {
         }
     });
 }
+
+function recordQueryCreditTimeout(data){
+    let promArr = [];
+    promArr.push(dbconfig.collection_platform.findOne({platformId: data.platformId}));
+    promArr.push(dbconfig.collection_gameProvider.findOne({providerId: data.providerId}));
+    promArr.push(dbconfig.collection_players.findOne({name: data.username}));
+
+    Promise.all(promArr).then(retData => {
+        let platformObjId = retData[0]._id;
+        let providerObjId = retData[1]._id;
+        let playerObjId = retData[2]._id;
+
+        let queryCreditTimeoutData = {
+            platformObjId: platformObjId,
+            playerObjId: playerObjId,
+            providerObjId: providerObjId,
+            platformId: data.platformId,
+            playerName: data.username,
+            providerId: data.providerId
+        };
+        dbconfig.collection_queryCreditTimeout(queryCreditTimeoutData).save();
+    })
+}
+
 const cpmsAPI = {
     /*
      * function name format: <service>_<functionName>
