@@ -767,7 +767,7 @@ var dbGame = {
     },
 
     getLiveGameInfo: (count, switchNotify, conn) => {
-
+        switchNotify = switchNotify == "true"? true: false; // may accept "false"
         conn.EBETNotify = switchNotify;// for notifyLiveGameStatus usage
         if(!switchNotify) {
             return Promise.resolve();
@@ -883,6 +883,12 @@ var dbGame = {
                 30001: 1,
                 30002: 2,
                 30003: 0
+            };
+
+            const constBaccaratResult = { // refer constEBETBaccaratResult
+                60: 0,
+                68: 2,
+                80: 1,
             };
 
             if (data && data.data) {

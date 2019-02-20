@@ -438,6 +438,8 @@ let tsCallOutMissionCalleeSchema = require('./../schema/logs2/tsCallOutMissionCa
 let tsCallOutMissionCalleeModel = dbLogs2.model('tsCallOutMissionCallee', tsCallOutMissionCalleeSchema, 'tsCallOutMissionCallee');
 let tsPhoneTradeSchema = require('./../schema/logs2/tsPhoneTrade');
 let tsPhoneTradeModel = dbLogs2.model('tsPhoneTrade', tsPhoneTradeSchema, 'tsPhoneTrade');
+let feedbackPhoneTradeSchema = require('./../schema/logs2/feedbackPhoneTrade');
+let feedbackPhoneTradeModel = dbLogs2.model('feedbackPhoneTrade', feedbackPhoneTradeSchema, 'feedbackPhoneTrade');
 let wcGroupControlSessionSchema = require('./../schema/logs2/wcGroupControlSession');
 let wcGroupControlSessionModel = dbLogs2.model('wcGroupControlSession', wcGroupControlSessionSchema, 'wcGroupControlSession');
 let wcConversationLogSchema = require('./../schema/logs2/wcConversationLog');
@@ -737,6 +739,7 @@ var dbProperties = {
     collection_tsCallOutMission: tsCallOutMissionModel,
     collection_tsCallOutMissionCallee: tsCallOutMissionCalleeModel,
     collection_tsPhoneTrade: tsPhoneTradeModel,
+    collection_feedbackPhoneTrade: feedbackPhoneTradeModel,
     collection_frontendData: frontendDataModel,
     collection_wcGroupControlSession: wcGroupControlSessionModel,
     collection_wcConversationLog: wcConversationLogModel,

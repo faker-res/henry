@@ -1245,8 +1245,8 @@ function socketActionPlayer(socketIO, socket) {
                 && data.updateData.description && data.updateData.failFeedBackResult && data.updateData.failFeedBackTopic
                 && data.updateData.failFeedBackContent && data.updateData.hasOwnProperty("callerCycleCount") && data.updateData.hasOwnProperty("dailyCallerMaximumTask")
                 && data.updateData.hasOwnProperty("dailyDistributeTaskHour") && data.updateData.hasOwnProperty("dailyDistributeTaskMinute")
-                && data.updateData.hasOwnProperty("dailyDistributeTaskSecond") && data.updateData.distributeTaskStartTime && data.updateData.hasOwnProperty("reclaimDayCount"));
-            socketUtil.emitter(self.socket, dbPlayerInfo.importTSNewList, [data.phoneListDetail, data.updateData, data.isUpdateExisting, getAdminId(), getAdminName(), data.targetTsPhoneListId, data.isImportFeedback, data.isPhoneTrade], actionName, isValidData);
+                && data.updateData.hasOwnProperty("dailyDistributeTaskSecond") && data.updateData.distributeTaskStartTime && data.updateData.hasOwnProperty("reclaimDayCount") && !(data.isPhoneTrade && data.isFeedbackPhoneTrade));
+            socketUtil.emitter(self.socket, dbPlayerInfo.importTSNewList, [data.phoneListDetail, data.updateData, data.isUpdateExisting, getAdminId(), getAdminName(), data.targetTsPhoneListId, data.isImportFeedback, data.isPhoneTrade, data.isFeedbackPhoneTrade], actionName, isValidData);
         },
 
         getTsNewListName: function getTsNewListName (data) {

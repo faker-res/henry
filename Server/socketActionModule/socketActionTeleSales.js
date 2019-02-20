@@ -262,10 +262,16 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getCountDecompositionList, [data.platformId], actionName, isValidData);
         },
 
+        getfeedbackPhoneList: function getfeedbackPhoneList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbTeleSales.getfeedbackPhoneList, [data.platformId], actionName, isValidData);
+        },
+
         getTsPhone: function getTsPhone(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query);
-            socketUtil.emitter(self.socket, dbTeleSales.getTsPhone, [data.query, data.isTSNewList, data.platformObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsPhone, [data.query, data.isTSNewList, data.platformObjId, data.isFeedbackPhone], actionName, isValidData);
         },
 
         dailyTradeTsPhone: function dailyTradeTsPhone(data) {
@@ -293,6 +299,15 @@ function socketActionTeleSales(socketIO, socket) {
             let limit = data.limit || 100;
             let sortCol = data.sortCol || {"tradeTime": -1};
             socketUtil.emitter(self.socket, dbTeleSales.getDecomposedNewPhoneRecord, [data.platformId, data.startTime, data.endTime, index, limit, sortCol], actionName, isValidData);
+        },
+
+        getFeedbackPhoneRecord: function getFeedbackPhoneRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.startTime && data.endTime);
+            let index = data.index || 0;
+            let limit = data.limit || 100;
+            let sortCol = data.sortCol || {"createTime": -1};
+            socketUtil.emitter(self.socket, dbTeleSales.getFeedbackPhoneRecord, [data.platformId, data.sourcePlatform, data.topUpTimesOperator, data.topUpTimes, data.topUpTimesTwo, data.startTime, data.endTime, index, limit, sortCol], actionName, isValidData);
         },
 
         searchTrashClassificationTrade: function searchTrashClassificationTrade(data) {

@@ -9,6 +9,7 @@ var constProposalType = require('./../const/constProposalType');
 var dbRewardTask = require('./../db_modules/dbRewardTask');
 var dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
+var dbPlayerFeedback = require('../db_modules/dbPlayerFeedback');
 var dbLogger = require("./../modules/dbLogger");
 var constRewardTaskStatus = require("./../const/constRewardTaskStatus");
 var constShardKeys = require("./../const/constShardKeys");
@@ -3575,9 +3576,13 @@ var proposalExecutor = {
             },
 
             executeBulkExportPlayerData: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+                if (proposalData && proposalData.data && proposalData.proposalId) {
+                    return dbPlayerFeedback.getExportedData(proposalData.proposalId).then(
+                        data => deferred.resolve(data),
+                        error => deferred.reject(error)
+                    );
+                } else {
+                    return deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
                 }
             },
 

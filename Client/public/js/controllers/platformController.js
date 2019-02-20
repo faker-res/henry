@@ -28046,7 +28046,6 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
                 vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
                 vm.platformBasic.useEbetWallet = vm.selectedPlatform.data.useEbetWallet;
-                vm.platformBasic.isSendEBETData = vm.selectedPlatform.data.isSendEBETData;
                 vm.platformBasic.disableProviderAfterConsecutiveTimeoutCount = vm.selectedPlatform.data.disableProviderAfterConsecutiveTimeoutCount;
                 vm.platformBasic.providerConsecutiveTimeoutSearchTimeFrame = vm.selectedPlatform.data.providerConsecutiveTimeoutSearchTimeFrame;
 
@@ -29851,7 +29850,6 @@ define(['js/app'], function (myApp) {
                         manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
                         display: srcData.display,
                         useEbetWallet: srcData.useEbetWallet,
-                        isSendEBETData: srcData.isSendEBETData,
                         disableProviderAfterConsecutiveTimeoutCount: srcData.disableProviderAfterConsecutiveTimeoutCount,
                         providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,
                     }
