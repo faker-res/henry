@@ -849,7 +849,7 @@ var proposal = {
                         type = constPlayerTopUpType.WECHAT;
                     }
 
-                    if (proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+                    if (proposalData.type && proposalData.type.name && proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
                         type = constPlayerTopUpType.COMMON;
                     }
 
