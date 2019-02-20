@@ -95,6 +95,12 @@ const dbPlayerUtility = {
             }
         ).then(
             beforeRec => {
+                console.log('playerObjId===', playerObjId);
+                console.log('lastUpdateTime===', lastUpdateTime);
+                console.log('beforeRec===', beforeRec);
+                console.log('stateName===', stateName);
+                console.log('bFlag===', bFlag);
+                console.log('beforeRec[stateName]===', beforeRec[stateName]);
                 if (beforeRec && beforeRec[stateName] === bFlag) {
                     allowExec = false;
                     // if state locked more than 5 minutes, allow execute (prevent state locked forever)
@@ -105,6 +111,7 @@ const dbPlayerUtility = {
                 if (!allowExec) {
                     console.log("Player B state concurrent", playerObjId, stateName);
                 }
+                console.log('allowExec===', allowExec);
                 return allowExec;
             },
             err => {
