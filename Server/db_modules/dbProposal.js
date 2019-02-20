@@ -1066,7 +1066,7 @@ var proposal = {
                 };
 
                 if (callbackData && callbackData.count && Number(callbackData.count) == 1) {
-                    retObj.realName = proposalObj.data.realName ? proposalObj.data.realName : '';
+                    retObj.realName = callbackData.realName ? callbackData.realName : '';
                 }
 
                 return retObj;
