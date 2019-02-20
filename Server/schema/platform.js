@@ -510,6 +510,8 @@ var platformSchema = new Schema({
     isFPMSPaymentSystem: {type: Boolean, default: false},
     // Switch EBET baccarat push data
     isSendEBETData: {type: Boolean, default: false},
+    // Set provider to maintenance status if consecutively timed out after N times
+    disableProviderAfterConsecutiveTimeoutCount: {type: Number},
 });
 
 //add platform id before save
