@@ -59,7 +59,8 @@ router.post('/notifyPayment', function(req, res, next) {
                         msg: "succ",
                         data: {
                             rate: data.rate,
-                            actualAmountReceived: data.actualAmountReceived
+                            actualAmountReceived: data.actualAmountReceived,
+                            realName: data.realName
                         }
                     }));
 
