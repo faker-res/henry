@@ -819,7 +819,6 @@ var proposal = {
             proposalData => {
                 if (proposalData && proposalData.data) {
                     proposalObj = proposalData;
-                    console.log('xxx proposalObj', proposalObj)
                     remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
                     if (
@@ -1066,7 +1065,7 @@ var proposal = {
                     type: type,
                     rate: (Number(proposalObj.data.amount) * Number(topupRate)).toFixed(2),
                     actualAmountReceived: topupActualAmt,
-                    realName: propData.data.realName
+                    realName: proposalObj.data.playerRealName
                 };
             },
             error => {
