@@ -514,6 +514,9 @@ let live800RecordDaySummaryModel = dbLogs.model('live800RecordDaySummary', live8
 
 let playerInfoFromExternalSourceSchema = require('./../schema/logs2/playerInfoFromExternalSource');
 let playerInfoFromExternalSourceModel = dbLogs2.model('playerInfoFromExternalSource', playerInfoFromExternalSourceSchema, 'playerInfoFromExternalSource');
+
+let queryCreditTimeoutSchema = require('./../schema/logs2/queryCreditTimeout');
+let queryCreditTimeoutModel = dbLogs2.model('queryCreditTimeout', queryCreditTimeoutSchema, 'queryCreditTimeout');
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -749,6 +752,7 @@ var dbProperties = {
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
     collection_playerDataFromExternalSource: playerInfoFromExternalSourceModel,
+    collection_queryCreditTimeout: queryCreditTimeoutModel,
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,
