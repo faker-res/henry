@@ -1032,6 +1032,17 @@ define([], function () {
                 case "UpdatePartnerRealName":
                     groupName = "PARTNER_INFORMATION";
                     break;
+                case "PlayerAddRewardPoints":
+                case "PlayerMinusRewardPoints":
+                case "PlayerConvertRewardPoints":
+                case "PlayerAutoConvertRewardPoints":
+                case "AuctionPromoCode":
+                case "AuctionOpenPromoCode":
+                case "AuctionRewardPromotion":
+                case "AuctionRealPrize":
+                case "AuctionRewardPointChange":
+                    groupName = "Reward Point Proposal";
+                    break;
                 case "UpdatePlayerCredit":
                 case "FixPlayerCreditTransfer":
                 case "UpdatePartnerCredit":
@@ -1064,73 +1075,73 @@ define([], function () {
                         allProposalType[x].seq = 3.03;
                         break;
                     case "UpdatePlayerInfo":
-                        allProposalType[x].seq = 4.01;
-                        break;
-                    case "UpdatePlayerBankInfo":
-                        allProposalType[x].seq = 4.02;
-                        break;
-                    case "UpdatePlayerEmail":
-                        allProposalType[x].seq = 4.03;
-                        break;
-                    case "UpdatePlayerPhone":
-                        allProposalType[x].seq = 4.04;
-                        break;
-                    case "UpdatePlayerQQ":
-                        allProposalType[x].seq = 4.05;
-                        break;
-                    case "UpdatePlayerWeChat":
-                        allProposalType[x].seq = 4.06;
-                        break;
-                    case "UpdatePlayerInfoPartner":
-                        allProposalType[x].seq = 4.07;
-                        break;
-                    case "UpdatePlayerInfoLevel":
-                        allProposalType[x].seq = 4.08;
-                        break;
-                    case "UpdatePlayerInfoAccAdmin":
-                        allProposalType[x].seq = 4.09;
-                        break;
-                    case "UpdatePartnerInfo":
                         allProposalType[x].seq = 5.01;
                         break;
-                    case "UpdatePartnerBankInfo":
+                    case "UpdatePlayerBankInfo":
                         allProposalType[x].seq = 5.02;
                         break;
-                    case "UpdatePartnerEmail":
+                    case "UpdatePlayerEmail":
                         allProposalType[x].seq = 5.03;
                         break;
-                    case "UpdatePartnerPhone":
+                    case "UpdatePlayerPhone":
                         allProposalType[x].seq = 5.04;
                         break;
-                    case "UpdatePartnerQQ":
+                    case "UpdatePlayerQQ":
                         allProposalType[x].seq = 5.05;
                         break;
-                    case "UpdatePartnerWeChat":
+                    case "UpdatePlayerWeChat":
                         allProposalType[x].seq = 5.06;
                         break;
-                    case "UpdatePartnerCommissionType":
+                    case "UpdatePlayerInfoPartner":
                         allProposalType[x].seq = 5.07;
                         break;
-                    case "UpdatePlayerCredit":
+                    case "UpdatePlayerInfoLevel":
+                        allProposalType[x].seq = 5.08;
+                        break;
+                    case "UpdatePlayerInfoAccAdmin":
+                        allProposalType[x].seq = 5.09;
+                        break;
+                    case "UpdatePartnerInfo":
                         allProposalType[x].seq = 6.01;
                         break;
-                    case "FixPlayerCreditTransfer":
+                    case "UpdatePartnerBankInfo":
                         allProposalType[x].seq = 6.02;
                         break;
-                    case "UpdatePartnerCredit":
+                    case "UpdatePartnerEmail":
                         allProposalType[x].seq = 6.03;
                         break;
-                    case "ManualUnlockPlayerReward":
+                    case "UpdatePartnerPhone":
                         allProposalType[x].seq = 6.04;
                         break;
-                    case "PlayerLevelMigration":
+                    case "UpdatePartnerQQ":
                         allProposalType[x].seq = 6.05;
                         break;
-                    case "PlayerRegistrationIntention":
+                    case "UpdatePartnerWeChat":
                         allProposalType[x].seq = 6.06;
                         break;
-                    case "PlayerLimitedOfferIntention":
+                    case "UpdatePartnerCommissionType":
                         allProposalType[x].seq = 6.07;
+                        break;
+                    case "UpdatePlayerCredit":
+                        allProposalType[x].seq = 7.01;
+                        break;
+                    case "FixPlayerCreditTransfer":
+                        allProposalType[x].seq = 7.02;
+                        break;
+                    case "UpdatePartnerCredit":
+                        allProposalType[x].seq = 7.03;
+                        break;
+                    case "ManualUnlockPlayerReward":
+                        allProposalType[x].seq = 7.04;
+                        break;
+                    case "PlayerLevelMigration":
+                        allProposalType[x].seq = 7.05;
+                        break;
+                    case "PlayerRegistrationIntention":
+                        allProposalType[x].seq = 7.06;
+                        break;
+                    case "PlayerLimitedOfferIntention":
+                        allProposalType[x].seq = 7.07;
                         break;
                 }
                 if (!allProposalType[x].seq) {
@@ -1144,14 +1155,17 @@ define([], function () {
                         case "Reward Proposal":
                             allProposalType[x].seq = 3.90;
                             break;
-                        case "PLAYER_INFORMATION":
+                        case "Reward Point Proposal":
                             allProposalType[x].seq = 4.90;
                             break;
-                        case "PARTNER_INFORMATION":
+                        case "PLAYER_INFORMATION":
                             allProposalType[x].seq = 5.90;
                             break;
-                        case "Others":
+                        case "PARTNER_INFORMATION":
                             allProposalType[x].seq = 6.90;
+                            break;
+                        case "Others":
+                            allProposalType[x].seq = 7.90;
                             break;
                     }
                 }
