@@ -3608,7 +3608,26 @@ var proposalExecutor = {
             },
 
             executeAuctionPromoCode: function (proposalData) {
-                if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.SUCCESS ||
+                if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.PENDING)) {
+                    if (proposalData.data.type == 1){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_PROMO_CODE_B_PENDING, {});
+                    }
+                    else if (proposalData.data.type == 3){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_PROMO_CODE_C_PENDING, {});
+                    }
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.REJECTED)) {
+
+                    if (proposalData.data.type == 1){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_PROMO_CODE_B_REJECT, {});
+                    }
+                    else if (proposalData.data.type == 3){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_PROMO_CODE_C_REJECT, {});
+                    }
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.SUCCESS ||
                     proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
                     let code = null;
                     let expirationDate = null;
@@ -3691,14 +3710,21 @@ var proposalExecutor = {
                         }
                     ).then(
                         retData => {
-                            if (retData[1]){
-                                sendMessageToPlayer(retData[1], constMessageType.AUCTION_PROMO_CODE_SUCCESS, {});
+                            if (retData[1] && retData[1].data){
+
+                                if (retData[1].data.type && retData[1].data.type == 1){
+                                    sendMessageToPlayer(retData[1], constMessageType.AUCTION_PROMO_CODE_B_SUCCESS, {});
+                                }
+                                else if (retData[1].data.type && retData[1].data.type == 3){
+                                    sendMessageToPlayer(retData[1], constMessageType.AUCTION_PROMO_CODE_C_SUCCESS, {});
+                                }
                                 dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                                 return retData[1]
                             }
                         }
                     ).catch(
                         err => {
+                            console.log("checking error message", err)
                             dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                             throw err;
                         }
@@ -3710,7 +3736,6 @@ var proposalExecutor = {
             },
 
             executeAuctionOpenPromoCode: function (proposalData) {
-                console.log("checking proposal data", proposalData)
                 console.log("checking proposal data.status", proposalData.status)
 
                 if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.SUCCESS ||
@@ -3725,7 +3750,7 @@ var proposalExecutor = {
                                 let todayEndTime = dbUtil.getTodaySGTime().endTime;
                                 expirationDate = dbUtil.getNdaylaterFromSpecificStartTime(openPromoCodeTemplate.expiredInDay, todayEndTime);
                                 code = openPromoCodeTemplate.code;
-                                isProvidderGroup = openPromoCodeTemplate.isProviderGroup;
+                                isProviderGroup = openPromoCodeTemplate.isProviderGroup;
                                 let updateObj = {
                                     expirationTime: expirationDate,
                                     status: constPromoCodeStatus.AVAILABLE
@@ -3747,18 +3772,42 @@ var proposalExecutor = {
                         }
                     ).then(
                         updatedProposalData => {
-                            if (updatedProposalData){
-                                sendMessageToPlayer(updatedProposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_SUCCESS, {});
+                            if (updatedProposalData && updatedProposalData.data){
+
+                                if (updatedProposalData.data.type && updatedProposalData.data.type == 1){
+                                    sendMessageToPlayer(updatedProposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_B_SUCCESS, {});
+                                }
+                                else if (updatedProposalData.type && updatedProposalData.data.type == 3){
+                                    sendMessageToPlayer(updatedProposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_C_SUCCESS, {});
+                                }
+
                                 return updatedProposalData
                             }
                         }
-
                     ).catch(
                         err => {
                             console.log("error when execute the auction openPromoCode", err);
                         }
 
                     )
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PENDING)) {
+                    if (proposalData.data.type == 1){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_B_PENDING, {});
+                    }
+                    else if (proposalData.data.type == 3){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_C_PENDING, {});
+                    }
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.REJECTED)) {
+                    if (proposalData.data.type == 1){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_B_REJECT, {});
+                    }
+                    else if (proposalData.data.type == 3){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_C_REJECT, {});
+                    }
+                    return Promise.resolve(proposalData);
                 }
                 else {
                     return Promise.resolve();
@@ -3844,6 +3893,14 @@ var proposalExecutor = {
                         }
                     )
                 }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PENDING)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_PROMOTION_PENDING, {});
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.REJECTED)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_PROMOTION_REJECT, {});
+                    return Promise.resolve(proposalData);
+                }
                 else {
                     return Promise.resolve();
                 }
@@ -3853,6 +3910,14 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.SUCCESS ||
                     proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
                     sendMessageToPlayer(proposalData, constMessageType.AUCTION_REAL_PRIZE_SUCCESS, {});
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PENDING)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REAL_PRIZE_PENDING, {});
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.REJECTED)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REAL_PRIZE_REJECT, {});
                     return Promise.resolve(proposalData);
                 }
                 else {
@@ -3873,7 +3938,15 @@ var proposalExecutor = {
                     let creator = proposalData.data.seller || 'System';
 
                     sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_POINT_CHANGE_SUCCESS, {});
-                    return dbPlayerInfo.updatePlayerRewardPointsRecord (playerObjId, platformObjId, updateAmount, remark, null, null,creator, userDevice)
+                    return dbPlayerInfo.updatePlayerRewardPointsRecord (playerObjId, platformObjId, updateAmount, remark, null, null, creator, userDevice)
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PENDING)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_POINT_CHANGE_PENDING, {});
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.REJECTED)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_POINT_CHANGE_REJECT, {});
+                    return Promise.resolve(proposalData);
                 }
                 else {
                     return Promise.resolve();
