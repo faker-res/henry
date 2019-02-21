@@ -52,6 +52,7 @@ var simplifiedChinese = {
     "Currently no available wechatpay": "目前无可用微信支付",
     "Guest ID cannot update password": "游客不可更改密码",
 
+    "Birthday only can be set once": "生日绑定之后不可更改",
     "Reset password failed": "找回密码失败",
     "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually": "提示！此玩家无绑定电话（或不方便短信验证）、银行卡，无法进行核对，请客服人工进行其他方式核对后手动修改密码。",
     "Attention! This player has been forbidden to login": "提示！此玩家已被禁止登录。",

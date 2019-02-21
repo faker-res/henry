@@ -1284,6 +1284,11 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, data.phoneNumber, deviceData, userAgentString], isValidData, false, false, true);
     };
 
+    this.changeBirthdayDate.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerObjId && data && data.date);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.changeBirthdayDate, [conn.playerObjId, data.date], isValidData);
+    };
+
     this.getClientData.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getClientData, [conn.playerId], isValidData);

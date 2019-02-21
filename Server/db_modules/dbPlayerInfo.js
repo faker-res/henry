@@ -21746,9 +21746,9 @@ let dbPlayerInfo = {
                                             if (!populatedProvider[i].gameName) {
                                                 populatedProvider[i].gameName = "";
                                             }
-                                            if (populatedProvider[i].cpGameType) {
-                                                populatedProvider[i].gameName = populatedProvider[i].cpGameType;
-                                            }
+                                            // if (populatedProvider[i].cpGameType) {
+                                            //     populatedProvider[i].gameName = populatedProvider[i].cpGameType;
+                                            // }
                                             delete populatedProvider[i].cpGameType;
                                             if (populatedProvider[i].gameId) {
                                                 if (populatedProvider[i].gameId.name && !populatedProvider[i].gameName) {
@@ -21850,6 +21850,22 @@ let dbPlayerInfo = {
                     });
                 });
             });
+    },
+
+    changeBirthdayDate: function (playerObjId, date) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {DOB: 1}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"})
+                }
+                if (playerData.DOB) {
+                    return Promise.reject({name: "DataError", message: "Birthday only can be set once"})
+                } else {
+                    return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId}, {DOB: new Date(date)}, {new: true}).lean()
+                }
+            }
+        )
+
     },
 
     getClientData: function (playerId) {

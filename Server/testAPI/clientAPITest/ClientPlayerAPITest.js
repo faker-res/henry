@@ -698,6 +698,17 @@
         });
     };
 
+    proto.changeBirthdayDate = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.changeBirthdayDate.request(data);
+        this.playerService.changeBirthdayDate.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.getClientData = function (callback, requestData) {
         let data = requestData || {};
 
