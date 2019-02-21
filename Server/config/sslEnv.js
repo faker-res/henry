@@ -8,7 +8,7 @@ var localConfig = {
 // dev-test
 var devConfig = {
     mode: "development",
-    redisUrl : 'fpms_sslserver.neweb.me',
+    redisUrl : '',
     redisPort : '',
 };
 
