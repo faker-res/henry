@@ -21696,7 +21696,7 @@ let dbPlayerInfo = {
                                 validAmount: {$first: "$validAmount"},
                                 bonusAmount: {$first: "$bonusAmount"},
                                 createTime: {$first: "$createTime"},
-                                gameId: {$first: {$cond: [{$not: ["$cpGameType"]}, "$gameId", "$null"]}},
+                                gameId: {$first: "$gameId"},
                                 cpGameType: {$first: {$ifNull: ['$cpGameType', '$null']}},
                                 winRatio: {$first: "$winRatio"}
                             }
@@ -21763,7 +21763,7 @@ let dbPlayerInfo = {
                                 }, {
                                     path: "gameId",
                                     model: dbconfig.collection_game,
-                                    select: "name"
+                                    select: "name gameId"
                                 }
                                 ]).then(
                                     populatedProvider => {
@@ -21781,11 +21781,14 @@ let dbPlayerInfo = {
                                             }
                                             delete populatedProvider[i].cpGameType;
                                             if (populatedProvider[i].gameId) {
-                                                if (populatedProvider[i].gameId.name) {
+                                                if (populatedProvider[i].gameId.name && !populatedProvider[i].gameName) {
                                                     populatedProvider[i].gameName = populatedProvider[i].gameId.name;
                                                 }
+                                                if (populatedProvider[i].gameId.gameId) {
+                                                    populatedProvider[i].gameCode = populatedProvider[i].gameId.gameId;
+                                                }
+                                                delete populatedProvider[i].gameId;
                                             }
-                                            delete populatedProvider[i].gameId;
                                             if (!populatedProvider[i].providerName) {
                                                 populatedProvider[i].providerName = "";
                                             }
