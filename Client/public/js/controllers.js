@@ -1123,6 +1123,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     "http://jinbailinewcro.tel400.me/cti/previewcallout.action"
                 ];
             }
+            else if (platformId == '29') {
+                urls = [
+                    "http://newpj.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action"
+                ]
+            }
 
             performPhoneCall();
 
