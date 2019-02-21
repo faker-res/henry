@@ -7133,9 +7133,11 @@ var proposal = {
                 let proms = [];
                 let inputDeviceArr;
                 let merchantData;
-                let projectQ = { 'data.topupType':1, settleTime:1, createTime:1, 'data.timeDifferenceInMins':1, 'data.playerObjId':1, status:1, 'data.merchantNo':1,
-                    proposalId:1, 'data.creator':1, inputDevice:1, mainType:1, typeName:1, involveAmount:1, 'data.proposalPlayerLevel':1,  remark:1,
-                    'data.merchantTypeId':1
+                let projectQ = {
+                    settleTime:1, createTime:1, status:1 ,proposalId:1, inputDevice:1, mainType:1, typeName:1, involveAmount:1,
+                    'data.timeDifferenceInMins':1, 'data.playerObjId':1, 'data.merchantNo':1,'data.creator':1,  'data.topupType':1,
+                    'data.proposalPlayerLevel':1, 'data.remark':1, 'data.merchantTypeId':1, 'data.playerName':1, 'data.partnerName':1,
+                    'data.amount':1, 'data.amountRatio':1
                 };
                 // loop for userAgent
                 for(let i =1; i<=3; i++) {
@@ -7172,20 +7174,21 @@ var proposal = {
                             $match: matchObj
                         },
                         {
-                            $project: { createTime:1, type:1, inputDevice:1, topupType:1, 'data.playerObjId':1, 'data.topupType':1, status:1 }
+                            $project: { createTime:1, type:1, inputDevice:1, status:1, 'data.playerObjId':1, 'data.topupType':1, 'data.amount':1, 'data.amountRatio':1 }
                         },
                         {
                             $group: groupByObj
                         }
                     ).read("secondaryPreferred").then(
                         data => {
-                            console.log('way1');
                             let searchQ = Object.assign({}, matchObj, {status: "Success"});
                             let proposalArrProm = dbconfig.collection_proposal.find(searchQ, projectQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
                             //get success proposal count group by topupType, filter repeat user
                             let topUpTypeProm =  dbconfig.collection_proposal.aggregate(
                                 {
                                     $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}})
+                                }, {
+                                    $project: { 'data.topupType':1, 'data.playerObjId':1 }
                                 }, {
                                     $group: {
                                         _id: "$data.topupType",
@@ -7241,7 +7244,6 @@ var proposal = {
                         }
                     );
                     if(analysisCategory !== 'onlineTopupType')
-                        console.log('way2');
                         prom = prom.then(
                             data => {
                                 let innerProms = [];
@@ -7268,7 +7270,7 @@ var proposal = {
                                                         {
                                                             $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}, 'data.topupType': onlineTopupTypeData._id})
                                                         }, {
-                                                            $project: { status:1, 'data.topupType':1, 'data.merchantNo':1, 'data.playerObjId':1, 'data.merchantTypeId':1 }
+                                                            $project: { status:1, 'data.topupType':1, 'data.merchantNo':1, 'data.playerObjId':1, 'data.merchantTypeId':1,  'data.amount':1, 'data.amountRatio':1 }
                                                         }, {
                                                             $group: {
                                                                 _id: "$data.merchantNo",
@@ -7279,7 +7281,6 @@ var proposal = {
 
                                                     return Promise.all([operatorProm, merchantProm]).then(
                                                         retData => {
-                                                            console.log(retData);
                                                             if (retData && retData.length == 2){
                                                                 let successMerchantData = retData[1];
                                                                 let proposalInInterval = retData[0];
@@ -7292,7 +7293,6 @@ var proposal = {
                                                                     delete merchant.userIds; // save bandwidth
                                                                     successMerchantData.forEach(
                                                                         successMerchant => {
-                                                                            console.log(successMerchant);
                                                                             if(merchant._id === successMerchant._id) {
                                                                                 merchant.successUserCount = successMerchant.userIds.length;
                                                                                 merchant.successUserIds =  successMerchant.userIds; // frontend need this to get unique user
@@ -7317,7 +7317,6 @@ var proposal = {
                                                                     return merchant;
                                                                 });
                                                                 onlineTopupTypeData.merchantData = merchantData;
-                                                                console.log(onlineTopupTypeData);
                                                                 return onlineTopupTypeData;
                                                             }
                                                             else{
@@ -7340,6 +7339,8 @@ var proposal = {
                     let userAgentUserCountProm = dbconfig.collection_proposal.aggregate(
                         {
                             $match: Object.assign({}, matchObj,{status: "Success"})
+                        }, {
+                            $project: { 'data.userAgent':1, 'data.playerObjId':1 }
                         }, {
                             $group: {
                                 _id: "$data.userAgent",
@@ -7368,6 +7369,8 @@ var proposal = {
                                     status: "Success",
                                     $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}/*, {'data.topupType': {$type: 'number'}}*/],
                                 }
+                            }, {
+                                $project: projectQ
                             }, {
                                 $group: {
                                     _id: null,
