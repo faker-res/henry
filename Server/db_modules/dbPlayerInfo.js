@@ -6624,6 +6624,17 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
+                let player = JSON.parse(JSON.stringify(data[0]));
+                let provider = data[1];
+                // if adminName doesn't exist (likely request from frontend), AND
+                // requested provider is in player's forbid providers' list: then reject.
+                if ((!adminName) && data && player && provider && player.forbidProviders.indexOf(provider._id.toString()) > -1) {
+                    return Promise.reject({
+                        name: "DataError",
+                        status: constServerCode.PLAYER_IS_FORBIDDEN,
+                        message: "Player is forbidden to the game"
+                    })
+                }
                 // Check is test player
                 if (data && data[0] && data[0].isTestPlayer) {
                     return Promise.reject({
@@ -6792,7 +6803,7 @@ let dbPlayerInfo = {
                     dbPlayerInfo.clearPlayerBonusDoubledRewardDataWhenTransferFailed(playerData._id, playerData.platform._id, currentDate);
                 }
 
-                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT)) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT && err.status !== constServerCode.PLAYER_IS_FORBIDDEN)) {
                     let platformId = playerData.platform ? playerData.platform.platformId : null;
                     let platformObjId = playerData.platform ? playerData.platform._id : null;
                     let status = (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
@@ -6802,7 +6813,9 @@ let dbPlayerInfo = {
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, status);
                 }
                 // Set BState back to false
-                dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
+                if (playerData) {
+                    dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
+                }
                 return Promise.reject(err);
             }
         ).catch(
@@ -6813,7 +6826,7 @@ let dbPlayerInfo = {
 
                 if (err.status === constServerCode.CONCURRENT_DETECTED) {
                     // Ignore concurrent request for now
-                } else {
+                } else if (playerData) {
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 }
@@ -7228,6 +7241,17 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
+                let player = JSON.parse(JSON.stringify(data[0]));
+                let providers = data[1];
+                // if adminName doesn't exist (likely request from frontend), AND
+                // requested provider is in player's forbid providers' list: then reject.
+                if ((!adminName) && data && player && providers && player.forbidProviders.indexOf(providers[0]._id.toString()) > -1) {
+                    return Promise.reject({
+                        name: "DataError",
+                        status: constServerCode.PLAYER_IS_FORBIDDEN,
+                        message: "Player is forbidden to the game"
+                    })
+                }
                 if (data && data[0] && data[0].isTestPlayer) {
                     return Promise.reject({
                         name: "DataError",
@@ -7279,7 +7303,11 @@ let dbPlayerInfo = {
                 }
             },
             err => {
-                return Promise.reject({name: "DataError", message: "Cant find player or provider"});
+                if(err && err.status === constServerCode.PLAYER_IS_FORBIDDEN) {
+                    return Promise.reject(err);
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cant find player or provider"});
+                }
             }
         ).then(
             checkPlayerBonusDoubledRewardResult => {
@@ -7306,12 +7334,14 @@ let dbPlayerInfo = {
                         message: err.message,
                         data: err.data
                     });
+                } else if(err && err.status === constServerCode.PLAYER_IS_FORBIDDEN) {
+                    return Promise.reject(err);
+                } else {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: err.message
+                    });
                 }
-
-                return Promise.reject({
-                    name: "DataError",
-                    message: err.message
-                });
             }
         ).then(
             function (data) {
@@ -7319,7 +7349,7 @@ let dbPlayerInfo = {
                 return Promise.resolve(data);
             },
             function (err) {
-                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT)) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT && err.status !== constServerCode.PLAYER_IS_FORBIDDEN)) {
                     var platformId = playerObj.platform ? playerObj.platform.platformId : null;
                     var platformObjId = playerObj.platform ? playerObj.platform._id : null;
                     console.log('debug transfer error G:', err);
