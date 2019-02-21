@@ -96,6 +96,8 @@ const dbPlayerUtility = {
         }
 
         let allowExec = true;
+        console.log('matchQ===', matchQ);
+        console.log('updateQ===', updateQ);
 
         return dbconfig.collection_playerBState.findOneAndUpdate(
             matchQ,
