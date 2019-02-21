@@ -927,7 +927,6 @@ define(['js/app'], function (myApp) {
                                     merchantType => {
                                         if(merchantType.name && userAgentTypeKey != 0){
                                             let calculatedData = vm.calculateOnlineTopupTypeData(key, userAgentTypeKey-1, merchantType.merchantTypeId);
-                                            console.log(calculatedData.totalCount);
                                             if(calculatedData.totalCount) // if no data dont show
                                                 vm.platformOnlineTopupAnalysisByType.push(calculatedData);
                                         }
