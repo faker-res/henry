@@ -2371,6 +2371,50 @@ let dbPlayerInfo = {
             );
     },
 
+    getOnePlayerSimpleDetail: function (platformObjId, playerObjId) {
+        function getRewardGroupData(thisPlayer) {
+            return dbconfig.collection_rewardTaskGroup.find({
+                platformId: thisPlayer.platform,
+                playerId: thisPlayer._id,
+                status: {$in: [constRewardTaskStatus.STARTED]}
+            }).then(
+                rewardGroupData => {
+                    thisPlayer.rewardGroupInfo = rewardGroupData;
+                    thisPlayer.lockedCredit = rewardGroupData.reduce(
+                        (arr, inc) => arr + inc.rewardAmt, 0
+                    );
+                    return thisPlayer;
+                }
+            )
+        }
+
+        return dbconfig.collection_players.findOne({platform: platformObjId, _id: playerObjId})
+        .populate({path: "partner", model: dbconfig.collection_partner})
+        .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+        .populate({path: "rewardPointsObjId", model:dbconfig.collection_rewardPoints})
+        .lean()
+        .then(
+             data => {
+                 if (!data) {
+                     return Promise.reject({message: "Player not found."});
+                 }
+
+                 return getRewardGroupData(data);
+             }
+        )
+    },
+
+    getOnePlayerSummaryRecord: function (platformObjId, playerObjId) {
+        return dbconfig.collection_players.findOne({platform: platformObjId, _id: playerObjId}, {platform: 1, registrationTime: 1}).lean().then(
+            player => {
+                if (player) {
+                    return dbPlayerInfo.getConsumptionDetailOfPlayers(player.platform, player.registrationTime, new Date().toISOString(), {}, [player._id]);
+                }
+                return Promise.resolve();
+            }
+        );
+    },
+
     getOnePlayerInfo: function (query) {
         let playerData;
 
@@ -12452,7 +12496,6 @@ let dbPlayerInfo = {
                             conn.playerId = playerId;
                             conn.playerObjId = playerData._id;
                             conn.platformId = playerData.platform.platformId;
-                            conn.isSendEBETData = playerData.platform.isSendEBETData;
 
                             // Online time trace
                             dbPlayerOnlineTime.authenticateTimeLog(playerData._id, token).catch(errorUtils.reportError);
@@ -14761,6 +14804,7 @@ let dbPlayerInfo = {
                 if (data && isPreview){
                     return data;
                 }
+                console.log('reset bstate===11');
                 // Reset BState
                 dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 return data;
@@ -14770,6 +14814,7 @@ let dbPlayerInfo = {
                 if (err.status === constServerCode.CONCURRENT_DETECTED) {
                     // Ignore concurrent request for now
                 } else {
+                    console.log('reset bstate===22');
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 }
@@ -19780,7 +19825,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade) {
+    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade, isFeedbackPhoneTrade) {
         let tsPhoneList;
         if (phoneListDetail.length <= 0) {
             return Promise.reject("None of the phone has pass the filter");
@@ -19854,7 +19899,7 @@ let dbPlayerInfo = {
                             )
                         }
 
-                        if (isPhoneTrade) {
+                        if (isPhoneTrade) { // ts phone trade
                             prom = prom.then(
                                 tsPhoneData => {
                                     dbconfig.collection_tsPhoneTrade.update(
@@ -19865,6 +19910,21 @@ let dbPlayerInfo = {
                                         {
                                             targetTsPhone: tsPhoneData._id,
                                             targetTsPhoneList: tsPhoneList._id
+                                        }, {multi: true}).catch(errorUtils.reportError);
+                                    return tsPhoneData
+                                }
+                            )
+                        }
+
+                        if (isFeedbackPhoneTrade) { // from feedback
+                            prom = prom.then(
+                                tsPhoneData => {
+                                    dbconfig.collection_feedbackPhoneTrade.update(
+                                        {
+                                            _id: phone._id
+                                        },
+                                        {
+                                            isImportedPhoneList: true
                                         }, {multi: true}).catch(errorUtils.reportError);
                                     return tsPhoneData
                                 }

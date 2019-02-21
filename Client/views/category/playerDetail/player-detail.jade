@@ -1,0 +1,577 @@
+//div {{vm.playerData}}
+.row.margin-top-bottom-small
+    .col-md-12
+        table.common-table#playerFeedbackDataTable.display.widthto100
+.row.margin-top-bottom-small
+    .col-md-12
+        table.common-table#playerFeedbackDataTableExtended.display.widthto100
+
+.row.margin-top-bottom-small
+    .col-md-6
+        h4(ng-if="checkViewPermission('Platform','Feedback','Create')") {{"ADD_FEEDBACK" | translate}}
+        div.newcontanier
+            .row
+                .col-xs-2
+                    h5 {{'FEEDBACK_RESULTS' | translate}}
+                .col-xs-8
+                    select.search-filters-twoBoxes.form-control(ng-model='vm.addFeedback.result', required)
+                        option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                    button.btn.btn-primary.btn-space(ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+            .row
+                .col-xs-2
+                    h5 {{'FEEDBACK_TOPIC' | translate}}
+                .col-xs-8
+                    select.search-filters-twoBoxes.form-control(ng-model='vm.addFeedback.topic', required)
+                        option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                    button.btn.btn-primary.btn-space(ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+            .row
+                .col-xs-2
+                    h5 {{"REMARK" | translate}}
+                .col-xs-8
+                    textarea.form-control(rows='4' cols="40", ng-model='vm.addFeedback.content')
+            .text-right
+                button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result="";vm.addFeedback.topic="";') {{'Reset' | translate}}
+                button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.topic || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
+
+        h4 {{"CREDIBILITY_RECORD" | translate}}
+        table.simple-table
+            thead
+                tr
+                    th {{"OPERATOR_NAME" | translate}}
+                    th {{"TIME" | translate}}
+                    th {{"CREDIBILITY" | translate}}
+                    th {{"remark" | translate}}
+            tbody
+                tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
+                    td
+                        text {{data.admin}}
+                    td
+                        text {{data.createTime}}
+                    td
+                        text {{data.remarks$}}
+                    td
+                        text {{data.comment}}
+    .col-md-6
+        h4 {{"Feedback History" | translate}} : {{vm.curPlayerFeedbackDetail.length}}
+        table.simple-table
+            thead
+                tr
+                    th {{"TIME" | translate}}
+                    th {{"ADMIN" | translate}}
+                    th {{"RESULT" | translate}}
+                    th {{"FEEDBACK_TOPIC" | translate}}
+                    th {{"REMARK" | translate}}
+            tbody
+                tr(ng-repeat='(i,v) in vm.curPlayerFeedbackDetail', ng-show='vm.curPlayerFeedbackDetail.length>0')
+                    td
+                        text {{vm.dateReformat(v.createTime)}}
+                    td
+                        text {{v.adminId.adminName || 'Unknown' | translate}}
+                    td
+                        text {{v.result$}}
+                    td
+                        text {{v.topic | translate}}
+                    td
+                        text {{v.content}}
+
+
+
+// modals and pop up
+
+#dialogFrame.dialog-frame
+#modalEditCritical.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.modifyCritical.title | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            label {{'PLEASE_CHOOSE' | translate}}
+                            p
+                            label.radio-inline {{'EMAIL' | translate}}
+                                input.pull-left.relative(type='radio', ng-model='vm.modifyCritical.changeType', value='email')
+                            label.radio-inline {{'PHONE' | translate}}
+                                input.pull-left.relative(type='radio', ng-model='vm.modifyCritical.changeType', value='phone')
+                            label.radio-inline(ng-if = "vm.platformPageName==='Partner'") QQ
+                                input.pull-left.relative(type='radio', ng-model='vm.modifyCritical.changeType', value='qq')
+                        .col-md-12.well
+                            div(ng-show='vm.modifyCritical.changeType=="email"')
+                                div.form-group.col-md-7
+                                    label.control-label {{"CURRENT_EMAIL" | translate}}
+                                    input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="vm.modifyCritical.curEmail", disabled)
+                                form(name='form_edit_critical_email', novalidate)
+                                    div.form-group.col-md-7
+                                        label.control-label {{"NEW_EMAIL" | translate}}
+                                        input.form-control(type="email", name="email1", placeholder='{{"EMAIL" | translate}}', ng-model="vm.modifyCritical.newEmail", required)
+                                        span.help-block(ng-show="form_edit_critical_email.email1.$dirty && form_edit_critical_email.email1.$error.email") {{"EMAIL_INVALID" | translate}}
+                                    div.form-group.col-md-7
+                                        label.control-label {{"RETYPE_EMAIL" | translate}}
+                                        input.form-control(type="email", name="repeatemail", placeholder='{{"EMAIL" | translate}}', ng-model="emailConfirmation", match="vm.modifyCritical.newEmail", required)
+                                        span.help-block(ng-show="form_edit_critical_email.repeatemail.$dirty && form_edit_critical_email.repeatemail.$error.email") {{"EMAIL_INVALID" | translate}}
+                                        span.help-block(ng-show="form_edit_critical_email.repeatemail.$dirty && form_edit_critical_email.repeatemail.$error.match") {{"EMAIL_DO_NOT_MATCH" | translate}}
+                            div(ng-show='vm.modifyCritical.changeType=="phone"')
+                                div.form-group.col-md-7
+                                    label.control-label {{"CURRENT_TELEPHONE" | translate}}
+                                    input.form-control(type="text", placeholder="{{'MOBILE' | translate}}", ng-model="vm.modifyCritical.phoneNumber", disabled)
+                                div.form-group.col-md-7
+                                    label.control-label {{"VERIFY_TELEPHONE" | translate}}
+                                    input.form-control(type="text", placeholder="{{'VERIFY_TELEPHONE' | translate}}", ng-model="vm.modifyCritical.verifyPhoneNumber")
+                                    p
+                                    button.btn.btn-primary.common-button(ng-disabled='!vm.modifyCritical.verifyPhoneNumber', ng-click="vm.verifyPlayerPhoneNumber()") {{"VERIFY" | translate}}
+                                    label.fa.fa-check.colorGreen(ng-if='vm.correctVerifyPhoneNumber')
+                                    label.fa.fa-times.colorRed(ng-if='(!vm.correctVerifyPhoneNumber && (vm.correctVerifyPhoneNumber !== undefined))')
+                                form(name='form_edit_critical_phone', novalidate)
+                                    div.form-group.col-md-7
+                                        label.control-label {{"NEW_TELEPHONE" | translate}}
+                                        input.form-control(type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="vm.modifyCritical.newPhoneNumber", required)
+                            div(ng-show='vm.modifyCritical.changeType=="qq"')
+                                div.form-group.col-md-7
+                                    label.control-label {{"CURRENT_QQ" | translate}}
+                                    input.form-control(type="text", name="qq", placeholder='{{"CURRENT_QQ" | translate}}', ng-model="vm.modifyCritical.curQQ", disabled)
+                                form(name='form_edit_critical_qq', novalidate)
+                                    div.form-group.col-md-7
+                                        label.control-label {{"NEW_QQ" | translate}}
+                                        input.form-control(type="text", name="qq1", placeholder='{{"NEW_QQ" | translate}}', ng-model="vm.modifyCritical.newQQ", required)
+                                    div.form-group.col-md-7
+                                        label.control-label {{"RETYPE_QQ" | translate}}
+                                        input.form-control(type="text", name="repeatqq", placeholder='{{"RETYPE_QQ" | translate}}', ng-model="qqConfirmation", match="vm.modifyCritical.newQQ", required)
+                                        span.help-block(ng-show="form_edit_critical_qq.repeatqq.$dirty && form_edit_critical_qq.repeatqq.$error.match") {{"QQ_DO_NOT_MATCH" | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="email"', ng-disabled='form_edit_critical_email.$invalid || form_edit_critical_email.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="phone"', ng-disabled='form_edit_critical_phone.$invalid || form_edit_critical_phone.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="qq"', ng-disabled='form_edit_critical_qq.$invalid || form_edit_critical_qq.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalPlayerTopUpReport.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Top Up Records for"|translate}} {{vm.isOneSelectedPlayer().name}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        #playerTopUp.adminLogQueryDiv.well
+                            .inlineBlk
+                                label {{'START_DATE' | translate}}
+                                .startTime
+                            .inlineBlk
+                                label {{'END_DATE' | translate}}
+                                .endTime
+                            //.inlineBlk
+                                label {{'Limit' | translate}}
+                                select.form-control.limit(ng-model='vm.queryPara.playerTopUp.limit')
+                                    option 50
+                                    option 100
+                                    option 200
+                                    option(value='-1') {{'Unlimited' | translate}}
+                            .inlineBlk
+                                button.btn.btn-primary(ng-click='vm.getPagePlayerTopup(true)') {{'SEARCH' | translate}}
+                        pre
+                            text {{"Total Amount"|translate}}:
+                            label {{vm.playerTopupRecordForModal.amount || 0 | number : 2}}&nbsp
+                            text {{"Total Valid Amount"|translate}}:
+                            label {{vm.playerTopupRecordForModal.validAmount || 0 | number : 2}}&nbsp
+                            text {{"Total Bonus Amount"|translate}}:
+                            label {{vm.playerTopupRecordForModal.bonusAmount || 0 | number : 2}}
+                        p
+                        //text.text-danger(ng-show ='vm.playerAllTopupRecords.length == 0') {{"No Top Up record is found."|translate}}
+                        label {{"Total" | translate}} {{vm.playerTopUpLog.totalCount}} {{"records" | translate}}
+                        table#playerTopupRecordTable.common-table.display(style='min-width:100%')
+                        #playerTopupRecordTablePage
+
+#modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label {{vm.selectedProposal.type.name | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+                        li(ng-if='vm.chartData')
+                            a(data-toggle="tab", href="#Workflow", ng-click="")
+                                .fa.fa-user
+                                | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            #ProposalDetail.tab-pane.fade.in.active
+                                include ../player/proposal-dialog-detail
+            .modal-footer
+                .inlineBlk(ng-show='vm.selectedProposal.isLocked && !vm.selectedProposal.showUnlockBtn')
+                    label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
+                .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
+                    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
+                button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
+                .inlineBlk(ng-if='vm.selectedProposal.cancelling')
+                    label {{'Cancelling Proposal' | translate}}
+                    i.fa.fa-spin.fa-2x.fa-spinner
+                label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
+                button.btn.btn-success.common-button(ng-if="vm.showCopyProposal()" ng-click="vm.copyTopUpProposal()") {{"COPY_TO_CLIPBOARD" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
+                .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
+                    label.inlineBlk {{'remark' | translate}}
+                    input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
+
+
+
+#newPlayerModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label {{vm.selectedProposal.type.name | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+                        li(ng-if='vm.chartData')
+                            a(data-toggle="tab", href="#Workflow", ng-click="")
+                                .fa.fa-user
+                                | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            #ProposalDetail.tab-pane.fade.in.active
+                                include ../player/proposal-dialog-detail-newplayer
+            .modal-footer
+                .inlineBlk(ng-show='vm.selectedProposal.isLocked && !vm.selectedProposal.showUnlockBtn')
+                    label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
+                .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
+                    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
+                button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
+                .inlineBlk(ng-if='vm.selectedProposal.cancelling')
+                    label {{'Cancelling Proposal' | translate}}
+                    i.fa.fa-spin.fa-2x.fa-spinner
+                label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
+                .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
+                    label.inlineBlk {{'remark' | translate}}
+                    input.inlineBlk.proposalRemark.form-control(style='width:400px;')
+
+
+#auctionItemModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            table.common-table.display(style='min-width:100%')
+                                thead
+                                    th {{'Member Account' | translate}}
+                                    th {{'Reward Point Offer' | translate}}
+                                    th {{'Offer At' | translate}}
+                                tr(ng-repeat="v in vm.selectedAuction.proposal")
+                                    td {{v.data.playerName}}
+                                    td {{v.data.currentBidPrice}}
+                                    td {{v.createTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+            .modal-footer
+
+
+#rewardLockModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label {{vm.selectedProposal.type.name | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+                        li(ng-if='vm.chartData')
+                            a(data-toggle="tab", href="#Workflow", ng-click="")
+                                .fa.fa-user
+                                | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            #ProposalDetail.tab-pane.fade.in.active
+                                include ../platform/proposal-dialog-detail-rewardlock
+            .modal-footer
+                .inlineBlk(ng-show='vm.selectedProposal.isLocked && !vm.selectedProposal.showUnlockBtn')
+                    label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
+                .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
+                    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
+                button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
+                .inlineBlk(ng-if='vm.selectedProposal.cancelling')
+                    label {{'Cancelling Proposal' | translate}}
+                    i.fa.fa-spin.fa-2x.fa-spinner
+                label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
+                .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
+                    label.inlineBlk {{'remark' | translate}}
+                    input.inlineBlk.proposalRemark.form-control(style='width:400px;')
+
+
+
+#modalSMSLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width: 80%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"SMS Log" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                #groupSmsLogQuery.block-query.well
+                    div
+                        label {{"RESULT" | translate}}
+                        select.form-control(ng-model='vm.smsLog.query.status')
+                            option(value='all') {{"any" | translate}}
+                            option(value='success') {{"Success" | translate}}
+                            option(value='failure') {{"Failure" | translate}}
+                    div
+                        label {{"Start date" | translate}}
+                        .startTime
+                        //-(ng-model='vm.smsLog.query.startTime')
+                    div
+                        label {{"End date" | translate}}
+                        .endTime
+                        //-(ng-model='vm.smsLog.query.endTime')
+                    button.btn.btn-primary.common-button(ng-click='vm.searchSMSLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                div(style='max-height: 400px; max-height: 50vh; overflow: auto')
+                    label {{"Total" | translate}} {{vm.smsLog.totalCount}} {{"records" | translate}}
+                    br
+                    table#groupSmsLogTable.common-table.display(style='min-width:100%')
+                    #groupSmsLogTablePage
+            .modal-footer
+                button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
+include ../common-widget/telephone-popover
+
+#modalSelectPartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='z-index:1201')
+    .modal-dialog(style='width:80%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"PLEASE_CHOOSE"|translate}} {{"PARTNER" | translate}}
+            .modal-body
+                .panel
+                    .panel-body
+                        .well.block-query.col-md-12
+                            .inlineBlk
+                                label {{"PARTNER_NAME" | translate}}
+                                input.form-control(type='text', ng-model="vm.showPartnerFilterName", ng-change='vm.showPartnerFilterChange()')
+                            .inlineBlk
+                                label {{"PARTNER_LEVEL" | translate}}
+                                select.form-control(ng-model='vm.showPartnerFilterLevel', ng-options='a.value as a.name | translate for a in vm.allPartnerLevels', ng-change='vm.showPartnerFilterChange()')
+                                    option(value="") {{'any' | translate}}
+                            .inlineBlk(style='margin-left:20px')
+                                label {{"Selected Partner" | translate}}
+                                label {{vm.parterSelectedforPlayer.partnerName}}
+                                    button.btn.btn-danger.common-btn.margin-left-5.span(ng-if='vm.parterSelectedforPlayer', ng-click='vm.clearPartnerSelection()') {{'DELETE' | translate}}
+                                    text.text-danger.common-btn.span(ng-if='!vm.parterSelectedforPlayer') {{'NONE' | translate}}
+                        .well.col-md-12
+                            table#partnerSelectTable.common-table.display(style='width:100%')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"CLOSE" | translate}}
+
+#dialogEditPlayer.dialog-dialog.hidden(ng-non-bindable style='width:60%;max-width:800px;')
+    .dialog-content(style="overflow: scroll;height:600px;")
+        .dialog-header
+            a.fa.fa-times.close.btn.btn-sm(type='button', data-dismiss='dialog')
+            a.fa.fa-minus.close.btn.btn-sm(type='button', data-toggle='minimize')
+            h4.dialog-title {{"EDIT_PLAYER" | translate}} : {{playerBeforeEditing.name}}
+        .dialog-body
+            .panel
+                .panel-body
+                    //here
+                    .padding-all-5
+                        .panel.panel-primary
+                            .panel-heading.common-left-panel-heading
+                                ul.nav.nav-tabs.common-nav-tabs
+                                    li(ng-show="editPlayerPermission",ng-class="selectedTab=='basicInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='basicInfo';")
+                                            text.span {{"Basic" | translate}}
+                                    li(ng-show="editContactPermission",ng-class="selectedTab=='contactInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='contactInfo';prepareEditCritical('player');")
+                                            text.span {{"CONTACT_INFO" | translate}}
+                                    li(ng-show="editWithdrawPermission",ng-class="selectedTab=='withdrawInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPlayerPayment();")
+                                            text.span {{"WITHDRAW_INFO" | translate}}
+                                    li(ng-show="editPlayerPermission",ng-class="selectedTab=='topUpInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='topUpInfo';initTopUpGroupChangeLog()")
+                                            text.span {{"Topup Group" | translate}}
+                                    li(ng-show="editPlayerPermission",ng-class="selectedTab=='adminNameAdjunction'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='adminNameAdjunction';")
+                                            text.span {{"AdminNameAdjunction" | translate}}
+                                            //button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditCritical("player")', data-target='#modalEditCritical') {{"EDIT" | translate}}
+
+                            .panel-body.common-right-panel-body
+                                div.tab-content
+                                    #basicGroup.tab-pane.fade(ng-class="selectedTab =='basicInfo'?'in active':''")
+                                        include ../platform/player-edit-form
+                                        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_editing_player.$invalid', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                    #contactGroup.tab-pane.fade(ng-class="selectedTab =='contactInfo'?'in active':''")
+                                        include ../platform/player-edit-contact
+                                    #withdrawGroup.tab-pane.fade(ng-class="selectedTab =='withdrawInfo'?'in active':''")
+                                        include ../platform/player-edit-withdraw
+                                    #topUpGroup.tab-pane.fade(ng-class="selectedTab =='topUpInfo'?'in active':''")
+                                        include ../platform/player-edit-payment-form
+                                        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                    #adminNameGroup.tab-pane.fade(ng-class="selectedTab =='adminNameAdjunction'?'in active':''")
+                                        include ../platform/player-edit-adjunction-form
+                                        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='(form_edit_player_admin.$invalid || form_edit_player_admin.$pristine) || checkAdminNameValidity()', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                div(ng-show="selectedTab =='topUpInfo'")
+                                    hr
+                                    .btn.btn-success(ng-click="getPlayerTopUpGroupChangeLog(0,10)") {{'TOPUP_GROUP_RECORD' | translate}}
+                                    table.topupGroupRecordTable.common-table.display(style="width:100%")
+                                    .topupGroupRecordTablePage
+
+#playerPermissionPopover.hide(style="width: 600px")
+    #playerPermissionTable
+        table.paddingTbl
+            tbody
+                tr(ng-repeat='(key,v) in vm.playerPermissionTypes',
+                ng-if="vm.permissionPlayer.isRealPlayer || vm.permissionPlayer.isTestPlayer && v.testPlayer")
+                    td
+                        i.text-primary(ng-show='v.imgType=="i"', ng-class='v.iconClass+" fa-2x"')
+                        img(async=on ng-show='v.imgType=="img"', ng-src='{{v.src}}', width='{{v.width}}', height='{{v.height}}')
+                    td {{key | translate}}
+                    td.permitOn(ng-class='vm.permissionPlayer.permission[key] === false  ? "hide":""', class='{{key}}')
+                        i.fa.fa-toggle-on.text-primary.margin-right-5.togglePlayer(data-which='{{key}}', data-on=true)
+                        a.text-primary.togglePlayer(data-which='{{key}}', data-on=true) {{"ON" | translate}}
+                    td.permitOff(ng-class='vm.permissionPlayer.permission[key] === false ? "":"hide"', class='{{key}}')
+                        i.fa.fa-toggle-off.text-danger.margin-right-5.togglePlayer(data-which='{{key}}', data-on=false)
+                        a.text-danger.togglePlayer(data-which='{{key}}', data-on=false) {{"OFF" | translate}}
+                    td
+                        div(id="{{key}}")
+        .textareaDetail.margin-top-bottom-small
+            textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
+        .text-left(style="position:relative;")
+            button.btn.btn-primary.submit {{'CONFIRM' | translate}}
+            button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Player', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog', ng-show="vm.platformPageName!='batchPermit'")
+                text {{"Permission History" | translate}}
+        div(ng-show="vm.platformPageName=='batchPermit'") * 若要开启/解除某权限设置，请
+        div(ng-show="vm.platformPageName=='batchPermit'") 关闭->开启->再按确定按钮。
+
+#rewardTaskGroupPopover.hide(style="width: 600px")
+    label {{"MEMBERSHIP_ACCOUNT_NUMBER"|translate}}: {{vm.rewardTaskPlayerName}}
+        div(style='max-height:400px;overflow-y:auto;')
+            table.simple-table
+                thead
+                    tr
+                        th {{'Provider group' | translate}}
+                        th {{'LOCAL_BALANCE' | translate}}
+                        th {{'Unlock Progress(Consumption)' | translate}}
+                tbody(ng-repeat="group in vm.rewardTaskGroupPopoverData | orderBy:'providerGroup.providers'")
+                    tr
+                        td {{group.providerGroup.name | translate}}
+                        td {{group.providerGroup.name == "LOCAL_CREDIT" ? group.validCredit : group.rewardAmt | noRoundTwoDecimalPlaces}}
+                        td {{group.curConsumption | noRoundTwoDecimalPlaces }} / {{ (group.targetConsumption + group.forbidXIMAAmt) | noRoundTwoDecimalPlaces }}
+
+#forbidRewardEventPopover.hide(style="width: 600px", ng-non-bindable)
+    table.simple-table
+        tr
+            td(style='text-align:left')
+
+                label {{"FORBID_REWARD" | translate}}
+                div
+                    label {{"优惠代码" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode')
+                        span(id="{{'c-promoCode'}}" ng-if='vm.forbidPromoCode != undefined') {{"ModifyIt" | translate}}
+                div(ng-repeat='(i,v) in vm.allRewardEvent')
+                    label {{v.name}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1')
+                        span(id="{{'c-'+v._id}}")
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardRemark(ng-model='vm.forbidRewardRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidRewardEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewards') && vm.platformPageName!='batchPermit'", ng-disabled='vm.forbidRewardDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewards') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+
+                button.common-button.margin-right-5.btn.btn-warning.forbidRewardEventCancel(data-dismiss='popover') {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidreward(data-toggle="modal", data-target="#modalForbidRewardLog", ng-click="vm.getForbidReward();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
+#forbidTopUpPopover.hide(style="width: 600px", ng-non-bindable)
+    table.simple-table
+        tr
+            td(style='text-align:left')
+                label {{"ForbidTopupTypes" | translate}}
+                div(ng-repeat='(i,v) in merchantTopupTypeJson')
+                    label {{v}}
+                        input.playerTopUpTypeForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{i}}',ng-change='vm.forbidModification(i, isTrue, "forbidTopUpAddList", "forbidTopUpRemoveList")', ng-model="isTrue", ng-checked='vm.forbidTopUpPopover.forbidTopUpType.indexOf(i)>-1')
+                        span(id="{{'c-'+i}}")
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardRemark(ng-model='vm.forbidTopUpRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidTopUpConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidTopupTypes') && vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidTopUpDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchTopUpConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidTopupTypes') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning.forbidTopUpCancel {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidTopUp(data-toggle="modal", data-target="#modalForbidTopUpLog", ng-click="vm.getForbidTopUp();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
+#forbidRewardPointsEventPopover.hide(style="width: 600px", ng-non-bindable)
+    table.simple-table
+        tr
+            td(style='text-align:left')
+                label {{"LOGIN_REWARD_POINTS" | translate}}
+                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS}")
+                    label {{v.rewardTitle}}
+                        input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
+                        span(id="{{'c-'+v._id}}")
+                .textareaDetail.margin-top-bottom-small
+                label {{"TOPUP_REWARD_POINTS" | translate}}
+                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS}")
+                    label {{v.rewardTitle}}
+                        input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
+                        span(id="{{'c-'+v._id}}")
+                .textareaDetail.margin-top-bottom-small
+                .textareaDetail.margin-top-bottom-small
+                label {{"GAME_REWARD_POINTS" | translate}}
+                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.GAME_REWARD_POINTS}")
+                    label {{v.rewardTitle}}
+                        input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
+                        span(id="{{'c-'+v._id}}")
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardPointsEventRemark(ng-model='vm.forbidRewardPointsEventRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidRewardPointsEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewardPointsEvent') && vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidRewardPointsEventDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardPointsEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewardPointsEvent') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning.forbidRewardPointsEventCancel {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidRewardPointsEvent(data-toggle="modal", data-target="#modalForbidRewardPointsEventLog", ng-click="vm.getForbidRewardPointsEvent();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
+#prohibitGamePopover.hide(style="width: 600px", ng-non-bindable)
+    table.simple-table
+        tr
+            td(style='text-align:left')
+                label {{"BANNED_FROM_THESE_PROVIDERS" | translate}}
+                div(ng-repeat='(i,v) in vm.showPlatform.gameProviders')
+                    label {{vm.getProviderText(v)}}
+                        input.playerStatusProviderForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v}}',ng-change='vm.forbidModification(v, isTrue, "forbidGameAddList", "forbidGameRemoveList")', ng-model="isTrue", ng-checked='vm.prohibitGamePopover.forbidProviders.indexOf(v)>-1')
+                        span(id="{{'c-'+v}}")
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardRemark(ng-model='vm.forbidGameRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidGameConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidProviders') && vm.platformPageName!='batchPermit'", ng-disabled='vm.forbidGameDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchGameConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidProviders') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+
+                button.common-button.margin-right-5.btn.btn-warning.forbidGameCancel {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidGame(data-toggle="modal", data-target="#modalForbidGameLog", ng-click="vm.getForbidGame();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
+include ../platform/platform-player-popup
+include ../platform/platform-feedback-popup
+include ../common-widget/modalYesNo

@@ -51,6 +51,43 @@
             br
             div.text-right
                 button.btn.btn-danger(data-target="#modalIMPORT_XLS_TS" data-toggle="modal", ng-click='vm.initModalImportTsPhoneTrade()', ng-disabled='!vm.multiDecomposedNewPhoneSelected.length') {{'IMPORT_XLS_TS' | translate}}
+        div(ng-if='vm.showPageName=="OTHER_DEPARTMENT_TS_LIST"')
+            div
+                #feedbackPhoneQuery.col-md-12.well
+                    .search-filters-item
+                        label {{"Trade Time(Start)" | translate}}
+                        .startTime
+                    .search-filters-item
+                        label {{"Trade Time(End)" | translate}}
+                        .endTime
+                    .search-filters-item
+                        label {{"EXPORT_DEPARTMENT" | translate}}
+                        select.form-control(ng-model='vm.feedbackPhoneQuery.sourcePlatform', ng-options='a._id as a.name for (i,a) in vm.allPlatformData')
+                    .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.feedbackPhoneQuery.topUpTimesOperator === "range")}')
+                        label {{'My feedback times' | translate}}
+                        div
+                            select.threeBoxes.form-control(ng-init='vm.feedbackPhoneQuery.topUpTimesOperator = ">="' ng-model="vm.feedbackPhoneQuery.topUpTimesOperator")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                            input.threeBoxes.form-control(type="number" ng-model="vm.feedbackPhoneQuery.topUpTimes")
+                            div.symbol(ng-if="vm.feedbackPhoneQuery.topUpTimesOperator === 'range'") ~
+                            input.threeBoxes.form-control(type="number" ng-model="vm.feedbackPhoneQuery.topUpTimesTwo" ng-if="vm.feedbackPhoneQuery.topUpTimesOperator === 'range'")
+                    .text-right.widthto100
+                        label &nbsp;
+                        button.btn.btn-success.btn-space(ng-click='vm.searchFeedbackPhoneQuery(true)') {{'SEARCH' | translate}}
+                        span#feedbackPhoneTableSpin.collapse
+                            i.fa.fa-spinner.fa-spin
+                .clearfix
+                label {{"Total" | translate}} {{vm.feedbackPhoneQuery.totalCount}} {{"records" | translate}}
+                table.common-table#feedbackPhoneTable.display(style="width:100% ;overflow-x: scroll")
+                #feedbackPhoneTablePage
+            br
+            br
+            div.text-right
+                button.btn.btn-danger(data-target="#modalIMPORT_XLS_TS" data-toggle="modal", ng-click='vm.initModalImportTsPhoneTrade()', ng-disabled='!vm.multiDecomposedNewPhoneSelected.length') {{'IMPORT_XLS_TS' | translate}}
+
 
 #modalIMPORT_XLS_TS.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:35%; margin-top: 12.5em;')
