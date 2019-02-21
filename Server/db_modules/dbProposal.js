@@ -1054,7 +1054,6 @@ var proposal = {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark, callbackData);
                 }
 
-                return data;
             }
         ).then(
             propData => {
