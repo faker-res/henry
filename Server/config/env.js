@@ -200,8 +200,8 @@ var prodConfig = {
     paymentAPIServerUrl: "ws://10.167.11.108:9480",
     messageServerUrl: "ws://10.167.11.108:9580",
    
-    // cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
-    cpAPIUrl : "ws://timeout.com:9020/websocketapi",
+    cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
+    // cpAPIUrl : "ws://timeout.com:9020/websocketapi",
     cpAPIUrlForGame : "ws://gameapi-server.neweb.me/game",
     paymentAPIUrl: "ws://10.168.11.128:8330/acc",
     //smsAPIUrl: "ws://203.192.151.12:8560/sms"
