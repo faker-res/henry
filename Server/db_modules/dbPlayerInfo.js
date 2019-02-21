@@ -21733,7 +21733,7 @@ let dbPlayerInfo = {
                                 }, {
                                     path: "gameId",
                                     model: dbconfig.collection_game,
-                                    select: "name gameId"
+                                    select: "name changedName gameId"
                                 }
                                 ]).then(
                                     populatedProvider => {
@@ -21751,7 +21751,10 @@ let dbPlayerInfo = {
                                             // }
                                             delete populatedProvider[i].cpGameType;
                                             if (populatedProvider[i].gameId) {
-                                                if (populatedProvider[i].gameId.name && !populatedProvider[i].gameName) {
+                                                if (populatedProvider[i].gameId.changedName && !populatedProvider[i].gameName
+                                                    && platformObj && platformObj.platformId && populatedProvider[i].gameId.changedName[platformObj.platformId]) {
+                                                    populatedProvider[i].gameName = populatedProvider[i].gameId.changedName[platformObj.platformId];
+                                                } else if (populatedProvider[i].gameId.name && !populatedProvider[i].gameName) {
                                                     populatedProvider[i].gameName = populatedProvider[i].gameId.name;
                                                 }
                                                 if (populatedProvider[i].gameId.gameId) {
