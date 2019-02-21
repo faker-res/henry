@@ -45,3 +45,7 @@ body {
     font-size: 2em;
     text-align: center;
 }
+
+#resultText {
+    color: red;
+}
