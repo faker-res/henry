@@ -1,4 +1,5 @@
 var dbPlayerFeedback = require('./../db_modules/dbPlayerFeedback');
+const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
 var socketUtil = require('./../modules/socketutility');
 
@@ -74,6 +75,16 @@ function socketActionPlayerFeedback(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query);
             socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbackQuery, [data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+        getOnePlayerSimpleDetail: function getOnePlayerSimpleDetail(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getOnePlayerSimpleDetail, [data.platformObjId, data.playerObjId], actionName, isValidData);
+        },
+        getOnePlayerSummaryRecord: function getOnePlayerSummaryRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getOnePlayerSummaryRecord, [data.platformObjId, data.playerObjId], actionName, isValidData);
         },
 
         /**

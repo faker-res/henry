@@ -2371,6 +2371,50 @@ let dbPlayerInfo = {
             );
     },
 
+    getOnePlayerSimpleDetail: function (platformObjId, playerObjId) {
+        function getRewardGroupData(thisPlayer) {
+            return dbconfig.collection_rewardTaskGroup.find({
+                platformId: thisPlayer.platform,
+                playerId: thisPlayer._id,
+                status: {$in: [constRewardTaskStatus.STARTED]}
+            }).then(
+                rewardGroupData => {
+                    thisPlayer.rewardGroupInfo = rewardGroupData;
+                    thisPlayer.lockedCredit = rewardGroupData.reduce(
+                        (arr, inc) => arr + inc.rewardAmt, 0
+                    );
+                    return thisPlayer;
+                }
+            )
+        }
+
+        return dbconfig.collection_players.findOne({platform: platformObjId, _id: playerObjId})
+        .populate({path: "partner", model: dbconfig.collection_partner})
+        .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+        .populate({path: "rewardPointsObjId", model:dbconfig.collection_rewardPoints})
+        .lean()
+        .then(
+             data => {
+                 if (!data) {
+                     return Promise.reject({message: "Player not found."});
+                 }
+
+                 return getRewardGroupData(data);
+             }
+        )
+    },
+
+    getOnePlayerSummaryRecord: function (platformObjId, playerObjId) {
+        return dbconfig.collection_players.findOne({platform: platformObjId, _id: playerObjId}, {platform: 1, registrationTime: 1}).lean().then(
+            player => {
+                if (player) {
+                    return dbPlayerInfo.getConsumptionDetailOfPlayers(player.platform, player.registrationTime, new Date().toISOString(), {}, [player._id]);
+                }
+                return Promise.resolve();
+            }
+        );
+    },
+
     getOnePlayerInfo: function (query) {
         let playerData;
 

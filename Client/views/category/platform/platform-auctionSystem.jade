@@ -365,7 +365,7 @@ form(name='form_auctionSystem').row
                     .full-width-input-block
                         label {{"Provider group" | translate}}
                         div(style="display:inline-block;")
-                            select.spicker.form-control(ng-model='vm.auctionProductReward.gameProviderGroup')
+                            select.spicker.form-control(ng-model='vm.auctionProductReward.allowedProvider')
                                 option(value='') {{'LOCAL_CREDIT' | translate}}
                                 option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
                     .full-width-input-block

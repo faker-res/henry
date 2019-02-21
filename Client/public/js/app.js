@@ -139,6 +139,31 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                         }
                     }
                 })
+                .state('playerDetail', {
+                    url: '/playerDetail/{playerObjId}',
+                    templateUrl: 'category/playerDetail/player-detail',
+                    controller: 'playerDetailCtrl',
+                    controllerAs: 'vm',
+                    resolve: {
+                        load: function ($q, $rootScope, $stateParams) {
+                            var deferred = $q.defer();
+
+                            var dependencies = [
+                                "/js/controllers/playerDetailController.js"
+                            ];
+
+                            $rootScope.targetPlayerObjId = $stateParams.playerObjId;
+
+                            require(dependencies, function () {
+                                $rootScope.$apply(function () {
+                                    deferred.resolve();
+                                });
+                            });
+
+                            return deferred.promise;
+                        }
+                    }
+                })
                 .state('player', {
                     url: '/player',
                     templateUrl: 'category/player/platform-player',
