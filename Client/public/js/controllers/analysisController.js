@@ -1239,7 +1239,6 @@ define(['js/app'], function (myApp) {
                     ];
                     vm.plotLineByElementId("#line-onlineTopupSuccessRate", lineData, $translate('PERCENTAGE'), $translate('DAY'));
                     console.log('vm.platformOnlineTopupAnalysisDetailData', vm.platformOnlineTopupAnalysisDetailData);
-                    // $scope.safeApply();
                 })
             });
         };
