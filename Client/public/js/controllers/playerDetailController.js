@@ -183,6 +183,7 @@ define(['js/app'], function (myApp) {
                 data => {
                     console.log('getOnePlayerSimpleDetail', data);
                     vm.playerData = data.data;
+                    document.title = vm.playerData && vm.playerData.name || "获取玩家失败";
                     vm.selectedSinglePlayer = vm.playerData;
                     vm.resetEditPlayer();
                     vm.drawPlayerTable([vm.playerData]);
@@ -1253,7 +1254,7 @@ define(['js/app'], function (myApp) {
                                     permission: changeObj,
                                     remark: $remark.val()
                                 }, function (data) {
-                                    vm.getPlatformPlayersData();
+                                    vm.getPlayerDetail();
                                 }, null, true);
                                 $(thisPopover).popover('hide');
                             })
@@ -2256,7 +2257,7 @@ define(['js/app'], function (myApp) {
                 if (data.data && data.data.stepInfo) {
                     socketService.showProposalStepInfo(data.data.stepInfo, $translate);
                 }
-                vm.getPlatformPlayersData();
+                vm.getPlayerDetail();
                 console.log('player payment', data);
             }, null, true);
         };
@@ -3080,6 +3081,34 @@ define(['js/app'], function (myApp) {
                 function (err) {
                     console.log(err);
                 });
+        };
+
+        vm.submitRemarkUpdate = () => {
+            let selectedRemarks = [];
+            for (let i = 0; i < vm.credibilityRemarks.length; i++) {
+                if (vm.credibilityRemarks[i].selected === true) {
+                    selectedRemarks.push(vm.credibilityRemarks[i]._id);
+                }
+            }
+
+            let sendQuery = {
+                admin: authService.adminName,
+                platformObjId: vm.selectedSinglePlayer.platform,
+                playerObjId: vm.selectedSinglePlayer._id,
+                remarks: selectedRemarks,
+                comment: vm.credibilityRemarkComment
+            };
+
+            socketService.$socket($scope.AppSocket, "updatePlayerCredibilityRemark", sendQuery, function (data) {
+                vm.playerCredibilityRemarksUpdated = true;
+                vm.credibilityRemarkUpdateMessage = "SUCCESS";
+                vm.getPlayerDetail();
+                $scope.$evalAsync();
+            }, function (error) {
+                vm.playerCredibilityRemarksUpdated = true;
+                vm.credibilityRemarkUpdateMessage = error.error.message;
+                $scope.$evalAsync();
+            });
         };
         // endregion - player remarks
 
@@ -4119,7 +4148,7 @@ define(['js/app'], function (myApp) {
                         if (data.data && data.data.stepInfo) {
                             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
                         }
-                        vm.getPlatformPlayersData();
+                        vm.getPlayerDetail();
                         $scope.$evalAsync();
                     });
                 });
@@ -5244,12 +5273,12 @@ define(['js/app'], function (myApp) {
                 function (data) {
                     console.log('manualTopup success', data);
                     vm.playerManualTopUp.responseData = data.data;
-                    vm.getPlatformPlayersData();
+                    vm.getPlayerDetail();
                     $scope.$evalAsync();
                 }, function (error) {
                     vm.playerManualTopUp.responseMsg = $translate(error.error.errorMessage);
                     // socketService.showErrorMessage(error.error.errorMessage);
-                    vm.getPlatformPlayersData();
+                    vm.getPlayerDetail();
                     $scope.$evalAsync();
                 });
         };
@@ -5302,13 +5331,13 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'applyAlipayTopUpRequest', sendData,
                 data => {
                     vm.playerAlipayTopUp.responseMsg = $translate('SUCCESS');
-                    vm.getPlatformPlayersData();
+                    vm.getPlayerDetail();
                     $scope.$evalAsync();
                 },
                 error => {
                     vm.playerAlipayTopUp.responseMsg = error.error.errorMessage;
                     // socketService.showErrorMessage(error.error.errorMessage);
-                    vm.getPlatformPlayersData();
+                    vm.getPlayerDetail();
                     $scope.$evalAsync();
                 }
             );
@@ -5386,13 +5415,13 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'applyWechatPayTopUpRequest', sendData,
                 data => {
                     vm.playerWechatPayTopUp.responseMsg = $translate('SUCCESS');
-                    vm.getPlatformPlayersData();
+                    vm.getPlayerDetail();
                     $scope.$evalAsync();
                 },
                 error => {
                     vm.playerWechatPayTopUp.responseMsg = error.error.errorMessage;
                     // socketService.showErrorMessage(error.error.errorMessage);
-                    vm.getPlatformPlayersData();
+                    vm.getPlayerDetail();
                     $scope.$evalAsync();
                 }
             );
@@ -5567,7 +5596,7 @@ define(['js/app'], function (myApp) {
                     console.log('applyBonusRequest success', data);
                     vm.playerBonus.resMsg = $translate('Approved');
                     vm.playerBonus.showSubmit = false;
-                    vm.getPlatformPlayersData();
+                    vm.getPlayerDetail();
                     // save the rewardTask that is manually unlocked
                     if (vm.playerBonus.bForce && vm.rewardTaskGroupProposalList && vm.rewardTaskGroupProposalList.length > 0) {
                         vm.rewardTaskGroupProposalList.forEach(listData => {
@@ -5796,7 +5825,7 @@ define(['js/app'], function (myApp) {
                 console.log('sent', data);
                 vm.applyXM = false;
                 vm.playerApplyEventResult = data;
-                vm.getPlatformPlayersData();
+                vm.getPlayerDetail();
                 $scope.$evalAsync();
             }, function (err) {
                 vm.applyXM = false;
@@ -6298,7 +6327,7 @@ define(['js/app'], function (myApp) {
             };
             socketService.$socket($scope.AppSocket, 'convertRewardPointsToCredit', sendData, function (data) {
                 console.log('convertRewardPointsToCredit', data.data);
-                vm.getPlatformPlayersData();
+                vm.getPlayerDetail();
                 $scope.$evalAsync();
             });
         };

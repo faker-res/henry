@@ -4725,6 +4725,7 @@
   "sourceTsPhoneType": "来源电话分类",
   "exportTargetPlatformObjId": "平台识别码",
   "ManualExportTsPhone": "手动转出白名单电话",
+  "Show Player Detail In New Tab": "接通跳出玩家详情页面",
 
   "Reward (Amount OR %)" : "优惠（金额 OR %）",
   "TOTAL_REWARD_FEE" : "需扣除的优惠",
