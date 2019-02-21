@@ -17232,7 +17232,12 @@ define(['js/app'], function (myApp) {
                         });
 
                         if (vm.playerFeedbackSearchType=="many") {
-                            setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                            if (vm.playerFeedbackTable) {
+                                setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                            }
+                            else {
+                                vm.drawPlayerTable(playerFeedbackDetail.data)
+                            }
                         }
                         else {
                             if (playerFeedbackDetail.data && playerFeedbackDetail.data[0] && vm.isSingleFeedBackPageChange) {
@@ -17273,8 +17278,18 @@ define(['js/app'], function (myApp) {
                             vm.ctiData.callee.map(callee => {
                                 if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
                                     if (vm.playerFeedbackSearchType=="many") {
-                                        vm.initFeedbackModal(callee.player);
-                                        $('#modalAddPlayerFeedback').modal().show();
+                                        if (vm.showPlayerDetailInNewTab) {
+                                            let playerObjId = callee && callee.player && callee.player._id;
+                                            if (playerObjId) {
+                                                let url = window.location.origin + "/playerDetail/" + playerObjId;
+                                                utilService.openInNewTab(url);
+                                            }
+                                        }
+                                        else {
+                                            vm.initFeedbackModal(callee.player);
+                                            $('#modalAddPlayerFeedback').modal().show();
+                                        }
+
                                     }
                                     else {
                                         vm.lastSelectedCallPlayer = callee.player || vm.lastSelectedCallPlayer;
@@ -17285,7 +17300,12 @@ define(['js/app'], function (myApp) {
                         }
 
                         if (vm.playerFeedbackSearchType == "one") {
-                            setTableData(vm.playerFeedbackTable, [vm.lastSelectedCallPlayer]);
+                            if (vm.playerFeedbackTable) {
+                                setTableData(vm.playerFeedbackTable, [vm.lastSelectedCallPlayer]);
+                            }
+                            else {
+                                vm.drawPlayerTable([vm.lastSelectedCallPlayer])
+                            }
                         }
 
                     }
