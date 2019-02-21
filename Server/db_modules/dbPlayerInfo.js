@@ -21755,10 +21755,9 @@ let dbPlayerInfo = {
                                                     populatedProvider[i].gameName = populatedProvider[i].gameId.name;
                                                 }
                                                 if (populatedProvider[i].gameId.gameId) {
-                                                    populatedProvider[i].gameId = populatedProvider[i].gameId.gameId;
-                                                } else {
-                                                    delete populatedProvider[i].gameId;
+                                                    populatedProvider[i].gameCode = populatedProvider[i].gameId.gameId;
                                                 }
+                                                delete populatedProvider[i].gameId;
                                             }
                                             if (!populatedProvider[i].providerName) {
                                                 populatedProvider[i].providerName = "";
