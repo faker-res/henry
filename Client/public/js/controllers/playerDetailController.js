@@ -183,6 +183,7 @@ define(['js/app'], function (myApp) {
                 data => {
                     console.log('getOnePlayerSimpleDetail', data);
                     vm.playerData = data.data;
+                    document.title = vm.playerData && vm.playerData.name || "获取玩家失败";
                     vm.selectedSinglePlayer = vm.playerData;
                     vm.resetEditPlayer();
                     vm.drawPlayerTable([vm.playerData]);
