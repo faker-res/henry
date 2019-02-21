@@ -5169,6 +5169,38 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.updatePlayerFeedback = function () {
+            let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                return item.key == vm.playerFeedback.result;
+            });
+            resultName = resultName.length > 0 ? resultName[0].value : "";
+            let sendData = {
+                playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
+                platform: vm.selectedPlatform.id,
+                createTime: Date.now(),
+                adminId: authService.adminId,
+                content: vm.playerFeedback.content,
+                result: vm.playerFeedback.result,
+                resultName: resultName,
+                topic: vm.playerFeedback.topic
+            };
+            console.log('add feedback', sendData);
+            socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function (data) {
+                console.log('feedbackadded', data);
+                vm.playerFeedback = {};
+
+                vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                    vm.curPlayerFeedbackDetail = data;
+
+                    vm.curPlayerFeedbackDetail.forEach(item => {
+                        item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                    });
+
+                    $scope.$evalAsync();
+                });
+            });
+        };
+
         vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
             opt = opt || {'dom': 't'};
             vm.playerFeedbackRecord.searching = true;
