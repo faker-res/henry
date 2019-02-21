@@ -3853,13 +3853,15 @@ define(['js/app'], function (myApp) {
                     vm.providerListCheck = {};
                     $.each(vm.platformProviderList, function (i, v) {
                         vm.providerListCheck[v._id] = true;
-                    })
+                    });
                     //payment list init
                     vm.platformPaymentChList = data.data.paymentChannels;
                     vm.paymentListCheck = {};
                     $.each(vm.platformPaymentChList, function (i, v) {
                         vm.paymentListCheck[v._id] = true;
-                    })
+                    });
+
+                    vm.showPlatform.gameProviderInfo = data.data.gameProviderInfo;
 
                     //provider delay status init
                     vm.getProviderLatestTimeRecord();
