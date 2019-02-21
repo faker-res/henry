@@ -419,6 +419,17 @@ var proposal = {
                         proposalData.status = constProposalStatus.PREPENDING;
                     }
 
+                    // Set bExecute to be true for auction process in order to send out message/mail regardless of the status
+                    if (
+                        data[0].name == constProposalType.AUCTION_PROMO_CODE
+                        || data[0].name == constProposalType.AUCTION_OPEN_PROMO_CODE
+                        || data[0].name == constProposalType.AUCTION_REWARD_PROMOTION
+                        || data[0].name == constProposalType.AUCTION_REAL_PRIZE
+                        || data[0].name == constProposalType.AUCTION_REWARD_POINT_CHANGE
+                    ) {
+                        bExecute = true;
+                    }
+
                     // For third party payment system, we just set the proposal to pending without any process
                     if (
                         data[0].name === constProposalType.PLAYER_FKP_TOP_UP
@@ -680,6 +691,18 @@ var proposal = {
                 deferred.reject({name: "DBError", message: "Error updating proposal", error: error});
             }
         );
+    },
+
+    sendMessageToPlayerAfterUpdateProposalStatus: function (proposalData){
+        if (proposalData && proposalData.type){
+            return dbconfig.collection_proposalType.findOne({_id: ObjectId(proposalData.type)}).then(
+                proposalTypeData => {
+                    if (proposalTypeData){
+                        return proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, proposalData)
+                    }
+                }
+            ).catch(errorUtils.reportError);
+        }
     },
 
     /**
@@ -1054,7 +1077,6 @@ var proposal = {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark, callbackData);
                 }
 
-                return data;
             }
         ).then(
             propData => {
@@ -1416,7 +1438,20 @@ var proposal = {
                                         console.log("LH Check Proposal Reject 4------------", proposalObj);
                                         let prom = Promise.resolve(true);
 
-                                        if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
+                                        if (proposalObj && proposalObj.status && proposalObj.data && proposalObj.data.auction && proposalObj.data.playerObjId && proposalObj.data.platformId && proposalObj.data.currentBidPrice && proposalObj.data.productName){
+                                            if (proposalObj.status == constProposalStatus.REJECTED){
+                                                // refund
+                                                prom = dbPlayerInfo.updatePlayerRewardPointsRecord(proposalObj.data.playerObjId, proposalObj.data.platformId, proposalObj.data.currentBidPrice, 'Refund from bidding item: ' + proposalObj.data.productName || "", null, null, proposalObj.data.seller || "System", constPlayerRegistrationInterface.BACKSTAGE).then(
+                                                    () => {
+                                                        proposal.sendMessageToPlayerAfterUpdateProposalStatus(proposalObj);
+                                                    }
+                                                );
+                                            }
+                                            else if (proposalObj.status == constProposalStatus.APPROVED){
+                                                proposal.sendMessageToPlayerAfterUpdateProposalStatus(proposalObj)
+                                            }
+                                        }
+                                        else if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
                                             prom = dbconfig.collection_players.findOne({_id: proposalObj.data.playerObjId, platform: proposalObj.data.platformId}, {permission: 1, _id: 1, platform: 1})
                                                 .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                                                     playerData => {

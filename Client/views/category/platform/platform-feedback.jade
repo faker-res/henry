@@ -166,6 +166,9 @@ div
     label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.ctiData.adminName}} : {{vm.callOutMissionStatusText}}  /  {{"Completed" | translate}} : ({{vm.callOutMissionProgressText}})
     .btn.btn-primary(ng-click="vm.selectedCallOutMission()" ng-if="checkViewPermission('Platform','Feedback','BulkCall') && !vm.ctiData.hasOnGoingMission") {{"SELECTED_CALL" | translate}}
     .btn.btn-primary.btn-space(ng-click="vm.createCallOutMission()" ng-if="checkViewPermission('Platform','Feedback','BulkCall') && !vm.ctiData.hasOnGoingMission") {{"BULK_CALL" | translate}}
+    .inlineBlk(ng-show='vm.playerFeedbackSearchType === "many"')
+        input.inlineBlk(type='checkbox' ng-model="vm.showPlayerDetailInNewTab" ng-value="true")
+        .inlineBlk {{"Show Player Detail In New Tab" | translate}}
     .pull-right
         a.fa.fa-refresh.margin-top-5(ng-click='vm.submitPlayerFeedbackQuery(null, true)')
             text.margin-right-5.pull-left {{"Refresh" | translate}}
