@@ -6,7 +6,7 @@ const constMainType = {
     TOP_UP: "TopUp",
     BONUS: "PlayerBonus",
     REWARD: "Reward",
-    // REWARD_POINTS: "Reward Points",
+    REWARD_POINTS: "Reward Points",
     UPDATE_PLAYER: "UpdatePlayer",
     UPDATE_PARTNER: "UpdatePartner",
     INTENTION: "Intention",
@@ -97,6 +97,17 @@ const constProposalMainType = {
     //"PartnerCommission": constMainType.UPDATE_PARTNER,
     //"UpdatePartnerCredit":constMainType.UPDATE_PARTNER,
 
+    // REWARD POINTS
+    "PlayerAddRewardPoints": constMainType.REWARD_POINTS,
+    "PlayerMinusRewardPoints": constMainType.REWARD_POINTS,
+    "PlayerConvertRewardPoints": constMainType.REWARD_POINTS,
+    "PlayerAutoConvertRewardPoints": constMainType.REWARD_POINTS,
+    "AuctionPromoCode": constMainType.REWARD_POINTS,
+    "AuctionOpenPromoCode": constMainType.REWARD_POINTS,
+    "AuctionRewardPromotion": constMainType.REWARD_POINTS,
+    "AuctionRealPrize": constMainType.REWARD_POINTS,
+    "AuctionRewardPointChange": constMainType.REWARD_POINTS,
+
     //OTHERS
     "UpdatePlayerCredit": constMainType.OTHERS,
     "FixPlayerCreditTransfer": constMainType.OTHERS,
@@ -107,10 +118,6 @@ const constProposalMainType = {
     "PlayerConsumptionReturnFix": constMainType.OTHERS,
     "PartnerCommission": constMainType.OTHERS,
     "PlayerLimitedOfferIntention": constMainType.OTHERS,
-    "PlayerAddRewardPoints": constMainType.OTHERS,          //Reward Points
-    "PlayerMinusRewardPoints": constMainType.OTHERS,        //Reward Points
-    "PlayerConvertRewardPoints": constMainType.OTHERS,      //Reward Points
-    "PlayerAutoConvertRewardPoints": constMainType.OTHERS,  //Reward Points
     "SettlePartnerCommission": constMainType.OTHERS,
     "BulkExportPlayerData": constMainType.OTHERS,
     "FinancialPointsAdd": constMainType.OTHERS,
