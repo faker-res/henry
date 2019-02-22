@@ -131,7 +131,7 @@
                         label {{'Recipient' | translate}} : {{vm.sendMultiMessage.numRecipient}}
                     div(ng-hide='vm.sendMultiMessage.messageType==="mail"')
                         label {{"Channel" | translate}} :&nbsp;
-                        select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in channelList')
+                        select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in usableChannelList')
                     div
                         input(type='checkbox', ng-model='vm.isSentToAll', ng-init="false", ng-click='vm.sentMailToAllPlayers()')
                         label.radio-space {{'Sent to all Players' | translate}}
@@ -149,7 +149,7 @@
                 .tableCell(style='width:20%;', ng-show='vm.toPhoneNumber')
                     div
                         label {{"Channel" | translate}} :&nbsp;
-                        select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in channelList')
+                        select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in usableChannelList')
                     div
                         button.btn.btn-primary.btn-sm(ng-click="vm.sendSingleMessages()", ng-disabled="vm.sendMultiMessage.singleSendDisable") {{vm.sendMultiMessage.singleBtnText | translate}}
                         label.margin-left-5.text-danger(ng-show='vm.sendMultiMessage.singleSendResultText') {{vm.sendMultiMessage.singleSendResultText | translate}}
