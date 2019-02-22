@@ -15671,7 +15671,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.pickBankCardAcc = function (bankcard) {
-            if (bankcard.accountNumber) {
+            if (bankcard && bankcard.accountNumber) {
                 vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
                 vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
                 vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
