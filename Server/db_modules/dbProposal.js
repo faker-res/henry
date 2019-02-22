@@ -7772,25 +7772,26 @@ var proposal = {
             }
         ).then(
             () => {
+                if(proposalData){
+                    let updateData = {
+                        "data.lastSettleTime": new Date(),
+                        settleTime: new Date(),
+                        noSteps: true,
+                        process: null,
+                        status: constProposalStatus.CANCEL,
+                        "data.cancelBy": "QnA系统"
+                    };
 
-                let updateData = {
-                    "data.lastSettleTime": new Date(),
-                    settleTime: new Date(),
-                    noSteps: true,
-                    process: null,
-                    status: constProposalStatus.CANCEL,
-                    "data.cancelBy": "QnA系统"
-                };
+                    if (remark) {
+                        updateData["data.remark"] =  (proposalData.data && proposalData.data.remark || "") + remark;
+                    }
 
-                if (remark) {
-                    updateData["data.remark"] =  (proposalData.data && proposalData.data.remark || "") + remark;
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposalData._id, createTime: proposalData.createTime},
+                        updateData,
+                        {new: true}
+                    );
                 }
-
-                return dbconfig.collection_proposal.findOneAndUpdate(
-                    {_id: proposalData._id, createTime: proposalData.createTime},
-                    updateData,
-                    {new: true}
-                );
             }
         ).catch(
             err => {

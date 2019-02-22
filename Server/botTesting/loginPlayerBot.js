@@ -1,18 +1,22 @@
 var dbconfig = require("../modules/dbproperties.js");
 var services = require('../modules/services');
 var botHelper = require('./botHelper.js');
-var Q = require("q");
 var callAPI = services.callAPI;
 var disconnectAndWait = botHelper.disconnectAndWait;
-var noAutoReconnect = {autoReconnect: false};
+var noAutoReconnect = {autoReconnect: true};
 
 module.exports = function (config) {
     "use strict";
 
     function simulatePlayerLogin (config) {
-        return dbconfig.collection_platform.findOne({platformId: config.testPlatformId}).then(
+        return dbconfig.collection_platform.findOne({platformId: config.botPlatformId}).then(
             platformDetail => {
-                return dbconfig.collection_players.find({platform: platformDetail._id}).sort({_id: -1}).limit(100);
+                let query = {
+                    platform: platformDetail._id,
+                    name: new RegExp('.*' + config.botPlayerPrefix + '.*')
+                };
+
+                return dbconfig.collection_players.find(query).sort({_id: -1}).limit(100);
             }
         ).then(
             playerDetails => {
@@ -22,8 +26,8 @@ module.exports = function (config) {
                             if(player && player.name){
                                 let loginData = {
                                     name: player.name,
-                                    password: config.testAccountPassword,
-                                    platformId: config.testPlatformId
+                                    password: config.botPassword,
+                                    platformId: config.botPlatformId
                                 };
 
                                 callAPIToLoginPlayer(loginData);
@@ -34,8 +38,24 @@ module.exports = function (config) {
 
                 function callAPIToLoginPlayer(loginData){
                     return services.getClientClient(null, noAutoReconnect).then(
-                        clientClient => Q.resolve().then(
+                        clientClient => Promise.resolve().then(
                             () => playerLogin(clientClient, loginData)
+                        ).then(
+                            playerData => {
+                                let prom = [];
+                                if(playerData && playerData.data && playerData.data.playerId){
+                                    let paymentInfo = {
+                                        playerId: playerData.data.playerId,
+                                        bankName:config.botBankName,
+                                        bankAccount: new Date().getTime() + "000",
+                                        bankAccountName: config.botBankAccName
+                                    };
+
+                                    prom.push(updatePaymentInfo(clientClient, paymentInfo));
+                                }
+
+                                return Promise.all(prom);
+                            }
                         ).then(
                             () => disconnectAndWait(clientClient)
                         )
@@ -46,12 +66,11 @@ module.exports = function (config) {
     }
 
     function playerLogin (clientClient, playerData) {
-        return callAPI(clientClient, 'player', 'login',playerData ).then(
-            returnedObj => {
-                console.log("Success");
-            }
-        );
+        return callAPI(clientClient, 'player', 'login', playerData);
+    }
 
+    function updatePaymentInfo(clientClient, newPaymentInfo){
+        return callAPI(clientClient, 'player', 'updatePaymentInfo', newPaymentInfo);
     }
 
     return {

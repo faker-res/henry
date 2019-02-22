@@ -1,8 +1,9 @@
 var botConfig = {
-    botPlatformId: process.env.BOT_PLATFORM || "4",
+    botPlatformId: process.env.BOT_PLATFORM || "6",
     botPlayerNum: 2,
     testPlayerName: "bot_",
-    botPassword: "123456",
+    // botPassword: "123456",
+    botPassword: "888888",
     minTopUpTimes: 1,
     maxTopUpTimes: 3,
     minTopUpAmount: 10,
@@ -17,6 +18,10 @@ var botConfig = {
         userName: "testClientApiUsername",   // Required for provider login (See provider/ConnectionServiceImplement.js)
         password: "123"
     },
+    minutesPerLogin: 1,
+    botPlayerPrefix: "jobot",
+    botBankName: "10",
+    botBankAccName: "机器人"
 };
 
 module.exports = botConfig;
