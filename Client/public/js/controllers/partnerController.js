@@ -1753,7 +1753,7 @@ define(['js/app'], function (myApp) {
                         partnerName: data.partnerName,
                         realName: data.realName,
                         platformId: vm.selectedPlatform.data.platformId,
-                        channel: $scope.channelList[0],
+                        channel: $scope.usableChannelList ? $scope.usableChannelList[0] : null,
                         hasPhone: data.phoneNumber
                     };
                     vm.sendSMSResult = {};
