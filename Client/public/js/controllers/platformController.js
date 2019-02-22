@@ -16415,7 +16415,7 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.curFeedbackPlayer.bonusAmountSum).toFixed(2);
 
                         vm.playerFeedbackResultExtended.playerLevel$ = "";
-                        if (vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
+                        if (vm.playerLvlData && vm.playerFeedbackResultExtended.playerLevel && vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
                             vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
                         }
                         else {
@@ -16448,10 +16448,12 @@ define(['js/app'], function (myApp) {
                                 vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
                                 vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
                                 vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                                for (let j = 0; j < vm.allProviders.length; j++) {
-                                    if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                        vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
-                                        vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                                if (vm.allProviders && vm.allProviders.length) {
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                            vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
+                                            vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                                        }
                                     }
                                 }
                             }
