@@ -9318,7 +9318,7 @@ define(['js/app'], function (myApp) {
             vm.merchantGroupObj = $scope.merchantGroupObj;
             vm.merchantGroupCloneList = $scope.merchantGroupCloneList;
 
-            socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform._id}, function (data) {
                 $scope.$evalAsync(() => {
                     if (data && data.data && data.data.data) {
                         vm.allBankTypeList = {};
@@ -9371,7 +9371,7 @@ define(['js/app'], function (myApp) {
 
                     endLoadMultipleSelect('.select');
 
-                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform._id}, function (data) {
                         $scope.$evalAsync(() => {
                             if (data && data.data && data.data.data) {
                                 vm.allBankTypeList = {};
@@ -9450,7 +9450,7 @@ define(['js/app'], function (myApp) {
 
                     endLoadMultipleSelect('.select');
 
-                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform._id}, function (data) {
                         $scope.$evalAsync(() => {
                             if (data && data.data && data.data.data) {
                                 vm.allBankTypeList = {};

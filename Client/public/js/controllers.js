@@ -460,6 +460,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
         loadProfitDetail();
         loadPlatformInfo();
+        $scope.getUsableChannelList();
         $scope.$broadcast('switchPlatform');
         $scope.fontSizeAdaptive(document.getElementById('selectedPlatformNodeTitle'));
     };
@@ -982,6 +983,28 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             }
         }
     }
+
+    $scope.getUsableChannelList = function (callback) {
+        socketService.$socket($scope.AppSocket, 'getUsableChannelList', {platformId: $scope.curPlatformId}, onSuccess, onFail, true);
+
+        function onSuccess(data) {
+            $scope.usableChannelList = data.data.channels.filter(item => {
+                return (item != 1) && (item != '1'); //channel 1 is only for sending sms code
+            });
+            console.log("Got usable channelList:", $scope.usableChannelList);
+            if (callback) {
+                callback.call(this);
+            }
+        }
+
+        function onFail(error) {
+            console.error("Failed to get usable channelList!", error);
+            if (callback) {
+                callback.call(this, error);
+            }
+        }
+    }
+
     $scope.sendSMSToPlayer = function (src, callback) {
         socketService.$socket($scope.AppSocket, 'sendSMSToPlayer', src, onSuccess, onFail, true);
 
