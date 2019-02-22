@@ -969,12 +969,15 @@ var proposal = {
 
                 return Promise.all([propTypeProm, merchantProm]).then(
                     ([propType, merchantRate]) => {
+                        console.log("check pms2 status 1", status)
                         let updStatus = status || constProposalStatus.PREPENDING;
                         updObj = {};
 
                         if (status !== constProposalStatus.SUCCESS && status !== constProposalStatus.FAIL) {
                             updObj.status = updStatus;
+                            console.log("check pms2 status 2",updObj.status)
                         }
+                        console.log("check pms2 status 3", updObj)
 
                         if (propType && propType._id) {
                             updObj.type = propType._id;
@@ -1060,6 +1063,8 @@ var proposal = {
                             addDetailToProp(updObj.data, 'remark', remark);
                         }
 
+                        console.log("check pm2 proposal", JSON.stringify(updObj,null,2));
+
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposalObj._id, createTime: proposalObj.createTime},
                             updObj
@@ -1074,6 +1079,7 @@ var proposal = {
                     console.log('updatePlayerTopupProposal', proposalId);
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark, callbackData);
                 } else if (status === constProposalStatus.FAIL) {
+                    console.log("checkpms2 log false")
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark, callbackData);
                 }
 
