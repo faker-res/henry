@@ -767,7 +767,7 @@ var dbGame = {
     },
 
     getLiveGameInfo: (count, switchNotify, conn) => {
-        switchNotify = switchNotify == "true"? true: false; // may accept "false"
+        switchNotify = switchNotify == "true" || switchNotify == true? true: false; // may accept "false"
         conn.EBETNotify = switchNotify;// for notifyLiveGameStatus usage
         if(!switchNotify) {
             return Promise.resolve();
