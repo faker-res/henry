@@ -5870,9 +5870,9 @@ let dbPlayerInfo = {
                             // Ignore concurrent request for now
                         } else {
                             // Set BState back to false
-                            dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                            dbPlayerUtil.setPlayerBState(playerObj._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                         }
-                        console.log('playerRetentionRewardGroup error when login', playerData.playerId, err);
+                        console.log('playerRetentionRewardGroup error when login', playerObj.playerId, err);
                     }
                 );
 
