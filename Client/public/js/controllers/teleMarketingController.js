@@ -3316,7 +3316,9 @@ define(['js/app'], function (myApp) {
 
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();
-            vm.getBankTypeList();
+            commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})).then(v => {
+                vm.allBankTypeList = v;
+            });
             vm.provinceList = [];
             vm.cityList = [];
             vm.districtList = [];
@@ -3352,23 +3354,6 @@ define(['js/app'], function (myApp) {
                 data => {
                     var data = data.data;
                     vm.bankCards = data.data ? data.data : false;
-                });
-        }
-
-        vm.getBankTypeList = function () {
-            // Get bank list from pmsAPI
-            socketService.$socket($scope.AppSocket, 'getBankTypeList', {},
-                data => {
-                    if (data && data.data && data.data.data) {
-                        vm.allBankTypeList = {};
-                        console.log('banktype', data.data.data);
-                        data.data.data.forEach(item => {
-                            if (item && item.bankTypeId) {
-                                vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
-                            }
-                        })
-                    }
-                    $scope.safeApply();
                 });
         }
 

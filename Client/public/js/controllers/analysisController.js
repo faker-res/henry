@@ -1272,7 +1272,7 @@ define(['js/app'], function (myApp) {
             vm.allGameTypesList = [];
             vm.allGameTypes = {};
             Promise.all([
-                commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                commonService.getBankTypeList($scope, vm.selectedPlatform._id).catch(err => Promise.resolve({})),
                 commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []]))])
                 .then(data => {
                     if (data){
@@ -5531,7 +5531,7 @@ define(['js/app'], function (myApp) {
 
                         // bank data analysis
                         if (bankData && bankData.length > 0){
-                            socketService.$socket($scope.AppSocket, 'getBankTypeList', {},
+                            socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform._id},
                                 data => {
 
                                     $scope.$evalAsync(() => {

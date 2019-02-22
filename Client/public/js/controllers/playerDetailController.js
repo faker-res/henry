@@ -6621,7 +6621,7 @@ define(['js/app'], function (myApp) {
             commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {vm.promoTypeList = v});
             commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])).then(v => {vm.allAlipaysAcc = v});
             commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])).then(v => {vm.allWechatpaysAcc = v});
-            commonService.getBankTypeList($scope).catch(err => Promise.resolve({})).then(v => {
+            commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})).then(v => {
                 vm.allBankTypeList = v;
                 commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])).then(val => {
                     vm.bankCards = val;
