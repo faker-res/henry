@@ -2595,9 +2595,12 @@ var dbPlayerTopUpRecord = {
                     let checkProposalStatus = Promise.resolve();
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                         // to check if proposal status already update to Success, sometimes PMS 2 update proposal status too fast
-                        proposalQuery.status = constProposalStatus.PREPENDING;
                         checkProposalStatus = dbconfig.collection_proposal.findOneAndUpdate(
-                            proposalQuery,
+                            {
+                                _id: proposal._id,
+                                createTime: proposal.createTime,
+                                status: constProposalStatus.PREPENDING
+                            },
                             {status: constProposalStatus.PENDING}).lean();
                     } else {
                         updateData.status = constProposalStatus.PENDING;
