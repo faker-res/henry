@@ -942,15 +942,6 @@ var proposal = {
                             break;
                         case 2:
                             propTypeName = constProposalType.PLAYER_TOP_UP;
-
-                            if (callbackData.merchantNo && proposalObj.data.platform) {
-                                merchantProm = dbconfig.collection_platformMerchantList.findOne({
-                                    platformId: proposalObj.data.platform,
-                                    merchantNo: callbackData.merchantNo,
-                                    topupType: callbackData.depositMethod,
-                                    customizeRate: {$exists: true}
-                                }, 'customizeRate').lean();
-                            };
                             break;
                         case 3:
                             propTypeName = constProposalType.PLAYER_ALIPAY_TOP_UP;
@@ -966,6 +957,15 @@ var proposal = {
 
                     isCommonTopUp = true;
                 }
+
+                if (callbackData.merchantNo && proposalObj.data.platform) {
+                    merchantProm = dbconfig.collection_platformMerchantList.findOne({
+                        platformId: proposalObj.data.platform,
+                        merchantNo: callbackData.merchantNo,
+                        topupType: callbackData.depositMethod,
+                        customizeRate: {$exists: true}
+                    }, 'customizeRate').lean();
+                };
 
                 return Promise.all([propTypeProm, merchantProm]).then(
                     ([propType, merchantRate]) => {
