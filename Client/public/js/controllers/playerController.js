@@ -7273,8 +7273,17 @@ define(['js/app'], function (myApp) {
                     name: playerObjId.name,
                     nickName: playerObjId.nickName,
                     platformId: vm.selectedPlatform.data.platformId,
-                    channel: $scope.channelList[0],
+                    // channel: $scope.channelList[0],
                     hasPhone: playerObjId.phoneNumber
+                }
+
+                vm.smsPlayer.channel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(4)) {
+                        vm.smsPlayer.channel = 4; //set default sms channel
+                    } else {
+                        vm.smsPlayer.channel = $scope.usableChannelList[0];
+                    }
                 }
                 vm.sendSMSResult = {};
                 $scope.safeApply();
