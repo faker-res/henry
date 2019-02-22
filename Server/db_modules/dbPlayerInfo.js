@@ -7387,7 +7387,7 @@ let dbPlayerInfo = {
                                     playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
                             } else {
                                 return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
-                                    playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
+                                    playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
                             }
                         } else {
                             return Promise.reject({
@@ -7409,7 +7409,7 @@ let dbPlayerInfo = {
                         playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
                 } else {
                     return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
-                        playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
+                        playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
                 }
             }
         };
@@ -12666,9 +12666,19 @@ let dbPlayerInfo = {
         return Q.all([playerProm, gameProm]).then(
             data => {
                 if (data && data[0] && data[1]) {
-                    return dbconfig.collection_players.update(
+                    return dbconfig.collection_players.findOneAndUpdate(
                         {_id: data[0]._id, platform: data[0].platform},
                         {$addToSet: {favoriteGames: data[1]._id}}
+                    ).lean().then(
+                        playerData => {
+                            if (playerData.favoriteGames && playerData.favoriteGames.length) {
+                                playerData.favoriteGames = JSON.parse(JSON.stringify(playerData.favoriteGames));
+                                if (playerData.favoriteGames.includes(String(data[1]._id))) {
+                                    return Q.reject({name: "DataError", message: "This game has been added before"});
+                                }
+                            }
+                            return true;
+                        }
                     );
                 }
                 else {
@@ -21761,7 +21771,7 @@ let dbPlayerInfo = {
                                 }, {
                                     path: "gameId",
                                     model: dbconfig.collection_game,
-                                    select: "name gameId"
+                                    select: "name changedName gameId"
                                 }
                                 ]).then(
                                     populatedProvider => {
@@ -21774,12 +21784,15 @@ let dbPlayerInfo = {
                                             if (!populatedProvider[i].gameName) {
                                                 populatedProvider[i].gameName = "";
                                             }
-                                            if (populatedProvider[i].cpGameType) {
-                                                populatedProvider[i].gameName = populatedProvider[i].cpGameType;
-                                            }
+                                            // if (populatedProvider[i].cpGameType) {
+                                            //     populatedProvider[i].gameName = populatedProvider[i].cpGameType;
+                                            // }
                                             delete populatedProvider[i].cpGameType;
                                             if (populatedProvider[i].gameId) {
-                                                if (populatedProvider[i].gameId.name && !populatedProvider[i].gameName) {
+                                                if (populatedProvider[i].gameId.changedName && !populatedProvider[i].gameName
+                                                    && platformObj && platformObj.platformId && populatedProvider[i].gameId.changedName[platformObj.platformId]) {
+                                                    populatedProvider[i].gameName = populatedProvider[i].gameId.changedName[platformObj.platformId];
+                                                } else if (populatedProvider[i].gameId.name && !populatedProvider[i].gameName) {
                                                     populatedProvider[i].gameName = populatedProvider[i].gameId.name;
                                                 }
                                                 if (populatedProvider[i].gameId.gameId) {
@@ -21878,6 +21891,22 @@ let dbPlayerInfo = {
                     });
                 });
             });
+    },
+
+    changeBirthdayDate: function (playerObjId, date) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {DOB: 1}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"})
+                }
+                if (playerData.DOB) {
+                    return Promise.reject({name: "DataError", message: "Birthday only can be set once"})
+                } else {
+                    return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId}, {DOB: new Date(date)}, {new: true}).lean()
+                }
+            }
+        )
+
     },
 
     getClientData: function (playerId) {

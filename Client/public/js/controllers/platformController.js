@@ -36737,7 +36737,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
-                                let result = '<div ng-click="vm.auctionSystemEditStatus = true; vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                let result = '<div ng-click="vm.auctionSystemEditStatus = true; vm.loadAuctionItem(\''+row._id+'\')"><a>' + data + '</a></div>';
                                 return result;
                             }
                         },
@@ -36787,7 +36787,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
-                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')"><a>' + data + '</a></div>';
                                 return result;
                             }
                         },
