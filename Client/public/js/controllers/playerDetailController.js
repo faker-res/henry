@@ -172,6 +172,41 @@ define(['js/app'], function (myApp) {
             playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
             platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
         };
+        vm.batchEditData = {
+            "_id": "xxxxxxxxx",
+            "permission": {
+                "alipayTransaction": true,
+                "topupManual": true,
+                "allTopUp": true,
+                "topupOnline": true,
+                "transactionReward": true,
+                "advanceConsumptionReward": true,
+                "applyBonus": true,
+                "banReward": false
+            },
+            "forbidProviders": [],
+            "smsSetting": {
+                "updatePassword": false,
+                "updatePaymentInfo": false,
+                "consumptionReturn": false,
+                "applyReward": false,
+                "cancelBonus": false,
+                "applyBonus": false,
+                "manualTopup": false
+            },
+        };
+        vm.forbidCredibilityAddList = [];
+        vm.forbidCredibilityRemoveList = [];
+        vm.forbidRewardEventAddList = [];
+        vm.forbidRewardEventRemoveList = [];
+        vm.forbidPromoCode = undefined;
+        vm.forbidGameAddList = [];
+        vm.forbidGameRemoveList = [];
+        vm.forbidTopUpAddList = [];
+        vm.forbidTopUpRemoveList = [];
+        vm.forbidRewardPointsAddList = [];
+        vm.forbidRewardPointsRemoveList = [];
+        vm.playerCredibilityRemarksUpdated = false;
         // endregion - init definition
 
         // region - get player data
@@ -187,10 +222,17 @@ define(['js/app'], function (myApp) {
                     vm.selectedSinglePlayer = vm.playerData;
                     vm.resetEditPlayer();
                     vm.drawPlayerTable([vm.playerData]);
-                    return $scope.$socketPromise("getOnePlayerSummaryRecord", {platformObjId: $scope.selectedPlatform.id, playerObjId: $scope.targetPlayerObjId});
+                    return Promise.all(
+                        [
+                            // don't add here, add at delayed init function. Only add here if you want it to be run before the table appear
+                            $scope.$socketPromise("getOnePlayerSummaryRecord", {platformObjId: $scope.selectedPlatform.id, playerObjId: $scope.targetPlayerObjId}),
+                            vm.getAllPlayerLevels(),
+                            vm.getAllProviders(),
+                        ]
+                    );
                 }
             ).then(
-                data => {
+                ([data]) => {
                     console.log('getOnePlayerSummaryRecord', data);
                     vm.playerData.consumptionDetail = data.data && data.data[0] || {};
                     vm.drawSinglePlayerFeedback();
@@ -1407,6 +1449,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     }
+
                     vm.playerFeedbackResultExtended.providerArr = [];
                     for (var key in vm.playerFeedbackResultExtended.providerDetail) {
                         if (vm.playerFeedbackResultExtended.providerDetail.hasOwnProperty(key)) {
@@ -1604,6 +1647,51 @@ define(['js/app'], function (myApp) {
                             }
                         });
                     }
+                }
+            );
+        };
+
+        vm.getAllPlayerLevels = function () {
+            vm.playerIDArr = [];
+            vm.autoCheckPlayerLevelUp = null;
+            vm.manualPlayerLevelUp = null;
+            vm.playerLevelDisplayList = [];
+            return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
+                .then(function (data) {
+                    vm.playerLevelPeriod = {};
+                    vm.allPlayerLvl = data.data;
+                    vm.platformBatchLevelUp = true;
+                    vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+                    vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
+                    vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
+                    vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod ? vm.selectedPlatform.data.playerLevelDownPeriod : vm.allPlayerLevelUpPeriod.MONTH;
+                    vm.allPlayerLvlReordered = false;
+                    vm.sortPlayerLevels();
+                    console.log("vm.allPlayerLvl", data.data);
+                    if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.display && vm.selectedPlatform.data.display.length > 0) {
+                        vm.playerLevelDisplayList = vm.selectedPlatform.data.display;
+                    } else {
+                        vm.playerLevelDisplayList.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
+                    }
+
+                    vm.playerLvlData = {};
+                    if (vm.allPlayerLvl) {
+                        $.each(vm.allPlayerLvl, function (i, v) {
+                            vm.playerIDArr.push(v._id);
+                            vm.playerLvlData[v._id] = v;
+                        })
+                    }
+                    vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod);
+                    vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod);
+                    vm.initiateLevelDownPeriodAllField();
+                });
+        };
+
+        vm.getAllProviders = () => {
+            return commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(
+                data => {
+                    vm.allProviders = data;
+                    return vm.allProviders;
                 }
             );
         };
@@ -2816,44 +2904,6 @@ define(['js/app'], function (myApp) {
             });
             $("#similarIpForPlayerTable").resize();
             $scope.$evalAsync();
-        };
-
-        vm.getAllPlayerLevels = function () {
-            vm.playerIDArr = [];
-            vm.autoCheckPlayerLevelUp = null;
-            vm.manualPlayerLevelUp = null;
-            vm.playerLevelDisplayList = [];
-            return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
-                .then(function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.playerLevelPeriod = {};
-                        vm.allPlayerLvl = data.data;
-                        vm.platformBatchLevelUp = true;
-                        vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
-                        vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
-                        vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
-                        vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod ? vm.selectedPlatform.data.playerLevelDownPeriod : vm.allPlayerLevelUpPeriod.MONTH;
-                        vm.allPlayerLvlReordered = false;
-                        vm.sortPlayerLevels();
-                        console.log("vm.allPlayerLvl", data.data);
-                        if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.display && vm.selectedPlatform.data.display.length > 0) {
-                            vm.playerLevelDisplayList = vm.selectedPlatform.data.display;
-                        } else {
-                            vm.playerLevelDisplayList.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
-                        }
-
-                        vm.playerLvlData = {};
-                        if (vm.allPlayerLvl) {
-                            $.each(vm.allPlayerLvl, function (i, v) {
-                                vm.playerIDArr.push(v._id);
-                                vm.playerLvlData[v._id] = v;
-                            })
-                        }
-                        vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod);
-                        vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod);
-                        vm.initiateLevelDownPeriodAllField();
-                    })
-                });
         };
 
         vm.sortPlayerLevels = function () {
@@ -5230,8 +5280,8 @@ define(['js/app'], function (myApp) {
             });
             resultName = resultName.length > 0 ? resultName[0].value : "";
             let sendData = {
-                playerId: data.playerId,
-                platform: data.platform,
+                playerId: data.playerId || vm.playerData.playerId,
+                platform: data.platform || vm.playerData.platform,
                 createTime: Date.now(),
                 adminId: authService.adminId,
                 content: data.content,
@@ -6404,6 +6454,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.forbidModification = function (id, val, addList, removeList) {
+            console.log('forbidModification', ...arguments);
             if (val === true) {
                 if (vm[addList].indexOf(id) == -1) {
                     vm[addList].push(String(id));
@@ -6439,10 +6490,29 @@ define(['js/app'], function (myApp) {
                 vm.forbidRewardLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                 vm.forbidRewardLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.forbidRewardLog.pageObj = utilService.createPageForPagingTable("#forbidRewardTblPage", {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "forbidRewardLog", vm.getForbidRewardLog)
+                    vm.commonPageChangeHandler(curP, pageSize, "forbidRewardLog", vm.getForbidRewardLog);
                 });
                 vm.getForbidRewardLog(true);
             });
+        };
+
+        vm.isForbidChanged = function (newForbid, oldForbid) {
+            var disableSubmit = true;
+            if (!oldForbid) {
+                oldForbid = [];
+            }
+            if (newForbid.length == oldForbid.length) {
+                for (let i = 0; i < newForbid.length; i++) {
+                    if (oldForbid.indexOf(newForbid[i]) > -1) {
+                        disableSubmit = true;
+                    } else {
+                        return disableSubmit = false;
+                    }
+                }
+            } else {
+                disableSubmit = false;
+            }
+            return disableSubmit;
         };
 
         vm.getProviderText = function (providerId) {
@@ -6544,7 +6614,6 @@ define(['js/app'], function (myApp) {
             vm.showPlatform = vm.selectedPlatform.data;
             $scope.fixModalScrollIssue();
             vm.getZoneList(undefined, undefined, true);
-            vm.getAllPlayerLevels();
             vm.initPlayerCredibility();
             vm.getPlatformGameData();
             getProposalTypeByPlatformId(vm.selectedPlatform.id);

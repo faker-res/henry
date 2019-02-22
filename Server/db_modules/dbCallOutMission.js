@@ -532,6 +532,7 @@ function getCtiUrls (platformId) {
     } else if (platformId == '29') {
         urls = [
             "http://newpj.tel400.me/cti/",
+            "http://xinpjdl.tel400.me/cti/",
             "http://jinbailinewcro.tel400.me/cti/"
         ];
     }
