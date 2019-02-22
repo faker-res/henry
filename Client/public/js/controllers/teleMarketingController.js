@@ -239,6 +239,17 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync(vm.loadPlatformData());
         });
 
+        $scope.getUsableChannelList(function () {
+            vm.smsChannel = null;
+            if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                if ($scope.usableChannelList.includes(3)) {
+                    vm.smsChannel = 3; //set default sms channel
+                } else {
+                    vm.smsChannel = $scope.usableChannelList[0];
+                }
+            }
+        });
+
         vm.loadPlatformData = function (option) {
             vm.multiDecomposedNewPhoneSelected = [];
             vm.hideLeftPanel = false;
