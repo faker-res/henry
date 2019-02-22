@@ -12206,14 +12206,14 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}
-        ).then(
+        ).lean().then(
             data => {
                 if (
                     data && data.type && data.status !== constProposalStatus.SUCCESS
                     && data.status !== constProposalStatus.FAIL
                 ) {
                     prop = data;
-
+                    console.log("check pms2 update player 1", status)
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: data._id, createTime: data.createTime},
                         {
@@ -12221,7 +12221,7 @@ let dbPlayerInfo = {
                             "data.lastSettleTime": lastSettleTime,
                             settleTime: lastSettleTime
                         }
-                    )
+                    ).lean();
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Invalid proposal id or status"});
@@ -12229,6 +12229,7 @@ let dbPlayerInfo = {
             }
         ).then(
             preUpdProp => {
+                console.log("check pms2 update player 2", preUpdProp)
                 // Concurrency check
                 if (
                     preUpdProp && preUpdProp.status !== constProposalStatus.SUCCESS
@@ -12252,8 +12253,8 @@ let dbPlayerInfo = {
                         "data.alipayerAccount": callbackData ? callbackData.account : "",
                         "data.alipayerNickName": callbackData ? callbackData.nickName : "",
                         "data.alipayerRemark": callbackData ? callbackData.remark : "",
-                    }
-                )
+                    }, {new: true}
+                ).lean();
             }
         ).catch(err=>{
             console.log("dbPlayerInfo.updatePlayerTopupProposal()", proposalId, err);

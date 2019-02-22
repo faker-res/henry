@@ -1086,6 +1086,7 @@ var proposal = {
             }
         ).then(
             propData => {
+                console.log("check pms2 status 4", propData)
                 return {
                     proposalId: proposalId,
                     orderStatus: orderStatus,
