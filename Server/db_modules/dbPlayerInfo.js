@@ -6624,28 +6624,27 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
-                let player = JSON.parse(JSON.stringify(data[0]));
-                let provider = data[1];
-                // if adminName doesn't exist (likely request from frontend), AND
-                // requested provider is in player's forbid providers' list: then reject.
-                if ((!adminName) && data && player && provider && player.forbidProviders.indexOf(provider._id.toString()) > -1) {
-                    return Promise.reject({
-                        name: "DataError",
-                        status: constServerCode.PLAYER_IS_FORBIDDEN,
-                        message: "Player is forbidden to the game"
-                    })
-                }
-                // Check is test player
-                if (data && data[0] && data[0].isTestPlayer) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Unable to transfer credit for demo player"
-                    })
-                }
-
                 if (data && data[0] && data[1]) {
                     [playerData, providerData] = data;
                     let platformData = playerData.platform;
+                    let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
+                    // if adminName doesn't exist (likely request from frontend), AND
+                    // requested provider is in player's forbid providers' list: then reject.
+                    if ((!adminName) && forbidProviders.indexOf(providerData._id.toString()) > -1) {
+                        return Promise.reject({
+                            name: "DataError",
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            message: "Player is forbidden to the game"
+                        })
+                    }
+                    // Check is test player
+                    if (playerData.isTestPlayer) {
+                        return Promise.reject({
+                            name: "DataError",
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            message: "Unable to transfer credit for demo player"
+                        })
+                    }
 
                     if (providerData.status != constProviderStatus.NORMAL
                         || platformData && platformData.gameProviderInfo
@@ -7241,27 +7240,26 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
-                let player = JSON.parse(JSON.stringify(data[0]));
-                let providers = data[1];
-                // if adminName doesn't exist (likely request from frontend), AND
-                // requested provider is in player's forbid providers' list: then reject.
-                if ((!adminName) && data && player && providers && player.forbidProviders.indexOf(providers[0]._id.toString()) > -1) {
-                    return Promise.reject({
-                        name: "DataError",
-                        status: constServerCode.PLAYER_IS_FORBIDDEN,
-                        message: "Player is forbidden to the game"
-                    })
-                }
-                if (data && data[0] && data[0].isTestPlayer) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Unable to transfer credit for demo player"
-                    })
-                }
-
                 if (data && data[0] && data[1] && data[1].length > 0) {
                     [playerObj, gameProvider] = data;
                     platformData = playerObj.platform;
+                    let forbidProviders = JSON.parse(JSON.stringify(playerObj.forbidProviders));
+                    // if adminName doesn't exist (likely request from frontend), AND
+                    // requested provider is in player's forbid providers' list: then reject.
+                    if ((!adminName) && forbidProviders.indexOf(gameProvider[0]._id.toString()) > -1) {
+                        return Promise.reject({
+                            name: "DataError",
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            message: "Player is forbidden to the game"
+                        })
+                    }
+                    if (playerObj.isTestPlayer) {
+                        return Promise.reject({
+                            name: "DataError",
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            message: "Unable to transfer credit for demo player"
+                        })
+                    }
 
                     let indexOfProviderId = -1;
 
