@@ -914,6 +914,10 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, smsAPI.channel_getChannelList, [data], actionName, true);
         },
+        getUsableChannelList: function getUsableChannelList(data) {
+            var actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, smsAPI.getUsableChannel_getUsableChannelList, [data], actionName, true);
+        },
         vertificationSMSQuery: function vertificationSMSQuery(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
