@@ -17266,7 +17266,7 @@ define(['js/app'], function (myApp) {
                         if (window.location.pathname == "/platform" && vm.platformPageName == "Feedback") {
                             vm.ctiRefreshTimeout = setTimeout(() => {
                                 vm.getCtiData();
-                            }, 15000);
+                            }, 5000);
                         }
 
                         if (!vm.calleeCallOutStatus) {
