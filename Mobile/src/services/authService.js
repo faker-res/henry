@@ -56,6 +56,20 @@ let authService = {
         console.log(exp);
         console.table(cookie.loadAll());
     },
-}
+
+    logout: function () {
+        // remove cookies when logout
+        $.removeCookie(authKey.cookieTokenKey);
+        $.removeCookie(authKey.cookieAdminIdKey);
+        $.removeCookie(authKey.cookieAdminNameKey);
+        $.removeCookie(authKey.cookiePolicyKey);
+        $.removeCookie(authKey.cookieDepartmentKey);
+        $.removeCookie(authKey.cookiePlatformKey);
+        $.removeCookie("platform");
+        $.removeCookie("SRVNAME");
+
+        localStorage.remove(authKey.cookiePolicyKey);
+    },
+};
 
 export default authService;

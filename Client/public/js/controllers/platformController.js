@@ -3853,13 +3853,15 @@ define(['js/app'], function (myApp) {
                     vm.providerListCheck = {};
                     $.each(vm.platformProviderList, function (i, v) {
                         vm.providerListCheck[v._id] = true;
-                    })
+                    });
                     //payment list init
                     vm.platformPaymentChList = data.data.paymentChannels;
                     vm.paymentListCheck = {};
                     $.each(vm.platformPaymentChList, function (i, v) {
                         vm.paymentListCheck[v._id] = true;
-                    })
+                    });
+
+                    vm.showPlatform.gameProviderInfo = data.data.gameProviderInfo;
 
                     //provider delay status init
                     vm.getProviderLatestTimeRecord();
@@ -17232,7 +17234,12 @@ define(['js/app'], function (myApp) {
                         });
 
                         if (vm.playerFeedbackSearchType=="many") {
-                            setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                            if (vm.playerFeedbackTable) {
+                                setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                            }
+                            else {
+                                vm.drawPlayerTable(playerFeedbackDetail.data)
+                            }
                         }
                         else {
                             if (playerFeedbackDetail.data && playerFeedbackDetail.data[0] && vm.isSingleFeedBackPageChange) {
@@ -17273,8 +17280,18 @@ define(['js/app'], function (myApp) {
                             vm.ctiData.callee.map(callee => {
                                 if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
                                     if (vm.playerFeedbackSearchType=="many") {
-                                        vm.initFeedbackModal(callee.player);
-                                        $('#modalAddPlayerFeedback').modal().show();
+                                        if (vm.showPlayerDetailInNewTab) {
+                                            let playerObjId = callee && callee.player && callee.player._id;
+                                            if (playerObjId) {
+                                                let url = window.location.origin + "/playerDetail/" + playerObjId;
+                                                utilService.openInNewTab(url);
+                                            }
+                                        }
+                                        else {
+                                            vm.initFeedbackModal(callee.player);
+                                            $('#modalAddPlayerFeedback').modal().show();
+                                        }
+
                                     }
                                     else {
                                         vm.lastSelectedCallPlayer = callee.player || vm.lastSelectedCallPlayer;
@@ -17285,7 +17302,12 @@ define(['js/app'], function (myApp) {
                         }
 
                         if (vm.playerFeedbackSearchType == "one") {
-                            setTableData(vm.playerFeedbackTable, [vm.lastSelectedCallPlayer]);
+                            if (vm.playerFeedbackTable) {
+                                setTableData(vm.playerFeedbackTable, [vm.lastSelectedCallPlayer]);
+                            }
+                            else {
+                                vm.drawPlayerTable([vm.lastSelectedCallPlayer])
+                            }
                         }
 
                     }
@@ -28046,7 +28068,8 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
                 vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
                 vm.platformBasic.useEbetWallet = vm.selectedPlatform.data.useEbetWallet;
-                vm.platformBasic.isSendEBETData = vm.selectedPlatform.data.isSendEBETData;
+                vm.platformBasic.disableProviderAfterConsecutiveTimeoutCount = vm.selectedPlatform.data.disableProviderAfterConsecutiveTimeoutCount;
+                vm.platformBasic.providerConsecutiveTimeoutSearchTimeFrame = vm.selectedPlatform.data.providerConsecutiveTimeoutSearchTimeFrame;
 
 
                 // $scope.safeApply();
@@ -29849,7 +29872,8 @@ define(['js/app'], function (myApp) {
                         manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
                         display: srcData.display,
                         useEbetWallet: srcData.useEbetWallet,
-                        isSendEBETData: srcData.isSendEBETData,
+                        disableProviderAfterConsecutiveTimeoutCount: srcData.disableProviderAfterConsecutiveTimeoutCount,
+                        providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,
                     }
                 };
                 let isProviderGroupOn = false;
@@ -36713,7 +36737,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
-                                let result = '<div ng-click="vm.auctionSystemEditStatus = true; vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                let result = '<div ng-click="vm.auctionSystemEditStatus = true; vm.loadAuctionItem(\''+row._id+'\')"><a>' + data + '</a></div>';
                                 return result;
                             }
                         },
@@ -36763,7 +36787,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
-                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')"><a>' + data + '</a></div>';
                                 return result;
                             }
                         },

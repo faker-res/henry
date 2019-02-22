@@ -419,6 +419,17 @@ var proposal = {
                         proposalData.status = constProposalStatus.PREPENDING;
                     }
 
+                    // Set bExecute to be true for auction process in order to send out message/mail regardless of the status
+                    if (
+                        data[0].name == constProposalType.AUCTION_PROMO_CODE
+                        || data[0].name == constProposalType.AUCTION_OPEN_PROMO_CODE
+                        || data[0].name == constProposalType.AUCTION_REWARD_PROMOTION
+                        || data[0].name == constProposalType.AUCTION_REAL_PRIZE
+                        || data[0].name == constProposalType.AUCTION_REWARD_POINT_CHANGE
+                    ) {
+                        bExecute = true;
+                    }
+
                     // For third party payment system, we just set the proposal to pending without any process
                     if (
                         data[0].name === constProposalType.PLAYER_FKP_TOP_UP
@@ -682,6 +693,18 @@ var proposal = {
         );
     },
 
+    sendMessageToPlayerAfterUpdateProposalStatus: function (proposalData){
+        if (proposalData && proposalData.type){
+            return dbconfig.collection_proposalType.findOne({_id: ObjectId(proposalData.type)}).then(
+                proposalTypeData => {
+                    if (proposalTypeData){
+                        return proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, proposalData)
+                    }
+                }
+            ).catch(errorUtils.reportError);
+        }
+    },
+
     /**
      * Get one proposal by _id
      * @param {json} query - The query string
@@ -849,7 +872,7 @@ var proposal = {
                         type = constPlayerTopUpType.WECHAT;
                     }
 
-                    if (proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+                    if (proposalData.type && proposalData.type.name && proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
                         type = constPlayerTopUpType.COMMON;
                     }
 
@@ -1053,6 +1076,7 @@ var proposal = {
                 } else if (status === constProposalStatus.FAIL) {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark, callbackData);
                 }
+
             }
         ).then(
             propData => {
@@ -1062,7 +1086,8 @@ var proposal = {
                     depositId: requestId,
                     type: type,
                     rate: (Number(proposalObj.data.amount) * Number(topupRate)).toFixed(2),
-                    actualAmountReceived: topupActualAmt
+                    actualAmountReceived: topupActualAmt,
+                    realName: proposalObj.data.playerRealName
                 };
             },
             error => {
@@ -1413,7 +1438,20 @@ var proposal = {
                                         console.log("LH Check Proposal Reject 4------------", proposalObj);
                                         let prom = Promise.resolve(true);
 
-                                        if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
+                                        if (proposalObj && proposalObj.status && proposalObj.data && proposalObj.data.auction && proposalObj.data.playerObjId && proposalObj.data.platformId && proposalObj.data.currentBidPrice && proposalObj.data.productName){
+                                            if (proposalObj.status == constProposalStatus.REJECTED){
+                                                // refund
+                                                prom = dbPlayerInfo.updatePlayerRewardPointsRecord(proposalObj.data.playerObjId, proposalObj.data.platformId, proposalObj.data.currentBidPrice, 'Refund from bidding item: ' + proposalObj.data.productName || "", null, null, proposalObj.data.seller || "System", constPlayerRegistrationInterface.BACKSTAGE).then(
+                                                    () => {
+                                                        proposal.sendMessageToPlayerAfterUpdateProposalStatus(proposalObj);
+                                                    }
+                                                );
+                                            }
+                                            else if (proposalObj.status == constProposalStatus.APPROVED){
+                                                proposal.sendMessageToPlayerAfterUpdateProposalStatus(proposalObj)
+                                            }
+                                        }
+                                        else if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
                                             prom = dbconfig.collection_players.findOne({_id: proposalObj.data.playerObjId, platform: proposalObj.data.platformId}, {permission: 1, _id: 1, platform: 1})
                                                 .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                                                     playerData => {
@@ -7133,6 +7171,12 @@ var proposal = {
                 let proms = [];
                 let inputDeviceArr;
                 let merchantData;
+                let projectQ = {
+                    settleTime:1, createTime:1, status:1 ,proposalId:1, inputDevice:1, mainType:1, typeName:1, involveAmount:1,
+                    'data.timeDifferenceInMins':1, 'data.playerObjId':1, 'data.merchantNo':1,'data.creator':1,  'data.topupType':1,
+                    'data.proposalPlayerLevel':1, 'data.remark':1, 'data.merchantTypeId':1, 'data.playerName':1, 'data.partnerName':1,
+                    'data.amount':1, 'data.amountRatio':1
+                };
                 // loop for userAgent
                 for(let i =1; i<=3; i++) {
                     if (i == 2){
@@ -7161,22 +7205,28 @@ var proposal = {
                     };
 
 
+
                     //get topup analysis group by topupType
                     let prom = dbconfig.collection_proposal.aggregate(
                         {
                             $match: matchObj
-                        }, {
+                        },
+                        {
+                            $project: { createTime:1, type:1, inputDevice:1, status:1, 'data.playerObjId':1, 'data.topupType':1, 'data.amount':1, 'data.amountRatio':1 }
+                        },
+                        {
                             $group: groupByObj
                         }
                     ).read("secondaryPreferred").then(
                         data => {
-
                             let searchQ = Object.assign({}, matchObj, {status: "Success"});
-                            let proposalArrProm = dbconfig.collection_proposal.find(searchQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
+                            let proposalArrProm = dbconfig.collection_proposal.find(searchQ, projectQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
                             //get success proposal count group by topupType, filter repeat user
                             let topUpTypeProm =  dbconfig.collection_proposal.aggregate(
                                 {
                                     $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}})
+                                }, {
+                                    $project: { 'data.topupType':1, 'data.playerObjId':1 }
                                 }, {
                                     $group: {
                                         _id: "$data.topupType",
@@ -7243,19 +7293,22 @@ var proposal = {
                                             {
                                                 $match: Object.assign({}, matchObj,{'data.topupType': onlineTopupTypeData._id})
                                             }, {
+                                                $project: projectQ
+                                            }, {
                                                 $group: Object.assign({}, groupByObj,{_id: "$data.merchantNo"})
                                             }
                                             ).read("secondaryPreferred").then(
                                                 merchantData => {
-
                                                     let searchQ = Object.assign({}, matchObj, {status: "Success"}, {'data.merchantNo': {$in: merchantData.map(p => { if(p && p._id){return p._id}})}});
 
-                                                    let operatorProm = dbconfig.collection_proposal.find(searchQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
+                                                    let operatorProm = dbconfig.collection_proposal.find(searchQ, projectQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
 
                                                     // get success proposal count group by merchantNo, filter repeat user
                                                     let merchantProm = dbconfig.collection_proposal.aggregate(
                                                         {
                                                             $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}, 'data.topupType': onlineTopupTypeData._id})
+                                                        }, {
+                                                            $project: { status:1, 'data.topupType':1, 'data.merchantNo':1, 'data.playerObjId':1, 'data.merchantTypeId':1,  'data.amount':1, 'data.amountRatio':1 }
                                                         }, {
                                                             $group: {
                                                                 _id: "$data.merchantNo",
@@ -7266,7 +7319,6 @@ var proposal = {
 
                                                     return Promise.all([operatorProm, merchantProm]).then(
                                                         retData => {
-
                                                             if (retData && retData.length == 2){
                                                                 let successMerchantData = retData[1];
                                                                 let proposalInInterval = retData[0];
@@ -7326,6 +7378,8 @@ var proposal = {
                         {
                             $match: Object.assign({}, matchObj,{status: "Success"})
                         }, {
+                            $project: { 'data.userAgent':1, 'data.playerObjId':1 }
+                        }, {
                             $group: {
                                 _id: "$data.userAgent",
                                 userIds: { $addToSet: "$data.playerObjId" },
@@ -7353,6 +7407,8 @@ var proposal = {
                                     status: "Success",
                                     $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}/*, {'data.topupType': {$type: 'number'}}*/],
                                 }
+                            }, {
+                                $project: projectQ
                             }, {
                                 $group: {
                                     _id: null,

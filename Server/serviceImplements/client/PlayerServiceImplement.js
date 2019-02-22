@@ -492,7 +492,6 @@ let PlayerServiceImplement = function () {
                 conn.noOfAttempt = 0;
                 conn.viewInfo = playerData.viewInfo;
                 conn.platformId = data.platformId;
-                conn.isSendEBETData = playerData.platform && playerData.platform.isSendEBETData;
                 conn.onclose = function (event) {
                     dbPlayerInfo.playerLogout({playerId: playerData.playerId}).catch(
                         error => {
@@ -1283,6 +1282,11 @@ let PlayerServiceImplement = function () {
         let phoneNumber = data.phoneNumber? data.phoneNumber: null;
 
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, data.phoneNumber, deviceData, userAgentString], isValidData, false, false, true);
+    };
+
+    this.changeBirthdayDate.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerObjId && data && data.date);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.changeBirthdayDate, [conn.playerObjId, data.date], isValidData);
     };
 
     this.getClientData.onRequest = function (wsFunc, conn, data) {

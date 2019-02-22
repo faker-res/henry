@@ -98,6 +98,7 @@
                 "createGuestPlayer",
                 "getLastPlayedGameInfo",
                 "getClientData",
+                "changeBirthdayDate",
                 "saveClientData",
                 "callBackToUser",
                 "getOMCaptcha",

@@ -3,24 +3,19 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 const env = require("./config/env").config();
-const webEnv = require('./config/webEnv');
+const webEnv = require('./public/js/webEnv');
 const nodeUrl = env.redisUrl || 'localhost';
 const port = env.redisPort || 1802;
 const jwt = require('jsonwebtoken');
 const secret = "$ap1U5eR$";
 
-const privateKeyPath = "./playerPhone.key.pem";
-const replacedPrivateKeyPath = "./playerPhone.key.pem.bak";
-const publicKeyPath = "./playerPhone.pub";
-const replacedPublicKeyPath = "./playerPhone.pub.bak";
-const loginPagePath = "./login.html";
+const privateKeyPath = "./public/playerPhone.key.pem";
+const replacedPrivateKeyPath = "./public/playerPhone.key.pem.bak";
+const publicKeyPath = "./public/playerPhone.pub";
+const replacedPublicKeyPath = "./public/playerPhone.pub.bak";
 const fpmsKey = "Fr0m_FPM$!";
 
 let privateKey, publicKey, replacedPrivateKey, replacedPublicKey;
-
-// TEMPORARY USERNAME AND PASSWORD
-let username = 'keyuser';
-let password = 'KeyUserP@s$w0rd!';
 
 http.createServer(function (req, res) {
     console.log(`${req.method} ${req.url}`);
@@ -34,7 +29,7 @@ http.createServer(function (req, res) {
     // parse URL
     const parsedUrl = url.parse(req.url, true);
     // extract URL path
-    let pathname = `.${parsedUrl.pathname}`;
+    let pathname = `./public${parsedUrl.pathname}`;
     let query = parsedUrl.query;
 
     if (req.method === 'POST') {
@@ -77,24 +72,6 @@ http.createServer(function (req, res) {
                     res.end('Success');
                 });
                 break;
-            case loginPagePath:
-                req.on('data', data => {
-                    inputData.push(data);
-                }).on('end', () => {
-                    let buffer = Buffer.concat(inputData);
-                    let loginData = JSON.parse(buffer.toString());
-
-                    if (loginData.username === username && loginData.password === password) {
-                        let token = jwt.sign(loginData, secret, {expiresIn: 60 * 60 * 5});
-                        res.setHeader('X-Token', token);
-                        res.setHeader('Location', 'static.html?token=' + token);
-                        res.statusCode = 201;
-                        res.end();
-                    } else {
-                        res.end();
-                    }
-                });
-                break;
         }
     } else {
         // GET
@@ -111,81 +88,30 @@ http.createServer(function (req, res) {
             case replacedPublicKeyPath:
                 verifyAndSendKey(query, res, replacedPublicKey);
                 break;
-            case './static.html':
+            case './public/login.html':
+                readFile(pathname, res);
+                break;
+            case './public/static.html':
                 if (query && query.token) {
-                    jwt.verify(query.token, secret, function (err, decoded) {
+                    jwt.verify(query.token, env.socketSecret, function (err, decoded) {
                         if (err || !decoded) {
                             // Jwt token error
                             console.log("jwt verify error", err);
                             redirectToLoginPage();
                         } else {
-                            let renderPath = "./static.html";
-                            fs.exists(renderPath, function (exist) {
-                                if(!exist) {
-                                    // if the file is not found, return 404
-                                    renderPath = './login.html';
-                                }
-
-                                fs.readFile(renderPath, function(err, data){
-                                    if(err){
-                                        res.statusCode = 500;
-                                        res.end(`Error getting the file: ${err}.`);
-                                    } else {
-                                        // if the file is found, set Content-type and send data
-                                        res.setHeader('Content-type', 'text/html' );
-                                        res.end(data);
-                                    }
-                                });
-                            });
+                            readFile(pathname, res)
                         }
                     });
                 } else {
                     redirectToLoginPage();
                 }
                 break;
-            case './static.htm': // to prevent people viewing source code
+            case './public/static.htm': // to prevent people viewing source code
             case './':
                 redirectToLoginPage();
                 break;
             default:
-                const ext = path.parse(pathname).ext;
-                // maps file extention to MIME typere
-                const map = {
-                    '.ico': 'image/x-icon',
-                    '.html': 'text/html',
-                    '.js': 'text/javascript',
-                    '.json': 'application/json',
-                    '.css': 'text/css',
-                    '.png': 'image/png',
-                    '.jpg': 'image/jpeg',
-                    '.wav': 'audio/wav',
-                    '.mp3': 'audio/mpeg',
-                    '.svg': 'image/svg+xml',
-                    '.pdf': 'application/pdf',
-                    '.doc': 'application/msword'
-                };
-
-                fs.exists(pathname, function (exist) {
-                    if(!exist) {
-                        // if the file is not found, return 404
-                        pathname = './login.html';
-                    }
-
-                    // if is a directory search for index file matching the extention
-                    // if (fs.statSync(pathname).isDirectory()) pathname += '/index' + ext;
-
-                    // read file from file system
-                    fs.readFile(pathname, function(err, data){
-                        if(err){
-                            res.statusCode = 500;
-                            res.end(`Error getting the file: ${err}.`);
-                        } else {
-                            // if the file is found, set Content-type and send data
-                            res.setHeader('Content-type', map[ext] || 'text/plain' );
-                            res.end(data);
-                        }
-                    });
-                });
+                readFile(pathname, res);
         }
     }
 
@@ -204,7 +130,48 @@ http.createServer(function (req, res) {
                     res.end(key);
                 }
             });
+        } else {
+            redirectToLoginPage();
         }
+    }
+
+    function readFile(pathName, res) {
+        const ext = path.parse(pathName).ext;
+        // maps file extention to MIME typere
+        const map = {
+            '.ico': 'image/x-icon',
+            '.html': 'text/html',
+            '.js': 'text/javascript',
+            '.json': 'application/json',
+            '.css': 'text/css',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.wav': 'audio/wav',
+            '.mp3': 'audio/mpeg',
+            '.svg': 'image/svg+xml',
+            '.pdf': 'application/pdf',
+            '.doc': 'application/msword'
+        };
+
+        fs.exists(pathName, function (exist) {
+            console.log('exist', exist);
+            if(!exist) {
+                // if the file is not found, return 404
+                pathName = 'public/login.html';
+            }
+
+            // read file from file system
+            fs.readFile(pathName, function(err, data){
+                if(err){
+                    res.statusCode = 500;
+                    res.end(`Error getting the file: ${err}.`);
+                } else {
+                    // if the file is found, set Content-type and send data
+                    res.setHeader('Content-type', map[ext] || 'text/plain' );
+                    res.end(data);
+                }
+            });
+        });
     }
 
 }).listen(parseInt(port));

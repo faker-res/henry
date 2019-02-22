@@ -1882,6 +1882,27 @@
     </div>
 </div>
 
+<h3>Change Birthday Date (修改生日日期)</h3>
+<div class="test-container">
+    <!--For testing player logout API (5)-->
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>End Time
+            <input name="date" type="datetime-local">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="changeBirthdayDate">Send</button>
+    </div>
+    <div>
+        <textarea id="changeBirthdayDateOutput"></textarea>
+    </div>
+</div>
+
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],

@@ -30,6 +30,8 @@ var localConfig = {
     paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
     ebetRTNUrl: "ws://rtn-xindeli99.cpms8.me:7351/ebet",
+    mailerNoReply: "no-reply@snsoft.my",
+    providerTimeoutNotificationRecipient: "dev-fpms@monaco1.ph",
 };
 
 //for aws-development
@@ -198,14 +200,17 @@ var prodConfig = {
     paymentAPIServerUrl: "ws://10.167.11.108:9480",
     messageServerUrl: "ws://10.167.11.108:9580",
    
-    cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
+    // cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
+    cpAPIUrl : "ws://timeout.com:9020/websocketapi",
     cpAPIUrlForGame : "ws://gameapi-server.neweb.me/game",
     paymentAPIUrl: "ws://10.168.11.128:8330/acc",
     //smsAPIUrl: "ws://203.192.151.12:8560/sms"
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     paymentHTTPAPIUrl: "http://pms-pay-dev.neweb.me/",
     internalRESTUrl: "http://devtest.wsweb.me:7100",
-    ebetRTNUrl: "ws://rtn-xindeli.cpms8.me:7351/ebet",
+    ebetRTNUrl: "ws://rtn-xindeli99.cpms8.me:7351/ebet",
+    mailerNoReply: "no-reply@snsoft.my",
+    providerTimeoutNotificationRecipient: "dev-fpms@monaco1.ph",
 };
 
 

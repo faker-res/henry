@@ -6113,15 +6113,13 @@ let dbPlayerReward = {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
                         "status": constProposalStatus.APPROVED,
-                        "data.playerObjId": playerData._id,
-                        /*
+                        // "data.playerObjId": playerData._id,
                         $or: [
                             {'data.playerObjId': playerData._id},
                             {'data.lastLoginIp': playerData.lastLoginIp},
                             {'data.phoneNumber': playerData.phoneNumber},
                             {'data.deviceId': playerData.deviceId},
                         ]
-                        */
                     }
                 },
                 {

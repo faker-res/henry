@@ -6142,7 +6142,7 @@ define(['js/app'], function (myApp) {
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
                             vm.selectedAllForbidRewardEvent = false;
-                            if (vm.forbidPromoCode && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
+                            if (vm.forbidPromoCode && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
                                 vm.selectedAllForbidRewardEvent = true;
                             }
                             $scope.safeApply();

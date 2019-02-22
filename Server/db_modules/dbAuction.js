@@ -1045,6 +1045,7 @@ var dbAuction = {
         let isWithinInterval = false;
         let withinIntervalData = null;
         let currentInterval = null;
+        let rejectProposalData = null;
 
         if (!playerId) {
             return Promise.reject({name: "DBError", message: "Player is not found"});
@@ -1141,6 +1142,9 @@ var dbAuction = {
                     rewardEndTime: {$gte: new Date(timeNow)},
                     publish: true,
                     status: 1
+                }).populate({
+                    path: "rewardData.allowedProvider",
+                    model: dbconfig.collection_gameProviderGroup
                 }).lean();
             }
         ).then(
@@ -1307,8 +1311,15 @@ var dbAuction = {
                 if (!proposalData) return true; // skip refund reward points
 
                 let creator = proposalData.data.seller || 'System';
+                rejectProposalData = proposalData;
                 // return reward points to rejected bidder
                 return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'Refund from bidding item: ' + auctionData.productName || "", null, null, creator, inputDevice);
+            }
+        ).then(
+            () => {
+                if (rejectProposalData) {
+                    dbProposal.sendMessageToPlayerAfterUpdateProposalStatus(rejectProposalData);
+                }
             }
         ).then(
             () => {
@@ -1327,6 +1338,7 @@ var dbAuction = {
                         currentBidPrice: playerBidPrice,
                         remark: remark,
                         auction: auctionData._id ? auctionData._id : '',
+                        biddingType: auctionData && auctionData.rewardData && auctionData.rewardData.rewardType ? auctionData.rewardData.rewardType : null,
                         updateAmount: playerBidPrice
                     },
                     creator: {
@@ -1338,8 +1350,40 @@ var dbAuction = {
                 if (inputDevice) {
                     newProposal.inputDevice = inputDevice;
                 }
+
+                newProposal.data.allowedProvider = "LOCAL_CREDIT";
+                newProposal.data.allowedProvider$ = "自由额度";
+                if (auctionData && auctionData.rewardData && auctionData.rewardData.allowedProvider && auctionData.rewardData.allowedProvider._id){
+                    newProposal.data.allowedProvider = auctionData.rewardData.allowedProvider._id;
+                    newProposal.data.allowedProvider$ = auctionData.rewardData.allowedProvider.name;
+                }
                 if (auctionData && auctionData.rewardData && auctionData.rewardData.templateObjId){
                     newProposal.data.templateObjId = auctionData.rewardData.templateObjId;
+                    newProposal.data.minTopUpAmount = auctionData.rewardData.minimumTopUpAmount;
+
+                    if (auctionData.rewardData.hasOwnProperty('upperLimitPerPlayer')){
+                        newProposal.data.upperLimitPerPlayer = auctionData.rewardData.upperLimitPerPlayer;
+                    }
+
+                    if (auctionData.rewardData.hasOwnProperty('totalQuantityLimit')){
+                        newProposal.data.totalQuantityLimit = auctionData.rewardData.totalQuantityLimit;
+                    }
+
+                    if (auctionData.rewardData.hasOwnProperty('limitPerSameIp')){
+                        newProposal.data.limitPerSameIp = auctionData.rewardData.limitPerSameIp;
+                    }
+
+                    if (auctionData.rewardData.isDynamicRewardAmount) {
+                        newProposal.data.type = 3;
+                        newProposal.data.rewardPercentage = auctionData.rewardData.rewardPercentage*100;
+                        newProposal.data.maxRewardAmount = auctionData.rewardData.maximumRewardAmount;
+                        newProposal.data.spendingTimes = auctionData.rewardData.spendingTimes;
+                    }
+                    else {
+                        newProposal.data.type = 1;
+                        newProposal.data.rewardAmount = auctionData.rewardData.rewardAmount;
+                        newProposal.data.spendingAmount = auctionData.rewardData.spendingAmount;
+                    }
                 }
                 if (auctionData && auctionData.seller){
                     newProposal.data.seller = auctionData.seller;
@@ -1353,9 +1397,9 @@ var dbAuction = {
                 if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption")){
                     newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
                 }
-                if (auctionData && auctionData.rewardData && auctionData.rewardData.gameProviderGroup){
-                    newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
-                }
+                // if (auctionData && auctionData.rewardData && auctionData.rewardData.gameProviderGroup){
+                //     newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
+                // }
                 if (playerName){
                     newProposal.data.playerName = playerName;
                 }

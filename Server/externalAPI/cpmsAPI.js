@@ -6,6 +6,11 @@ const constServerCode = require("../const/constServerCode");
 const request = require('request');
 const dbLogger = require("../modules/dbLogger");
 const clientAPIInstance = require("../modules/clientApiInstances");
+const dbconfig = require('../modules/dbproperties');
+const constPlayerCreditTransferStatus = require('../const/constPlayerCreditTransferStatus');
+const constGameStatus = require('../const/constGameStatus');
+const emailer = require("../modules/emailer");
+const dbPlatform = require("../db_modules/dbPlatform");
 let wsConn;
 
 function callCPMSAPI(service, functionName, data, fileData) {
@@ -63,6 +68,83 @@ function callCPMSAPI(service, functionName, data, fileData) {
         }
     ).then(deferred.resolve, deferred.reject);
     return deferred.promise;
+};
+
+function callCPMSAPIWithAutoMaintenance(service, functionName, data, fileData) {
+    if (!data) {
+        return Q.reject(new Error("Invalid data!"));
+    }
+    //check if provider is disable at FPMS
+    let providerObjId, platformObjId;
+    return dbconfig.collection_gameProvider.findOne({providerId: data.providerId}, {_id: 1}).lean().exec().then(provider => {
+        providerObjId = provider._id;
+        let projection = {};
+        projection['gameProviderInfo.' + providerObjId] = 1;
+        return dbconfig.collection_platform.findOne({platformId: data.platformId}, projection);
+    }).then(platform => {
+        platformObjId = platform._id;
+        if (platform && platform.gameProviderInfo && platform.gameProviderInfo[providerObjId] && platform.gameProviderInfo[providerObjId].isEnable === false) {
+            return Q.reject({
+                name: "DataError",
+                message: "Provider is not available"
+            });
+        } else {
+            let bOpen = false;
+            let deferred = Q.defer();
+            //if can't connect in 60 seconds, treat as timeout
+            setTimeout(function () {
+                if (!bOpen) {
+                    if(functionName == 'queryCredit') {
+                        recordQueryCreditTimeout(data);
+                    }
+                    if(data.platformId && data.providerId) {
+                        gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, data.providerId);
+                    }
+                    return deferred.reject({
+                        status: constServerCode.CP_NOT_AVAILABLE,
+                        message: "Request timeout",
+                        errorMessage: "Request timeout"
+                    });
+                }
+            }, 60 * 1000);
+            clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+                wsClient => {
+                    bOpen = true;
+                    return wsClient.callAPIOnce(service, functionName, data).then(
+                        res => {
+                            if (wsClient && typeof wsClient.disconnect == "function") {
+                                wsClient.disconnect();
+                            }
+                            return res;
+                        },
+                        error => {
+                            if (wsClient && typeof wsClient.disconnect == "function") {
+                                wsClient.disconnect();
+                            }
+                            if (error.status) {
+                                return Q.reject(error);
+                            }
+                            else {
+                                return Q.reject({
+                                    status: constServerCode.CP_NOT_AVAILABLE,
+                                    message: "Game is not available",
+                                    error: error
+                                });
+                            }
+                        }
+                    );
+                },
+                error => {
+                    return Q.reject({
+                        status: constServerCode.CP_NOT_AVAILABLE,
+                        message: "Game is not available",
+                        error: error
+                    });
+                }
+            ).then(deferred.resolve, deferred.reject);
+            return deferred.promise;
+        }
+    });
 };
 
 function callCPMSAPIWithFileData(service, functionName, data, fileData) {
@@ -125,6 +207,111 @@ function httpGet(url) {
     return deferred.promise;
 };
 
+function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, providerId) {
+    const minute = 60*1000;
+    let timeoutLimit = 0;
+    let platformName = '';
+    let searchTimeFrame = 3 * minute;
+    let lastTimeoutDateTime;
+
+    //check if last N times failed due to timed out
+    dbconfig.collection_platform.findOne({_id: platformObjId}).lean().exec().then(platform => {
+        timeoutLimit = platform.disableProviderAfterConsecutiveTimeoutCount;
+        searchTimeFrame = platform.providerConsecutiveTimeoutSearchTimeFrame ? platform.providerConsecutiveTimeoutSearchTimeFrame * minute : searchTimeFrame;
+        platformName = platform.platformName;
+        let searchTimeStart = new Date(new Date().getTime() - searchTimeFrame);
+        if(timeoutLimit && timeoutLimit > 0) {
+            let searchTransferLogProm = dbconfig.collection_playerCreditTransferLog.find({
+                platformObjId: platformObjId,
+                providerId: providerId,
+                status: constPlayerCreditTransferStatus.TIMEOUT,
+                createTime: {$gte: searchTimeStart}
+            });
+            let searchQueryCreditTimeoutProm = dbconfig.collection_queryCreditTimeout.find({
+                platformObjId: platformObjId,
+                providerObjId: providerObjId,
+                createTime: {$gte: searchTimeStart}
+            });
+
+            return Promise.all([searchTransferLogProm, searchQueryCreditTimeoutProm]);
+        }
+    }).then(logs => {
+        let transferLogs = logs[0];
+        let queryCreditLogs = logs[1];
+        let count = transferLogs.length + queryCreditLogs.length;
+
+        if(count >= timeoutLimit) {
+            lastTimeoutDateTime = logs[0].createTime;
+            //set provider to maintenance status
+            let isEnable = false;
+            return dbPlatform.updateProviderFromPlatformById(platformObjId, providerObjId, isEnable).then(()=>{
+                return dbconfig.collection_gameProvider.findOne({_id: providerObjId});
+            });
+        } else {
+            return null;
+        }
+    }).then(provider => {
+        if(provider) {
+            let providerName = provider.name;
+
+            let sender = env.mailerNoReply;
+            let recipient = env.providerTimeoutNotificationRecipient;
+            let subject = "[FPMS System] - " + providerName + " timeout limit reached, set status to maintenance.";
+            let content = `<b>Game provider [${providerName}] has reached maximum consecutive timeout limit, it has been changed to maintenance status.</b>
+                        <br/><br/>
+                        <span>Platform: ${platformName}</span><br/>
+                        <span>Game Provider Name: ${providerName}</span><br/>
+                        <span>Current Status: MAINTENANCE</span><br/>
+                        <span>Max Consecutive Timeout Limit: ${timeoutLimit}</span><br/>
+                        <span>Last Timeout Date Time: ${lastTimeoutDateTime}</span>
+                        <br/><br/>-<br/><br/>
+                        <b>游戏提供商 [${providerName}] 已连续超时${timeoutLimit}次，现已将其设置为维护状态。</b>
+                        <br/><br/>
+                        <span>平台: ${platformName}</span><br/>
+                        <span>游戏提供商: ${providerName}</span><br/>
+                        <span>现今状态: 维护</span><br/>
+                        <span>最高连续超时限制设定: ${timeoutLimit}次</span><br/>
+                        <span>最后尝试并超时时间: ${lastTimeoutDateTime}</span>
+                        <br/><br/><br/><br/>
+                        <span>This is an automated email sent by FPMS. <b>DO NOT Reply</b>.</span><br/>
+                        <span>此邮件是由FPMS系统自动发出。<b>请勿回复。</b></span>`;
+
+            let emailConfig = {
+                sender: sender,
+                recipient: recipient,
+                subject: subject,
+                body: content,
+                isHTML: true
+            };
+
+            return emailer.sendEmail(emailConfig);
+        }
+    });
+}
+
+function recordQueryCreditTimeout(data){
+    let promArr = [];
+    promArr.push(dbconfig.collection_platform.findOne({platformId: data.platformId}));
+    promArr.push(dbconfig.collection_gameProvider.findOne({providerId: data.providerId}));
+    promArr.push(dbconfig.collection_players.findOne({name: data.username}));
+
+    Promise.all(promArr).then(retData => {
+        let platformObjId = retData[0]._id;
+        let providerObjId = retData[1]._id;
+        let playerObjId = retData[2]._id;
+
+        let queryCreditTimeoutData = {
+            platformObjId: platformObjId,
+            playerObjId: playerObjId,
+            providerObjId: providerObjId,
+            platformId: data.platformId,
+            playerName: data.username,
+            providerId: data.providerId
+        };
+        dbconfig.collection_queryCreditTimeout(queryCreditTimeoutData).save();
+    })
+}
+
 const cpmsAPI = {
     /*
      * function name format: <service>_<functionName>
@@ -168,16 +355,16 @@ const cpmsAPI = {
     },
 
     player_transferIn: function (data) {
-        return callCPMSAPI("player", "transferIn", data);
+        return callCPMSAPIWithAutoMaintenance("player", "transferIn", data);
     },
 
     player_queryCredit: function (data) {
         data.requestId = data.username + "_" + data.providerId + "_" + new Date().getTime();
-        return callCPMSAPI("player", "queryCredit", data);
+        return callCPMSAPIWithAutoMaintenance("player", "queryCredit", data);
     },
 
     player_transferOut: function (data) {
-        return callCPMSAPI("player", "transferOut", data);
+        return callCPMSAPIWithAutoMaintenance("player", "transferOut", data);
     },
 
     player_syncPlatforms: function (data) {
