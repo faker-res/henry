@@ -2563,7 +2563,7 @@ var dbPlayerTopUpRecord = {
                     //add request data to proposal and update proposal status to pending
 
                     var updateData = {
-                        status: constProposalStatus.PENDING
+                        // status: constProposalStatus.PENDING
                     };
                     updateData.data = Object.assign({}, proposal.data);
                     updateData.data.requestId = request.result.requestId;
@@ -2592,11 +2592,26 @@ var dbPlayerTopUpRecord = {
 
                     updateManualTopUpProposalBankLimit(proposalQuery, request.result.bankCardNo, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
 
-                    return dbconfig.collection_proposal.findOneAndUpdate(
-                        proposalQuery,
-                        updateData,
-                        {new: true}
-                    );
+                    let checkProposalStatus = Promise.resolve();
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        // to check if proposal status already update to Success, sometimes PMS 2 update proposal status too fast
+                        proposalQuery.status = constProposalStatus.PREPENDING;
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            proposalQuery,
+                            {status: constProposalStatus.PENDING}).lean();
+                    } else {
+                        updateData.status = constProposalStatus.PENDING;
+                    }
+
+                    return checkProposalStatus.then(
+                        () => {
+                            return dbconfig.collection_proposal.findOneAndUpdate(
+                                proposalQuery,
+                                updateData,
+                                {new: true}
+                            ).lean();
+                        }
+                    )
                 }
             }
         ).then(

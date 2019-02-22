@@ -4611,6 +4611,7 @@
   "BULK_CALL": "批量拨出",
   "SELECTED_CALL": "拨打至指定玩家",
   "CALL_PERMISSION": "电话回访权限",
+  "SMS_CHANNEL": "使用短信通道",
   "CALLABLE": "可播电",
   "partnerApiLog": "代理登入记录",
   "Force Stop Mission": "强制停止FPMS群播任务",

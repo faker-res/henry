@@ -9,6 +9,7 @@ var platformAutoFeedbackSchema = new Schema({
     missionStartTime: {type: Date, required: true, index: true},
     missionEndTime: {type: Date, required: true, index: true},
     defaultStatus: {type: String},  //任务初始状态
+    channel: {type: String, index: true},
     enabled: {type: Boolean, required: true},
     playerType: {type: String},
     playerLevel: {type: String},
