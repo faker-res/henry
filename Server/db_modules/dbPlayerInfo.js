@@ -12638,9 +12638,19 @@ let dbPlayerInfo = {
         return Q.all([playerProm, gameProm]).then(
             data => {
                 if (data && data[0] && data[1]) {
-                    return dbconfig.collection_players.update(
+                    return dbconfig.collection_players.findOneAndUpdate(
                         {_id: data[0]._id, platform: data[0].platform},
                         {$addToSet: {favoriteGames: data[1]._id}}
+                    ).lean().then(
+                        playerData => {
+                            if (playerData.favoriteGames && playerData.favoriteGames.length) {
+                                playerData.favoriteGames = JSON.parse(JSON.stringify(playerData.favoriteGames));
+                                if (playerData.favoriteGames.includes(String(data[1]._id))) {
+                                    return Q.reject({name: "DataError", message: "This game has been added before"});
+                                }
+                            }
+                            return true;
+                        }
                     );
                 }
                 else {
