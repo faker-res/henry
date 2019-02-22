@@ -56,6 +56,7 @@ var simplifiedChinese = {
     "Guest ID cannot update password": "游客不可更改密码",
     "Invalid top up amount": "充值额度无效",
     "The requirement is not fulfilled": "您的申请不符合要求",
+    "This game has been added before": "该游戏已经收藏",
 
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
     "Reset password failed": "找回密码失败",
