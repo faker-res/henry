@@ -11,6 +11,7 @@ const constPlayerCreditTransferStatus = require('../const/constPlayerCreditTrans
 const constGameStatus = require('../const/constGameStatus');
 const emailer = require("../modules/emailer");
 const dbPlatform = require("../db_modules/dbPlatform");
+const dbUtil = require('../modules/dbutility');
 let wsConn;
 
 function callCPMSAPI(service, functionName, data, fileData) {
@@ -218,7 +219,7 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
     dbconfig.collection_platform.findOne({_id: platformObjId}).lean().exec().then(platform => {
         timeoutLimit = platform.disableProviderAfterConsecutiveTimeoutCount;
         searchTimeFrame = platform.providerConsecutiveTimeoutSearchTimeFrame ? platform.providerConsecutiveTimeoutSearchTimeFrame * minute : searchTimeFrame;
-        platformName = platform.platformName;
+        platformName = platform.name;
         let searchTimeStart = new Date(new Date().getTime() - searchTimeFrame);
         if(timeoutLimit && timeoutLimit > 0) {
             let searchTransferLogProm = dbconfig.collection_playerCreditTransferLog.find({
@@ -226,12 +227,12 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
                 providerId: providerId,
                 status: constPlayerCreditTransferStatus.TIMEOUT,
                 createTime: {$gte: searchTimeStart}
-            });
+            }).sort({_id:-1});
             let searchQueryCreditTimeoutProm = dbconfig.collection_queryCreditTimeout.find({
                 platformObjId: platformObjId,
                 providerObjId: providerObjId,
                 createTime: {$gte: searchTimeStart}
-            });
+            }).sort({_id:-1});
 
             return Promise.all([searchTransferLogProm, searchQueryCreditTimeoutProm]);
         }
@@ -241,7 +242,12 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
         let count = transferLogs.length + queryCreditLogs.length;
 
         if(count >= timeoutLimit) {
-            lastTimeoutDateTime = logs[0].createTime;
+            if(transferLogs.length > 0 && queryCreditLogs.length > 0) {
+                lastTimeoutDateTime = new Date(transferLogs[0].createTime).getTime() > new Date(queryCreditLogs[0].createTime).getTime() ?
+                    transferLogs[0].createTime : queryCreditLogs[0].createTime;
+            } else {
+                lastTimeoutDateTime = transferLogs.length > 0 ? transferLogs[0].createTime : queryCreditLogs[0].createTime;
+            }
             //set provider to maintenance status
             let isEnable = false;
             return dbPlatform.updateProviderFromPlatformById(platformObjId, providerObjId, isEnable).then(()=>{
@@ -256,7 +262,7 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
 
             let sender = env.mailerNoReply;
             let recipient = env.providerTimeoutNotificationRecipient;
-            let subject = "[FPMS System] - " + providerName + " timeout limit reached, set status to maintenance.";
+            let subject = `[FPMS System] - ${providerName} timeout limit reached, set status to maintenance. ${dbUtil.getLocalTime(new Date)}`;
             let content = `<b>Game provider [${providerName}] has reached maximum consecutive timeout limit, it has been changed to maintenance status.</b>
                         <br/><br/>
                         <span>Platform: ${platformName}</span><br/>
