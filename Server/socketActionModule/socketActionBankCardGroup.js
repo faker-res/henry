@@ -122,7 +122,8 @@ function socketActionBankCardGroup(socketIO, socket) {
          */
         getBankTypeList: function getBankTypeList(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.bankcard_getBankTypeList, [{}], actionName, true);
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getBankTypeList, [data.platform], actionName, isValidData);
         },
 
         getBankCardList: function getBankCardList(data) {

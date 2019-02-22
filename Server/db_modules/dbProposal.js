@@ -969,12 +969,15 @@ var proposal = {
 
                 return Promise.all([propTypeProm, merchantProm]).then(
                     ([propType, merchantRate]) => {
+                        console.log("check pms2 status 1", status)
                         let updStatus = status || constProposalStatus.PREPENDING;
                         updObj = {};
 
                         if (status !== constProposalStatus.SUCCESS && status !== constProposalStatus.FAIL) {
                             updObj.status = updStatus;
+                            console.log("check pms2 status 2",updObj.status)
                         }
+                        console.log("check pms2 status 3", updObj)
 
                         if (propType && propType._id) {
                             updObj.type = propType._id;
@@ -1060,6 +1063,8 @@ var proposal = {
                             addDetailToProp(updObj.data, 'remark', remark);
                         }
 
+                        console.log("check pm2 proposal", JSON.stringify(updObj,null,2));
+
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposalObj._id, createTime: proposalObj.createTime},
                             updObj
@@ -1074,12 +1079,14 @@ var proposal = {
                     console.log('updatePlayerTopupProposal', proposalId);
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark, callbackData);
                 } else if (status === constProposalStatus.FAIL) {
+                    console.log("checkpms2 log false")
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark, callbackData);
                 }
 
             }
         ).then(
             propData => {
+                console.log("check pms2 status 4", propData)
                 return {
                     proposalId: proposalId,
                     orderStatus: orderStatus,
@@ -7171,6 +7178,12 @@ var proposal = {
                 let proms = [];
                 let inputDeviceArr;
                 let merchantData;
+                let projectQ = {
+                    settleTime:1, createTime:1, status:1 ,proposalId:1, inputDevice:1, mainType:1, typeName:1, involveAmount:1,
+                    'data.timeDifferenceInMins':1, 'data.playerObjId':1, 'data.merchantNo':1,'data.creator':1,  'data.topupType':1,
+                    'data.proposalPlayerLevel':1, 'data.remark':1, 'data.merchantTypeId':1, 'data.playerName':1, 'data.partnerName':1,
+                    'data.amount':1, 'data.amountRatio':1
+                };
                 // loop for userAgent
                 for(let i =1; i<=3; i++) {
                     if (i == 2){
@@ -7199,22 +7212,28 @@ var proposal = {
                     };
 
 
+
                     //get topup analysis group by topupType
                     let prom = dbconfig.collection_proposal.aggregate(
                         {
                             $match: matchObj
-                        }, {
+                        },
+                        {
+                            $project: { createTime:1, type:1, inputDevice:1, status:1, 'data.playerObjId':1, 'data.topupType':1, 'data.amount':1, 'data.amountRatio':1 }
+                        },
+                        {
                             $group: groupByObj
                         }
                     ).read("secondaryPreferred").then(
                         data => {
-
                             let searchQ = Object.assign({}, matchObj, {status: "Success"});
-                            let proposalArrProm = dbconfig.collection_proposal.find(searchQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
+                            let proposalArrProm = dbconfig.collection_proposal.find(searchQ, projectQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
                             //get success proposal count group by topupType, filter repeat user
                             let topUpTypeProm =  dbconfig.collection_proposal.aggregate(
                                 {
                                     $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}})
+                                }, {
+                                    $project: { 'data.topupType':1, 'data.playerObjId':1 }
                                 }, {
                                     $group: {
                                         _id: "$data.topupType",
@@ -7281,19 +7300,22 @@ var proposal = {
                                             {
                                                 $match: Object.assign({}, matchObj,{'data.topupType': onlineTopupTypeData._id})
                                             }, {
+                                                $project: projectQ
+                                            }, {
                                                 $group: Object.assign({}, groupByObj,{_id: "$data.merchantNo"})
                                             }
                                             ).read("secondaryPreferred").then(
                                                 merchantData => {
-
                                                     let searchQ = Object.assign({}, matchObj, {status: "Success"}, {'data.merchantNo': {$in: merchantData.map(p => { if(p && p._id){return p._id}})}});
 
-                                                    let operatorProm = dbconfig.collection_proposal.find(searchQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
+                                                    let operatorProm = dbconfig.collection_proposal.find(searchQ, projectQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
 
                                                     // get success proposal count group by merchantNo, filter repeat user
                                                     let merchantProm = dbconfig.collection_proposal.aggregate(
                                                         {
                                                             $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}, 'data.topupType': onlineTopupTypeData._id})
+                                                        }, {
+                                                            $project: { status:1, 'data.topupType':1, 'data.merchantNo':1, 'data.playerObjId':1, 'data.merchantTypeId':1,  'data.amount':1, 'data.amountRatio':1 }
                                                         }, {
                                                             $group: {
                                                                 _id: "$data.merchantNo",
@@ -7304,7 +7326,6 @@ var proposal = {
 
                                                     return Promise.all([operatorProm, merchantProm]).then(
                                                         retData => {
-
                                                             if (retData && retData.length == 2){
                                                                 let successMerchantData = retData[1];
                                                                 let proposalInInterval = retData[0];
@@ -7364,6 +7385,8 @@ var proposal = {
                         {
                             $match: Object.assign({}, matchObj,{status: "Success"})
                         }, {
+                            $project: { 'data.userAgent':1, 'data.playerObjId':1 }
+                        }, {
                             $group: {
                                 _id: "$data.userAgent",
                                 userIds: { $addToSet: "$data.playerObjId" },
@@ -7391,6 +7414,8 @@ var proposal = {
                                     status: "Success",
                                     $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}/*, {'data.topupType': {$type: 'number'}}*/],
                                 }
+                            }, {
+                                $project: projectQ
                             }, {
                                 $group: {
                                     _id: null,

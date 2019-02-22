@@ -1134,7 +1134,7 @@ define(['js/app'], function (myApp) {
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
                     commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                    commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                    commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})),
                     commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -17266,7 +17266,7 @@ define(['js/app'], function (myApp) {
                         if (window.location.pathname == "/platform" && vm.platformPageName == "Feedback") {
                             vm.ctiRefreshTimeout = setTimeout(() => {
                                 vm.getCtiData();
-                            }, 15000);
+                            }, 5000);
                         }
 
                         if (!vm.calleeCallOutStatus) {
@@ -36737,7 +36737,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
-                                let result = '<div ng-click="vm.auctionSystemEditStatus = true; vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                let result = '<div ng-click="vm.auctionSystemEditStatus = true; vm.loadAuctionItem(\''+row._id+'\')"><a>' + data + '</a></div>';
                                 return result;
                             }
                         },
@@ -36787,7 +36787,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
-                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')"><a>' + data + '</a></div>';
                                 return result;
                             }
                         },
