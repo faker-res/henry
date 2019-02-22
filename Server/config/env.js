@@ -32,6 +32,11 @@ var localConfig = {
     ebetRTNUrl: "ws://rtn-xindeli99.cpms8.me:7351/ebet",
     mailerNoReply: "no-reply@snsoft.my",
     providerTimeoutNotificationRecipient: "dev-fpms@monaco1.ph",
+    providerTimeoutNotificationM1chatUserRecipient: ['2586120068006814','2586120068006810','2586120068006811'], //Victor, Ricco, Mark
+    m1chatApiUrl: "http://m1chat.com:8888/v1/",
+    m1chatAppId: "2586120068008812",
+    m1chatCorpId: "2586120068005889",
+    m1chatCorpSecret: "SNOkTdCmgLBNnEKLdft4FyrcyqJYeVQ0",
 };
 
 //for aws-development
@@ -200,8 +205,8 @@ var prodConfig = {
     paymentAPIServerUrl: "ws://10.167.11.108:9480",
     messageServerUrl: "ws://10.167.11.108:9580",
    
-    // cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
-    cpAPIUrl : "ws://timeout.com:9020/websocketapi",
+    cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
+    // cpAPIUrl : "ws://timeout.com:9020/websocketapi",
     cpAPIUrlForGame : "ws://gameapi-server.neweb.me/game",
     paymentAPIUrl: "ws://10.168.11.128:8330/acc",
     //smsAPIUrl: "ws://203.192.151.12:8560/sms"

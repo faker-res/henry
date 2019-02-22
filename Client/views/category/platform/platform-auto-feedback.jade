@@ -191,6 +191,10 @@
                             option(value='false') {{'DISABLE'|translate}}
                             option(value='true') {{'CALLABLE'|translate}}
                             option(value='all') {{'ALL'|translate}}
+                .full-width-input-block
+                    label {{"SMS_CHANNEL"|translate}}
+                    div.inline-block
+                        select.form-control(ng-model='vm.autoFeedbackMission.channel', ng-options='a for a in usableChannelList', style="width:105px;display:inline-block;")
 
                 br
                 table#autoFeedbackMissionTable.simple-table(style='min-width:100%')

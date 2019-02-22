@@ -1653,6 +1653,7 @@
   "DOMAIN_VISIT_AMOUNT": "Domain Visit Rate",
 
   "CALL_PERMISSION": "Call Permission",
+  "SMS_CHANNEL": "SMS Channel",
   "CALLABLE": "Callable",
   "PAST_COMMISSION_SETTLEMENT": "Settle Previous Period Partner Commission",
   "FORCE_STOP_MISSION_WARNING": "Are you sure you want to force stop FPMS call out mission?",

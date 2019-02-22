@@ -1134,7 +1134,7 @@ define(['js/app'], function (myApp) {
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
                     commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                    commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                    commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})),
                     commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -2609,7 +2609,15 @@ define(['js/app'], function (myApp) {
                     sendBtnText: $translate("SEND")
                 };
                 $scope.getChannelList(function () {
-                    vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
+                    // vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
+                    vm.sendMultiMessage.channel = null;
+                    if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                        if ($scope.usableChannelList.includes(4)) {
+                            vm.sendMultiMessage.channel = 4; //set default sms channel
+                        } else {
+                            vm.sendMultiMessage.channel = $scope.usableChannelList[0];
+                        }
+                    }
                 });
                 setTimeout(
                     () => {
@@ -8735,9 +8743,19 @@ define(['js/app'], function (myApp) {
                         name: playerObjId.name,
                         nickName: playerObjId.nickName,
                         platformId: vm.selectedPlatform.data.platformId,
-                        channel: $scope.channelList[0],
+                        // channel: $scope.channelList[0],
                         hasPhone: playerObjId.phoneNumber
                     }
+
+                    vm.smsPlayer.channel = null;
+                    if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                        if ($scope.usableChannelList.includes(4)) {
+                            vm.smsPlayer.channel = 4; //set default sms channel
+                        } else {
+                            vm.smsPlayer.channel = $scope.usableChannelList[0];
+                        }
+                    }
+
                     vm.sendSMSResult = {};
                     $scope.safeApply();
                     $('#smsPlayerModal').modal('show');
@@ -16415,7 +16433,7 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.curFeedbackPlayer.bonusAmountSum).toFixed(2);
 
                         vm.playerFeedbackResultExtended.playerLevel$ = "";
-                        if (vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
+                        if (vm.playerLvlData && vm.playerFeedbackResultExtended.playerLevel && vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
                             vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
                         }
                         else {
@@ -16448,10 +16466,12 @@ define(['js/app'], function (myApp) {
                                 vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
                                 vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
                                 vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                                for (let j = 0; j < vm.allProviders.length; j++) {
-                                    if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                        vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
-                                        vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                                if (vm.allProviders && vm.allProviders.length) {
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                            vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
+                                            vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                                        }
                                     }
                                 }
                             }
@@ -17266,7 +17286,7 @@ define(['js/app'], function (myApp) {
                         if (window.location.pathname == "/platform" && vm.platformPageName == "Feedback") {
                             vm.ctiRefreshTimeout = setTimeout(() => {
                                 vm.getCtiData();
-                            }, 15000);
+                            }, 5000);
                         }
 
                         if (!vm.calleeCallOutStatus) {
@@ -35400,6 +35420,16 @@ define(['js/app'], function (myApp) {
                     callPermission: 'all',
                     schedule: []
                 };
+
+                vm.autoFeedbackMission.channel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(2)) {
+                        vm.autoFeedbackMission.channel = 2; //set default sms channel
+                    } else {
+                        vm.autoFeedbackMission.channel = $scope.usableChannelList[0];
+                    }
+                }
+
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker',
                     utilService.setLocalDayStartTime(new Date()), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker',
@@ -35641,6 +35671,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate('TASK_REMARK'), data: "remarks"},
                         {title: $translate('TASK_CREATE_TIME'), data: "createTime$"},
                         {title: $translate('Mission Status'), data: "missionStatus$"},
+                        {title: $translate('Channel'), data: "channel"},
                         {
                             title: $translate('ACTION_BUTTON'),
                             render: function(data, type, row) {

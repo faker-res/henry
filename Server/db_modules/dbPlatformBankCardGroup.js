@@ -201,6 +201,33 @@ var dbPlatformBankCardGroup = {
         );
     },
 
+    getBankTypeList: function(platformObjId) {
+        let topUpSystemConfig;
+
+        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    let options = {
+                        method: 'POST',
+                        uri: topUpSystemConfig.bankTypeListAPIAddr,
+                        body: {},
+                        json: true
+                    };
+
+                    return rp(options);
+                } else {
+                    return pmsAPI.bankcard_getBankTypeList({});
+                }
+            }
+        );
+    },
+
     /**
      * Get all the banks  which are attached to the  platforBankcardsGroup
      * @param {Json}  query - platform , groupId
