@@ -2609,7 +2609,15 @@ define(['js/app'], function (myApp) {
                     sendBtnText: $translate("SEND")
                 };
                 $scope.getChannelList(function () {
-                    vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
+                    // vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
+                    vm.sendMultiMessage.channel = null;
+                    if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                        if ($scope.usableChannelList.includes(4)) {
+                            vm.sendMultiMessage.channel = 4; //set default sms channel
+                        } else {
+                            vm.sendMultiMessage.channel = $scope.usableChannelList[0];
+                        }
+                    }
                 });
                 setTimeout(
                     () => {
@@ -8735,9 +8743,19 @@ define(['js/app'], function (myApp) {
                         name: playerObjId.name,
                         nickName: playerObjId.nickName,
                         platformId: vm.selectedPlatform.data.platformId,
-                        channel: $scope.channelList[0],
+                        // channel: $scope.channelList[0],
                         hasPhone: playerObjId.phoneNumber
                     }
+
+                    vm.smsPlayer.channel = null;
+                    if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                        if ($scope.usableChannelList.includes(4)) {
+                            vm.smsPlayer.channel = 4; //set default sms channel
+                        } else {
+                            vm.smsPlayer.channel = $scope.usableChannelList[0];
+                        }
+                    }
+
                     vm.sendSMSResult = {};
                     $scope.safeApply();
                     $('#smsPlayerModal').modal('show');
