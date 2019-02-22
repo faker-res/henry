@@ -820,7 +820,7 @@ define(['js/app'], function (myApp) {
                 commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
                 commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})),
                 commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -7273,8 +7273,17 @@ define(['js/app'], function (myApp) {
                     name: playerObjId.name,
                     nickName: playerObjId.nickName,
                     platformId: vm.selectedPlatform.data.platformId,
-                    channel: $scope.channelList[0],
+                    // channel: $scope.channelList[0],
                     hasPhone: playerObjId.phoneNumber
+                }
+
+                vm.smsPlayer.channel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(4)) {
+                        vm.smsPlayer.channel = 4; //set default sms channel
+                    } else {
+                        vm.smsPlayer.channel = $scope.usableChannelList[0];
+                    }
                 }
                 vm.sendSMSResult = {};
                 $scope.safeApply();
@@ -15671,7 +15680,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.pickBankCardAcc = function (bankcard) {
-            if (bankcard.accountNumber) {
+            if (bankcard && bankcard.accountNumber) {
                 vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
                 vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
                 vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);

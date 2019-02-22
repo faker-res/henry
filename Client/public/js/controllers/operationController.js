@@ -3161,16 +3161,19 @@ define(['js/app'], function (myApp) {
                 .then(
                     function (data) {
                         //todo::refactor the process here
-                        socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
-                            if (data && data.data && data.data.data) {
-                                console.log('banktype', data.data.data);
-                                data.data.data.forEach(item => {
-                                    if (item && item.bankTypeId) {
-                                        vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
-                                    }
-                                })
-                            }
-                            // $scope.safeApply();
+                        // socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.id}, function (data) {
+                        //     if (data && data.data && data.data.data) {
+                        //         console.log('banktype', data.data.data);
+                        //         data.data.data.forEach(item => {
+                        //             if (item && item.bankTypeId) {
+                        //                 vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                        //             }
+                        //         })
+                        //     }
+                        //     // $scope.safeApply();
+                        // });
+                        commonService.getBankTypeList($scope, vm.selectedPlatform._id).catch(err => Promise.resolve({})).then(v => {
+                            vm.allBankTypeList = v;
                         });
 
                         // socketService.$socket($scope.AppSocket, 'getDepositMethodList', {}, function (data) {
