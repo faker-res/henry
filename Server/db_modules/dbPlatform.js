@@ -4332,9 +4332,12 @@ var dbPlatform = {
                         } else {
                             let newLog = {
                                 platform: platform._id,
-                                player: playerData && playerData._id ? playerData._id : "",
                                 ipAddress: ipAddress
                             };
+
+                            if (playerData && playerData._id) {
+                                newLog.player = playerData._id;
+                            }
 
                             // add new log
                             dbconfig.collection_callBackToUserLog(newLog).save().catch(errorUtils.reportError);
