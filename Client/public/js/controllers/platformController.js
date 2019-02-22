@@ -35420,6 +35420,16 @@ define(['js/app'], function (myApp) {
                     callPermission: 'all',
                     schedule: []
                 };
+
+                vm.autoFeedbackMission.channel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(2)) {
+                        vm.autoFeedbackMission.channel = 2; //set default sms channel
+                    } else {
+                        vm.autoFeedbackMission.channel = $scope.usableChannelList[0];
+                    }
+                }
+
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker',
                     utilService.setLocalDayStartTime(new Date()), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker',
@@ -35661,6 +35671,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate('TASK_REMARK'), data: "remarks"},
                         {title: $translate('TASK_CREATE_TIME'), data: "createTime$"},
                         {title: $translate('Mission Status'), data: "missionStatus$"},
+                        {title: $translate('Channel'), data: "channel"},
                         {
                             title: $translate('ACTION_BUTTON'),
                             render: function(data, type, row) {
