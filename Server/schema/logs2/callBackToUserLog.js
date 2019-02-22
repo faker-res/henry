@@ -5,7 +5,7 @@ let callBackToUserLogSchema = new Schema({
     // Platform
     platform: {type: Schema.Types.ObjectId, ref: 'platform', required: true, index: true},
     // playerId
-    player: {type: Schema.ObjectId, ref: 'player', required: true, index: true},
+    player: {type: Schema.ObjectId, ref: 'player', index: true},
     // IP Address
     ipAddress: {type: String, index: true},
     // Create time
