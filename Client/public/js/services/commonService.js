@@ -102,8 +102,8 @@ define([], () => {
             return $scope.$socketPromise('getPlatform', {_id: id}).then(data => data.data.gameProviders)
         };
 
-        self.getBankTypeList = ($scope) => {
-            return $scope.$socketPromise('getBankTypeList', {}).then(
+        self.getBankTypeList = ($scope, id) => {
+            return $scope.$socketPromise('getBankTypeList', {platform: id}).then(
                 data => {
                     if (data && data.data && data.data.data) {
                         let allBankTypeList = {};

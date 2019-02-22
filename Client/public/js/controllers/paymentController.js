@@ -369,7 +369,7 @@ define(['js/app'], function (myApp) {
                 });
             })
 
-            socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.id}, function (data) {
                 $scope.$evalAsync(() => {
                     if (data && data.data && data.data.data) {
                         vm.allBankTypeList = {};
