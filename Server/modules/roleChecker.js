@@ -859,9 +859,9 @@ var roleChecker = {
                 Edit: ['updatePlatform'],
                 //Delete: ['deletePlatformById']
             },
-            // PlayerMail: {
-            //     Read: []
-            // }
+            KeyServer: {
+                Read: []
+            }
         },
         QualityInspection: {
             QualityInsectionSetting: {
@@ -966,7 +966,7 @@ var roleChecker = {
                 Read: [],
                 Edit: []
             },
-        },
+        }
     },
 
     /**
