@@ -11187,9 +11187,11 @@ let dbPlayerInfo = {
                                 let queryObj = {
                                     createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                                     type: onlineTopupType._id,
-                                    "data.topupType": parseInt(merchantTopupTypeId),
                                     "data.userAgent": parseInt(userAgent),
-
+                                    $or:[
+                                        { "data.topupType": parseInt(merchantTopupTypeId) },
+                                        { "data.topupType": merchantTopupTypeId }
+                                    ]
                                 };
 
                                 let groupObj = {
@@ -12880,7 +12882,7 @@ let dbPlayerInfo = {
                 if (tableCode) {
                     sendData.tableCode = tableCode
                 }
-                
+
                 return cpmsAPI.player_getLoginURL(sendData);
             },
             err => {
