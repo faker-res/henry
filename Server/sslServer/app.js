@@ -86,8 +86,6 @@ http.createServer(function (req, res) {
                     }
                 }
             });
-        } else {
-            redirectToLoginPage();
         }
     } else {
         // GET
