@@ -33,45 +33,61 @@ http.createServer(function (req, res) {
     let query = parsedUrl.query;
 
     if (req.method === 'POST') {
-        let inputData = [];
+        // Verify token
+        if (req.headers['x-token'] && req.headers['x-token']) {
+            jwt.verify(req.headers['x-token'], env.socketSecret, function (err, decoded) {
+                if (err || !decoded) {
+                    // Jwt token error
+                    console.log("jwt verify error - POST", err);
+                    redirectToLoginPage();
+                } else {
+                    // Log this action to system log
+                    console.log(`${decoded.adminName} ${req.method} ${req.url}`);
 
-        switch(pathname) {
-            case privateKeyPath:
-                req.on('data', data => {
-                    inputData.push(data);
-                }).on('end', () => {
-                    let buffer = Buffer.concat(inputData);
-                    privateKey = buffer.toString();
-                    res.end('Success');
-                });
-                break;
-            case replacedPrivateKeyPath:
-                req.on('data', data => {
-                    inputData.push(data);
-                }).on('end', () => {
-                    let buffer = Buffer.concat(inputData);
-                    replacedPrivateKey = buffer.toString();
-                    res.end('Success');
-                });
-                break;
-            case publicKeyPath:
-                req.on('data', data => {
-                    inputData.push(data);
-                }).on('end', () => {
-                    let buffer = Buffer.concat(inputData);
-                    publicKey = buffer.toString();
-                    res.end('Success');
-                });
-                break;
-            case replacedPublicKeyPath:
-                req.on('data', data => {
-                    inputData.push(data);
-                }).on('end', () => {
-                    let buffer = Buffer.concat(inputData);
-                    replacedPublicKey = buffer.toString();
-                    res.end('Success');
-                });
-                break;
+                    let inputData = [];
+
+                    switch(pathname) {
+                        case privateKeyPath:
+                            req.on('data', data => {
+                                inputData.push(data);
+                            }).on('end', () => {
+                                let buffer = Buffer.concat(inputData);
+                                privateKey = buffer.toString();
+                                res.end('Success');
+                            });
+                            break;
+                        case replacedPrivateKeyPath:
+                            req.on('data', data => {
+                                inputData.push(data);
+                            }).on('end', () => {
+                                let buffer = Buffer.concat(inputData);
+                                replacedPrivateKey = buffer.toString();
+                                res.end('Success');
+                            });
+                            break;
+                        case publicKeyPath:
+                            req.on('data', data => {
+                                inputData.push(data);
+                            }).on('end', () => {
+                                let buffer = Buffer.concat(inputData);
+                                publicKey = buffer.toString();
+                                res.end('Success');
+                            });
+                            break;
+                        case replacedPublicKeyPath:
+                            req.on('data', data => {
+                                inputData.push(data);
+                            }).on('end', () => {
+                                let buffer = Buffer.concat(inputData);
+                                replacedPublicKey = buffer.toString();
+                                res.end('Success');
+                            });
+                            break;
+                    }
+                }
+            });
+        } else {
+            redirectToLoginPage();
         }
     } else {
         // GET
@@ -99,6 +115,9 @@ http.createServer(function (req, res) {
                             console.log("jwt verify error", err);
                             redirectToLoginPage();
                         } else {
+                            // Log this action to system log
+                            console.log(`${decoded.adminName} ${req.method} ${req.url}`);
+
                             readFile(pathname, res)
                         }
                     });
