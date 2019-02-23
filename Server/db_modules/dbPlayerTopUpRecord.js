@@ -5019,7 +5019,7 @@ var dbPlayerTopUpRecord = {
 
             }).then(data => {
             console.log("forcePairingWithReferenceNumber data", data);
-            if(data || topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            if(data || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
                 // execute TopUp
                 let remarks = "强制匹配：成功。";
                 return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
