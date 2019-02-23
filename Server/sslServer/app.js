@@ -34,7 +34,7 @@ http.createServer(function (req, res) {
 
     if (req.method === 'POST') {
         // Verify token
-        if (req.headers['x-token'] && req.headers['x-token']) {
+        if (req.headers && req.headers['x-token']) {
             jwt.verify(req.headers['x-token'], env.socketSecret, function (err, decoded) {
                 if (err || !decoded) {
                     // Jwt token error
