@@ -4985,6 +4985,7 @@ var dbPlayerTopUpRecord = {
 
             if (proposal && proposal.data && proposal.data.topUpSystemName == "PMS2") {
                 isPMS2Proposal = true;
+                let topUpSystemConfig = extConfig && extConfig[4];
                 let requestData = {
                     platformId: platformId,
                     proposalId: proposalId,
