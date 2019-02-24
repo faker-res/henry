@@ -714,7 +714,7 @@ var dbPlatformMerchantGroup = {
         return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
             platformData => {
                 if (platformData && platformData.platformId) {
-                    return dbconfig.collection_platformMerchantList.find({platformId: platformData.platformId}).lean();
+                    return dbconfig.collection_platformMerchantList.find({platformId: platformData.platformId, isPMS2: {$exists: false}}).lean();
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
