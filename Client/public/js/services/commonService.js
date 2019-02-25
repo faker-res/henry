@@ -120,6 +120,24 @@ define([], () => {
             )
         };
 
+        self.getActiveBankTypeList = ($scope, id) => {
+            return $scope.$socketPromise('getBankTypeList', {platform: id}).then(
+                data => {
+                    if (data && data.data && data.data.data) {
+                        let allActiveBankTypeList = {};
+
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId && item.bankflag && item.bankflag == 1) {
+                                allActiveBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                            }
+                        });
+
+                        return allActiveBankTypeList;
+                    }
+                }
+            )
+        };
+
         self.getRewardEventsByPlatform = ($scope, platformObjId) => {
             return $scope.$socketPromise('getRewardEventsForPlatform', {platform: platformObjId}).then(data => data.data)
         };

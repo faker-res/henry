@@ -799,6 +799,12 @@ define(['js/app'], function (myApp) {
             vm.isCreateNewPlatform = false;
             $cookies.put("platform", vm.selectedPlatform.text);
 
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.topUpSystemType) {
+                commonService.getPaymentSystemName($scope, vm.selectedPlatform.data.topUpSystemType).catch(err => Promise.resolve('')).then(v => {
+                    vm.paymentSystemName = v;
+                });
+            }
+
             vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
             beforeUpdatePlatform();
             vm.retrievePlatformData(vm.showPlatform);
@@ -814,7 +820,7 @@ define(['js/app'], function (myApp) {
              vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
              vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
              [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes, [vm.allGameProviders, vm.gameProvidersList],
-                vm.credibilityRemarks, vm.platformRewardtype, vm.allPlayerLvl, vm.smsTemplate
+                vm.credibilityRemarks, vm.platformRewardtype, vm.allPlayerLvl, vm.smsTemplate, vm.allActiveBankTypeList
             ] = await Promise.all([
                 commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -835,7 +841,8 @@ define(['js/app'], function (myApp) {
                 commonService.getCredibilityRemarks($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                 commonService.getPlatformRewardProposal($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerLevels($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+                commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getActiveBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({}))
             ]);
 
             // 1st dependencies variable
@@ -11915,7 +11922,11 @@ define(['js/app'], function (myApp) {
                 vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
                 vm.playerPayment.showNewAccountNo = false;
-                vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
+                if(vm.paymentSystemName === 'PMS2') {
+                    vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
+                } else {
+                    vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
+                }
                 vm.filterBankName = '';
                 vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
                 vm.currentCity.city = vm.playerPayment.bankAccountCity;
