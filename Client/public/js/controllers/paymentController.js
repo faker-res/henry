@@ -339,7 +339,11 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            return $scope.$socketPromise('getPlatformBankCardGroupLite', {platform: vm.selectedPlatform.id}).then(data => {
+            let query = {
+                platform: vm.selectedPlatform.id,
+                $or: [{isPMS2: false}, {isPMS2: {$exists: false}}]
+            };
+            return $scope.$socketPromise('getPlatformBankCardGroupLite', query).then(data => {
                 $scope.$evalAsync(() => {
                     console.log('bankgroup', data);
                     //provider list init
