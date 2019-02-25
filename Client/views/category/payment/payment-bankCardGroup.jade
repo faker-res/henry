@@ -70,7 +70,7 @@ style.
                         .search-filters-item
                             .control-label {{"BANK_ACCOUNT_NUMBER" | translate}}
                             input.form-control(type='text', ng-model='vm.bankCardFilterOptions.bankAccountNumber')
-                        .threeBoxes(ng-if="vm.groupUsed != 'PMS'")
+                        .threeBoxes(ng-if="vm.groupUsed != 'PMS' && vm.paymentSystemName !=='PMS2'")
                             .control-label {{"IS_IN_GROUP" | translate}}
                             select.form-control(ng-model="vm.bankCardFilterOptions.included")
                                 option(value='all') {{'any' | translate}}
