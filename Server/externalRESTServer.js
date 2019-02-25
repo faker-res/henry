@@ -35,7 +35,6 @@ app.use(bodyParser());
 app.use(function(req, res, next) {
     let token = req.body.token;
     let path = req.path.substr(1);
-    console.log("******************************** path", path);
     // skip token verification if method is HEAD, or path is in ignorePathList.
     if(req.method === "HEAD" || ignorePathList.indexOf(path) > -1) {
         next();
