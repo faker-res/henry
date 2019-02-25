@@ -130,8 +130,8 @@ const SMSSender = {
         ).then().catch(errorUtils.reportError);
     },
 
-    sendPromoCodeSMSByPlayerId(playerObjId, promoData, adminObjId, adminName){
-        var defaultChannel = null;
+    sendPromoCodeSMSByPlayerId(playerObjId, promoData, adminObjId, adminName, channel) {
+        // var defaultChannel = null;
         var platformId = null;
         var phoneNumber = null;
         var nextChannel = null;
@@ -144,16 +144,17 @@ const SMSSender = {
                     platformId = playerData.platform.platformId;
                     phoneNumber = playerData.phoneNumber;
                     playerId = playerData.playerId;
+
                     //get sms channel
-                    smsAPI.channel_getChannelList({}).then(
+                    smsAPI.getUsableChannel_getUsableChannelList({platformId: platformId}).then(
                         channelData => {
                             if (channelData && channelData.channels && channelData.channels.length > 1) {
-                                defaultChannel = 2;
+                                // defaultChannel = 2;
                                 let rawContent = promoData.promoCodeType ? promoData.promoCodeType.smsContent : promoData.smsContent;
                                 let messageContent = SMSSender.contentModifier(rawContent,promoData);
 
-                                var messageData = {
-                                    channel: defaultChannel,
+                                let messageData = {
+                                    channel: channel,
                                     tel: playerData.phoneNumber,
                                     platformId: platformId,
                                     message: messageContent,
@@ -162,11 +163,11 @@ const SMSSender = {
 
                                 let logData = {
                                     playerId: playerId,
-                                    channel: defaultChannel,
+                                    channel: channel,
                                     platformId: platformId,
                                     tel: playerData.phoneNumber,
                                     message: messageContent
-                                }
+                                };
 
                                 let adminObjId$ = adminObjId ? adminObjId : null;
                                 let adminName$ = adminName ? adminName : null;
