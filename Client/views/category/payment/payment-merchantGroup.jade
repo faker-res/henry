@@ -72,7 +72,7 @@ style.
                         .search-filters-item
                             .control-label {{"Backstage Merchant ID" | translate}}
                             input.form-control(type='text', ng-model='vm.merchantFilterOptions.backstageMerchantId')
-                        .threeBoxes(ng-if="vm.merchantGroupUsed != 'PMS'")
+                        .threeBoxes(ng-if="vm.merchantGroupUsed != 'PMS' && vm.paymentSystemName !== 'PMS2'")
                             .control-label {{"IS_IN_GROUP" | translate}}
                             select.form-control(ng-model="vm.merchantFilterOptions.isIncluded")
                                 option(value='all') {{'any' | translate}}

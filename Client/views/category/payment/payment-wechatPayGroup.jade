@@ -67,7 +67,7 @@
                     .search-filters-item
                         .control-label {{"Wechat Nickname" | translate}}
                         input.form-control.merchantNoList(ng-model='vm.filterWechatNickname', type='text')
-                    .threeBoxes(ng-if="vm.wechatGroupUsed != 'PMS'")
+                    .threeBoxes(ng-if="vm.wechatGroupUsed != 'PMS' && vm.paymentSystemName !== 'PMS2'")
                         .control-label {{"isInGroup" | translate}}
                         select.form-control.merchantNoList(ng-model='vm.filterWechatInGroup', ng-init='vm.filterWechatInGroup="all"')
                             option(value='all') {{'any' | translate}}
