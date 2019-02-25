@@ -397,11 +397,8 @@ var dbPlatform = {
             delete updateData.gameProviderNickNames;
         }
 
-        console.log("updatePlatform platform update:", updateData);
-
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
-                console.log("updatePlatform", data, query, updateData);
                 if (env.mode != "local" && env.mode != "qa") {
                     var platformData = {
                         platformId: data.platformId,
@@ -6096,6 +6093,20 @@ var dbPlatform = {
                 }
             }
         );
+    },
+
+    getPaymentSystemName: function (systemTypeId) {
+        let paymentSystemName = 'PMS';
+
+        if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+            Object.keys(extConfig).forEach(key => {
+                if (key && systemTypeId && (Number(key) == Number(systemTypeId)) && extConfig[systemTypeId] && extConfig[systemTypeId].name){
+                    paymentSystemName = extConfig[systemTypeId].name;
+                }
+            });
+
+            return paymentSystemName;
+        }
     }
 };
 
