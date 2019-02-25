@@ -1250,7 +1250,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getMerchantType = () => {
-            return $scope.$socketPromise('getMerchantTypeList', {}).then(function (data) {
+            return $scope.$socketPromise('getMerchantTypeList', {platform: vm.selectedPlatform._id}).then(function (data) {
                 vm.merchantTypes = data.data.merchantTypes;
                 console.log('vm.merchantTypes',vm.merchantTypes);
                 $scope.safeApply();

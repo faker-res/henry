@@ -120,6 +120,24 @@ define([], () => {
             )
         };
 
+        self.getActiveBankTypeList = ($scope, id) => {
+            return $scope.$socketPromise('getBankTypeList', {platform: id}).then(
+                data => {
+                    if (data && data.data && data.data.data) {
+                        let allActiveBankTypeList = {};
+
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId && item.bankflag && item.bankflag == 1) {
+                                allActiveBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                            }
+                        });
+
+                        return allActiveBankTypeList;
+                    }
+                }
+            )
+        };
+
         self.getRewardEventsByPlatform = ($scope, platformObjId) => {
             return $scope.$socketPromise('getRewardEventsForPlatform', {platform: platformObjId}).then(data => data.data)
         };
@@ -276,6 +294,10 @@ define([], () => {
 
         self.getSMSTemplate = function($scope, platformObjId) {
             return $scope.$socketPromise("getMessageTemplatesForPlatform", {platform: platformObjId, format: 'smstpl'}).then(data => data.data)
+        };
+
+        self.getPaymentSystemName = function($scope, paymentSystemType) {
+            return $scope.$socketPromise("getPaymentSystemName", {systemTypeId: paymentSystemType}).then(data => data.data)
         };
 
         self.getPMSDevices = function(num){

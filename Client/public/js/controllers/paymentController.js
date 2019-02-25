@@ -2,9 +2,9 @@
 
 define(['js/app'], function (myApp) {
 
-    var injectParams = ['$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies"];
+    var injectParams = ['$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", 'commonService'];
 
-    var paymentController = function ($compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies) {
+    var paymentController = function ($compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, commonService) {
         var $translate = $filter('translate');
         var vm = this;
         window.VM = vm;
@@ -130,6 +130,13 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 return;
             }
+
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.topUpSystemType) {
+                commonService.getPaymentSystemName($scope, vm.selectedPlatform.data.topUpSystemType).catch(err => Promise.resolve('')).then(v => {
+                    vm.paymentSystemName = v;
+                });
+            }
+
             // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
             switch (vm.paymentPageName) {
                 case "alipayGroup":
@@ -332,7 +339,11 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            return $scope.$socketPromise('getPlatformBankCardGroupLite', {platform: vm.selectedPlatform.id}).then(data => {
+            let query = {
+                platform: vm.selectedPlatform.id,
+                $or: [{isPMS2: false}, {isPMS2: {$exists: false}}]
+            };
+            return $scope.$socketPromise('getPlatformBankCardGroupLite', query).then(data => {
                 $scope.$evalAsync(() => {
                     console.log('bankgroup', data);
                     //provider list init
@@ -1451,7 +1462,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.merchantGroupUsed = "FPMS"
-            socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {platform: vm.selectedPlatform.id}, function (data) {
                 $scope.$evalAsync(() => {
                     if (data && data.data && data.data.merchantTypes && data.data.merchantTypes.length > 0) {
                         vm.allMerchantTypeList = {};
@@ -1974,8 +1985,8 @@ define(['js/app'], function (myApp) {
             if (currentMerchant && Object.keys(currentMerchant).length) {
                 finalCustomizeRate = curCustomizeRate > 0 ? Number(curCustomizeRate) / 100 : curCustomizeRate;
 
-                if (typeof finalCustomizeRate != "undefined" && currentMerchant && currentMerchant.name && vm.cloneAllMerchantList && vm.cloneAllMerchantList.length > 0) {
-                    let index = vm.cloneAllMerchantList.findIndex(x => x && x.name && x.merchantNo && x.name == currentMerchant.name && x.merchantNo == currentMerchant.merchantNo);
+                if (typeof finalCustomizeRate != "undefined" && currentMerchant && (currentMerchant.name || currentMerchant.Name) && vm.cloneAllMerchantList && vm.cloneAllMerchantList.length > 0) {
+                    let index = vm.cloneAllMerchantList.findIndex(x => x && (x.name || x.Name) && x.merchantNo && (x.name || x.Name) == (currentMerchant.name || currentMerchant.Name) && x.merchantNo == currentMerchant.merchantNo);
 
                     if(vm.cloneAllMerchantList[index] && vm.cloneAllMerchantList[index].customizeRate != finalCustomizeRate) {
                         isAbleSubmit = true;
@@ -1987,7 +1998,7 @@ define(['js/app'], function (myApp) {
                 if (isAbleSubmit) {
                     let sendData = {
                             platformId: vm.selectedPlatform.id,
-                            name: currentMerchant.name,
+                            name: currentMerchant.name || currentMerchant.Name,
                             merchantNo: currentMerchant.merchantNo,
                             customizeRate: finalCustomizeRate
                     };
@@ -2000,7 +2011,7 @@ define(['js/app'], function (myApp) {
                         if (vm.merchantGroupUsed === "PMS") {
                             vm.loadMerchantGroupData(true, null, data.data.name);
                         }
-                        if (vm.merchantGroupUsed === "FPMS") {
+                        if (vm.merchantGroupUsed === "FPMS" || vm.paymentSystemName === 'PMS2') {
                             let selectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
                             vm.loadMerchantGroupData(true, selectedMerchantGroupId);
                         }
@@ -2020,8 +2031,8 @@ define(['js/app'], function (myApp) {
                     for (let i = 0; i < vm.cloneAllMerchantList.length; i++) {
                         let oriMerchant = vm.cloneAllMerchantList[i];
 
-                        if (oriMerchant && oriMerchant.name && v.name && oriMerchant.merchantNo && v.merchantNo
-                            && (oriMerchant.name == v.name) && (oriMerchant.platformId == v.platformId)
+                        if (oriMerchant && (oriMerchant.name || oriMerchant.Name) && (v.name || v.Name) && oriMerchant.merchantNo && v.merchantNo
+                            && ((oriMerchant.name || oriMerchant.Name) == (v.name || v.Name)) && (oriMerchant.platformId == v.platformId)
                             && (oriMerchant.merchantNo == v.merchantNo)) {
 
                             v.customizeRate = oriMerchant.customizeRate;

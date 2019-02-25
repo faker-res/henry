@@ -1494,10 +1494,20 @@ define(['js/app'], function (myApp) {
                     name: data.encodedPhoneNumber$,
                     nickName: data.tsPhone.nickName || "",
                     platformId: vm.selectedPlatform.data.platformId,
-                    channel: $scope.channelList[0],
+                    // channel: $scope.channelList[0],
                     hasPhone: data.tsPhone.phoneNumber,
                     platform: vm.selectedPlatform.id
                 }
+
+                vm.smsPlayer.channel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(4)) {
+                        vm.smsPlayer.channel = 4; //set default sms channel
+                    } else {
+                        vm.smsPlayer.channel = $scope.usableChannelList[0];
+                    }
+                }
+
                 vm.sendSMSResult = {};
                 $scope.safeApply();
                 $('#smsPlayerModal').modal('show');

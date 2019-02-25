@@ -1990,7 +1990,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         $scope.merGroupName = {};
 
         // Load merchantTypes, merchantGroupObj
-        socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+        socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {platform: $scope.selectedPlatform.id}, function (data) {
             $scope.$evalAsync(() => {
                 let merGroupList = {};
 
