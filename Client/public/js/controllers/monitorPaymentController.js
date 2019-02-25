@@ -4895,7 +4895,7 @@ define(['js/app'], function (myApp) {
 
         function getMerchantTypeList() {
             return new Promise(function (resolve, reject) {
-                socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {platform: vm.selectedPlatform._id}, function (data) {
                     if (data.data && data.data.merchantTypes) {
                         resolve(data.data.merchantTypes);
                     }

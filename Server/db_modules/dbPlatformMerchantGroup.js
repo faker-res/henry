@@ -4,6 +4,7 @@ var pmsAPI = require('../externalAPI/pmsAPI');
 var serverInstance = require("../modules/serverInstance");
 const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
+const constAccountType = require('../const/constAccountType');
 
 var dbPlatformMerchantGroup = {
 
@@ -547,48 +548,110 @@ var dbPlatformMerchantGroup = {
     },
 
     getMerchantNBankCard:function(platformId){
-        var merchantsList = pmsAPI.merchant_getMerchantList({
-            platformId: platformId,
-            queryId: serverInstance.getQueryId()
-        });
-        var bankCardList = pmsAPI.bankcard_getBankcardList({
-            platformId: platformId,
-            queryId: serverInstance.getQueryId()
-        });
-        var weChatList = pmsAPI.weChat_getWechatList({platformId: platformId, queryId: serverInstance.getQueryId()});
-        var aliPayList = pmsAPI.alipay_getAlipayList({platformId: platformId, queryId: serverInstance.getQueryId()});
-        return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
-        data=>{
-            let bankcard = [];
-            // bankcard
-            if (data[1] && data[1].data.length > 0) {
-                data[1].data.map(card => {
-                  card.merchantNo = card.accountNumber;
-                  card.name = card.accountNumber + '('+ card.name + ')';
-                  card.merchantTypeId = '9999';
-                  card.merchantTypeName = "Bankcard";
-                })
-            }
-            if (data[2] && data[2].data.length > 0) {
-                data[2].data.map(card => {
-                    card.merchantNo = card.accountNumber;
-                    card.name = card.accountNumber + '(' + card.name + ')';
-                    card.merchantTypeId = '9998';
-                    card.merchantTypeName = "WechatCard";
-                })
-            }
-            if (data[3] && data[3].data.length > 0) {
-                data[3].data.sort((a,b)=>{ return a.line - b.line})
-                data[3].data = dbPlatformMerchantGroup.addLineCategory(data[3]);
-            }
+        let topUpSystemConfig;
+        let merchantsList;
+        let bankCardList;
+        let weChatList;
+        let aliPayList;
 
-          let result = {}
-          if(!data[0].merchants){
-            data[0].merchants = []
-          }
-            result.merchants = data[0].merchants.concat(data[1].data).concat(data[2].data).concat(data[3].data);
-          return result
-        })
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {topUpSystemType: 1, platformId: 1}).lean().then(
+            platformData => {
+                if (platformData) {
+                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        let merchantListOptions = {
+                            method: 'POST',
+                            uri: topUpSystemConfig.merchantListAPIAddr,
+                            body: {
+                                platformId: platformId
+                            },
+                            json: true
+                        };
+
+                        let bankcardListOptions = {
+                            method: 'POST',
+                            uri: topUpSystemConfig.bankCardListAPIAddr,
+                            body: {
+                                platformId: platformId,
+                                accountType: constAccountType.BANK_CARD
+                            },
+                            json: true
+                        };
+
+                        let alipayListOptions = {
+                            method: 'POST',
+                            uri: topUpSystemConfig.bankCardListAPIAddr,
+                            body: {
+                                platformId: platformId,
+                                accountType: constAccountType.ALIPAY
+                            },
+                            json: true
+                        };
+
+                        let wechatpayListOptions = {
+                            method: 'POST',
+                            uri: topUpSystemConfig.bankCardListAPIAddr,
+                            body: {
+                                platformId: platformId,
+                                accountType: constAccountType.WECHAT
+                            },
+                            json: true
+                        };
+
+
+                        merchantsList = rp(merchantListOptions);
+                        bankCardList = rp(bankcardListOptions);
+                        aliPayList = rp(alipayListOptions);
+                        weChatList = rp(wechatpayListOptions);
+                    } else {
+                        merchantsList = pmsAPI.merchant_getMerchantList({
+                            platformId: platformId,
+                            queryId: serverInstance.getQueryId()
+                        });
+                        bankCardList = pmsAPI.bankcard_getBankcardList({
+                            platformId: platformId,
+                            queryId: serverInstance.getQueryId()
+                        });
+                        weChatList = pmsAPI.weChat_getWechatList({platformId: platformId, queryId: serverInstance.getQueryId()});
+                        aliPayList = pmsAPI.alipay_getAlipayList({platformId: platformId, queryId: serverInstance.getQueryId()});
+                    }
+
+                    return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
+                        data=>{
+                            let bankcard = [];
+                            // bankcard
+                            if (data[1] && data[1].data.length > 0) {
+                                data[1].data.map(card => {
+                                    card.merchantNo = card.accountNumber;
+                                    card.name = card.accountNumber + '('+ card.name + ')';
+                                    card.merchantTypeId = '9999';
+                                    card.merchantTypeName = "Bankcard";
+                                })
+                            }
+                            if (data[2] && data[2].data.length > 0) {
+                                data[2].data.map(card => {
+                                    card.merchantNo = card.accountNumber;
+                                    card.name = card.accountNumber + '(' + card.name + ')';
+                                    card.merchantTypeId = '9998';
+                                    card.merchantTypeName = "WechatCard";
+                                })
+                            }
+                            if (data[3] && data[3].data.length > 0) {
+                                data[3].data.sort((a,b)=>{ return a.line - b.line})
+                                data[3].data = dbPlatformMerchantGroup.addLineCategory(data[3]);
+                            }
+
+                            let result = {}
+                            if(!data[0].merchants){
+                                data[0].merchants = []
+                            }
+                            result.merchants = data[0].merchants.concat(data[1].data).concat(data[2].data).concat(data[3].data);
+                            return result
+                        })
+                }
+            }
+        )
     },
     addLineCategory: function(data){
         let result = [];
@@ -717,6 +780,35 @@ var dbPlatformMerchantGroup = {
                     return dbconfig.collection_platformMerchantList.find({platformId: platformData.platformId, isPMS2: {$exists: false}}).lean();
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        );
+    },
+
+    getMerchantTypeList: function (platformObjId) {
+        let topUpSystemConfig;
+
+        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1, platformId: 1}).lean().then(
+            platformData => {
+                if (platformData) {
+                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        let options = {
+                            method: 'POST',
+                            uri: topUpSystemConfig.merchantTypeListAPIAddr,
+                            body: {},
+                            json: true
+                        };
+
+                        return rp(options);
+                    } else {
+                        return pmsAPI.merchant_getMerchantTypeList(
+                            {
+                                queryId: serverInstance.getQueryId()
+                            }
+                        )
+                    }
                 }
             }
         );
