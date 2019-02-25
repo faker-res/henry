@@ -278,6 +278,10 @@ define([], () => {
             return $scope.$socketPromise("getMessageTemplatesForPlatform", {platform: platformObjId, format: 'smstpl'}).then(data => data.data)
         };
 
+        self.getPaymentSystemName = function($scope, paymentSystemType) {
+            return $scope.$socketPromise("getPaymentSystemName", {systemTypeId: paymentSystemType}).then(data => data.data)
+        };
+
         self.getPMSDevices = function(num){
             // PMS definition of device type
             // Web: 1, H5: 2, Both: 3, App:4

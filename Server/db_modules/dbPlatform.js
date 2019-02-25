@@ -6093,6 +6093,20 @@ var dbPlatform = {
                 }
             }
         );
+    },
+
+    getPaymentSystemName: function (systemTypeId) {
+        let paymentSystemName = 'PMS';
+
+        if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+            Object.keys(extConfig).forEach(key => {
+                if (key && systemTypeId && (Number(key) == Number(systemTypeId)) && extConfig[systemTypeId] && extConfig[systemTypeId].name){
+                    paymentSystemName = extConfig[systemTypeId].name;
+                }
+            });
+
+            return paymentSystemName;
+        }
     }
 };
 

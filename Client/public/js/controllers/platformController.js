@@ -28260,7 +28260,8 @@ define(['js/app'], function (myApp) {
 
                             let sendDataBankCard = {
                                 query: {
-                                    platform: vm.selectedPlatform.id
+                                    platform: vm.selectedPlatform.id,
+                                    isPMS2: {$exists: false}
                                 },
                                 update: {
                                     banks: []
@@ -28268,7 +28269,8 @@ define(['js/app'], function (myApp) {
                             }
                             let sendDataWechat = {
                                 query: {
-                                    platform: vm.selectedPlatform.id
+                                    platform: vm.selectedPlatform.id,
+                                    isPMS2: {$exists: false}
                                 },
                                 update: {
                                     wechats: []
@@ -28276,7 +28278,8 @@ define(['js/app'], function (myApp) {
                             }
                             let sendDataAli = {
                                 query: {
-                                    platform: vm.selectedPlatform.id
+                                    platform: vm.selectedPlatform.id,
+                                    isPMS2: {$exists: false}
                                 },
                                 update: {
                                     alipays: []
@@ -30133,7 +30136,8 @@ define(['js/app'], function (myApp) {
                         && srcData.financialSettlementToggle == true) {
                         let sendDataBankCard = {
                             query: {
-                                platform: vm.selectedPlatform.id
+                                platform: vm.selectedPlatform.id,
+                                isPMS2: {$exists: false}
                             },
                             update: {
                                 banks: []
@@ -30141,7 +30145,8 @@ define(['js/app'], function (myApp) {
                         }
                         let sendDataWechat = {
                             query: {
-                                platform: vm.selectedPlatform.id
+                                platform: vm.selectedPlatform.id,
+                                isPMS2: {$exists: false}
                             },
                             update: {
                                 wechats: []
@@ -30149,7 +30154,8 @@ define(['js/app'], function (myApp) {
                         }
                         let sendDataAli = {
                             query: {
-                                platform: vm.selectedPlatform.id
+                                platform: vm.selectedPlatform.id,
+                                isPMS2: {$exists: false}
                             },
                             update: {
                                 alipays: []
