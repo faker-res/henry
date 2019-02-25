@@ -5870,9 +5870,9 @@ let dbPlayerInfo = {
                             // Ignore concurrent request for now
                         } else {
                             // Set BState back to false
-                            dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                            dbPlayerUtil.setPlayerBState(playerObj._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                         }
-                        console.log('playerRetentionRewardGroup error when login', playerData.playerId, err);
+                        console.log('playerRetentionRewardGroup error when login', playerObj.playerId, err);
                     }
                 );
 
@@ -11259,9 +11259,11 @@ let dbPlayerInfo = {
                                 let queryObj = {
                                     createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                                     type: onlineTopupType._id,
-                                    "data.topupType": parseInt(merchantTopupTypeId),
                                     "data.userAgent": parseInt(userAgent),
-
+                                    $or:[
+                                        { "data.topupType": parseInt(merchantTopupTypeId) },
+                                        { "data.topupType": merchantTopupTypeId }
+                                    ]
                                 };
 
                                 let groupObj = {
@@ -12962,7 +12964,7 @@ let dbPlayerInfo = {
                 if (tableCode) {
                     sendData.tableCode = tableCode
                 }
-                
+
                 return cpmsAPI.player_getLoginURL(sendData);
             },
             err => {

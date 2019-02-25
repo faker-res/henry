@@ -12,6 +12,7 @@ const constGameStatus = require('../const/constGameStatus');
 const emailer = require("../modules/emailer");
 const dbPlatform = require("../db_modules/dbPlatform");
 const dbUtil = require('../modules/dbutility');
+const m1chatAPI= require('../modules/m1chatAPI');
 let wsConn;
 
 function callCPMSAPI(service, functionName, data, fileData) {
@@ -290,6 +291,9 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
                 isHTML: true
             };
 
+            let michatSendMessage = `${subject}`;
+
+            m1chatAPI.send({content: michatSendMessage});
             return emailer.sendEmail(emailConfig);
         }
     });

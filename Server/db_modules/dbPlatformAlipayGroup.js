@@ -49,13 +49,35 @@ var dbPlatformAlipayGroup = {
      * @param {String}  platformId - ObjId of the platform
      */
     getPlatformAlipayGroup: function (platformId) {
-        return dbconfig.collection_platformAlipayGroup.aggregate(
-            {
-                $match: {
-                    platform: platformId
+        let topUpSystemConfig;
+
+        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1}).lean().then(
+            platformData => {
+                if (platformData) {
+                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+                    return addDefaultAlipayGroup(topUpSystemConfig, platformId).then(
+                        () => {
+                            let matchQuery = {
+                                platform: platformId
+                            };
+
+                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                                matchQuery.isPMS2 = {$exists: true};
+                            } else {
+                                matchQuery.isPMS2 = {$exists: false};
+                            }
+
+                            return dbconfig.collection_platformAlipayGroup.aggregate(
+                                {
+                                    $match: matchQuery
+                                }
+                            ).exec();
+                        }
+                    );
                 }
             }
-        ).exec();
+        )
     },
 
     /**
@@ -237,16 +259,34 @@ var dbPlatformAlipayGroup = {
         let platformObjId = null;
         let alipayList = [];
         let newAlipays = [];
+        let topUpSystemConfig;
         return Promise.resolve(platformDataObj).then(
             platform => {
                 if (platform) {
                     platformObjId = platform._id;
-                    return pmsAPI.alipay_getAlipayList(
-                        {
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    )
+
+                    topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        let options = {
+                            method: 'POST',
+                            uri: topUpSystemConfig.bankCardListAPIAddr,
+                            body: {
+                                platformId: platformId,
+                                accountType: constAccountType.ALIPAY
+                            },
+                            json: true
+                        };
+
+                        return rp(options);
+                    } else {
+                        return pmsAPI.alipay_getAlipayList(
+                            {
+                                platformId: platformId,
+                                queryId: serverInstance.getQueryId()
+                            }
+                        )
+                    }
                 }
             }
         ).then(
@@ -255,12 +295,18 @@ var dbPlatformAlipayGroup = {
                     let alipays = data.data;
                     let updateAlipayProm = [];
                     alipayList = alipays;
-                    return dbconfig.collection_platformAlipayList.find(
-                        {
-                            platformId: platformId,
-                            $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
-                        }
-                    ).lean().then(oldAlipays => {
+                    let query = {
+                        platformId: platformId,
+                        $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
+                    };
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        query.isPMS2 = {$exists: true};
+                    } else {
+                        query.isPMS2 = {$exists: false};
+                    }
+
+                    return dbconfig.collection_platformAlipayList.find(query).lean().then(oldAlipays => {
                         alipays.forEach(alipay => {
                             if(oldAlipays && oldAlipays.length > 0) {
                                 let match = false;
@@ -269,29 +315,45 @@ var dbPlatformAlipayGroup = {
                                         match = true;
                                     }
                                 });
+
                                 if (!match) {
                                     newAlipays.push(alipay.accountNumber);
                                 }
                             }
+
+                            if (!oldAlipays.length && !newAlipays.length && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                                newAlipays.push(alipay.accountNumber);
+                            }
+
                             if(alipay && alipay.accountNumber) {
                                 let quota = Number(alipay.quota);
                                 let singleLimit = Number(alipay.singleLimit);
+                                let aliPayQuery = {
+                                    accountNumber: alipay.accountNumber,
+                                    platformId: platformId,
+                                    $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
+                                };
+                                let updateData = {
+                                    accountNumber: alipay.accountNumber,
+                                    name: alipay.name || '',
+                                    platformId: alipay.platformId || '',
+                                    quota: isNaN(quota) ? 0 : quota,
+                                    state: alipay.state || '',
+                                    singleLimit : isNaN(singleLimit) ? 0 : singleLimit,
+                                    bankTypeId: alipay.bankTypeId || ''
+                                };
+
+                                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                                    aliPayQuery.isPMS2 = {$exists: true};
+                                    updateData.isPMS2 = true;
+                                } else {
+                                    aliPayQuery.isPMS2 = {$exists: false};
+                                }
+
                                 updateAlipayProm.push(
                                     dbconfig.collection_platformAlipayList.findOneAndUpdate(
-                                        {
-                                            accountNumber: alipay.accountNumber,
-                                            platformId: platformId,
-                                            $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
-                                        },
-                                        {
-                                            accountNumber: alipay.accountNumber,
-                                            name: alipay.name || '',
-                                            platformId: alipay.platformId || '',
-                                            quota: isNaN(quota) ? 0 : quota,
-                                            state: alipay.state || '',
-                                            singleLimit : isNaN(singleLimit) ? 0 : singleLimit,
-                                            bankTypeId: alipay.bankTypeId || ''
-                                        },
+                                        aliPayQuery,
+                                        updateData,
                                         {upsert: true}
                                     )
                                 );
@@ -304,12 +366,35 @@ var dbPlatformAlipayGroup = {
         ).then(
             () => {
                 let alipayAccountNumbers = alipayList.map(alipay => alipay.accountNumber);
-                return dbconfig.collection_platformAlipayList.find({platformId: platformId, accountNumber: {$nin: alipayAccountNumbers},  $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]}).lean().then(
+                let alipayQuery = {
+                    platformId: platformId,
+                    accountNumber: {$nin: alipayAccountNumbers},
+                    $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
+                };
+
+                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    alipayQuery.isPMS2 = {$exists: true};
+                } else {
+                    alipayQuery.isPMS2 = {$exists: false};
+                }
+
+                return dbconfig.collection_platformAlipayList.find(alipayQuery).lean().then(
                     deletedAlipays => {
                         if(deletedAlipays && deletedAlipays.length > 0) {
                             let deletedAccountNumbers = [];
                             deletedAlipays.forEach(alipay => {deletedAccountNumbers.push(alipay.accountNumber);});
-                            return dbconfig.collection_platformAlipayList.remove({platformId: platformId, accountNumber:{'$in': deletedAccountNumbers}})
+                            let deleteAlipayQuery = {
+                                platformId: platformId,
+                                accountNumber:{'$in': deletedAccountNumbers}
+                            };
+
+                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                                deleteAlipayQuery.isPMS2 = {$exists: true};
+                            } else {
+                                deleteAlipayQuery.isPMS2 = {$exists: false};
+                            }
+
+                            return dbconfig.collection_platformAlipayList.remove(deleteAlipayQuery)
                         }
                     }
                 )
@@ -317,8 +402,16 @@ var dbPlatformAlipayGroup = {
         ).then(
             () => {
                 if(newAlipays && newAlipays.length > 0) {
+                    let groupQuery;
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        groupQuery = {platform: platformObjId, isPMS2: {$exists: true}};
+                    } else {
+                        groupQuery = {platform: platformObjId, bDefault: true, isPMS2: {$exists: false}}
+                    }
+
                     return dbconfig.collection_platformAlipayGroup.update(
-                        {platform: platformObjId, bDefault: true},
+                        groupQuery,
                         {$addToSet: {
                             alipays: {$each: newAlipays}
                         }}
@@ -329,8 +422,15 @@ var dbPlatformAlipayGroup = {
             () => {
                 if (alipayList && alipayList.length > 0) {
                     let alipays = alipayList.map(alipay => alipay.accountNumber);
+                    let alipayGroupQuery;
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        alipayGroupQuery = {platform: platformObjId, isPMS2: {$exists: true}};
+                    } else {
+                        alipayGroupQuery = {platform: platformObjId, isPMS2: {$exists: false}};
+                    }
                     return dbconfig.collection_platformAlipayGroup.update(
-                        {platform: platformObjId},
+                        alipayGroupQuery,
                         {$pull: {alipays: {$nin: alipays}}},
                         {multi: true}
                     );
@@ -433,5 +533,33 @@ var dbPlatformAlipayGroup = {
     }
 
 };
+
+function addDefaultAlipayGroup(topUpSystemConfig, platformObjId) {
+    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+        return dbconfig.collection_platformAlipayGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
+            pms2AlipayGroupExists => {
+                if (!pms2AlipayGroupExists) {
+                    let defaultStr = "default";
+                    let groupData = {
+                        groupId: defaultStr,
+                        name: defaultStr,
+                        code: defaultStr,
+                        displayName: defaultStr,
+                        platform: platformObjId,
+                        isPMS2: true
+                    };
+
+                    let aliGroup = new dbconfig.collection_platformAlipayGroup(groupData);
+
+                    return aliGroup.save();
+                } else {
+                    return Promise.resolve(true);
+                }
+            }
+        );
+    } else {
+        return Promise.resolve(true);
+    }
+}
 
 module.exports = dbPlatformAlipayGroup;

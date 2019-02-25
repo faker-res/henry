@@ -7,7 +7,7 @@
             .panel-heading.panel-heading-sm
                 label {{"Alipay Group" | translate}}
             .panel-body
-                div
+                div(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
                     input#FPMSAlipayPaymentGroup(type='radio' value='FPMS' ng-model="vm.alipayGroupUsed" ng-change="vm.loadAlipayGroupData()")
                     label.radio-space(for='FPMSAlipayPaymentGroup') {{"FPMS Group" | translate}}
                     input#PMSAlipayPaymentGroup(type='radio' value='PMS' ng-model="vm.alipayGroupUsed" ng-change="vm.loadAlipayGroupData()")
@@ -18,7 +18,7 @@
                     li.list-group-item(ng-repeat='(i,alipayGroup) in vm.platformAlipayGroupList', ng-click='vm.alipayGroupClicked(i,alipayGroup)', ng-class='{active: vm.SelectedAlipayGroupNode === alipayGroup}')
                         text {{alipayGroup.name}}
                         i.fa.fa-star.pull-right.margin-right-5(ng-show='alipayGroup.bDefault')
-                div.paymentCard
+                div.paymentCard(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
                         label {{"PAYMENT_CARD_MODE" | translate}}
                         br
                         input#aliPayFPMSGroupSetting(type='radio' value='false' ng-model="vm.aliPayGroupPMS" ng-disabled="!checkViewPermission('Payment', 'AlipayGroup', 'UpdateCardGroupType')")
@@ -28,7 +28,7 @@
                         br
                         button.btn.btn-primary(ng-click="vm.updateIsPMSGroup(vm.aliPayGroupPMS, 'aliPayGroupIsPMS')" ng-if="checkViewPermission('Payment', 'AlipayGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
                 br
-                .btn-group.text-center(role="group")
+                .btn-group.text-center(role="group" ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
                     button.btn.btn-primary.vertical-button-group(ng-if="((vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) || vm.selectedPlatform.data.isFPMSPaymentSystem) && checkViewPermission('Payment', 'AlipayGroup', 'CreateAlipay')", data-toggle="modal", ng-click='vm.newAlipayAcc={};', data-target='#modalAddNewAlipay')
                         img.img-create
                         text {{"CreateAlipay" | translate}}
@@ -83,7 +83,7 @@
                 text.margin-left-5(ng-if='vm.SelectedAlipayGroupNode && vm.allAlipayList') {{'Total' | translate}}: {{filteredAlipayList.length}}
                 table#aliPayTable.simple-table.table-vertical-middle
                     thead
-                        th(ng-if="vm.alipayGroupUsed != 'PMS'") {{ 'select' | translate }}
+                        th(ng-show="vm.alipayGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'") {{ 'select' | translate }}
                         th(data-toggle="modal", data-target="#modalFilterAlipayStatus", style="cursor: pointer") {{ 'STATUS' | translate }}
                         th {{ 'Alipay Line' | translate }}
                         th {{ 'alipayAccount' | translate }}
@@ -93,7 +93,7 @@
                         th {{ 'DAY_LIMIT' | translate }}
                     tbody
                         tr(ng-repeat="(idx,val) in vm.allAlipayList | filter: vm.filterAlipay as filteredAlipayList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
-                            td(ng-if="vm.alipayGroupUsed != 'PMS'")
+                            td(ng-show="vm.alipayGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'")
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.alipayListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
                             td {{ val.state === 'DISABLED' ? 'DISABLE' : val.state | translate}}
                             td {{ val.line }}
@@ -103,7 +103,7 @@
                             td {{ val.singleLimit | translate}}
                             td {{ val.quota | translate}}
                 br
-                .text-right.widthto100
+                .text-right.widthto100(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
                     button.btn.btn-info.btn-space(ng-click="vm.selectAlipay(true)" ng-if="vm.alipayGroupUsed != 'PMS'") {{"Select All" | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.selectAlipay(false)" ng-if="vm.alipayGroupUsed != 'PMS'") {{"Clear All" | translate}}
                     button.btn.btn-primary.btn-space(ng-if="((vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) || vm.selectedPlatform.data.isFPMSPaymentSystem) && vm.allAlipayList.length > 0 && checkViewPermission('Payment', 'AlipayGroup', 'EditAlipay') && vm.alipayGroupUsed != 'PMS'" ng-click="vm.showEditAlipayInfo()" ng-disabled="vm.disableEditAlipay()", data-toggle="modal", data-target='#modalEditAlipay')

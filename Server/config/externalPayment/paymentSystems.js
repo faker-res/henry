@@ -53,6 +53,8 @@ const thirdPartyAPIConfig = {
         bankTypeAPIAddr: "http://52.221.143.107:9001/v1/bankType", //POST
         bankTypeListAPIAddr: "http://52.221.143.107:9001/v1/bankTypes", //POST
         syncPlatformAPIAddr: "http://52.221.143.107:9001/v1/sync-platform", //POST
+        topupForceMatchAPIAddr: "http://52.221.143.107:9001/v1/deposit-proposal/force-match", //POST
+        merchantListAPIAddr: "http://52.221.143.107:9001/v1/getMerchantList", //POST,
 
         //financial settlement
         name: 'PMS2',

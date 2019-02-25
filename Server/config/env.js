@@ -32,6 +32,11 @@ var localConfig = {
     ebetRTNUrl: "ws://rtn-xindeli99.cpms8.me:7351/ebet",
     mailerNoReply: "no-reply@snsoft.my",
     providerTimeoutNotificationRecipient: "dev-fpms@monaco1.ph",
+    providerTimeoutNotificationM1chatUserRecipient: ['2586120068006814','2586120068006810','2586120068006811'], //Victor, Ricco, Mark
+    m1chatApiUrl: "http://m1chat.com:8888/v1/",
+    m1chatAppId: "2586120068008812",
+    m1chatCorpId: "2586120068005889",
+    m1chatCorpSecret: "SNOkTdCmgLBNnEKLdft4FyrcyqJYeVQ0",
 };
 
 //for aws-development
@@ -211,6 +216,11 @@ var prodConfig = {
     ebetRTNUrl: "ws://rtn-xindeli99.cpms8.me:7351/ebet",
     mailerNoReply: "no-reply@snsoft.my",
     providerTimeoutNotificationRecipient: "dev-fpms@monaco1.ph",
+    providerTimeoutNotificationM1chatUserRecipient: ['2586120068006814','2586120068006810','2586120068006811'], //Victor, Ricco, Mark
+    m1chatApiUrl: "http://m1chat.com:8888/v1/",
+    m1chatAppId: "2586120068008812",
+    m1chatCorpId: "2586120068005889",
+    m1chatCorpSecret: "SNOkTdCmgLBNnEKLdft4FyrcyqJYeVQ0",
 };
 
 
