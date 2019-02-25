@@ -959,12 +959,20 @@ var proposal = {
                 }
 
                 if (callbackData.merchantNo && proposalObj.data.platform) {
-                    merchantProm = dbconfig.collection_platformMerchantList.findOne({
+                    let merchantQuery = {
                         platformId: proposalObj.data.platform,
                         merchantNo: callbackData.merchantNo,
                         topupType: callbackData.depositMethod,
                         customizeRate: {$exists: true}
-                    }, 'customizeRate').lean();
+                    };
+
+                    if (proposalObj.data && proposalObj.data.topUpSystemName && proposalObj.data.topUpSystemName === 'PMS2') {
+                        merchantQuery.isPMS2 = {$exists: true};
+                    } else {
+                        merchantQuery.isPMS2 = {$exists: false};
+                    }
+
+                    merchantProm = dbconfig.collection_platformMerchantList.findOne(merchantQuery, 'customizeRate').lean();
                 };
 
                 return Promise.all([propTypeProm, merchantProm]).then(
