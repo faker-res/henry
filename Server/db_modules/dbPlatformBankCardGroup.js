@@ -123,8 +123,6 @@ var dbPlatformBankCardGroup = {
 
     },
 
-
-
     /**
      * Get all the bank card groups by platformObjId without sync with PMS
      * Since every time when the page load up, it will run the one with sync,
