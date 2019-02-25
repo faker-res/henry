@@ -1462,7 +1462,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.merchantGroupUsed = "FPMS"
-            socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {platform: vm.selectedPlatform.id}, function (data) {
                 $scope.$evalAsync(() => {
                     if (data && data.data && data.data.merchantTypes && data.data.merchantTypes.length > 0) {
                         vm.allMerchantTypeList = {};

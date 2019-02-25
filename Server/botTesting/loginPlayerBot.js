@@ -42,19 +42,51 @@ module.exports = function (config) {
                             () => playerLogin(clientClient, loginData)
                         ).then(
                             playerData => {
-                                let prom = [];
+                                let timeStamp = new Date().getTime().toString();
+                                let updatePaymentInfoProm = [];
+                                let updatePlayerEmailProm = [];
+                                let updatePlayerWeChatProm = [];
+                                let updatePlayerQQProm = [];
+                                let aliPayTopupAndCancelProposalProm = [];
                                 if(playerData && playerData.data && playerData.data.playerId){
                                     let paymentInfo = {
                                         playerId: playerData.data.playerId,
                                         bankName:config.botBankName,
-                                        bankAccount: new Date().getTime() + "000",
+                                        bankAccount: timeStamp + "000",
                                         bankAccountName: config.botBankAccName
                                     };
 
-                                    prom.push(updatePaymentInfo(clientClient, paymentInfo));
+                                    updatePaymentInfoProm.push(updatePaymentInfo(clientClient, paymentInfo));
                                 }
 
-                                return Promise.all(prom);
+                                updatePlayerEmailProm.push(updatePlayerEmail(clientClient, {email: timeStamp + "@bot.com"}));
+                                updatePlayerWeChatProm.push(updatePlayerWeChat(clientClient, {wechat: timeStamp + "wechat"}));
+                                updatePlayerQQProm.push(updatePlayerQQ(clientClient, {qq: timeStamp}));
+                                updatePlayerQQProm.push(updatePlayerQQ(clientClient, {qq: timeStamp}));
+
+                                let aliTopupDetail = {
+                                    amount: 100,
+                                    alipayName: config.botAlipayName
+                                }
+                                aliPayTopupAndCancelProposalProm.push(aliPayTopupAndCancelProposal(clientClient, aliTopupDetail));
+
+                                return Promise.all(updatePaymentInfoProm).then(
+                                    () => {
+                                        return Promise.all(updatePlayerEmailProm);
+                                    }
+                                ).then(
+                                    () => {
+                                        return Promise.all(updatePlayerWeChatProm);
+                                    }
+                                ).then(
+                                    () => {
+                                        return Promise.all(updatePlayerQQProm);
+                                    }
+                                ).then(
+                                    () => {
+                                        return Promise.all(aliPayTopupAndCancelProposalProm);
+                                    }
+                                );
                             }
                         ).then(
                             () => disconnectAndWait(clientClient)
@@ -71,6 +103,28 @@ module.exports = function (config) {
 
     function updatePaymentInfo(clientClient, newPaymentInfo){
         return callAPI(clientClient, 'player', 'updatePaymentInfo', newPaymentInfo);
+    }
+
+    function updatePlayerEmail(clientClient, newEmail){
+        return callAPI(clientClient, 'player', 'updatePlayerEmail', newEmail);
+    }
+
+    function updatePlayerWeChat(clientClient, newWechat){
+        return callAPI(clientClient, 'player', 'updatePlayerWeChat', newWechat);
+    }
+
+    function updatePlayerQQ(clientClient, newQQ){
+        return callAPI(clientClient, 'player', 'updatePlayerQQ', newQQ);
+    }
+
+    function aliPayTopupAndCancelProposal(clientClient, topupDetail){
+        return callAPI(clientClient, 'payment', 'requestAlipayTopup', topupDetail).then(
+            result => {
+                if(result && result.data && result.data.proposalId){
+                    return callAPI(clientClient, 'payment', 'cancelAlipayTopup',{proposalId: result.data.proposalId});
+                }
+            }
+        )
     }
 
     return {
