@@ -33,7 +33,7 @@ function socketActionBankCardGroup(socketIO, socket) {
         getPlatformBankCardGroupLite: function getPlatformBankCardGroupLite(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getPlatformBankCardGroupLite, [ObjectId(data.platform)], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getPlatformBankCardGroupLite, [data], actionName, isValidData);
         },
 
         /**

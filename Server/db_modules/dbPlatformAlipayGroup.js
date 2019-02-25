@@ -319,9 +319,7 @@ var dbPlatformAlipayGroup = {
                                 if (!match) {
                                     newAlipays.push(alipay.accountNumber);
                                 }
-                            }
-
-                            if (!oldAlipays.length && !newAlipays.length && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            } else if (!oldAlipays.length && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                                 newAlipays.push(alipay.accountNumber);
                             }
 

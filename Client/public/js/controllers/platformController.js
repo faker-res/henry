@@ -23139,6 +23139,15 @@ define(['js/app'], function (myApp) {
                 loadOpenPromoCodeTemplate();
                 // loadPromoCodeTemplate();
 
+                vm.promoCodeSmsChannel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(4)) {
+                        vm.promoCodeSmsChannel = 4; //set default sms channel
+                    } else {
+                        vm.promoCodeSmsChannel = $scope.usableChannelList[0];
+                    }
+                }
+
                 switch (choice) {
                     case 'create':
                         vm.promoCodeNewRow(vm.newPromoCode1, 1);
@@ -24612,16 +24621,16 @@ define(['js/app'], function (myApp) {
                     col.splice(index, 1);
                 }
             };
-            vm.generatePromoCodeAsync= function(obj, index, data, type){
-                let prom = new Promise((resolve, reject)=>{
-                    let result = vm.generatePromoCode(obj, index, data, type);
+            vm.generatePromoCodeAsync= function(obj, index, data, type, channel) {
+                let prom = new Promise((resolve, reject) => {
+                    let result = vm.generatePromoCode(obj, index, data, type, channel);
                     resolve(result);
                 });
-                prom.then(()=>{
+                prom.then(() => {
                     $scope.$evalAsync();
                 })
             }
-            vm.generatePromoCode = function (col, index, data, type) {
+            vm.generatePromoCode = function (col, index, data, type, channel) {
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
                     col[index].error = false;
@@ -24708,7 +24717,8 @@ define(['js/app'], function (myApp) {
                                             platformObjId: vm.selectedPlatform.id,
                                             newPromoCodeEntry: sendData,
                                             adminName: authService.adminName,
-                                            adminId: authService.adminId
+                                            adminId: authService.adminId,
+                                            channel: channel
                                         }).then(ret => {
                                               col[index].code = ret.data;
                                         }).catch(err=>{
@@ -24723,7 +24733,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.generateAllPromoCode = function (col, type, skipCheck) {
+            vm.generateAllPromoCode = function (col, type, skipCheck, channel) {
                 let p = Promise.resolve();
 
                 col.forEach((elem, index, arr) => {
@@ -24732,7 +24742,7 @@ define(['js/app'], function (myApp) {
                             if (skipCheck && !elem.error) {
                                 elem.skipCheck = true;
                             }
-                            return vm.generatePromoCode(col, index, elem, type);
+                            return vm.generatePromoCode(col, index, elem, type, channel);
                         });
                     }
                 });

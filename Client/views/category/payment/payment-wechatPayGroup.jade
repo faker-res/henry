@@ -67,7 +67,7 @@
                     .search-filters-item
                         .control-label {{"Wechat Nickname" | translate}}
                         input.form-control.merchantNoList(ng-model='vm.filterWechatNickname', type='text')
-                    .threeBoxes(ng-if="vm.wechatGroupUsed != 'PMS'")
+                    .threeBoxes(ng-if="vm.wechatGroupUsed != 'PMS' && vm.paymentSystemName !== 'PMS2'")
                         .control-label {{"isInGroup" | translate}}
                         select.form-control.merchantNoList(ng-model='vm.filterWechatInGroup', ng-init='vm.filterWechatInGroup="all"')
                             option(value='all') {{'any' | translate}}
@@ -208,7 +208,7 @@
                 text.margin-left-5(ng-if='vm.SelectedWechatPayGroupNode && vm.allWechatList') {{'Total' | translate}}: {{filteredWechatList.length}}
                 table#wechatTable.simple-table.table-vertical-middle
                     thead
-                        th(ng-if="vm.wechatGroupUsed != 'PMS' && !vm.paymentSystemName && vm.paymentSystemName !== 'PMS2'") {{ 'select' | translate }}
+                        th(ng-show="vm.wechatGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'") {{ 'select' | translate }}
                         th(data-toggle="modal", data-target="#modalFilterWechatStatus", style="cursor: pointer") {{ 'STATUS' | translate }}
                         th {{ 'Wechat Account' | translate }}
                         th {{ 'Wechat Name' | translate }}
@@ -217,7 +217,7 @@
                         th {{ 'DAY_LIMIT' | translate }}
                     tbody
                         tr(ng-repeat="(idx,val) in vm.allWechatList | filter: vm.filterWechat as filteredWechatList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
-                            td(ng-if="vm.wechatGroupUsed != 'PMS' && !vm.paymentSystemName && vm.paymentSystemName !== 'PMS2'")
+                            td(ng-show="vm.wechatGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'")
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.wechatListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
                             td {{ val.state === 'DISABLED' ? 'DISABLE' : val.state | translate}}
                             td {{ val.accountNumber | translate}}

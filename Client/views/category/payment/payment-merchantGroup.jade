@@ -72,7 +72,7 @@ style.
                         .search-filters-item
                             .control-label {{"Backstage Merchant ID" | translate}}
                             input.form-control(type='text', ng-model='vm.merchantFilterOptions.backstageMerchantId')
-                        .threeBoxes(ng-if="vm.merchantGroupUsed != 'PMS'")
+                        .threeBoxes(ng-if="vm.merchantGroupUsed != 'PMS' && vm.paymentSystemName !== 'PMS2'")
                             .control-label {{"IS_IN_GROUP" | translate}}
                             select.form-control(ng-model="vm.merchantFilterOptions.isIncluded")
                                 option(value='all') {{'any' | translate}}
@@ -92,7 +92,7 @@ style.
                 table#merchantGroupTable.table(ng-if='vm.SelectedMerchantGroupNode')
                     thead
                         tr
-                            th(ng-if="vm.merchantGroupUsed != 'PMS' && !vm.paymentSystemName && vm.paymentSystemName !== 'PMS2'") {{'SELECT' | translate}}
+                            th(ng-show="vm.merchantGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'") {{'SELECT' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterMerchantStatus", style="cursor: pointer")
                                 u {{'STATUS' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterMerchantDevice", style="cursor: pointer")
@@ -109,7 +109,7 @@ style.
                             th {{'Service Charge Ratio' | translate}}%
                     tbody
                         tr(ng-repeat='(i,v) in vm.allMerchantList' ng-class="{'bg-grey' : v.isIncluded == false}" ng-show="v.show$")
-                            td(ng-if="vm.merchantGroupUsed != 'PMS' && !vm.paymentSystemName && vm.paymentSystemName !== 'PMS2'")
+                            td(ng-show="vm.merchantGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'")
                                 input(type="checkbox" ng-model="v.selected")
                             td(ng-class="{'text-disabled': v.status === 'DISABLED'}").text-success {{v.status === 'DISABLED' ? 'DISABLE' : v.status | translate}}
                             td {{merchantTargetDeviceJson[v.targetDevices] | translate}}

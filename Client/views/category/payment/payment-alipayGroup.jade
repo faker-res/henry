@@ -68,7 +68,7 @@
                     .search-filters-item
                         .control-label {{"alipayName" | translate}}
                         input.form-control.merchantNoList(ng-model='vm.filterAlipayName', type='text')
-                    .threeBoxes(ng-if="vm.alipayGroupUsed != 'PMS'")
+                    .threeBoxes(ng-if="vm.alipayGroupUsed != 'PMS' && vm.paymentSystemName !== 'PMS2'")
                         .control-label {{"isInGroup" | translate}}
                         select.form-control.merchantNoList(ng-model='vm.filterAlipayInGroup' ng-init='vm.filterAlipayInGroup="all"')
                             option(value='all') {{'any' | translate}}
@@ -83,7 +83,7 @@
                 text.margin-left-5(ng-if='vm.SelectedAlipayGroupNode && vm.allAlipayList') {{'Total' | translate}}: {{filteredAlipayList.length}}
                 table#aliPayTable.simple-table.table-vertical-middle
                     thead
-                        th(ng-if="vm.alipayGroupUsed != 'PMS' && !vm.paymentSystemName && vm.paymentSystemName !== 'PMS2'") {{ 'select' | translate }}
+                        th(ng-show="vm.alipayGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'") {{ 'select' | translate }}
                         th(data-toggle="modal", data-target="#modalFilterAlipayStatus", style="cursor: pointer") {{ 'STATUS' | translate }}
                         th {{ 'Alipay Line' | translate }}
                         th {{ 'alipayAccount' | translate }}
@@ -93,7 +93,7 @@
                         th {{ 'DAY_LIMIT' | translate }}
                     tbody
                         tr(ng-repeat="(idx,val) in vm.allAlipayList | filter: vm.filterAlipay as filteredAlipayList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
-                            td(ng-if="vm.alipayGroupUsed != 'PMS' && !vm.paymentSystemName && vm.paymentSystemName !== 'PMS2'")
+                            td(ng-show="vm.alipayGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'")
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.alipayListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
                             td {{ val.state === 'DISABLED' ? 'DISABLE' : val.state | translate}}
                             td {{ val.line }}
