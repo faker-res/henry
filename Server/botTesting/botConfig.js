@@ -21,7 +21,8 @@ var botConfig = {
     minutesPerLogin: 1,
     botPlayerPrefix: "jobot",
     botBankName: "10",
-    botBankAccName: "机器人"
+    botBankAccName: "机器人",
+    botAlipayName: "623542345"
 };
 
 module.exports = botConfig;
