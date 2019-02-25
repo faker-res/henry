@@ -90,7 +90,7 @@ style.
                 table#bankCards.table(ng-if='vm.SelectedBankCardGroupNode')
                     thead
                         tr
-                            th(ng-if="vm.groupUsed != 'PMS' && !vm.paymentSystemName && vm.paymentSystemName !=='PMS2'") {{'SELECT' | translate}}
+                            th(ng-if="vm.groupUsed != 'PMS' && vm.paymentSystemName !=='PMS2'") {{'SELECT' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterBankCardStatus", style="cursor: pointer")
                                 u {{'STATUS' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterBankCardType", style="cursor: pointer")
@@ -104,7 +104,7 @@ style.
                             th {{'DAY_LIMIT' | translate}}
                     tbody
                         tr(ng-repeat="v in vm.allBankCards" ng-class="{'bg-secondary': !v.included}" ng-show="v.show$")
-                            td(ng-if="vm.groupUsed != 'PMS' && !vm.paymentSystemName && vm.paymentSystemName !=='PMS2'")
+                            td(ng-if="vm.groupUsed != 'PMS' && vm.paymentSystemName !=='PMS2'")
                                 input(type="checkbox" ng-model="v.selected")
                             td.text-center(ng-class="{'text-disabled': v.state === 'DISABLED'}") {{v.status === 'DISABLED' ? 'DISABLE' : v.status | translate}}
                             td {{v.bankTypeId ? vm.getBankCardTypeTextbyId(v.bankTypeId) : ("VOID" | translate)}}
