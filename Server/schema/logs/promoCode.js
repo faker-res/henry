@@ -86,7 +86,8 @@ let promoCodeSchema = new Schema({
     autoFeedbackMissionLogin: {type: Boolean, index: true},
     //match with top up
     autoFeedbackMissionTopUp: {type: Boolean, index: true},
-
+    // sms channel
+    channel: {type: String, index: true},
 });
 
 promoCodeSchema.index({platformObjId: 1, createTime: 1});
