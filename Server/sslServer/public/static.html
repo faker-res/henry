@@ -84,6 +84,9 @@
                     url: ajaxUrl,
                     data: saveData,
                     method: "POST",
+                    beforeSend: (request) => {
+                        request.setRequestHeader("x-token", sessionStorage.getItem('tkn'));
+                    },
                     success: (data) => {
                         console.log(env.nodeUrl, env.nodePort, data);
                         $(statusId).removeClass('hide');

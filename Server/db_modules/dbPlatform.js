@@ -397,11 +397,8 @@ var dbPlatform = {
             delete updateData.gameProviderNickNames;
         }
 
-        console.log("updatePlatform platform update:", updateData);
-
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
-                console.log("updatePlatform", data, query, updateData);
                 if (env.mode != "local" && env.mode != "qa") {
                     var platformData = {
                         platformId: data.platformId,
