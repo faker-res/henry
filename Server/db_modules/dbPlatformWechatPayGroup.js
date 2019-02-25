@@ -335,9 +335,7 @@ let dbPlatformWechatPayGroup = {
                                 if (!match) {
                                     newWechats.push(wechat.accountNumber);
                                 }
-                            }
-
-                            if (!oldWechats.length && !newWechats.length && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            } else if (!oldWechats.length && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                                 newWechats.push(wechat.accountNumber);
                             }
 
