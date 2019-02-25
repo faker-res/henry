@@ -3252,7 +3252,7 @@ let dbPlayerReward = {
         return Promise.all(generatePromoCodeProm);
     },
 
-    generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
+    generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName, channel) => {
         console.log('platformObjId===11', platformObjId);
         console.log('newPromoCodeEntry===11', newPromoCodeEntry);
         console.log('adminObjId===11', adminObjId);
@@ -3283,6 +3283,7 @@ let dbPlayerReward = {
                     newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
                     newPromoCodeEntry.adminId = adminObjId;
                     newPromoCodeEntry.adminName = adminName;
+                    newPromoCodeEntry.channel = channel;
 
                     return dbConfig.collection_promoCodeActiveTime.findOne({
                         platform: platformObjId,
@@ -3311,7 +3312,6 @@ let dbPlayerReward = {
                     dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                     return newPromoCode.code;
                 }
-
             }
         ).catch(
             err => {
