@@ -4977,32 +4977,55 @@ var dbPlayerTopUpRecord = {
     },
 
     forcePairingWithReferenceNumber: function(platformId, proposalObjId, proposalId, referenceNumber) {
+        let isPMS2Proposal = false;
         return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
-            if(proposal && proposal.data && new Date(proposal.data.validTime) < new Date) {
+            if (proposal && proposal.data && new Date(proposal.data.validTime) < new Date) {
                 return Promise.reject({message: "提案已过期"});
             }
-        }).then(()=>{
-            return pmsAPI.foundation_mandatoryMatch({
-                platformId: platformId,
-                queryId: serverInstance.getQueryId(),
-                proposalId: proposalId,
-                depositId: referenceNumber
-            })
+
+            if (proposal && proposal.data && proposal.data.topUpSystemName == "PMS2") {
+                isPMS2Proposal = true;
+                let topUpSystemConfig = extConfig && extConfig[4];
+                let requestData = {
+                    platformId: platformId,
+                    proposalId: proposalId,
+                    depositId: referenceNumber
+                }
+                let options = {
+                    method: 'POST',
+                    uri: topUpSystemConfig.topupForceMatchAPIAddr,
+                    body: requestData,
+                    json: true
+                };
+
+                return rp(options);
+
+            } else {
+                return pmsAPI.foundation_mandatoryMatch({
+                    platformId: platformId,
+                    queryId: serverInstance.getQueryId(),
+                    proposalId: proposalId,
+                    depositId: referenceNumber
+                })
+            }
+
         }).then(data => {
             console.log("forcePairingWithReferenceNumber data", data);
-            if(data) {
+            if (data || isPMS2Proposal) {
                 // execute TopUp
                 let remarks = "强制匹配：成功。";
                 return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
-                    if(proposal && proposal.data) {
+                    if (proposal && proposal.data) {
                         console.log("mandatoryMatch proposal", proposal.data.remark);
                         let proposalRemark = proposal.data.remark && proposal.data.remark != 'undefined' ? proposal.data.remark + "; " + remarks : remarks;
-                        return updateProposalRemark(proposal, proposalRemark).then(() => {return Promise.resolve(true)});
+                        return updateProposalRemark(proposal, proposalRemark).then(() => {
+                            return Promise.resolve(true)
+                        });
                     }
                 });
             }
         }, err => {
-            if(err && err.status == 401) {
+            if (err && err.status == 401) {
                 // cancel top up
                 let remarks = err.errorMessage || "强制匹配：失败并取消。";
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true, remarks).then(() => {
