@@ -15694,7 +15694,11 @@ define(['js/app'], function (myApp) {
             if (bankcard && bankcard.accountNumber) {
                 vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
                 vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
-                vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
+                if(vm.paymentSystemName === 'PMS2') {
+                    vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 6);
+                } else {
+                    vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
+                }
             };
         }
         vm.getBankCardMaxAmount = function (bankAcc) {
