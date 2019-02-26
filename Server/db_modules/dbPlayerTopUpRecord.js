@@ -3751,6 +3751,7 @@ var dbPlayerTopUpRecord = {
 
                             requestData.bankCardNo = inputData.alipayAccount;
                             requestData.depositMethod = constTopUpMethod.ALIPAY;
+                            requestData.depositTime = cTimeString;
 
                             let options = {
                                 method: 'POST',
@@ -3759,7 +3760,16 @@ var dbPlayerTopUpRecord = {
                                 json: true
                             };
 
-                            return rp(options);
+                            console.log('createTopUpAPIAddr - alipay body:', requestData);
+
+                            return rp(options).then(function (data) {
+                                console.log('createTopUpAPIAddr - alipay success', data);
+                                return data;
+                            }, error => {
+                                console.log('createTopUpAPIAddr - alipay failed', error);
+                                throw error;
+                            });
+
                         } else {
                             return pmsAPI.payment_requestAlipayAccount(requestData);
                         }
