@@ -242,7 +242,13 @@ var dbPlatformBankCardGroup = {
                         json: true
                     };
 
-                    return rp(options);
+                    return rp(options).then(function (syncPlatformData) {
+                        console.log('syncHTTPPMSPlatform success', syncPlatformData);
+                        return syncPlatformData;
+                    }, error => {
+                        console.log('syncHTTPPMSPlatform failed', error);
+                        throw error;
+                    });
                 } else {
                     return pmsAPI.bankcard_getBankcardList(
                         {
@@ -274,7 +280,13 @@ var dbPlatformBankCardGroup = {
                         json: true
                     };
 
-                    return rp(options);
+                    return rp(options).then(function (syncPlatformData) {
+                        console.log('syncHTTPPMSPlatform success', syncPlatformData);
+                        return syncPlatformData;
+                    }, error => {
+                        console.log('syncHTTPPMSPlatform failed', error);
+                        throw error;
+                    });
                 } else {
                     return pmsAPI.bankcard_getBankTypeList({});
                 }
@@ -445,7 +457,13 @@ var dbPlatformBankCardGroup = {
                             json: true
                         };
 
-                        return rp(options);
+                        return rp(options).then(function (syncPlatformData) {
+                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
+                            return syncPlatformData;
+                        }, error => {
+                            console.log('syncHTTPPMSPlatform failed', error);
+                            throw error;
+                        });
                     }
                     else {
                         return pmsAPI.bankcard_getBankcardList(

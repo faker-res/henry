@@ -117,7 +117,7 @@ const dbPlayerUtility = {
                 if (beforeRec && beforeRec[stateName] === bFlag) {
                     allowExec = false;
                     // if state locked more than 15 minutes, allow execute (prevent state locked forever)
-                    if (lastUpdateTime && bFlag && beforeRec[lastUpdateTime] && (beforeRec[lastUpdateTime].getTime() <= new Date() - 900000)) {
+                    if (lastUpdateTime && bFlag && beforeRec[lastUpdateTime] && (beforeRec[lastUpdateTime].getTime() <= new Date() - 300000)) {
                         allowExec = true;
                     }
                     if (stateNameWithUpdatedTime && bFlag && beforeRec[stateNameWithUpdatedTime] && (beforeRec[stateNameWithUpdatedTime].getTime() <= new Date() - 900000)) {

@@ -6627,16 +6627,20 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     [playerData, providerData] = data;
                     let platformData = playerData.platform;
-                    let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
-                    // if adminName doesn't exist (likely request from frontend), AND
-                    // requested provider is in player's forbid providers' list: then reject.
-                    if ((!adminName) && forbidProviders.indexOf(providerData._id.toString()) > -1) {
-                        return Promise.reject({
-                            name: "DataError",
-                            status: constServerCode.PLAYER_IS_FORBIDDEN,
-                            message: "Player is forbidden to the game"
-                        })
+
+                    if (playerData.forbidProviders && typeof playerData.forbidProviders === 'object') {
+                        let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
+                        // if adminName doesn't exist (likely request from frontend), AND
+                        // requested provider is in player's forbid providers' list: then reject.
+                        if ((!adminName) && forbidProviders.indexOf(providerData._id.toString()) > -1) {
+                            return Promise.reject({
+                                name: "DataError",
+                                status: constServerCode.PLAYER_IS_FORBIDDEN,
+                                message: "Player is forbidden to the game"
+                            })
+                        }
                     }
+
                     // Check is test player
                     if (playerData.isTestPlayer) {
                         return Promise.reject({
@@ -7240,19 +7244,26 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
+
+                console.log('data[1].length', data[1].length);
+
                 if (data && data[0] && data[1] && data[1].length > 0) {
                     [playerObj, gameProvider] = data;
                     platformData = playerObj.platform;
-                    let forbidProviders = JSON.parse(JSON.stringify(playerObj.forbidProviders));
-                    // if adminName doesn't exist (likely request from frontend), AND
-                    // requested provider is in player's forbid providers' list: then reject.
-                    if ((!adminName) && forbidProviders.indexOf(gameProvider[0]._id.toString()) > -1) {
-                        return Promise.reject({
-                            name: "DataError",
-                            status: constServerCode.PLAYER_IS_FORBIDDEN,
-                            message: "Player is forbidden to the game"
-                        })
+
+                    if (playerObj.forbidProviders && typeof playerObj.forbidProviders === 'object') {
+                        let forbidProviders = JSON.parse(JSON.stringify(playerObj.forbidProviders));
+                        // if adminName doesn't exist (likely request from frontend), AND
+                        // requested provider is in player's forbid providers' list: then reject.
+                        if ((!adminName) && forbidProviders.indexOf(gameProvider[0]._id.toString()) > -1) {
+                            return Promise.reject({
+                                name: "DataError",
+                                status: constServerCode.PLAYER_IS_FORBIDDEN,
+                                message: "Player is forbidden to the game"
+                            })
+                        }
                     }
+
                     if (playerObj.isTestPlayer) {
                         return Promise.reject({
                             name: "DataError",
@@ -7263,9 +7274,11 @@ let dbPlayerInfo = {
 
                     let indexOfProviderId = -1;
 
+                    console.log('playerObj.lastPlayedProvider', playerObj.lastPlayedProvider);
+
                     // Enforce player to transfer out from correct last played provider
                     if(playerObj.lastPlayedProvider){
-                        indexOfProviderId = targetProviderId.findIndex(t => t == playerObj.lastPlayedProvider);
+                        indexOfProviderId = targetProviderId.findIndex(t => t == playerObj.lastPlayedProvider.providerId);
 
                         if(indexOfProviderId == -1 ){
                             gameProvider.forEach(
@@ -7276,6 +7289,8 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
+
+                            console.log('targetProviderId', targetProviderId);
 
                             return dbconfig.collection_gameProvider.find({providerId: {$in: targetProviderId}}).lean();
                         }
@@ -7304,7 +7319,7 @@ let dbPlayerInfo = {
                 if(err && err.status === constServerCode.PLAYER_IS_FORBIDDEN) {
                     return Promise.reject(err);
                 } else {
-                    return Promise.reject({name: "DataError", message: "Cant find player or provider"});
+                    return Promise.reject({name: "DataError", message: "[Transfer out] Error finding game provider", error: err});
                 }
             }
         ).then(
@@ -9260,6 +9275,7 @@ let dbPlayerInfo = {
 
                     }
                     else {
+                        console.log("check player level consumption", playerObj.name, errorMsg);
                         if (showReject) {
                             return Q.reject({
                                 status: errorCode,
@@ -22945,6 +22961,7 @@ let dbPlayerInfo = {
                     json: true
                 };
 
+                console.log("batchTopUpStatusAPIAddr check request before sent - ", data);
                 return rp(options)
                     .then(function (updateStatus) {
                         console.log('batch playerDepositStatus success', updateStatus);
@@ -22993,6 +23010,7 @@ let dbPlayerInfo = {
                             json: true
                         };
 
+                        console.log("topUpStatusAPIAddr check request before sent - ", sendObj);
                         return rp(options)
                             .then(function (updateStatus) {
                                 console.log('playerDepositStatus success', updateStatus);
