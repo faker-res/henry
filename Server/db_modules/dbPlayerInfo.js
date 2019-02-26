@@ -7240,6 +7240,9 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
+
+                console.log('transferPlayerCreditFromProvider', data);
+
                 if (data && data[0] && data[1] && data[1].length > 0) {
                     [playerObj, gameProvider] = data;
                     platformData = playerObj.platform;
@@ -7265,7 +7268,7 @@ let dbPlayerInfo = {
 
                     // Enforce player to transfer out from correct last played provider
                     if(playerObj.lastPlayedProvider){
-                        indexOfProviderId = targetProviderId.findIndex(t => t == playerObj.lastPlayedProvider);
+                        indexOfProviderId = targetProviderId.findIndex(t => t == playerObj.lastPlayedProvider.providerId);
 
                         if(indexOfProviderId == -1 ){
                             gameProvider.forEach(
@@ -7304,7 +7307,7 @@ let dbPlayerInfo = {
                 if(err && err.status === constServerCode.PLAYER_IS_FORBIDDEN) {
                     return Promise.reject(err);
                 } else {
-                    return Promise.reject({name: "DataError", message: "Cant find player or provider"});
+                    return Promise.reject({name: "DataError", message: "[Transfer out] Error finding game provider", error: err});
                 }
             }
         ).then(
