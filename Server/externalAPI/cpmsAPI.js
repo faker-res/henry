@@ -238,29 +238,30 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
             return Promise.all([searchTransferLogProm, searchQueryCreditTimeoutProm]);
         }
     }).then(logs => {
-        let transferLogs = logs[0];
-        let queryCreditLogs = logs[1];
-        let count = transferLogs.length + queryCreditLogs.length;
+        if(logs && logs.length > 0) {
+            let transferLogs = logs[0];
+            let queryCreditLogs = logs[1];
+            let count = transferLogs.length + queryCreditLogs.length;
 
-        if(count >= timeoutLimit) {
-            if(transferLogs.length > 0 && queryCreditLogs.length > 0) {
-                lastTimeoutDateTime = new Date(transferLogs[0].createTime).getTime() > new Date(queryCreditLogs[0].createTime).getTime() ?
-                    transferLogs[0].createTime : queryCreditLogs[0].createTime;
+            if (count >= timeoutLimit) {
+                if (transferLogs.length > 0 && queryCreditLogs.length > 0) {
+                    lastTimeoutDateTime = new Date(transferLogs[0].createTime).getTime() > new Date(queryCreditLogs[0].createTime).getTime() ?
+                        transferLogs[0].createTime : queryCreditLogs[0].createTime;
+                } else {
+                    lastTimeoutDateTime = transferLogs.length > 0 ? transferLogs[0].createTime : queryCreditLogs[0].createTime;
+                }
+                //set provider to maintenance status
+                let isEnable = false;
+                return dbPlatform.updateProviderFromPlatformById(platformObjId, providerObjId, isEnable).then(() => {
+                    return dbconfig.collection_gameProvider.findOne({_id: providerObjId});
+                });
             } else {
-                lastTimeoutDateTime = transferLogs.length > 0 ? transferLogs[0].createTime : queryCreditLogs[0].createTime;
+                return null;
             }
-            //set provider to maintenance status
-            let isEnable = false;
-            return dbPlatform.updateProviderFromPlatformById(platformObjId, providerObjId, isEnable).then(()=>{
-                return dbconfig.collection_gameProvider.findOne({_id: providerObjId});
-            });
-        } else {
-            return null;
         }
     }).then(provider => {
         if(provider) {
             let providerName = provider.name;
-
             let sender = env.mailerNoReply;
             let recipient = env.providerTimeoutNotificationRecipient;
             let subject = `[FPMS System] - ${providerName} timeout limit reached, set status to maintenance. ${dbUtil.getLocalTime(new Date)}`;
@@ -290,10 +291,9 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
                 body: content,
                 isHTML: true
             };
+            let m1chatSendMessage = `${subject}`;
 
-            let michatSendMessage = `${subject}`;
-
-            m1chatAPI.send({content: michatSendMessage});
+            m1chatAPI.send({content: m1chatSendMessage});
             return emailer.sendEmail(emailConfig);
         }
     });
