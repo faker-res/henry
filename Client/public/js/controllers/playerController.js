@@ -6160,10 +6160,7 @@ define(['js/app'], function (myApp) {
                             let rowData = JSON.parse(this.dataset.row);
                             $scope.safeApply();
 
-                            console.log("walaorewardvent", $("input.playerRewardEventForbid"))
-
                             $("input.playerRewardEventForbid").on('click', function () {
-                                console.log("walaorewardvent", $("input.playerRewardEventForbid"))
                                 let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                 let forbidRewardEvents = [];
                                 $.each(forbidRewardEventList, function (i, v) {

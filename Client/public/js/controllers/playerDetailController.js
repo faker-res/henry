@@ -6497,7 +6497,6 @@ define(['js/app'], function (myApp) {
         };
 
         vm.isForbidChanged = function (newForbid, oldForbid) {
-            console.log("walaoiamhere")
             var disableSubmit = true;
             if (!oldForbid) {
                 oldForbid = [];
