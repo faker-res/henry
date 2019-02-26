@@ -6627,16 +6627,20 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     [playerData, providerData] = data;
                     let platformData = playerData.platform;
-                    let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
-                    // if adminName doesn't exist (likely request from frontend), AND
-                    // requested provider is in player's forbid providers' list: then reject.
-                    if ((!adminName) && forbidProviders.indexOf(providerData._id.toString()) > -1) {
-                        return Promise.reject({
-                            name: "DataError",
-                            status: constServerCode.PLAYER_IS_FORBIDDEN,
-                            message: "Player is forbidden to the game"
-                        })
+
+                    if (playerData.forbidProviders && typeof playerData.forbidProviders === 'object') {
+                        let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
+                        // if adminName doesn't exist (likely request from frontend), AND
+                        // requested provider is in player's forbid providers' list: then reject.
+                        if ((!adminName) && forbidProviders.indexOf(providerData._id.toString()) > -1) {
+                            return Promise.reject({
+                                name: "DataError",
+                                status: constServerCode.PLAYER_IS_FORBIDDEN,
+                                message: "Player is forbidden to the game"
+                            })
+                        }
                     }
+
                     // Check is test player
                     if (playerData.isTestPlayer) {
                         return Promise.reject({
