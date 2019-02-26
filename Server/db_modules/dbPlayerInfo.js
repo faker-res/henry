@@ -22945,6 +22945,7 @@ let dbPlayerInfo = {
                     json: true
                 };
 
+                console.log("batchTopUpStatusAPIAddr check request before sent - ", data);
                 return rp(options)
                     .then(function (updateStatus) {
                         console.log('batch playerDepositStatus success', updateStatus);
@@ -22993,6 +22994,7 @@ let dbPlayerInfo = {
                             json: true
                         };
 
+                        console.log("topUpStatusAPIAddr check request before sent - ", sendObj);
                         return rp(options)
                             .then(function (updateStatus) {
                                 console.log('playerDepositStatus success', updateStatus);
