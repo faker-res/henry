@@ -363,19 +363,19 @@ const cpmsAPI = {
     },
 
     player_transferIn: function (data) {
-        return callCPMSAPI("player", "transferIn", data);
-        // return callCPMSAPIWithAutoMaintenance("player", "transferIn", data);
+        // return callCPMSAPI("player", "transferIn", data);
+        return callCPMSAPIWithAutoMaintenance("player", "transferIn", data);
     },
 
     player_queryCredit: function (data) {
         data.requestId = data.username + "_" + data.providerId + "_" + new Date().getTime();
-        return callCPMSAPI("player", "queryCredit", data);
-        // return callCPMSAPIWithAutoMaintenance("player", "queryCredit", data);
+        // return callCPMSAPI("player", "queryCredit", data);
+        return callCPMSAPIWithAutoMaintenance("player", "queryCredit", data);
     },
 
     player_transferOut: function (data) {
-        return callCPMSAPI("player", "transferOut", data);
-        // return callCPMSAPIWithAutoMaintenance("player", "transferOut", data);
+        // return callCPMSAPI("player", "transferOut", data);
+        return callCPMSAPIWithAutoMaintenance("player", "transferOut", data);
     },
 
     player_syncPlatforms: function (data) {
