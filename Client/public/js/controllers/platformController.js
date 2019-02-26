@@ -17122,7 +17122,19 @@ define(['js/app'], function (myApp) {
                     vm.addFeedback.content = "";
                     vm.addFeedback.result = "";
                     // vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
-                    vm.submitPlayerFeedbackQuery();
+                    if (vm.playerFeedbackSearchType = 'one') {
+                        vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                            vm.curPlayerFeedbackDetail = data;
+
+                            vm.curPlayerFeedbackDetail.forEach(item => {
+                                item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                            });
+
+                            $scope.safeApply();
+                        });
+                    } else {
+                        vm.submitPlayerFeedbackQuery();
+                    }
                 });
             };
 
