@@ -521,6 +521,8 @@ var roleChecker = {
                 providerGroup: ['deletePlatformProviderGroup'],
                 smsGroup: [],
                 BulkCall: [],
+                AddCtiUrl: ['addCtiUrlSubDomain'],
+                RemoveCtiUrl: ['removeCtiUrlSubDomain'],
                 DownloadTranslationCSV: ['downloadTranslationCSV'],
                 DecomposeAfterNDays: [],
                 AutoExportListOrMaxNumOfTxnEveryday: []

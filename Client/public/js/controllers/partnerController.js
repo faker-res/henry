@@ -602,12 +602,6 @@ define(['js/app'], function (myApp) {
                 vm.isCreateNewPlatform = false;
                 $cookies.put("platform", vm.selectedPlatform.text);
 
-                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.topUpSystemType) {
-                    commonService.getPaymentSystemName($scope, vm.selectedPlatform.data.topUpSystemType).catch(err => Promise.resolve('')).then(v => {
-                        vm.paymentSystemName = v;
-                    });
-                }
-
                 vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
                 beforeUpdatePlatform();
                 vm.retrievePlatformData(vm.showPlatform);
@@ -7042,11 +7036,7 @@ define(['js/app'], function (myApp) {
                     vm.partnerPayment.bankAccountName = (vm.partnerPayment.bankAccountName) ? vm.partnerPayment.bankAccountName : vm.isOneSelectedPartner().realName;
                     vm.partnerPayment.newBankAccount = vm.partnerPayment.encodedBankAccount;
                     vm.partnerPayment.showNewAccountNo = false;
-                    if(vm.paymentSystemName === 'PMS2') {
-                        vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
-                    } else {
-                        vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
-                    }
+                    vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
                     vm.filterBankName = '';
                     vm.currentProvince.province = vm.partnerPayment.bankAccountProvince;
                     vm.currentCity.city = vm.partnerPayment.bankAccountCity;
