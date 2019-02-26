@@ -228,39 +228,38 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
                 providerId: providerId,
                 status: constPlayerCreditTransferStatus.TIMEOUT,
                 createTime: {$gte: searchTimeStart}
-            }).sort({_id:-1});
+            }).sort({_id:-1}).lean();
             let searchQueryCreditTimeoutProm = dbconfig.collection_queryCreditTimeout.find({
                 platformObjId: platformObjId,
                 providerObjId: providerObjId,
                 createTime: {$gte: searchTimeStart}
-            }).sort({_id:-1});
+            }).sort({_id:-1}).lean();
 
             return Promise.all([searchTransferLogProm, searchQueryCreditTimeoutProm]);
         }
     }).then(logs => {
-        let transferLogs = logs[0];
-        let queryCreditLogs = logs[1];
-        let count = transferLogs.length + queryCreditLogs.length;
+        if(logs && logs.length > 0) {
+            let transferLogs = logs[0];
+            let queryCreditLogs = logs[1];
+            let count = transferLogs.length + queryCreditLogs.length;
 
-        if(count >= timeoutLimit) {
-            if(transferLogs.length > 0 && queryCreditLogs.length > 0) {
-                lastTimeoutDateTime = new Date(transferLogs[0].createTime).getTime() > new Date(queryCreditLogs[0].createTime).getTime() ?
-                    transferLogs[0].createTime : queryCreditLogs[0].createTime;
-            } else {
-                lastTimeoutDateTime = transferLogs.length > 0 ? transferLogs[0].createTime : queryCreditLogs[0].createTime;
+            if (count >= timeoutLimit) {
+                if (transferLogs.length > 0 && queryCreditLogs.length > 0) {
+                    lastTimeoutDateTime = new Date(transferLogs[0].createTime).getTime() > new Date(queryCreditLogs[0].createTime).getTime() ?
+                        transferLogs[0].createTime : queryCreditLogs[0].createTime;
+                } else {
+                    lastTimeoutDateTime = transferLogs.length > 0 ? transferLogs[0].createTime : queryCreditLogs[0].createTime;
+                }
+                //set provider to maintenance status
+                let isEnable = false;
+                return dbPlatform.updateProviderFromPlatformById(platformObjId, providerObjId, isEnable).then(() => {
+                    return dbconfig.collection_gameProvider.findOne({_id: providerObjId}).lean();
+                });
             }
-            //set provider to maintenance status
-            let isEnable = false;
-            return dbPlatform.updateProviderFromPlatformById(platformObjId, providerObjId, isEnable).then(()=>{
-                return dbconfig.collection_gameProvider.findOne({_id: providerObjId});
-            });
-        } else {
-            return null;
         }
     }).then(provider => {
         if(provider) {
             let providerName = provider.name;
-
             let sender = env.mailerNoReply;
             let recipient = env.providerTimeoutNotificationRecipient;
             let subject = `[FPMS System] - ${providerName} timeout limit reached, set status to maintenance. ${dbUtil.getLocalTime(new Date)}`;
@@ -290,10 +289,9 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
                 body: content,
                 isHTML: true
             };
+            let m1chatSendMessage = `${subject}`;
 
-            let michatSendMessage = `${subject}`;
-
-            m1chatAPI.send({content: michatSendMessage});
+            m1chatAPI.send({content: m1chatSendMessage});
             return emailer.sendEmail(emailConfig);
         }
     });
@@ -365,19 +363,19 @@ const cpmsAPI = {
     },
 
     player_transferIn: function (data) {
-        return callCPMSAPI("player", "transferIn", data);
-        // return callCPMSAPIWithAutoMaintenance("player", "transferIn", data);
+        // return callCPMSAPI("player", "transferIn", data);
+        return callCPMSAPIWithAutoMaintenance("player", "transferIn", data);
     },
 
     player_queryCredit: function (data) {
         data.requestId = data.username + "_" + data.providerId + "_" + new Date().getTime();
-        return callCPMSAPI("player", "queryCredit", data);
-        // return callCPMSAPIWithAutoMaintenance("player", "queryCredit", data);
+        // return callCPMSAPI("player", "queryCredit", data);
+        return callCPMSAPIWithAutoMaintenance("player", "queryCredit", data);
     },
 
     player_transferOut: function (data) {
-        return callCPMSAPI("player", "transferOut", data);
-        // return callCPMSAPIWithAutoMaintenance("player", "transferOut", data);
+        // return callCPMSAPI("player", "transferOut", data);
+        return callCPMSAPIWithAutoMaintenance("player", "transferOut", data);
     },
 
     player_syncPlatforms: function (data) {
