@@ -1151,7 +1151,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     "http://newpj.tel400.me/cti/previewcallout.action",
                     "http://xinpjdl.tel400.me/cti/previewcallout.action",
                     "http://jinbailinewcro.tel400.me/cti/previewcallout.action"
-                ]
+                ];
+            }
+
+            if (adminData.ctiUrl) {
+                urls = [`http://${adminData.ctiUrl}.tel400.me/cti/previewcallout.action`];
             }
 
             performPhoneCall();

@@ -28069,12 +28069,20 @@ define(['js/app'], function (myApp) {
                 vm.bulkCallBasic.definitionOfAnsweredPhone = vm.selectedPlatform.data.definitionOfAnsweredPhone || "";
                 vm.bulkCallBasic.decomposeAfterNDays = vm.selectedPlatform.data.decomposeAfterNDays || 1;
                 vm.bulkCallBasic.phoneWhiteListExportMaxNumber = vm.selectedPlatform.data.phoneWhiteListExportMaxNumber || 0;
+                vm.ctiUrlSubDomains = vm.ctiUrlSubDomains || [];
 
                 socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbackResults', {}, function (data) {
                     $scope.$evalAsync(() => {
                         vm.playerAllFeedBackResult = data.data;
                     });
                     vm.debounceRefreshSPicker();
+                });
+
+                $scope.$socketPromise("getCtiUrlSubDomainList", {}).then(data => {
+                    if (data && data.data) {
+                        vm.ctiUrlSubDomains = data.data;
+                    }
+                    $scope.$evalAsync();
                 });
 
                 $scope.safeApply();
@@ -28141,6 +28149,47 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+            };
+
+            vm.addNewCtiSubDomain = () => {
+                if (!vm.newCtiSubDomain && !utilService.isAlphaNumeric(vm.newCtiSubDomain)) {
+                    return;
+                }
+
+                return $scope.$socketPromise("addCtiUrlSubDomain", {urlSubDomain: vm.newCtiSubDomain}).then(
+                    () => {
+                        vm.newCtiSubDomain = "";
+                        socketService.showConfirmMessage($translate("add cti url success"), 3000);
+
+                        $scope.$socketPromise("getCtiUrlSubDomainList", {}).then(data => {
+                            if (data && data.data) {
+                                vm.ctiUrlSubDomains = data.data;
+                                $scope.$evalAsync();
+                            }
+                        });
+                    }
+                );
+
+            };
+
+            vm.deleteCtiSubDomain = () => {
+                if (!vm.deleteCtiUrl) {
+                    return;
+                }
+
+                return $scope.$socketPromise("removeCtiUrlSubDomain", {ctiUrlObjId: vm.deleteCtiUrl}).then(
+                    data => {
+                        vm.deleteCtiUrl = "";
+                        socketService.showConfirmMessage($translate("delete cti url success"), 3000);
+
+                        $scope.$socketPromise("getCtiUrlSubDomainList", {}).then(data => {
+                            if (data && data.data) {
+                                vm.ctiUrlSubDomains = data.data;
+                                $scope.$evalAsync();
+                            }
+                        });
+                    }
+                );
             };
 
             vm.getBlackWhiteListingConfig = function () {

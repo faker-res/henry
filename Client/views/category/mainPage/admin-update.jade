@@ -31,3 +31,8 @@ form(name="form_update_admin", novalidate)
 	div.form-group.col-lg-6
 		label.control-label {{"CTI_QUEUE_NUM" | translate}}
 		input.form-control(type="text", placeholder="(例: 9997)", ng-model="vm.newAdmin.callerQueue")
+	div.form-group.col-lg-6
+		label.control-label {{"CTI Route" | translate}}
+		select.form-control( ng-model="vm.newAdmin.ctiUrl")
+			option(value = "")
+			option(ng-repeat="v in vm.ctiUrlSubDomains" ng-value="v.urlSubDomain") {{v.urlSubDomain}}
