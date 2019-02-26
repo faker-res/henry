@@ -9275,6 +9275,7 @@ let dbPlayerInfo = {
 
                     }
                     else {
+                        console.log("check player level consumption", playerObj.name, errorMsg);
                         if (showReject) {
                             return Q.reject({
                                 status: errorCode,
