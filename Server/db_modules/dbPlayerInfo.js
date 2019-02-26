@@ -7241,7 +7241,7 @@ let dbPlayerInfo = {
         return Promise.all([playerProm, providerProm]).then(
             data => {
 
-
+                console.log('data[1].length', data[1].length);
 
                 if (data && data[0] && data[1] && data[1].length > 0) {
                     [playerObj, gameProvider] = data;
