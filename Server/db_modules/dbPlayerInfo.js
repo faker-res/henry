@@ -7268,7 +7268,7 @@ let dbPlayerInfo = {
 
                     // Enforce player to transfer out from correct last played provider
                     if(playerObj.lastPlayedProvider){
-                        indexOfProviderId = targetProviderId.findIndex(t => t == playerObj.lastPlayedProvider);
+                        indexOfProviderId = targetProviderId.findIndex(t => t == playerObj.lastPlayedProvider.providerId);
 
                         if(indexOfProviderId == -1 ){
                             gameProvider.forEach(
