@@ -1,78 +1,80 @@
 //div {{vm.playerData}}
-.row.margin-top-bottom-small
-    .col-md-12
-        table.common-table#playerFeedbackDataTable.display.widthto100
-.row.margin-top-bottom-small
-    .col-md-12
-        table.common-table#playerFeedbackDataTableExtended.display.widthto100
+.row.margin-left-5.margin-right-5(ng-if="checkViewPermission('Payment')")
+    #platformContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
+        .row.margin-top-bottom-small
+            .col-md-12
+                table.common-table#playerFeedbackDataTable.display.widthto100
+        .row.margin-top-bottom-small
+            .col-md-12
+                table.common-table#playerFeedbackDataTableExtended.display.widthto100
 
-.row.margin-top-bottom-small
-    .col-md-6
-        h4(ng-if="checkViewPermission('Platform','Feedback','Create')") {{"ADD_FEEDBACK" | translate}}
-        div.newcontanier
-            .row
-                .col-xs-2
-                    h5 {{'FEEDBACK_RESULTS' | translate}}
-                .col-xs-8
-                    select.search-filters-twoBoxes.form-control(ng-model='vm.addFeedback.result', required)
-                        option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
-                    button.btn.btn-primary.btn-space(ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
-            .row
-                .col-xs-2
-                    h5 {{'FEEDBACK_TOPIC' | translate}}
-                .col-xs-8
-                    select.search-filters-twoBoxes.form-control(ng-model='vm.addFeedback.topic', required)
-                        option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
-                    button.btn.btn-primary.btn-space(ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
-            .row
-                .col-xs-2
-                    h5 {{"REMARK" | translate}}
-                .col-xs-8
-                    textarea.form-control(rows='4' cols="40", ng-model='vm.addFeedback.content')
-            .text-right
-                button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result="";vm.addFeedback.topic="";') {{'Reset' | translate}}
-                button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.topic || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
+        .row.margin-top-bottom-small
+            .col-md-6
+                h4(ng-if="checkViewPermission('Platform','Feedback','Create')") {{"ADD_FEEDBACK" | translate}}
+                div.newcontanier
+                    .row
+                        .col-xs-2
+                            h5 {{'FEEDBACK_RESULTS' | translate}}
+                        .col-xs-8
+                            select.search-filters-twoBoxes.form-control(ng-model='vm.addFeedback.result', required)
+                                option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                            button.btn.btn-primary.btn-space(ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                    .row
+                        .col-xs-2
+                            h5 {{'FEEDBACK_TOPIC' | translate}}
+                        .col-xs-8
+                            select.search-filters-twoBoxes.form-control(ng-model='vm.addFeedback.topic', required)
+                                option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                            button.btn.btn-primary.btn-space(ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                    .row
+                        .col-xs-2
+                            h5 {{"REMARK" | translate}}
+                        .col-xs-8
+                            textarea.form-control(rows='4' cols="40", ng-model='vm.addFeedback.content')
+                    .text-right
+                        button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result="";vm.addFeedback.topic="";') {{'Reset' | translate}}
+                        button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.topic || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
 
-        h4 {{"CREDIBILITY_RECORD" | translate}}
-        table.simple-table
-            thead
-                tr
-                    th {{"OPERATOR_NAME" | translate}}
-                    th {{"TIME" | translate}}
-                    th {{"CREDIBILITY" | translate}}
-                    th {{"remark" | translate}}
-            tbody
-                tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
-                    td
-                        text {{data.admin}}
-                    td
-                        text {{data.createTime}}
-                    td
-                        text {{data.remarks$}}
-                    td
-                        text {{data.comment}}
-    .col-md-6
-        h4 {{"Feedback History" | translate}} : {{vm.curPlayerFeedbackDetail.length}}
-        table.simple-table
-            thead
-                tr
-                    th {{"TIME" | translate}}
-                    th {{"ADMIN" | translate}}
-                    th {{"RESULT" | translate}}
-                    th {{"FEEDBACK_TOPIC" | translate}}
-                    th {{"REMARK" | translate}}
-            tbody
-                tr(ng-repeat='(i,v) in vm.curPlayerFeedbackDetail', ng-show='vm.curPlayerFeedbackDetail.length>0')
-                    td
-                        text {{vm.dateReformat(v.createTime)}}
-                    td
-                        text {{v.adminId.adminName || 'Unknown' | translate}}
-                    td
-                        text {{v.result$}}
-                    td
-                        text {{v.topic | translate}}
-                    td
-                        text {{v.content}}
+                h4 {{"CREDIBILITY_RECORD" | translate}}
+                table.simple-table
+                    thead
+                        tr
+                            th {{"OPERATOR_NAME" | translate}}
+                            th {{"TIME" | translate}}
+                            th {{"CREDIBILITY" | translate}}
+                            th {{"remark" | translate}}
+                    tbody
+                        tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
+                            td
+                                text {{data.admin}}
+                            td
+                                text {{data.createTime}}
+                            td
+                                text {{data.remarks$}}
+                            td
+                                text {{data.comment}}
+            .col-md-6
+                h4 {{"Feedback History" | translate}} : {{vm.curPlayerFeedbackDetail.length}}
+                table.simple-table
+                    thead
+                        tr
+                            th {{"TIME" | translate}}
+                            th {{"ADMIN" | translate}}
+                            th {{"RESULT" | translate}}
+                            th {{"FEEDBACK_TOPIC" | translate}}
+                            th {{"REMARK" | translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.curPlayerFeedbackDetail', ng-show='vm.curPlayerFeedbackDetail.length>0')
+                            td
+                                text {{vm.dateReformat(v.createTime)}}
+                            td
+                                text {{v.adminId.adminName || 'Unknown' | translate}}
+                            td
+                                text {{v.result$}}
+                            td
+                                text {{v.topic | translate}}
+                            td
+                                text {{v.content}}
 
 
 

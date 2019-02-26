@@ -4365,6 +4365,7 @@ var proposalExecutor = {
                         json: true
                     };
 
+                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
                     return rp(options)
                         .then(
                             deferred.resolve, deferred.reject
@@ -4453,6 +4454,7 @@ var proposalExecutor = {
                         json: true
                     };
 
+                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
                     return rp(options)
                         .then(
                             deferred.resolve, deferred.reject
@@ -4521,6 +4523,7 @@ var proposalExecutor = {
                         json: true
                     };
 
+                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
                     return rp(options)
                         .then(
                             deferred.resolve, deferred.reject
@@ -4584,6 +4587,7 @@ var proposalExecutor = {
                         json: true
                     };
 
+                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
                     return rp(options)
                         .then(
                             deferred.resolve, deferred.reject

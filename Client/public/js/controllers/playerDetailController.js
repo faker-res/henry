@@ -977,13 +977,13 @@ define(['js/app'], function (myApp) {
                             vm.prohibitGamePopover = data;
                             vm.forbidGameDisable = true;
                             vm.forbidGameRemark = '';
-                            $scope.$evalAsync();
+                            $scope.safeApply(); // safe apply is neccessary here
                             return $compile($('#prohibitGamePopover').html())($scope);
                         },
                         callback: function () {
                             let thisPopover = utilService.$getPopoverID(this);
                             let rowData = JSON.parse(this.dataset.row);
-                            $scope.$evalAsync();
+                            $scope.safeApply(); // safe apply is neccessary here
 
                             $("button.forbidGameCancel").on('click', function () {
                                 $(".prohibitGamePopover").popover('hide');
@@ -1005,7 +1005,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 });
                                 vm.forbidGameDisable = vm.isForbidChanged(forbidProviders, vm.prohibitGamePopover.forbidProviders);
-                                $scope.$evalAsync();
+                                $scope.safeApply(); // safe apply is neccessary here
                             });
 
                             $("button.forbidGameConfirm").on('click', function () {
@@ -1038,13 +1038,13 @@ define(['js/app'], function (myApp) {
                             vm.forbidRewardPointsEventPopover = data;
                             vm.forbidRewardPointsEventDisable = true;
                             vm.forbidRewardPointsEventRemark = '';
-                            $scope.$evalAsync();
+                            $scope.safeApply();
                             return $compile($('#forbidRewardPointsEventPopover').html())($scope);
                         },
                         callback: function () {
                             let thisPopover = utilService.$getPopoverID(this);
                             let rowData = JSON.parse(this.dataset.row);
-                            $scope.$evalAsync();
+                            $scope.safeApply();
 
                             $("button.forbidRewardPointsEventCancel").on('click', function () {
                                 $(".forbidRewardPointsEventPopover").popover('hide');
@@ -1066,7 +1066,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 });
                                 vm.forbidRewardPointsEventDisable = vm.isForbidChanged(forbidRewardPointsEvent, vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent);
-                                $scope.$evalAsync();
+                                $scope.safeApply();
                             });
 
                             $("button.forbidRewardPointsEventConfirm").on('click', function () {
@@ -1099,13 +1099,13 @@ define(['js/app'], function (myApp) {
                             vm.forbidTopUpPopover = data;
                             vm.forbidTopUpDisable = true;
                             vm.forbidTopUpRemark = '';
-                            $scope.$evalAsync();
+                            $scope.safeApply();
                             return $compile($('#forbidTopUpPopover').html())($scope);
                         },
                         callback: function () {
                             let thisPopover = utilService.$getPopoverID(this);
                             let rowData = JSON.parse(this.dataset.row);
-                            $scope.$evalAsync();
+                            $scope.safeApply();
 
                             $("button.forbidTopUpCancel").on('click', function () {
                                 $(".forbidTopUpPopover").popover('hide');
@@ -1127,7 +1127,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 });
                                 vm.forbidTopUpDisable = vm.isForbidChanged(forbidTopUpTypes, vm.forbidTopUpPopover.forbidTopUpType);
-                                $scope.$evalAsync();
+                                $scope.safeApply();
                             });
 
                             $("button.forbidTopUpConfirm").on('click', function () {
@@ -1152,6 +1152,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
+
                     utilService.setupPopover({
                         context: container,
                         elem: '.forbidRewardEventPopover',
@@ -1160,14 +1161,13 @@ define(['js/app'], function (myApp) {
                             vm.forbidRewardEventPopover = data;
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
-                            $scope.$evalAsync();
+                            $scope.safeApply();
                             return $compile($('#forbidRewardEventPopover').html())($scope);
                         },
                         callback: function () {
                             let thisPopover = utilService.$getPopoverID(this);
                             let rowData = JSON.parse(this.dataset.row);
-                            $scope.$evalAsync();
-
+                            $scope.safeApply();
                             $("input.playerRewardEventForbid").on('click', function () {
                                 let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                 let forbidRewardEvents = [];
@@ -1177,7 +1177,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 });
                                 vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
-                                $scope.$evalAsync();
+                                $scope.safeApply();
                             });
 
                             $("button.forbidRewardEventCancel").on('click', function () {
