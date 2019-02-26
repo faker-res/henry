@@ -228,12 +228,12 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
                 providerId: providerId,
                 status: constPlayerCreditTransferStatus.TIMEOUT,
                 createTime: {$gte: searchTimeStart}
-            }).sort({_id:-1});
+            }).sort({_id:-1}).lean();
             let searchQueryCreditTimeoutProm = dbconfig.collection_queryCreditTimeout.find({
                 platformObjId: platformObjId,
                 providerObjId: providerObjId,
                 createTime: {$gte: searchTimeStart}
-            }).sort({_id:-1});
+            }).sort({_id:-1}).lean();
 
             return Promise.all([searchTransferLogProm, searchQueryCreditTimeoutProm]);
         }
@@ -253,10 +253,8 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
                 //set provider to maintenance status
                 let isEnable = false;
                 return dbPlatform.updateProviderFromPlatformById(platformObjId, providerObjId, isEnable).then(() => {
-                    return dbconfig.collection_gameProvider.findOne({_id: providerObjId});
+                    return dbconfig.collection_gameProvider.findOne({_id: providerObjId}).lean();
                 });
-            } else {
-                return null;
             }
         }
     }).then(provider => {
