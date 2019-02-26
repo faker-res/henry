@@ -4986,6 +4986,8 @@
   "CTI Route": "电话线路",
   "add cti url success": "添加CTI链接成功",
   "delete cti url success": "删除CTI链接成功",
+  "AddCtiUrl": "添加新CTI线路",
+  "RemoveCtiUrl": "删除CTI线路",
 
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",
