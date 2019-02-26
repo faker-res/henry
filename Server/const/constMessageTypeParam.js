@@ -201,26 +201,219 @@ const constMessageTypeParam = {
         name:"PromoCodeSend",
         params:[]
     },
-    AUCTION_PROMO_CODE_SUCCESS: {
-        name:"AuctionPromoCodeSuccess",
+    AUCTION_PROMO_CODE_B_SUCCESS: {
+        name:"AuctionPromoCodeBSuccess",
         params:[
             {parameterName:'proposalData.data.productName' , description:'Product Name'},
             {parameterName:'proposalData.data.expirationTime' , description:'expirationTime'},
-            {parameterName:'proposalData.data.promoCode' , description:'PromoCode'}
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingAmount' , description:'spendingAmount'},
+            {parameterName:'proposalData.data.promoCode' , description:'PromoCode'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'}
         ]
     },
-    AUCTION_OPEN_PROMO_CODE_SUCCESS: {
-        name:"AuctionOpenPromoCodeSuccess",
+    AUCTION_PROMO_CODE_B_PENDING: {
+        name:"AuctionPromoCodeBPending",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingAmount' , description:'spendingAmount'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'}
+        ]
+    },
+    AUCTION_PROMO_CODE_B_REJECT: {
+        name:"AuctionPromoCodeBReject",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingAmount' , description:'spendingAmount'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'refundPrice'}
+        ]
+    },
+    AUCTION_PROMO_CODE_C_SUCCESS: {
+        name:"AuctionPromoCodeCSuccess",
         params:[
             {parameterName:'proposalData.data.productName' , description:'Product Name'},
             {parameterName:'proposalData.data.expirationTime' , description:'expirationTime'},
-            {parameterName:'proposalData.data.promoCode' , description:'PromoCode'}
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardPercentage' , description:'rewardPercentage'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingTimes' , description:'spendingTimes'},
+            {parameterName:'proposalData.data.promoCode' , description:'PromoCode'},
+            {parameterName:'proposalData.data.maxRewardAmount' , description:'maxRewardAmount'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'}
+        ]
+    },
+    AUCTION_PROMO_CODE_C_PENDING: {
+        name:"AuctionPromoCodeCPending",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardPercentage' , description:'rewardPercentage'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingTimes' , description:'spendingTimes'},
+            {parameterName:'proposalData.data.maxRewardAmount' , description:'maxRewardAmount'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'}
+        ]
+    },
+    AUCTION_PROMO_CODE_C_REJECT: {
+        name:"AuctionPromoCodeCReject",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardPercentage' , description:'rewardPercentage'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingTimes' , description:'spendingTimes'},
+            {parameterName:'proposalData.data.maxRewardAmount' , description:'maxRewardAmount'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'refundPrice'}
+        ]
+    },
+    AUCTION_OPEN_PROMO_CODE_B_SUCCESS: {
+        name:"AuctionOpenPromoCodeBSuccess",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.data.expirationTime' , description:'expirationTime'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingAmount' , description:'spendingAmount'},
+            {parameterName:'proposalData.data.promoCode' , description:'PromoCode'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'},
+            {parameterName:'proposalData.data.upperLimitPerPlayer' , description:'limitPerPlayer'},
+            {parameterName:'proposalData.data.totalQuantityLimit' , description:'totalQuantityLimit'},
+            {parameterName:'proposalData.data.limitPerSameIp' , description:'limitPerIP'}
+        ]
+    },
+    AUCTION_OPEN_PROMO_CODE_B_PENDING: {
+        name:"AuctionOpenPromoCodeBPending",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingAmount' , description:'spendingAmount'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'},
+            {parameterName:'proposalData.data.upperLimitPerPlayer' , description:'limitPerPlayer'},
+            {parameterName:'proposalData.data.totalQuantityLimit' , description:'totalQuantityLimit'},
+            {parameterName:'proposalData.data.limitPerSameIp' , description:'limitPerIP'}
+        ]
+    },
+    AUCTION_OPEN_PROMO_CODE_B_REJECT: {
+        name:"AuctionOpenPromoCodeBReject",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingAmount' , description:'spendingAmount'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'refundPrice'},
+            {parameterName:'proposalData.data.upperLimitPerPlayer' , description:'limitPerPlayer'},
+            {parameterName:'proposalData.data.totalQuantityLimit' , description:'totalQuantityLimit'},
+            {parameterName:'proposalData.data.limitPerSameIp' , description:'limitPerIP'}
+        ]
+    },
+    AUCTION_OPEN_PROMO_CODE_C_SUCCESS: {
+        name:"AuctionOpenPromoCodeCSuccess",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.data.expirationTime' , description:'expirationTime'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardPercentage' , description:'rewardPercentage'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingTimes' , description:'spendingTimes'},
+            {parameterName:'proposalData.data.promoCode' , description:'PromoCode'},
+            {parameterName:'proposalData.data.maxRewardAmount' , description:'maxRewardAmount'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'},
+            {parameterName:'proposalData.data.upperLimitPerPlayer' , description:'limitPerPlayer'},
+            {parameterName:'proposalData.data.totalQuantityLimit' , description:'totalQuantityLimit'},
+            {parameterName:'proposalData.data.limitPerSameIp' , description:'limitPerIP'}
+        ]
+    },
+    AUCTION_OPEN_PROMO_CODE_C_PENDING: {
+        name:"AuctionOpenPromoCodeCPending",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardPercentage' , description:'rewardPercentage'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingTimes' , description:'spendingTimes'},
+            {parameterName:'proposalData.data.maxRewardAmount' , description:'maxRewardAmount'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'},
+            {parameterName:'proposalData.data.upperLimitPerPlayer' , description:'limitPerPlayer'},
+            {parameterName:'proposalData.data.totalQuantityLimit' , description:'totalQuantityLimit'},
+            {parameterName:'proposalData.data.limitPerSameIp' , description:'limitPerIP'}
+        ]
+    },
+    AUCTION_OPEN_PROMO_CODE_C_REJECT: {
+        name:"AuctionOpenPromoCodeCReject",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardPercentage' , description:'rewardPercentage'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingTimes' , description:'spendingTimes'},
+            {parameterName:'proposalData.data.maxRewardAmount' , description:'maxRewardAmount'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'refundPrice'},
+            {parameterName:'proposalData.data.upperLimitPerPlayer' , description:'limitPerPlayer'},
+            {parameterName:'proposalData.data.totalQuantityLimit' , description:'totalQuantityLimit'},
+            {parameterName:'proposalData.data.limitPerSameIp' , description:'limitPerIP'}
         ]
     },
     AUCTION_REAL_PRIZE_SUCCESS: {
         name:"AuctionRealPrizeSuccess",
         params:[
             {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'},
+        ]
+    },
+    AUCTION_REAL_PRIZE_PENDING: {
+        name:"AuctionRealPrizePending",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'},
+        ]
+    },
+    AUCTION_REAL_PRIZE_REJECT: {
+        name:"AuctionRealPrizeReject",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'refundPrice'},
         ]
     },
     AUCTION_REWARD_PROMOTION_SUCCESS: {
@@ -229,13 +422,67 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.data.productName' , description:'Product Name'},
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
             {parameterName:'proposalData.data.requiredUnlockAmount' , description:'Spending times on reward'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'},
+
+        ]
+    },
+    AUCTION_REWARD_PROMOTION_PENDING: {
+        name:"AuctionRewardPromotionPending",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.requiredUnlockAmount' , description:'Spending times on reward'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'},
+
+        ]
+    },
+    AUCTION_REWARD_PROMOTION_REJECT: {
+        name:"AuctionRewardPromotionReject",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.requiredUnlockAmount' , description:'Spending times on reward'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'refundPrice'},
+
         ]
     },
     AUCTION_REWARD_POINT_CHANGE_SUCCESS: {
         name:"AuctionRewardPointChangeSuccess",
         params:[
             {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.data.rewardPointsVariable' , description:'Changes of Reward Points'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'},
+        ]
+    },
+    AUCTION_REWARD_POINT_CHANGE_PENDING: {
+        name:"AuctionRewardPointChangePending",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.rewardPointsVariable' , description:'Changes of Reward Points'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'bidPrice'},
+        ]
+    },
+    AUCTION_REWARD_POINT_CHANGE_REJECT: {
+        name:"AuctionRewardPointChangeReject",
+        params:[
+            {parameterName:'proposalData.data.productName' , description:'Product Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.data.rewardPointsVariable' , description:'Changes of Reward Points'},
+            {parameterName:'proposalData.data.currentBidPrice' , description:'refundPrice'},
         ]
     }
 

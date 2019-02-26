@@ -221,7 +221,8 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         tr
                                             td(colspan=2) {{ vm.msgTemplate.invitationTemplate}}
                                             td(style="border:none;") {{ 'Channel' | translate }} :
-                                                select.form-control(ng-model="vm.smsChannel", ng-init="vm.smsChannel = '2'", style="width:75px;display:inline-block;")
+                                                select.form-control(ng-model='vm.smsChannel', ng-options='a for a in usableChannelList', style="width:75px;display:inline-block;")
+                                                //select.form-control(ng-model="vm.smsChannel", ng-init="vm.smsChannel = '2'", style="width:75px;display:inline-block;")
                                                     option(value='2') {{'2'}}
                                                     option(value='3') {{'3'}}
 

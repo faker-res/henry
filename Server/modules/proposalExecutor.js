@@ -9,6 +9,7 @@ var constProposalType = require('./../const/constProposalType');
 var dbRewardTask = require('./../db_modules/dbRewardTask');
 var dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
+var dbPlayerFeedback = require('../db_modules/dbPlayerFeedback');
 var dbLogger = require("./../modules/dbLogger");
 var constRewardTaskStatus = require("./../const/constRewardTaskStatus");
 var constShardKeys = require("./../const/constShardKeys");
@@ -3575,9 +3576,13 @@ var proposalExecutor = {
             },
 
             executeBulkExportPlayerData: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+                if (proposalData && proposalData.data && proposalData.proposalId) {
+                    return dbPlayerFeedback.getExportedData(proposalData.proposalId).then(
+                        data => deferred.resolve(data),
+                        error => deferred.reject(error)
+                    );
+                } else {
+                    return deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
                 }
             },
 
@@ -3608,7 +3613,26 @@ var proposalExecutor = {
             },
 
             executeAuctionPromoCode: function (proposalData) {
-                if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.SUCCESS ||
+                if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.PENDING)) {
+                    if (proposalData.data.type == 1){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_PROMO_CODE_B_PENDING, {});
+                    }
+                    else if (proposalData.data.type == 3){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_PROMO_CODE_C_PENDING, {});
+                    }
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.REJECTED)) {
+
+                    if (proposalData.data.type == 1){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_PROMO_CODE_B_REJECT, {});
+                    }
+                    else if (proposalData.data.type == 3){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_PROMO_CODE_C_REJECT, {});
+                    }
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.SUCCESS ||
                     proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
                     let code = null;
                     let expirationDate = null;
@@ -3691,14 +3715,21 @@ var proposalExecutor = {
                         }
                     ).then(
                         retData => {
-                            if (retData[1]){
-                                sendMessageToPlayer(retData[1], constMessageType.AUCTION_PROMO_CODE_SUCCESS, {});
+                            if (retData[1] && retData[1].data){
+
+                                if (retData[1].data.type && retData[1].data.type == 1){
+                                    sendMessageToPlayer(retData[1], constMessageType.AUCTION_PROMO_CODE_B_SUCCESS, {});
+                                }
+                                else if (retData[1].data.type && retData[1].data.type == 3){
+                                    sendMessageToPlayer(retData[1], constMessageType.AUCTION_PROMO_CODE_C_SUCCESS, {});
+                                }
                                 dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                                 return retData[1]
                             }
                         }
                     ).catch(
                         err => {
+                            console.log("checking error message", err)
                             dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                             throw err;
                         }
@@ -3710,7 +3741,6 @@ var proposalExecutor = {
             },
 
             executeAuctionOpenPromoCode: function (proposalData) {
-                console.log("checking proposal data", proposalData)
                 console.log("checking proposal data.status", proposalData.status)
 
                 if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.SUCCESS ||
@@ -3725,7 +3755,7 @@ var proposalExecutor = {
                                 let todayEndTime = dbUtil.getTodaySGTime().endTime;
                                 expirationDate = dbUtil.getNdaylaterFromSpecificStartTime(openPromoCodeTemplate.expiredInDay, todayEndTime);
                                 code = openPromoCodeTemplate.code;
-                                isProvidderGroup = openPromoCodeTemplate.isProviderGroup;
+                                isProviderGroup = openPromoCodeTemplate.isProviderGroup;
                                 let updateObj = {
                                     expirationTime: expirationDate,
                                     status: constPromoCodeStatus.AVAILABLE
@@ -3747,18 +3777,42 @@ var proposalExecutor = {
                         }
                     ).then(
                         updatedProposalData => {
-                            if (updatedProposalData){
-                                sendMessageToPlayer(updatedProposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_SUCCESS, {});
+                            if (updatedProposalData && updatedProposalData.data){
+
+                                if (updatedProposalData.data.type && updatedProposalData.data.type == 1){
+                                    sendMessageToPlayer(updatedProposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_B_SUCCESS, {});
+                                }
+                                else if (updatedProposalData.type && updatedProposalData.data.type == 3){
+                                    sendMessageToPlayer(updatedProposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_C_SUCCESS, {});
+                                }
+
                                 return updatedProposalData
                             }
                         }
-
                     ).catch(
                         err => {
                             console.log("error when execute the auction openPromoCode", err);
                         }
 
                     )
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PENDING)) {
+                    if (proposalData.data.type == 1){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_B_PENDING, {});
+                    }
+                    else if (proposalData.data.type == 3){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_C_PENDING, {});
+                    }
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.REJECTED)) {
+                    if (proposalData.data.type == 1){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_B_REJECT, {});
+                    }
+                    else if (proposalData.data.type == 3){
+                        sendMessageToPlayer(proposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_C_REJECT, {});
+                    }
+                    return Promise.resolve(proposalData);
                 }
                 else {
                     return Promise.resolve();
@@ -3844,6 +3898,14 @@ var proposalExecutor = {
                         }
                     )
                 }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PENDING)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_PROMOTION_PENDING, {});
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.REJECTED)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_PROMOTION_REJECT, {});
+                    return Promise.resolve(proposalData);
+                }
                 else {
                     return Promise.resolve();
                 }
@@ -3853,6 +3915,14 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.SUCCESS ||
                     proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
                     sendMessageToPlayer(proposalData, constMessageType.AUCTION_REAL_PRIZE_SUCCESS, {});
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PENDING)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REAL_PRIZE_PENDING, {});
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.REJECTED)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REAL_PRIZE_REJECT, {});
                     return Promise.resolve(proposalData);
                 }
                 else {
@@ -3873,7 +3943,15 @@ var proposalExecutor = {
                     let creator = proposalData.data.seller || 'System';
 
                     sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_POINT_CHANGE_SUCCESS, {});
-                    return dbPlayerInfo.updatePlayerRewardPointsRecord (playerObjId, platformObjId, updateAmount, remark, null, null,creator, userDevice)
+                    return dbPlayerInfo.updatePlayerRewardPointsRecord (playerObjId, platformObjId, updateAmount, remark, null, null, creator, userDevice)
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PENDING)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_POINT_CHANGE_PENDING, {});
+                    return Promise.resolve(proposalData);
+                }
+                else if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.REJECTED)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_POINT_CHANGE_REJECT, {});
+                    return Promise.resolve(proposalData);
                 }
                 else {
                     return Promise.resolve();
@@ -4274,7 +4352,25 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                if (proposalData && proposalData.data && proposalData.data.topUpSystemType
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    let data = {
+                        proposalId: proposalData.proposalId
+                    };
+
+                    let options = {
+                        method: 'POST',
+                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
+                        body: data,
+                        json: true
+                    };
+
+                    return rp(options)
+                        .then(
+                            deferred.resolve, deferred.reject
+                        );
+
+                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     pmsAPI.payment_modifyManualTopupRequest({
                         requestId: proposalData.data.requestId,
                         operationType: constManualTopupOperationType.CANCEL,
@@ -4344,7 +4440,25 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                if (proposalData && proposalData.data && proposalData.data.topUpSystemType
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    let data = {
+                        proposalId: proposalData.proposalId
+                    };
+
+                    let options = {
+                        method: 'POST',
+                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
+                        body: data,
+                        json: true
+                    };
+
+                    return rp(options)
+                        .then(
+                            deferred.resolve, deferred.reject
+                        );
+
+                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     pmsAPI.payment_modifyManualTopupRequest({
                         requestId: proposalData.data.requestId,
                         operationType: constManualTopupOperationType.CANCEL,
@@ -4394,7 +4508,25 @@ var proposalExecutor = {
              * reject function for player manual top up
              */
             rejectManualPlayerTopUp: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                if (proposalData && proposalData.data && proposalData.data.topUpSystemType
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    let data = {
+                        proposalId: proposalData.proposalId
+                    };
+
+                    let options = {
+                        method: 'POST',
+                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
+                        body: data,
+                        json: true
+                    };
+
+                    return rp(options)
+                        .then(
+                            deferred.resolve, deferred.reject
+                        );
+
+                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
                         wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
@@ -4439,7 +4571,25 @@ var proposalExecutor = {
              * reject function for player assign manual top up
              */
             rejectPlayerAssignTopUp: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                if (proposalData && proposalData.data && proposalData.data.topUpSystemType
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    let data = {
+                        proposalId: proposalData.proposalId
+                    };
+
+                    let options = {
+                        method: 'POST',
+                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
+                        body: data,
+                        json: true
+                    };
+
+                    return rp(options)
+                        .then(
+                            deferred.resolve, deferred.reject
+                        );
+
+                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
                         wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
@@ -4976,8 +5126,12 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
                 rewardTaskGroup.forEach(
                     rtg => {
+                        console.log("LH Check RTG unlock 1 -------------------", rtg);
+                        console.log("LH Check RTG unlock 2 -------------------", platform.autoUnlockWhenInitAmtLessThanLostThreshold);
+                        console.log("LH Check RTG unlock 3 -------------------", platform.autoApproveLostThreshold );
                         if(rtg && platform && rtg._id && rtg.totalCredit && platform.autoUnlockWhenInitAmtLessThanLostThreshold
                             && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
+                            console.log("LH Check RTG unlock 4 -------------------");
                             rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
                             dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
                                 if (rewards){

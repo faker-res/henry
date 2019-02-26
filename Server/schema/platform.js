@@ -507,7 +507,11 @@ var platformSchema = new Schema({
     // Switch Payment System - bonus
     bonusSystemType: {type: Number},
     // to identify current using FPMS payment method
-    isFPMSPaymentSystem: {type: Boolean, default: false}
+    isFPMSPaymentSystem: {type: Boolean, default: false},
+    // Set provider to maintenance status if consecutively timed out after N times
+    disableProviderAfterConsecutiveTimeoutCount: {type: Number},
+    // provider consecutively timed out search time frame (last N minutes)
+    providerConsecutiveTimeoutSearchTimeFrame: {type: Number},
 });
 
 //add platform id before save

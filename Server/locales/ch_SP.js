@@ -51,7 +51,9 @@ var simplifiedChinese = {
     "Currently no available alipay": "目前无可用支付宝",
     "Currently no available wechatpay": "目前无可用微信支付",
     "Guest ID cannot update password": "游客不可更改密码",
+    "This game has been added before": "该游戏已经收藏",
 
+    "Birthday only can be set once": "生日绑定之后不可更改",
     "Reset password failed": "找回密码失败",
     "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually": "提示！此玩家无绑定电话（或不方便短信验证）、银行卡，无法进行核对，请客服人工进行其他方式核对后手动修改密码。",
     "Attention! This player has been forbidden to login": "提示！此玩家已被禁止登录。",
@@ -259,6 +261,7 @@ var simplifiedChinese = {
     "Player has pending manual topup request already.": "玩家已有手工充值记录",
     "The player has not unlocked the previous reward task. Not valid for new reward": "玩家已有奖励任务，无法申请新的奖励",
     "This reward event is not valid anymore": "活动未开始，敬请期待",
+    "This reward event has ended, thank you for your support": "活动已结束，谢谢支持",
     "Password is too short": "密码长度不够",
     "Player has pending proposal to update credit": "正在修改玩家额度",
     "Player or partner already has a pending proposal for this type": "有类似请求正在处理中",

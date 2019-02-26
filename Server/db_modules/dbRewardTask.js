@@ -454,7 +454,6 @@ const dbRewardTask = {
                 } else {
                     rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(query._id), String(query._id)]};
                 }
-
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
                     model: dbconfig.collection_proposalType
@@ -529,7 +528,7 @@ const dbRewardTask = {
         if (!rewards && !rewardTaskGroup) {
             return Q.reject("Record is not found");
         }
-        
+
         let totalAmount = rewardTaskGroup.currentAmt - rewardTaskGroup.initAmt; // for winlost count
         let totalConsumption = rewardTaskGroup.curConsumption;
 
@@ -547,8 +546,7 @@ const dbRewardTask = {
             let requiredUnlockedConsumption = item.data.actualAmountReceived ? item.data.actualAmountReceived :  item.data.amount ?  item.data.amount : item.data.spendingAmount || item.data.requiredUnlockAmount; // amount from topUp Type; spendingAmount from reward Type
             let applyAmount = item.data.applyAmount || item.data.amount;
             let bonusAmount = item.data.rewardAmount;
-            let requiredUnlockedAmount = (applyAmount || 0) +  (bonusAmount || 0);
-
+            let requiredUnlockedAmount = bonusAmount ? bonusAmount : (applyAmount || 0);
             // check if consumption reached unlocked limit
             if (totalConsumption >= requiredUnlockedConsumption){
                 item.data.consumptionProgress = requiredUnlockedConsumption;
@@ -570,6 +568,7 @@ const dbRewardTask = {
             }
 
             if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
+                requiredUnlockedAmount = (applyAmount || 0) + (bonusAmount || 0);
                 usedTopUp.push(item.topUpProposal)
             }
 
@@ -1735,6 +1734,8 @@ const dbRewardTask = {
                         let platform = data[0];
                         let providerGroup = data[1];
                         let promArr = [];
+                        let cpmsAPI = require("../externalAPI/cpmsAPI");
+
                         if(providerGroup && providerGroup.providers && providerGroup.providers.length > 0) {
                             providerGroup.providers.forEach(provider => {
                                 if(provider) {
@@ -2274,6 +2275,11 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     }
                 };
 
+                console.log("LH Check RTG unlock 0-------------", currentAmt);
+                console.log("LH Check RTG unlock 0.1-------------", bonusAmt);
+                console.log("LH Check RTG unlock 0.2-------------", remainBonusAmt);
+                console.log("LH Check RTG unlock 0.3-------------", updObj);
+
                 return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                     {_id: rewardTaskGroup._id},
                     updObj,
@@ -2330,7 +2336,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 unlockTime: createTime
                             };
 
-                            console.log("LH Check RTG unlock 1-------------", updatedRTG.currentAmt);
+                            console.log("LH Check RTG unlock 1-------------", updatedRTG);
+                            console.log("LH Check RTG unlock 1.1-------------", updatedRTG.currentAmt);
                             console.log("LH Check RTG unlock 2-------------", platform.autoApproveLostThreshold);
 
                             // Check whether player has lost all credit

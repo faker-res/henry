@@ -24,3 +24,6 @@
                                 text {{'New Phone' | translate}}
                                 .badge.pull-right(style='background-color:red; color:white', ng-show='vm.decompositionListCount > 0') {{vm.decompositionListCount}}
                             li.list-group-item.text-danger(ng-if='vm.decompositionListCount==0') {{"NONE" | translate}} {{"New Phone List" | translate}}
+                            li.list-group-item(ng-click='vm.getFeedbackPhoneTradeDetail();vm.multiDecomposedNewPhoneSelected=[];', title= "{{'OTHER_DEPARTMENT_TS_LIST' | translate}}")
+                                text {{'OTHER_DEPARTMENT_TS_LIST' | translate}}
+                                .badge.pull-right(style='background-color:red; color:white', ng-show='vm.feedbackPhoneListCount > 0') {{vm.feedbackPhoneListCount}}

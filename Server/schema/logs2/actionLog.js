@@ -8,11 +8,11 @@ var actionLogSchema = new Schema({
     // playerId
     player: {type: Schema.ObjectId, ref: 'player', required: true, index: true},
     // action
-    action: String,
+    action: {type: String, index: true},
     //provider
     providerId: {type: Schema.ObjectId, index: true},
     // Date of action
-    operationTime: {type: Date, default: Date.now},
+    operationTime: {type: Date, default: Date.now, index: true},
     // IP address used when taking the action
     ipAddress: String,
     // Area of the IP address
@@ -27,8 +27,9 @@ var actionLogSchema = new Schema({
     //domain name
     domain: String,
     //input device that trigger this action log
-    inputDevice: Number
-
+    inputDevice: Number,
+    // Save Game ID if player is entering game
+    gameObjId: {type: Schema.ObjectId, index: true}
 });
 
 module.exports = actionLogSchema;

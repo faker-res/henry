@@ -116,6 +116,10 @@
     <label>clientDomainName
         <input name="clientDomainName">
     </label>
+    <p></p>
+    <label>Table Id
+        <input name="tableId">
+    </label>
     <!--
      <label>platformId
          <input name="platformId">
@@ -536,6 +540,32 @@
     </div>
     <div>
         <button data-api-name="modifyGamePassword">Modify</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Get Live Game Info(获取真人游戏实时详情)</h3>
+<div class="test-container">
+    <div>
+        <label>switchNotify
+            <input name="switchNotify">
+        </label>
+    </div>
+    <div>
+        <label>count
+            <input name="count" type="number">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="getLiveGameInfo">Search</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Notify Live Game Status(服务器推送真人游戏变化)</h3>
+<div class="test-container">
+    <div>
+        <button data-api-name="notifyLiveGameStatus">Get</button>
     </div>
     <textarea></textarea>
 </div>

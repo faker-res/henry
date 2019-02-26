@@ -12,6 +12,8 @@ var platformWechatPayListSchema = new Schema({
     nickName: {type:String},
     isFPMS: {type: Boolean, default: false, index: true},
     quotaUsed : {type: Number, default: 0},
+    //if it is pms2
+    isPMS2: {type: Boolean, index: true}
 });
 
 module.exports = platformWechatPayListSchema;

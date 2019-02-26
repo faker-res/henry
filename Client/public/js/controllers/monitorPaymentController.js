@@ -4895,7 +4895,7 @@ define(['js/app'], function (myApp) {
 
         function getMerchantTypeList() {
             return new Promise(function (resolve, reject) {
-                socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {platform: vm.selectedPlatform._id}, function (data) {
                     if (data.data && data.data.merchantTypes) {
                         resolve(data.data.merchantTypes);
                     }
@@ -4958,15 +4958,8 @@ define(['js/app'], function (myApp) {
             vm.allBankTypeList = {};
             setTimeout(function () {
                 // vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
-                socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
-                    if (data && data.data && data.data.data) {
-                        console.log('banktype', data.data.data);
-                        data.data.data.forEach(item => {
-                            if (item && item.bankTypeId) {
-                                vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
-                            }
-                        })
-                    }
+                commonService.getBankTypeList($scope, vm.selectedPlatform._id).catch(err => Promise.resolve({})).then(v => {
+                    vm.allBankTypeList = v;
                 });
 
                 let countDown = -1;

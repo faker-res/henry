@@ -676,11 +676,33 @@
         });
     };
 
+    proto.getLastPlayedGameInfo = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.getLastPlayedGameInfo.request(data);
+        this.playerService.getLastPlayedGameInfo.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.createDemoPlayer = function (callback, requestData) {
         let data = requestData || {};
 
         this.playerService.createDemoPlayer.request(data);
         this.playerService.createDemoPlayer.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.changeBirthdayDate = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.changeBirthdayDate.request(data);
+        this.playerService.changeBirthdayDate.once(function (data) {
             if (callback && typeof callback === "function") {
                 callback(data);
             }

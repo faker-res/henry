@@ -13,6 +13,8 @@ const constProposalType = require ('./../const/constProposalType');
 const constServerCode = require ('./../const/constServerCode');
 const constProposalStatus = require ('./../const/constProposalStatus');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const errorUtils = require("../modules/errorUtils.js");
+const rsaCrypto = require("../modules/rsaCrypto");
 const ObjectId = mongoose.Types.ObjectId;
 
 var dbPlayerFeedback = {
@@ -647,166 +649,107 @@ var dbPlayerFeedback = {
             .populate({path: "adminId", model: dbconfig.collection_admin}).exec();
     },
 
-    getExportedData: function (proposalId, ipAddress) {
+    getExportedData: function (proposalId) {
         let proposal = {};
         let players, originPlatform, targetPlatform;
-        let allowedIP = [
-            "122.146.88.32",
-            "101.78.133.210",
-            "10.167.11.155",
-            "localhost",
-            "127.0.0.1",
-            "10.168.11.155",
-            "103.29.22.118",
-            "10.167.11.154",
-            "203.90.255.250",
-            "203.69.30.85",
-            // " ::ffff:10.167.11.155",
-            "::ffff:10.167.11.155",
-            "::ffff:10.168.11.155",
-            "::ffff:10.167.11.154",
-            "::ffff:10.168.11.145"
-        ];
-
-        if (!allowedIP.includes(ipAddress)) {
-            return Promise.reject({
-                code: constServerCode.INVALID_API_USER,
-                message: "IP not authorized:" + ipAddress
-            })
-        }
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType})
             .lean().then(
-            proposal => {
-                if (!proposal || !proposal.type || proposal.type.name !== constProposalType.BULK_EXPORT_PLAYERS_DATA || proposal.status === constProposalStatus.PENDING) {
-                    return Promise.reject({
-                        code: constServerCode.INVALID_PROPOSAL,
-                        message: "Cannot find proposal"
-                    });
-                }
-
-                if (proposal.expirationTime < new Date()) {
-                    return Promise.reject({
-                        code: constServerCode.SESSION_EXPIRED,
-                        message: "Current request is expired"
-                    });
-                }
-
-                if (proposal.status !== constProposalStatus.APPROVED) {
-                    return Promise.reject({
-                        code: constServerCode.SESSION_EXPIRED,
-                        message: "Proposal already used"
-                    });
-                }
-
-                return dbconfig.collection_proposal.findOneAndUpdate({_id: proposal._id, createTime: proposal.createTime}, {$set: {status: constProposalStatus.SUCCESS}}, {new: true}).lean();
-            }
-        ).then(
-            proposalRecord => {
-                if (!proposalRecord) {
-                    return Promise.reject({
-                        code: constServerCode.CONCURRENT_DETECTED,
-                        message: "Concurrent issue detected"
-                    });
-                }
-
-                proposal = proposalRecord;
-
-                let originPlatformProm = Promise.resolve();
-                if (proposal.data && proposal.data.platformId) {
-                    originPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.platformId}, {platformId: 1}).lean();
-                }
-
-                let targetPlatformProm = Promise.resolve();
-                if (proposal.data && proposal.data.targetExportPlatform) {
-                    targetPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.targetExportPlatform}, {platformId: 1}).lean();
-                }
-
-                let playersProm = searchPlayerFromExportProposal(proposal);
-
-                return Promise.all([playersProm, originPlatformProm, targetPlatformProm]);
-            }
-        ).then(
-            data => {
-                players = data[0];
-                originPlatform = data[1];
-                targetPlatform = data[2];
-
-                players = players || [];
-
-                let proms = [];
-
-                // use findOne to search again to get non encoded phone number
-                players.map(player => {
-                    let prom = dbconfig.collection_players.findOne({_id: player._id}).lean();
-                    proms.push(prom);
-                });
-
-                return Promise.all(proms);
-            }
-        ).then(
-            playersData => {
-                players = playersData;
-                players = players || [];
-
-                let originPlatformId = originPlatform && originPlatform.platformId ? originPlatform.platformId : '';
-                let targetPlatformId = targetPlatform && targetPlatform.platformId ? targetPlatform.platformId : '';
-
-                let formattedPlayersData = [];
-
-                players.map(player => {
-                    let playerData = {
-                        playerAccount: player.name,
-                        realName: player.realName,
-                        gender: player.gender,
-                        DOB: player.DOB,
-                        phoneNumber: dbutility.decryptPhoneNumber(player.phoneNumber),
-                        wechat: player.wechat,
-                        qq: player.qq,
-                        email: player.email,
-                        registerTime: player.registrationTime,
-                        lastLoginTime: player.lastAccessTime,
-                        totalLoginTimes: player.loginTimes,
-                        totalDepositTimes: player.topUpTimes,
-                        totalDepositAmount: player.topUpSum,
-                        fame: [],
-                        playerValue: player.valueScore,
-                        playerLevel: player.playerLevel ? player.playerLevel.name : "",
-                        totalWithdrawTimes: player.withdrawTimes,
-                        totalWithdrawAmount: player.withdrawSum,
-                        gameLobby: [],
-                    };
-
-                    if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
-                        player.credibilityRemarks.map(remark => {
-                            if(remark){
-                                playerData.fame.push(remark.name);
-                            }
+                proposal => {
+                    if (!proposal || !proposal.type || proposal.type.name !== constProposalType.BULK_EXPORT_PLAYERS_DATA) {
+                        return Promise.reject({
+                            code: constServerCode.INVALID_PROPOSAL,
+                            message: "Cannot find proposal"
                         });
                     }
 
-                    if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
-                        player.gameProviderPlayed.map(provider => {
-                            if(provider){
-                                playerData.gameLobby.push(provider.name);
-                            }
+                    if (proposal.expirationTime < new Date()) {
+                        return Promise.reject({
+                            code: constServerCode.SESSION_EXPIRED,
+                            message: "Current request is expired"
                         });
                     }
 
-                    formattedPlayersData.push(playerData);
-                });
 
-                let title = proposal.data && proposal.data.title ? proposal.data.title : "";
+                    return dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposal._id,
+                        createTime: proposal.createTime
+                    }, {$set: {status: constProposalStatus.SUCCESS}}, {new: true}).lean();
+                }
+            ).then(
+                proposalRecord => {
+                    if (!proposalRecord) {
+                        return Promise.reject({
+                            code: constServerCode.CONCURRENT_DETECTED,
+                            message: "Concurrent issue detected"
+                        });
+                    }
 
-                return {
-                    title: title,
-                    sourcePlatformId: originPlatformId,
-                    targetPlatformId: targetPlatformId,
-                    players: formattedPlayersData
-                };
-            }
-        );
+                    proposal = proposalRecord;
+
+                    let originPlatformProm = Promise.resolve();
+                    if (proposal.data && proposal.data.platformId) {
+                        originPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.platformId}, {platformId: 1}).lean();
+                    }
+
+                    let targetPlatformProm = Promise.resolve();
+                    if (proposal.data && proposal.data.targetExportPlatform) {
+                        targetPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.targetExportPlatform}, {platformId: 1}).lean();
+                    }
+
+                    let playersProm = searchPlayerFromExportProposal(proposal);
+
+                    return Promise.all([playersProm, originPlatformProm, targetPlatformProm]);
+                }
+            ).then(
+                data => {
+                    players = data[0];
+                    originPlatform = data[1];
+                    targetPlatform = data[2];
+
+                    players = players || [];
+
+                    let proms = [];
+
+                    // use findOne to search again to get non encoded phone number
+                    players.map(player => {
+                        let prom = dbconfig.collection_players.findOne({_id: player._id}).lean();
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            ).then(
+                playersData => {
+                    players = playersData;
+                    players = players || [];
+
+                    let targetPlatformId = targetPlatform && targetPlatform._id;
+
+                    players.map(player => {
+                        let playerData = {
+                            playerName: player.name,
+                            realName: player.realName,
+                            gender: player.gender? "Male": "Female",
+                            DOB: player.DOB,
+                            encodedPhoneNumber: dbutility.encodePhoneNum(dbutility.decryptPhoneNumber(player.phoneNumber)),
+                            phoneNumber: rsaCrypto.encrypt(player.phoneNumber),
+                            wechat: player.wechat,
+                            qq: player.qq,
+                            email: player.email,
+                            remark: player.remark,
+                            sourcePlatform: player.platform,
+                            targetPlatform: targetPlatformId,
+                            topUpTimes: player.topUpTimes,
+                            lastAccessTime: player.lastAccessTime,
+                        };
+
+                        dbconfig.collection_feedbackPhoneTrade(playerData).save().catch(errorUtils.reportError);
+                    });
+
+                }
+            )
     }
 };
 

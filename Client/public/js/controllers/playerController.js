@@ -799,6 +799,12 @@ define(['js/app'], function (myApp) {
             vm.isCreateNewPlatform = false;
             $cookies.put("platform", vm.selectedPlatform.text);
 
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.topUpSystemType) {
+                commonService.getPaymentSystemName($scope, vm.selectedPlatform.data.topUpSystemType).catch(err => Promise.resolve('')).then(v => {
+                    vm.paymentSystemName = v;
+                });
+            }
+
             vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
             beforeUpdatePlatform();
             vm.retrievePlatformData(vm.showPlatform);
@@ -814,13 +820,13 @@ define(['js/app'], function (myApp) {
              vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
              vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
              [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes, [vm.allGameProviders, vm.gameProvidersList],
-                vm.credibilityRemarks, vm.platformRewardtype, vm.allPlayerLvl, vm.smsTemplate
+                vm.credibilityRemarks, vm.platformRewardtype, vm.allPlayerLvl, vm.smsTemplate, vm.allActiveBankTypeList
             ] = await Promise.all([
                 commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
                 commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})),
                 commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -835,7 +841,8 @@ define(['js/app'], function (myApp) {
                 commonService.getCredibilityRemarks($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                 commonService.getPlatformRewardProposal($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerLevels($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+                commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getActiveBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({}))
             ]);
 
             // 1st dependencies variable
@@ -6142,7 +6149,7 @@ define(['js/app'], function (myApp) {
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
                             vm.selectedAllForbidRewardEvent = false;
-                            if (vm.forbidPromoCode && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
+                            if (vm.forbidPromoCode && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
                                 vm.selectedAllForbidRewardEvent = true;
                             }
                             $scope.safeApply();
@@ -6383,7 +6390,7 @@ define(['js/app'], function (myApp) {
                                 $(thisPopover + ' .permitOff.phoneCallFeedback').removeClass('hide');
                                 $(thisPopover + ' .permitOff.SMSFeedBack').removeClass('hide');
                             });
-                            
+
                             $enableAllMainPermission.on('click', function () {
                                 if (row.isRealPlayer) {
                                     changeObj.applyBonus = true;
@@ -7273,8 +7280,17 @@ define(['js/app'], function (myApp) {
                     name: playerObjId.name,
                     nickName: playerObjId.nickName,
                     platformId: vm.selectedPlatform.data.platformId,
-                    channel: $scope.channelList[0],
+                    // channel: $scope.channelList[0],
                     hasPhone: playerObjId.phoneNumber
+                }
+
+                vm.smsPlayer.channel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(4)) {
+                        vm.smsPlayer.channel = 4; //set default sms channel
+                    } else {
+                        vm.smsPlayer.channel = $scope.usableChannelList[0];
+                    }
                 }
                 vm.sendSMSResult = {};
                 $scope.safeApply();
@@ -11704,7 +11720,7 @@ define(['js/app'], function (myApp) {
                             item.requiredBonusAmount$ = item.requiredBonusAmount;
                             item.currentAmount$ = item.data.currentAmount;
 
-                            item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
+                            item.availableAmt$ = item.bonusAmount ? item.bonusAmount : (item.applyAmount || 0);
                             item.archivedAmt$ = 0;
                             if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
                                 vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
@@ -11725,6 +11741,7 @@ define(['js/app'], function (myApp) {
                                 item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
                             if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
+                                item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
                                 usedTopUp.push(item.topUpProposal)
                             }
 
@@ -11905,7 +11922,11 @@ define(['js/app'], function (myApp) {
                 vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
                 vm.playerPayment.showNewAccountNo = false;
-                vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
+                if(vm.paymentSystemName === 'PMS2') {
+                    vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
+                } else {
+                    vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
+                }
                 vm.filterBankName = '';
                 vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
                 vm.currentCity.city = vm.playerPayment.bankAccountCity;
@@ -13095,6 +13116,7 @@ define(['js/app'], function (myApp) {
             if (!vm.getRewardTaskGroupProposalLoading) {
                 vm.getRewardTaskGroupProposalLoading = true;
                 socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
+
                     console.log("vm.getRewardTaskGroupProposal data", data);
                     vm.rewardTaskProposalData = data.data.data;
                     vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
@@ -13129,7 +13151,7 @@ define(['js/app'], function (myApp) {
                         item.requiredBonusAmount$ = item.requiredBonusAmount;
                         item.currentAmount$ = item.data.currentAmount;
 
-                        item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
+                        item.availableAmt$ = item.bonusAmount ? item.bonusAmount : (item.applyAmount || 0);
                         item.archivedAmt$ = 0;
                         if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
                             vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
@@ -13151,9 +13173,9 @@ define(['js/app'], function (myApp) {
 
                         // exclude the proposal to be shown in the progress bar if the proposal is dynamicReward, type c promocode or limitedOffer
                         if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
+                            item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
                             usedTopUp.push(item.topUpProposal)
                         }
-
                     });
 
                     if (usedTopUp.length > 0) {
@@ -13173,7 +13195,8 @@ define(['js/app'], function (myApp) {
                     // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
                     vm.curRewardTask = data;
                     vm.getRewardTaskGroupProposalLoading = false;
-                })
+            })
+
             }
         };
 
@@ -14069,7 +14092,6 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.playerCreditLog.limit : (vm.playerCreditLog.limit || 50),
                 sortCol: vm.playerCreditLog.sortCol || null
             };
-            console.log('sendQuery===', sendQuery);
             socketService.$socket($scope.AppSocket, 'getPlayerCreditsDaily', sendQuery, function (data) {
                 console.log('getPlayerDailyCredit', data);
                 var tblData = data && data.data ? data.data.data.map(item => {
@@ -15669,10 +15691,14 @@ define(['js/app'], function (myApp) {
         }
 
         vm.pickBankCardAcc = function (bankcard) {
-            if (bankcard.accountNumber) {
+            if (bankcard && bankcard.accountNumber) {
                 vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
                 vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
-                vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
+                if(vm.paymentSystemName === 'PMS2') {
+                    vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 6);
+                } else {
+                    vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
+                }
             };
         }
         vm.getBankCardMaxAmount = function (bankAcc) {

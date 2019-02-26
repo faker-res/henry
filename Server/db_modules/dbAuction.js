@@ -147,11 +147,11 @@ var dbAuction = {
                 obj.type = 1; // with top up requirement + fixed reward amount
             }
 
-            return dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: templateObjId}, obj).lean().then(
+            return dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: rewardData.templateObjId}, obj).lean().then(
                 retTemplate => {
                     if (retTemplate && !retTemplate.isDynamicRewardAmount){
                         if (retTemplate.hasOwnProperty("maxRewardAmount")){
-                            return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate({_id: ObjectId(retTemplate._id)}, {maxRewardAmount: null}, {new: true}).lean();
+                            return dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: ObjectId(retTemplate._id)}, {maxRewardAmount: null}, {new: true}).lean();
                         }
                     }
                     return retTemplate;
@@ -180,19 +180,30 @@ var dbAuction = {
             return dbconfig.collection_auctionSystem.update(matchObj, updateData, {multi:true, new: true});
         };
     },
-    isQualify: (playerObjId) => {
-        return dbconfig.collection_players.findOne({_id: playerObjId})
-            .populate({
-                path: "csOfficer",
-                model: dbconfig.collection_admin,
-                select: 'departments roles'
-            }).lean().then(
+    getAuctions: (playerObjId, platformId) => {
+        let platformObjId;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean()
+        .then(platformData =>{
+            if (!platformData) {
+                return Promise.reject({name: "DataError", message: "Cannot find platform"});
+            }
+            platformObjId = platformData._id;
+            return dbconfig.collection_players.findOne({_id: playerObjId})
+                .populate({
+                    path: "csOfficer",
+                    model: dbconfig.collection_admin,
+                    select: 'departments roles'
+                }).lean()
+        }).then(
             playerData => {
                 if (!playerData) {
                     return Promise.reject({name: "DataError", message: "Cannot find Player"});
                 }
 
                 let auctionQuery = {$and: []};
+                auctionQuery.status = 1;
+                auctionQuery.publish = true;
+                auctionQuery.platformObjId = platformObjId;
 
                 if (!playerData.isRealPlayer) {
                     auctionQuery.playerType = 'Test Player';
@@ -394,7 +405,64 @@ var dbAuction = {
                     auctionQuery.$and.push({$or: orQuery});
                 }
 
-                return dbconfig.collection_auctionSystem.find(auctionQuery).lean();
+                let orQuery = [];
+                let currentTime = dbutility.getUTC8Time(new Date());
+                // find which week in this year
+                let isoWeek = dbutility.getCurrentWeekInYear(currentTime);
+                isoWeek = parseInt(isoWeek);
+                // only show when in the appearPeriod interval.
+                orQuery.push({rewardAppearStartPeriod: {$lte: currentTime}, rewardAppearEndPeriod: {$gte: currentTime} });
+                auctionQuery.$and.push({$or: orQuery});
+
+                return dbconfig.collection_auctionSystem.aggregate([
+                    { $match : { platformObjId: ObjectId(platformObjId), publish: true, status:1 } },
+                    { $unwind : "$rewardAppearPeriod"}, //ungroup field for easy conversion at each apperPeriod.
+                    { $addFields : {
+                        //do a date conversion for query purpose.
+                        rewardAppearStartPeriod: {
+                            // find what is the start period in this weekly / month interval
+                            $cond: {
+                                if: { $eq: [ "$rewardInterval", "monthly" ] },
+                                then: { $dateFromParts: { 'year' : new Date().getFullYear(), 'month' : new Date().getMonth()+1, 'day':"$rewardAppearPeriod.startDate", 'hour' : "$rewardAppearPeriod.startTime"  }},
+                                else: { $dateFromParts: { 'isoWeekYear' : new Date().getFullYear(), 'isoWeek':isoWeek, 'isoDayOfWeek':"$rewardAppearPeriod.startDate", 'hour' : "$rewardAppearPeriod.startTime"  }}
+                            }
+                        },
+                        rewardAppearEndPeriod: {
+                            // find what is the end period in this weekly / month interval
+                            $cond: {
+                                if: { $eq: [ "$rewardInterval", "monthly" ] },
+                                then: { $dateFromParts: { 'year' : new Date().getFullYear(), 'month' : new Date().getMonth()+1, 'day':"$rewardAppearPeriod.endDate", 'hour' : "$rewardAppearPeriod.endTime"  }},
+                                else: { $dateFromParts: { 'isoWeekYear' : new Date().getFullYear(), 'isoWeek':isoWeek, 'isoDayOfWeek':"$rewardAppearPeriod.endDate", 'hour' : "$rewardAppearPeriod.endTime"  }}
+                            }
+                        }
+                    }
+                    },
+                    { $match : auctionQuery },
+                    {
+                        $group:{
+                            _id: "$_id",
+                            productName: { $first: "$productName"},
+                            registerStartTime: { $first: "$registerStartTime"},
+                            registerEndTime: { $first: "$registerEndTime"},
+                            startPeriod: {  $push: "$rewardAppearStartPeriod" }, // return a readable date to frontend
+                            endPeriod: {  $push: "$rewardAppearEndPeriod" }, // return a readable date to frontend
+                            reservePrice: { $first: "$reservePrice"},
+                            startingPrice: { $first: "$startingPrice"},
+                            priceIncrement: { $first: "$priceIncrement"},
+                            directPurchasePrice: { $first: "$directPurchasePrice"},
+                            productStartTime: { $first: "$productStartTime"},
+                            productEndTime: { $first: "$productEndTime"},
+                            rewardInterval: { $first: "$rewardInterval"},
+                            seller: { $first: "$seller"},
+                            rewardData: { $first: "$rewardData"},
+                            isExclusive: { $first: "$isExclusive"},
+                            publish: { $first: "$publish"},
+                            status: { $first: "$status"}
+                        }
+                    }
+                ]).read("secondaryPreferred").then(data=>{
+                    return data;
+                });
             }
         )
     },
@@ -492,7 +560,7 @@ var dbAuction = {
         let query = {
             _id: ObjectId(templateObjId)
         }
-        return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate(query, {code: newCode, createTime: new Date(), expirationTime: new Date()}, {new: true}).lean().then(
+        return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate(query, {code: newCode, status: constPromoCodeStatus.DISABLE, createTime: new Date(), expirationTime: new Date()}, {new: true}).lean().then(
             updatedData => {
                 if (updatedData && updatedData.code){
                     return dbconfig.collection_auctionSystem.findOneAndUpdate({_id: ObjectId(auctionProductObjId)}, {'rewardData.promoCode': updatedData.code}).lean();
@@ -642,17 +710,29 @@ var dbAuction = {
         let curDay = new Date().getDay();
         let curDate = new Date().getDate();
 
+        if (curDay == 0){
+            curDay = 7;
+        }
+
         let endQuery = {
             rewardStartTime: {$lte: curTime},
             rewardEndTime: {$gte: curTime},
-            $or: [{
+            $or:[{
                 'rewardInterval': "weekly",
-                'rewardAppearPeriod.endDate': curDay,
-                'rewardAppearPeriod.startTime': curHour + 1
-            }, {
+                'rewardAppearPeriod': {
+                    $elemMatch: {
+                        'startDate': curDay,
+                        'startTime': curHour + 1
+                    }
+                }
+            },{
                 'rewardInterval': "monthly",
-                'rewardAppearPeriod.endDate': curDate,
-                'rewardAppearPeriod.startTime': curHour + 1
+                'rewardAppearPeriod': {
+                    $elemMatch: {
+                        'startDate': curDate,
+                        'startTime': curHour + 1
+                    }
+                }
             }],
             publish: true,
             status: 1
@@ -673,7 +753,7 @@ var dbAuction = {
             }
         });
     },
-    
+
     auctionExecuteEnd: function() {
         console.log("Auction end executing")
         let curTime = dbutility.getLocalTime(new Date());
@@ -681,17 +761,29 @@ var dbAuction = {
         let curDay = new Date().getDay();
         let curDate = new Date().getDate();
 
+        if (curDay == 0){
+            curDay = 7;
+        }
+
         let endQuery = {
             rewardStartTime: {$lte: curTime},
             rewardEndTime: {$gte: curTime},
-            $or: [{
+            $or:[{
                 'rewardInterval': "weekly",
-                'rewardAppearPeriod.endDate': curDay,
-                'rewardAppearPeriod.endTime': curHour
-            }, {
+                'rewardAppearPeriod': {
+                    $elemMatch: {
+                        'endDate': curDay,
+                        'endTime': curHour
+                    }
+                }
+            },{
                 'rewardInterval': "monthly",
-                'rewardAppearPeriod.endDate': curDate,
-                'rewardAppearPeriod.endTime': curHour
+                'rewardAppearPeriod': {
+                    $elemMatch: {
+                        'endDate': curDate,
+                        'endTime': curHour
+                    }
+                }
             }],
             publish: true,
             status: 1
@@ -803,26 +895,25 @@ var dbAuction = {
         }
 
         function rejectProposalAndRefund(proposalData){
-           return dbconfig.collection_proposal.findOneAndUpdate(
-               {
-                   _id: proposalData._id,
-
-               },
-               {
-                   $set: {
-                       status: constProposalStatus.REJECTED
-                   }
-               },
-               {new: true}
-           ).lean().then(
-               proposalDetail => {
-                   if (proposalDetail && proposalDetail.data) {
-                       let creator = proposalDetail.data.seller || 'System';
-                       // return reward points to rejected bidder
-                       return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalDetail.data.playerObjId, proposalDetail.data.platformId, proposalDetail.data.currentBidPrice, 'Refund from bidding item: ' + proposalDetail.data.productName || "", null, null, creator, proposalDetail.inputDevice);
-                   }
-               }
-           )
+            return dbconfig.collection_proposal.findOneAndUpdate(
+                {
+                    _id: proposalData._id,
+                },
+                {
+                    $set: {
+                        status: constProposalStatus.REJECTED
+                    }
+                },
+                {new: true}
+            ).lean().then(
+                proposalDetail => {
+                    if (proposalDetail && proposalDetail.data) {
+                        let creator = proposalDetail.data.seller || 'System';
+                        // return reward points to rejected bidder
+                        return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalDetail.data.playerObjId, proposalDetail.data.platformId, proposalDetail.data.currentBidPrice, 'Refund from bidding item: ' + proposalDetail.data.productName || "", null, null, creator, proposalDetail.inputDevice);
+                    }
+                }
+            )
         }
 
     },
@@ -954,6 +1045,7 @@ var dbAuction = {
         let isWithinInterval = false;
         let withinIntervalData = null;
         let currentInterval = null;
+        let rejectProposalData = null;
 
         if (!playerId) {
             return Promise.reject({name: "DBError", message: "Player is not found"});
@@ -1050,6 +1142,9 @@ var dbAuction = {
                     rewardEndTime: {$gte: new Date(timeNow)},
                     publish: true,
                     status: 1
+                }).populate({
+                    path: "rewardData.allowedProvider",
+                    model: dbconfig.collection_gameProviderGroup
                 }).lean();
             }
         ).then(
@@ -1216,8 +1311,15 @@ var dbAuction = {
                 if (!proposalData) return true; // skip refund reward points
 
                 let creator = proposalData.data.seller || 'System';
+                rejectProposalData = proposalData;
                 // return reward points to rejected bidder
                 return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'Refund from bidding item: ' + auctionData.productName || "", null, null, creator, inputDevice);
+            }
+        ).then(
+            () => {
+                if (rejectProposalData) {
+                    dbProposal.sendMessageToPlayerAfterUpdateProposalStatus(rejectProposalData);
+                }
             }
         ).then(
             () => {
@@ -1236,6 +1338,7 @@ var dbAuction = {
                         currentBidPrice: playerBidPrice,
                         remark: remark,
                         auction: auctionData._id ? auctionData._id : '',
+                        biddingType: auctionData && auctionData.rewardData && auctionData.rewardData.rewardType ? auctionData.rewardData.rewardType : null,
                         updateAmount: playerBidPrice
                     },
                     creator: {
@@ -1247,8 +1350,40 @@ var dbAuction = {
                 if (inputDevice) {
                     newProposal.inputDevice = inputDevice;
                 }
+
+                newProposal.data.allowedProvider = "LOCAL_CREDIT";
+                newProposal.data.allowedProvider$ = "自由额度";
+                if (auctionData && auctionData.rewardData && auctionData.rewardData.allowedProvider && auctionData.rewardData.allowedProvider._id){
+                    newProposal.data.allowedProvider = auctionData.rewardData.allowedProvider._id;
+                    newProposal.data.allowedProvider$ = auctionData.rewardData.allowedProvider.name;
+                }
                 if (auctionData && auctionData.rewardData && auctionData.rewardData.templateObjId){
                     newProposal.data.templateObjId = auctionData.rewardData.templateObjId;
+                    newProposal.data.minTopUpAmount = auctionData.rewardData.minimumTopUpAmount;
+
+                    if (auctionData.rewardData.hasOwnProperty('upperLimitPerPlayer')){
+                        newProposal.data.upperLimitPerPlayer = auctionData.rewardData.upperLimitPerPlayer;
+                    }
+
+                    if (auctionData.rewardData.hasOwnProperty('totalQuantityLimit')){
+                        newProposal.data.totalQuantityLimit = auctionData.rewardData.totalQuantityLimit;
+                    }
+
+                    if (auctionData.rewardData.hasOwnProperty('limitPerSameIp')){
+                        newProposal.data.limitPerSameIp = auctionData.rewardData.limitPerSameIp;
+                    }
+
+                    if (auctionData.rewardData.isDynamicRewardAmount) {
+                        newProposal.data.type = 3;
+                        newProposal.data.rewardPercentage = auctionData.rewardData.rewardPercentage*100;
+                        newProposal.data.maxRewardAmount = auctionData.rewardData.maximumRewardAmount;
+                        newProposal.data.spendingTimes = auctionData.rewardData.spendingTimes;
+                    }
+                    else {
+                        newProposal.data.type = 1;
+                        newProposal.data.rewardAmount = auctionData.rewardData.rewardAmount;
+                        newProposal.data.spendingAmount = auctionData.rewardData.spendingAmount;
+                    }
                 }
                 if (auctionData && auctionData.seller){
                     newProposal.data.seller = auctionData.seller;
@@ -1262,9 +1397,9 @@ var dbAuction = {
                 if (auctionData && auctionData.rewardData && auctionData.rewardData.hasOwnProperty("useConsumption")){
                     newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
                 }
-                if (auctionData && auctionData.rewardData && auctionData.rewardData.gameProviderGroup){
-                    newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
-                }
+                // if (auctionData && auctionData.rewardData && auctionData.rewardData.gameProviderGroup){
+                //     newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
+                // }
                 if (playerName){
                     newProposal.data.playerName = playerName;
                 }

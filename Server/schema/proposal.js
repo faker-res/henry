@@ -45,6 +45,8 @@ var proposalSchema = new Schema({
     expirationTime: {type: Date, default: Date.now, index: true},
     // create Time
     settleTime: {type: Date, default: Date.now, index: true},
+    // times that the proposal had run
+    processedTimes: {type: Number, default: 0},
     // input device
     inputDevice: {type: Number, default: 0, index: true}
 });

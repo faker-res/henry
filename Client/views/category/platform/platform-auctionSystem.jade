@@ -18,10 +18,6 @@ form(name='form_auctionSystem').row
           .inlineBlk
               button.btn.btn-primary( ng-click='vm.moveToNotAvailable()') {{"MOVE" | translate}}
           .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numExcludeAuction==1", ng-click='vm.loadAuctionItem("excludeAuctionItem")') {{"Edit" | translate}}
-          .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numExcludeAuction!=1", ng-click='vm.loadAuctionItem("excludeAuctionItem")', DISABLED) {{"Edit" | translate}}
-          .inlineBlk
               button.btn.btn-danger( ng-click='vm.removeExclusiveAuction()') {{"Delete" | translate}}
         table#auctionPublishTable.display.table-condensed(style="min-width:100%;")
         #auctionPublishTablePage
@@ -34,10 +30,6 @@ form(name='form_auctionSystem').row
               button.btn.btn-primary( ng-if="vm.numNotAvailableAuction!=0", DISABLED) {{"ADD" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-click='vm.moveToExclusive()') {{"MOVE" | translate}}
-          .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction==1", ng-click='vm.loadAuctionItem("notAvailableAuctionItem")') {{"Edit" | translate}}
-          .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction!=1", ng-click='vm.loadAuctionItem("notAvailableAuctionItem")', DISABLED) {{"Edit" | translate}}
           .inlineBlk
               button.btn.btn-danger( ng-click='vm.removeNotAvailableAuction()') {{"Delete" | translate}}
         table#auctionNotAvailableTable.display.table-condensed(style="min-width:100%;")
@@ -365,7 +357,7 @@ form(name='form_auctionSystem').row
                     .full-width-input-block
                         label {{"Provider group" | translate}}
                         div(style="display:inline-block;")
-                            select.spicker.form-control(ng-model='vm.auctionProductReward.gameProviderGroup')
+                            select.spicker.form-control(ng-model='vm.auctionProductReward.allowedProvider')
                                 option(value='') {{'LOCAL_CREDIT' | translate}}
                                 option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
                     .full-width-input-block

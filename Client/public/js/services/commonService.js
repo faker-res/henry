@@ -102,8 +102,8 @@ define([], () => {
             return $scope.$socketPromise('getPlatform', {_id: id}).then(data => data.data.gameProviders)
         };
 
-        self.getBankTypeList = ($scope) => {
-            return $scope.$socketPromise('getBankTypeList', {}).then(
+        self.getBankTypeList = ($scope, id) => {
+            return $scope.$socketPromise('getBankTypeList', {platform: id}).then(
                 data => {
                     if (data && data.data && data.data.data) {
                         let allBankTypeList = {};
@@ -115,6 +115,24 @@ define([], () => {
                         });
 
                         return allBankTypeList;
+                    }
+                }
+            )
+        };
+
+        self.getActiveBankTypeList = ($scope, id) => {
+            return $scope.$socketPromise('getBankTypeList', {platform: id}).then(
+                data => {
+                    if (data && data.data && data.data.data) {
+                        let allActiveBankTypeList = {};
+
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId && item.bankflag && item.bankflag == 1) {
+                                allActiveBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                            }
+                        });
+
+                        return allActiveBankTypeList;
                     }
                 }
             )
@@ -276,6 +294,10 @@ define([], () => {
 
         self.getSMSTemplate = function($scope, platformObjId) {
             return $scope.$socketPromise("getMessageTemplatesForPlatform", {platform: platformObjId, format: 'smstpl'}).then(data => data.data)
+        };
+
+        self.getPaymentSystemName = function($scope, paymentSystemType) {
+            return $scope.$socketPromise("getPaymentSystemName", {systemTypeId: paymentSystemType}).then(data => data.data)
         };
 
         self.getPMSDevices = function(num){
@@ -1236,6 +1258,9 @@ define([], () => {
                 if(vm.selectedProposal.data.lastSettleTime) {
                     proposalDetail["lastSettleTime"] = vm.selectedProposal.data.lastSettleTime;
                 }
+                if(vm.selectedProposal.data.bonusSystemName) {
+                    proposalDetail["bonusSystemName"] = vm.selectedProposal.data.bonusSystemName;
+                }
             }
             //end region
 
@@ -1267,6 +1292,9 @@ define([], () => {
                         proposalDetail["pmsRemark"] = pmsRemark.substring(0, indexOfDivider);
                         proposalDetail["pmsOperator"] = pmsRemark.substring(indexOfDivider + 1, pmsRemark.length);
                     }
+                }
+                if(vm.selectedProposal.data.bonusSystemName) {
+                    proposalDetail["bonusSystemName"] = vm.selectedProposal.data.bonusSystemName;
                 }
             }
             // end region
