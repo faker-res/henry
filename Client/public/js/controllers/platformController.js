@@ -30973,7 +30973,7 @@ define(['js/app'], function (myApp) {
                     {id: "6", name: "工商银行一卡通"},
                 ];
 
-                socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.data.platformId}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.id}, function (data) {
                     if (data && data.data && data.data.data) {
                         let allBankTypeList = {};
 

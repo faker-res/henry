@@ -11922,11 +11922,7 @@ define(['js/app'], function (myApp) {
                 vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
                 vm.playerPayment.showNewAccountNo = false;
-                if(vm.paymentSystemName === 'PMS2') {
-                    vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
-                } else {
-                    vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
-                }
+                vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
                 vm.filterBankName = '';
                 vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
                 vm.currentCity.city = vm.playerPayment.bankAccountCity;

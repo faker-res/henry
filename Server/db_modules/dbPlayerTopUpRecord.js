@@ -3787,6 +3787,7 @@ var dbPlayerTopUpRecord = {
 
                             requestData.bankCardNo = inputData.alipayAccount;
                             requestData.depositMethod = constTopUpMethod.ALIPAY;
+                            requestData.depositTime = cTimeString;
 
                             let options = {
                                 method: 'POST',
@@ -3796,13 +3797,14 @@ var dbPlayerTopUpRecord = {
                             };
 
                             console.log("createTopUpAPIAddr check request before sent - ", requestData);
-                            return rp(options).then(function (syncPlatformData) {
-                                console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                                return syncPlatformData;
+                            return rp(options).then(function (data) {
+                                console.log('createTopUpAPIAddr - alipay - success', data);
+                                return data;
                             }, error => {
-                                console.log('syncHTTPPMSPlatform failed', error);
+                                console.log('createTopUpAPIAddr - alipay -failed', error);
                                 throw error;
                             });
+
                         } else {
                             return pmsAPI.payment_requestAlipayAccount(requestData);
                         }
