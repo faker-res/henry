@@ -2444,7 +2444,7 @@ var dbPlayerTopUpRecord = {
 
                         console.log("createTopUpAPIAddr check request before sent - ", requestData);
                         return rp(options).then(manualTopUpCardData => {
-                            console.log('syncHTTPPMSPlatform success', manualTopUpCardData);
+                            console.log('createTopUpAPIAddr success', manualTopUpCardData);
                             if (manualTopUpCardData && manualTopUpCardData.result && manualTopUpCardData.result.bankTypeId) {
                                 let options1 = {
                                     method: 'POST',
@@ -2457,7 +2457,7 @@ var dbPlayerTopUpRecord = {
 
                                 return rp(options1).then(
                                     bankData => {
-                                        console.log("syncHTTPPMSPlatform success", bankData);
+                                        console.log("bankTypeAPIAddr success", bankData);
                                         if (bankData && bankData.data && bankData.data.name) {
                                             manualTopUpCardData.result.bankName = bankData.data.name;
                                         } else {
@@ -2465,7 +2465,7 @@ var dbPlayerTopUpRecord = {
                                         }
                                         return manualTopUpCardData;
                                     }, error => {
-                                        console.log('syncHTTPPMSPlatform failed', error);
+                                        console.log('bankTypeAPIAddr failed', error);
                                         throw error;
                                     }
                                 )
@@ -2932,11 +2932,11 @@ var dbPlayerTopUpRecord = {
                         };
 
                         console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (cancelData) {
+                            console.log('cancelTopUpAPIAddr success', cancelData);
+                            return cancelData;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('cancelTopUpAPIAddr failed', error);
                             throw error;
                         });
                     }
@@ -3010,11 +3010,11 @@ var dbPlayerTopUpRecord = {
                         };
 
                         console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (cancelData) {
+                            console.log('cancelTopUpAPIAddr success', cancelData);
+                            return cancelData;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('cancelTopUpAPIAddr failed', error);
                             throw error;
                         });
                     }
@@ -3088,11 +3088,11 @@ var dbPlayerTopUpRecord = {
                         };
 
                         console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (cancelData) {
+                            console.log('cancelTopUpAPIAddr success', cancelData);
+                            return cancelData;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('cancelTopUpAPIAddr failed', error);
                             throw error;
                         });
                     }
@@ -3167,11 +3167,11 @@ var dbPlayerTopUpRecord = {
                         };
 
                         console.log("delayTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (delayData) {
+                            console.log('delayTopUpAPIAddr success', delayData);
+                            return delayData;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('delayTopUpAPIAddr failed', error);
                             throw error;
                         });
                     }
@@ -4527,11 +4527,11 @@ var dbPlayerTopUpRecord = {
                             };
 
                             console.log("createTopUpAPIAddr check wechat request before sent ---------", requestData);
-                            return rp(options).then(function (syncPlatformData) {
-                                console.log('wechattopup syncHTTPPMSPlatform success', syncPlatformData);
-                                return syncPlatformData;
+                            return rp(options).then(function (data) {
+                                console.log('createTopUpAPIAddr - wechattopup - success', data);
+                                return data;
                             }, error => {
-                                console.log('wechattopup syncHTTPPMSPlatform failed', error);
+                                console.log('createTopUpAPIAddr - wechattopup - failed', error);
                                 throw error;
                             });
                         } else {
@@ -5088,11 +5088,11 @@ var dbPlayerTopUpRecord = {
                 };
 
                 console.log("topupForceMatchAPIAddr check request before sent - ", requestData);
-                return rp(options).then(function (syncPlatformData) {
-                    console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                    return syncPlatformData;
+                return rp(options).then(function (data) {
+                    console.log('topupForceMatchAPIAddr success', data);
+                    return data;
                 }, error => {
-                    console.log('syncHTTPPMSPlatform failed', error);
+                    console.log('topupForceMatchAPIAddr failed', error);
                     throw error;
                 });
 

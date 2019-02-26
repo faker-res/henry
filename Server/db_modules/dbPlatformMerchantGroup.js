@@ -827,11 +827,11 @@ var dbPlatformMerchantGroup = {
                             json: true
                         };
 
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (data) {
+                            console.log('merchantTypeList success', data);
+                            return data;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('merchantTypeList failed', error);
                             throw error;
                         });
                     } else {
@@ -858,11 +858,11 @@ function getMerchantList(topUpSystemConfig, platformId) {
             json: true
         };
 
-        return rp(options).then(function (syncPlatformData) {
-            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-            return syncPlatformData;
+        return rp(options).then(function (data) {
+            console.log('merchantList success', data);
+            return data;
         }, error => {
-            console.log('syncHTTPPMSPlatform failed', error);
+            console.log('merchantList failed', error);
             throw error;
         });
     } else {
