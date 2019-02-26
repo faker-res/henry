@@ -87,7 +87,7 @@ http.createServer(function (req, res) {
                 }
             });
         }
-    } else {
+    } else if (req.method === 'GET') {
         // GET
         switch(pathname) {
             case privateKeyPath:
@@ -130,6 +130,8 @@ http.createServer(function (req, res) {
             default:
                 readFile(pathname, res);
         }
+    } else if (req.method === 'OPTIONS') {
+        res.end();
     }
 
     function redirectToLoginPage() {
