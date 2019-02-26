@@ -82,7 +82,7 @@ function callCPMSAPIWithAutoMaintenance(service, functionName, data, fileData) {
         providerObjId = provider._id;
         let projection = {};
         projection['gameProviderInfo.' + providerObjId] = 1;
-        return dbconfig.collection_platform.findOne({platformId: data.platformId}, projection);
+        return dbconfig.collection_platform.findOne({platformId: data.platformId}, projection).lean();
     }).then(platform => {
         platformObjId = platform._id;
         if (platform && platform.gameProviderInfo && platform.gameProviderInfo[providerObjId] && platform.gameProviderInfo[providerObjId].isEnable === false) {
@@ -99,9 +99,15 @@ function callCPMSAPIWithAutoMaintenance(service, functionName, data, fileData) {
                     if(functionName == 'queryCredit') {
                         recordQueryCreditTimeout(data);
                     }
-                    if(data.platformId && data.providerId) {
-                        gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, data.providerId);
-                    }
+                    let projection = {};
+                    projection['gameProviderInfo.' + providerObjId] = 1;
+                    dbconfig.collection_platform.findOne({platformId: data.platformId}, projection).lean().exec().then(platform => {
+                        if (platform && !(platform.gameProviderInfo && platform.gameProviderInfo[providerObjId] && platform.gameProviderInfo[providerObjId].isEnable === false)) {
+                            if (data.platformId && data.providerId) {
+                                gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, data.providerId);
+                            }
+                        }
+                    });
                     return deferred.reject({
                         status: constServerCode.CP_NOT_AVAILABLE,
                         message: "Request timeout",
