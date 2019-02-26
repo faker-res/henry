@@ -7651,7 +7651,6 @@ define(['js/app'], function (myApp) {
                                 $scope.safeApply();
 
                                 $("input.playerRewardEventForbid").on('click', function () {
-                                    console.log("walaoplatformclicks")
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
                                     $.each(forbidRewardEventList, function (i, v) {
