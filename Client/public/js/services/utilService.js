@@ -40,6 +40,10 @@ define([], function () {
             return new Date(inputDate.setDate(inputDate.getDate() + n));
         }
 
+        this.isAlphaNumeric = function (str) {
+            return /^\w+$/.test(str);
+        }
+
         this.getLeftTime = function(date){
             // convert the timestamp to actual time left
             let endTime = new Date(date);

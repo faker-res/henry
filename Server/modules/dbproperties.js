@@ -207,6 +207,9 @@ let csOfficerUrlModel = db_admin.model('csOfficerUrl', csOfficerUrlSchema, 'csOf
 let csPromoteWaySchema = require('../schema/csPromoteWay');
 let csPromoteWayModel = db_admin.model('csPromoteWay', csPromoteWaySchema, 'csPromoteWay');
 
+let ctiUrlSchema = require('../schema/ctiUrl');
+let ctiUrlModel = db_admin.model('ctiUrl', ctiUrlSchema, 'ctiUrl');
+
 let promoCodeTypeSchema = require('./../schema/promoCodeType');
 let promoCodeTypeModel = db_admin.model('promoCodeType', promoCodeTypeSchema, 'promoCodeType');
 let promoCodeUserGroupSchema = require('./../schema/promoCodeUserGroup');
@@ -235,6 +238,7 @@ let partnerFeedbackTopicModel = db_admin.model('partnerFeedbackTopic', partnerFe
 
 let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementInfo', playerPageAdvertisementInfoSchema, 'playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
+
 
 let smsGroupModel = db_admin.model('smsGroup', smsGroupSchema, 'smsGroup');
 
@@ -643,6 +647,8 @@ var dbProperties = {
     collection_csOfficer: csOfficerModel,
     collection_csOfficerUrl: csOfficerUrlModel,
     collection_csPromoteWay: csPromoteWayModel,
+
+    collection_ctiUrl: ctiUrlModel,
 
     collection_playerFeedbackResult: playerFeedbackResultModel,
     collection_playerFeedbackTopic: playerFeedbackTopicModel,

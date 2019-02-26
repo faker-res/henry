@@ -1931,11 +1931,31 @@
                                 td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
                                 td
                                     input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "AutoExportListOrMaxNumOfTxnEveryday")' type="number" step="1" min="0")
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
-                        text {{'EDIT' | translate}}
-                        img.img-edit
-                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bulkPhoneCallSetting")') {{"CANCEL" | translate}}
-                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bulkPhoneCallSetting")') {{"CONFIRM" | translate}}
+                    .margin-small
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bulkPhoneCallSetting")') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bulkPhoneCallSetting")') {{"CONFIRM" | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+
+                        tbody
+                            tr
+                                td {{'Add New Cti Route' | translate}}
+                                td
+                                    input(ng-model='vm.newCtiSubDomain')
+                                    text .tell400.me/cti/
+                                td
+                                    button.btn.btn-primary.common-button(ng-disabled='!vm.newCtiSubDomain' ng-click='vm.addNewCtiSubDomain()') {{'ATTACH' | translate}}
+                            tr
+                                td {{'Remove Cti Route' | translate}}
+                                td
+                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.deleteCtiUrl")
+                                        option(value = "")
+                                        option(ng-repeat="v in vm.ctiUrlSubDomains" ng-value="v._id") {{v.urlSubDomain}}
+                                td
+                                    button.btn.btn-primary.common-button(ng-disabled='!vm.deleteCtiUrl' ng-click='vm.deleteCtiSubDomain()') {{'DELETE' | translate}}
+
                 div(ng-if='vm.selectedConfigTab=="phoneFilterConfig"')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
