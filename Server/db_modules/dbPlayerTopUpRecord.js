@@ -3877,7 +3877,7 @@ var dbPlayerTopUpRecord = {
                         request = pmsData;
                         //add request data to proposal and update proposal status to pending
                         var updateData = {
-                            status: constProposalStatus.PENDING
+                            //status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);
                         updateData.data.userAlipayName = updateData.data.alipayName;
@@ -3943,11 +3943,29 @@ var dbPlayerTopUpRecord = {
 
                         updateAliPayTopUpProposalDailyLimit(proposalQuery, alipayAcc, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
 
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: proposal._id, createTime: proposal.createTime},
-                            updateData,
-                            {new: true}
-                        );
+                        let checkProposalStatus = Promise.resolve();
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            // to check if proposal status already update to Success, sometimes PMS 2 update proposal status too fast
+                            checkProposalStatus = dbconfig.collection_proposal.findOneAndUpdate(
+                                {
+                                    _id: proposal._id,
+                                    createTime: proposal.createTime,
+                                    status: constProposalStatus.PREPENDING
+                                },
+                                {status: constProposalStatus.PENDING}).lean();
+                        } else {
+                            updateData.status = constProposalStatus.PENDING;
+                        }
+
+                        return checkProposalStatus.then(
+                            () => {
+                                return dbconfig.collection_proposal.findOneAndUpdate(
+                                    proposalQuery,
+                                    updateData,
+                                    {new: true}
+                                );
+                            }
+                        )
                     }
                     else {
                         return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
@@ -4604,7 +4622,7 @@ var dbPlayerTopUpRecord = {
                         request = pmsData;
                         //add request data to proposal and update proposal status to pending
                         var updateData = {
-                            status: constProposalStatus.PENDING
+                            //status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);
                         updateData.data.requestId = pmsData.result.requestId;
@@ -4647,11 +4665,29 @@ var dbPlayerTopUpRecord = {
 
                         updateWeChatPayTopUpProposalDailyLimit(proposalQuery, wechatAcc, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
 
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: proposal._id, createTime: proposal.createTime},
-                            updateData,
-                            {new: true}
-                        );
+                        let checkProposalStatus = Promise.resolve();
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            // to check if proposal status already update to Success, sometimes PMS 2 update proposal status too fast
+                            checkProposalStatus = dbconfig.collection_proposal.findOneAndUpdate(
+                                {
+                                    _id: proposal._id,
+                                    createTime: proposal.createTime,
+                                    status: constProposalStatus.PREPENDING
+                                },
+                                {status: constProposalStatus.PENDING}).lean();
+                        } else {
+                            updateData.status = constProposalStatus.PENDING;
+                        }
+
+                        return checkProposalStatus.then(
+                            () => {
+                                return dbconfig.collection_proposal.findOneAndUpdate(
+                                    proposalQuery,
+                                    updateData,
+                                    {new: true}
+                                );
+                            }
+                        )
                     }
                     else {
                         return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
