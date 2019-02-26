@@ -7241,7 +7241,7 @@ let dbPlayerInfo = {
         return Promise.all([playerProm, providerProm]).then(
             data => {
 
-                console.log('transferPlayerCreditFromProvider', data);
+
 
                 if (data && data[0] && data[1] && data[1].length > 0) {
                     [playerObj, gameProvider] = data;
@@ -7266,6 +7266,8 @@ let dbPlayerInfo = {
 
                     let indexOfProviderId = -1;
 
+                    console.log('playerObj.lastPlayedProvider', playerObj.lastPlayedProvider);
+
                     // Enforce player to transfer out from correct last played provider
                     if(playerObj.lastPlayedProvider){
                         indexOfProviderId = targetProviderId.findIndex(t => t == playerObj.lastPlayedProvider.providerId);
@@ -7279,6 +7281,8 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
+
+                            console.log('targetProviderId', targetProviderId);
 
                             return dbconfig.collection_gameProvider.find({providerId: {$in: targetProviderId}}).lean();
                         }
