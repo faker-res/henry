@@ -210,16 +210,6 @@ define(['js/app'], function (myApp) {
         // endregion - init definition
 
         // region - get player data
-        vm.getAllRewardEvent = function () {
-            return commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {
-                vm.allRewardEvent = v;
-                vm.showApplyRewardEvent = v.filter(item => {
-                    return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1");
-                }).length > 0;
-                console.log("gettowalao")
-                $scope.safeApply();
-            });
-        }
         vm.getPlayerDetail = function () {
             if (!$scope.targetPlayerObjId) {
                 // todo :: show player not found
@@ -285,7 +275,6 @@ define(['js/app'], function (myApp) {
 
         // region - draw initial interface
         vm.drawPlayerTable = function (data) {
-            console.log("walaodraw")
             vm.players = data;
             vm.selectedPlayers = {};
 
@@ -1712,24 +1701,7 @@ define(['js/app'], function (myApp) {
         vm.generalPageInit = () => {
             vm.selectedPlatform = $scope.selectedPlatform;
             vm.getCredibilityRemarks();
-            // vm.getPlayerDetail();
-            vm.getAllRewardEvent().then(
-                () => {
-                    vm.getPlayerDetail();
-                }
-            )
-
-            // commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {
-            //     vm.allRewardEvent = v;
-            //     vm.showApplyRewardEvent = v.filter(item => {
-            //         return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1");
-            //     }).length > 0;
-            //     console.log("gettowalao")
-            //     $scope.safeApply();
-            //     vm.getPlayerDetail();
-            // });
-            $scope.safeApply();
-            // vm.delayedGeneralInit();
+            vm.getPlayerDetail();
 
             // anything that don't appear on page load, but still necessary to init after page load, put inside delayed general init function
             setTimeout(function () {
@@ -6659,12 +6631,12 @@ define(['js/app'], function (myApp) {
             commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {vm.playerFeedbackTopic = v});
             commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])).then(v => {vm.allPlayerFeedbackResults = v});
             commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {vm.smsTemplate = v});
-            // commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {
-            //     vm.allRewardEvent = v;
-            //     vm.showApplyRewardEvent = v.filter(item => {
-            //         return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1");
-            //     }).length > 0;
-            // });
+            commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {
+                vm.allRewardEvent = v;
+                vm.showApplyRewardEvent = v.filter(item => {
+                    return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1");
+                }).length > 0;
+            });
             commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])).then(v => {([vm.allGameTypesList, vm.allGameTypes] = v);});
             commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])).then(v => {([vm.allGameProviders, vm.gameProvidersList] = v);});
             commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {vm.rewardPointsAllEvent = v});
