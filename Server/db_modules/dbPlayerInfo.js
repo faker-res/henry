@@ -7247,7 +7247,7 @@ let dbPlayerInfo = {
                     [playerObj, gameProvider] = data;
                     platformData = playerObj.platform;
 
-                    if (playerObj.forbidProviders && typeof providerId === 'object') {
+                    if (playerObj.forbidProviders && typeof playerObj.forbidProviders === 'object') {
                         let forbidProviders = JSON.parse(JSON.stringify(playerObj.forbidProviders));
                         // if adminName doesn't exist (likely request from frontend), AND
                         // requested provider is in player's forbid providers' list: then reject.
