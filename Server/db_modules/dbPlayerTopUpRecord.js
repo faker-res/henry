@@ -4454,6 +4454,7 @@ var dbPlayerTopUpRecord = {
 
                             requestData.bankCardNo = inputData.wechatPayAccount;
                             requestData.depositMethod = constTopUpMethod.WECHAT;
+                            requestData.depositTime = cTimeString;
 
                             let options = {
                                 method: 'POST',
@@ -4462,7 +4463,14 @@ var dbPlayerTopUpRecord = {
                                 json: true
                             };
 
-                            return rp(options);
+                            console.log("PMS2 check wechat request before sent ---------", requestData);
+                            return rp(options).then(function (syncPlatformData) {
+                                console.log('wechattopup syncHTTPPMSPlatform success', syncPlatformData);
+                                return syncPlatformData;
+                            }, error => {
+                                console.log('wechattopup syncHTTPPMSPlatform failed', error);
+                                throw error;
+                            });
                         } else {
                             if (useQR) {
                                 return pmsAPI.payment_requestWeChatQRAccount(requestData);
