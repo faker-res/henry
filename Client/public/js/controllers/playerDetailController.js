@@ -210,6 +210,16 @@ define(['js/app'], function (myApp) {
         // endregion - init definition
 
         // region - get player data
+        vm.getAllRewardEvent = function () {
+            return commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {
+                vm.allRewardEvent = v;
+                vm.showApplyRewardEvent = v.filter(item => {
+                    return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1");
+                }).length > 0;
+                console.log("gettowalao")
+                $scope.safeApply();
+            });
+        }
         vm.getPlayerDetail = function () {
             if (!$scope.targetPlayerObjId) {
                 // todo :: show player not found
@@ -275,6 +285,7 @@ define(['js/app'], function (myApp) {
 
         // region - draw initial interface
         vm.drawPlayerTable = function (data) {
+            console.log("walaodraw")
             vm.players = data;
             vm.selectedPlayers = {};
 
@@ -977,13 +988,13 @@ define(['js/app'], function (myApp) {
                             vm.prohibitGamePopover = data;
                             vm.forbidGameDisable = true;
                             vm.forbidGameRemark = '';
-                            $scope.$evalAsync();
+                            $scope.safeApply(); // safe apply is neccessary here
                             return $compile($('#prohibitGamePopover').html())($scope);
                         },
                         callback: function () {
                             let thisPopover = utilService.$getPopoverID(this);
                             let rowData = JSON.parse(this.dataset.row);
-                            $scope.$evalAsync();
+                            $scope.safeApply(); // safe apply is neccessary here
 
                             $("button.forbidGameCancel").on('click', function () {
                                 $(".prohibitGamePopover").popover('hide');
@@ -1005,7 +1016,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 });
                                 vm.forbidGameDisable = vm.isForbidChanged(forbidProviders, vm.prohibitGamePopover.forbidProviders);
-                                $scope.$evalAsync();
+                                $scope.safeApply(); // safe apply is neccessary here
                             });
 
                             $("button.forbidGameConfirm").on('click', function () {
@@ -1038,13 +1049,13 @@ define(['js/app'], function (myApp) {
                             vm.forbidRewardPointsEventPopover = data;
                             vm.forbidRewardPointsEventDisable = true;
                             vm.forbidRewardPointsEventRemark = '';
-                            $scope.$evalAsync();
+                            $scope.safeApply();
                             return $compile($('#forbidRewardPointsEventPopover').html())($scope);
                         },
                         callback: function () {
                             let thisPopover = utilService.$getPopoverID(this);
                             let rowData = JSON.parse(this.dataset.row);
-                            $scope.$evalAsync();
+                            $scope.safeApply();
 
                             $("button.forbidRewardPointsEventCancel").on('click', function () {
                                 $(".forbidRewardPointsEventPopover").popover('hide');
@@ -1066,7 +1077,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 });
                                 vm.forbidRewardPointsEventDisable = vm.isForbidChanged(forbidRewardPointsEvent, vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent);
-                                $scope.$evalAsync();
+                                $scope.safeApply();
                             });
 
                             $("button.forbidRewardPointsEventConfirm").on('click', function () {
@@ -1099,13 +1110,13 @@ define(['js/app'], function (myApp) {
                             vm.forbidTopUpPopover = data;
                             vm.forbidTopUpDisable = true;
                             vm.forbidTopUpRemark = '';
-                            $scope.$evalAsync();
+                            $scope.safeApply();
                             return $compile($('#forbidTopUpPopover').html())($scope);
                         },
                         callback: function () {
                             let thisPopover = utilService.$getPopoverID(this);
                             let rowData = JSON.parse(this.dataset.row);
-                            $scope.$evalAsync();
+                            $scope.safeApply();
 
                             $("button.forbidTopUpCancel").on('click', function () {
                                 $(".forbidTopUpPopover").popover('hide');
@@ -1127,7 +1138,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 });
                                 vm.forbidTopUpDisable = vm.isForbidChanged(forbidTopUpTypes, vm.forbidTopUpPopover.forbidTopUpType);
-                                $scope.$evalAsync();
+                                $scope.safeApply();
                             });
 
                             $("button.forbidTopUpConfirm").on('click', function () {
@@ -1152,6 +1163,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
+
                     utilService.setupPopover({
                         context: container,
                         elem: '.forbidRewardEventPopover',
@@ -1160,14 +1172,13 @@ define(['js/app'], function (myApp) {
                             vm.forbidRewardEventPopover = data;
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
-                            $scope.$evalAsync();
+                            $scope.safeApply();
                             return $compile($('#forbidRewardEventPopover').html())($scope);
                         },
                         callback: function () {
                             let thisPopover = utilService.$getPopoverID(this);
                             let rowData = JSON.parse(this.dataset.row);
-                            $scope.$evalAsync();
-
+                            $scope.safeApply();
                             $("input.playerRewardEventForbid").on('click', function () {
                                 let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                 let forbidRewardEvents = [];
@@ -1177,7 +1188,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 });
                                 vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
-                                $scope.$evalAsync();
+                                $scope.safeApply();
                             });
 
                             $("button.forbidRewardEventCancel").on('click', function () {
@@ -1701,7 +1712,24 @@ define(['js/app'], function (myApp) {
         vm.generalPageInit = () => {
             vm.selectedPlatform = $scope.selectedPlatform;
             vm.getCredibilityRemarks();
-            vm.getPlayerDetail();
+            // vm.getPlayerDetail();
+            vm.getAllRewardEvent().then(
+                () => {
+                    vm.getPlayerDetail();
+                }
+            )
+
+            // commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {
+            //     vm.allRewardEvent = v;
+            //     vm.showApplyRewardEvent = v.filter(item => {
+            //         return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1");
+            //     }).length > 0;
+            //     console.log("gettowalao")
+            //     $scope.safeApply();
+            //     vm.getPlayerDetail();
+            // });
+            $scope.safeApply();
+            // vm.delayedGeneralInit();
 
             // anything that don't appear on page load, but still necessary to init after page load, put inside delayed general init function
             setTimeout(function () {
@@ -6497,6 +6525,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.isForbidChanged = function (newForbid, oldForbid) {
+            console.log("walaoiamhere")
             var disableSubmit = true;
             if (!oldForbid) {
                 oldForbid = [];
@@ -6630,12 +6659,12 @@ define(['js/app'], function (myApp) {
             commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {vm.playerFeedbackTopic = v});
             commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])).then(v => {vm.allPlayerFeedbackResults = v});
             commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {vm.smsTemplate = v});
-            commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {
-                vm.allRewardEvent = v;
-                vm.showApplyRewardEvent = v.filter(item => {
-                    return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1");
-                }).length > 0;
-            });
+            // commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {
+            //     vm.allRewardEvent = v;
+            //     vm.showApplyRewardEvent = v.filter(item => {
+            //         return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1");
+            //     }).length > 0;
+            // });
             commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])).then(v => {([vm.allGameTypesList, vm.allGameTypes] = v);});
             commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])).then(v => {([vm.allGameProviders, vm.gameProvidersList] = v);});
             commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])).then(v => {vm.rewardPointsAllEvent = v});
