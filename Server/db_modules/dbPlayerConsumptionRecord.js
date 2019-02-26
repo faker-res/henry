@@ -2668,8 +2668,10 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
         }
     }, {
         new: true
-    }).then(
+    }).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).then(
         updatedRTG => {
+            let rewardTaskUnlockedProgress = Promise.resolve();
+
             // Debug negative RTG curConsumption
             if (updatedRTG && updatedRTG.curConsumption && updatedRTG.curConsumption < 0 && oldData) {
                 console.log('updateRTG has negative!', validAmtToAdd, RTG._id)
@@ -2702,6 +2704,13 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
                 summAdjustXIMAAmt = validAmtToAdd;
             }
 
+            // update the locked reward tasks
+            rewardTaskUnlockedProgress = dbRewardTask.unlockRewardTaskInRewardTaskGroup(updatedRTG, updatedRTG.playerId).then( rewards => {
+                if (rewards){
+                    return dbRewardTask.getRewardTasksRecord(rewards, updatedRTG);
+                }
+            });
+
             // Update consumption summary upon updating consumption record
             updateConsumptionSumamry(oldData, summAdjustXIMAAmt, summAdjustNonXIMAAmt).catch(errorUtils.reportError);
 
@@ -2733,17 +2742,38 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
                         }
 
                         if (statusUpdObj.status) {
-                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
-                                {
-                                    _id: updatedRTG._id
-                                },
+                            let updateProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                {_id: updatedRTG._id},
                                 statusUpdObj
-                            ).then(res => {
-                                // Concurrency measurement
-                                if (res && res.status === constRewardTaskStatus.STARTED) {
-                                    return dbRewardTask.completeRewardTaskGroup(updatedRTG, statusUpdObj.status)
+                            );
+
+                            return Promise.all([rewardTaskUnlockedProgress, updateProm]).then(
+                                res => {
+                                    console.log("checking unlock record", res[0])
+                                    console.log("checking update rewardTaskGroup", res[1])
+                                    if (res && res[1]) {
+                                        if (res[0]){
+                                            console.log("checking unlockedStatus, playerId", statusUpdObj.status, updatedRTG.playerId);
+                                            dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId).catch(errorUtils.reportError);
+                                        }
+                                        // Concurrency measurement
+                                        if( res[1].status === constRewardTaskStatus.STARTED) {
+                                            return dbRewardTask.completeRewardTaskGroup(updatedRTG, statusUpdObj.status)
+                                        }
+                                    }
                                 }
-                            })
+                            )
+                            // return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                            //     {
+                            //         _id: updatedRTG._id
+                            //     },
+                            //     statusUpdObj
+                            // ).then(res => {
+                            //     // Concurrency measurement
+                            //     if (res && res.status === constRewardTaskStatus.STARTED) {
+                            //         return dbRewardTask.completeRewardTaskGroup(updatedRTG, statusUpdObj.status)
+                            //     }
+                            // })
                         }
                     }
                 ).catch(errorUtils.reportError);
@@ -2785,7 +2815,7 @@ function findRTGToUpdate (oldData, newData) {
                     if (freeRTG) { filteredRTG.push(freeRTG) }
 
                     filteredRTG.forEach(RTG => {
-                        if (RTG) {
+                        if (RTG && RTG._id) {
                             // Check current RTG amounts
                             // Deny happening of negative RTG curConsumption
                             let curConsumption = RTG.curConsumption > 0 ? RTG.curConsumption : 0;
