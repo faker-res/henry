@@ -1189,11 +1189,9 @@ define(['js/app'], function (myApp) {
                             });
 
                             $("button.forbidRewardEventConfirm").on('click', function () {
-                                console.log("walaoclick")
                                 if ($(this).hasClass('disabled')) {
                                     return;
                                 }
-                                console.log("walaoclick121212")
                                 let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                 let forbidRewardEvents = [];
                                 $.each(forbidRewardEventList, function (i, v) {
