@@ -8,6 +8,36 @@ var noAutoReconnect = {autoReconnect: true};
 module.exports = function (config) {
     "use strict";
 
+    function simulateCreate100BotPlayer (config){
+        let platformData = {};
+
+        return dbconfig.collection_platform.findOne({platformId: config.botPlatformId}).then(
+            platformDetail => {
+                if(platformDetail && platformDetail._id){
+                    platformData = platformDetail;
+                    return dbconfig.collection_playerLevel.findOne({platform: platformDetail._id, value: 0});
+                }
+            }
+        ).then(
+            playerLevel => {
+                if(playerLevel && playerLevel._id){
+                    let newPlayerData = {
+                        password: config.botPassword,
+                        platform: platformData._id,
+                        playerLevel: playerLevel._id
+                    };
+
+                    for(let i = 0; i < 100; i ++){
+                        newPlayerData.name = config.botPlayerPrefix + (1000 + i).toString();
+                        newPlayerData.phoneNumber = (20800000000 + i).toString();
+
+                        return dbconfig.collection_players(newPlayerData).save()
+                    }
+                }
+            }
+        )
+    }
+
     function simulatePlayerLogin (config) {
         return dbconfig.collection_platform.findOne({platformId: config.botPlatformId}).then(
             platformDetail => {
@@ -30,10 +60,13 @@ module.exports = function (config) {
                                     platformId: config.botPlatformId
                                 };
 
+                                // callAPIToCreate100Player(config);
                                 callAPIToLoginPlayer(loginData);
                             }
                         }
                     )
+                }else{
+                    simulateCreate100BotPlayer(config);
                 }
 
                 function callAPIToLoginPlayer(loginData){
@@ -67,7 +100,7 @@ module.exports = function (config) {
                                 let aliTopupDetail = {
                                     amount: 100,
                                     alipayName: config.botAlipayName
-                                }
+                                };
                                 aliPayTopupAndCancelProposalProm.push(aliPayTopupAndCancelProposal(clientClient, aliTopupDetail));
 
                                 return Promise.all(updatePaymentInfoProm).then(
