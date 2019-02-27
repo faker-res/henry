@@ -1617,6 +1617,7 @@ define(['js/app'], function (myApp) {
                 if (data && data.data) {
                     vm.targetedTsDistributedPhoneDetail = data.data;
                     vm.tsPhoneAddFeedback = {tsPhone: vm.targetedTsDistributedPhoneDetail.tsPhone};
+                    vm.callThisPlayer = () => {vm.telorMessageToTsPhoneBtn("tel", vm.targetedTsDistributedPhoneDetail)};
                     $scope.$evalAsync();
                 }
             }).done();

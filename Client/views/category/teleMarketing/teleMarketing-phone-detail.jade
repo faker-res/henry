@@ -41,6 +41,7 @@
                 button.btn.btn-warning(data-toggle='modal' data-target="#modalAdminPhoneListReminder" ng-click="vm.initTsDistrubutedPhoneReminder(vm.targetedTsDistributedPhoneDetail)" style="margin: 5px") {{"REMINDER" | translate}}
                 button.btn.btn-success(data-toggle='modal' data-target="#modalCreateTsPlayer" ng-click="vm.prepareCreateTsPlayer(vm.targetedTsDistributedPhoneDetail)" style="margin: 5px") {{"CREATE_NEW_PLAYER" | translate}}
                 button.btn.btn-primary(ng-click="vm.initSMSModal(); vm.telorMessageToTsPhoneBtn('msg', vm.targetedTsDistributedPhoneDetail)" style="margin: 5px") {{"sendSMS" | translate}}
+                button.btn.btn-primary(ng-click="vm.callThisPlayer()" style="margin: 5px") {{"CALL_OUT" | translate}}
 
     .col-xs-6
         .panel-body
