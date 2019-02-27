@@ -14516,6 +14516,13 @@ define(['js/app'], function (myApp) {
             vm.filterBankname("playerManualTopUp");
             vm.existingManualTopup = null;
             vm.chosenBankAcc = {};
+
+            socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                })
+            })
+
             socketService.$socket($scope.AppSocket, 'getManualTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 vm.existingManualTopup = data.data ? data.data : false;
             });
