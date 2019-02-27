@@ -110,7 +110,7 @@ let dbTsCallOutMission = {
 
                 let missionProm = dbconfig.collection_tsCallOutMission.findOne({missionName: missionName}).lean();
                 let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
-                return Promise.all(missionProm, adminProm);
+                return Promise.all([missionProm, adminProm]);
             }
         ).then(
             ([missionData, adminData]) => {
@@ -148,7 +148,7 @@ let dbTsCallOutMission = {
 
                 let missionProm = dbconfig.collection_tsCallOutMission.findOne({missionName: missionName}).lean();
                 let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
-                return Promise.all(missionProm, adminProm);
+                return Promise.all([missionProm, adminProm]);
             }
         ).then(
             ([missionData, adminData]) => {
