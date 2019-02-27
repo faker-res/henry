@@ -8907,6 +8907,9 @@ define(['js/app'], function (myApp) {
                         })
                     });
                 }
+                if ( vm.selectedProposal.mainType && vm.selectedProposal.mainType == "PlayerBonus" && vm.selectedProposal.status && vm.selectedProposal.status == 'Approved' ) {
+                    vm.selectedProposal.status = 'approved';
+                }
 
                 $('#modalProposal').modal('show');
                 $('#modalProposal').on('shown.bs.modal', function (e) {
