@@ -60,7 +60,6 @@ module.exports = function (config) {
                                     platformId: config.botPlatformId
                                 };
 
-                                // callAPIToCreate100Player(config);
                                 callAPIToLoginPlayer(loginData);
                             }
                         }
