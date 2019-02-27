@@ -1015,6 +1015,15 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
 
         function onFail(error) {
+            if (error && error.error && error.error.originalMessage) {
+                if (error.error.originalMessage.errorMessage) {
+                    socketService.showErrorMessage(error.error.originalMessage.errorMessage)
+                } else if (error.error.originalMessage.errorMsg) {
+                    socketService.showErrorMessage(error.error.originalMessage.errorMsg)
+                } else {
+                    socketService.showErrorMessage(error.error.originalMessage)
+                }
+            }
             if (callback) {
                 callback.call(this, error);
             }

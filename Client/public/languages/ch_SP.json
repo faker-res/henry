@@ -4988,6 +4988,7 @@
   "delete cti url success": "删除CTI链接成功",
   "AddCtiUrl": "添加新CTI线路",
   "RemoveCtiUrl": "删除CTI线路",
+  "Fail on sending message,Because The phone number is not in the right format": "电话格式错误。请检查电话格式是否正确 或 电话头三个号码是否为可播电号码（可跟OM Bubble确认）",
 
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",
