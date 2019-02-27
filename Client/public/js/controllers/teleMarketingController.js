@@ -239,16 +239,6 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync(vm.loadPlatformData());
         });
 
-        $scope.getUsableChannelList(function () {
-            vm.smsChannel = null;
-            if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
-                if ($scope.usableChannelList.includes(3)) {
-                    vm.smsChannel = 3; //set default sms channel
-                } else {
-                    vm.smsChannel = $scope.usableChannelList[0];
-                }
-            }
-        });
 
         vm.loadPlatformData = function (option) {
             vm.multiDecomposedNewPhoneSelected = [];
@@ -266,6 +256,16 @@ define(['js/app'], function (myApp) {
                     vm.searchAndSelectPlatform(storedPlatform, option);
                 }
                 vm.loadAdminNames();
+                $scope.getUsableChannelList(function () {
+                    vm.smsChannel = null;
+                    if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                        if ($scope.usableChannelList.includes(3)) {
+                            vm.smsChannel = 3; //set default sms channel
+                        } else {
+                            vm.smsChannel = $scope.usableChannelList[0];
+                        }
+                    }
+                });
             }, function (err) {
                 vm.showPlatformSpin = false;
             });
@@ -1617,6 +1617,7 @@ define(['js/app'], function (myApp) {
                 if (data && data.data) {
                     vm.targetedTsDistributedPhoneDetail = data.data;
                     vm.tsPhoneAddFeedback = {tsPhone: vm.targetedTsDistributedPhoneDetail.tsPhone};
+                    vm.callThisPlayer = () => {vm.telorMessageToTsPhoneBtn("tel", vm.targetedTsDistributedPhoneDetail)};
                     $scope.$evalAsync();
                 }
             }).done();
