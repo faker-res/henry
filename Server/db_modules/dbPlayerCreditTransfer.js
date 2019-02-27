@@ -1863,7 +1863,7 @@ let dbPlayerCreditTransfer = {
                     return Promise.reject({message: "No wallet is set for EBET provider."});
                 }
             }
-        }, err => {
+        }).catch(err => {
             if (!isMultiProvider) {
                 return Promise.reject(err);
             }
