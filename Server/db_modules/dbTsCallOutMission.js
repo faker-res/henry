@@ -100,7 +100,7 @@ let dbTsCallOutMission = {
         );
     },
 
-    toggleCallOutMissionStatus: (platformObjId, missionName) => {
+    toggleCallOutMissionStatus: (platformObjId, missionName, adminObjId) => {
         let platform = {};
         let mission = {};
         let operation;
@@ -108,14 +108,18 @@ let dbTsCallOutMission = {
             platformData => {
                 platform = platformData;
 
-                return dbconfig.collection_tsCallOutMission.findOne({missionName: missionName}).lean();
+                let missionProm = dbconfig.collection_tsCallOutMission.findOne({missionName: missionName}).lean();
+                let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+                return Promise.all([missionProm, adminProm]);
             }
         ).then(
-            missionData => {
+            ([missionData, adminData]) => {
                 if (!missionData) {
                     return Promise.reject({message: "Call out mission not found."});
                 }
                 mission = missionData;
+
+                let admin = adminData || {};
 
                 if (mission.status == constCallOutMissionStatus.ON_GOING) {
                     operation = constCallOutMissionStatus.PAUSED;
@@ -125,7 +129,7 @@ let dbTsCallOutMission = {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
-                return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, operation);
+                return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, operation, admin.ctiUrl);
             }
         ).then(
             () => {
@@ -134,7 +138,7 @@ let dbTsCallOutMission = {
         );
     },
 
-    stopCallOutMission: (platformObjId, missionName) => {
+    stopCallOutMission: (platformObjId, missionName, adminObjId) => {
         let platform = {};
         let mission = {};
 
@@ -142,26 +146,29 @@ let dbTsCallOutMission = {
             platformData => {
                 platform = platformData;
 
-                return dbconfig.collection_tsCallOutMission.findOne({missionName: missionName}).lean();
+                let missionProm = dbconfig.collection_tsCallOutMission.findOne({missionName: missionName}).lean();
+                let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+                return Promise.all([missionProm, adminProm]);
             }
         ).then(
-            missionData => {
+            ([missionData, adminData]) => {
                 if (!missionData) {
                     return Promise.reject({message: "Call out mission not found."});
                 }
                 mission = missionData;
+                let admin = adminData || {};
 
                 if (mission.status != constCallOutMissionStatus.ON_GOING && mission.status != constCallOutMissionStatus.PAUSED && mission.status != constCallOutMissionStatus.CREATED) {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
                 if (mission.status == constCallOutMissionStatus.PAUSED) {
-                    return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING).then(
-                        () => dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED)
+                    return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING, admin.ctiUrl).then(
+                        () => dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiUrl)
                     );
                 }
 
-                return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED); //.catch().then(() => deleteCtiMission(platform, missionName));
+                return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiUrl); //.catch().then(() => deleteCtiMission(platform, missionName));
             }
         ).then(
             () => {
@@ -297,7 +304,7 @@ module.exports = dbTsCallOutMission;
 function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     let apiOutput, ctiMissionStatus;
 
-    return dbCtiCallOut.getCtiCallOutMissionDetail(platform, mission.missionName).then(
+    return dbCtiCallOut.getCtiCallOutMissionDetail(platform, mission.missionName, admin.ctiUrl).then(
         apiOutputData => {
             apiOutput = apiOutputData;
 

@@ -13,8 +13,8 @@ let fs = require('fs')
     ;
 
 // SSL preparation - comment after SSL online
-key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+// key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
+// crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 
 let oldKey, oldCert;
 

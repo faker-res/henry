@@ -2444,7 +2444,7 @@ var dbPlayerTopUpRecord = {
 
                         console.log("createTopUpAPIAddr check request before sent - ", requestData);
                         return rp(options).then(manualTopUpCardData => {
-                            console.log('syncHTTPPMSPlatform success', manualTopUpCardData);
+                            console.log('createTopUpAPIAddr success', manualTopUpCardData);
                             if (manualTopUpCardData && manualTopUpCardData.result && manualTopUpCardData.result.bankTypeId) {
                                 let options1 = {
                                     method: 'POST',
@@ -2457,7 +2457,7 @@ var dbPlayerTopUpRecord = {
 
                                 return rp(options1).then(
                                     bankData => {
-                                        console.log("syncHTTPPMSPlatform success", bankData);
+                                        console.log("bankTypeAPIAddr success", bankData);
                                         if (bankData && bankData.data && bankData.data.name) {
                                             manualTopUpCardData.result.bankName = bankData.data.name;
                                         } else {
@@ -2465,7 +2465,7 @@ var dbPlayerTopUpRecord = {
                                         }
                                         return manualTopUpCardData;
                                     }, error => {
-                                        console.log('syncHTTPPMSPlatform failed', error);
+                                        console.log('bankTypeAPIAddr failed', error);
                                         throw error;
                                     }
                                 )
@@ -2932,11 +2932,11 @@ var dbPlayerTopUpRecord = {
                         };
 
                         console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (cancelData) {
+                            console.log('cancelTopUpAPIAddr success', cancelData);
+                            return cancelData;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('cancelTopUpAPIAddr failed', error);
                             throw error;
                         });
                     }
@@ -3010,11 +3010,11 @@ var dbPlayerTopUpRecord = {
                         };
 
                         console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (cancelData) {
+                            console.log('cancelTopUpAPIAddr success', cancelData);
+                            return cancelData;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('cancelTopUpAPIAddr failed', error);
                             throw error;
                         });
                     }
@@ -3088,11 +3088,11 @@ var dbPlayerTopUpRecord = {
                         };
 
                         console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (cancelData) {
+                            console.log('cancelTopUpAPIAddr success', cancelData);
+                            return cancelData;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('cancelTopUpAPIAddr failed', error);
                             throw error;
                         });
                     }
@@ -3167,11 +3167,11 @@ var dbPlayerTopUpRecord = {
                         };
 
                         console.log("delayTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (delayData) {
+                            console.log('delayTopUpAPIAddr success', delayData);
+                            return delayData;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('delayTopUpAPIAddr failed', error);
                             throw error;
                         });
                     }
@@ -3787,6 +3787,7 @@ var dbPlayerTopUpRecord = {
 
                             requestData.bankCardNo = inputData.alipayAccount;
                             requestData.depositMethod = constTopUpMethod.ALIPAY;
+                            requestData.depositTime = cTimeString;
 
                             let options = {
                                 method: 'POST',
@@ -3796,13 +3797,14 @@ var dbPlayerTopUpRecord = {
                             };
 
                             console.log("createTopUpAPIAddr check request before sent - ", requestData);
-                            return rp(options).then(function (syncPlatformData) {
-                                console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                                return syncPlatformData;
+                            return rp(options).then(function (data) {
+                                console.log('createTopUpAPIAddr - alipay - success', data);
+                                return data;
                             }, error => {
-                                console.log('syncHTTPPMSPlatform failed', error);
+                                console.log('createTopUpAPIAddr - alipay -failed', error);
                                 throw error;
                             });
+
                         } else {
                             return pmsAPI.payment_requestAlipayAccount(requestData);
                         }
@@ -3875,7 +3877,7 @@ var dbPlayerTopUpRecord = {
                         request = pmsData;
                         //add request data to proposal and update proposal status to pending
                         var updateData = {
-                            status: constProposalStatus.PENDING
+                            //status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);
                         updateData.data.userAlipayName = updateData.data.alipayName;
@@ -3941,11 +3943,29 @@ var dbPlayerTopUpRecord = {
 
                         updateAliPayTopUpProposalDailyLimit(proposalQuery, alipayAcc, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
 
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: proposal._id, createTime: proposal.createTime},
-                            updateData,
-                            {new: true}
-                        );
+                        let checkProposalStatus = Promise.resolve();
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            // to check if proposal status already update to Success, sometimes PMS 2 update proposal status too fast
+                            checkProposalStatus = dbconfig.collection_proposal.findOneAndUpdate(
+                                {
+                                    _id: proposal._id,
+                                    createTime: proposal.createTime,
+                                    status: constProposalStatus.PREPENDING
+                                },
+                                {status: constProposalStatus.PENDING}).lean();
+                        } else {
+                            updateData.status = constProposalStatus.PENDING;
+                        }
+
+                        return checkProposalStatus.then(
+                            () => {
+                                return dbconfig.collection_proposal.findOneAndUpdate(
+                                    proposalQuery,
+                                    updateData,
+                                    {new: true}
+                                );
+                            }
+                        )
                     }
                     else {
                         return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
@@ -4507,11 +4527,11 @@ var dbPlayerTopUpRecord = {
                             };
 
                             console.log("createTopUpAPIAddr check wechat request before sent ---------", requestData);
-                            return rp(options).then(function (syncPlatformData) {
-                                console.log('wechattopup syncHTTPPMSPlatform success', syncPlatformData);
-                                return syncPlatformData;
+                            return rp(options).then(function (data) {
+                                console.log('createTopUpAPIAddr - wechattopup - success', data);
+                                return data;
                             }, error => {
-                                console.log('wechattopup syncHTTPPMSPlatform failed', error);
+                                console.log('createTopUpAPIAddr - wechattopup - failed', error);
                                 throw error;
                             });
                         } else {
@@ -4602,7 +4622,7 @@ var dbPlayerTopUpRecord = {
                         request = pmsData;
                         //add request data to proposal and update proposal status to pending
                         var updateData = {
-                            status: constProposalStatus.PENDING
+                            //status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);
                         updateData.data.requestId = pmsData.result.requestId;
@@ -4645,11 +4665,29 @@ var dbPlayerTopUpRecord = {
 
                         updateWeChatPayTopUpProposalDailyLimit(proposalQuery, wechatAcc, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
 
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: proposal._id, createTime: proposal.createTime},
-                            updateData,
-                            {new: true}
-                        );
+                        let checkProposalStatus = Promise.resolve();
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            // to check if proposal status already update to Success, sometimes PMS 2 update proposal status too fast
+                            checkProposalStatus = dbconfig.collection_proposal.findOneAndUpdate(
+                                {
+                                    _id: proposal._id,
+                                    createTime: proposal.createTime,
+                                    status: constProposalStatus.PREPENDING
+                                },
+                                {status: constProposalStatus.PENDING}).lean();
+                        } else {
+                            updateData.status = constProposalStatus.PENDING;
+                        }
+
+                        return checkProposalStatus.then(
+                            () => {
+                                return dbconfig.collection_proposal.findOneAndUpdate(
+                                    proposalQuery,
+                                    updateData,
+                                    {new: true}
+                                );
+                            }
+                        )
                     }
                     else {
                         return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
@@ -5050,11 +5088,11 @@ var dbPlayerTopUpRecord = {
                 };
 
                 console.log("topupForceMatchAPIAddr check request before sent - ", requestData);
-                return rp(options).then(function (syncPlatformData) {
-                    console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                    return syncPlatformData;
+                return rp(options).then(function (data) {
+                    console.log('topupForceMatchAPIAddr success', data);
+                    return data;
                 }, error => {
-                    console.log('syncHTTPPMSPlatform failed', error);
+                    console.log('topupForceMatchAPIAddr failed', error);
                     throw error;
                 });
 

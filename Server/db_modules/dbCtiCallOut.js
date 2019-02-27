@@ -2,10 +2,15 @@
 
 const dbutility = require('./../modules/dbutility');
 const request = require('request');
+const dbconfig = require('./../modules/dbproperties');
 
 let dbCtiCallOut = {
-    getCtiUrls: function getCtiUrls (platformId) {
+    getCtiUrls: function getCtiUrls (platformId, ctiUrl) {
         platformId = platformId ? String(platformId) : "10";
+
+        if (ctiUrl) {
+            return [`http://${ctiUrl}.tel400.me/cti/`];
+        }
 
         // todo :: THIS ONE HAVE TO BE COMMENTED WHEN MERGE TO DEVELOP-1.1
         // platformId = 10; // debug param, use this when testing on local
@@ -95,7 +100,7 @@ let dbCtiCallOut = {
         param.minRedialInterval = minRedialInterval || 10;
         param.idleAgentMultiple = idleAgentMultiple ? Number(idleAgentMultiple).toFixed(1) : "2.0";
 
-        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "createCallOutTask.do", param).then(
+        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "createCallOutTask.do", param, admin.ctiUrl).then(
             apiOutput => {
                 if (!apiOutput) {
                     console.error("createCallOutTask.do Did not receive result");
@@ -128,11 +133,11 @@ let dbCtiCallOut = {
                     }
                 }
 
-                return dbCtiCallOut.addPhoneNumToMission (platform, missionName, calleeList, admin.did || "879997");
+                return dbCtiCallOut.addPhoneNumToMission (platform, missionName, calleeList, admin.did || "879997", admin.ctiUrl);
             }
         ).then(
             () => {
-                return dbCtiCallOut.updateCtiMissionStatus (platform, missionName, 1);
+                return dbCtiCallOut.updateCtiMissionStatus (platform, missionName, 1, admin.ctiUrl);
             }
         ).then(
             () => {
@@ -141,7 +146,7 @@ let dbCtiCallOut = {
         );
     },
 
-    addPhoneNumToMission: function addPhoneNumToMission (platform, missionName, calleeList, did) {
+    addPhoneNumToMission: function addPhoneNumToMission (platform, missionName, calleeList, did, ctiUrl) {
         let token = dbCtiCallOut.getCtiToken("POLYLINK_MESSAGE_TOKEN");
 
         let param = {token};
@@ -158,7 +163,7 @@ let dbCtiCallOut = {
 
         param.phones = JSON.stringify(phones);
 
-        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "callOutTaskAddPhonenum.do", param).then(
+        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "callOutTaskAddPhonenum.do", param, ctiUrl).then(
             apiOutput => {
                 if (!apiOutput) {
                     console.error("callOutTaskAddPhonenum.do Did not receive result");
@@ -190,14 +195,14 @@ let dbCtiCallOut = {
     },
 
     // operation: 1 - Active/Start, 2 - Pause, 3 - Stop/Give up
-    updateCtiMissionStatus: function updateCtiMissionStatus (platform, missionName, operation) {
+    updateCtiMissionStatus: function updateCtiMissionStatus (platform, missionName, operation, ctiUrl) {
         let token = dbCtiCallOut.getCtiToken("POLYLINK_MESSAGE_TOKEN");
 
         let param = {token};
         param.taskName = missionName;
         param.operation = operation;
 
-        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "settingTaskStatus.do", param).then(
+        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "settingTaskStatus.do", param, ctiUrl).then(
             apiOutput => {
                 if (!apiOutput) {
                     console.error("settingTaskStatus.do Did not receive result");
@@ -248,13 +253,13 @@ let dbCtiCallOut = {
         );
     },
 
-    getCtiCallOutMissionDetail: function getCtiCallOutMissionDetail (platform, missionName) {
+    getCtiCallOutMissionDetail: function getCtiCallOutMissionDetail (platform, missionName, ctiUrl) {
         let token = dbCtiCallOut.getCtiToken("POLYLINK_MESSAGE_TOKEN");
 
         let param = {token};
         param.taskName = missionName;
 
-        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "getCallOutTaskStatus.do", param).then(
+        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "getCallOutTaskStatus.do", param, ctiUrl).then(
             apiOutput => {
                 if (!apiOutput) {
                     console.error("getCallOutTaskStatus.do Did not receive result");
@@ -281,8 +286,8 @@ let dbCtiCallOut = {
         );
     },
 
-    callCtiApiWithRetry: function callCtiApiWithRetry (platformId, path, param) {
-        let urls = dbCtiCallOut.getCtiUrls(platformId);
+    callCtiApiWithRetry: function callCtiApiWithRetry (platformId, path, param, ctiUrl) {
+        let urls = dbCtiCallOut.getCtiUrls(platformId, ctiUrl);
 
         return tryCallCtiApi();
 
@@ -343,80 +348,106 @@ let dbCtiCallOut = {
         }
     },
 
-    callCtiApiWithAllTry: (platformId, path, param) => {
-        let urls = dbCtiCallOut.getCtiUrls(platformId);
+    // callCtiApiWithAllTry: (platformId, path, param) => {
+    //     let urls = dbCtiCallOut.getCtiUrls(platformId);
+    //
+    //     let proms = urls.map(url => {
+    //         return tryCallCtiApi(url).catch(error => {error});
+    //     });
+    //
+    //     return Promise.all(proms).then(
+    //         output => {
+    //             if (!(output instanceof Array)) {
+    //                 return;
+    //             }
+    //
+    //             let mostRelevantError, errorObj;
+    //             for (let i = 0; i < output.length; i++) {
+    //                 if (output[i].result == 1) {
+    //                     return output[i];
+    //                 }
+    //
+    //                 if (output[i].result) {
+    //                     if (mostRelevantError) {
+    //                         mostRelevantError = Number(mostRelevantError) < Number(output[i].result) ? mostRelevantError : output[i].result;
+    //                     }
+    //                     else {
+    //                         mostRelevantError = output[i].result;
+    //                     }
+    //                 }
+    //
+    //                 if (!errorObj || output[i].error) {
+    //                     errorObj = output[i].error;
+    //                 }
+    //             }
+    //
+    //             if (mostRelevantError) {
+    //                 return {result: mostRelevantError};
+    //             }
+    //
+    //             return Promise.reject(errorObj);
+    //         }
+    //     );
+    //
+    //     function tryCallCtiApi(url) {
+    //         let link = url + path;
+    //         return new Promise((resolve, reject) => {
+    //             try {
+    //                 request.post(link, {form: param, timeout: 5000}, (err, resp, body) => {
+    //                     if (err || (resp && body && Number(JSON.parse(body).result) != 1)) {
+    //                         console.log("CTI try", link, body, err);
+    //
+    //                         if (body) {
+    //                             resolve({result: JSON.parse(body).result});
+    //                             return;
+    //                         }
+    //
+    //                         resolve(Promise.reject(err));
+    //                         return;
+    //                     }
+    //
+    //                     if (!resp) {
+    //                         // throw this to prevent passing undefined to JSON.parse function
+    //                         console.log("CTI try no.", link);
+    //                         console.error('CTI Post request get nothing for ' + link);
+    //                         reject({error: "empty response"});
+    //                         return;
+    //                     }
+    //
+    //                     resolve(JSON.parse(body));
+    //                 });
+    //             } catch (err) {
+    //                 console.error(err);
+    //                 reject(err);
+    //             }
+    //         });
+    //     }
+    // },
 
-        let proms = urls.map(url => {
-            return tryCallCtiApi(url).catch(error => {error});
-        });
-
-        return Promise.all(proms).then(
-            output => {
-                if (!(output instanceof Array)) {
-                    return;
+    addCtiUrlSubDomain: (urlSubDomain) => {
+        return dbconfig.collection_ctiUrl.findOne({urlSubDomain}, {_id: 1}).lean().then(
+            cti => {
+                if (cti) {
+                    return Promise.reject({message: "CTI link existed"});
                 }
-
-                let mostRelevantError, errorObj;
-                for (let i = 0; i < output.length; i++) {
-                    if (output[i].result == 1) {
-                        return output[i];
-                    }
-
-                    if (output[i].result) {
-                        if (mostRelevantError) {
-                            mostRelevantError = Number(mostRelevantError) < Number(output[i].result) ? mostRelevantError : output[i].result;
-                        }
-                        else {
-                            mostRelevantError = output[i].result;
-                        }
-                    }
-
-                    if (!errorObj || output[i].error) {
-                        errorObj = output[i].error;
-                    }
-                }
-
-                if (mostRelevantError) {
-                    return {result: mostRelevantError};
-                }
-
-                return Promise.reject(errorObj);
+                return dbconfig.collection_ctiUrl({urlSubDomain}).save();
             }
         );
+    },
 
-        function tryCallCtiApi(url) {
-            let link = url + path;
-            return new Promise((resolve, reject) => {
-                try {
-                    request.post(link, {form: param, timeout: 5000}, (err, resp, body) => {
-                        if (err || (resp && body && Number(JSON.parse(body).result) != 1)) {
-                            console.log("CTI try", link, body, err);
-
-                            if (body) {
-                                resolve({result: JSON.parse(body).result});
-                                return;
-                            }
-
-                            resolve(Promise.reject(err));
-                            return;
-                        }
-
-                        if (!resp) {
-                            // throw this to prevent passing undefined to JSON.parse function
-                            console.log("CTI try no.", link);
-                            console.error('CTI Post request get nothing for ' + link);
-                            reject({error: "empty response"});
-                            return;
-                        }
-
-                        resolve(JSON.parse(body));
-                    });
-                } catch (err) {
-                    console.error(err);
-                    reject(err);
+    removeCtiUrlSubDomain: (urlObjId) => {
+        return dbconfig.collection_ctiUrl.remove({_id: urlObjId}).then(
+            data => {
+                if (data) {
+                    data.deleted = urlObjId;
                 }
-            });
-        }
+                return data;
+            }
+        )
+    },
+
+    getCtiUrlSubDomainList: () => {
+        return dbconfig.collection_ctiUrl.find({}).lean();
     },
 
 

@@ -98,22 +98,27 @@ let dbCallOutMission = {
         );
     },
 
-    toggleCallOutMissionStatus: (platformObjId, missionName) => {
+    toggleCallOutMissionStatus: (platformObjId, missionName, adminObjId) => {
         let platform = {};
         let mission = {};
+        let admin = {};
         let operation;
         return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
             platformData => {
                 platform = platformData;
 
-                return dbconfig.collection_callOutMission.findOne({missionName: missionName}).lean();
+                let missionProm = dbconfig.collection_callOutMission.findOne({missionName: missionName}).lean();
+                let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+                return Promise.all([missionProm, adminProm]);
             }
         ).then(
-            missionData => {
+            ([missionData, adminData]) => {
                 if (!missionData) {
                     return Promise.reject({message: "Call out mission not found."});
                 }
                 mission = missionData;
+
+                admin = adminData || admin;
 
                 if (mission.status == constCallOutMissionStatus.ON_GOING) {
                     operation = constCallOutMissionStatus.PAUSED;
@@ -123,7 +128,7 @@ let dbCallOutMission = {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
-                return updateCtiMissionStatus(platform, missionName, operation);
+                return updateCtiMissionStatus(platform, missionName, operation, admin.ctiUrl);
             }
         ).then(
             () => {
@@ -132,7 +137,7 @@ let dbCallOutMission = {
         );
     },
 
-    stopCallOutMission: (platformObjId, missionName) => {
+    stopCallOutMission: (platformObjId, missionName, adminObjId) => {
         let platform = {};
         let mission = {};
 
@@ -140,26 +145,29 @@ let dbCallOutMission = {
             platformData => {
                 platform = platformData;
 
-                return dbconfig.collection_callOutMission.findOne({missionName: missionName}).lean();
+                let missionProm = dbconfig.collection_callOutMission.findOne({missionName: missionName}).lean();
+                let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+                return Promise.all([missionProm, adminProm]);
             }
         ).then(
-            missionData => {
+            ([missionData, adminData]) => {
                 if (!missionData) {
                     return Promise.reject({message: "Call out mission not found."});
                 }
                 mission = missionData;
+                let admin = adminData || {};
 
                 if (mission.status != constCallOutMissionStatus.ON_GOING && mission.status != constCallOutMissionStatus.PAUSED && mission.status != constCallOutMissionStatus.CREATED) {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
                 if (mission.status == constCallOutMissionStatus.PAUSED) {
-                    return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING).then(
-                        () => updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED)
+                    return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING, admin.ctiUrl).then(
+                        () => updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiUrl)
                     );
                 }
 
-                return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED); //.catch().then(() => deleteCtiMission(platform, missionName));
+                return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiUrl); //.catch().then(() => deleteCtiMission(platform, missionName));
             }
         ).then(
             () => {
@@ -274,7 +282,7 @@ module.exports = dbCallOutMission;
 function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     let apiOutput, ctiMissionStatus;
 
-    return getCtiCallOutMissionDetail(platform, mission.missionName).then(
+    return getCtiCallOutMissionDetail(platform, mission.missionName, admin.ctiUrl).then(
         apiOutputData => {
             apiOutput = apiOutputData;
 
@@ -473,7 +481,10 @@ function getCalleeList (query, sortCol, selectedPlayers) {
     );
 }
 
-function getCtiUrls (platformId) {
+function getCtiUrls (platformId, ctiUrl) {
+    if (ctiUrl) {
+        return [`http://${ctiUrl}.tel400.me/cti/`];
+    }
     platformId = platformId ? String(platformId) : "10";
 
     // todo :: THIS ONE HAVE TO BE COMMENTED WHEN MERGE TO DEVELOP-1.1
@@ -564,7 +575,7 @@ function addMissionToCti (platform, admin, calleeList) {
     param.minRedialInterval = platform.minRedialInterval || 10;
     param.idleAgentMultiple = platform.idleAgentMultiple ? Number(platform.idleAgentMultiple).toFixed(1) : "2.0";
 
-    return callCtiApiWithRetry(platform.platformId, "createCallOutTask.do", param).then(
+    return callCtiApiWithRetry(platform.platformId, "createCallOutTask.do", param, admin.ctiUrl).then(
         apiOutput => {
             if (!apiOutput) {
                 console.error("createCallOutTask.do Did not receive result");
@@ -576,11 +587,11 @@ function addMissionToCti (platform, admin, calleeList) {
                 return Promise.reject({message: "CTI API return error"});
             }
 
-            return addPhoneNumToMission (platform, missionName, calleeList, admin.did || "879997");
+            return addPhoneNumToMission (platform, missionName, calleeList, admin.did || "879997", admin.ctiUrl);
         }
     ).then(
         () => {
-            return updateCtiMissionStatus (platform, missionName, 1);
+            return updateCtiMissionStatus (platform, missionName, 1, admin.ctiUrl);
         }
     ).then(
         () => {
@@ -589,7 +600,7 @@ function addMissionToCti (platform, admin, calleeList) {
     );
 }
 
-function addPhoneNumToMission (platform, missionName, calleeList, did) {
+function addPhoneNumToMission (platform, missionName, calleeList, did, ctiUrl) {
     let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
 
     let param = {token};
@@ -606,7 +617,7 @@ function addPhoneNumToMission (platform, missionName, calleeList, did) {
 
     param.phones = JSON.stringify(phones);
 
-    return callCtiApiWithRetry(platform.platformId, "callOutTaskAddPhonenum.do", param).then(
+    return callCtiApiWithRetry(platform.platformId, "callOutTaskAddPhonenum.do", param, ctiUrl).then(
         apiOutput => {
             if (!apiOutput) {
                 console.error("callOutTaskAddPhonenum.do Did not receive result");
@@ -623,14 +634,14 @@ function addPhoneNumToMission (platform, missionName, calleeList, did) {
 }
 
 // operation: 1 - Active/Start, 2 - Pause, 3 - Stop/Give up
-function updateCtiMissionStatus (platform, missionName, operation) {
+function updateCtiMissionStatus (platform, missionName, operation, ctiUrl) {
     let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
 
     let param = {token};
     param.taskName = missionName;
     param.operation = operation;
 
-    return callCtiApiWithRetry(platform.platformId, "settingTaskStatus.do", param).then(
+    return callCtiApiWithRetry(platform.platformId, "settingTaskStatus.do", param, ctiUrl).then(
         apiOutput => {
             if (!apiOutput) {
                 console.error("settingTaskStatus.do Did not receive result");
@@ -668,13 +679,13 @@ function deleteCtiMission (platform, missionName) {
     );
 }
 
-function getCtiCallOutMissionDetail (platform, missionName) {
+function getCtiCallOutMissionDetail (platform, missionName, ctiUrl) {
     let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
 
     let param = {token};
     param.taskName = missionName;
 
-    return callCtiApiWithRetry(platform.platformId, "getCallOutTaskStatus.do", param).then(
+    return callCtiApiWithRetry(platform.platformId, "getCallOutTaskStatus.do", param, ctiUrl).then(
         apiOutput => {
             if (!apiOutput) {
                 console.error("getCallOutTaskStatus.do Did not receive result");
@@ -690,8 +701,8 @@ function getCtiCallOutMissionDetail (platform, missionName) {
     );
 }
 
-function callCtiApiWithRetry (platformId, path, param) {
-    let urls = getCtiUrls(platformId);
+function callCtiApiWithRetry (platformId, path, param, ctiUrl) {
+    let urls = getCtiUrls(platformId, ctiUrl);
 
     return tryCallCtiApi();
 

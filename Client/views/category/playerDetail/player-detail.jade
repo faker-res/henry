@@ -1,78 +1,80 @@
 //div {{vm.playerData}}
-.row.margin-top-bottom-small
-    .col-md-12
-        table.common-table#playerFeedbackDataTable.display.widthto100
-.row.margin-top-bottom-small
-    .col-md-12
-        table.common-table#playerFeedbackDataTableExtended.display.widthto100
+.row.margin-left-5.margin-right-5(ng-if="checkViewPermission('Payment')")
+    #platformContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
+        .row.margin-top-bottom-small
+            .col-md-12
+                table.common-table#playerFeedbackDataTable.display.widthto100
+        .row.margin-top-bottom-small
+            .col-md-12
+                table.common-table#playerFeedbackDataTableExtended.display.widthto100
 
-.row.margin-top-bottom-small
-    .col-md-6
-        h4(ng-if="checkViewPermission('Platform','Feedback','Create')") {{"ADD_FEEDBACK" | translate}}
-        div.newcontanier
-            .row
-                .col-xs-2
-                    h5 {{'FEEDBACK_RESULTS' | translate}}
-                .col-xs-8
-                    select.search-filters-twoBoxes.form-control(ng-model='vm.addFeedback.result', required)
-                        option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
-                    button.btn.btn-primary.btn-space(ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
-            .row
-                .col-xs-2
-                    h5 {{'FEEDBACK_TOPIC' | translate}}
-                .col-xs-8
-                    select.search-filters-twoBoxes.form-control(ng-model='vm.addFeedback.topic', required)
-                        option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
-                    button.btn.btn-primary.btn-space(ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
-            .row
-                .col-xs-2
-                    h5 {{"REMARK" | translate}}
-                .col-xs-8
-                    textarea.form-control(rows='4' cols="40", ng-model='vm.addFeedback.content')
-            .text-right
-                button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result="";vm.addFeedback.topic="";') {{'Reset' | translate}}
-                button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.topic || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
+        .row.margin-top-bottom-small
+            .col-md-6
+                h4(ng-if="checkViewPermission('Platform','Feedback','Create')") {{"ADD_FEEDBACK" | translate}}
+                div.newcontanier
+                    .row
+                        .col-xs-2
+                            h5 {{'FEEDBACK_RESULTS' | translate}}
+                        .col-xs-8
+                            select.search-filters-twoBoxes.form-control(ng-model='vm.addFeedback.result', required)
+                                option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                            button.btn.btn-primary.btn-space(ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                    .row
+                        .col-xs-2
+                            h5 {{'FEEDBACK_TOPIC' | translate}}
+                        .col-xs-8
+                            select.search-filters-twoBoxes.form-control(ng-model='vm.addFeedback.topic', required)
+                                option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                            button.btn.btn-primary.btn-space(ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                    .row
+                        .col-xs-2
+                            h5 {{"REMARK" | translate}}
+                        .col-xs-8
+                            textarea.form-control(rows='4' cols="40", ng-model='vm.addFeedback.content')
+                    .text-right
+                        button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result="";vm.addFeedback.topic="";') {{'Reset' | translate}}
+                        button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.topic || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
 
-        h4 {{"CREDIBILITY_RECORD" | translate}}
-        table.simple-table
-            thead
-                tr
-                    th {{"OPERATOR_NAME" | translate}}
-                    th {{"TIME" | translate}}
-                    th {{"CREDIBILITY" | translate}}
-                    th {{"remark" | translate}}
-            tbody
-                tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
-                    td
-                        text {{data.admin}}
-                    td
-                        text {{data.createTime}}
-                    td
-                        text {{data.remarks$}}
-                    td
-                        text {{data.comment}}
-    .col-md-6
-        h4 {{"Feedback History" | translate}} : {{vm.curPlayerFeedbackDetail.length}}
-        table.simple-table
-            thead
-                tr
-                    th {{"TIME" | translate}}
-                    th {{"ADMIN" | translate}}
-                    th {{"RESULT" | translate}}
-                    th {{"FEEDBACK_TOPIC" | translate}}
-                    th {{"REMARK" | translate}}
-            tbody
-                tr(ng-repeat='(i,v) in vm.curPlayerFeedbackDetail', ng-show='vm.curPlayerFeedbackDetail.length>0')
-                    td
-                        text {{vm.dateReformat(v.createTime)}}
-                    td
-                        text {{v.adminId.adminName || 'Unknown' | translate}}
-                    td
-                        text {{v.result$}}
-                    td
-                        text {{v.topic | translate}}
-                    td
-                        text {{v.content}}
+                h4 {{"CREDIBILITY_RECORD" | translate}}
+                table.simple-table
+                    thead
+                        tr
+                            th {{"OPERATOR_NAME" | translate}}
+                            th {{"TIME" | translate}}
+                            th {{"CREDIBILITY" | translate}}
+                            th {{"remark" | translate}}
+                    tbody
+                        tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
+                            td
+                                text {{data.admin}}
+                            td
+                                text {{data.createTime}}
+                            td
+                                text {{data.remarks$}}
+                            td
+                                text {{data.comment}}
+            .col-md-6
+                h4 {{"Feedback History" | translate}} : {{vm.curPlayerFeedbackDetail.length}}
+                table.simple-table
+                    thead
+                        tr
+                            th {{"TIME" | translate}}
+                            th {{"ADMIN" | translate}}
+                            th {{"RESULT" | translate}}
+                            th {{"FEEDBACK_TOPIC" | translate}}
+                            th {{"REMARK" | translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.curPlayerFeedbackDetail', ng-show='vm.curPlayerFeedbackDetail.length>0')
+                            td
+                                text {{vm.dateReformat(v.createTime)}}
+                            td
+                                text {{v.adminId.adminName || 'Unknown' | translate}}
+                            td
+                                text {{v.result$}}
+                            td
+                                text {{v.topic | translate}}
+                            td
+                                text {{v.content}}
 
 
 
@@ -510,6 +512,28 @@ include ../common-widget/telephone-popover
                 button.common-button.margin-right-5.btn.btn-warning.forbidRewardEventCancel(data-dismiss='popover') {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidreward(data-toggle="modal", data-target="#modalForbidRewardLog", ng-click="vm.getForbidReward();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
 
+#modalForbidRewardLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.forbidRewardEventPopover.name}}
+            .modal-body
+                #forbidRewardSearch.adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.getForbidRewardLog(true)') {{'SEARCH' | translate}}
+                    .inlineBlk(ng-show='vm.forbidRewardLog.isSearching')
+                        i.fa.fa-spin.fa-spinner
+                label {{"Total" | translate}} {{vm.forbidRewardLog.totalCount}} {{"records" | translate}}
+                table#forbidRewardTbl.common-table(style='min-width:100%')
+                #forbidRewardTblPage.height30
+
 #forbidTopUpPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
         tr
@@ -525,6 +549,28 @@ include ../common-widget/telephone-popover
                 button.common-button.margin-right-5.btn.btn-success.forbidBatchTopUpConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidTopupTypes') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning.forbidTopUpCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidTopUp(data-toggle="modal", data-target="#modalForbidTopUpLog", ng-click="vm.getForbidTopUp();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
+#modalForbidTopUpLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.forbidTopUpPopover.name}}
+            .modal-body
+                #forbidTopUpSearch.adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.getForbidTopUpLog(true)') {{'SEARCH' | translate}}
+                    .inlineBlk(ng-show='vm.forbidTopUpLog.isSearching')
+                        i.fa.fa-spin.fa-spinner
+                label {{"Total" | translate}} {{vm.forbidTopUpLog.totalCount}} {{"records" | translate}}
+                table#forbidTopUpTbl.common-table(style='min-width:100%')
+                #forbidTopUpTblPage.height30
 
 #forbidRewardPointsEventPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
@@ -555,6 +601,28 @@ include ../common-widget/telephone-popover
                 button.common-button.margin-right-5.btn.btn-warning.forbidRewardPointsEventCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidRewardPointsEvent(data-toggle="modal", data-target="#modalForbidRewardPointsEventLog", ng-click="vm.getForbidRewardPointsEvent();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
 
+#modalForbidRewardPointsEventLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.forbidRewardPointsEventPopover.name}}
+            .modal-body
+                #forbidRewardPointsEventSearch.adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.getForbidRewardPointsEventLog(true)') {{'SEARCH' | translate}}
+                    .inlineBlk(ng-show='vm.forbidRewardPointsEventLog.isSearching')
+                        i.fa.fa-spin.fa-spinner
+                label {{"Total" | translate}} {{vm.forbidRewardPointsEventLog.totalCount}} {{"records" | translate}}
+                table#forbidRewardPointsEventTbl.common-table(style='min-width:100%')
+                #forbidRewardPointsEventTblPage.height30
+
 #prohibitGamePopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
         tr
@@ -571,6 +639,28 @@ include ../common-widget/telephone-popover
 
                 button.common-button.margin-right-5.btn.btn-warning.forbidGameCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidGame(data-toggle="modal", data-target="#modalForbidGameLog", ng-click="vm.getForbidGame();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
+#modalForbidGameLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.prohibitGamePopover.name}}
+            .modal-body
+                #forbidGameSearch.adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.getForbidGameLog(true)') {{'SEARCH' | translate}}
+                    .inlineBlk(ng-show='vm.forbidGameLog.isSearching')
+                        i.fa.fa-spin.fa-spinner
+                label {{"Total" | translate}} {{vm.forbidGameLog.totalCount}} {{"records" | translate}}
+                table#forbidGameTbl.common-table(style='min-width:100%')
+                #forbidGameTblPage.height30
 
 include ../platform/platform-player-popup
 include ../platform/platform-feedback-popup

@@ -242,11 +242,11 @@ var dbPlatformBankCardGroup = {
                         json: true
                     };
 
-                    return rp(options).then(function (syncPlatformData) {
-                        console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                        return syncPlatformData;
+                    return rp(options).then(function (data) {
+                        console.log('bankCardListAPIAddr success', data);
+                        return data;
                     }, error => {
-                        console.log('syncHTTPPMSPlatform failed', error);
+                        console.log('bankCardListAPIAddr failed', error);
                         throw error;
                     });
                 } else {
@@ -280,11 +280,11 @@ var dbPlatformBankCardGroup = {
                         json: true
                     };
 
-                    return rp(options).then(function (syncPlatformData) {
-                        console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                        return syncPlatformData;
+                    return rp(options).then(function (data) {
+                        console.log('bankTypeListAPIAddr success', data);
+                        return data;
                     }, error => {
-                        console.log('syncHTTPPMSPlatform failed', error);
+                        console.log('bankTypeListAPIAddr failed', error);
                         throw error;
                     });
                 } else {
@@ -457,11 +457,11 @@ var dbPlatformBankCardGroup = {
                             json: true
                         };
 
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (data) {
+                            console.log('bankCardListAPIAddr success', data);
+                            return data;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('bankCardListAPIAddr failed', error);
                             throw error;
                         });
                     }

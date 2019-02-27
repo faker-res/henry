@@ -199,11 +199,11 @@ let dbPlatformWechatPayGroup = {
                         json: true
                     };
 
-                    return rp(options).then(function (syncPlatformData) {
-                        console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                        return syncPlatformData;
+                    return rp(options).then(function (data) {
+                        console.log('wechatlist success', data);
+                        return data;
                     }, error => {
-                        console.log('syncHTTPPMSPlatform failed', error);
+                        console.log('wechatlist failed', error);
                         throw error;
                     });
                 } else {
@@ -299,11 +299,11 @@ let dbPlatformWechatPayGroup = {
                             json: true
                         };
 
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (data) {
+                            console.log('wechatlist success', data);
+                            return data;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('wechatlist failed', error);
                             throw error;
                         });
                     } else {
