@@ -4896,6 +4896,16 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync();
         };
 
+        vm.showSmsTab = function (tabName) {
+            if (!tabName && (vm.selectedSinglePlayer && vm.selectedSinglePlayer.permission && vm.selectedSinglePlayer.permission.SMSFeedBack === false)) {
+                vm.smsModalTab = "smsLogPanel";
+                vm.initSMSLog("single");
+            }
+            else {
+                vm.smsModalTab = tabName ? tabName : "smsToPlayerPanel";
+            }
+        };
+
         vm.getPlatformSmsGroups = () => {
             return $scope.$socketPromise('getPlatformSmsGroups', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
                 vm.smsGroups = data.data;
@@ -4919,9 +4929,13 @@ define(['js/app'], function (myApp) {
                     name: playerObjId.name,
                     nickName: playerObjId.nickName,
                     platformId: vm.selectedPlatform.data.platformId,
-                    channel: $scope.channelList[0],
+                    channel: $scope.usableChannelList[0],
                     hasPhone: playerObjId.phoneNumber
+                };
+                if ($scope.usableChannelList && $scope.usableChannelList.indexOf(4) > -1) {
+                    vm.smsPlayer.channel = 4;
                 }
+
                 vm.sendSMSResult = {};
                 $scope.$evalAsync();
                 $('#smsPlayerModal').modal('show');
