@@ -2033,7 +2033,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         } else if (String(merchantTypeId) === "9997") {
                             $scope.merchantNoList[item].merchantTypeName = $trans('PERSONAL_ALIPAY_GROUP');
                         } else if (String(merchantTypeId) !== "9997" && String(merchantTypeId) !== "9998" && String(merchantTypeId) !== "9999") {
-                            let merchantInfo = $scope.merchantTypes.filter(mitem => String(mitem.merchantTypeId) === String(merchantTypeId));
+                            let merchantInfo = $scope.merchantTypes && $scope.merchantTypes.filter(mitem => String(mitem.merchantTypeId) === String(merchantTypeId)) || [];
                             $scope.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
                         } else {
                             $scope.merchantNoList[item].merchantTypeName = '';
