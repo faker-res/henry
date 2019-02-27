@@ -184,11 +184,11 @@ var dbPlatformAlipayGroup = {
                         json: true
                     };
 
-                    return rp(options).then(function (syncPlatformData) {
-                        console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                        return syncPlatformData;
+                    return rp(options).then(function (data) {
+                        console.log('alipaylist success', data);
+                        return data;
                     }, error => {
-                        console.log('syncHTTPPMSPlatform failed', error);
+                        console.log('alipaylist failed', error);
                         throw error;
                     });
                 } else {
@@ -284,11 +284,11 @@ var dbPlatformAlipayGroup = {
                             json: true
                         };
 
-                        return rp(options).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        return rp(options).then(function (data) {
+                            console.log('alipaylist success', data);
+                            return data;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('alipaylist failed', error);
                             throw error;
                         });
                     } else {
