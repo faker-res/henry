@@ -74,19 +74,23 @@ var emailer = {
 
         // send mail with defined transport object
         return Q.Promise(function (resolve, reject) {
-            transporter.sendMail(mailOptions, function (error, info) {
-                if (error) {
-                    reject(error);
-                } else {
-                    if (info.accepted.length < 1 || info.rejected.length > 0 || info.errors.length > 0) {
-                        // We may be interested in one of the arrays: info.rejected or info.errors.
-                        errorUtils.reportError(info);
-                        reject(info);
+            try {
+                transporter.sendMail(mailOptions, function (error, info) {
+                    if (error) {
+                        reject(error);
                     } else {
-                        resolve(info);
+                        if (info.accepted.length < 1 || info.rejected.length > 0 || info.errors.length > 0) {
+                            // We may be interested in one of the arrays: info.rejected or info.errors.
+                            errorUtils.reportError(info);
+                            reject(info);
+                        } else {
+                            resolve(info);
+                        }
                     }
-                }
-            });
+                });
+            } catch (e) {
+                reject(e);
+            }
         });
     }
 }
