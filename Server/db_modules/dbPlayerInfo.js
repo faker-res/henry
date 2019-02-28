@@ -6679,6 +6679,7 @@ let dbPlayerInfo = {
         ).then(
             rewardTaskGroup => {
                 if (rewardTaskGroup) { rewardTaskGroupData = rewardTaskGroup; }
+                console.log('MT --checking --rewardTaskGroup', rewardTaskGroup)
 
                 //if player applied BonusDoubledReward, check if player has enough credit.
                 if(playerBonusDoubledRewardValidity){
@@ -6744,7 +6745,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 transferAmount += parseFloat(playerData.validCredit.toFixed(2));
-
+                console.log('MT --checking transferAmount', transferAmount);
                 if (playerData.platform.useProviderGroup && rewardTaskGroupData && rewardTaskGroupData.rewardAmt) {
                     transferAmount += rewardTaskGroupData.rewardAmt;
                 }
@@ -6780,7 +6781,9 @@ let dbPlayerInfo = {
                 dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
                     "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
+
                 if (playerData.platform.useProviderGroup) {
+                    console.log('MT --checking useProviderGroup', playerData.platform.useProviderGroup);
                     // Platform supporting provider group
                     if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
                         // if use eBet Wallet
@@ -6793,6 +6796,7 @@ let dbPlayerInfo = {
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     }
                 } else {
+                    console.log('MT --checking Deprecated');
                     // Deprecated - should not go this path
                     return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
                 }
