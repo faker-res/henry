@@ -3375,6 +3375,7 @@ define(['js/app'], function (myApp) {
                     for (var i = 0; i < vm.platformGameGroupList.length; i++) {
                         if (vm.platformGameGroupList[i]._id == vm.SelectedGameGroupNode.id) {
                             vm.platformGameGroupList.splice(i, 1);
+                            vm.SelectedGameGroupNode = null;
                             break;
                         }
                     }
