@@ -37,6 +37,10 @@ var localConfig = {
     m1chatAppId: "2586120068008812",
     m1chatCorpId: "2586120068005889",
     m1chatCorpSecret: "SNOkTdCmgLBNnEKLdft4FyrcyqJYeVQ0",
+    gmailOAuthUser: "no-reply@snsoft.my",
+    gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
+    gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
+    gmailOAuthRefreshToken: "1/8H_tfnbk5J3_j8rjthtPGdyo70QPBqoqeDti1YaCwj4",
 };
 
 //for aws-development
@@ -63,6 +67,10 @@ var devConfig = {
     paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
     ebetRTNUrl: "ws://rtn-xindeli99.cpms8.me:7351/ebet",
+    gmailOAuthUser: "no-reply@snsoft.my",
+    gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
+    gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
+    gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
 };
 
 //for settlement
@@ -89,6 +97,10 @@ var settleConfig = {
     paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
     ebetRTNUrl: "ws://rtn-xindeli.cpms8.me:7351/ebet",
+    gmailOAuthUser: "no-reply@snsoft.my",
+    gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
+    gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
+    gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
 };
 
 //for testing
@@ -116,6 +128,10 @@ var qaConfig = {
     paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
     ebetRTNUrl: "ws://rtn-xindeli.cpms8.me:7351/ebet",
+    gmailOAuthUser: "no-reply@snsoft.my",
+    gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
+    gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
+    gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
 };
 
 var testAPIConfig = {
@@ -142,6 +158,10 @@ var testAPIConfig = {
     paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
     ebetRTNUrl: "ws://rtn-xindeli99.cpms8.me:7351/ebet",
+    gmailOAuthUser: "no-reply@snsoft.my",
+    gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
+    gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
+    gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
 };
 
 /*
@@ -183,6 +203,10 @@ var prodOldConfig = {
     cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
     cpAPIUrlForGame : "ws://gameapi-server.neweb.me/game",
     paymentAPIUrl: "ws://10.167.11.135:8566/acc",
+    gmailOAuthUser: "no-reply@snsoft.my",
+    gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
+    gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
+    gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
     //smsAPIUrl: "ws://203.192.151.12:8560/sms"
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms"
 };
@@ -221,6 +245,10 @@ var prodConfig = {
     m1chatAppId: "2586120068008812",
     m1chatCorpId: "2586120068005889",
     m1chatCorpSecret: "SNOkTdCmgLBNnEKLdft4FyrcyqJYeVQ0",
+    gmailOAuthUser: "no-reply@snsoft.my",
+    gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
+    gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
+    gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
 };
 
 
@@ -246,6 +274,10 @@ var botConfig = {
     paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://devtest.wsweb.me:7100",
     ebetRTNUrl: "ws://rtn-xindeli99.cpms8.me:7351/ebet",
+    gmailOAuthUser: "no-reply@snsoft.my",
+    gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
+    gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
+    gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
 };
 
 //env parameters

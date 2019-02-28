@@ -7,6 +7,42 @@ module.exports = new emailerFunc();
 const Q = require("q");
 const nodemailer = require('nodemailer');
 const errorUtils = require('./errorUtils');
+const { google } = require("googleapis");
+const OAuth2 = google.auth.OAuth2;
+const env = require("../config/env").config();
+
+// gmail oauth guide: https://medium.com/@nickroach_50526/sending-emails-with-node-js-using-smtp-gmail-and-oauth2-316fe9c790a1
+const oauth2Client = new OAuth2(env.gmailOAuthClientId, env.gmailOAuthClientSecret, "https://developers.google.com/oauthplayground");
+let accessToken = "";
+let smtpTransporter;
+let htmlToText = require('nodemailer-html-to-text').htmlToText;
+
+oauth2Client.setCredentials({refresh_token: env.gmailOAuthRefreshToken});
+oauth2Client.getAccessToken().then(({token}) => {
+    accessToken = token;
+    smtpTransporter =  nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            type: "OAuth2",
+            user: env.gmailOAuthUser,
+            clientId: env.gmailOAuthClientId,
+            clientSecret: env.gmailOAuthClientSecret,
+            refreshToken: env.gmailOAuthRefreshToken,
+            accessToken: accessToken
+        }
+    });
+
+    smtpTransporter.use('compile', htmlToText({}));
+
+    smtpTransporter.verify((err) => {
+        if (err) {
+            smtpTransporter = undefined;
+            console.log('err', err)
+            console.log("emailer smtp transporter connection failed");
+        }
+    })
+});
+
 // If we want advanced templates, we could consider: https://github.com/niftylettuce/node-email-templates
 
 // See: https://nodemailer.com/2-0-0-beta/setup-smtp/
@@ -17,7 +53,7 @@ const errorUtils = require('./errorUtils');
 //    secretAccessKey: 'AWS/Secret/key'
 //});
 
-const transporter = nodemailer.createTransport({pool: 4, direct: true});
+const directTransporter = nodemailer.createTransport({pool: 4, direct: true});
 
 // listen for token updates (if refreshToken is set)
 // you probably want to store these to a db
@@ -43,8 +79,8 @@ const transporter = nodemailer.createTransport({pool: 4, direct: true});
 // });
 
 // This plugin will generate mailOptions.text if only mailOptions.html is provided.
-var htmlToText = require('nodemailer-html-to-text').htmlToText;
-transporter.use('compile', htmlToText({}));   // For options see: https://www.npmjs.com/package/html-to-text
+// var htmlToText = require('nodemailer-html-to-text').htmlToText;
+directTransporter.use('compile', htmlToText({}));   // For options see: https://www.npmjs.com/package/html-to-text
 
 /**
  * @param {Object} config
@@ -75,6 +111,13 @@ var emailer = {
         // send mail with defined transport object
         return Q.Promise(function (resolve, reject) {
             try {
+                // if (smtpTransporter) {
+                //     console.log('smtp transporter ready')
+                // }
+                // else {
+                //     console.log('using direct')
+                // }
+                let transporter = smtpTransporter || directTransporter;
                 transporter.sendMail(mailOptions, function (error, info) {
                     if (error) {
                         reject(error);
