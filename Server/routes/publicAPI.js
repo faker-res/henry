@@ -19,6 +19,11 @@ const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const dbPlayerLoginRecord = require('./../db_modules/dbPlayerLoginRecord');
 
 
+const dbconfig = require('./../modules/dbproperties');
+const ObjectId = mongoose.Types.ObjectId;
+var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+var dbPlayerLoginRecord = require('./../db_modules/dbPlayerLoginRecord');
+
 router.post('/fkpNotify', function(req, res, next) {
     let isValidData = req && req.body && req.body.merchantCode && req.body.orderNo && req.body.payOrderNo && Number.isFinite(Number(req.body.amount))
         && req.body.orderStatus;
@@ -157,6 +162,7 @@ router.post('/login', function (req, res, next) {
     }
 });
 
+router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
 router.post('/loginKeyServer', function (req, res, next) {
     console.log(req);
     if (!req.body.username || !req.body.password) {
@@ -308,15 +314,18 @@ router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
 
     })
 });
-//
-// router.post('/countNewPlayerAllPlatform', function (req, res, next) {
-//     let startDate = new Date(req.body.startDate);
-//     let endDate = new Date(req.body.endDate);
-//     let platform = req.body.platform;
-//     dbPlayerInfo.countDailyNewPlayerByPlatform(platform, startDate, endDate).then(
-//         data=>{
-//             res.json({success:true, data:data});
-//     })
-// });
+
+
+router.post('/countNewPlayerAllPlatform', function (req, res, next) {
+    let startDate = new Date(req.body.startDate);
+    let endDate = new Date(req.body.endDate);
+    let platform = req.body.platform;
+    dbPlayerInfo.countDailyNewPlayerByPlatform(platform, startDate, endDate).then(
+        data=>{
+            res.json({success:true, data:data});
+    })
+});
+
+
 
 module.exports = router;
