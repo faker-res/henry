@@ -9972,7 +9972,6 @@ let dbPlayerInfo = {
         return Q.all([count, detail]).then(
             data => {
                 let players = data[1];
-                console.log("checking---yH--players", players)
                 for (let i = 0, len = players.length; i < len; i++) {
                     dbPlayerCredibility.calculatePlayerValue(players[i]._id);
                 }
