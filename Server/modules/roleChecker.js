@@ -408,7 +408,7 @@ var roleChecker = {
                 Update: []
             },
             "Feedback": {
-                Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks', 'getDepartmentDetailsByPlatformObjId'],
+                Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks', 'getDepartmentDetailsByPlatformObjId', 'getPlayerFeedbackQuery'],
                 Export: [],
                 Create: ['createPlayerFeedback'],
                 BulkCall: [],

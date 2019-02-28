@@ -21,18 +21,42 @@ module.exports = function (config) {
         ).then(
             playerLevel => {
                 if(playerLevel && playerLevel._id){
-                    let newPlayerData = {
-                        password: config.botPassword,
-                        platform: platformData._id,
-                        playerLevel: playerLevel._id
-                    };
+                    let createPlayerProm = Promise.resolve();
 
                     for(let i = 0; i < 100; i ++){
-                        newPlayerData.name = config.botPlayerPrefix + (1000 + i).toString();
-                        newPlayerData.phoneNumber = (20800000000 + i).toString();
+                        //check if testbot player exists
+                        createPlayerProm.then(
+                            () => {
+                                let newPlayerData = {
+                                    password: config.botPassword,
+                                    platform: platformData._id,
+                                    playerLevel: playerLevel._id,
+                                    name: config.botPlayerPrefix + (1000 + i).toString(),
+                                    phoneNumber: (20800000000 + i).toString()
+                                };
 
-                        return dbconfig.collection_players(newPlayerData).save()
+                                return dbconfig.collection_players.findOne({name: newPlayerData.name}).then(
+                                    existingPlayer => {
+                                        if(!existingPlayer || existingPlayer == null){
+                                            return dbconfig.collection_players(newPlayerData).save();
+                                        }
+                                    }
+                                )
+                            }
+                        );
                     }
+
+                    return createPlayerProm;
+                }
+            }
+        )
+    }
+
+    function checkAndCreatePlayer(newPlayerData){
+        return dbconfig.collection_players.findOne({name: newPlayerData.name}).then(
+            existingPlayer => {
+                if(!existingPlayer || existingPlayer == null){
+                    return dbconfig.collection_players(newPlayerData).save();
                 }
             }
         )
@@ -50,7 +74,8 @@ module.exports = function (config) {
             }
         ).then(
             playerDetails => {
-                if(playerDetails && playerDetails.length > 0){
+                //if testbot players number < 100, continue to create testbot player
+                if(playerDetails && playerDetails.length >= 100){
                     playerDetails.forEach(
                         player => {
                             if(player && player.name){
@@ -80,6 +105,14 @@ module.exports = function (config) {
                                 let updatePlayerWeChatProm = [];
                                 let updatePlayerQQProm = [];
                                 let aliPayTopupAndCancelProposalProm = [];
+                                let sendMailToPlayerProm = [];
+                                let readMailAndDeleteMailProm = [];
+
+                                // let aliTopupDetail = {
+                                //     amount: 100,
+                                //     // alipayName: config.botAlipayName
+                                // };
+
                                 if(playerData && playerData.data && playerData.data.playerId){
                                     let paymentInfo = {
                                         playerId: playerData.data.playerId,
@@ -88,19 +121,26 @@ module.exports = function (config) {
                                         bankAccountName: config.botBankAccName
                                     };
 
+                                    let emailData = {
+                                        recipientPlayerId: playerData.data.playerId,
+                                        title: config.botSendEmailTitle,
+                                        content: config.botSendEmailContent
+                                    };
+
                                     updatePaymentInfoProm.push(updatePaymentInfo(clientClient, paymentInfo));
+
+                                    //send 5 email to player
+                                    for(let i = 0; i < 5; i ++){
+                                        sendMailToPlayerProm.push(sendMailToPlayer(clientClient, emailData));
+                                    }
                                 }
 
                                 updatePlayerEmailProm.push(updatePlayerEmail(clientClient, {email: timeStamp + "@bot.com"}));
                                 updatePlayerWeChatProm.push(updatePlayerWeChat(clientClient, {wechat: timeStamp + "wechat"}));
                                 updatePlayerQQProm.push(updatePlayerQQ(clientClient, {qq: timeStamp}));
                                 updatePlayerQQProm.push(updatePlayerQQ(clientClient, {qq: timeStamp}));
-
-                                let aliTopupDetail = {
-                                    amount: 100,
-                                    alipayName: config.botAlipayName
-                                };
-                                aliPayTopupAndCancelProposalProm.push(aliPayTopupAndCancelProposal(clientClient, aliTopupDetail));
+                                // aliPayTopupAndCancelProposalProm.push(aliPayTopupAndCancelProposal(clientClient, aliTopupDetail));
+                                readMailAndDeleteMailProm.push(readMailAndDeleteMail(clientClient));
 
                                 return Promise.all(updatePaymentInfoProm).then(
                                     () => {
@@ -117,6 +157,14 @@ module.exports = function (config) {
                                 ).then(
                                     () => {
                                         return Promise.all(aliPayTopupAndCancelProposalProm);
+                                    }
+                                ).then(
+                                    () => {
+                                        return Promise.all(sendMailToPlayerProm);
+                                    }
+                                ).then(
+                                    () => {
+                                        return Promise.all(readMailAndDeleteMailProm);
                                     }
                                 );
                             }
@@ -157,6 +205,36 @@ module.exports = function (config) {
                 }
             }
         )
+    }
+
+    function sendMailToPlayer(clientClient, emailData){
+        return callAPI(clientClient, 'player', 'sendPlayerMailFromPlayerToPlayer', emailData);
+    }
+
+    function readMailAndDeleteMail(clientClient){
+        let readMailProm = [];
+        let deleteMailProm = [];
+        return callAPI(clientClient, 'player', 'getUnreadMail').then(
+            unReadMailList => {
+                if(unReadMailList && unReadMailList.data && unReadMailList.data.length){
+
+                    unReadMailList.data.forEach(
+                        unReadMail => {
+                            if(unReadMail && unReadMail._id){
+                                readMailProm.push(callAPI(clientClient, 'player', 'readMail', {mailObjId: unReadMail._id}));
+                                deleteMailProm.push(callAPI(clientClient, 'player', 'deleteMail', {mailObjId: unReadMail._id}));
+                            }
+                        }
+                    )
+                }
+
+                return Promise.all(readMailProm).then(
+                    () => {
+                        return Promise.all(deleteMailProm);
+                    }
+                );
+            }
+        );
     }
 
     return {

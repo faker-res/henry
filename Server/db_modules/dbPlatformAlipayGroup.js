@@ -549,7 +549,7 @@ function addDefaultAlipayGroup(topUpSystemConfig, platformObjId) {
         return dbconfig.collection_platformAlipayGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
             pms2AlipayGroupExists => {
                 if (!pms2AlipayGroupExists) {
-                    let defaultStr = "default";
+                    let defaultStr = "PMS2DefaultGroup";
                     let groupData = {
                         groupId: defaultStr,
                         name: defaultStr,

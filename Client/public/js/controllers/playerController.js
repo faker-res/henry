@@ -14598,6 +14598,13 @@ define(['js/app'], function (myApp) {
             vm.filterBankname("playerManualTopUp");
             vm.existingManualTopup = null;
             vm.chosenBankAcc = {};
+
+            socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                })
+            })
+
             socketService.$socket($scope.AppSocket, 'getManualTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 vm.existingManualTopup = data.data ? data.data : false;
             });
@@ -18626,6 +18633,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if ( vm.selectedProposal.mainType && vm.selectedProposal.mainType == "PlayerBonus" && vm.selectedProposal.status && vm.selectedProposal.status == 'Approved' ) {
+                    vm.selectedProposal.status = 'approved';
+                }
+
                 let proposalDetail = $.extend({}, vm.selectedProposal.data);
                 let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
                 for (let i in proposalDetail) {
@@ -18690,6 +18701,10 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                         vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                     }
+                }
+
+                if ( vm.selectedProposal.mainType && vm.selectedProposal.mainType == "PlayerBonus" && vm.selectedProposal.status && vm.selectedProposal.status == 'Approved' ) {
+                    vm.selectedProposal.status = 'approved';
                 }
 
                 let tmpt = vm.proposalTemplate[templateNo];
