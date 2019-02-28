@@ -1,5 +1,6 @@
 const dbconfig = require('./../modules/dbproperties');
 const dbutility = require('./../modules/dbutility');
+const dbCtiCallOut = require('./../db_modules/dbCtiCallOut');
 
 const constCallOutMissionStatus = require('./../const/constCallOutMissionStatus');
 const constCallOutMissionCalleeStatus = require('./../const/constCallOutMissionCalleeStatus');
@@ -51,7 +52,12 @@ let dbCallOutMission = {
 
                 calleeList = calleeData;
 
-                return addMissionToCti(platform, admin, calleeList);
+                let maxRingTime = platform.maxRingTime || 30;
+                let redialTimes = platform.redialTimes || 3;
+                let minRedialInterval = platform.minRedialInterval || 10;
+                let idleAgentMultiple = platform.idleAgentMultiple ? Number(platform.idleAgentMultiple).toFixed(1) : "2.0";
+
+                return addMissionToCti(platform, admin, calleeList, maxRingTime, redialTimes, minRedialInterval, idleAgentMultiple);
             }
         ).then(
             missionName => {
@@ -128,7 +134,7 @@ let dbCallOutMission = {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
-                return updateCtiMissionStatus(platform, missionName, operation, admin.ctiUrl);
+                return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, operation, admin.ctiUrl);
             }
         ).then(
             () => {
@@ -162,12 +168,12 @@ let dbCallOutMission = {
                 }
 
                 if (mission.status == constCallOutMissionStatus.PAUSED) {
-                    return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING, admin.ctiUrl).then(
-                        () => updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiUrl)
+                    return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING, admin.ctiUrl).then(
+                        () => dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiUrl)
                     );
                 }
 
-                return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiUrl); //.catch().then(() => deleteCtiMission(platform, missionName));
+                return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiUrl); //.catch().then(() => deleteCtiMission(platform, missionName));
             }
         ).then(
             () => {
@@ -282,7 +288,7 @@ module.exports = dbCallOutMission;
 function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     let apiOutput, ctiMissionStatus;
 
-    return getCtiCallOutMissionDetail(platform, mission.missionName, admin.ctiUrl).then(
+    return dbCtiCallOut.getCtiCallOutMissionDetail(platform, mission.missionName, admin.ctiUrl).then(
         apiOutputData => {
             apiOutput = apiOutputData;
 
