@@ -17,8 +17,6 @@
         <form>
             <label>Private key (In effect):</label><br>
             <textarea id="private1" rows='16' cols='65'></textarea><br>
-            <button onclick="saveKey(event, 'playerPhone.key.pem', '#private1', '#saved1')">Save</button>
-            <text id="saved1" class="hide">&#x2714;Saved</text>
         </form>
     </div>
     <div class="margin-all-5">
@@ -28,8 +26,6 @@
         <form>
             <label>Private key (Replaced):</label><br>
             <textarea id="private2" rows='16' cols='65'></textarea><br>
-            <button onclick="saveKey(event, 'playerPhone.key.pem.bak', '#private2', '#saved2')">Save</button>
-            <text id="saved2" class="hide">&#x2714;Saved</text>
         </form>
     </div>
 </div>
@@ -39,8 +35,8 @@
         <form>
             <label>Public key (In effect):</label><br>
             <textarea id="public1" rows='7' cols='65'></textarea><br>
-            <button onclick="saveKey(event, 'playerPhone.pub', '#public1', '#saved3')">Save</button>
-            <text id="saved3" class="hide">&#x2714;Saved</text>
+            <button onclick="saveKey(event, 'playerPhone.pub', '#private1', '#public1', '#status1')">Save</button>
+            <text id="status1" color="red"></text>
         </form>
     </div>
     <div class="margin-all-5">
@@ -50,8 +46,8 @@
         <form>
             <label>Public key (Replaced):</label><br>
             <textarea id="public2" rows='7' cols='65'></textarea><br>
-            <button onclick="saveKey(event, 'playerPhone.pub.bak', '#public2', '#saved4')">Save</button>
-            <text id="saved4" class="hide">&#x2714;Saved</text>
+            <button onclick="saveKey(event, 'playerPhone.pub.bak', '#private2', '#public2', '#status2')">Save</button>
+            <text id="status2" color="red"></text>
         </form>
     </div>
 </div>
@@ -61,41 +57,37 @@
 
 <script type='text/javascript' src='js/webEnv.js'></script>
 <script>
-    function saveKey(e, url, textId, statusId) {
+    function saveKey(e, url, privateKey, publicKey, statusId) {
         e.preventDefault();
 
-        let saveData = $(textId).val();
+        let saveData = {
+            privateKey: $(privateKey).val(),
+            publicKey: $(publicKey).val()
+        };
 
-        if (
-            (url.indexOf('pem') > -1 && saveData.length >= 886 && saveData.length <= 888)
-            || (url.indexOf('pem') === -1 && saveData.length >= 271 && saveData.length <= 274)
-        ) {
-            webEnv.forEach(env => {
-                let ajaxUrl = 'http://' + env.nodeUrl;
+        webEnv.forEach(env => {
+            let ajaxUrl = 'http://' + env.nodeUrl;
 
-                if (env.nodePort) {
-                    ajaxUrl += ':' + env.nodePort + '/' + url;
-                } else {
-                    ajaxUrl += '/' + url;
+            if (env.nodePort) {
+                ajaxUrl += ':' + env.nodePort + '/' + url;
+            } else {
+                ajaxUrl += '/' + url;
+            }
+
+            // Multiple ajax
+            $.ajax({
+                url: ajaxUrl,
+                data: JSON.stringify(saveData),
+                method: "POST",
+                beforeSend: (request) => {
+                    request.setRequestHeader("x-token", sessionStorage.getItem('tkn'));
+                },
+                success: (data) => {
+                    console.log(env.nodeUrl, env.nodePort, data);
+                    $(statusId).text(data.toString());
                 }
-
-                // Multiple ajax
-                $.ajax({
-                    url: ajaxUrl,
-                    data: saveData,
-                    method: "POST",
-                    beforeSend: (request) => {
-                        request.setRequestHeader("x-token", sessionStorage.getItem('tkn'));
-                    },
-                    success: (data) => {
-                        console.log(env.nodeUrl, env.nodePort, data);
-                        $(statusId).removeClass('hide');
-                    }
-                })
             })
-        } else {
-            alert('Incorrect key format!')
-        }
+        })
     }
 
     function migrateKey(e, targetId, originId) {

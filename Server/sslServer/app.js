@@ -8,12 +8,14 @@ const nodeUrl = env.redisUrl || 'localhost';
 const port = env.redisPort || 1802;
 const jwt = require('jsonwebtoken');
 const secret = "$ap1U5eR$";
+const crypto = require('crypto');
 
 const privateKeyPath = "./public/playerPhone.key.pem";
 const replacedPrivateKeyPath = "./public/playerPhone.key.pem.bak";
 const publicKeyPath = "./public/playerPhone.pub";
 const replacedPublicKeyPath = "./public/playerPhone.pub.bak";
 const fpmsKey = "Fr0m_FPM$!";
+const testKeyPairText = 'TEST ENCRYPTION';
 
 let privateKey, publicKey, replacedPrivateKey, replacedPublicKey;
 
@@ -45,42 +47,71 @@ http.createServer(function (req, res) {
                     console.log(`${decoded.adminName} ${req.method} ${req.url}`);
 
                     let inputData = [];
+                    let buffer, inEffectKeyPair, privateEncrypted, privateDecrypted, decryptedText;
 
                     switch(pathname) {
-                        case privateKeyPath:
-                            req.on('data', data => {
-                                inputData.push(data);
-                            }).on('end', () => {
-                                let buffer = Buffer.concat(inputData);
-                                privateKey = buffer.toString();
-                                res.end('Success');
-                            });
-                            break;
-                        case replacedPrivateKeyPath:
-                            req.on('data', data => {
-                                inputData.push(data);
-                            }).on('end', () => {
-                                let buffer = Buffer.concat(inputData);
-                                replacedPrivateKey = buffer.toString();
-                                res.end('Success');
-                            });
-                            break;
                         case publicKeyPath:
                             req.on('data', data => {
                                 inputData.push(data);
                             }).on('end', () => {
-                                let buffer = Buffer.concat(inputData);
-                                publicKey = buffer.toString();
-                                res.end('Success');
+                                buffer = Buffer.concat(inputData);
+
+                                try {
+                                    inEffectKeyPair = JSON.parse(buffer.toString());
+
+                                    if (!inEffectKeyPair || !inEffectKeyPair.privateKey || !inEffectKeyPair.publicKey) {
+                                        res.end('Invalid RSA Key Pair!');
+                                    } else {
+                                        privateEncrypted = crypto.privateEncrypt(inEffectKeyPair.privateKey, Buffer.from(testKeyPairText, 'utf8'));
+                                        privateDecrypted = crypto.publicDecrypt(inEffectKeyPair.publicKey, privateEncrypted);
+                                        decryptedText = privateDecrypted.toString();
+
+                                        if (decryptedText === testKeyPairText) {
+                                            privateKey = inEffectKeyPair.privateKey;
+                                            publicKey = inEffectKeyPair.publicKey;
+
+                                            res.end('Success');
+                                        } else {
+                                            res.end('Invalid RSA Key Pair!')
+                                        }
+                                    }
+
+
+                                } catch (err) {
+                                    console.log('error', err);
+                                    res.end('Invalid RSA Key Pair!')
+                                }
                             });
                             break;
                         case replacedPublicKeyPath:
                             req.on('data', data => {
                                 inputData.push(data);
                             }).on('end', () => {
-                                let buffer = Buffer.concat(inputData);
-                                replacedPublicKey = buffer.toString();
-                                res.end('Success');
+                                buffer = Buffer.concat(inputData);
+
+                                try {
+                                    inEffectKeyPair = JSON.parse(buffer.toString());
+
+                                    if (!inEffectKeyPair || !inEffectKeyPair.privateKey || !inEffectKeyPair.publicKey) {
+                                        res.end('Invalid RSA Key Pair!');
+                                    } else {
+                                        privateEncrypted = crypto.privateEncrypt(inEffectKeyPair.privateKey, Buffer.from(testKeyPairText, 'utf8'));
+                                        privateDecrypted = crypto.publicDecrypt(inEffectKeyPair.publicKey, privateEncrypted);
+                                        decryptedText = privateDecrypted.toString();
+
+                                        if (decryptedText === testKeyPairText) {
+                                            replacedPrivateKey = inEffectKeyPair.privateKey;
+                                            replacedPublicKey = inEffectKeyPair.publicKey;
+
+                                            res.end('Success');
+                                        } else {
+                                            res.end('Invalid RSA Key Pair!')
+                                        }
+                                    }
+                                } catch (err) {
+                                    console.log('error', err);
+                                    res.end('Invalid RSA Key Pair!')
+                                }
                             });
                             break;
                     }
@@ -192,7 +223,6 @@ http.createServer(function (req, res) {
             });
         });
     }
-
 }).listen(parseInt(port));
 
 console.log(`Server listening on port ${port}`);
