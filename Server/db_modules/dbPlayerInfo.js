@@ -12912,6 +12912,7 @@ let dbPlayerInfo = {
                                         }
                                     ).then(
                                         data => {
+                                            console.log('MT --checking after transfer credit', data);
                                             return transferCreditToProvider(data);
                                         },
                                         err => {
