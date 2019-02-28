@@ -3375,6 +3375,7 @@ define(['js/app'], function (myApp) {
                     for (var i = 0; i < vm.platformGameGroupList.length; i++) {
                         if (vm.platformGameGroupList[i]._id == vm.SelectedGameGroupNode.id) {
                             vm.platformGameGroupList.splice(i, 1);
+                            vm.SelectedGameGroupNode = null;
                             break;
                         }
                     }
@@ -12898,7 +12899,20 @@ define(['js/app'], function (myApp) {
                     vm.playerTableClickedRow.data(rowData).draw();
 
                     if (vm.platformPageName == 'Feedback') {
-                        vm.submitPlayerFeedbackQuery();
+                        if (vm.playerFeedbackSearchType = 'one') {
+                            vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                                vm.curPlayerFeedbackDetail = data;
+
+                                vm.curPlayerFeedbackDetail.forEach(item => {
+                                    item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                                });
+
+                                $scope.$evalAsync();
+                            });
+                        }
+                        else {
+                            vm.submitPlayerFeedbackQuery();
+                        }
                     }
                     $scope.safeApply();
                 });
@@ -17122,7 +17136,19 @@ define(['js/app'], function (myApp) {
                     vm.addFeedback.content = "";
                     vm.addFeedback.result = "";
                     // vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
-                    vm.submitPlayerFeedbackQuery();
+                    if (vm.playerFeedbackSearchType = 'one') {
+                        vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                            vm.curPlayerFeedbackDetail = data;
+
+                            vm.curPlayerFeedbackDetail.forEach(item => {
+                                item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                            });
+
+                            $scope.safeApply();
+                        });
+                    } else {
+                        vm.submitPlayerFeedbackQuery();
+                    }
                 });
             };
 
@@ -28057,12 +28083,20 @@ define(['js/app'], function (myApp) {
                 vm.bulkCallBasic.definitionOfAnsweredPhone = vm.selectedPlatform.data.definitionOfAnsweredPhone || "";
                 vm.bulkCallBasic.decomposeAfterNDays = vm.selectedPlatform.data.decomposeAfterNDays || 1;
                 vm.bulkCallBasic.phoneWhiteListExportMaxNumber = vm.selectedPlatform.data.phoneWhiteListExportMaxNumber || 0;
+                vm.ctiUrlSubDomains = vm.ctiUrlSubDomains || [];
 
                 socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbackResults', {}, function (data) {
                     $scope.$evalAsync(() => {
                         vm.playerAllFeedBackResult = data.data;
                     });
                     vm.debounceRefreshSPicker();
+                });
+
+                $scope.$socketPromise("getCtiUrlSubDomainList", {}).then(data => {
+                    if (data && data.data) {
+                        vm.ctiUrlSubDomains = data.data;
+                    }
+                    $scope.$evalAsync();
                 });
 
                 $scope.safeApply();
@@ -28129,6 +28163,47 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+            };
+
+            vm.addNewCtiSubDomain = () => {
+                if (!vm.newCtiSubDomain && !utilService.isAlphaNumeric(vm.newCtiSubDomain)) {
+                    return;
+                }
+
+                return $scope.$socketPromise("addCtiUrlSubDomain", {urlSubDomain: vm.newCtiSubDomain}).then(
+                    () => {
+                        vm.newCtiSubDomain = "";
+                        socketService.showConfirmMessage($translate("add cti url success"), 3000);
+
+                        $scope.$socketPromise("getCtiUrlSubDomainList", {}).then(data => {
+                            if (data && data.data) {
+                                vm.ctiUrlSubDomains = data.data;
+                                $scope.$evalAsync();
+                            }
+                        });
+                    }
+                );
+
+            };
+
+            vm.deleteCtiSubDomain = () => {
+                if (!vm.deleteCtiUrl) {
+                    return;
+                }
+
+                return $scope.$socketPromise("removeCtiUrlSubDomain", {ctiUrlObjId: vm.deleteCtiUrl}).then(
+                    data => {
+                        vm.deleteCtiUrl = "";
+                        socketService.showConfirmMessage($translate("delete cti url success"), 3000);
+
+                        $scope.$socketPromise("getCtiUrlSubDomainList", {}).then(data => {
+                            if (data && data.data) {
+                                vm.ctiUrlSubDomains = data.data;
+                                $scope.$evalAsync();
+                            }
+                        });
+                    }
+                );
             };
 
             vm.getBlackWhiteListingConfig = function () {
@@ -30961,7 +31036,7 @@ define(['js/app'], function (myApp) {
                     {id: "6", name: "工商银行一卡通"},
                 ];
 
-                socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.data.platformId}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.id}, function (data) {
                     if (data && data.data && data.data.data) {
                         let allBankTypeList = {};
 
@@ -37029,6 +37104,8 @@ define(['js/app'], function (myApp) {
             window.onresize = function() {
                 vm.changeFrameHeight();
             };
+
+            $scope.fixModalScrollIssue();
         };
 
         let injectParams = [

@@ -11922,11 +11922,7 @@ define(['js/app'], function (myApp) {
                 vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
                 vm.playerPayment.showNewAccountNo = false;
-                if(vm.paymentSystemName === 'PMS2') {
-                    vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
-                } else {
-                    vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
-                }
+                vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
                 vm.filterBankName = '';
                 vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
                 vm.currentCity.city = vm.playerPayment.bankAccountCity;
@@ -14520,6 +14516,13 @@ define(['js/app'], function (myApp) {
             vm.filterBankname("playerManualTopUp");
             vm.existingManualTopup = null;
             vm.chosenBankAcc = {};
+
+            socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                })
+            })
+
             socketService.$socket($scope.AppSocket, 'getManualTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 vm.existingManualTopup = data.data ? data.data : false;
             });
@@ -15694,7 +15697,11 @@ define(['js/app'], function (myApp) {
             if (bankcard && bankcard.accountNumber) {
                 vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
                 vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
-                vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
+                if(vm.paymentSystemName === 'PMS2') {
+                    vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 6);
+                } else {
+                    vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
+                }
             };
         }
         vm.getBankCardMaxAmount = function (bankAcc) {
@@ -18544,6 +18551,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if ( vm.selectedProposal.mainType && vm.selectedProposal.mainType == "PlayerBonus" && vm.selectedProposal.status && vm.selectedProposal.status == 'Approved' ) {
+                    vm.selectedProposal.status = 'approved';
+                }
+
                 let proposalDetail = $.extend({}, vm.selectedProposal.data);
                 let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
                 for (let i in proposalDetail) {
@@ -18608,6 +18619,10 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                         vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                     }
+                }
+
+                if ( vm.selectedProposal.mainType && vm.selectedProposal.mainType == "PlayerBonus" && vm.selectedProposal.status && vm.selectedProposal.status == 'Approved' ) {
+                    vm.selectedProposal.status = 'approved';
                 }
 
                 let tmpt = vm.proposalTemplate[templateNo];

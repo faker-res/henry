@@ -58,6 +58,7 @@ var simplifiedChinese = {
     "The requirement is not fulfilled": "您的申请不符合要求",
     "This game has been added before": "该游戏已经收藏",
 
+    "Birthday only can be set once": "生日绑定之后不可更改",
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
     "Reset password failed": "找回密码失败",
     "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually": "提示！此玩家无绑定电话（或不方便短信验证）、银行卡，无法进行核对，请客服人工进行其他方式核对后手动修改密码。",

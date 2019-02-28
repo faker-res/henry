@@ -2442,7 +2442,9 @@ var dbPlayerTopUpRecord = {
                             json: true
                         };
 
+                        console.log("createTopUpAPIAddr check request before sent - ", requestData);
                         return rp(options).then(manualTopUpCardData => {
+                            console.log('createTopUpAPIAddr success', manualTopUpCardData);
                             if (manualTopUpCardData && manualTopUpCardData.result && manualTopUpCardData.result.bankTypeId) {
                                 let options1 = {
                                     method: 'POST',
@@ -2451,14 +2453,20 @@ var dbPlayerTopUpRecord = {
                                     json: true
                                 };
 
+                                console.log("bankTypeAPIAddr check request before sent - ", options1.body);
+
                                 return rp(options1).then(
                                     bankData => {
+                                        console.log("bankTypeAPIAddr success", bankData);
                                         if (bankData && bankData.data && bankData.data.name) {
                                             manualTopUpCardData.result.bankName = bankData.data.name;
                                         } else {
                                             manualTopUpCardData.result.bankName = "";
                                         }
                                         return manualTopUpCardData;
+                                    }, error => {
+                                        console.log('bankTypeAPIAddr failed', error);
+                                        throw error;
                                     }
                                 )
                             } else {
@@ -2923,7 +2931,14 @@ var dbPlayerTopUpRecord = {
                             json: true
                         };
 
-                        return rp(options);
+                        console.log("cancelTopUpAPIAddr check request before sent - ", data);
+                        return rp(options).then(function (cancelData) {
+                            console.log('cancelTopUpAPIAddr success', cancelData);
+                            return cancelData;
+                        }, error => {
+                            console.log('cancelTopUpAPIAddr failed', error);
+                            throw error;
+                        });
                     }
                     else if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
                         proposal = proposalData;
@@ -2994,7 +3009,14 @@ var dbPlayerTopUpRecord = {
                             json: true
                         };
 
-                        return rp(options);
+                        console.log("cancelTopUpAPIAddr check request before sent - ", data);
+                        return rp(options).then(function (cancelData) {
+                            console.log('cancelTopUpAPIAddr success', cancelData);
+                            return cancelData;
+                        }, error => {
+                            console.log('cancelTopUpAPIAddr failed', error);
+                            throw error;
+                        });
                     }
                     else if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
                         proposal = proposalData;
@@ -3065,7 +3087,14 @@ var dbPlayerTopUpRecord = {
                             json: true
                         };
 
-                        return rp(options);
+                        console.log("cancelTopUpAPIAddr check request before sent - ", data);
+                        return rp(options).then(function (cancelData) {
+                            console.log('cancelTopUpAPIAddr success', cancelData);
+                            return cancelData;
+                        }, error => {
+                            console.log('cancelTopUpAPIAddr failed', error);
+                            throw error;
+                        });
                     }
                     else if (proposalData.data && proposalData.data.playerId == playerId) {
                         proposal = proposalData;
@@ -3137,7 +3166,14 @@ var dbPlayerTopUpRecord = {
                             json: true
                         };
 
-                        return rp(options);
+                        console.log("delayTopUpAPIAddr check request before sent - ", data);
+                        return rp(options).then(function (delayData) {
+                            console.log('delayTopUpAPIAddr success', delayData);
+                            return delayData;
+                        }, error => {
+                            console.log('delayTopUpAPIAddr failed', error);
+                            throw error;
+                        });
                     }
                     else if (proposalData.data && proposalData.data.playerId == playerId) {
                         proposal = proposalData;
@@ -3751,6 +3787,7 @@ var dbPlayerTopUpRecord = {
 
                             requestData.bankCardNo = inputData.alipayAccount;
                             requestData.depositMethod = constTopUpMethod.ALIPAY;
+                            requestData.depositTime = cTimeString;
 
                             let options = {
                                 method: 'POST',
@@ -3759,7 +3796,15 @@ var dbPlayerTopUpRecord = {
                                 json: true
                             };
 
-                            return rp(options);
+                            console.log("createTopUpAPIAddr check request before sent - ", requestData);
+                            return rp(options).then(function (data) {
+                                console.log('createTopUpAPIAddr - alipay - success', data);
+                                return data;
+                            }, error => {
+                                console.log('createTopUpAPIAddr - alipay -failed', error);
+                                throw error;
+                            });
+
                         } else {
                             return pmsAPI.payment_requestAlipayAccount(requestData);
                         }
@@ -3832,7 +3877,7 @@ var dbPlayerTopUpRecord = {
                         request = pmsData;
                         //add request data to proposal and update proposal status to pending
                         var updateData = {
-                            status: constProposalStatus.PENDING
+                            //status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);
                         updateData.data.userAlipayName = updateData.data.alipayName;
@@ -3898,11 +3943,29 @@ var dbPlayerTopUpRecord = {
 
                         updateAliPayTopUpProposalDailyLimit(proposalQuery, alipayAcc, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
 
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: proposal._id, createTime: proposal.createTime},
-                            updateData,
-                            {new: true}
-                        );
+                        let checkProposalStatus = Promise.resolve();
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            // to check if proposal status already update to Success, sometimes PMS 2 update proposal status too fast
+                            checkProposalStatus = dbconfig.collection_proposal.findOneAndUpdate(
+                                {
+                                    _id: proposal._id,
+                                    createTime: proposal.createTime,
+                                    status: constProposalStatus.PREPENDING
+                                },
+                                {status: constProposalStatus.PENDING}).lean();
+                        } else {
+                            updateData.status = constProposalStatus.PENDING;
+                        }
+
+                        return checkProposalStatus.then(
+                            () => {
+                                return dbconfig.collection_proposal.findOneAndUpdate(
+                                    proposalQuery,
+                                    updateData,
+                                    {new: true}
+                                );
+                            }
+                        )
                     }
                     else {
                         return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
@@ -4454,6 +4517,7 @@ var dbPlayerTopUpRecord = {
 
                             requestData.bankCardNo = inputData.wechatPayAccount;
                             requestData.depositMethod = constTopUpMethod.WECHAT;
+                            requestData.depositTime = cTimeString;
 
                             let options = {
                                 method: 'POST',
@@ -4462,7 +4526,14 @@ var dbPlayerTopUpRecord = {
                                 json: true
                             };
 
-                            return rp(options);
+                            console.log("createTopUpAPIAddr check wechat request before sent ---------", requestData);
+                            return rp(options).then(function (data) {
+                                console.log('createTopUpAPIAddr - wechattopup - success', data);
+                                return data;
+                            }, error => {
+                                console.log('createTopUpAPIAddr - wechattopup - failed', error);
+                                throw error;
+                            });
                         } else {
                             if (useQR) {
                                 return pmsAPI.payment_requestWeChatQRAccount(requestData);
@@ -4551,7 +4622,7 @@ var dbPlayerTopUpRecord = {
                         request = pmsData;
                         //add request data to proposal and update proposal status to pending
                         var updateData = {
-                            status: constProposalStatus.PENDING
+                            //status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);
                         updateData.data.requestId = pmsData.result.requestId;
@@ -4594,11 +4665,29 @@ var dbPlayerTopUpRecord = {
 
                         updateWeChatPayTopUpProposalDailyLimit(proposalQuery, wechatAcc, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
 
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: proposal._id, createTime: proposal.createTime},
-                            updateData,
-                            {new: true}
-                        );
+                        let checkProposalStatus = Promise.resolve();
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            // to check if proposal status already update to Success, sometimes PMS 2 update proposal status too fast
+                            checkProposalStatus = dbconfig.collection_proposal.findOneAndUpdate(
+                                {
+                                    _id: proposal._id,
+                                    createTime: proposal.createTime,
+                                    status: constProposalStatus.PREPENDING
+                                },
+                                {status: constProposalStatus.PENDING}).lean();
+                        } else {
+                            updateData.status = constProposalStatus.PENDING;
+                        }
+
+                        return checkProposalStatus.then(
+                            () => {
+                                return dbconfig.collection_proposal.findOneAndUpdate(
+                                    proposalQuery,
+                                    updateData,
+                                    {new: true}
+                                );
+                            }
+                        )
                     }
                     else {
                         return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
@@ -4998,7 +5087,14 @@ var dbPlayerTopUpRecord = {
                     json: true
                 };
 
-                return rp(options);
+                console.log("topupForceMatchAPIAddr check request before sent - ", requestData);
+                return rp(options).then(function (data) {
+                    console.log('topupForceMatchAPIAddr success', data);
+                    return data;
+                }, error => {
+                    console.log('topupForceMatchAPIAddr failed', error);
+                    throw error;
+                });
 
             } else {
                 return pmsAPI.foundation_mandatoryMatch({
@@ -5420,7 +5516,14 @@ function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, 
             json: true
         };
 
-        prom = rp(options);
+        console.log("bankCardAPIAddr check request before sent - ", bankCardNo);
+        prom = rp(options).then(function (syncPlatformData) {
+            console.log('syncHTTPPMSPlatform success', syncPlatformData);
+            return syncPlatformData;
+        }, error => {
+            console.log('syncHTTPPMSPlatform failed', error);
+            throw error;
+        });
     } else {
         prom = pmsAPI.bankcard_getBankcard({accountNumber: bankCardNo});
     }
@@ -5451,7 +5554,14 @@ function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, plat
             json: true
         };
 
-        prom = rp(options);
+        console.log("bankCardAPIAddr check request before sent - ", accNo);
+        prom = rp(options).then(function (syncPlatformData) {
+            console.log('syncHTTPPMSPlatform success', syncPlatformData);
+            return syncPlatformData;
+        }, error => {
+            console.log('syncHTTPPMSPlatform failed', error);
+            throw error;
+        });
     } else {
         prom = pmsAPI.alipay_getAlipay({accountNumber: accNo});
     }
@@ -5485,7 +5595,14 @@ function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, p
             json: true
         };
 
-        prom = rp(options);
+        console.log("bankCardAPIAddr check request before sent - ", accNo);
+        prom = rp(options).then(function (syncPlatformData) {
+            console.log('syncHTTPPMSPlatform success', syncPlatformData);
+            return syncPlatformData;
+        }, error => {
+            console.log('syncHTTPPMSPlatform failed', error);
+            throw error;
+        });
     } else {
         prom = pmsAPI.weChat_getWechat({accountNumber: accNo});
     }

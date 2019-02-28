@@ -645,6 +645,9 @@ var dbPlatform = {
                                         body: data,
                                         json: true
                                     };
+
+                                    console.log("syncPlatformAPIAddr check request before sent - ", data);
+
                                     return rp(options).then(function (syncPlatformData) {
                                         console.log('syncHTTPPMSPlatform success', syncPlatformData);
                                         return syncPlatformData;

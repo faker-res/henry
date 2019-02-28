@@ -184,7 +184,13 @@ var dbPlatformAlipayGroup = {
                         json: true
                     };
 
-                    return rp(options);
+                    return rp(options).then(function (data) {
+                        console.log('alipaylist success', data);
+                        return data;
+                    }, error => {
+                        console.log('alipaylist failed', error);
+                        throw error;
+                    });
                 } else {
                     return pmsAPI.alipay_getAlipayList(
                         {
@@ -278,7 +284,13 @@ var dbPlatformAlipayGroup = {
                             json: true
                         };
 
-                        return rp(options);
+                        return rp(options).then(function (data) {
+                            console.log('alipaylist success', data);
+                            return data;
+                        }, error => {
+                            console.log('alipaylist failed', error);
+                            throw error;
+                        });
                     } else {
                         return pmsAPI.alipay_getAlipayList(
                             {
@@ -537,7 +549,7 @@ function addDefaultAlipayGroup(topUpSystemConfig, platformObjId) {
         return dbconfig.collection_platformAlipayGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
             pms2AlipayGroupExists => {
                 if (!pms2AlipayGroupExists) {
-                    let defaultStr = "default";
+                    let defaultStr = "PMS2DefaultGroup";
                     let groupData = {
                         groupId: defaultStr,
                         name: defaultStr,

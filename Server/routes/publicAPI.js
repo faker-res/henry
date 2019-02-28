@@ -39,7 +39,6 @@ router.get('/', function (req, res, next) {
     res.send('ok');
 });
 router.post('/login', function (req, res, next) {
-    console.log(req);
     if (!req.body.username || !req.body.password) {
         res.json({success: false, error: {name: "DataError", message: "Incorrect login data: username and password are required"}});
         return;
@@ -298,16 +297,17 @@ router.post('/loginKeyServer', function (req, res, next) {
     }
 });
 
-// router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
-//     let startDate = req.body.startDate;
-//     let endDate = req.body.endDate;
-//     let platform = req.body.platform;
-//     dbPlayerLoginRecord.countLoginPlayerbyPlatformWeek(startDate, endDate, platform).then(
-//         data=>{
-//             res.json({success:true, data:data});
-//
-//     })
-// });
+router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
+    let decoded = req.decoded;
+    let startDate = req.body.startDate;
+    let endDate = req.body.endDate;
+    let platform = req.body.platform;
+    dbPlayerLoginRecord.countLoginPlayerbyPlatformWeek(startDate, endDate, platform).then(
+        data=>{
+            res.json({success:true, data:data});
+
+        })
+});
 //
 // router.post('/countNewPlayerAllPlatform', function (req, res, next) {
 //     let startDate = new Date(req.body.startDate);

@@ -199,7 +199,13 @@ let dbPlatformWechatPayGroup = {
                         json: true
                     };
 
-                    return rp(options);
+                    return rp(options).then(function (data) {
+                        console.log('wechatlist success', data);
+                        return data;
+                    }, error => {
+                        console.log('wechatlist failed', error);
+                        throw error;
+                    });
                 } else {
                     return pmsAPI.weChat_getWechatList(
                         {
@@ -293,7 +299,13 @@ let dbPlatformWechatPayGroup = {
                             json: true
                         };
 
-                        return rp(options);
+                        return rp(options).then(function (data) {
+                            console.log('wechatlist success', data);
+                            return data;
+                        }, error => {
+                            console.log('wechatlist failed', error);
+                            throw error;
+                        });
                     } else {
                         return pmsAPI.weChat_getWechatList(
                             {
@@ -555,7 +567,7 @@ function addDefaultWechatPayGroup(topUpSystemConfig, platformObjId) {
         return dbconfig.collection_platformWechatPayGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
             pms2WechatPayGroupExists => {
                 if (!pms2WechatPayGroupExists) {
-                    let defaultStr = "default";
+                    let defaultStr = "PMS2DefaultGroup";
                     let groupData = {
                         groupId: defaultStr,
                         name: defaultStr,

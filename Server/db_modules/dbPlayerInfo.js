@@ -6627,16 +6627,20 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     [playerData, providerData] = data;
                     let platformData = playerData.platform;
-                    let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
-                    // if adminName doesn't exist (likely request from frontend), AND
-                    // requested provider is in player's forbid providers' list: then reject.
-                    if ((!adminName) && forbidProviders.indexOf(providerData._id.toString()) > -1) {
-                        return Promise.reject({
-                            name: "DataError",
-                            status: constServerCode.PLAYER_IS_FORBIDDEN,
-                            message: "Player is forbidden to the game"
-                        })
+
+                    if (playerData.forbidProviders && typeof playerData.forbidProviders === 'object') {
+                        let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
+                        // if adminName doesn't exist (likely request from frontend), AND
+                        // requested provider is in player's forbid providers' list: then reject.
+                        if ((!adminName) && forbidProviders.indexOf(providerData._id.toString()) > -1) {
+                            return Promise.reject({
+                                name: "DataError",
+                                status: constServerCode.PLAYER_IS_FORBIDDEN,
+                                message: "Player is forbidden to the game"
+                            })
+                        }
                     }
+
                     // Check is test player
                     if (playerData.isTestPlayer) {
                         return Promise.reject({
@@ -6780,9 +6784,11 @@ let dbPlayerInfo = {
                     // Platform supporting provider group
                     if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
                         // if use eBet Wallet
+                        console.log("MT --checking --transfer to ebet wallets");
                         return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     } else {
+                        console.log("MT --checking --transfer to provider");
                         return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     }
@@ -7240,19 +7246,26 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
+
+                console.log('data[1].length', data[1].length);
+
                 if (data && data[0] && data[1] && data[1].length > 0) {
                     [playerObj, gameProvider] = data;
                     platformData = playerObj.platform;
-                    let forbidProviders = JSON.parse(JSON.stringify(playerObj.forbidProviders));
-                    // if adminName doesn't exist (likely request from frontend), AND
-                    // requested provider is in player's forbid providers' list: then reject.
-                    if ((!adminName) && forbidProviders.indexOf(gameProvider[0]._id.toString()) > -1) {
-                        return Promise.reject({
-                            name: "DataError",
-                            status: constServerCode.PLAYER_IS_FORBIDDEN,
-                            message: "Player is forbidden to the game"
-                        })
+
+                    if (playerObj.forbidProviders && typeof playerObj.forbidProviders === 'object') {
+                        let forbidProviders = JSON.parse(JSON.stringify(playerObj.forbidProviders));
+                        // if adminName doesn't exist (likely request from frontend), AND
+                        // requested provider is in player's forbid providers' list: then reject.
+                        if ((!adminName) && forbidProviders.indexOf(gameProvider[0]._id.toString()) > -1) {
+                            return Promise.reject({
+                                name: "DataError",
+                                status: constServerCode.PLAYER_IS_FORBIDDEN,
+                                message: "Player is forbidden to the game"
+                            })
+                        }
                     }
+
                     if (playerObj.isTestPlayer) {
                         return Promise.reject({
                             name: "DataError",
@@ -7263,9 +7276,11 @@ let dbPlayerInfo = {
 
                     let indexOfProviderId = -1;
 
+                    console.log('playerObj.lastPlayedProvider', playerObj.lastPlayedProvider);
+
                     // Enforce player to transfer out from correct last played provider
                     if(playerObj.lastPlayedProvider){
-                        indexOfProviderId = targetProviderId.findIndex(t => t == playerObj.lastPlayedProvider);
+                        indexOfProviderId = targetProviderId.findIndex(t => t == playerObj.lastPlayedProvider.providerId);
 
                         if(indexOfProviderId == -1 ){
                             gameProvider.forEach(
@@ -7276,6 +7291,8 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
+
+                            console.log('targetProviderId', targetProviderId);
 
                             return dbconfig.collection_gameProvider.find({providerId: {$in: targetProviderId}}).lean();
                         }
@@ -7304,7 +7321,7 @@ let dbPlayerInfo = {
                 if(err && err.status === constServerCode.PLAYER_IS_FORBIDDEN) {
                     return Promise.reject(err);
                 } else {
-                    return Promise.reject({name: "DataError", message: "Cant find player or provider"});
+                    return Promise.reject({name: "DataError", message: "[Transfer out] Error finding game provider", error: err});
                 }
             }
         ).then(
@@ -7384,7 +7401,7 @@ let dbPlayerInfo = {
                                 // if use eBet Wallet
                                 console.log("using eBetWallet");
                                 return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
-                                    playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
+                                    playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
                             } else {
                                 return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
                                     playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
@@ -7406,7 +7423,7 @@ let dbPlayerInfo = {
                     // if use eBet Wallet
                     console.log("using eBetWallet");
                     return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
-                        playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
+                        playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
                 } else {
                     return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
                         playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
@@ -9260,6 +9277,7 @@ let dbPlayerInfo = {
 
                     }
                     else {
+                        console.log("check player level consumption", playerObj.name, errorMsg);
                         if (showReject) {
                             return Q.reject({
                                 status: errorCode,
@@ -12989,7 +13007,7 @@ let dbPlayerInfo = {
 
         function transferCreditToProvider(transferAmount) {
             bTransferIn = Boolean(transferAmount && ((parseFloat(transferAmount.playerCredit) + parseFloat(transferAmount.rewardCredit)) >= 1));
-
+            console.log("MT --checking gameData", gameData);
             if (transferAmount && gameData && gameData.provider) {
                 //transfer in to current provider
                 if (bTransferIn) {
@@ -20757,7 +20775,7 @@ let dbPlayerInfo = {
     },
 
     prepareGetPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerIds) {
-        if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE].includes(mode) && providerIds && providerIds.length) {
+        if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE, constPlayerBillBoardMode.WIN_AMOUNT_SINGLE].includes(mode) && providerIds && providerIds.length) {
             return dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {_id: 1}).lean().then(
                 gameProviderData => {
                     let gameProviderIds = [];
@@ -21807,7 +21825,13 @@ let dbPlayerInfo = {
                                                 populatedProvider[i].providerName = "";
                                             }
                                             if (populatedProvider[i].providerId) {
-                                                populatedProvider[i].providerName = populatedProvider[i].providerId.name ? populatedProvider[i].providerId.name : "";
+                                                let providerIdString = String(populatedProvider[i].providerId._id);
+                                                if (populatedProvider[i].providerId._id && platformObj.gameProviderInfo && platformObj.gameProviderInfo[providerIdString]
+                                                    && platformObj.gameProviderInfo[providerIdString].localNickName) {
+                                                    populatedProvider[i].providerName = platformObj.gameProviderInfo[populatedProvider[i].providerId._id].localNickName;
+                                                } else {
+                                                    populatedProvider[i].providerName = populatedProvider[i].providerId.name ? populatedProvider[i].providerId.name : "";
+                                                }
                                                 delete populatedProvider[i].providerId;
                                             }
                                         }
@@ -21830,6 +21854,191 @@ let dbPlayerInfo = {
 
                                 if (playerObj) {
                                     returnData.singleWin.playerRanking = {};
+                                }
+
+                                return returnData;
+                            }
+                        }
+                    )
+                } else if (mode == constPlayerBillBoardMode.WIN_AMOUNT_SINGLE) {
+                    let matchQuery;
+                    if (periodCheck) {
+                        if (periodCheck == constPlayerBillBoardPeriod.DAILY) {
+                            recordDate = dbUtility.getTodaySGTime();
+                        } else if (periodCheck == constPlayerBillBoardPeriod.WEEKLY) {
+                            recordDate = dbUtility.getCurrentWeekSGTime();
+                        } else if (periodCheck == constPlayerBillBoardPeriod.MONTHLY) {
+                            recordDate = dbUtility.getCurrentMonthSGTIme();
+                        } else {
+                            return Promise.reject({name: "DataError", message: "Invalid period"});
+                        }
+                        matchQuery = {
+                            $match: {
+                                platformId: platformObj._id,
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
+                            },
+                        };
+                    } else {
+                        recordDate = new Date();
+                        recordDate.setHours(recordDate.getHours() - hourCheck);
+                        matchQuery = {
+                            $match: {
+                                platformId: platformObj._id,
+                                createTime: {$gte: recordDate},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
+                            },
+                        };
+                    }
+
+                    if (providerObjIds && providerObjIds.length) {
+                        matchQuery.$match.providerId = {$in: providerObjIds};
+                    }
+
+                    return dbconfig.collection_playerConsumptionRecord.aggregate([
+                        matchQuery,
+                        {
+                            $sort: {
+                                bonusAmount: -1,
+                                createTime: 1
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerId",
+                                providerId: {$first: "$providerId"},
+                                validAmount: {$first: "$validAmount"},
+                                bonusAmount: {$first: "$bonusAmount"},
+                                createTime: {$first: "$createTime"},
+                                gameId: {$first: "$gameId"},
+                                cpGameType: {$first: {$ifNull: ['$cpGameType', '$null']}},
+                                winRatio: {$first: "$winRatio"}
+                            }
+                        }
+                    ]).allowDiskUse(true).then(
+                        consumptionRecord => {
+                            function sortRankingRecord(a, b) {
+                                if (a.bonusAmount < b.bonusAmount)
+                                    return 1;
+                                if (a.bonusAmount > b.bonusAmount)
+                                    return -1;
+                                if (a.bonusAmount == b.bonusAmount) {
+                                    if (a.createTime < b.createTime) {
+                                        return -1;
+                                    }
+                                    if (a.createTime > b.createTime) {
+                                        return 1;
+                                    }
+                                }
+                                return 0;
+                            }
+
+                            let sortedData = consumptionRecord.sort(sortRankingRecord);
+                            let playerRanking;
+                            for (let i = 0; i < sortedData.length; i++) {
+                                if (sortedData[i].winRatio) {
+                                    //round to 2 decimal places
+                                    sortedData[i].winRatio = Number(sortedData[i].winRatio.toFixed(2));
+                                }
+                                if (sortedData[i].bonusAmount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].bonusAmount = Number(sortedData[i].bonusAmount.toFixed(2));
+                                }
+                                if (sortedData[i].validAmount) {
+                                    //round to 2 decimal places
+                                    sortedData[i].validAmount = Number(sortedData[i].validAmount.toFixed(2));
+                                }
+                                sortedData[i].rank = i + 1;
+                                if (playerObj && playerObj.name) {
+                                    if (sortedData[i]._id.toString() == playerObj._id.toString()) {
+                                        playerRanking = sortedData[i];
+                                    }
+                                }
+                            }
+
+                            if (sortedData.length > totalRecord) {
+                                sortedData.length = totalRecord;
+                            }
+                            if (playerRanking) {
+                                sortedData.push(playerRanking);
+                            }
+
+                            returnData.singleWinAmount = {};
+
+                            if (sortedData && sortedData.length) {
+                                return dbconfig.collection_players.populate(sortedData, [{
+                                    path: '_id',
+                                    model: dbconfig.collection_players,
+                                    select: "name"
+                                }, {
+                                    path: 'providerId',
+                                    model: dbconfig.collection_gameProvider,
+                                    select: "name"
+                                }, {
+                                    path: "gameId",
+                                    model: dbconfig.collection_game,
+                                    select: "name changedName gameId"
+                                }
+                                ]).then(
+                                    populatedProvider => {
+                                        for (let i = 0; i < populatedProvider.length; i++) {
+                                            if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
+                                                populatedProvider[i].name = censoredPlayerName(populatedProvider[i]._id.name);
+                                                delete populatedProvider[i]._id;
+                                            }
+
+                                            if (!populatedProvider[i].gameName) {
+                                                populatedProvider[i].gameName = "";
+                                            }
+                                            // if (populatedProvider[i].cpGameType) {
+                                            //     populatedProvider[i].gameName = populatedProvider[i].cpGameType;
+                                            // }
+                                            delete populatedProvider[i].cpGameType;
+                                            if (populatedProvider[i].gameId) {
+                                                if (populatedProvider[i].gameId.changedName && !populatedProvider[i].gameName
+                                                    && platformObj && platformObj.platformId && populatedProvider[i].gameId.changedName[platformObj.platformId]) {
+                                                    populatedProvider[i].gameName = populatedProvider[i].gameId.changedName[platformObj.platformId];
+                                                } else if (populatedProvider[i].gameId.name && !populatedProvider[i].gameName) {
+                                                    populatedProvider[i].gameName = populatedProvider[i].gameId.name;
+                                                }
+                                                if (populatedProvider[i].gameId.gameId) {
+                                                    populatedProvider[i].gameCode = populatedProvider[i].gameId.gameId;
+                                                }
+                                                delete populatedProvider[i].gameId;
+                                            }
+                                            if (!populatedProvider[i].providerName) {
+                                                populatedProvider[i].providerName = "";
+                                            }
+                                            if (populatedProvider[i].providerId) {
+                                                let providerIdString = String(populatedProvider[i].providerId._id);
+                                                if (populatedProvider[i].providerId._id && platformObj.gameProviderInfo && platformObj.gameProviderInfo[providerIdString]
+                                                 && platformObj.gameProviderInfo[providerIdString].localNickName) {
+                                                    populatedProvider[i].providerName = platformObj.gameProviderInfo[populatedProvider[i].providerId._id].localNickName;
+                                                } else {
+                                                    populatedProvider[i].providerName = populatedProvider[i].providerId.name ? populatedProvider[i].providerId.name : "";
+                                                }
+                                                delete populatedProvider[i].providerId;
+                                            }
+                                        }
+
+                                        if (playerObj) {
+                                            returnData.singleWinAmount.playerRanking = {};
+                                            if (playerRanking) {
+                                                returnData.singleWinAmount.playerRanking = populatedProvider[populatedProvider.length - 1];
+                                                populatedProvider.length -= 1;
+                                            } else {
+                                                returnData.singleWinAmount.playerRanking.error = "No consumption record for this player";
+                                            }
+                                        }
+                                        returnData.singleWinAmount.boardRanking = populatedProvider;
+                                        return returnData;
+                                    }
+                                );
+                            } else {
+                                returnData.singleWinAmount.boardRanking = [];
+
+                                if (playerObj) {
+                                    returnData.singleWinAmount.playerRanking = {};
                                 }
 
                                 return returnData;
@@ -22945,6 +23154,7 @@ let dbPlayerInfo = {
                     json: true
                 };
 
+                console.log("batchTopUpStatusAPIAddr check request before sent - ", data);
                 return rp(options)
                     .then(function (updateStatus) {
                         console.log('batch playerDepositStatus success', updateStatus);
@@ -22993,6 +23203,7 @@ let dbPlayerInfo = {
                             json: true
                         };
 
+                        console.log("topUpStatusAPIAddr check request before sent - ", sendObj);
                         return rp(options)
                             .then(function (updateStatus) {
                                 console.log('playerDepositStatus success', updateStatus);

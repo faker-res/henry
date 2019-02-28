@@ -1,6 +1,7 @@
 const socketUtil = require('./../modules/socketutility');
 const dbCallOutMission = require('./../db_modules/dbCallOutMission');
-const dbTsCallOutMission = require('./../db_modules/dbTsCallOutMission')
+const dbTsCallOutMission = require('./../db_modules/dbTsCallOutMission');
+const dbCtiCallOut = require('./../db_modules/dbCtiCallOut');
 
 function socketActionBankCardGroup(socketIO, socket) {
 
@@ -21,13 +22,13 @@ function socketActionBankCardGroup(socketIO, socket) {
         toggleCallOutMissionStatus: function toggleCallOutMissionStatus(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.missionName);
-            socketUtil.emitter(self.socket, dbCallOutMission.toggleCallOutMissionStatus, [data.platformObjId, data.missionName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbCallOutMission.toggleCallOutMissionStatus, [data.platformObjId, data.missionName, getAdminId()], actionName, isValidData);
         },
 
         stopCallOutMission: function stopCallOutMission(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.missionName);
-            socketUtil.emitter(self.socket, dbCallOutMission.stopCallOutMission, [data.platformObjId, data.missionName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbCallOutMission.stopCallOutMission, [data.platformObjId, data.missionName, getAdminId()], actionName, isValidData);
         },
 
         getUpdatedAdminMissionStatusFromCti: function getUpdatedAdminMissionStatusFromCti(data) {
@@ -57,13 +58,13 @@ function socketActionBankCardGroup(socketIO, socket) {
         toggleTsCallOutMissionStatus: function toggleTsCallOutMissionStatus(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.missionName);
-            socketUtil.emitter(self.socket, dbTsCallOutMission.toggleCallOutMissionStatus, [data.platformObjId, data.missionName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTsCallOutMission.toggleCallOutMissionStatus, [data.platformObjId, data.missionName, getAdminId()], actionName, isValidData);
         },
 
         stopTsCallOutMission: function stopTsCallOutMission(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.missionName);
-            socketUtil.emitter(self.socket, dbTsCallOutMission.stopCallOutMission, [data.platformObjId, data.missionName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTsCallOutMission.stopCallOutMission, [data.platformObjId, data.missionName, getAdminId()], actionName, isValidData);
         },
 
         getTsUpdatedAdminMissionStatusFromCti: function getTsUpdatedAdminMissionStatusFromCti(data) {
@@ -88,6 +89,24 @@ function socketActionBankCardGroup(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbTsCallOutMission.checkTsCtiMissionMode, [data.platformObjId, getAdminId()], actionName, isValidData);
+        },
+
+        addCtiUrlSubDomain: function addCtiUrlSubDomain(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.urlSubDomain);
+            socketUtil.emitter(self.socket, dbCtiCallOut.addCtiUrlSubDomain, [data.urlSubDomain], actionName, isValidData);
+        },
+
+        removeCtiUrlSubDomain: function removeCtiUrlSubDomain(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.ctiUrlObjId);
+            socketUtil.emitter(self.socket, dbCtiCallOut.removeCtiUrlSubDomain, [data.ctiUrlObjId], actionName, isValidData);
+        },
+
+        getCtiUrlSubDomainList: function getCtiUrlSubDomainList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbCtiCallOut.getCtiUrlSubDomainList, [], actionName, isValidData);
         },
     };
     socketActionBankCardGroup.actions = this.actions;

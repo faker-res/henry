@@ -22,7 +22,7 @@ http.createServer(function (req, res) {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Request-Method', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', '*');
     res.setHeader('Access-Control-Expose-Headers', 'Location');
 
@@ -87,7 +87,7 @@ http.createServer(function (req, res) {
                 }
             });
         }
-    } else {
+    } else if (req.method === 'GET') {
         // GET
         switch(pathname) {
             case privateKeyPath:
@@ -130,6 +130,8 @@ http.createServer(function (req, res) {
             default:
                 readFile(pathname, res);
         }
+    } else if (req.method === 'OPTIONS') {
+        res.end();
     }
 
     function redirectToLoginPage() {

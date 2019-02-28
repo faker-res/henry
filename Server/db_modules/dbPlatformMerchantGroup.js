@@ -463,7 +463,7 @@ var dbPlatformMerchantGroup = {
                     return dbconfig.collection_platformMerchantGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
                         pms2MerchantGroupExists => {
                             if (!pms2MerchantGroupExists) {
-                                let defaultStr = "default";
+                                let defaultStr = "PMS2DefaultGroup";
                                 let groupData = {
                                     groupId: defaultStr,
                                     name: defaultStr,
@@ -599,11 +599,37 @@ var dbPlatformMerchantGroup = {
                             json: true
                         };
 
+                        merchantsList = rp(merchantListOptions).then(function (syncPlatformData) {
+                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
+                            return syncPlatformData;
+                        }, error => {
+                            console.log('syncHTTPPMSPlatform failed', error);
+                            throw error;
+                        });
 
-                        merchantsList = rp(merchantListOptions);
-                        bankCardList = rp(bankcardListOptions);
-                        aliPayList = rp(alipayListOptions);
-                        weChatList = rp(wechatpayListOptions);
+                        bankCardList = rp(bankcardListOptions).then(function (syncPlatformData) {
+                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
+                            return syncPlatformData;
+                        }, error => {
+                            console.log('syncHTTPPMSPlatform failed', error);
+                            throw error;
+                        });
+
+                        aliPayList = rp(alipayListOptions).then(function (syncPlatformData) {
+                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
+                            return syncPlatformData;
+                        }, error => {
+                            console.log('syncHTTPPMSPlatform failed', error);
+                            throw error;
+                        });
+
+                        weChatList = rp(wechatpayListOptions).then(function (syncPlatformData) {
+                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
+                            return syncPlatformData;
+                        }, error => {
+                            console.log('syncHTTPPMSPlatform failed', error);
+                            throw error;
+                        });
                     } else {
                         merchantsList = pmsAPI.merchant_getMerchantList({
                             platformId: platformId,
@@ -801,7 +827,13 @@ var dbPlatformMerchantGroup = {
                             json: true
                         };
 
-                        return rp(options);
+                        return rp(options).then(function (data) {
+                            console.log('merchantTypeList success', data);
+                            return data;
+                        }, error => {
+                            console.log('merchantTypeList failed', error);
+                            throw error;
+                        });
                     } else {
                         return pmsAPI.merchant_getMerchantTypeList(
                             {
@@ -826,7 +858,13 @@ function getMerchantList(topUpSystemConfig, platformId) {
             json: true
         };
 
-        return rp(options);
+        return rp(options).then(function (data) {
+            console.log('merchantList success', data);
+            return data;
+        }, error => {
+            console.log('merchantList failed', error);
+            throw error;
+        });
     } else {
         return pmsAPI.merchant_getMerchantList(
             {

@@ -98,7 +98,7 @@ var dbPlatformBankCardGroup = {
                 return dbconfig.collection_platformBankCardGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
                     pms2BankCardGroupExists => {
                         if (!pms2BankCardGroupExists) {
-                            let defaultStr = "default";
+                            let defaultStr = "PMS2DefaultGroup";
                             let groupData = {
                                 groupId: defaultStr,
                                 name: defaultStr,
@@ -242,7 +242,13 @@ var dbPlatformBankCardGroup = {
                         json: true
                     };
 
-                    return rp(options);
+                    return rp(options).then(function (data) {
+                        console.log('bankCardListAPIAddr success', data);
+                        return data;
+                    }, error => {
+                        console.log('bankCardListAPIAddr failed', error);
+                        throw error;
+                    });
                 } else {
                     return pmsAPI.bankcard_getBankcardList(
                         {
@@ -274,7 +280,13 @@ var dbPlatformBankCardGroup = {
                         json: true
                     };
 
-                    return rp(options);
+                    return rp(options).then(function (data) {
+                        console.log('bankTypeListAPIAddr success', data);
+                        return data;
+                    }, error => {
+                        console.log('bankTypeListAPIAddr failed', error);
+                        throw error;
+                    });
                 } else {
                     return pmsAPI.bankcard_getBankTypeList({});
                 }
@@ -445,7 +457,13 @@ var dbPlatformBankCardGroup = {
                             json: true
                         };
 
-                        return rp(options);
+                        return rp(options).then(function (data) {
+                            console.log('bankCardListAPIAddr success', data);
+                            return data;
+                        }, error => {
+                            console.log('bankCardListAPIAddr failed', error);
+                            throw error;
+                        });
                     }
                     else {
                         return pmsAPI.bankcard_getBankcardList(

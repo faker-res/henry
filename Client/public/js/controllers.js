@@ -1015,6 +1015,15 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
 
         function onFail(error) {
+            if (error && error.error && error.error.originalMessage) {
+                if (error.error.originalMessage.errorMessage) {
+                    socketService.showErrorMessage(error.error.originalMessage.errorMessage)
+                } else if (error.error.originalMessage.errorMsg) {
+                    socketService.showErrorMessage(error.error.originalMessage.errorMsg)
+                } else {
+                    socketService.showErrorMessage(error.error.originalMessage)
+                }
+            }
             if (callback) {
                 callback.call(this, error);
             }
@@ -1151,7 +1160,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     "http://newpj.tel400.me/cti/previewcallout.action",
                     "http://xinpjdl.tel400.me/cti/previewcallout.action",
                     "http://jinbailinewcro.tel400.me/cti/previewcallout.action"
-                ]
+                ];
+            }
+
+            if (adminData.ctiUrl) {
+                urls = [`http://${adminData.ctiUrl}.tel400.me/cti/previewcallout.action`];
             }
 
             performPhoneCall();
@@ -2029,7 +2042,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         } else if (String(merchantTypeId) === "9997") {
                             $scope.merchantNoList[item].merchantTypeName = $trans('PERSONAL_ALIPAY_GROUP');
                         } else if (String(merchantTypeId) !== "9997" && String(merchantTypeId) !== "9998" && String(merchantTypeId) !== "9999") {
-                            let merchantInfo = $scope.merchantTypes.filter(mitem => String(mitem.merchantTypeId) === String(merchantTypeId));
+                            let merchantInfo = $scope.merchantTypes && $scope.merchantTypes.filter(mitem => String(mitem.merchantTypeId) === String(merchantTypeId)) || [];
                             $scope.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
                         } else {
                             $scope.merchantNoList[item].merchantTypeName = '';

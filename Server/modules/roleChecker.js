@@ -408,7 +408,7 @@ var roleChecker = {
                 Update: []
             },
             "Feedback": {
-                Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks', 'getDepartmentDetailsByPlatformObjId'],
+                Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks', 'getDepartmentDetailsByPlatformObjId', 'getPlayerFeedbackQuery'],
                 Export: [],
                 Create: ['createPlayerFeedback'],
                 BulkCall: [],
@@ -521,6 +521,8 @@ var roleChecker = {
                 providerGroup: ['deletePlatformProviderGroup'],
                 smsGroup: [],
                 BulkCall: [],
+                AddCtiUrl: ['addCtiUrlSubDomain'],
+                RemoveCtiUrl: ['removeCtiUrlSubDomain'],
                 DownloadTranslationCSV: ['downloadTranslationCSV'],
                 DecomposeAfterNDays: [],
                 AutoExportListOrMaxNumOfTxnEveryday: []

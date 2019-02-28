@@ -13,8 +13,8 @@ let fs = require('fs')
     ;
 
 // SSL preparation - comment after SSL online
-key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+// key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
+// crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 
 let oldKey, oldCert;
 
@@ -65,6 +65,9 @@ if (!key) {
     getKey(options, "/playerPhone.key.pem", "/../ssl/playerPhone.key.pem").then(
         data => {
             if (data) {
+
+                console.log(`RT - Got key from ${options.hostname}`);
+
                 key = data;
             } else {
                 console.log('getPrivateKey no data', host);
@@ -77,6 +80,9 @@ if (!crt) {
     getKey(options, "/playerPhone.pub", "/../ssl/playerPhone.pub").then(
         data => {
             if (data) {
+
+                console.log(`RT - Got cert from ${options.hostname}`);
+
                 crt = data;
             } else {
                 console.log('getPublicKey key server unreachable ', host);

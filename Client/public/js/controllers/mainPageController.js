@@ -363,6 +363,7 @@ define(['js/app'], function (myApp) {
                     vm.getFullDepartmentPath();
                     vm.activatePlatformTab();
                     vm.setDepartViewList();
+                    vm.getCtiUrlSubDomainList();
                     $scope.safeApply();
                 });
                 //$('#departmentTree').on('searchComplete', function (event, data) {
@@ -1111,6 +1112,7 @@ define(['js/app'], function (myApp) {
                     callerId: vm.curUser.callerId,
                     live800CompanyId:vm.curUser.live800CompanyId,
                     callerQueue: vm.curUser.callerQueue,
+                    ctiUrl: vm.curUser.ctiUrl,
                     live800Acc: vm.curUser.live800Acc
                 };
                 vm.updateAdminLive800 = {
@@ -2273,6 +2275,16 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     return;
                 }
+            };
+
+            vm.getCtiUrlSubDomainList = () => {
+                vm.ctiUrlSubDomains = [];
+                $scope.$socketPromise("getCtiUrlSubDomainList", {}).then(data => {
+                    if (data && data.data) {
+                        vm.ctiUrlSubDomains = data.data;
+                        $scope.$evalAsync();
+                    }
+                });
             };
 
         };
