@@ -547,6 +547,12 @@ const dbRewardTask = {
             let applyAmount = item.data.applyAmount || item.data.amount;
             let bonusAmount = item.data.rewardAmount;
             let requiredUnlockedAmount = bonusAmount ? bonusAmount : (applyAmount || 0);
+
+            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
+                requiredUnlockedAmount = (applyAmount || 0) + (bonusAmount || 0);
+                usedTopUp.push(item.topUpProposal)
+            }
+
             // check if consumption reached unlocked limit
             if (totalConsumption >= requiredUnlockedConsumption){
                 item.data.consumptionProgress = requiredUnlockedConsumption;
@@ -565,11 +571,6 @@ const dbRewardTask = {
             else{
                 item.data.bonusProgress = totalAmount;
                 totalAmount = 0;
-            }
-
-            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
-                requiredUnlockedAmount = (applyAmount || 0) + (bonusAmount || 0);
-                usedTopUp.push(item.topUpProposal)
             }
 
             proposalProm.push(dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(item._id), createTime: item.createTime}, {'data.bonusProgress': item.data.bonusProgress, 'data.consumptionProgress': item.data.consumptionProgress}, {new: true}).exec());
@@ -599,6 +600,11 @@ const dbRewardTask = {
                 let applyAmount = rewardTask.data.applyAmount || rewardTask.data.amount;
                 let bonusAmount = rewardTask.data.rewardAmount;
 
+                let targetAmount = bonusAmount || 0;
+                if (rewardTask.data.isDynamicRewardAmount || (rewardTask.data.promoCodeTypeValue && rewardTask.data.promoCodeTypeValue == 3) || rewardTask.data.limitedOfferObjId) {
+                    targetAmount = (applyAmount || 0) + (bonusAmount || 0);
+                }
+
                 let sendData = {
                     platformId: platformId,
                     playerId: playerId,
@@ -614,7 +620,7 @@ const dbRewardTask = {
                     currentConsumption: rewardTask.data.consumptionProgress,
                     maxConsumption: rewardTask.data.amount ? rewardTask.data.amount : rewardTask.data.spendingAmount || rewardTask.data.requiredUnlockAmount,
                     currentAmount: rewardTask.data.bonusProgress,
-                    targetAmount: (applyAmount || 0) +  (bonusAmount || 0),
+                    targetAmount: targetAmount,
                     topupAmount: rewardTask.data.topUpAmount,
                     proposalId: rewardTask._id,
                     proposalNumber: rewardTask.proposalId || rewardTask.data.proposalId,
@@ -729,7 +735,7 @@ const dbRewardTask = {
                 }
             }).then(result => {
 
-                if (result){
+                if (result && result.length){
                     result.map(item => {
                         if (reward) {
                             item.data['createTime$'] = item.createTime;
@@ -1001,35 +1007,99 @@ const dbRewardTask = {
     },
     getTopUpProposal:function(data){
         let prom = [];
+        let topUpRecordObjIdArr = [];
+        let topUpRecordIdArr = [];
+        let rewardProposalProm = Promise.resolve();
+        let excludedTopUpProposalList = [];
+        let allProposalList;
+
         data.map(item => {
-            let proposalId = item.data.topUpProposal;
+            // this is for promoCode
+            let proposalId = item.data.topUpProposal || item.data.topUpProposalId;
+            // this is for reward proposal
             let topUpRecordId = item.data.topUpRecordId ? item.data.topUpRecordId : null;
-            let sendQuery = {};
-            if (topUpRecordId) {
-                sendQuery = {_id: topUpRecordId};
-            } else {
-                sendQuery = {proposalId: proposalId};
+            let proposal = Promise.resolve(item);
+
+            // exclude top up proposal from the checking
+            if (proposalId || topUpRecordId){
+                let sendQuery = {};
+                if (topUpRecordId) {
+                    sendQuery = {_id: topUpRecordId};
+                } else {
+                    sendQuery = {proposalId: proposalId};
+                }
+
+                proposal = dbconfig.collection_proposal.findOne(sendQuery).then(
+                    pdata => {
+                        if (pdata) {
+                            if (pdata.creator.name) {
+                                item.creator = pdata.creator;
+                            }
+                            if (pdata.data.amount) {
+                                item.data.topUpAmount = pdata.data.amount;
+                            }
+                        }
+                        return item;
+                    },
+                    error => {
+                        console.log(error);
+                    }
+                )
+            }
+            else{
+                // gather all the top up record for further checking if has been applied in type C reward
+                if (item && item.proposalId && item._id){
+                    topUpRecordIdArr.push(item.proposalId)
+                    topUpRecordObjIdArr.push(ObjectId(item._id))
+                }
             }
 
-            let proposal = dbconfig.collection_proposal.findOne(sendQuery).then(
-                pdata => {
-                    if (pdata) {
-                        if (pdata.creator.name) {
-                            item.creator = pdata.creator;
-                        }
-                        if (pdata.data.amount) {
-                            item.data.topUpAmount = pdata.data.amount;
-                        }
-                    }
-                    return item;
-                },
-                error => {
-                    console.log(error);
-                }
-            )
             prom.push(proposal);
         })
-        return Promise.all(prom)
+
+        return Promise.all(prom).then(
+            proposalList => {
+                allProposalList = proposalList;
+
+                if (topUpRecordIdArr && topUpRecordIdArr.length && topUpRecordObjIdArr && topUpRecordObjIdArr.length){
+                    let query = {
+                       $or: [{'data.topUpRecordId': {$in: topUpRecordObjIdArr}}, {'data.topUpProposal': {$in: topUpRecordIdArr}}, {'data.topUpProposalId': {$in: topUpRecordIdArr}}]
+                    }
+                    // to get the reward proposal that consumed the top up proposal
+                    rewardProposalProm = dbconfig.collection_proposal.find(query).lean();
+                }
+                return rewardProposalProm
+            }
+        ).then(
+            rewardProposalList => {
+                if (rewardProposalList && rewardProposalList.length) {
+                    rewardProposalList.forEach(
+                        rewardProposal => {
+                            if (rewardProposal && (rewardProposal.data.topUpProposalId || rewardProposal.data.topUpProposal) && rewardProposal.data.isDynamicRewardAmount || (rewardProposal.data.promoCodeTypeValue && rewardProposal.data.promoCodeTypeValue == 3) || rewardProposal.data.limitedOfferObjId) {
+                                let proposalId = rewardProposal.data.topUpProposalId || rewardProposal.data.topUpProposal;
+                                if (proposalId){
+                                    excludedTopUpProposalList.push(proposalId)
+                                }
+                            }
+                        }
+                    )
+
+                    if (excludedTopUpProposalList && excludedTopUpProposalList.length && allProposalList && allProposalList.length) {
+                        // get rid of unnecessary topup proposal
+                        allProposalList = allProposalList.filter(item => {
+                            for (let i = 0; i < excludedTopUpProposalList.length; i++) {
+                                if (excludedTopUpProposalList.indexOf(item.proposalId) < 0) {
+                                    return item;
+                                }
+                            }
+                        });
+                    }
+
+                }
+
+                return allProposalList
+            }
+        )
     },
     getProposalInfo: function (data) {
         let prom = [];
