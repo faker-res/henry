@@ -841,6 +841,7 @@ function generatePartnerAuditDecisionLink(host, proposalId, adminObjId) {
 
 function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, adminObjId, isReviewer, host, allRecipientEmail) {
     let admin, html;
+    let consoleLogMessage;
     html = generateLargeWithdrawalDetailEmail(largeWithdrawalLog, largeWithdrawalSetting, allRecipientEmail);
 
     let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
@@ -868,10 +869,12 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
                 html = appendAuditLinks(html, auditLinks);
             }
 
+            let subject = getLogDetailEmailSubject(largeWithdrawalLog);
+
             let emailConfig = {
                 sender: "no-reply@snsoft.my", // company email?
                 recipient: admin.email, // admin email
-                subject: getLogDetailEmailSubject(largeWithdrawalLog), // title
+                subject: subject, // title
                 body: html, // html content
                 isHTML: true
             };
@@ -879,8 +882,15 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
             if (allEmailStr) {
                 emailConfig.replyTo = allEmailStr;
             }
+            consoleLogMessage = `${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`;
+            console.log("sending large withdrawal email", consoleLogMessage);
 
             return emailer.sendEmail(emailConfig);
+        }
+    ).then(
+        emailResult => {
+            console.log("email result of", consoleLogMessage, "||", emailResult);
+            return emailResult;
         }
     );
 }
