@@ -7399,7 +7399,7 @@ let dbPlayerInfo = {
                                 // if use eBet Wallet
                                 console.log("using eBetWallet");
                                 return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
-                                    playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
+                                    playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
                             } else {
                                 return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
                                     playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
@@ -7421,7 +7421,7 @@ let dbPlayerInfo = {
                     // if use eBet Wallet
                     console.log("using eBetWallet");
                     return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
-                        playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
+                        playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
                 } else {
                     return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
                         playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
@@ -20773,7 +20773,7 @@ let dbPlayerInfo = {
     },
 
     prepareGetPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerIds) {
-        if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE].includes(mode) && providerIds && providerIds.length) {
+        if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE, constPlayerBillBoardMode.WIN_AMOUNT_SINGLE].includes(mode) && providerIds && providerIds.length) {
             return dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {_id: 1}).lean().then(
                 gameProviderData => {
                     let gameProviderIds = [];
@@ -21823,7 +21823,13 @@ let dbPlayerInfo = {
                                                 populatedProvider[i].providerName = "";
                                             }
                                             if (populatedProvider[i].providerId) {
-                                                populatedProvider[i].providerName = populatedProvider[i].providerId.name ? populatedProvider[i].providerId.name : "";
+                                                let providerIdString = String(populatedProvider[i].providerId._id);
+                                                if (populatedProvider[i].providerId._id && platformObj.gameProviderInfo && platformObj.gameProviderInfo[providerIdString]
+                                                    && platformObj.gameProviderInfo[providerIdString].localNickName) {
+                                                    populatedProvider[i].providerName = platformObj.gameProviderInfo[populatedProvider[i].providerId._id].localNickName;
+                                                } else {
+                                                    populatedProvider[i].providerName = populatedProvider[i].providerId.name ? populatedProvider[i].providerId.name : "";
+                                                }
                                                 delete populatedProvider[i].providerId;
                                             }
                                         }
@@ -22002,7 +22008,13 @@ let dbPlayerInfo = {
                                                 populatedProvider[i].providerName = "";
                                             }
                                             if (populatedProvider[i].providerId) {
-                                                populatedProvider[i].providerName = populatedProvider[i].providerId.name ? populatedProvider[i].providerId.name : "";
+                                                let providerIdString = String(populatedProvider[i].providerId._id);
+                                                if (populatedProvider[i].providerId._id && platformObj.gameProviderInfo && platformObj.gameProviderInfo[providerIdString]
+                                                 && platformObj.gameProviderInfo[providerIdString].localNickName) {
+                                                    populatedProvider[i].providerName = platformObj.gameProviderInfo[populatedProvider[i].providerId._id].localNickName;
+                                                } else {
+                                                    populatedProvider[i].providerName = populatedProvider[i].providerId.name ? populatedProvider[i].providerId.name : "";
+                                                }
                                                 delete populatedProvider[i].providerId;
                                             }
                                         }

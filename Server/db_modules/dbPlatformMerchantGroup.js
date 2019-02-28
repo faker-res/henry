@@ -463,7 +463,7 @@ var dbPlatformMerchantGroup = {
                     return dbconfig.collection_platformMerchantGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
                         pms2MerchantGroupExists => {
                             if (!pms2MerchantGroupExists) {
-                                let defaultStr = "default";
+                                let defaultStr = "PMS2DefaultGroup";
                                 let groupData = {
                                     groupId: defaultStr,
                                     name: defaultStr,
