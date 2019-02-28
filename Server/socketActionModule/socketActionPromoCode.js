@@ -98,7 +98,7 @@ function socketActionPromoCode(socketIO, socket) {
         generatePromoCode: function generatePromoCode(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.newPromoCodeEntry && data.newPromoCodeEntry.promoCodeType);
-            socketUtil.emitter(self.socket, dbPlayerReward.generatePromoCode, [ObjectId(data.platformObjId), data.newPromoCodeEntry, data.adminId, data.adminName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerReward.generatePromoCode, [ObjectId(data.platformObjId), data.newPromoCodeEntry, data.adminId, data.adminName, data.channel], actionName, isValidData);
         },
 
         generateOpenPromoCode: function generateOpenPromoCode(data) {

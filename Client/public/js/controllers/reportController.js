@@ -1086,7 +1086,7 @@ define(['js/app'], function (myApp) {
             }
         ]
 
-        vm.loadPage = function (choice, pageName, code, eventObjId) {
+        vm.loadPage = function (choice, pageName, code, eventObjId, isReset) {
             socketService.clearValue();
             console.log('reward', choice, pageName, code);
             vm.seleDataType = {};
@@ -1114,7 +1114,7 @@ define(['js/app'], function (myApp) {
             vm.generalRewardReportTableProp = {};
             vm.operationReportLoadingStatus = '';
 
-            drawReportQuery(choice);
+            drawReportQuery(choice, isReset);
 
             if (VM.showPageName == 'RewardReport' && vm.currentRewardCode == 'ALL') {
                 vm.rewardProposalQuery = vm.rewardProposalQuery || {};
@@ -8452,7 +8452,8 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {title: $translate("Operation Time"), data: "operationTime$"},
-                    {title: $translate("remark"), data: "error", bSortable: false}
+                    {title: $translate("remark"), data: "error", bSortable: false},
+                    {title: $translate("IP"), data: "localIp", bSortable: false}
                 ],
                 "paging": false,
                 "language": {
@@ -9305,7 +9306,7 @@ define(['js/app'], function (myApp) {
             }, 0);
         };
 
-        function drawReportQuery (choice) {
+        function drawReportQuery (choice, isReset) {
             vm.merchantNoNameObj = {};
             vm.merchantGroupObj = [];
 
@@ -9317,7 +9318,7 @@ define(['js/app'], function (myApp) {
             vm.merchantGroupObj = $scope.merchantGroupObj;
             vm.merchantGroupCloneList = $scope.merchantGroupCloneList;
 
-            socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform._id}, function (data) {
                 $scope.$evalAsync(() => {
                     if (data && data.data && data.data.data) {
                         vm.allBankTypeList = {};
@@ -9363,11 +9364,14 @@ define(['js/app'], function (myApp) {
                     vm.proposalQuery.totalPlayer = 0;
                     vm.proposalQuery.proposalTypeId = '';
                     vm.reportSearchTime = 0;
-                    vm.proposalQuery.limit = 30;
+                    if (isReset) {
+                        vm.proposalQuery.limit = undefined;
+                        vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {pageSize: 30}, $translate, vm.proposalTablePageChange);
+                    }
 
                     endLoadMultipleSelect('.select');
 
-                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform._id}, function (data) {
                         $scope.$evalAsync(() => {
                             if (data && data.data && data.data.data) {
                                 vm.allBankTypeList = {};
@@ -9446,7 +9450,7 @@ define(['js/app'], function (myApp) {
 
                     endLoadMultipleSelect('.select');
 
-                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform._id}, function (data) {
                         $scope.$evalAsync(() => {
                             if (data && data.data && data.data.data) {
                                 vm.allBankTypeList = {};

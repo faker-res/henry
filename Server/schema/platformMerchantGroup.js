@@ -16,7 +16,9 @@ var platformMerchantGroupSchema = new Schema({
     merchants: [{type: String}],
     merchantNames: [{type: String}],
     //if it is default group
-    bDefault: {type: Boolean, default: false}
+    bDefault: {type: Boolean, default: false},
+    //if it is pms2
+    isPMS2: {type: Boolean, index: true}
 });
 
 //group is unique by platform and code

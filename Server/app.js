@@ -113,6 +113,7 @@ server.listen((process.env.PORT || 9000) , function () {
     console.log("Express server listening on port: " + (process.env.PORT || 9000));
 });
 
+
 var url = env.messageServerUrl + "/" + constMessageClientTypes.MANAGEMENT;
 var messageClient = new WebSocketMessageClient(url, socketIO);
 

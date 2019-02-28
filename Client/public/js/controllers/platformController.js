@@ -1134,7 +1134,7 @@ define(['js/app'], function (myApp) {
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
                     commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                    commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                    commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})),
                     commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -2609,7 +2609,15 @@ define(['js/app'], function (myApp) {
                     sendBtnText: $translate("SEND")
                 };
                 $scope.getChannelList(function () {
-                    vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
+                    // vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
+                    vm.sendMultiMessage.channel = null;
+                    if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                        if ($scope.usableChannelList.includes(4)) {
+                            vm.sendMultiMessage.channel = 4; //set default sms channel
+                        } else {
+                            vm.sendMultiMessage.channel = $scope.usableChannelList[0];
+                        }
+                    }
                 });
                 setTimeout(
                     () => {
@@ -3853,13 +3861,15 @@ define(['js/app'], function (myApp) {
                     vm.providerListCheck = {};
                     $.each(vm.platformProviderList, function (i, v) {
                         vm.providerListCheck[v._id] = true;
-                    })
+                    });
                     //payment list init
                     vm.platformPaymentChList = data.data.paymentChannels;
                     vm.paymentListCheck = {};
                     $.each(vm.platformPaymentChList, function (i, v) {
                         vm.paymentListCheck[v._id] = true;
-                    })
+                    });
+
+                    vm.showPlatform.gameProviderInfo = data.data.gameProviderInfo;
 
                     //provider delay status init
                     vm.getProviderLatestTimeRecord();
@@ -8733,9 +8743,19 @@ define(['js/app'], function (myApp) {
                         name: playerObjId.name,
                         nickName: playerObjId.nickName,
                         platformId: vm.selectedPlatform.data.platformId,
-                        channel: $scope.channelList[0],
+                        // channel: $scope.channelList[0],
                         hasPhone: playerObjId.phoneNumber
                     }
+
+                    vm.smsPlayer.channel = null;
+                    if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                        if ($scope.usableChannelList.includes(4)) {
+                            vm.smsPlayer.channel = 4; //set default sms channel
+                        } else {
+                            vm.smsPlayer.channel = $scope.usableChannelList[0];
+                        }
+                    }
+
                     vm.sendSMSResult = {};
                     $scope.safeApply();
                     $('#smsPlayerModal').modal('show');
@@ -16413,7 +16433,7 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.curFeedbackPlayer.bonusAmountSum).toFixed(2);
 
                         vm.playerFeedbackResultExtended.playerLevel$ = "";
-                        if (vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
+                        if (vm.playerLvlData && vm.playerFeedbackResultExtended.playerLevel && vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
                             vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
                         }
                         else {
@@ -16446,10 +16466,12 @@ define(['js/app'], function (myApp) {
                                 vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
                                 vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
                                 vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                                for (let j = 0; j < vm.allProviders.length; j++) {
-                                    if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                        vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
-                                        vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                                if (vm.allProviders && vm.allProviders.length) {
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                            vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
+                                            vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                                        }
                                     }
                                 }
                             }
@@ -17232,7 +17254,12 @@ define(['js/app'], function (myApp) {
                         });
 
                         if (vm.playerFeedbackSearchType=="many") {
-                            setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                            if (vm.playerFeedbackTable) {
+                                setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                            }
+                            else {
+                                vm.drawPlayerTable(playerFeedbackDetail.data)
+                            }
                         }
                         else {
                             if (playerFeedbackDetail.data && playerFeedbackDetail.data[0] && vm.isSingleFeedBackPageChange) {
@@ -17259,7 +17286,7 @@ define(['js/app'], function (myApp) {
                         if (window.location.pathname == "/platform" && vm.platformPageName == "Feedback") {
                             vm.ctiRefreshTimeout = setTimeout(() => {
                                 vm.getCtiData();
-                            }, 15000);
+                            }, 5000);
                         }
 
                         if (!vm.calleeCallOutStatus) {
@@ -17273,8 +17300,18 @@ define(['js/app'], function (myApp) {
                             vm.ctiData.callee.map(callee => {
                                 if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
                                     if (vm.playerFeedbackSearchType=="many") {
-                                        vm.initFeedbackModal(callee.player);
-                                        $('#modalAddPlayerFeedback').modal().show();
+                                        if (vm.showPlayerDetailInNewTab) {
+                                            let playerObjId = callee && callee.player && callee.player._id;
+                                            if (playerObjId) {
+                                                let url = window.location.origin + "/playerDetail/" + playerObjId;
+                                                utilService.openInNewTab(url);
+                                            }
+                                        }
+                                        else {
+                                            vm.initFeedbackModal(callee.player);
+                                            $('#modalAddPlayerFeedback').modal().show();
+                                        }
+
                                     }
                                     else {
                                         vm.lastSelectedCallPlayer = callee.player || vm.lastSelectedCallPlayer;
@@ -17285,7 +17322,12 @@ define(['js/app'], function (myApp) {
                         }
 
                         if (vm.playerFeedbackSearchType == "one") {
-                            setTableData(vm.playerFeedbackTable, [vm.lastSelectedCallPlayer]);
+                            if (vm.playerFeedbackTable) {
+                                setTableData(vm.playerFeedbackTable, [vm.lastSelectedCallPlayer]);
+                            }
+                            else {
+                                vm.drawPlayerTable([vm.lastSelectedCallPlayer])
+                            }
                         }
 
                     }
@@ -23097,6 +23139,15 @@ define(['js/app'], function (myApp) {
                 loadOpenPromoCodeTemplate();
                 // loadPromoCodeTemplate();
 
+                vm.promoCodeSmsChannel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(4)) {
+                        vm.promoCodeSmsChannel = 4; //set default sms channel
+                    } else {
+                        vm.promoCodeSmsChannel = $scope.usableChannelList[0];
+                    }
+                }
+
                 switch (choice) {
                     case 'create':
                         vm.promoCodeNewRow(vm.newPromoCode1, 1);
@@ -24570,16 +24621,16 @@ define(['js/app'], function (myApp) {
                     col.splice(index, 1);
                 }
             };
-            vm.generatePromoCodeAsync= function(obj, index, data, type){
-                let prom = new Promise((resolve, reject)=>{
-                    let result = vm.generatePromoCode(obj, index, data, type);
+            vm.generatePromoCodeAsync= function(obj, index, data, type, channel) {
+                let prom = new Promise((resolve, reject) => {
+                    let result = vm.generatePromoCode(obj, index, data, type, channel);
                     resolve(result);
                 });
-                prom.then(()=>{
+                prom.then(() => {
                     $scope.$evalAsync();
                 })
             }
-            vm.generatePromoCode = function (col, index, data, type) {
+            vm.generatePromoCode = function (col, index, data, type, channel) {
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
                     col[index].error = false;
@@ -24666,7 +24717,8 @@ define(['js/app'], function (myApp) {
                                             platformObjId: vm.selectedPlatform.id,
                                             newPromoCodeEntry: sendData,
                                             adminName: authService.adminName,
-                                            adminId: authService.adminId
+                                            adminId: authService.adminId,
+                                            channel: channel
                                         }).then(ret => {
                                               col[index].code = ret.data;
                                         }).catch(err=>{
@@ -24681,7 +24733,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.generateAllPromoCode = function (col, type, skipCheck) {
+            vm.generateAllPromoCode = function (col, type, skipCheck, channel) {
                 let p = Promise.resolve();
 
                 col.forEach((elem, index, arr) => {
@@ -24690,7 +24742,7 @@ define(['js/app'], function (myApp) {
                             if (skipCheck && !elem.error) {
                                 elem.skipCheck = true;
                             }
-                            return vm.generatePromoCode(col, index, elem, type);
+                            return vm.generatePromoCode(col, index, elem, type, channel);
                         });
                     }
                 });
@@ -28046,6 +28098,8 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
                 vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
                 vm.platformBasic.useEbetWallet = vm.selectedPlatform.data.useEbetWallet;
+                vm.platformBasic.disableProviderAfterConsecutiveTimeoutCount = vm.selectedPlatform.data.disableProviderAfterConsecutiveTimeoutCount;
+                vm.platformBasic.providerConsecutiveTimeoutSearchTimeFrame = vm.selectedPlatform.data.providerConsecutiveTimeoutSearchTimeFrame;
 
 
                 // $scope.safeApply();
@@ -28216,7 +28270,8 @@ define(['js/app'], function (myApp) {
 
                             let sendDataBankCard = {
                                 query: {
-                                    platform: vm.selectedPlatform.id
+                                    platform: vm.selectedPlatform.id,
+                                    isPMS2: {$exists: false}
                                 },
                                 update: {
                                     banks: []
@@ -28224,7 +28279,8 @@ define(['js/app'], function (myApp) {
                             }
                             let sendDataWechat = {
                                 query: {
-                                    platform: vm.selectedPlatform.id
+                                    platform: vm.selectedPlatform.id,
+                                    isPMS2: {$exists: false}
                                 },
                                 update: {
                                     wechats: []
@@ -28232,7 +28288,8 @@ define(['js/app'], function (myApp) {
                             }
                             let sendDataAli = {
                                 query: {
-                                    platform: vm.selectedPlatform.id
+                                    platform: vm.selectedPlatform.id,
+                                    isPMS2: {$exists: false}
                                 },
                                 update: {
                                     alipays: []
@@ -29848,6 +29905,8 @@ define(['js/app'], function (myApp) {
                         manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
                         display: srcData.display,
                         useEbetWallet: srcData.useEbetWallet,
+                        disableProviderAfterConsecutiveTimeoutCount: srcData.disableProviderAfterConsecutiveTimeoutCount,
+                        providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,
                     }
                 };
                 let isProviderGroupOn = false;
@@ -30087,7 +30146,8 @@ define(['js/app'], function (myApp) {
                         && srcData.financialSettlementToggle == true) {
                         let sendDataBankCard = {
                             query: {
-                                platform: vm.selectedPlatform.id
+                                platform: vm.selectedPlatform.id,
+                                isPMS2: {$exists: false}
                             },
                             update: {
                                 banks: []
@@ -30095,7 +30155,8 @@ define(['js/app'], function (myApp) {
                         }
                         let sendDataWechat = {
                             query: {
-                                platform: vm.selectedPlatform.id
+                                platform: vm.selectedPlatform.id,
+                                isPMS2: {$exists: false}
                             },
                             update: {
                                 wechats: []
@@ -30103,7 +30164,8 @@ define(['js/app'], function (myApp) {
                         }
                         let sendDataAli = {
                             query: {
-                                platform: vm.selectedPlatform.id
+                                platform: vm.selectedPlatform.id,
+                                isPMS2: {$exists: false}
                             },
                             update: {
                                 alipays: []
@@ -35374,6 +35436,16 @@ define(['js/app'], function (myApp) {
                     callPermission: 'all',
                     schedule: []
                 };
+
+                vm.autoFeedbackMission.channel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(2)) {
+                        vm.autoFeedbackMission.channel = 2; //set default sms channel
+                    } else {
+                        vm.autoFeedbackMission.channel = $scope.usableChannelList[0];
+                    }
+                }
+
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker',
                     utilService.setLocalDayStartTime(new Date()), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker',
@@ -35615,6 +35687,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate('TASK_REMARK'), data: "remarks"},
                         {title: $translate('TASK_CREATE_TIME'), data: "createTime$"},
                         {title: $translate('Mission Status'), data: "missionStatus$"},
+                        {title: $translate('Channel'), data: "channel"},
                         {
                             title: $translate('ACTION_BUTTON'),
                             render: function(data, type, row) {
@@ -36711,7 +36784,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
-                                let result = '<div ng-click="vm.auctionSystemEditStatus = true; vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                let result = '<div ng-click="vm.auctionSystemEditStatus = true; vm.loadAuctionItem(\''+row._id+'\')"><a>' + data + '</a></div>';
                                 return result;
                             }
                         },
@@ -36761,7 +36834,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
-                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')"><a>' + data + '</a></div>';
                                 return result;
                             }
                         },

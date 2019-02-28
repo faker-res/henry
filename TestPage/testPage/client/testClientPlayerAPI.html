@@ -1616,6 +1616,14 @@
     </div>
 </div>
 
+<h3>Get Last Played 2 Games Info (最近玩的两个游戏)</h3>
+<div class="test-container">
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="getLastPlayedGameInfo" data-api-name="getLastPlayedGameInfo">Get</button>
+    </div>
+</div>
+
 <h3>Save Client Data (编辑客户端数据)</h3>
 
 <div class="test-container">
@@ -1871,6 +1879,27 @@
     </div>
     <div>
         <textarea></textarea>
+    </div>
+</div>
+
+<h3>Change Birthday Date (修改生日日期)</h3>
+<div class="test-container">
+    <!--For testing player logout API (5)-->
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>End Time
+            <input name="date" type="datetime-local">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="changeBirthdayDate">Send</button>
+    </div>
+    <div>
+        <textarea id="changeBirthdayDateOutput"></textarea>
     </div>
 </div>
 

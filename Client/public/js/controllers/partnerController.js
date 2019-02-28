@@ -602,6 +602,12 @@ define(['js/app'], function (myApp) {
                 vm.isCreateNewPlatform = false;
                 $cookies.put("platform", vm.selectedPlatform.text);
 
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.topUpSystemType) {
+                    commonService.getPaymentSystemName($scope, vm.selectedPlatform.data.topUpSystemType).catch(err => Promise.resolve('')).then(v => {
+                        vm.paymentSystemName = v;
+                    });
+                }
+
                 vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
                 beforeUpdatePlatform();
                 vm.retrievePlatformData(vm.showPlatform);
@@ -617,13 +623,13 @@ define(['js/app'], function (myApp) {
                     vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
                     vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
                     [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList],
-                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.smsTemplate
+                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.smsTemplate, vm.allActiveBankTypeList
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
                     commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                    commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                    commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})),
                     commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -636,7 +642,8 @@ define(['js/app'], function (myApp) {
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                     commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []])),
-                    commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+                    commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getActiveBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({}))
                 ]);
 
                 // 1st dependencies variable
@@ -1753,7 +1760,7 @@ define(['js/app'], function (myApp) {
                         partnerName: data.partnerName,
                         realName: data.realName,
                         platformId: vm.selectedPlatform.data.platformId,
-                        channel: $scope.channelList[0],
+                        channel: $scope.usableChannelList ? $scope.usableChannelList[0] : null,
                         hasPhone: data.phoneNumber
                     };
                     vm.sendSMSResult = {};
@@ -7035,7 +7042,11 @@ define(['js/app'], function (myApp) {
                     vm.partnerPayment.bankAccountName = (vm.partnerPayment.bankAccountName) ? vm.partnerPayment.bankAccountName : vm.isOneSelectedPartner().realName;
                     vm.partnerPayment.newBankAccount = vm.partnerPayment.encodedBankAccount;
                     vm.partnerPayment.showNewAccountNo = false;
-                    vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
+                    if(vm.paymentSystemName === 'PMS2') {
+                        vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
+                    } else {
+                        vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
+                    }
                     vm.filterBankName = '';
                     vm.currentProvince.province = vm.partnerPayment.bankAccountProvince;
                     vm.currentCity.city = vm.partnerPayment.bankAccountCity;
@@ -8092,7 +8103,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.pickBankCardAcc = function (bankcard) {
-                if (bankcard.accountNumber) {
+                if (bankcard && bankcard.accountNumber) {
                     vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
                     vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
                     vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);

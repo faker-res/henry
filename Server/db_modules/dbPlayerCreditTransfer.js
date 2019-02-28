@@ -1064,7 +1064,7 @@ let dbPlayerCreditTransfer = {
      * @param maxReward
      * @param forSync
      */
-    playerCreditTransferFromProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
+    playerCreditTransferFromProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync, isMultiProvider) {
         let rewardTaskTransferredAmount = 0;
         let validCreditToAdd = 0;
         let gameCredit = 0;
@@ -1128,7 +1128,9 @@ let dbPlayerCreditTransfer = {
                     throw new Error("Error when querying CPMS");
                 }
                 else{
-                    return Promise.reject(err);
+                    if (!isMultiProvider) {
+                        return Promise.reject(err);
+                    }
                 }
             }
         );

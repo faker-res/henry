@@ -45,6 +45,17 @@ const thirdPartyAPIConfig = {
         withdrawAPICallback: "http://devtest.wsweb.me:7100",
         topUpStatusAPIAddr: "http://52.221.143.107:9001/v1/playerDepositStatus", // PATCH
         batchTopUpStatusAPIAddr: "http://52.221.143.107:9001/v1/batch/playerDepositStatus", //POST
+        cancelTopUpAPIAddr: "http://52.221.143.107:9001/v1/deposit-proposal/cancel", //POST
+        delayTopUpAPIAddr: "http://52.221.143.107:9001/v1/deposit-proposal/delay", //POST
+        createTopUpAPIAddr: "http://52.221.143.107:9001/v1/deposit-proposal/create", //POST - from FPMS create topup
+        bankCardListAPIAddr: "http://52.221.143.107:9001/v1/getBankCardList", //POST
+        bankCardAPIAddr: "http://52.221.143.107:9001/v1/getBankCard", //POST
+        bankTypeAPIAddr: "http://52.221.143.107:9001/v1/bankType", //POST
+        bankTypeListAPIAddr: "http://52.221.143.107:9001/v1/bankTypes", //POST
+        syncPlatformAPIAddr: "http://52.221.143.107:9001/v1/sync-platform", //POST
+        topupForceMatchAPIAddr: "http://52.221.143.107:9001/v1/deposit-proposal/force-match", //POST
+        merchantListAPIAddr: "http://52.221.143.107:9001/v1/getMerchantList", //POST,
+        merchantTypeListAPIAddr: "http://52.221.143.107:9001/v1/getMerchantTypeList", //POST
 
         //financial settlement
         name: 'PMS2',

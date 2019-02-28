@@ -239,6 +239,17 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync(vm.loadPlatformData());
         });
 
+        $scope.getUsableChannelList(function () {
+            vm.smsChannel = null;
+            if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                if ($scope.usableChannelList.includes(3)) {
+                    vm.smsChannel = 3; //set default sms channel
+                } else {
+                    vm.smsChannel = $scope.usableChannelList[0];
+                }
+            }
+        });
+
         vm.loadPlatformData = function (option) {
             vm.multiDecomposedNewPhoneSelected = [];
             vm.hideLeftPanel = false;
@@ -1483,10 +1494,20 @@ define(['js/app'], function (myApp) {
                     name: data.encodedPhoneNumber$,
                     nickName: data.tsPhone.nickName || "",
                     platformId: vm.selectedPlatform.data.platformId,
-                    channel: $scope.channelList[0],
+                    // channel: $scope.channelList[0],
                     hasPhone: data.tsPhone.phoneNumber,
                     platform: vm.selectedPlatform.id
                 }
+
+                vm.smsPlayer.channel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(4)) {
+                        vm.smsPlayer.channel = 4; //set default sms channel
+                    } else {
+                        vm.smsPlayer.channel = $scope.usableChannelList[0];
+                    }
+                }
+
                 vm.sendSMSResult = {};
                 $scope.safeApply();
                 $('#smsPlayerModal').modal('show');
@@ -2107,7 +2128,7 @@ define(['js/app'], function (myApp) {
         };
 
         // import phone number to system
-        vm.importTSNewList = function (uploadData, tsNewListObj, targetTsPhoneListId, isImportFeedback, isPhoneTrade) {
+        vm.importTSNewList = function (uploadData, tsNewListObj, targetTsPhoneListId, isImportFeedback, isPhoneTrade, isFeedbackPhoneTrade) {
             let dailyDistributeTaskDate = $('#dxTimePicker').data('datetimepicker').getLocalDate();
             let sendData = {
                 phoneListDetail: uploadData,
@@ -2115,6 +2136,7 @@ define(['js/app'], function (myApp) {
                 targetTsPhoneListId: targetTsPhoneListId,
                 isImportFeedback: isImportFeedback,
                 isPhoneTrade: isPhoneTrade,
+                isFeedbackPhoneTrade: isFeedbackPhoneTrade,
                 updateData: {
                     platform: vm.selectedPlatform.id,
                     creator: authService.adminId,
@@ -2150,6 +2172,10 @@ define(['js/app'], function (myApp) {
                             if (isPhoneTrade) {
                                 vm.searchDecomposedNewPhoneQuery(true)
                                 vm.getDecompositionListCount();
+                            }
+                            if (isFeedbackPhoneTrade) {
+                                vm.getfeedbackPhoneListCount();
+                                vm.searchFeedbackPhoneQuery(true);
                             }
                         } else {
                             //display error
@@ -3311,7 +3337,9 @@ define(['js/app'], function (myApp) {
 
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();
-            vm.getBankTypeList();
+            commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})).then(v => {
+                vm.allBankTypeList = v;
+            });
             vm.provinceList = [];
             vm.cityList = [];
             vm.districtList = [];
@@ -3347,23 +3375,6 @@ define(['js/app'], function (myApp) {
                 data => {
                     var data = data.data;
                     vm.bankCards = data.data ? data.data : false;
-                });
-        }
-
-        vm.getBankTypeList = function () {
-            // Get bank list from pmsAPI
-            socketService.$socket($scope.AppSocket, 'getBankTypeList', {},
-                data => {
-                    if (data && data.data && data.data.data) {
-                        vm.allBankTypeList = {};
-                        console.log('banktype', data.data.data);
-                        data.data.data.forEach(item => {
-                            if (item && item.bankTypeId) {
-                                vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
-                            }
-                        })
-                    }
-                    $scope.safeApply();
                 });
         }
 
@@ -6337,7 +6348,7 @@ define(['js/app'], function (myApp) {
         vm.importToTsPhoneList = () => {
             if (vm.selectedTab == "RECYCLE_BIN") {
                 // import unused/ unregistered phone number and import associated feedback record
-                if (vm.showPageName && vm.showPageName == "New Phone") {
+                if (vm.showPageName && (vm.showPageName == "New Phone" || vm.showPageName == "OTHER_DEPARTMENT_TS_LIST")) {
                     if (!(vm.multiDecomposedNewPhoneSelected && vm.multiDecomposedNewPhoneSelected.length && vm.totalTsPhoneTrade)) {
                         return;
                     }
@@ -6349,12 +6360,13 @@ define(['js/app'], function (myApp) {
                             _id: {$in: tsPhoneIds}
                         },
                         isTSNewList: vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin,
-                        platformObjId: vm.selectedPlatform.id
+                        platformObjId: vm.selectedPlatform.id,
+                        isFeedbackPhone: vm.showPageName == "OTHER_DEPARTMENT_TS_LIST"
                     }
                     socketService.$socket($scope.AppSocket, 'getTsPhone', sendQuery, function (data) {
                         if (data && data.data && data.data.length) {
                             vm.multiDecomposedNewPhoneSelected = [];
-                            vm.importTSNewList(data.data, vm.tsNewList, null, true, true);
+                            vm.importTSNewList(data.data, vm.tsNewList, null, true, !sendQuery.isFeedbackPhone, sendQuery.isFeedbackPhone);
                         } else {
                             $scope.$evalAsync(() => {
                                 vm.importPhoneResult = 'THERE_IS_NO_DIFFERENT_NUMBER_IN_LIST';
@@ -7987,6 +7999,7 @@ define(['js/app'], function (myApp) {
         vm.initTrashClassificationDecompositionList = function () {
             vm.getTrashClassificationList();
             vm.getDecompositionListCount();
+            vm.getfeedbackPhoneListCount();
         };
 
         vm.getTrashClassificationList = function () {
@@ -8011,6 +8024,19 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     vm.decompositionListCount = data.data;
                     console.log('vm.decompositionListCount', vm.decompositionListCount);
+                });
+            });
+        };
+
+        vm.getfeedbackPhoneListCount = function () {
+            vm.feedbackPhoneListCount = 0;
+            let sendData = {
+                platformId: vm.selectedPlatform.id,
+            };
+            socketService.$socket($scope.AppSocket, 'getfeedbackPhoneList', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.feedbackPhoneListCount = data.data;
+                    console.log('vm.feedbackPhoneListCount', vm.feedbackPhoneListCount);
                 });
             });
         };
@@ -8280,6 +8306,157 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getFeedbackPhoneTradeDetail = function () {
+            vm.showPageName = 'OTHER_DEPARTMENT_TS_LIST';
+            vm.feedbackPhoneQuery = {};
+            vm.feedbackPhoneQuery.totalCount = 0;
+            vm.multiDecomposedNewPhoneSelected = [];
+
+            utilService.actionAfterLoaded(('#feedbackPhoneQuery'), function () {
+                let today = new Date();
+                let todayEndTime = today.setHours(23, 59, 59, 999);
+                vm.feedbackPhoneQuery.startTime = utilService.createDatePicker('#feedbackPhoneQuery .startTime');
+                vm.feedbackPhoneQuery.endTime = utilService.createDatePicker('#feedbackPhoneQuery .endTime');
+                vm.feedbackPhoneQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.feedbackPhoneQuery.endTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+
+                utilService.actionAfterLoaded("#feedbackPhoneTablePage", function () {
+                    vm.feedbackPhoneQuery.pageObj = utilService.createPageForPagingTable("#feedbackPhoneTablePage", {pageSize: 100}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "feedbackPhoneQuery", vm.searchDecomposedNewPhoneQuery)
+                    });
+                    vm.searchFeedbackPhoneQuery(true);
+                })
+            });
+            $scope.$evalAsync();
+        };
+
+        vm.searchFeedbackPhoneQuery = function (newSearch) {
+            vm.feedbackPhoneQuery = vm.feedbackPhoneQuery || {};
+            var sendData = {
+                startTime: vm.feedbackPhoneQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.feedbackPhoneQuery.endTime.data('datetimepicker').getLocalDate(),
+                platformId: vm.selectedPlatform.id,
+                sourcePlatform: vm.feedbackPhoneQuery.sourcePlatform,
+                topUpTimesOperator: vm.feedbackPhoneQuery.topUpTimesOperator,
+                topUpTimes: vm.feedbackPhoneQuery.topUpTimes,
+                topUpTimesTwo: vm.feedbackPhoneQuery.topUpTimesTwo,
+                limit: vm.feedbackPhoneQuery.limit || 100,
+                index: newSearch ? 0 : (vm.feedbackPhoneQuery.index || 0),
+                sortCol: vm.feedbackPhoneQuery.sortCol
+            };
+
+            $('#feedbackPhoneTableSpin').show();
+            console.log('sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'getFeedbackPhoneRecord', sendData, function (data) {
+                $('#feedbackPhoneTableSpin').hide();
+                console.log('getFeedbackPhoneRecord', data.data);
+                $scope.$evalAsync(() => {
+                    vm.feedbackPhoneQuery.totalCount = data.data.size;
+                });
+                vm.drawFeedbackPhoneTable(newSearch, data.data.data || [], vm.feedbackPhoneQuery.totalCount);
+            }, function (err) {
+                $('#feedbackPhoneTableSpin').hide();
+            }, true);
+        };
+
+        vm.drawFeedbackPhoneTable = function (newSearch, data, size) {
+            console.log("drawFeedbackPhoneTable", data);
+            let tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
+                data: data,
+                aoColumnDefs: [
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [5]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        "title": $translate('Tick'),
+                        bSortable: false,
+                        sClass: "feedbackPhoneSelected",
+                        render: function (data, type, row) {
+                            let tick = Boolean(vm.multiDecomposedNewPhoneSelected.indexOf(row._id) > -1);
+                            var link = $('<input>', {
+                                type: 'checkbox',
+                                "data-tsPhoneId": row.sourceTsPhone,
+                                "ng-click": 'vm.updateMultiselectDecomposedNewPhone("'+row._id+'")',
+                                checked: tick,
+                                class: "transform150"
+                            })
+                            return link.prop('outerHTML');
+                        },
+
+                    },
+                    {
+                        title: $translate('ORIGIN_DEPARTMENT'), data: "sourcePlatform.name"
+                    },
+                    {
+                        title: $translate('Trade Time'), data: 'createTime'
+                    },
+                    {
+                        title: $translate('TELEPHONE'), data: "encodedPhoneNumber",
+                        render: function (data, type, row) {
+                            return data;
+                        }
+                    },
+                    {
+                        title: $translate('LAST_LOGIN_TIME'), data: "lastAccessTime"
+                    },
+                    {
+                        title: $translate('TOP_UP_TIMES'), data: "topUpTimes"
+                    }
+                ],
+                sScrollY: false,
+                searching: false,
+                "destroy": true,
+                "paging": false,
+                dom: 'Zrt<"footer">lp',
+                fnRowCallback: vm.feedbackPhoneTableRow
+            });
+            vm.feedbackPhoneQuery.pageObj.init({maxCount: size}, newSearch);
+            $('#feedbackPhoneTable').empty();
+            vm.feedbackPhoneTable = $('#feedbackPhoneTable').DataTable(tableOptions);
+
+
+            var $checkAll = $(".dataTables_scrollHead thead .feedbackPhoneSelected");
+            if ($checkAll.length == 1) {
+                var $showBtn = $('<input>', {
+                    type: 'checkbox',
+                    class: "feedbackPhoneSelected transform150 checkAllFeedbackPhone",
+                    checked: vm.isAllChecked("#feedbackPhoneTable tbody td.feedbackPhoneSelected input")
+                });
+                $checkAll.html($showBtn);
+                $('.feedbackPhoneSelected.checkAllFeedbackPhone').on('click', function () {
+                    var $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
+                    setCheckAllFeedbackPhone($checkAll.checked);
+                })
+            };
+
+            function setCheckAllFeedbackPhone(flag) {
+                var s = $("#feedbackPhoneTable tbody td.feedbackPhoneSelected input").each(function () {
+                    $(this).prop("checked", flag);
+                });
+                data.forEach(item => {
+                    vm.updateMultiselectDecomposedNewPhone(item._id, flag);
+                });
+            };
+
+            setTimeout(function () {
+                $('#feedbackPhoneTable').resize();
+            }, 100);
+
+            $('#feedbackPhoneTable').off('order.dt');
+            $('#feedbackPhoneTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'feedbackPhoneQuery', vm.searchFeedbackPhoneQuery);
+            });
+
+            $scope.$evalAsync();
+
+        };
+
+        vm.feedbackPhoneTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+        };
+
         vm.getDecomposedDetail = function () {
             vm.showPageName = 'New Phone';
             vm.decomposedNewPhoneQuery = {};
@@ -8333,7 +8510,7 @@ define(['js/app'], function (myApp) {
             console.log("drawDecomposedNewPhoneTable", data);
             let tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
                 data: data,
-                columnDefs: [
+                aoColumnDefs: [
                     {'sortCol': 'tradeTime', bSortable: true, 'aTargets': [1]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
@@ -8359,8 +8536,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('Trade Time'), data: "tradeTime",
                         render: function (data, type, row) {
                             return utilService.getFormatTime(data);
-                        },
-                        bSortable: true
+                        }
                     },
                     {
                         title: $translate('TELEPHONE'), data: "encodedPhoneNumber",
@@ -8441,10 +8617,10 @@ define(['js/app'], function (myApp) {
 
             // $('#decomposedNewPhoneTable tbody').off('click', "**");
             // $('#decomposedNewPhoneTable tbody').on('click', 'tr', tableRowClicked);
-            // $('#decomposedNewPhoneTable').off('order.dt');
-            // $('#decomposedNewPhoneTable').on('order.dt', function (event, a, b) {
-            //     vm.commonSortChangeHandler(a, 'decomposedNewPhoneQuery', vm.searchDecomposedNewPhoneQuery);
-            // });
+            $('#decomposedNewPhoneTable').off('order.dt');
+            $('#decomposedNewPhoneTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'decomposedNewPhoneQuery', vm.searchDecomposedNewPhoneQuery);
+            });
 
             $scope.$evalAsync();
 

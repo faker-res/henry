@@ -86,7 +86,7 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                     text {{vm.smsPlayer.name}} {{vm.smsPlayer.nickName && '(' + vm.smsPlayer.nickName + ')'}}
 
                     label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
-                    select(ng-model='vm.smsPlayer.channel', ng-options='a for a in channelList')
+                    select(ng-model='vm.smsPlayer.channel', ng-options='a for a in usableChannelList')
 
                     label.margin-left-5.blink.text-danger(ng-if="!vm.smsPlayer.hasPhone") {{'This Player did not input phone number' | translate}}
 

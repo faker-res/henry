@@ -15,7 +15,9 @@ var platformMerchantListSchema = new Schema({
     permerchantminLimits: {type: Number},
     status: {type: String},
     rate: {type: Number},
-    customizeRate: {type: Number}
+    customizeRate: {type: Number},
+    //if it is pms2
+    isPMS2: {type: Boolean, index: true}
 });
 
 module.exports = platformMerchantListSchema;

@@ -271,6 +271,10 @@ let PlayerServiceImplement = function () {
             .done();
     };
 
+    this.getLastPlayedGameInfo.onRequest = function (wsFunc, conn, data) {
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLastPlayedGameInfo, [conn.playerObjId], true, false, false, false);
+    };
+
     //player create api handler
     this.playerQuickReg.expectsData = 'platformId: String, password: String';
     this.playerQuickReg.onRequest = function (wsFunc, conn, data) {
@@ -1278,6 +1282,11 @@ let PlayerServiceImplement = function () {
         let phoneNumber = data.phoneNumber? data.phoneNumber: null;
 
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, data.phoneNumber, deviceData, userAgentString], isValidData, false, false, true);
+    };
+
+    this.changeBirthdayDate.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerObjId && data && data.date);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.changeBirthdayDate, [conn.playerObjId, data.date], isValidData);
     };
 
     this.getClientData.onRequest = function (wsFunc, conn, data) {

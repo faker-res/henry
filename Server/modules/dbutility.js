@@ -305,6 +305,11 @@ var dbUtility = {
         return Q.resolve(dbUtility.getLastWeekSGTime());
     },
 
+    getCurrentWeekInYear: function(time){
+        let result = moment(time, "YYYY MM DD").format("W");
+        return result;
+    },
+
     getCurrentWeekSGTime: function () {
         var startTime = dbUtility.getPreviousSGMonday();
         var endTime = moment(startTime).add(1, 'week').toDate();
@@ -1644,10 +1649,10 @@ var dbUtility = {
         if (userAgent == '') {
             registrationInterface = 1;
         } else {
-            if (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1) {
+            if (userAgent.browser.name && (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1)) {
                 registrationInterface = 2;
             }
-            else if (userAgent.os.name.indexOf("iOS") !== -1 || userAgent.os.name.indexOf("ndroid") !== -1 || userAgent.browser.name.indexOf("obile") !== -1) {
+            else if (userAgent.os.name && (userAgent.os.name.indexOf("iOS") !== -1 || userAgent.os.name.indexOf("ndroid") !== -1 || userAgent.browser.name.indexOf("obile") !== -1)) {
                 registrationInterface = 3;
             } else {
                 registrationInterface = 1;

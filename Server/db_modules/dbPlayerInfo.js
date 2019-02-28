@@ -523,55 +523,46 @@ let dbPlayerInfo = {
         )
     },
 
-//     let newPlayerData = data;
-//
-// newPlayerData.password = inputData.password ? inputData.password : (newPlayerData.password || "");
-// newPlayerData.inputDevice = inputData.inputDevice ? inputData.inputDevice : (newPlayerData.inputDevice || "");
-// newPlayerData.platformId = platformId ? platformId : (newPlayerData.platformId || "");
-// newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
-// newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
-// newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
-//
-// //after created new player, need to create login record and apply login reward
-// if (!adminName) { // except the case where player is created on backstage (by admin)
-//     dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
-// }
-//
-// if (data.lastLoginIp && data.lastLoginIp != "undefined") {
-//     dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
-//     dbPlayerInfo.checkPlayerIsIDCIp(platformObjId, data._id, data.lastLoginIp).catch(errorUtils.reportError);
-// }
-// // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
-// return data;
-// }
-// else {
-//     return data;
-// }
-// }
-// ).then(
-//     data => dbconfig.collection_players.findOne({_id: data._id})
-//         .populate({
-//             path: "playerLevel",
-//             model: dbconfig.collection_playerLevel
-//         }).lean().then(
-//             pdata => {
-//                 pdata.name = pdata.name.replace(platformPrefix, "");
-//                 pdata.platformId = platformId;
-//                 pdata.partnerId = inputData.partnerId;
-//                 pdata.partnerName = inputData.partnerName;
-//                 return pdata;
-//             }
-//         )
-// ).then(
-//     data => {
-//         if (data) {
-//             return dbPlayerInfo.createPlayerRewardPointsRecord(data.platform, data._id, false);
-//         }
-//         else {
-//             return data;
-//         }
-//     }
-// );
+    getLastPlayedGameInfo: async (playerObjId) => {
+        let games = [];
+        let searchTime = new Date();
+        let done = false;
+
+        while (games.length < 2 && !done) {
+            let lastGame = await getLastPlayedGameId(searchTime);
+
+            if (lastGame) {
+                games.push(lastGame);
+            }
+        }
+
+        return games;
+
+        function getLastPlayedGameId (fromTime) {
+            return dbconfig.collection_actionLog.findOne({
+                player: ObjectId(playerObjId),
+                action: 'login',
+                providerId: {$exists: true},
+                gameObjId: {$type: "objectId"},
+                operationTime: {$lt: fromTime}
+            }).sort({operationTime: -1}).populate({
+                path: "gameObjId",
+                model: dbconfig.collection_game
+            }).lean().then(
+                res => {
+                    if (res && res.operationTime) {
+                        searchTime = res.operationTime;
+
+                        return res.gameObjId;
+                    } else {
+                        done = true;
+                    }
+                }
+            )
+        }
+    },
+
+
     /**
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
@@ -1649,7 +1640,7 @@ let dbPlayerInfo = {
 
             }
 
-            if ((/*playerdata.password.length < 6 || playerdata.password.length > 20 ||*/ !playerdata.password.match(alphaNumRegex)) && !bFromBI) {
+            if ((/*playerdata.password.length < 6 || playerdata.password.length > 20 ||*/ !playerdata.password.match(alphaNumRegex)) && !bFromBI && !playerdata.guestDeviceId) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -2378,6 +2369,50 @@ let dbPlayerInfo = {
                     }
                 }
             );
+    },
+
+    getOnePlayerSimpleDetail: function (platformObjId, playerObjId) {
+        function getRewardGroupData(thisPlayer) {
+            return dbconfig.collection_rewardTaskGroup.find({
+                platformId: thisPlayer.platform,
+                playerId: thisPlayer._id,
+                status: {$in: [constRewardTaskStatus.STARTED]}
+            }).then(
+                rewardGroupData => {
+                    thisPlayer.rewardGroupInfo = rewardGroupData;
+                    thisPlayer.lockedCredit = rewardGroupData.reduce(
+                        (arr, inc) => arr + inc.rewardAmt, 0
+                    );
+                    return thisPlayer;
+                }
+            )
+        }
+
+        return dbconfig.collection_players.findOne({platform: platformObjId, _id: playerObjId})
+        .populate({path: "partner", model: dbconfig.collection_partner})
+        .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+        .populate({path: "rewardPointsObjId", model:dbconfig.collection_rewardPoints})
+        .lean()
+        .then(
+             data => {
+                 if (!data) {
+                     return Promise.reject({message: "Player not found."});
+                 }
+
+                 return getRewardGroupData(data);
+             }
+        )
+    },
+
+    getOnePlayerSummaryRecord: function (platformObjId, playerObjId) {
+        return dbconfig.collection_players.findOne({platform: platformObjId, _id: playerObjId}, {platform: 1, registrationTime: 1}).lean().then(
+            player => {
+                if (player) {
+                    return dbPlayerInfo.getConsumptionDetailOfPlayers(player.platform, player.registrationTime, new Date().toISOString(), {}, [player._id]);
+                }
+                return Promise.resolve();
+            }
+        );
     },
 
     getOnePlayerInfo: function (query) {
@@ -5835,9 +5870,9 @@ let dbPlayerInfo = {
                             // Ignore concurrent request for now
                         } else {
                             // Set BState back to false
-                            dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                            dbPlayerUtil.setPlayerBState(playerObj._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                         }
-                        console.log('playerRetentionRewardGroup error when login', playerData.playerId, err);
+                        console.log('playerRetentionRewardGroup error when login', playerObj.playerId, err);
                     }
                 );
 
@@ -5966,6 +6001,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerState => {
+                console.log('playerState===11', playerState);
                 if (playerState) {
                     return dbconfig.collection_playerRetentionRewardGroupRecord.find(query).populate({
                         path: "rewardEventObjId",
@@ -5975,6 +6011,7 @@ let dbPlayerInfo = {
                         model: dbconfig.collection_playerTopUpRecord
                     }).lean();
                 } else {
+                    console.log('retention concurrent -- apply reward fail===');
                     return Promise.reject({
                         name: "DBError",
                         status: constServerCode.CONCURRENT_DETECTED,
@@ -6587,17 +6624,27 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
-                // Check is test player
-                if (data && data[0] && data[0].isTestPlayer) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Unable to transfer credit for demo player"
-                    })
-                }
-
                 if (data && data[0] && data[1]) {
                     [playerData, providerData] = data;
                     let platformData = playerData.platform;
+                    let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
+                    // if adminName doesn't exist (likely request from frontend), AND
+                    // requested provider is in player's forbid providers' list: then reject.
+                    if ((!adminName) && forbidProviders.indexOf(providerData._id.toString()) > -1) {
+                        return Promise.reject({
+                            name: "DataError",
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            message: "Player is forbidden to the game"
+                        })
+                    }
+                    // Check is test player
+                    if (playerData.isTestPlayer) {
+                        return Promise.reject({
+                            name: "DataError",
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            message: "Unable to transfer credit for demo player"
+                        })
+                    }
 
                     if (providerData.status != constProviderStatus.NORMAL
                         || platformData && platformData.gameProviderInfo
@@ -6755,7 +6802,7 @@ let dbPlayerInfo = {
                     dbPlayerInfo.clearPlayerBonusDoubledRewardDataWhenTransferFailed(playerData._id, playerData.platform._id, currentDate);
                 }
 
-                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT)) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT && err.status !== constServerCode.PLAYER_IS_FORBIDDEN)) {
                     let platformId = playerData.platform ? playerData.platform.platformId : null;
                     let platformObjId = playerData.platform ? playerData.platform._id : null;
                     let status = (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
@@ -6765,7 +6812,9 @@ let dbPlayerInfo = {
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, status);
                 }
                 // Set BState back to false
-                dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
+                if (playerData) {
+                    dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
+                }
                 return Promise.reject(err);
             }
         ).catch(
@@ -6776,7 +6825,7 @@ let dbPlayerInfo = {
 
                 if (err.status === constServerCode.CONCURRENT_DETECTED) {
                     // Ignore concurrent request for now
-                } else {
+                } else if (playerData) {
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 }
@@ -7191,16 +7240,26 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
-                if (data && data[0] && data[0].isTestPlayer) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Unable to transfer credit for demo player"
-                    })
-                }
-
                 if (data && data[0] && data[1] && data[1].length > 0) {
                     [playerObj, gameProvider] = data;
                     platformData = playerObj.platform;
+                    let forbidProviders = JSON.parse(JSON.stringify(playerObj.forbidProviders));
+                    // if adminName doesn't exist (likely request from frontend), AND
+                    // requested provider is in player's forbid providers' list: then reject.
+                    if ((!adminName) && forbidProviders.indexOf(gameProvider[0]._id.toString()) > -1) {
+                        return Promise.reject({
+                            name: "DataError",
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            message: "Player is forbidden to the game"
+                        })
+                    }
+                    if (playerObj.isTestPlayer) {
+                        return Promise.reject({
+                            name: "DataError",
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            message: "Unable to transfer credit for demo player"
+                        })
+                    }
 
                     let indexOfProviderId = -1;
 
@@ -7242,7 +7301,11 @@ let dbPlayerInfo = {
                 }
             },
             err => {
-                return Promise.reject({name: "DataError", message: "Cant find player or provider"});
+                if(err && err.status === constServerCode.PLAYER_IS_FORBIDDEN) {
+                    return Promise.reject(err);
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cant find player or provider"});
+                }
             }
         ).then(
             checkPlayerBonusDoubledRewardResult => {
@@ -7250,7 +7313,7 @@ let dbPlayerInfo = {
                     gameProvider.forEach(
                         provider => {
                             if(provider){
-                                transferPlayerCreditFromProviderProm.push(checkAndStartTransferPlayerCreditFromProvider(provider, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState));
+                                transferPlayerCreditFromProviderProm.push(checkAndStartTransferPlayerCreditFromProvider(provider, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState, true));
                                 firstPlayerState = false;
                             }
                         }
@@ -7269,12 +7332,14 @@ let dbPlayerInfo = {
                         message: err.message,
                         data: err.data
                     });
+                } else if(err && err.status === constServerCode.PLAYER_IS_FORBIDDEN) {
+                    return Promise.reject(err);
+                } else {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: err.message
+                    });
                 }
-
-                return Promise.reject({
-                    name: "DataError",
-                    message: err.message
-                });
             }
         ).then(
             function (data) {
@@ -7282,7 +7347,7 @@ let dbPlayerInfo = {
                 return Promise.resolve(data);
             },
             function (err) {
-                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT)) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT && err.status !== constServerCode.PLAYER_IS_FORBIDDEN)) {
                     var platformId = playerObj.platform ? playerObj.platform.platformId : null;
                     var platformObjId = playerObj.platform ? playerObj.platform._id : null;
                     console.log('debug transfer error G:', err);
@@ -7294,12 +7359,16 @@ let dbPlayerInfo = {
             }
         );
 
-        function checkAndStartTransferPlayerCreditFromProvider(gameProviderData, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState){
+        function checkAndStartTransferPlayerCreditFromProvider(gameProviderData, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState, isMultiProvider){
             if (dbUtility.getPlatformSpecificProviderStatus(gameProviderData, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
-                return Promise.reject({
-                    name: "DataError",
-                    message: "Provider is not available"
-                });
+                if(!isMultiProvider){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Provider is not available"
+                    });
+                }else{
+                    return;
+                }
             }
 
             if(firstPlayerState){
@@ -7318,7 +7387,7 @@ let dbPlayerInfo = {
                                     playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
                             } else {
                                 return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
-                                    playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
+                                    playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
                             }
                         } else {
                             return Promise.reject({
@@ -7340,7 +7409,7 @@ let dbPlayerInfo = {
                         playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
                 } else {
                     return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
-                        playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync);
+                        playerObj._id, playerObj.platform._id, gameProviderData._id, amount, playerId, gameProviderData.providerId, playerObj.name, playerObj.platform.platformId, adminName, gameProviderData.name, bResolve, maxReward, forSync, isMultiProvider);
                 }
             }
         };
@@ -11190,9 +11259,11 @@ let dbPlayerInfo = {
                                 let queryObj = {
                                     createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                                     type: onlineTopupType._id,
-                                    "data.topupType": parseInt(merchantTopupTypeId),
                                     "data.userAgent": parseInt(userAgent),
-
+                                    $or:[
+                                        { "data.topupType": parseInt(merchantTopupTypeId) },
+                                        { "data.topupType": merchantTopupTypeId }
+                                    ]
                                 };
 
                                 let groupObj = {
@@ -11476,6 +11547,7 @@ let dbPlayerInfo = {
         let platform;
         let isUsingXima = false;
         let lastBonusRemark = "";
+        let bonusSystemConfig;
         let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
@@ -11548,6 +11620,9 @@ let dbPlayerInfo = {
                 playerData => {
                     if (playerData) {
                         player = playerData;
+
+                        bonusSystemConfig =
+                            extConfig && player.platform.bonusSystemType && extConfig[player.platform.bonusSystemType];
 
                         if (player.ximaWithdraw) {
                             ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
@@ -11645,7 +11720,6 @@ let dbPlayerInfo = {
                 }
             ).then(
                 RTGs => {
-                    console.log('RTGs===', RTGs);
                     if (!RTGs || isUsingXima) {
                         if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
                             return Q.reject({
@@ -11713,9 +11787,6 @@ let dbPlayerInfo = {
                                 let creditChargeWithoutDecimal = 0;
                                 let amountAfterUpdate = player.validCredit - amount;
                                 let playerLevelVal = player.playerLevel.value;
-                                console.log('player.name===', player.name);
-                                console.log('player.validCredit===', player.validCredit);
-                                console.log('amount===', amount);
                                 if (player.platform.bonusSetting) {
                                     // let bonusSetting = playerData.platform.bonusSetting.find((item) => {
                                     //     return item.value == playerLevelVal
@@ -11737,12 +11808,6 @@ let dbPlayerInfo = {
                                             finalAmount = finalAmount - creditCharge;
                                         }
                                     }
-                                    console.log('bonusSetting===', bonusSetting);
-                                    console.log('bonusSetting.bonusCharges===', bonusSetting.bonusCharges);
-                                    console.log('bonusSetting.bonusPercentageCharges===', bonusSetting.bonusPercentageCharges);
-                                    console.log('creditCharge===', creditCharge);
-                                    console.log('finalAmount===', finalAmount);
-                                    console.log('todayBonusApply===', todayBonusApply);
                                 }
 
                                 return dbconfig.collection_players.findOneAndUpdate(
@@ -11769,10 +11834,6 @@ let dbPlayerInfo = {
                                                     data: '(detected after withdrawl)'
                                                 });
                                             }
-                                            console.log('amountAfterUpdate===', amountAfterUpdate);
-                                            console.log('parseInt(amountAfterUpdate)===', parseInt(amountAfterUpdate));
-                                            console.log('newPlayerData.validCredit===', newPlayerData.validCredit);
-                                            console.log('parseInt(newPlayerData.validCredit)===', parseInt(newPlayerData.validCredit));
                                             //check if player's credit is correct after update
                                             if (Math.floor(amountAfterUpdate) != Math.floor(newPlayerData.validCredit)) {
                                                 console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
@@ -11826,6 +11887,19 @@ let dbPlayerInfo = {
                                                     proposalData.needCsApproved = true;
                                                 }
                                             }
+
+                                            if (player.platform.bonusSystemType && bonusSystemConfig) {
+                                                proposalData.bonusSystemType = player.platform.bonusSystemType;
+                                                proposalData.bonusSystemName = bonusSystemConfig.name;
+                                            } else if (!player.platform.bonusSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                                                Object.keys(extConfig).forEach(key => {
+                                                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                                                        proposalData.bonusSystemType = Number(key);
+                                                        proposalData.bonusSystemName = extConfig[key].name;
+                                                    }
+                                                });
+                                            }
+
                                             var newProposal = {
                                                 creator: proposalData.creator,
                                                 data: proposalData,
@@ -12162,14 +12236,14 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}
-        ).then(
+        ).lean().then(
             data => {
                 if (
                     data && data.type && data.status !== constProposalStatus.SUCCESS
                     && data.status !== constProposalStatus.FAIL
                 ) {
                     prop = data;
-
+                    console.log("check pms2 update player 1", status)
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: data._id, createTime: data.createTime},
                         {
@@ -12177,7 +12251,7 @@ let dbPlayerInfo = {
                             "data.lastSettleTime": lastSettleTime,
                             settleTime: lastSettleTime
                         }
-                    )
+                    ).lean();
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Invalid proposal id or status"});
@@ -12185,6 +12259,7 @@ let dbPlayerInfo = {
             }
         ).then(
             preUpdProp => {
+                console.log("check pms2 update player 2", preUpdProp)
                 // Concurrency check
                 if (
                     preUpdProp && preUpdProp.status !== constProposalStatus.SUCCESS
@@ -12208,8 +12283,8 @@ let dbPlayerInfo = {
                         "data.alipayerAccount": callbackData ? callbackData.account : "",
                         "data.alipayerNickName": callbackData ? callbackData.nickName : "",
                         "data.alipayerRemark": callbackData ? callbackData.remark : "",
-                    }
-                )
+                    }, {new: true}
+                ).lean();
             }
         ).catch(err=>{
             console.log("dbPlayerInfo.updatePlayerTopupProposal()", proposalId, err);
@@ -12594,9 +12669,19 @@ let dbPlayerInfo = {
         return Q.all([playerProm, gameProm]).then(
             data => {
                 if (data && data[0] && data[1]) {
-                    return dbconfig.collection_players.update(
+                    return dbconfig.collection_players.findOneAndUpdate(
                         {_id: data[0]._id, platform: data[0].platform},
                         {$addToSet: {favoriteGames: data[1]._id}}
+                    ).lean().then(
+                        playerData => {
+                            if (playerData.favoriteGames && playerData.favoriteGames.length) {
+                                playerData.favoriteGames = JSON.parse(JSON.stringify(playerData.favoriteGames));
+                                if (playerData.favoriteGames.includes(String(data[1]._id))) {
+                                    return Q.reject({name: "DataError", message: "This game has been added before"});
+                                }
+                            }
+                            return true;
+                        }
                     );
                 }
                 else {
@@ -12624,7 +12709,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent, tableCode) {
         let providerData = null;
         let playerData = null;
         let platform = null;
@@ -12875,6 +12960,11 @@ let dbPlayerInfo = {
                     ip: ip,
                     clientType: clientType || 1
                 };
+
+                if (tableCode) {
+                    sendData.tableCode = tableCode
+                }
+
                 return cpmsAPI.player_getLoginURL(sendData);
             },
             err => {
@@ -12887,7 +12977,7 @@ let dbPlayerInfo = {
                     return loginData;
                 }
 
-                dbApiLog.createProviderLoginActionLog(playerData.platform._id, playerData._id, providerData._id, ip, clientDomainName, userAgent, inputDevice);
+                dbApiLog.createProviderLoginActionLog(playerData.platform._id, playerData._id, providerData._id, ip, clientDomainName, userAgent, inputDevice, gameData._id);
                 dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             },
@@ -13260,7 +13350,12 @@ let dbPlayerInfo = {
                         }
                         proposal = proposalData;
                         bonusId = proposalData.data.bonusId;
-                        return dbProposal.updateBonusProposal(proposalId, constProposalStatus.CANCEL, bonusId);
+
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {$inc: {processedTimes: 1}},
+                            {new: true}
+                        ).lean()
                     }
                     else {
                         return Q.reject({
@@ -13273,6 +13368,15 @@ let dbPlayerInfo = {
                 else {
                     return Q.reject({name: "DBError", message: 'Cannot find proposal'});
                 }
+            }
+        ).then(
+            updatedProposal => {
+                if (updatedProposal && updatedProposal.processedTimes && updatedProposal.processedTimes > 1) {
+                    console.log(updatedProposal.proposalId + " This proposal has been processed");
+                    return Promise.reject({message: "This proposal has been processed"});
+                }
+
+                return dbProposal.updateBonusProposal(proposalId, constProposalStatus.CANCEL, bonusId);
             }
         ).then(
             data => {
@@ -14422,15 +14526,23 @@ let dbPlayerInfo = {
 
                     let playerState;
 
+                    console.log('data===', data);
+                    console.log('isBulkApply===', isBulkApply);
+                    console.log('isPreview===', isPreview);
+                    console.log('playerInfo._id===', playerInfo._id);
+
                     if (isBulkApply || isPreview) {
+                        console.log('playerState TRUE===');
                         // bypass player state for bulk apply
                         playerState = Promise.resolve(true);
                     } else {
+                        console.log('playerState FALSE===');
                         playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
                     }
 
                     return playerState.then(
                         playerState => {
+                            console.log('playerState===22', playerState);
                             if (playerState || data.isClearConcurrent) {
                                 if (code === "MANUAL_PLAYER_LEVEL_UP_REWARD") {
                                     return {
@@ -14445,6 +14557,7 @@ let dbPlayerInfo = {
                                     code: code
                                 }).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
                             } else {
+                                console.log('applyRewardEvent concurrent -- apply reward fail===');
                                 return Promise.reject({
                                     name: "DBError",
                                     status: constServerCode.CONCURRENT_DETECTED,
@@ -14472,13 +14585,20 @@ let dbPlayerInfo = {
 
                     //check valid time for reward event
                     let curTime = new Date();
-                    if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
-                        (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime())) {
+                    if (rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) {
                         console.log('RT -- Apply reward failed after top up', rewardEvent);
                         return Promise.reject({
                             status: constServerCode.REWARD_EVENT_INVALID,
                             name: "DataError",
                             message: "This reward event is not valid anymore"
+                        });
+                    }
+                    if (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime()) {
+                        console.log('RT -- Apply reward failed after top up', rewardEvent);
+                        return Promise.reject({
+                            status: constServerCode.REWARD_EVENT_INVALID,
+                            name: "DataError",
+                            message: "This reward event has ended, thank you for your support"
                         });
                     }
 
@@ -14725,6 +14845,7 @@ let dbPlayerInfo = {
                 if (data && isPreview){
                     return data;
                 }
+                console.log('reset bstate===11');
                 // Reset BState
                 dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 return data;
@@ -14734,6 +14855,7 @@ let dbPlayerInfo = {
                 if (err.status === constServerCode.CONCURRENT_DETECTED) {
                     // Ignore concurrent request for now
                 } else {
+                    console.log('reset bstate===22');
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 }
@@ -15667,14 +15789,11 @@ let dbPlayerInfo = {
                 $lt: new Date(to)
             }
         }
-        console.log('queryObj===', queryObj);
         var a = dbconfig.collection_playerCreditsDailyLog.find(queryObj).count();
         var b = dbconfig.collection_playerCreditsDailyLog.find(queryObj).sort(sortCol).skip(index).limit(limit).lean();
 
         return Q.all([a, b]).then(
             data => {
-                console.log('data===00', data[0]);
-                console.log('data===11', data[1]);
                 return {size: data[0], data: data[1]}
             }
         )
@@ -16346,10 +16465,11 @@ let dbPlayerInfo = {
                             providerDetail: 1
                         }
                     }
-                )
+                ).read("secondaryPreferred");
             }
         ).then(
             playerSummaryData => {
+                console.log("LH check player report summary 1");
                 if(playerSummaryData && playerSummaryData.length > 0){
                     playerSummaryData.forEach(
                         playerSummary => {
@@ -16391,7 +16511,7 @@ let dbPlayerInfo = {
                             }
                         }
                     )
-
+                    console.log("LH check player report summary 2");
                     // filter the summary result first
                     // Consumption Times Query Operator
                     if ((query.consumptionTimesValue || Number(query.consumptionTimesValue) === 0) && query.consumptionTimesValue !== null) {
@@ -16513,6 +16633,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerSummaryData => {
+                console.log("LH check player report summary 3");
                 if(playerSummaryData && playerSummaryData.length > 0){
                     playerReportSummaryData = playerSummaryData;
                     let playerIdList = playerReportSummaryData.map(data => data.playerId);
@@ -16575,12 +16696,30 @@ let dbPlayerInfo = {
                         playerQuery.csOfficer = {$in: query.adminIds};
                     }
 
-                    return dbconfig.collection_players.find(playerQuery)
-                        .populate({path: "csOfficer", model: dbconfig.collection_admin});
+                    let playerRequiredFields = {
+                        _id: 1,
+                        name: 1,
+                        city: 1,
+                        province: 1,
+                        consumptionBonusRatio: 1,
+                        credibilityRemarks: 1,
+                        csOfficer: 1,
+                        onlineTopUpFeeDetail: 1,
+                        phoneCity: 1,
+                        phoneProvince: 1,
+                        platformFeeEstimate: 1,
+                        playerLevel: 1,
+                        registrationTime: 1,
+                        valueScore: 1
+                    };
+
+                    return dbconfig.collection_players.find(playerQuery, playerRequiredFields)
+                        .populate({path: "csOfficer", model: dbconfig.collection_admin}).lean();
                 }
             }
         ).then(
             playerData => {
+                console.log("LH check player report summary 4");
                 if(playerData && playerData.length > 0){
                     let finalPlayerReportSummaryData = [];
                     playerData.forEach(
@@ -16611,7 +16750,7 @@ let dbPlayerInfo = {
                             }
                         }
                     );
-
+                    console.log("LH check player report summary 5");
                     if (Object.keys(sortCol).length > 0) {
                         finalPlayerReportSummaryData.sort(function (a, b) {
                             if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
@@ -16630,7 +16769,7 @@ let dbPlayerInfo = {
                             }
                         });
                     }
-
+                    console.log("LH check player report summary 6");
                     //handle sum of field here
                     for (let z = 0; z < finalPlayerReportSummaryData.length; z++) {
                         resultSum.manualTopUpAmount += finalPlayerReportSummaryData[z].manualTopUpAmount;
@@ -16654,7 +16793,7 @@ let dbPlayerInfo = {
                         resultSum.totalOnlineTopUpFee += finalPlayerReportSummaryData[z].totalOnlineTopUpFee;
                     }
                     resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
-
+                    console.log("LH check player report summary 7");
                     let outputResult = [];
 
                     for (let i = 0, len = limit; i < len; i++) {
@@ -16695,6 +16834,7 @@ let dbPlayerInfo = {
                 twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
 
                 if(new Date(query.end) > twoDaysAgo ){
+                    console.log("LH check player report summary 8");
                     query.start = twoDaysAgo;
                     return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
                 }
@@ -16749,7 +16889,7 @@ let dbPlayerInfo = {
                         }
                     )
                 }
-
+                console.log("LH check player report summary 9");
                 if(twoDaysPlayerReportData && twoDaysPlayerReportData.total){
                     returnedObj.total.aliPayTopUpAmount += twoDaysPlayerReportData.total.aliPayTopUpAmount || 0;
                     returnedObj.total.bonusAmount += twoDaysPlayerReportData.total.bonusAmount || 0;
@@ -16851,8 +16991,6 @@ let dbPlayerInfo = {
                             if (player) {
                                 proposalQuery['data.playerObjId'] = player._id;
                             }
-                            console.log('startDate===', startDate);
-                            console.log('dayEndTime===', dayEndTime);
 
                             proposalProm.push(dbconfig.collection_proposal.aggregate([
                                 {$match: proposalQuery},
@@ -16896,7 +17034,6 @@ let dbPlayerInfo = {
                                 }
                             }
                         }
-                        console.log('proposalData===', proposalData);
 
                         proposalData.forEach(function (proposal) {
                             groupedPlayers[proposal._id] = (groupedPlayers[proposal._id] || 0) + proposal.reachTargetDay;
@@ -17107,13 +17244,6 @@ let dbPlayerInfo = {
                 }
             }
 
-            console.log('startDate===', startDate);
-            console.log('dayEndTime===', dayEndTime);
-            console.log('playerObjId===', playerObjId);
-            console.log('timezoneAdjust.year===', timezoneAdjust.year);
-            console.log('timezoneAdjust.month===', timezoneAdjust.month);
-            console.log('timezoneAdjust.day===', timezoneAdjust.day);
-
             topUpProm.push(dbconfig.collection_proposal.aggregate([
                 {
                     $match: {
@@ -17177,8 +17307,6 @@ let dbPlayerInfo = {
 
             topUpRecord = [].concat(...topUpRecord);
             bonusRecord = [].concat(...bonusRecord);
-            console.log('topUpRecord===', topUpRecord);
-            console.log('bonusRecord===', bonusRecord);
 
             let outputData = [];
 
@@ -17192,11 +17320,9 @@ let dbPlayerInfo = {
                     isExceedDailyTotalDeposit: isExceedDailyTotalDeposit,
                 });
             }
-            console.log('outputData===11', outputData);
 
             outputData.forEach(output => {
                 bonusRecord.forEach(bonus => {
-                    console.log('bonus===1', bonus);
                     if (!bonus.bUsed) {  // only check bonus not used
                         let outputDate = new Date(output.date.year, output.date.month - 1, output.date.day); //month start from 0 to 11
                         let bonusDate = new Date(bonus._id.year, bonus._id.month - 1, bonus._id.day); //month start from 0 to 11
@@ -17213,7 +17339,6 @@ let dbPlayerInfo = {
 
             // for scenario when that month doesn't have top up record
             bonusRecord.forEach(bonus => {
-                console.log('bonus===2', bonus);
                 if (!bonus.bUsed) {
                     outputData.push({
                         date: bonus._id,
@@ -17224,7 +17349,6 @@ let dbPlayerInfo = {
                     bonus.bUsed = true;
                 }
             });
-            console.log('outputData===22', outputData);
 
             // convert date format
             for (let z = 0; z < outputData.length; z++) {
@@ -17239,7 +17363,6 @@ let dbPlayerInfo = {
             outputData.sort(function (a, b) {
                 return b.date - a.date
             });
-            console.log('outputData===33', outputData);
 
             //handle sum of field here
             for (let z = 0; z < outputData.length; z++) {
@@ -17707,10 +17830,6 @@ let dbPlayerInfo = {
             topUpAmount: 0,
             bonusAmount: 0,
         };
-        console.log('platformObjId===', platformObjId);
-        console.log('playerObjId===', playerObjId);
-        console.log('startDate===', startDate);
-        console.log('today===', today);
 
         // adjust the timezone
         let timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
@@ -17741,11 +17860,6 @@ let dbPlayerInfo = {
                 month: {$month: {$add: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
             }
         }
-        console.log('positiveTimeOffset===', positiveTimeOffset);
-        console.log('timezoneAdjust.year===', timezoneAdjust.year);
-        console.log('timezoneAdjust.month===', timezoneAdjust.month);
-        console.log('timezoneAdjust2.year===', timezoneAdjust2.year);
-        console.log('timezoneAdjust2.month===', timezoneAdjust2.month);
 
         consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
             {
@@ -17853,11 +17967,6 @@ let dbPlayerInfo = {
             bonusRecord = [].concat(...bonusRecord);
             consumptionRecord = [].concat(...consumptionRecord);
 
-            console.log('topUpRecord.length===', topUpRecord.length);
-            console.log('bonusRecord.length===', bonusRecord.length);
-            console.log('consumptionRecord.length===', consumptionRecord.length);
-            console.log('playerData===', playerData);
-
             let outputData = [];
             for (let x = 0; x < topUpRecord.length; x++) {
                 outputData.push({
@@ -17883,7 +17992,6 @@ let dbPlayerInfo = {
                     }
                 });
             });
-            console.log('outputData===1', outputData);
 
             // for scenario when that month doesn't have top up record
             bonusRecord.forEach(bonus => {
@@ -17913,7 +18021,6 @@ let dbPlayerInfo = {
                     }
                 });
             });
-            console.log('outputData===2', outputData);
 
             // for scenario when that month doesn't have top up and bonus record
             consumptionRecord.forEach(consumption => {
@@ -17940,7 +18047,6 @@ let dbPlayerInfo = {
             outputData.sort(function (a, b) {
                 return b.date - a.date
             });
-            console.log('outputData===3', outputData);
 
             //handle sum of field here
             for (let z = 0; z < outputData.length; z++) {
@@ -17948,7 +18054,6 @@ let dbPlayerInfo = {
                 outputDataSum.topUpAmount += outputData[z].topUpAmount;
                 outputDataSum.bonusAmount += outputData[z].bonusAmount;
             }
-            console.log('outputDataSum===', outputDataSum);
 
             return {
                 total: outputDataSum,
@@ -19761,7 +19866,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade) {
+    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade, isFeedbackPhoneTrade) {
         let tsPhoneList;
         if (phoneListDetail.length <= 0) {
             return Promise.reject("None of the phone has pass the filter");
@@ -19835,7 +19940,7 @@ let dbPlayerInfo = {
                             )
                         }
 
-                        if (isPhoneTrade) {
+                        if (isPhoneTrade) { // ts phone trade
                             prom = prom.then(
                                 tsPhoneData => {
                                     dbconfig.collection_tsPhoneTrade.update(
@@ -19846,6 +19951,21 @@ let dbPlayerInfo = {
                                         {
                                             targetTsPhone: tsPhoneData._id,
                                             targetTsPhoneList: tsPhoneList._id
+                                        }, {multi: true}).catch(errorUtils.reportError);
+                                    return tsPhoneData
+                                }
+                            )
+                        }
+
+                        if (isFeedbackPhoneTrade) { // from feedback
+                            prom = prom.then(
+                                tsPhoneData => {
+                                    dbconfig.collection_feedbackPhoneTrade.update(
+                                        {
+                                            _id: phone._id
+                                        },
+                                        {
+                                            isImportedPhoneList: true
                                         }, {multi: true}).catch(errorUtils.reportError);
                                     return tsPhoneData
                                 }
@@ -20814,6 +20934,8 @@ let dbPlayerInfo = {
                                     sortedData.length = totalRecord;
                                 }
 
+                                returnData.allDeposit = {};
+
                                 if (sortedData && sortedData.length) {
                                     return dbconfig.collection_players.populate(sortedData, {
                                         path: '_id',
@@ -20821,7 +20943,7 @@ let dbPlayerInfo = {
                                         select: "name"
                                     }).then(
                                         populatedData => {
-                                            returnData.allDeposit = {};
+
                                             for (let i = 0; i < populatedData.length; i++) {
                                                 if (populatedData[i]._id && populatedData[i]._id.name) {
                                                     populatedData[i].name = censoredPlayerName(populatedData[i]._id.name);
@@ -20843,7 +20965,13 @@ let dbPlayerInfo = {
                                         }
                                     )
                                 } else {
-                                    return Promise.reject({name: "DataError", message: "No record to show"});
+                                    returnData.allDeposit.boardRanking = [];
+
+                                    if (playerObj) {
+                                        returnData.allDeposit.playerRanking = {};
+                                    }
+
+                                    return returnData;
                                 }
                             }
                         )
@@ -20930,6 +21058,8 @@ let dbPlayerInfo = {
                                 sortedData.length = totalRecord;
                             }
 
+                            returnData.singleDeposit = {};
+
                             if (sortedData && sortedData.length) {
                                 return dbconfig.collection_players.populate(sortedData, {
                                     path: '_id',
@@ -20937,7 +21067,6 @@ let dbPlayerInfo = {
                                     select: "name"
                                 }).then(
                                     populatedData => {
-                                        returnData.singleDeposit = {};
 
                                         for (let i = 0; i < populatedData.length; i++) {
                                             populatedData[i].rank = i + 1;
@@ -20960,7 +21089,13 @@ let dbPlayerInfo = {
                                     }
                                 );
                             } else {
-                                return Promise.reject({name: "DataError", message: "No record to show"});
+                                returnData.singleDeposit.boardRanking = [];
+
+                                if (playerObj) {
+                                    returnData.singleDeposit.playerRanking = {};
+                                }
+
+                                return returnData;
                             }
                         }
                     )
@@ -21098,6 +21233,8 @@ let dbPlayerInfo = {
                                     sortedData.length = totalRecord;
                                 }
 
+                                returnData.allWithdraw = {};
+
                                 if (sortedData && sortedData.length) {
                                     return dbconfig.collection_players.populate(sortedData, {
                                         path: '_id',
@@ -21105,7 +21242,7 @@ let dbPlayerInfo = {
                                         select: "name"
                                     }).then(
                                         populatedData => {
-                                            returnData.allWithdraw = {};
+
                                             for (let i = 0; i < populatedData.length; i++) {
                                                 if (populatedData[i]._id && populatedData[i]._id.name) {
                                                     populatedData[i].name = populatedData[i]._id.name;
@@ -21128,7 +21265,13 @@ let dbPlayerInfo = {
                                         }
                                     )
                                 } else {
-                                    return Promise.reject({name: "DataError", message: "No record to show"});
+                                    returnData.allWithdraw.boardRanking = [];
+
+                                    if (playerObj) {
+                                        returnData.allWithdraw.playerRanking = {};
+                                    }
+
+                                    return returnData;
                                 }
                             }
                         )
@@ -21227,6 +21370,8 @@ let dbPlayerInfo = {
                                 sortedData.push(playerRanking);
                             }
 
+                            returnData.allValidbet = {};
+
                             if (sortedData && sortedData.length) {
                                 return dbconfig.collection_players.populate(sortedData, [{
                                     path: '_id',
@@ -21290,7 +21435,6 @@ let dbPlayerInfo = {
                                             }
                                         }
 
-                                        returnData.allValidbet = {};
                                         if (playerObj) {
                                             returnData.allValidbet.playerRanking = {};
                                             if (playerRanking) {
@@ -21305,7 +21449,13 @@ let dbPlayerInfo = {
                                     }
                                 );
                             } else {
-                                return Promise.reject({name: "DataError", message: "No record to show"});
+                                returnData.allValidbet.boardRanking = [];
+
+                                if (playerObj) {
+                                    returnData.allValidbet.playerRanking = {};
+                                }
+
+                                return returnData;
                             }
                         }
                     )
@@ -21407,6 +21557,8 @@ let dbPlayerInfo = {
                                 sortedData.push(playerRanking);
                             }
 
+                            returnData.allWin = {};
+
                             if (sortedData && sortedData.length) {
                                 return dbconfig.collection_players.populate(sortedData, [{
                                     path: '_id',
@@ -21480,7 +21632,7 @@ let dbPlayerInfo = {
                                                 delete populatedProvider[i].providerId;
                                             }
                                         }
-                                        returnData.allWin = {};
+
                                         if (playerObj) {
                                             returnData.allWin.playerRanking = {};
                                             if (playerRanking) {
@@ -21495,7 +21647,13 @@ let dbPlayerInfo = {
                                     }
                                 );
                             } else {
-                                return Promise.reject({name: "DataError", message: "No record to show"});
+                                returnData.allWin.boardRanking = [];
+
+                                if (playerObj) {
+                                    returnData.allWin.playerRanking = {};
+                                }
+
+                                return returnData;
                             }
                         }
                     )
@@ -21549,7 +21707,7 @@ let dbPlayerInfo = {
                                 validAmount: {$first: "$validAmount"},
                                 bonusAmount: {$first: "$bonusAmount"},
                                 createTime: {$first: "$createTime"},
-                                gameId: {$first: {$cond: [{$not: ["$cpGameType"]}, "$gameId", "$null"]}},
+                                gameId: {$first: "$gameId"},
                                 cpGameType: {$first: {$ifNull: ['$cpGameType', '$null']}},
                                 winRatio: {$first: "$winRatio"}
                             }
@@ -21602,6 +21760,8 @@ let dbPlayerInfo = {
                                 sortedData.push(playerRanking);
                             }
 
+                            returnData.singleWin = {};
+
                             if (sortedData && sortedData.length) {
                                 return dbconfig.collection_players.populate(sortedData, [{
                                     path: '_id',
@@ -21614,7 +21774,7 @@ let dbPlayerInfo = {
                                 }, {
                                     path: "gameId",
                                     model: dbconfig.collection_game,
-                                    select: "name"
+                                    select: "name changedName gameId"
                                 }
                                 ]).then(
                                     populatedProvider => {
@@ -21627,16 +21787,22 @@ let dbPlayerInfo = {
                                             if (!populatedProvider[i].gameName) {
                                                 populatedProvider[i].gameName = "";
                                             }
-                                            if (populatedProvider[i].cpGameType) {
-                                                populatedProvider[i].gameName = populatedProvider[i].cpGameType;
-                                            }
+                                            // if (populatedProvider[i].cpGameType) {
+                                            //     populatedProvider[i].gameName = populatedProvider[i].cpGameType;
+                                            // }
                                             delete populatedProvider[i].cpGameType;
                                             if (populatedProvider[i].gameId) {
-                                                if (populatedProvider[i].gameId.name) {
+                                                if (populatedProvider[i].gameId.changedName && !populatedProvider[i].gameName
+                                                    && platformObj && platformObj.platformId && populatedProvider[i].gameId.changedName[platformObj.platformId]) {
+                                                    populatedProvider[i].gameName = populatedProvider[i].gameId.changedName[platformObj.platformId];
+                                                } else if (populatedProvider[i].gameId.name && !populatedProvider[i].gameName) {
                                                     populatedProvider[i].gameName = populatedProvider[i].gameId.name;
                                                 }
+                                                if (populatedProvider[i].gameId.gameId) {
+                                                    populatedProvider[i].gameCode = populatedProvider[i].gameId.gameId;
+                                                }
+                                                delete populatedProvider[i].gameId;
                                             }
-                                            delete populatedProvider[i].gameId;
                                             if (!populatedProvider[i].providerName) {
                                                 populatedProvider[i].providerName = "";
                                             }
@@ -21646,7 +21812,6 @@ let dbPlayerInfo = {
                                             }
                                         }
 
-                                        returnData.singleWin = {};
                                         if (playerObj) {
                                             returnData.singleWin.playerRanking = {};
                                             if (playerRanking) {
@@ -21661,7 +21826,13 @@ let dbPlayerInfo = {
                                     }
                                 );
                             } else {
-                                return Promise.reject({name: "DataError", message: "No record to show"});
+                                returnData.singleWin.boardRanking = [];
+
+                                if (playerObj) {
+                                    returnData.singleWin.playerRanking = {};
+                                }
+
+                                return returnData;
                             }
                         }
                     )
@@ -21723,6 +21894,22 @@ let dbPlayerInfo = {
                     });
                 });
             });
+    },
+
+    changeBirthdayDate: function (playerObjId, date) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {DOB: 1}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"})
+                }
+                if (playerData.DOB) {
+                    return Promise.reject({name: "DataError", message: "Birthday only can be set once"})
+                } else {
+                    return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId}, {DOB: new Date(date)}, {new: true}).lean()
+                }
+            }
+        )
+
     },
 
     getClientData: function (playerId) {

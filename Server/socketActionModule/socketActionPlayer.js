@@ -914,6 +914,10 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, smsAPI.channel_getChannelList, [data], actionName, true);
         },
+        getUsableChannelList: function getUsableChannelList(data) {
+            var actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, smsAPI.getUsableChannel_getUsableChannelList, [data], actionName, true);
+        },
         vertificationSMSQuery: function vertificationSMSQuery(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
@@ -1065,7 +1069,6 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerCreditsDaily: function getPlayerCreditsDaily(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
-            console.log('SOCKET===', data);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerCreditsDaily, [data.playerId, data.from, data.to, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
@@ -1246,8 +1249,8 @@ function socketActionPlayer(socketIO, socket) {
                 && data.updateData.description && data.updateData.failFeedBackResult && data.updateData.failFeedBackTopic
                 && data.updateData.failFeedBackContent && data.updateData.hasOwnProperty("callerCycleCount") && data.updateData.hasOwnProperty("dailyCallerMaximumTask")
                 && data.updateData.hasOwnProperty("dailyDistributeTaskHour") && data.updateData.hasOwnProperty("dailyDistributeTaskMinute")
-                && data.updateData.hasOwnProperty("dailyDistributeTaskSecond") && data.updateData.distributeTaskStartTime && data.updateData.hasOwnProperty("reclaimDayCount"));
-            socketUtil.emitter(self.socket, dbPlayerInfo.importTSNewList, [data.phoneListDetail, data.updateData, data.isUpdateExisting, getAdminId(), getAdminName(), data.targetTsPhoneListId, data.isImportFeedback, data.isPhoneTrade], actionName, isValidData);
+                && data.updateData.hasOwnProperty("dailyDistributeTaskSecond") && data.updateData.distributeTaskStartTime && data.updateData.hasOwnProperty("reclaimDayCount") && !(data.isPhoneTrade && data.isFeedbackPhoneTrade));
+            socketUtil.emitter(self.socket, dbPlayerInfo.importTSNewList, [data.phoneListDetail, data.updateData, data.isUpdateExisting, getAdminId(), getAdminName(), data.targetTsPhoneListId, data.isImportFeedback, data.isPhoneTrade, data.isFeedbackPhoneTrade], actionName, isValidData);
         },
 
         getTsNewListName: function getTsNewListName (data) {

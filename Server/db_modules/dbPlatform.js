@@ -397,11 +397,8 @@ var dbPlatform = {
             delete updateData.gameProviderNickNames;
         }
 
-        console.log("updatePlatform platform update:", updateData);
-
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
-                console.log("updatePlatform", data, query, updateData);
                 if (env.mode != "local" && env.mode != "qa") {
                     var platformData = {
                         platformId: data.platformId,
@@ -615,9 +612,53 @@ var dbPlatform = {
      */
 
     syncPlatform: function () {
+        dbPlatform.syncHTTPPMSPlatform();
         dbPlatform.syncPMSPlatform();
         dbPlatform.syncCPMSPlatform();
         dbPlatform.syncSMSPlatform();
+    },
+
+    syncHTTPPMSPlatform: function () {
+        if (env.mode != "local" && env.mode != "qa") {
+            if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                Object.keys(extConfig).forEach(key => {
+                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS2' && extConfig[key].syncPlatformAPIAddr) {
+                        return dbconfig.collection_platform.find().then(
+                            platformArr => {
+                                var sendObj = [];
+                                if (platformArr && platformArr.length > 0) {
+                                    for (var i in platformArr) {
+                                        var obj = {
+                                            platformId: platformArr[i].platformId,
+                                            name: platformArr[i].name,
+                                        }
+                                        sendObj.push(obj)
+                                    }
+
+                                    let data = {
+                                        platforms: sendObj
+                                    };
+
+                                    let options = {
+                                        method: 'POST',
+                                        uri: extConfig[key].syncPlatformAPIAddr,
+                                        body: data,
+                                        json: true
+                                    };
+                                    return rp(options).then(function (syncPlatformData) {
+                                        console.log('syncHTTPPMSPlatform success', syncPlatformData);
+                                        return syncPlatformData;
+                                    }, error => {
+                                        console.log('syncHTTPPMSPlatform failed', error);
+                                        throw error;
+                                    });
+                                }
+                            }
+                        );
+                    }
+                });
+            }
+        }
     },
 
     syncPMSPlatform: function () {
@@ -1904,6 +1945,24 @@ var dbPlatform = {
             }
         );
 
+    },
+
+    getUsableChannelList: (platformId) => {
+        console.log('getUsableChannel platformId===', platformId);
+        let sendObj = {
+            platformId: platformId
+        };
+
+        return smsAPI.getUsableChannel_getUsableChannelList(sendObj).then(
+            retData => {
+                console.log('retData===', retData);
+                return retData;
+            },
+            retErr => {
+                console.log('retErr===', retErr);
+                return Promise.reject({message: retErr, error: retErr});
+            }
+        ).catch(errorUtils.reportError);
     },
 
     searchSMSLog: function (data, index, limit) {
@@ -4270,9 +4329,12 @@ var dbPlatform = {
                         } else {
                             let newLog = {
                                 platform: platform._id,
-                                player: playerData && playerData._id ? playerData._id : "",
                                 ipAddress: ipAddress
                             };
+
+                            if (playerData && playerData._id) {
+                                newLog.player = playerData._id;
+                            }
 
                             // add new log
                             dbconfig.collection_callBackToUserLog(newLog).save().catch(errorUtils.reportError);
@@ -5269,11 +5331,13 @@ var dbPlatform = {
 
         jwt.verify(token, jwtSecret, function (err, decoded) {
             if (err || !decoded) {
+                console.log('saveFrontEndData jwt err', err);
                 // Jwt token error
                 deferred.reject({
                     status: constServerCode.DB_ERROR,
                     name: "DataError",
-                    errorMessage: "Failed to verify token"
+                    errorMessage: "Failed to verify token",
+                    errorDetail: err
                 });
             }else{
                 if(decoded.platforms == "admin" || (decoded.platforms && decoded.platforms.length > 0)) {
@@ -6029,6 +6093,20 @@ var dbPlatform = {
                 }
             }
         );
+    },
+
+    getPaymentSystemName: function (systemTypeId) {
+        let paymentSystemName = 'PMS';
+
+        if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+            Object.keys(extConfig).forEach(key => {
+                if (key && systemTypeId && (Number(key) == Number(systemTypeId)) && extConfig[systemTypeId] && extConfig[systemTypeId].name){
+                    paymentSystemName = extConfig[systemTypeId].name;
+                }
+            });
+
+            return paymentSystemName;
+        }
     }
 };
 

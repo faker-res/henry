@@ -2,6 +2,9 @@ var dbconfig = require('./../modules/dbproperties');
 var Q = require("q");
 var pmsAPI = require('../externalAPI/pmsAPI');
 var serverInstance = require("../modules/serverInstance");
+const extConfig = require('../config/externalPayment/paymentSystems');
+const rp = require('request-promise');
+const constAccountType = require('../const/constAccountType');
 
 var dbPlatformBankCardGroup = {
 
@@ -45,6 +48,8 @@ var dbPlatformBankCardGroup = {
      * @param {String}  platformId - ObjId of the platform
      */
     getPlatformBankCardGroup: function (platformId) {
+        let topUpSystemConfig;
+
         return dbconfig.collection_platform.findOne({_id:platformId}).lean().then(
             platformData => {
                 if (!platformData) {
@@ -53,19 +58,69 @@ var dbPlatformBankCardGroup = {
 
                 if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                     // do not sync when using FPMS payment method
-                    return  dbconfig.collection_platformBankCardGroup.find({platform: platformId}).lean();
+                    let query = {
+                        platform: platformId,
+                        $or: [{isPMS2: false}, {isPMS2: {$exists: false}}]
+                    };
+                    return  dbconfig.collection_platformBankCardGroup.find(query).lean();
                 }
-                return dbPlatformBankCardGroup.syncBankCardGroupData(platformData).then(
-                    data => dbconfig.collection_platformBankCardGroup.aggregate(
-                        {
-                            $match: {
-                                platform: platformId
-                            }
+
+                topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+                return addDefaultBankCardGroup(topUpSystemConfig, platformId).then(
+                    () => {
+                        return dbPlatformBankCardGroup.syncBankCardGroupData(platformData)
+                    }
+                ).then(
+                    data => {
+                        let matchQuery = {
+                            platform: platformId
+                        };
+
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            matchQuery.isPMS2 = {$exists: true};
+                        } else {
+                            matchQuery.isPMS2 = {$exists: false};
                         }
-                    )
+
+                        return dbconfig.collection_platformBankCardGroup.aggregate(
+                            {
+                                $match: matchQuery
+                            }
+                        );
+                    }
                 )
             }
         )
+
+        function addDefaultBankCardGroup(topUpSystemConfig, platformObjId) {
+            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                return dbconfig.collection_platformBankCardGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
+                    pms2BankCardGroupExists => {
+                        if (!pms2BankCardGroupExists) {
+                            let defaultStr = "default";
+                            let groupData = {
+                                groupId: defaultStr,
+                                name: defaultStr,
+                                code: defaultStr,
+                                displayName: defaultStr,
+                                platform: platformObjId,
+                                isPMS2: true
+                            };
+
+                            let bankCardGroup = new dbconfig.collection_platformBankCardGroup(groupData);
+
+                            return bankCardGroup.save();
+                        } else {
+                            return Promise.resolve(true);
+                        }
+                    }
+                );
+            } else {
+                return Promise.resolve(true);
+            }
+        }
+
     },
 
     /**
@@ -75,8 +130,8 @@ var dbPlatformBankCardGroup = {
      * are changing card groups
      * @param {String}  platform - ObjId of the platform
      */
-    getPlatformBankCardGroupLite: (platform) => {
-        return dbconfig.collection_platformBankCardGroup.find({platform}).lean();
+    getPlatformBankCardGroupLite: (query) => {
+        return dbconfig.collection_platformBankCardGroup.find(query).lean();
     },
 
     /**
@@ -153,11 +208,17 @@ var dbPlatformBankCardGroup = {
             );
     },
     getAllBankCard: function(platformId){
+        let topUpSystemConfig;
+        let groupName = 'default';
+        let bankCardData;
+
         return dbconfig.collection_platform.findOne({platformId:platformId}).lean().then(
             platformData => {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
+
+                topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
                 if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
                     return dbconfig.collection_platformBankCardList.find(
@@ -170,6 +231,18 @@ var dbPlatformBankCardGroup = {
                             return {data: bankCardListData} // to match existing code format
                         }
                     )
+                } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    let options = {
+                        method: 'POST',
+                        uri: topUpSystemConfig.bankCardListAPIAddr,
+                        body: {
+                            platformId: platformId,
+                            accountType: constAccountType.BANK_CARD
+                        },
+                        json: true
+                    };
+
+                    return rp(options);
                 } else {
                     return pmsAPI.bankcard_getBankcardList(
                         {
@@ -177,6 +250,33 @@ var dbPlatformBankCardGroup = {
                             queryId: serverInstance.getQueryId()
                         }
                     );
+                }
+            }
+        );
+    },
+
+    getBankTypeList: function(platformObjId) {
+        let topUpSystemConfig;
+
+        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    let options = {
+                        method: 'POST',
+                        uri: topUpSystemConfig.bankTypeListAPIAddr,
+                        body: {},
+                        json: true
+                    };
+
+                    return rp(options);
+                } else {
+                    return pmsAPI.bankcard_getBankTypeList({});
                 }
             }
         );
@@ -325,17 +425,36 @@ var dbPlatformBankCardGroup = {
         let platformObjId;
         let cardList = [];
         let newCards = [];
+        let topUpSystemConfig;
         return Promise.resolve(platformDataObj).then(
             platform => {
                 if (platform) {
                     platformId = platform.platformId;
                     platformObjId = platform._id;
-                    return pmsAPI.bankcard_getBankcardList(
-                        {
-                            platformId: platform.platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    )
+
+                    topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        let options = {
+                            method: 'POST',
+                            uri: topUpSystemConfig.bankCardListAPIAddr,
+                            body: {
+                                platformId: platformId,
+                                accountType: constAccountType.BANK_CARD
+                            },
+                            json: true
+                        };
+
+                        return rp(options);
+                    }
+                    else {
+                        return pmsAPI.bankcard_getBankcardList(
+                            {
+                                platformId: platform.platformId,
+                                queryId: serverInstance.getQueryId()
+                            }
+                        )
+                    }
                 }
             }
         ).then(
@@ -344,7 +463,19 @@ var dbPlatformBankCardGroup = {
                     let cards = data.data;
                     let updateCardProm = [];
                     cardList = cards;
-                    return dbconfig.collection_platformBankCardList.find({platformId: platformId, $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]}).lean().then(oldCards => {
+
+                    let query = {
+                        platformId: platformId,
+                        $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
+                    };
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        query.isPMS2 = {$exists: true};
+                    } else {
+                        query.isPMS2 = {$exists: false};
+                    }
+
+                    return dbconfig.collection_platformBankCardList.find(query).lean().then(oldCards => {
                         cards.forEach(card => {
                             if(oldCards && oldCards.length > 0) {
                                 let match = false;
@@ -357,30 +488,42 @@ var dbPlatformBankCardGroup = {
                                     newCards.push(card.accountNumber);
                                 }
                             }
+                            else if(!oldCards.length && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2'){
+                                newCards.push(card.accountNumber);
+                            }
+
                             if(card && card.accountNumber) {
                                 let quota = Number(card.quota);
+
+                                let bankCardQuery = {
+                                    accountNumber: card.accountNumber,
+                                    platformId: platformId,
+                                    $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
+                                };
+
+                                let updateData =  {
+                                    accountNumber: card.accountNumber,
+                                    bankTypeId: card.bankTypeId || '',
+                                    name: card.name || '',
+                                    platformId: card.platformId || '',
+                                    quota: isNaN(quota) ? 0 : quota,
+                                    maxDepositAmount: card.maxDepositAmount ? card.maxDepositAmount : 0,
+                                    status: card.status || '',
+                                    provinceName: card.provinceName || '',
+                                    cityName: card.cityName || '',
+                                    openingPoint: card.openingPoint || '',
+                                    level: card.level || ''
+                                };
+
+                                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                                    bankCardQuery.isPMS2 = {$exists: true};
+                                    updateData.isPMS2 = true;
+                                } else {
+                                    bankCardQuery.isPMS2 = {$exists: false};
+                                }
+
                                 updateCardProm.push(
-                                    dbconfig.collection_platformBankCardList.findOneAndUpdate(
-                                        {
-                                            accountNumber: card.accountNumber,
-                                            platformId: platformId,
-                                            $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
-                                        },
-                                        {
-                                            accountNumber: card.accountNumber,
-                                            bankTypeId: card.bankTypeId || '',
-                                            name: card.name || '',
-                                            platformId: card.platformId || '',
-                                            quota: isNaN(quota) ? 0 : quota,
-                                            maxDepositAmount: card.maxDepositAmount ? card.maxDepositAmount : 0,
-                                            status: card.status || '',
-                                            provinceName: card.provinceName || '',
-                                            cityName: card.cityName || '',
-                                            openingPoint: card.openingPoint || '',
-                                            level: card.level || ''
-                                        },
-                                        {upsert: true}
-                                    )
+                                    dbconfig.collection_platformBankCardList.findOneAndUpdate(bankCardQuery, updateData, {upsert: true})
                                 );
                             }
                         });
@@ -391,12 +534,36 @@ var dbPlatformBankCardGroup = {
         ).then(
             () => {
                 let cardNumbers = cardList.map(card => card.accountNumber);
-                return dbconfig.collection_platformBankCardList.find({platformId: platformId, accountNumber: {$nin: cardNumbers}, $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]}).lean().then(
+                let bankCardQuery = {
+                    platformId: platformId,
+                    accountNumber: {$nin: cardNumbers},
+                    $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
+                };
+
+                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    bankCardQuery.isPMS2 = {$exists: true};
+                } else {
+                    bankCardQuery.isPMS2 = {$exists: false};
+                }
+
+                return dbconfig.collection_platformBankCardList.find(bankCardQuery).lean().then(
                     deletedCards => {
                         if(deletedCards && deletedCards.length > 0) {
                             let deletedCardNumbers = [];
                             deletedCards.forEach(card => {deletedCardNumbers.push(card.accountNumber);});
-                            return dbconfig.collection_platformBankCardList.remove({platformId: platformId, accountNumber:{'$in': deletedCardNumbers}})
+
+                            let deleteBankCardQuery = {
+                                platformId: platformId,
+                                accountNumber:{'$in': deletedCardNumbers}
+                            };
+
+                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                                deleteBankCardQuery.isPMS2 = {$exists: true};
+                            } else {
+                                deleteBankCardQuery.isPMS2 = {$exists: false};
+                            }
+
+                            return dbconfig.collection_platformBankCardList.remove(deleteBankCardQuery)
                         }
                     }
                 )
@@ -404,8 +571,16 @@ var dbPlatformBankCardGroup = {
         ).then(
             () => {
                 if(newCards && newCards.length > 0) {
+                    let groupQuery;
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        groupQuery = {platform: platformObjId, isPMS2: {$exists: true}};
+                    } else {
+                        groupQuery = {platform: platformObjId, bDefault: true, isPMS2: {$exists: false}}
+                    }
+
                     return dbconfig.collection_platformBankCardGroup.update(
-                        {platform: platformObjId, bDefault: true},
+                        groupQuery,
                         {$addToSet: {banks: {$each: newCards}}}
                     );
                 }
@@ -414,8 +589,15 @@ var dbPlatformBankCardGroup = {
             () => {
                 if (cardList && cardList.length > 0) {
                     let bankCards = cardList.map(card => card.accountNumber);
+                    let bankCardGroupQuery;
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        bankCardGroupQuery = {platform: platformObjId, isPMS2: {$exists: true}};
+                    } else {
+                        bankCardGroupQuery = {platform: platformObjId, isPMS2: {$exists: false}};
+                    }
                     return dbconfig.collection_platformBankCardGroup.update(
-                        {platform: platformObjId},
+                        bankCardGroupQuery,
                         {$pull: {banks: {$nin: bankCards}}},
                         {multi: true}
                     );

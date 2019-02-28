@@ -202,7 +202,7 @@ var GameServiceImplement = function () {
             os: ua.os.name || ''
         }];
 
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice, userAgent], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice, userAgent, data.tableId], isValidData);
     };
 
     this.getTestLoginURL.expectsData = 'gameId: String, clientDomainName: String';
@@ -292,6 +292,18 @@ var GameServiceImplement = function () {
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         WebSocketUtil.performAction(conn, wsFunc, data, dbGame.modifyGamePassword, [conn.playerId, data.providerId, data.newPassword, null, inputDevice], isValidData);
     };
+
+    this.getLiveGameInfo.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.getLiveGameInfo, [data.count, data.switchNotify, conn], isValidData, false, false, true);
+    };
+
+    this.notifyLiveGameStatus.addListener(
+        function (data) {
+            WebSocketUtil.notifyEBETLuZhuClient(self, "notifyLiveGameStatus", data);
+        }
+    );
+
 
 };
 

@@ -53,7 +53,8 @@ var socketUtility = {
                     adminName: socket.decoded_token.adminName,
                     action: event,
                     data: args,
-                    level: constSystemLogLevel.ACTION
+                    level: constSystemLogLevel.ACTION,
+                    localIp: socket.decoded_token.localIp
                 };
                 console.log("action request: ", logData);
                 Q.resolve().then(

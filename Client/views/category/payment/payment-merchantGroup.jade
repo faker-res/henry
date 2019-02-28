@@ -11,7 +11,7 @@ style.
             .panel-heading.panel-heading-sm
                 label {{"MERCHANT_GROUP" | translate}}
             .panel-body
-                div
+                div(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
                     input#FPMSMerchantPaymentGroup(type='radio' value='FPMS' ng-model="vm.merchantGroupUsed" ng-change="vm.loadMerchantGroupData()")
                     label.radio-space(for='FPMSMerchantPaymentGroup') {{"FPMS Group" | translate}}
                     input#PMSMerchantPaymentGroup(type='radio' value='PMS' ng-model="vm.merchantGroupUsed" ng-change="vm.loadMerchantGroupData()")
@@ -23,7 +23,7 @@ style.
                     li.list-group-item(ng-repeat='(i,merchantGroup) in vm.platformMerchantGroupList', ng-click='vm.merchantGroupClicked(i,merchantGroup)', ng-class='{active: vm.SelectedMerchantGroupNode === merchantGroup}')
                         text {{merchantGroup.name}}
                         i.fa.fa-star.pull-right.margin-right-5(ng-show='merchantGroup.bDefault')
-                div.paymentCard
+                div.paymentCard(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
                         label {{"PAYMENT_CARD_MODE" | translate}}
                         br
                         input#merchantFPMSGroupSetting(type='radio' value='false' ng-model="vm.merchantGroupPMS" ng-disabled="!checkViewPermission('Payment', 'MerchantGroup', 'UpdateCardGroupType')")
@@ -33,7 +33,7 @@ style.
                         br
                         button.btn.btn-primary(ng-click="vm.updateIsPMSGroup(vm.merchantGroupPMS, 'merchantGroupIsPMS')" ng-if="checkViewPermission('Payment', 'MerchantGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
                 br
-                .btn-group.text-center(role="group")
+                .btn-group.text-center(role="group" ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
                     button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Create') && vm.merchantGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.newMerchantGroup={};', data-target='#modalAddMerchantGroup')
                         img.img-create
                         text {{"ADD" | translate}}
@@ -72,7 +72,7 @@ style.
                         .search-filters-item
                             .control-label {{"Backstage Merchant ID" | translate}}
                             input.form-control(type='text', ng-model='vm.merchantFilterOptions.backstageMerchantId')
-                        .threeBoxes(ng-if="vm.merchantGroupUsed != 'PMS'")
+                        .threeBoxes(ng-if="vm.merchantGroupUsed != 'PMS' && vm.paymentSystemName !== 'PMS2'")
                             .control-label {{"IS_IN_GROUP" | translate}}
                             select.form-control(ng-model="vm.merchantFilterOptions.isIncluded")
                                 option(value='all') {{'any' | translate}}
@@ -92,7 +92,7 @@ style.
                 table#merchantGroupTable.table(ng-if='vm.SelectedMerchantGroupNode')
                     thead
                         tr
-                            th(ng-if="vm.merchantGroupUsed != 'PMS'") {{'SELECT' | translate}}
+                            th(ng-show="vm.merchantGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'") {{'SELECT' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterMerchantStatus", style="cursor: pointer")
                                 u {{'STATUS' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterMerchantDevice", style="cursor: pointer")
@@ -109,7 +109,7 @@ style.
                             th {{'Service Charge Ratio' | translate}}%
                     tbody
                         tr(ng-repeat='(i,v) in vm.allMerchantList' ng-class="{'bg-grey' : v.isIncluded == false}" ng-show="v.show$")
-                            td(ng-if="vm.merchantGroupUsed != 'PMS'")
+                            td(ng-show="vm.merchantGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'")
                                 input(type="checkbox" ng-model="v.selected")
                             td(ng-class="{'text-disabled': v.status === 'DISABLED'}").text-success {{v.status === 'DISABLED' ? 'DISABLE' : v.status | translate}}
                             td {{merchantTargetDeviceJson[v.targetDevices] | translate}}
@@ -128,7 +128,7 @@ style.
                                 a(href='', ng-if='!v.editRate && v.customizeRate && checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio")', style='color:red', ng-click='vm.editMerchantRateFlag(i)') {{v.customizeRate ? (v.customizeRate * 100).toFixed(2) : 0}}%
                                 input.form-control(name='merchantCustomizeRateTextBox', id='merchantCustomizeRateTextBox', type='text' ng-if='checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio") && v.editRate', ng-model='v.customizeRate', ng-change='vm.validateCustomizeRateIsNumber(v.customizeRate, i)',  ng-keypress='enterSubmitMerchantCustomizeRate($event, v, v.customizeRate)', ng-blur='vm.backToOriRate(v)')
 
-                .text-right.widthto100
+                .text-right.widthto100(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
                     button.btn.btn-info.btn-space(ng-click="vm.selectMerchant(true)" ng-if="vm.merchantGroupUsed != 'PMS'") {{"Select All" | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.selectMerchant(false)" ng-if="vm.merchantGroupUsed != 'PMS'") {{"Clear All" | translate}}
                     button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", ng-click='vm.removeMerchantFromGroup()')

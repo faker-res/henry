@@ -3252,7 +3252,7 @@ let dbPlayerReward = {
         return Promise.all(generatePromoCodeProm);
     },
 
-    generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
+    generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName, channel) => {
         console.log('platformObjId===11', platformObjId);
         console.log('newPromoCodeEntry===11', newPromoCodeEntry);
         console.log('adminObjId===11', adminObjId);
@@ -3283,6 +3283,7 @@ let dbPlayerReward = {
                     newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
                     newPromoCodeEntry.adminId = adminObjId;
                     newPromoCodeEntry.adminName = adminName;
+                    newPromoCodeEntry.channel = channel;
 
                     return dbConfig.collection_promoCodeActiveTime.findOne({
                         platform: platformObjId,
@@ -3305,13 +3306,12 @@ let dbPlayerReward = {
                 console.log('newPromoCode===55', newPromoCode);
                 if (newPromoCode) {
                     if (newPromoCodeEntry.allowedSendSms && player.smsSetting && player.smsSetting.PromoCodeSend) {
-                        SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                        SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName, channel);
                     }
                     messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
                     dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                     return newPromoCode.code;
                 }
-
             }
         ).catch(
             err => {
@@ -6113,15 +6113,13 @@ let dbPlayerReward = {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
                         "status": constProposalStatus.APPROVED,
-                        "data.playerObjId": playerData._id,
-                        /*
+                        // "data.playerObjId": playerData._id,
                         $or: [
                             {'data.playerObjId': playerData._id},
                             {'data.lastLoginIp': playerData.lastLoginIp},
                             {'data.phoneNumber': playerData.phoneNumber},
                             {'data.deviceId': playerData.deviceId},
                         ]
-                        */
                     }
                 },
                 {
@@ -6174,7 +6172,10 @@ let dbPlayerReward = {
                         // execute if IP is not empty
                         for (let i = 0; i < countReward.length; i++) {
                             // check if same IP address  has already received this reward
+                            console.log('playerData.lastLoginIp===', playerData.lastLoginIp);
+                            console.log('countReward[i].data.lastLoginIp===', countReward[i].data.lastLoginIp);
                             if (playerData.lastLoginIp === countReward[i].data.lastLoginIp) {
+                                console.log('SAME IP===');
                                 sameIPAddress++;
                             }
                         }
@@ -6865,6 +6866,8 @@ let dbPlayerReward = {
                                     message: localization.localization.translate("This player has applied for max reward times in event period")
                                 });
                             }
+
+                            console.log('matchIPAddress===', matchIPAddress);
 
                             if (!matchIPAddress) {
                                 return Q.reject({

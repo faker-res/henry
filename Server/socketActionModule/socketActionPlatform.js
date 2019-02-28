@@ -916,6 +916,11 @@ function socketActionPlatform(socketIO, socket) {
             let isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlatform.updateMinPointNotiRecipientSetting, [data.query, data.updateData, data.deleteData], actionName, isValidData);
         },
+
+        getPaymentSystemName: function getPaymentSystemName(data) {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbPlatform.getPaymentSystemName, [data.systemTypeId], actionName, true);
+        }
     };
     socketActionPlatform.actions = this.actions;
 }
