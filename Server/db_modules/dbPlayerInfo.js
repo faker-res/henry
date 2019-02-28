@@ -6784,11 +6784,11 @@ let dbPlayerInfo = {
                     // Platform supporting provider group
                     if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
                         // if use eBet Wallet
-                        console.log("MT --checking --transfer to ebet wallets");
+                        console.log("MT --checking --transfer to ebet wallets", providerData);
                         return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     } else {
-                        console.log("MT --checking --transfer to provider");
+                        console.log("MT --checking --transfer to provider", providerData, providerId);
                         return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     }

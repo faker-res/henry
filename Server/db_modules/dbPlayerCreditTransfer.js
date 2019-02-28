@@ -1006,7 +1006,7 @@ let dbPlayerCreditTransfer = {
 		                            rewardCredit: parseFloat(rewardAmount).toFixed(2)
 		                        }
 		                    };
-
+                            console.log('MT --checking --providerGroup ', responseData);
 		                    return responseData;
                         });
 
