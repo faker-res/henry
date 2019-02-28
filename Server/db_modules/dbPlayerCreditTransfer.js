@@ -1733,7 +1733,7 @@ let dbPlayerCreditTransfer = {
         );
     },
 
-    playerCreditTransferFromEbetWallets: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
+    playerCreditTransferFromEbetWallets: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync, isMultiProvider) {
         let checkRTGProm = [];
         let transferOut = Promise.resolve();
         let transferOutSuccessData = [];
@@ -1862,6 +1862,10 @@ let dbPlayerCreditTransfer = {
                 } else {
                     return Promise.reject({message: "No wallet is set for EBET provider."});
                 }
+            }
+        }).catch(err => {
+            if (!isMultiProvider) {
+                return Promise.reject(err);
             }
         });
     },
