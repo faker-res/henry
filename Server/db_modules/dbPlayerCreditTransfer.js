@@ -1128,12 +1128,14 @@ let dbPlayerCreditTransfer = {
                     throw new Error("Error when querying CPMS");
                 }
                 else{
-                    if (!isMultiProvider) {
-                        return Promise.reject(err);
-                    }
+                    return Promise.reject(err);
                 }
             }
-        );
+        ).catch(err => {
+            if (!isMultiProvider) {
+                return Promise.reject(err);
+            }
+        });
     },
 
     /**
