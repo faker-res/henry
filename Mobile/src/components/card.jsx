@@ -18,13 +18,13 @@ class Card extends Component {
                                 </div>
 
                                 <div className="col-7 col-sm-12 text-right">
-                                    <h2 className="bigWord">{this.props.value}</h2>
+                                    <h2 className="infoNum">{this.formatValue()}</h2>
                                 </div>
                             </div>
 
                             <div className="row">
                                 <div className="col-12 text-right">
-                                    <p className="smallWord">{this.props.chinese} </p>
+                                    <p className="infoText">{this.props.chinese} </p>
                                 </div>
                             </div>
 
@@ -34,7 +34,7 @@ class Card extends Component {
                             <div className={this.footerColor()}>
                                 <div className="row">
                                     <div className="col-7 col-sm-12 col-md-7">
-                                        <p className="smallWord">详细信息</p>
+                                        <p className="infoText">详细信息</p>
                                     </div>
                                     <div className="col-5 col-sm-12 col-md-5 text-right">
                                         <FontAwesomeIcon icon="arrow-alt-circle-right" size="2x" />

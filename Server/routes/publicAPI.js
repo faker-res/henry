@@ -306,7 +306,7 @@ router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
         data=>{
             res.json({success:true, data:data});
 
-    })
+        })
 });
 //
 // router.post('/countNewPlayerAllPlatform', function (req, res, next) {
