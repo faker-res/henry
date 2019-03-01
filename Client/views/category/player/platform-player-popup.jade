@@ -111,7 +111,8 @@
                                     text {{vm.selectedSinglePlayer.email || vm.qqAddress || 'Unknown' | translate}}
 
                     div
-                        h5 {{'WITHDRAW_INFO' | translate}}
+                        h5(ng-if="!checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation') && vm.selectedSinglePlayer.isRealPlayer") {{'WITHDRAW_INFO' | translate}}
+                        h5(ng-if="checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation') && vm.selectedSinglePlayer.isRealPlayer") {{'WITHDRAW_INFO_1' | translate}}
                         hr
                         div.col-xs-12
                             .col-sm-offset-1.col-sm-3
@@ -157,6 +158,97 @@
                                     label {{"Bank Address" | translate}}
                                 .col-sm-7
                                     text {{vm.selectedSinglePlayer.bankAddress || 'Unknown' | translate}}
+                            .col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation') && vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", ng-click="vm.openEditPlayerDialog('withdrawInfo2');") {{"BIND_MULTIPLE_PAYMENT_INFORMATION" | translate}}
+
+                    div(ng-if="checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation') && vm.selectedSinglePlayer.isRealPlayer")
+                        h5 {{'WITHDRAW_INFO_2' | translate}}
+                        hr
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.allBankTypeList[vm.selectedSinglePlayer.bankName2] || vm.selectedSinglePlayer.bankName2 || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.bankAccountName2 || 'Unknown' | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.encodedBankAccount2 || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_PROVINCE" | translate}}
+                                .col-sm-7
+                                    text {{vm.showProvinceStr2 ? vm.showProvinceStr2 : (vm.selectedSinglePlayer.bankAccountProvince2 || 'Unknown') | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_CITY" | translate}}
+                                .col-sm-7
+                                    text {{vm.showCityStr2 ? vm.showCityStr2 : (vm.selectedSinglePlayer.bankAccountCity2 || 'Unknown') | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_DISTRICT" | translate}}
+                                .col-sm-7
+                                    text {{vm.showDistrictStr2 ? vm.showDistrictStr2 : 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"Bank Address" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.bankAddress2 || 'Unknown' | translate}}
+
+                    div(ng-if="checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation') && vm.selectedSinglePlayer.isRealPlayer")
+                        h5 {{'WITHDRAW_INFO_3' | translate}}
+                        hr
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.allBankTypeList[vm.selectedSinglePlayer.bankName3] || vm.selectedSinglePlayer.bankName3 || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_NAME" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.bankAccountName3 || 'Unknown' | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.encodedBankAccount3 || 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_PROVINCE" | translate}}
+                                .col-sm-7
+                                    text {{vm.showProvinceStr3 ? vm.showProvinceStr3 : (vm.selectedSinglePlayer.bankAccountProvince3 || 'Unknown') | translate}}
+
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_CITY" | translate}}
+                                .col-sm-7
+                                    text {{vm.showCityStr3 ? vm.showCityStr3 : (vm.selectedSinglePlayer.bankAccountCity3 || 'Unknown') | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"BANK_ACCOUNT_DISTRICT" | translate}}
+                                .col-sm-7
+                                    text {{vm.showDistrictStr3 ? vm.showDistrictStr3 : 'Unknown' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"Bank Address" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.bankAddress3 || 'Unknown' | translate}}
+
                     div
                         h5 {{"Topup Group" | translate}}
                         hr

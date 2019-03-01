@@ -196,6 +196,12 @@ include modalGameCreditLog
                                     li(ng-show="editWithdrawPermission",ng-class="selectedTab=='withdrawInfo'?'active':''")
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPlayerPayment();")
                                             text.span {{"WITHDRAW_INFO" | translate}}
+                                    li(ng-show="editMultipleWithdrawPermission",ng-class="selectedTab=='withdrawInfo2'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo2';prepareEditPlayerPayment();")
+                                            text.span {{"WITHDRAW_INFO_2" | translate}}
+                                    li(ng-show="editMultipleWithdrawPermission",ng-class="selectedTab=='withdrawInfo3'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo3';prepareEditPlayerPayment();")
+                                            text.span {{"WITHDRAW_INFO_3" | translate}}
                                     li(ng-show="editPlayerPermission",ng-class="selectedTab=='topUpInfo'?'active':''")
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='topUpInfo';initTopUpGroupChangeLog()")
                                             text.span {{"Topup Group" | translate}}
@@ -214,6 +220,10 @@ include modalGameCreditLog
                                         include player-edit-contact
                                     #withdrawGroup.tab-pane.fade(ng-class="selectedTab =='withdrawInfo'?'in active':''")
                                         include player-edit-withdraw
+                                    #withdrawGroup2.tab-pane.fade(ng-class="selectedTab =='withdrawInfo2'?'in active':''")
+                                        include player-edit-withdraw2
+                                    #withdrawGroup3.tab-pane.fade(ng-class="selectedTab =='withdrawInfo3'?'in active':''")
+                                        include player-edit-withdraw3
                                     #topUpGroup.tab-pane.fade(ng-class="selectedTab =='topUpInfo'?'in active':''")
                                         include player-edit-payment-form
                                         button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}

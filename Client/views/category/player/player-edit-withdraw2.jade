@@ -1,0 +1,65 @@
+form(name='form_playerPaymentInfo2')
+    div.col-sm-12
+        label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
+        input.form-control(ng-model='playerPayment2.bankAccountName2', ng-disabled='!isEditingPlayerPayment')
+    div.col-sm-12.margin-top-10
+        label.control-label *{{'BANK_NAME' | translate}}
+        select.form-control(ng-model='playerPayment2.bankName', ng-show='!isEditingPlayerPayment', disabled)
+            option(ng-repeat="(i,v) in allBankTypeList", value='{{i}}') {{v}}
+    div.col-md-6(ng-show='isEditingPlayerPayment')
+        select.form-control(ng-model='playerPayment2.bankName', ng-options='i as v for (i,v) in filteredBankTypeList', required)
+    div.col-md-6(ng-show='isEditingPlayerPayment')
+        input.form-control(type='text', placeholder="{{'SEARCH' | translate}}", ng-model='filterBankName', ng-change='filterBankname("playerPayment2")')
+    div.control-label
+        div.col-sm-12.margin-top-10
+            label {{'BANK_ACCOUNT' | translate}}
+            text.margin-left-5.small ({{'Min length 16, all digits' | translate}})
+        div.col-sm-11
+            input.form-control.inlineBlk(ng-model='playerPayment2.encodedBankAccount2', ng-if='!isEditingPlayerPayment', disabled)
+            input.form-control.inlineBlk(ng-model='playerPayment2.newBankAccount2', ng-change='playerPayment2.showNewAccountNo2=true; checkDuplicatedBankAccount(playerPayment2)', ng-if='isEditingPlayerPayment && !playerPayment2.showNewAccountNo2')
+            input.form-control.inlineBlk(focus-me="playerPayment2.showNewAccountNo2" ng-model='playerPayment2.newBankAccount2', ng-if='isEditingPlayerPayment && playerPayment2.showNewAccountNo2', ng-change="checkDuplicatedBankAccount(playerPayment2)")
+            //input.form-control.inlineBlk(ng-model='playerPayment2.newBankAccount', pattern="((.{0})|([0-9]{16,}))", ng-if='isEditingPlayerPayment')
+        div.col-sm-1.pull-right
+            button.btn.btn-info.pull-right(ng-click='isEditingPlayerPaymentShowVerify=!isEditingPlayerPaymentShowVerify')
+                text(ng-if='isEditingPlayerPaymentShowVerify') {{::'CLOSE' | translate}}
+                text(ng-if='!isEditingPlayerPaymentShowVerify') {{::'VERIFY' | translate}}
+            label.text-disabled(ng-if="isEditingPlayerPayment && playerPayment2.showAlert2") {{ playerPayment2.alertMsg2 | translate}}
+    div.col-sm-12
+        .panel.panel-default.margin-top-10(ng-if='isEditingPlayerPaymentShowVerify')
+            .panel-body
+                label.control-label {{"VERIFY_BANK_ACCOUNT" | translate}}
+                input.form-control(type="text", placeholder="{{'VERIFY_BANK_ACCOUNT' | translate}}", ng-model="verifyBankAccount")
+                p
+                button.btn.btn-primary.common-button(ng-disabled='!verifyBankAccount', ng-click="verifyPlayerBankAccount(verifyBankAccount)") {{"VERIFY" | translate}}
+                label.fa.fa-check.colorGreen(ng-if='correctVerifyBankAccount')
+                label.fa.fa-times.colorRed(ng-if='(!correctVerifyBankAccount && (correctVerifyBankAccount !== undefined))')
+    //.form-group-col-md-6
+    //    label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
+    //    select.form-control(ng-model='playerPayment2.bankAccountType', ng-disabled='!isEditingPlayerPayment')
+    //        option(value='2') {{'Debit Card '|translate}}
+    //        option(value='1') {{'Credit Card '|translate}}
+    //        //option(value='3') {{'储存卡'|translate}}
+    //        //option(value='4') {{'储蓄卡'|translate}}
+    //        //option(value='5') {{'商务理财卡'|translate}}
+    //        //option(value='6') {{'工商银行一卡通'|translate}}
+    div.col-md-4
+        label.control-label {{"PHONE_PROVINCE" | translate}}
+        select.form-control(type='text', ng-model='currentProvince2.province', ng-options='v.id as v.name for (i,v) in provinceList', ng-change='changeProvince(true)', ng-disabled='!isEditingPlayerPayment')
+            option(ng-if="!isIdInList(provinceList, currentProvince2.province)" ng-value="currentProvince2.province") {{currentProvince2.province}}
+    div.col-md-4
+        label.control-label {{"PHONE_CITY" | translate}}
+        select.form-control(type='text', ng-model='currentCity2.city', ng-options='v.id as v.name for (i,v) in cityList', ng-change='changeCity(true)', ng-disabled='!isEditingPlayerPayment')
+            option(ng-if="!isIdInList(cityList, currentCity2.city)" ng-value="currentCity2.city") {{currentCity2.city}}
+    div.col-md-4
+        label.control-label {{"districtId" | translate}}
+        select.form-control(type='text', ng-model='currentDistrict2.district', ng-options='v.id as v.name for (i,v) in districtList', ng-disabled='!isEditingPlayerPayment')
+            option(value='')
+            option(ng-if="!isIdInList(districtList, currentDistrict2.district)" ng-value="currentDistrict2.district") {{currentDistrict2.district}}
+    div.col-sm-12.margin-top-10
+        label.control-label {{'Account Branch' | translate}}
+        input.form-control(ng-model='playerPayment2.bankAddress2', ng-disabled='!isEditingPlayerPayment')
+    div.col-sm-12.margin-top-10
+        button.common-button.margin-right-5.btn.btn-primary(ng-show='!isEditingPlayerPayment', ng-click="isEditingPlayerPayment=true") {{"EDIT" | translate}}
+        button.common-button.margin-right-5.btn.btn-primary(ng-show='isEditingPlayerPayment', ng-click="prepareEditPlayerPayment()") {{"CANCEL" | translate}}
+        button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog',ng-show='isEditingPlayerPayment', ng-disabled='form_playerPaymentInfo2.$invalid || form_playerPaymentInfo2.$pristine || playerPayment2.invalid', ng-click="updatePlayerPayment('bank2');") {{"UPDATE" | translate}}
+        button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog') {{"CLOSE" | translate}}
