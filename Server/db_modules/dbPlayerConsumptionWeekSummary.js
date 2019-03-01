@@ -1018,6 +1018,9 @@ var dbPlayerConsumptionWeekSummary = {
 
                 let pastProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ);
                 let gameTypesProm = dbGameType.getAllGameTypes();
+                if (isShowProviderId) {
+                    gameTypesProm = dbGameType.getAllGameTypesName();
+                }
 
                 return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm, gameTypesProm]);
             }
@@ -1160,7 +1163,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 } else {
                                     selectedGameTypeObj[gameType].providerList = [];
                                 }
-                                selectedGameTypeObj[gameType].gameType = String(gameType);
+                                selectedGameTypeObj[gameType].gameType =  allGameTypes[gameType] || String(gameType);
                             }
                         });
                     }
@@ -1191,7 +1194,7 @@ var dbPlayerConsumptionWeekSummary = {
 
                             if (isShowProviderId) {
                                 selectedGameTypeObj[gameType].providerList = [];
-                                selectedGameTypeObj[gameType].gameType = String(gameType);
+                                selectedGameTypeObj[gameType].gameType = allGameTypes[gameType] || String(gameType);
                             }
                         }
                     });
