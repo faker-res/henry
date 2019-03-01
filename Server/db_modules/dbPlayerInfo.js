@@ -6622,10 +6622,12 @@ let dbPlayerInfo = {
         let currentDate = new Date();
         let playerBonusDoubledRewardValidity = false;
 
+        console.log('MT --checking --transferPlayerCreditToProvider --1', playerId, providerId, amount);
         return Promise.all([playerProm, providerProm]).then(
             data => {
                 if (data && data[0] && data[1]) {
                     [playerData, providerData] = data;
+                    console.log('MT --checking --providerData --1', providerData._id);
                     let platformData = playerData.platform;
 
                     if (playerData.forbidProviders && typeof playerData.forbidProviders === 'object') {
@@ -6673,13 +6675,14 @@ let dbPlayerInfo = {
             }
         ).then(
             isApply => {
+                console.log('MT --checking --transferPlayerCreditToProvider --2', playerData.platform, providerData._id)
                 playerBonusDoubledRewardValidity = isApply;
                 return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date());
             }
         ).then(
             rewardTaskGroup => {
                 if (rewardTaskGroup) { rewardTaskGroupData = rewardTaskGroup; }
-                console.log('MT --checking --rewardTaskGroup', rewardTaskGroup)
+                console.log('MT --checking --rewardTaskGroup', rewardTaskGroup, playerBonusDoubledRewardValidity)
 
                 //if player applied BonusDoubledReward, check if player has enough credit.
                 if(playerBonusDoubledRewardValidity){
@@ -6726,6 +6729,8 @@ let dbPlayerInfo = {
                             .then(() => playerProm)
                             .then(data => playerData = data)
                             .catch(() => Promise.resolve(true))
+                    }else{
+                        console.log('MT --checking --not lastPlayerProvider --3', playerData.lastPlayedProvider, providerId);
                     }
 
                     return transferOutProm;
@@ -6747,6 +6752,7 @@ let dbPlayerInfo = {
                 transferAmount += parseFloat(playerData.validCredit.toFixed(2));
                 console.log('MT --checking transferAmount', transferAmount);
                 if (playerData.platform.useProviderGroup && rewardTaskGroupData && rewardTaskGroupData.rewardAmt) {
+                    console.log('MT --checking transferAmount- rewardAmt', rewardTaskGroupData.rewardAmt);
                     transferAmount += rewardTaskGroupData.rewardAmt;
                 }
 
