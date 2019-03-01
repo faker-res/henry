@@ -18579,6 +18579,7 @@ let dbPlayerInfo = {
             merchantData => {
                 console.log('getConsumptionDetailOfPlayers - 3');
                 merchantList = merchantData;
+                console.log('JY merchantList - 3', merchantList);
 
                 return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
                     proposalTypeData => {
