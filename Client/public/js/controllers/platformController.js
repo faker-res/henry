@@ -29296,10 +29296,10 @@ define(['js/app'], function (myApp) {
                 else if (func == 'remove') {
 
                     if (data && collection && tab == 'openPromoCode' && typeof index != 'undefined') {
-
-                        if (data.code) {
-                            vm.deletedOpenPromoCodeTemplateData.push({name: data.name, code: data.code, type:data.type, deletedStatus: true,  platformObjId: vm.selectedPlatform.id});
+                        if (data._id){
+                            vm.deletedOpenPromoCodeTemplateData.push({_id: data._id, deletedStatus: true});
                         }
+
 
                         collection.splice(index, 1);
 
