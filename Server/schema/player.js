@@ -256,40 +256,9 @@ var playerSchema = new Schema({
     bankAddress: {type: String},
     //bank branch
     bankBranch: {type: String},
-    /*2nd player payment*/
-    //bank name， bankTypeId
-    bankName2: {type: String},
-    //bank account
-    bankAccount2: {type: String, index: true},
-    //bank account name
-    bankAccountName2: {type: String},
-    //bank account province
-    bankAccountProvince2: {type: String},
-    //bank account city
-    bankAccountCity2: {type: String},
-    //bank account district
-    bankAccountDistrict2: {type: String},
-    //full bank address
-    bankAddress2: {type: String},
-    //bank branch
-    bankBranch2: {type: String},
-    /*3rd player payment*/
-    //bank name， bankTypeId
-    bankName3: {type: String},
-    //bank account
-    bankAccount3: {type: String, index: true},
-    //bank account name
-    bankAccountName3: {type: String},
-    //bank account province
-    bankAccountProvince3: {type: String},
-    //bank account city
-    bankAccountCity3: {type: String},
-    //bank account district
-    bankAccountDistrict3: {type: String},
-    //full bank address
-    bankAddress3: {type: String},
-    //bank branch
-    bankBranch3: {type: String},
+
+    //multiple bank detail info
+    multipleBankDetailInfo: {type: Schema.ObjectId, ref: 'playerMultipleBankDetailInfo', index: true},
 
     //internet banking
     internetBanking: {type: String},

@@ -86,6 +86,8 @@ let rewardPointsTaskSchema = require('./../schema/rewardPointsTask');
 let playerPageAdvertisementInfoSchema = require('./../schema/playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoSchema = require('./../schema/partnerPageAdvertisementInfo');
 
+let playerMultipleBankDetailInfoSchema = require('./../schema/playerMultipleBankDetailInfo');
+
 let smsGroupSchema = require('./../schema/smsGroup');
 let promoCodeTemplateSchema = require('./../schema/promoCodeTemplate');
 let depositGroupSchema = require('./../schema/depositGroup');
@@ -239,6 +241,7 @@ let partnerFeedbackTopicModel = db_admin.model('partnerFeedbackTopic', partnerFe
 let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementInfo', playerPageAdvertisementInfoSchema, 'playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
 
+let playerMultipleBankDetailInfoModel = db_admin.model('playerMultipleBankDetailInfo', playerMultipleBankDetailInfoSchema, 'playerMultipleBankDetailInfo');
 
 let smsGroupModel = db_admin.model('smsGroup', smsGroupSchema, 'smsGroup');
 
@@ -659,6 +662,8 @@ var dbProperties = {
     collection_playerPageAdvertisementInfo: playerPageAdvertisementInfoModel,
     collection_partnerPageAdvertisementInfo: partnerPageAdvertisementInfoModel,
 
+    collection_playerMultipleBankDetailInfo: playerMultipleBankDetailInfoModel,
+    
     collection_idcIp: idcIpModel,
     collection_smsGroup: smsGroupModel,
     collection_promoCodeTemplate: promoCodeTemplateModel,
