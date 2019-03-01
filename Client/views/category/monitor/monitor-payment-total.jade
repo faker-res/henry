@@ -45,9 +45,9 @@ div
             select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchantCloneList' , multiple, bsp, data-actions-box='true')
                 //option(value='') {{'any' | translate}}
                 //option(ng-repeat='(i,v) in vm.merchants' ,ng-init='$last && vm.initMultiSelect()', value='{{v.merchantNo}}') {{v.name}}
-        .search-filters-item
-            label {{'STATUS' | translate}}
-            select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList', multiple, static-bsp, data-actions-box='true')
+        //.search-filters-item
+        //    label {{'STATUS' | translate}}
+        //    select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList', multiple, static-bsp, data-actions-box='true')
         .search-filters-item
             label.control-label {{'Start date' | translate}}
             .startTime
@@ -59,7 +59,7 @@ div
             select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.platformList', ng-options='v._id as v.name for v in vm.platformByAdminId', multiple, bsp, data-actions-box='true')
         .text-right.widthto100
             button.btn.btn-warning.btn-space(ng-click='vm.resetTopUpMonitorQuery()') {{'Reset' | translate}}
-            button.btn.btn-success.btn-space(ng-click='vm.getPaymentMonitorTotalRecord(true)') {{'SEARCH' | translate}}
+            button.btn.btn-success.btn-space(ng-click='vm.getPaymentMonitorTotalRecord(true); vm.getPaymentMonitorTotalCompletedRecord(true)') {{'SEARCH' | translate}}
             span#paymentMonitorTableSpin.collapse
                 i.fa.fa-spinner.fa-spin
     .clearfix
