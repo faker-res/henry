@@ -14888,7 +14888,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerCheckInBonus: function (userAgent, playerId) {
+    getPlayerCheckInBonus: function (userAgent, playerId, code) {
         let platformObjId;
         let playersQuery = {
             playerId: playerId
@@ -14908,6 +14908,9 @@ let dbPlayerInfo = {
                         platform: platformObjId,
                         type: rewardType._id
                     };
+                    if(code) {
+                        rewardEventQuery.code = code;
+                    }
                     return dbconfig.collection_rewardEvent.find(rewardEventQuery).lean().sort({validStartTime: -1});
                 } else {
                     return Q.reject({

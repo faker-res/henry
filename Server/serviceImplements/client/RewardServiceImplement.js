@@ -125,7 +125,7 @@ let RewardServiceImplement = function () {
     this.getSignBonus.onRequest = function (wsFunc, conn, data) {
         let isValidData = true;
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerCheckInBonus, [userAgent, conn.playerId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerCheckInBonus, [userAgent, conn.playerId, data.code], isValidData);
     };
 
     this.getSlotInfo.expectsData = '';
