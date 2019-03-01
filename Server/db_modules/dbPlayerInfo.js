@@ -12919,7 +12919,8 @@ let dbPlayerInfo = {
                                     ).then(
                                         data => {
                                             console.log('MT --checking after transfer credit', data);
-                                            return transferCreditToProvider(data);
+                                            let sumData = sumProviderCredit(data);
+                                            return transferCreditToProvider(sumData);
                                         },
                                         err => {
                                             if(isApplyBonusDoubledReward){
@@ -13040,6 +13041,21 @@ let dbPlayerInfo = {
             } else {
                 return Promise.reject({name: "DataError", message: "Cannot find game"});
             }
+        }
+
+        function sumProviderCredit(data){
+            let result = data;
+            if(Array.isArray(data)){
+                result = { playerCredit: 0,  rewardCredit: 0 };
+                if(Array.isArray(data) && data.length && data.length > 0){
+                    data.forEach(item=>{
+                        result.playerCredit += parseFloat(item.playerCredit);
+                        result.rewardCredit += parseFloat(item.rewardCredit);
+                    })
+                }
+            }
+
+            return result;
         }
     },
 
