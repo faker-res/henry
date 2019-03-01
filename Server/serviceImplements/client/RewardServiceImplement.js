@@ -56,6 +56,13 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn, [conn.playerId, data.eventCode], isValidData);
     };
 
+    this.getConsumeRebateDetail.expectsData = '';
+    this.getConsumeRebateDetail.onRequest = function (wsFunc, conn, data) {
+        data = data || {};
+        var isValidData = Boolean(conn.playerId && data && data.eventCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn, [conn.playerId, data.eventCode, true], isValidData);
+    };
+
     this.isValidForFirstTopUpReward.expectsData = 'playerId: String';
     this.isValidForFirstTopUpReward.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
