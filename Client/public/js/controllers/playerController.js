@@ -11690,72 +11690,99 @@ define(['js/app'], function (myApp) {
                     data.data[1].forEach((inData, indexInData) => {
                         vm.dynRewardTaskGroupId = [];
                         vm.dynRewardTaskGroupId.push(inData);
-                        vm.rewardTaskProposalData = data.data[0][indexInData];
-                        let result = data.data[0][indexInData];
-                        let usedTopUp = [];
-                        result.forEach((item, index) => {
-                            item.proposalId = item.proposalId || item.data.proposalId;
-                            item['createTime$'] = vm.dateReformat(item.data.createTime$);
-                            item.useConsumption = item.data.useConsumption;
-                            item.topUpProposal = item.data.topUpProposalId ? item.data.topUpProposalId : item.data.topUpProposal;
-                            item.topUpAmount = item.data.topUpAmount;
-                            item.bonusAmount = item.data.rewardAmount;
-                            item.applyAmount = item.data.applyAmount || item.data.amount;
-                            item.requiredUnlockAmount = item.data.spendingAmount;
-                            item.requiredBonusAmount = item.data.requiredBonusAmount;
-                            item['provider$'] = $translate(item.data.provider$);
-                            item.rewardType = item.data.rewardType;
+                        // // vm.rewardTaskProposalData = data.data[0][indexInData];
 
-                            item.requiredUnlockAmount$ = item.requiredUnlockAmount;
-                            if (vm.isUnlockTaskGroup) {
-                                let spendingAmt = vm.calSpendingAmt(index);
-
-                                item.curConsumption$ = Number.isFinite(spendingAmt.currentAmt) ? spendingAmt.currentAmt : 0;
-                                item.maxConsumption$ = spendingAmt.currentMax;
-                            } else {
-                                item.curConsumption$ = Number.isFinite(item.requiredBonusAmount) ? item.requiredBonusAmount : 0;
-                                item.maxConsumption$ = item.requiredUnlockAmount;
-                            }
-                            item.bonusAmount$ = item.data.bonusAmount;
-                            item.requiredBonusAmount$ = item.requiredBonusAmount;
-                            item.currentAmount$ = item.data.currentAmount;
-
-                            item.availableAmt$ = item.bonusAmount ? item.bonusAmount : (item.applyAmount || 0);
-                            item.archivedAmt$ = 0;
-                            if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
-                                vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
-                                item.archivedAmt$ = item.availableAmt$
-                            } else if (vm.rtgBonusAmt[item.data.providerGroup] != 0) {
-                                if (item.data.providerGroup === '') {
-                                    let archivedAmtEmpty = vm.rtgBonusAmt["undefined"] ? vm.rtgBonusAmt["undefined"] : 0;
-                                    item.archivedAmt$ = -archivedAmtEmpty;
-                                    vm.rtgBonusAmt["undefined"] = 0;
-
-                                } else {
-                                    item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
-                                    vm.rtgBonusAmt[item.data.providerGroup] = 0;
-                                    item.archivedAmt$ = item.archivedAmt$ ? item.archivedAmt$ : 0;
-                                }
-                            }
-                            item.isArchived =
-                                item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
-
-                            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
-                                item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
-                                usedTopUp.push(item.topUpProposal)
-                            }
-
-                        });
-
-                        if (usedTopUp.length > 0) {
-                            result = result.filter((item, index) => {
-                                for (let i = 0; i < usedTopUp.length; i++) {
-                                    if (usedTopUp.indexOf(item.proposalId) < 0) {
-                                        return item;
-                                    }
-                                }
-                            });
+                        let result = commonService.checkProgressOfRewardTasksWithinRTG(data.data[0][indexInData], vm.dynRewardTaskGroupId, vm.rtgBonusAmt, true);
+                        if (result && result.length){
+                            result.forEach(item => {
+                                item['createTime$'] = vm.dateReformat(item.data.createTime$);
+                                item['provider$'] = $translate(item.data.provider$);
+                            })
                         }
+
+                        /* YeeHui - will remove this after the testing are OK */
+                        // let result = data.data[0][indexInData];
+                        // let excludedTopUpProposal = [];
+                        //
+                        // // check the proposal and exclude the proposal to be shown in the progress bar if the proposal is dynamicReward, type c promocode or limitedOffer
+                        // result.forEach(
+                        //     item => {
+                        //         if (item && item.data && (item.data.topUpProposalId || item.data.topUpProposal) && (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId)) {
+                        //             excludedTopUpProposal.push(item.data.topUpProposalId || item.data.topUpProposal)
+                        //         }
+                        //     }
+                        // );
+                        //
+                        // console.log("checking *** usedTopUp", excludedTopUpProposal)
+                        //
+                        // if (excludedTopUpProposal.length > 0) {
+                        //     result = result.filter(item => {
+                        //         for (let i = 0; i < usedTopUp.length; i++) {
+                        //             if (usedTopUp.indexOf(item.proposalId) < 0) {
+                        //                 return item;
+                        //             }
+                        //         }
+                        //     });
+                        // }
+                        //
+                        // vm.rewardTaskProposalData = result;
+                        //
+                        // console.log("checking *** after filter", result)
+                        //
+                        // result.forEach((item, index) => {
+                        //     item.proposalId = item.proposalId || item.data.proposalId;
+                        //     item['createTime$'] = vm.dateReformat(item.data.createTime$);
+                        //     item.useConsumption = item.data.useConsumption;
+                        //     item.topUpProposal = item.data.topUpProposalId ? item.data.topUpProposalId : item.data.topUpProposal;
+                        //     item.topUpAmount = item.data.topUpAmount;
+                        //     item.bonusAmount = item.data.rewardAmount;
+                        //     item.applyAmount = item.data.applyAmount || item.data.amount;
+                        //     item.requiredUnlockAmount = item.data.spendingAmount;
+                        //     item.requiredBonusAmount = item.data.requiredBonusAmount;
+                        //     item['provider$'] = $translate(item.data.provider$);
+                        //     item.rewardType = item.data.rewardType;
+                        //
+                        //     item.requiredUnlockAmount$ = item.requiredUnlockAmount;
+                        //     if (vm.isUnlockTaskGroup) {
+                        //         let spendingAmt = vm.calSpendingAmt(index);
+                        //
+                        //         item.curConsumption$ = Number.isFinite(spendingAmt.currentAmt) ? spendingAmt.currentAmt : 0;
+                        //         item.maxConsumption$ = spendingAmt.currentMax;
+                        //     } else {
+                        //         item.curConsumption$ = Number.isFinite(item.requiredBonusAmount) ? item.requiredBonusAmount : 0;
+                        //         item.maxConsumption$ = item.requiredUnlockAmount;
+                        //     }
+                        //     item.bonusAmount$ = item.data.bonusAmount;
+                        //     item.requiredBonusAmount$ = item.requiredBonusAmount;
+                        //     item.currentAmount$ = item.data.currentAmount;
+                        //
+                        //     item.availableAmt$ = item.bonusAmount ? item.bonusAmount : (item.applyAmount || 0);
+                        //     item.archivedAmt$ = 0;
+                        //
+                        //     if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
+                        //         item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
+                        //     }
+                        //
+                        //
+                        //     if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
+                        //         vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
+                        //         item.archivedAmt$ = item.availableAmt$
+                        //     } else if (vm.rtgBonusAmt[item.data.providerGroup] != 0) {
+                        //         if (item.data.providerGroup === '') {
+                        //             let archivedAmtEmpty = vm.rtgBonusAmt["undefined"] ? vm.rtgBonusAmt["undefined"] : 0;
+                        //             item.archivedAmt$ = -archivedAmtEmpty;
+                        //             vm.rtgBonusAmt["undefined"] = 0;
+                        //
+                        //         } else {
+                        //             item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
+                        //             vm.rtgBonusAmt[item.data.providerGroup] = 0;
+                        //             item.archivedAmt$ = item.archivedAmt$ ? item.archivedAmt$ : 0;
+                        //         }
+                        //     }
+                        //     item.isArchived =
+                        //         item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
+                        //
+                        // });
 
                         vm.rewardTaskGroupProposalList.push(result);
 
@@ -11783,6 +11810,7 @@ define(['js/app'], function (myApp) {
                     vm.playerBonus.showSubmit = false;
                     vm.getPlatformPlayersData();
                     // save the rewardTask that is manually unlocked
+                    console.log("vm.rewardTaskGroupProposalList", vm.rewardTaskGroupProposalList)
                     if (vm.playerBonus.bForce && vm.rewardTaskGroupProposalList && vm.rewardTaskGroupProposalList.length > 0) {
                         vm.rewardTaskGroupProposalList.forEach(listData => {
                             listData.forEach(rewardTask => {
@@ -13113,76 +13141,130 @@ define(['js/app'], function (myApp) {
                 vm.getRewardTaskGroupProposalLoading = true;
                 socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposal', sendQuery, function (data) {
 
-                    console.log("vm.getRewardTaskGroupProposal data", data);
-                    vm.rewardTaskProposalData = data.data.data;
+                    console.log("getRewardTaskGroupProposal data", data);
+                    // vm.rewardTaskProposalData = data.data.data;
                     vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
+                    let result = commonService.checkProgressOfRewardTasksWithinRTG(data.data.data, vm.dynRewardTaskGroupId, vm.rtgBonusAmt, true);
                     let summary = data.data.summary;
-                    let result = data.data.data;
-                    let usedTopUp = [];
-                    result.forEach((item, index) => {
-                        item.proposalId = item.proposalId || item.data.proposalId;
-                        item['createTime$'] = vm.dateReformat(item.data.createTime$);
-                        item.useConsumption = item.data.useConsumption;
-                        item.topUpProposal = item.data.topUpProposalId ? item.data.topUpProposalId : item.data.topUpProposal;
-                        item.topUpAmount = item.data.topUpAmount;
-                        item.bonusAmount = item.data.rewardAmount;
-                        item.applyAmount = item.data.actualAmount || item.data.actualAmountReceived || item.data.applyAmount || item.data.amount;
-                        item.requiredUnlockAmount = item.data.spendingAmount;
-                        item.requiredBonusAmount = item.data.requiredBonusAmount;
-                        item['provider$'] = $translate(item.data.provider$);
-                        item.rewardType = item.data.rewardType;
 
-                        item.requiredUnlockAmount$ = item.requiredUnlockAmount;
-                        // item.curConsumption$ = item.curConsumption;
-                        if (vm.isUnlockTaskGroup) {
-                            let spendingAmt = vm.calSpendingAmt(index);
-
-                            item.curConsumption$ = spendingAmt.currentAmt;
-                            item.maxConsumption$ = spendingAmt.currentMax;
-                        } else {
-                            item.curConsumption$ = item.requiredBonusAmount;
-                            item.maxConsumption$ = item.requiredUnlockAmount;
-                        }
-                        item.bonusAmount$ = item.data.bonusAmount;
-                        item.requiredBonusAmount$ = item.requiredBonusAmount;
-                        item.currentAmount$ = item.data.currentAmount;
-
-                        item.availableAmt$ = item.bonusAmount ? item.bonusAmount : (item.applyAmount || 0);
-                        item.archivedAmt$ = 0;
-                        if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
-                            vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
-                            item.archivedAmt$ = item.availableAmt$
-                        } else if (vm.rtgBonusAmt[item.data.providerGroup] != 0) {
-                            if (item.data.providerGroup === '') {
-                                let archivedAmtEmpty = vm.rtgBonusAmt["undefined"] ? vm.rtgBonusAmt["undefined"] : 0;
-                                item.archivedAmt$ = -archivedAmtEmpty;
-                                vm.rtgBonusAmt["undefined"] = 0;
-
-                            } else {
-                                item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
-                                vm.rtgBonusAmt[item.data.providerGroup] = 0;
-                                item.archivedAmt$ = item.archivedAmt$ ? item.archivedAmt$ : 0;
-                            }
-                        }
-                        item.isArchived =
-                            item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
-
-                        // exclude the proposal to be shown in the progress bar if the proposal is dynamicReward, type c promocode or limitedOffer
-                        if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
-                            item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
-                            usedTopUp.push(item.topUpProposal)
-                        }
-                    });
-
-                    if (usedTopUp.length > 0) {
-                        result = result.filter(item => {
-                            for (let i = 0; i < usedTopUp.length; i++) {
-                                if (usedTopUp.indexOf(item.proposalId) < 0) {
-                                    return item;
-                                }
-                            }
-                        });
+                    if (result && result.length){
+                        result.forEach(item => {
+                            item['createTime$'] = vm.dateReformat(item.data.createTime$);
+                            item['provider$'] = $translate(item.data.provider$);
+                        })
                     }
+
+                    /* YeeHui - will remove this after the testing are OK */
+                    // let result = data.data.data;
+                    // let usedTopUp = []
+                    //
+                    // // check the proposal and exclude the proposal to be shown in the progress bar if the proposal is dynamicReward, type c promocode or limitedOffer
+                    // result.forEach(
+                    //     item => {
+                    //         if (item && item.data && (item.data.topUpProposalId || item.data.topUpProposal) && (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId)) {
+                    //             usedTopUp.push(item.data.topUpProposalId || item.data.topUpProposal)
+                    //         }
+                    //     }
+                    // );
+                    //
+                    // if (usedTopUp.length > 0) {
+                    //     result = result.filter(item => {
+                    //         for (let i = 0; i < usedTopUp.length; i++) {
+                    //             if (usedTopUp.indexOf(item.proposalId) < 0) {
+                    //                 return item;
+                    //             }
+                    //         }
+                    //     });
+                    // }
+                    //
+                    // vm.rewardTaskProposalData = result;
+                    // console.log("vm.getRewardTaskGroupProposal data", data);
+                    //
+                    // result.forEach((item, index) => {
+                    //     item.proposalId = item.proposalId || item.data.proposalId;
+                    //     item['createTime$'] = vm.dateReformat(item.data.createTime$);
+                    //     item.useConsumption = item.data.useConsumption;
+                    //     item.topUpProposal = item.data.topUpProposalId ? item.data.topUpProposalId : item.data.topUpProposal;
+                    //     item.topUpAmount = item.data.topUpAmount;
+                    //     item.bonusAmount = item.data.rewardAmount;
+                    //     item.applyAmount = item.data.actualAmount || item.data.actualAmountReceived || item.data.applyAmount || item.data.amount;
+                    //     item.requiredUnlockAmount = item.data.spendingAmount;
+                    //     item.requiredBonusAmount = item.data.requiredBonusAmount;
+                    //     item['provider$'] = $translate(item.data.provider$);
+                    //     item.rewardType = item.data.rewardType;
+                    //
+                    //     item.requiredUnlockAmount$ = item.requiredUnlockAmount;
+                    //     // item.curConsumption$ = item.curConsumption;
+                    //     if (vm.isUnlockTaskGroup) {
+                    //         let spendingAmt = vm.calSpendingAmt(index);
+                    //
+                    //         item.curConsumption$ = spendingAmt.currentAmt;
+                    //         item.maxConsumption$ = spendingAmt.currentMax;
+                    //     } else {
+                    //         item.curConsumption$ = item.requiredBonusAmount;
+                    //         item.maxConsumption$ = item.requiredUnlockAmount;
+                    //     }
+                    //     item.bonusAmount$ = item.data.bonusAmount;
+                    //     item.requiredBonusAmount$ = item.requiredBonusAmount;
+                    //     item.currentAmount$ = item.data.currentAmount;
+                    //
+                    //     item.availableAmt$ = item.bonusAmount ? item.bonusAmount : (item.applyAmount || 0);
+                    //     item.archivedAmt$ = 0;
+                    //
+                    //     // exclude the proposal to be shown in the progress bar if the proposal is dynamicReward, type c promocode or limitedOffer
+                    //     if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
+                    //         item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
+                    //         // usedTopUp.push(item.topUpProposal)
+                    //     }
+                    //
+                    //     let providerGroup = "undefined"; // this is the key to access vm.rtgBonusAmt for rewards/top ups that are not binding with providerGroup
+                    //     if (item && item.data && item.data.providerGroup){
+                    //
+                    //         // extra checking on the type as the promocode will generate array of providerGroup
+                    //         if (typeof item.data.providerGroup == 'object'){
+                    //
+                    //             if (item.data.providerGroup.length){
+                    //                 providerGroup = item.data.providerGroup[0];
+                    //             }
+                    //             else{
+                    //                 providerGroup = "undefined";
+                    //             }
+                    //         }
+                    //         else{
+                    //             providerGroup = item.data.providerGroup;
+                    //         }
+                    //     }
+                    //     // let providerGroup = item && item.data && item.data.providerGroup ? (item.data.providerGroup.length == 0 ? 'undefined' : ):
+                    //     if (vm.rtgBonusAmt[providerGroup] <= -(item.availableAmt$)) {
+                    //         vm.rtgBonusAmt[providerGroup] -= -(item.availableAmt$);
+                    //         item.archivedAmt$ = item.availableAmt$
+                    //     } else if (vm.rtgBonusAmt[providerGroup] != 0) {
+                    //         if (providerGroup === "undefined") {
+                    //             let archivedAmtEmpty = vm.rtgBonusAmt["undefined"] ? vm.rtgBonusAmt["undefined"] : 0;
+                    //             item.archivedAmt$ = -archivedAmtEmpty;
+                    //             vm.rtgBonusAmt["undefined"] = 0;
+                    //
+                    //         } else {
+                    //             item.archivedAmt$ = -vm.rtgBonusAmt[providerGroup];
+                    //             vm.rtgBonusAmt[providerGroup] = 0;
+                    //             item.archivedAmt$ = item.archivedAmt$ ? item.archivedAmt$ : 0;
+                    //         }
+                    //     }
+                    //     item.isArchived =
+                    //         item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
+                    //
+                    //
+                    // });
+
+                    // if (usedTopUp.length > 0) {
+                    //     result = result.filter(item => {
+                    //         for (let i = 0; i < usedTopUp.length; i++) {
+                    //             if (usedTopUp.indexOf(item.proposalId) < 0) {
+                    //                 return item;
+                    //             }
+                    //         }
+                    //     });
+                    // }
 
                     console.log("vm.getRewardTaskGroupProposal", result);
                     vm.rewardTaskGroupProposalList = [];

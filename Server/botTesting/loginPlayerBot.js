@@ -21,18 +21,42 @@ module.exports = function (config) {
         ).then(
             playerLevel => {
                 if(playerLevel && playerLevel._id){
-                    let newPlayerData = {
-                        password: config.botPassword,
-                        platform: platformData._id,
-                        playerLevel: playerLevel._id
-                    };
+                    let createPlayerProm = Promise.resolve();
 
                     for(let i = 0; i < 100; i ++){
-                        newPlayerData.name = config.botPlayerPrefix + (1000 + i).toString();
-                        newPlayerData.phoneNumber = (20800000000 + i).toString();
+                        //check if testbot player exists
+                        createPlayerProm.then(
+                            () => {
+                                let newPlayerData = {
+                                    password: config.botPassword,
+                                    platform: platformData._id,
+                                    playerLevel: playerLevel._id,
+                                    name: config.botPlayerPrefix + (1000 + i).toString(),
+                                    phoneNumber: (20800000000 + i).toString()
+                                };
 
-                        return dbconfig.collection_players(newPlayerData).save()
+                                return dbconfig.collection_players.findOne({name: newPlayerData.name}).then(
+                                    existingPlayer => {
+                                        if(!existingPlayer || existingPlayer == null){
+                                            return dbconfig.collection_players(newPlayerData).save();
+                                        }
+                                    }
+                                )
+                            }
+                        );
                     }
+
+                    return createPlayerProm;
+                }
+            }
+        )
+    }
+
+    function checkAndCreatePlayer(newPlayerData){
+        return dbconfig.collection_players.findOne({name: newPlayerData.name}).then(
+            existingPlayer => {
+                if(!existingPlayer || existingPlayer == null){
+                    return dbconfig.collection_players(newPlayerData).save();
                 }
             }
         )
@@ -50,7 +74,8 @@ module.exports = function (config) {
             }
         ).then(
             playerDetails => {
-                if(playerDetails && playerDetails.length > 0){
+                //if testbot players number < 100, continue to create testbot player
+                if(playerDetails && playerDetails.length >= 100){
                     playerDetails.forEach(
                         player => {
                             if(player && player.name){

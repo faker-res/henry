@@ -1006,7 +1006,7 @@ let dbPlayerCreditTransfer = {
 		                            rewardCredit: parseFloat(rewardAmount).toFixed(2)
 		                        }
 		                    };
-
+                            console.log('MT --checking --providerGroup ', responseData);
 		                    return responseData;
                         });
 
@@ -1128,12 +1128,14 @@ let dbPlayerCreditTransfer = {
                     throw new Error("Error when querying CPMS");
                 }
                 else{
-                    if (!isMultiProvider) {
-                        return Promise.reject(err);
-                    }
+                    return Promise.reject(err);
                 }
             }
-        );
+        ).catch(err => {
+            if (!isMultiProvider) {
+                return Promise.reject(err);
+            }
+        });
     },
 
     /**
@@ -1863,7 +1865,7 @@ let dbPlayerCreditTransfer = {
                     return Promise.reject({message: "No wallet is set for EBET provider."});
                 }
             }
-        }, err => {
+        }).catch(err => {
             if (!isMultiProvider) {
                 return Promise.reject(err);
             }

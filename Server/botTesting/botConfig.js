@@ -19,7 +19,7 @@ var botConfig = {
         password: "123"
     },
     minutesPerLogin: 1,
-    botPlayerPrefix: "jobot",
+    botPlayerPrefix: "testbot",
     botBankName: "10",
     botBankAccName: "机器人",
     // botAlipayName: "623542345",
