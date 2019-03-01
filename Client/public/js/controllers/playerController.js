@@ -1972,6 +1972,10 @@ define(['js/app'], function (myApp) {
                 });
         };
 
+        $scope.getAllProvinceList(function () {
+            vm.allProvinceList = $scope.provinceList ? $scope.provinceList : null;
+        });
+
         vm.initSendMultiMessage = function () {
             //vm.getSMSTemplate();
             vm.sendMultiMessage = {
@@ -7403,6 +7407,14 @@ define(['js/app'], function (myApp) {
                         vm.selectedSinglePlayer.bankAccount ?
                             vm.selectedSinglePlayer.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-4)
                             : null;
+                    vm.selectedSinglePlayer.encodedBankAccount2 =
+                        vm.selectedSinglePlayer.bankAccount2 ?
+                            vm.selectedSinglePlayer.bankAccount2.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount2.slice(-4)
+                            : null;
+                    vm.selectedSinglePlayer.encodedBankAccount3 =
+                        vm.selectedSinglePlayer.bankAccount3 ?
+                            vm.selectedSinglePlayer.bankAccount3.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount3.slice(-4)
+                            : null;
 
                     // Fix partnerName disappeared on second load
                     if (!vm.selectedSinglePlayer.partnerName) {
@@ -7613,6 +7625,7 @@ define(['js/app'], function (myApp) {
                         editPlayerPermission: $scope.checkViewPermission('Player', 'Player', 'Edit'),
                         editContactPermission: $scope.checkViewPermission('Player', 'Player', 'EditContact'),
                         editWithdrawPermission: $scope.checkViewPermission('Player', 'Player', 'PaymentInformation'),
+                        editMultipleWithdrawPermission: $scope.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation'),
                         selectedTab: vm.editSelectedTab,
                         modifyCritical: vm.modifyCritical,
                         verifyPlayerPhoneNumber: vm.verifyPlayerPhoneNumber,
@@ -7622,6 +7635,8 @@ define(['js/app'], function (myApp) {
                         submitCriticalUpdate: vm.submitCriticalUpdate,
                         isEditingPlayerPayment: vm.isEditingPlayerPayment,
                         playerPayment: vm.playerPayment,
+                        playerPayment2: vm.playerPayment2,
+                        playerPayment3: vm.playerPayment3,
                         allBankTypeList: vm.allBankTypeList,
                         filteredBankTypeList: vm.filteredBankTypeList,
                         filterBankName: vm.filterBankName,
@@ -7629,12 +7644,18 @@ define(['js/app'], function (myApp) {
                         isEditingPlayerPaymentShowVerify: vm.isEditingPlayerPaymentShowVerify,
                         correctVerifyBankAccount: vm.correctVerifyBankAccount,
                         currentProvince: vm.currentProvince,
+                        currentProvince2: vm.currentProvince2,
+                        currentProvince3: vm.currentProvince3,
                         provinceList: vm.provinceList,
                         changeProvince: vm.changeProvince,
                         currentCity: vm.currentCity,
+                        currentCity2: vm.currentCity2,
+                        currentCity3: vm.currentCity3,
                         cityList: vm.cityList,
                         changeCity: vm.changeCity,
                         currentDistrict: vm.currentDistrict,
+                        currentDistrict2: vm.currentDistrict2,
+                        currentDistrict3: vm.currentDistrict3,
                         districtList: vm.districtList,
                         verifyBankAccount: vm.verifyBankAccount,
                         verifyPlayerBankAccount: vm.verifyPlayerBankAccount,
@@ -7810,6 +7831,8 @@ define(['js/app'], function (myApp) {
                     vm.prepareEditPlayerPayment();
                     this.isEditingPlayerPayment = vm.isEditingPlayerPayment;
                     this.playerPayment = vm.playerPayment;
+                    this.playerPayment2 = vm.playerPayment2;
+                    this.playerPayment3 = vm.playerPayment3;
                     this.allBankTypeList = vm.allBankTypeList;
                     this.filteredBankTypeList = vm.filteredBankTypeList;
                     this.filterBankName = vm.filterBankName;
@@ -11931,6 +11954,12 @@ define(['js/app'], function (myApp) {
         vm.playerPaymentKeys = [
             "bankName", "bankAccount", "encodedBankAccount", "bankAccountName", "bankAccountType", "bankAccountProvince", "bankAccountCity", "bankAccountDistrict", "bankAddress", "bankBranch"
         ];
+        vm.playerPaymentKeys2 = [
+            "bankName2", "bankAccount2", "encodedBankAccount2", "bankAccountName2", "bankAccountType2", "bankAccountProvince2", "bankAccountCity2", "bankAccountDistrict2", "bankAddress2", "bankBranch2"
+        ];
+        vm.playerPaymentKeys3 = [
+            "bankName3", "bankAccount3", "encodedBankAccount3", "bankAccountName3", "bankAccountType3", "bankAccountProvince3", "bankAccountCity3", "bankAccountDistrict3", "bankAddress3", "bankBranch3"
+        ];
         vm.prepareEditPlayerPayment = function () {
             return new Promise(function (resolve) {
                 console.log('playerID', vm.isOneSelectedPlayer()._id);
@@ -11943,6 +11972,24 @@ define(['js/app'], function (myApp) {
                 if (!vm.currentDistrict) {
                     vm.currentDistrict = {};
                 }
+                if (!vm.currentCity2) {
+                    vm.currentCity2 = {};
+                }
+                if (!vm.currentProvince2) {
+                    vm.currentProvince2 = {};
+                }
+                if (!vm.currentDistrict2) {
+                    vm.currentDistrict2 = {};
+                }
+                if (!vm.currentCity3) {
+                    vm.currentCity3 = {};
+                }
+                if (!vm.currentProvince3) {
+                    vm.currentProvince3 = {};
+                }
+                if (!vm.currentDistrict3) {
+                    vm.currentDistrict3 = {};
+                }
                 vm.correctVerifyBankAccount = undefined;
                 vm.isEditingPlayerPayment = false;
                 vm.isEditingPlayerPaymentShowVerify = false;
@@ -11950,11 +11997,25 @@ define(['js/app'], function (myApp) {
                 vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
                 vm.playerPayment.showNewAccountNo = false;
+                vm.playerPayment2 = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys2);
+                vm.playerPayment2.bankAccountName2 = (vm.playerPayment2.bankAccountName2) ? vm.playerPayment2.bankAccountName2 : vm.isOneSelectedPlayer().realName;
+                vm.playerPayment2.newBankAccount2 = vm.playerPayment2.encodedBankAccount2;
+                vm.playerPayment2.showNewAccountNo2 = false;
+                vm.playerPayment3 = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys3);
+                vm.playerPayment3.bankAccountName3 = (vm.playerPayment3.bankAccountName3) ? vm.playerPayment3.bankAccountName3 : vm.isOneSelectedPlayer().realName;
+                vm.playerPayment3.newBankAccount3 = vm.playerPayment3.encodedBankAccount3;
+                vm.playerPayment3.showNewAccountNo3 = false;
                 vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
                 vm.filterBankName = '';
                 vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
+                vm.currentProvince2.province = vm.playerPayment2.bankAccountProvince2;
+                vm.currentProvince3.province = vm.playerPayment3.bankAccountProvince3;
                 vm.currentCity.city = vm.playerPayment.bankAccountCity;
+                vm.currentCity2.city = vm.playerPayment2.bankAccountCity2;
+                vm.currentCity3.city = vm.playerPayment3.bankAccountCity3;
                 vm.currentDistrict.district = vm.playerPayment.bankAccountDistrict;
+                vm.currentDistrict2.district = vm.playerPayment2.bankAccountDistrict2;
+                vm.currentDistrict3.district = vm.playerPayment3.bankAccountDistrict3;
                 socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
                     if (data) {
                         // vm.provinceList = data.data.provinces.map(item => {
@@ -12226,20 +12287,54 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
 
-        vm.updatePlayerPayment = function () {
-            var sendData = $.extend({}, vm.playerPayment);
+        vm.updatePlayerPayment = function (choice) {
+            let sendData = {};
+            switch (choice) {
+                case 'bank1':
+                    sendData = $.extend({}, vm.playerPayment);
+                    sendData.bankAccountProvince = vm.currentProvince.province;
+                    sendData.bankAccountCity = vm.currentCity.city;
+                    sendData.bankAccountDistrict = vm.currentDistrict.district;
+                    console.log('send===', sendData);
+                    if (sendData.newBankAccount != sendData.encodedBankAccount) {
+                        sendData.bankAccount = sendData.newBankAccount;
+                    }
+                    delete sendData.newBankAccount;
+                    delete sendData.encodedBankAccount;
+                    break;
+                case 'bank2':
+                    sendData = $.extend({}, vm.playerPayment2);
+                    sendData.bankAccountProvince2 = vm.currentProvince2.province;
+                    sendData.bankAccountCity2 = vm.currentCity2.city;
+                    sendData.bankAccountDistrict2 = vm.currentDistrict2.district;
+                    sendData.bankName2 = vm.playerPayment2.bankName;
+                    console.log('send===', sendData);
+                    if (sendData.newBankAccount2 != sendData.encodedBankAccount2) {
+                        sendData.bankAccount2 = sendData.newBankAccount2;
+                    }
+                    delete sendData.bankName;
+                    delete sendData.newBankAccount2;
+                    delete sendData.encodedBankAccount2;
+                    break;
+                case 'bank3':
+                    sendData = $.extend({}, vm.playerPayment3);
+                    sendData.bankAccountProvince3 = vm.currentProvince3.province;
+                    sendData.bankAccountCity3 = vm.currentCity3.city;
+                    sendData.bankAccountDistrict3 = vm.currentDistrict3.district;
+                    sendData.bankName3 = vm.playerPayment3.bankName;
+                    console.log('send===', sendData);
+                    if (sendData.newBankAccount3 != sendData.encodedBankAccount3) {
+                        sendData.bankAccount3 = sendData.newBankAccount3;
+                    }
+                    delete sendData.bankName;
+                    delete sendData.newBankAccount3;
+                    delete sendData.encodedBankAccount3;
+                    break;
+            }
             sendData._id = vm.isOneSelectedPlayer()._id;
             sendData.playerName = vm.isOneSelectedPlayer().name;
             sendData.playerId = vm.isOneSelectedPlayer().playerId;
-            sendData.bankAccountProvince = vm.currentProvince.province;
-            sendData.bankAccountCity = vm.currentCity.city;
-            sendData.bankAccountDistrict = vm.currentDistrict.district;
             console.log('send', sendData);
-            if (sendData.newBankAccount != sendData.encodedBankAccount) {
-                sendData.bankAccount = sendData.newBankAccount;
-            }
-            delete sendData.newBankAccount;
-            delete sendData.encodedBankAccount;
 
             socketService.$socket($scope.AppSocket, 'createUpdatePlayerBankInfoProposal', {
                 creator: {type: "admin", name: authService.adminName, id: authService.adminId},
