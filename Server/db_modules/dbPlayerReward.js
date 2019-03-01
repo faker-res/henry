@@ -6101,6 +6101,14 @@ let dbPlayerReward = {
 
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(freeTrialQuery).sort({createTime: -1}).limit(1).lean();
 
+            if (!playerData.phoneNumber && eventData.condition.checkPhoneFreeTrialReward) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: localization.localization.translate("Player need to have phone number to apply this reward")
+                });
+            }
+
             // check reward apply limit in period
             let countInRewardInterval = dbConfig.collection_proposal.aggregate(
                 {

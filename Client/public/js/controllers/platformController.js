@@ -17222,7 +17222,7 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getCtiData = function() {
+            vm.getCtiData = function(isRetry) {
                 $('#platformFeedbackSpin').show();
 
                 vm.getCtiDataRepeatCount = vm.getCtiDataRepeatCount || 0;
@@ -17361,6 +17361,12 @@ define(['js/app'], function (myApp) {
                         vm.calleeCallOutStatus = undefined;
                     }
                     $('#platformFeedbackSpin').hide();
+                }, function (err) {
+                    if (isRetry) {
+                        socketService.showErrorMessage($translate("Fail to get CTI data twice, click search to try again"));
+                        return;
+                    }
+                    vm.getCtiData(true);
                 });
                 vm.isSingleFeedBackPageChange = false;
             };
