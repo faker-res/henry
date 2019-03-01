@@ -29,7 +29,8 @@ define(['js/app'], function (myApp) {
             TOPUPMANUAL: 1,
             TOPUPONLINE: 2,
             ALIPAY: 3,
-            WechatPay: 4
+            WechatPay: 4,
+            CommonTopUp: 6
         };
         vm.getDepositMethodbyId = {
             1: 'Online',

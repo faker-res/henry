@@ -299,6 +299,7 @@
                 "getRewardTask",
                 "requestConsumeRebate",
                 "getConsumeRebateAmount",
+                "getConsumeRebateDetail",
                 "isValidForFirstTopUpReward",
                 "createFirstTopUpRewardProposal",
                 "applyProviderReward",

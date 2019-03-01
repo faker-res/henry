@@ -3179,14 +3179,9 @@ let dbPlayerReward = {
                     delete entry.__v;
                 }
 
-                if (entry.deletedStatus) {
+                if (entry.deletedStatus && entry._id) {
 
-                    prom.push(dbConfig.collection_openPromoCodeTemplate.remove({
-                        name: entry.name,
-                        code: entry.code,
-                        type: entry.type,
-                        platformObjId: entry.platformObjId
-                    }))
+                    prom.push(dbConfig.collection_openPromoCodeTemplate.remove({_id: ObjectId(entry._id)}))
                 }
                 else {
 
