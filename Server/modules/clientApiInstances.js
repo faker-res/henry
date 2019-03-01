@@ -134,7 +134,7 @@ function createAPIClientInMode (apiName, mode) {
  * @param apiName
  * @param mode {String} Can be 'real', 'logged', 'compare' or 'mock'
  */
-function createAPIConnectionInMode (apiName, mode) {
+function createAPIConnectionInMode (apiName, mode, platformId) {
     mode = mode || defaultMode;
     if (mode === 'mocked') {
         mode = 'mock';
@@ -151,7 +151,7 @@ function createAPIConnectionInMode (apiName, mode) {
     }
 
     // Choose whether to create a real client or a mocked client, or both (for 'compare' mode).
-    const realClientProm = (mode === 'real' || mode === 'logged' || mode === 'compare') && apiSpec.real();
+    const realClientProm = (mode === 'real' || mode === 'logged' || mode === 'compare') && apiSpec.real({platformId: platformId});
     const mockedClient   = (mode === 'mock' || mode === 'compare') && mockedClientCreator.createMockedClient(apiSpec.mock, apiName);
     const gameClient = mode === 'game' && apiSpec.game();
 
