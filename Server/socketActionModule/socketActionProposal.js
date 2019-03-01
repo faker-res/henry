@@ -598,6 +598,17 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.getPaymentMonitorTotalResult, [data, data.index, data.limit], actionName, isValidData);
         },
 
+        getPaymentMonitorTotalCompletedResult: function getPaymentMonitorTotalCompletedResult(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            let time = dbUtil.getYesterdaySGTime();
+            data.startTime = data.startTime ? new Date(data.startTime) : time.startTime;
+            data.endTime = data.endTime ? new Date(data.endTime) : time.endTime;
+            data.limit = data.limit || 10;
+            data.index = data.index || 0;
+            socketUtil.emitter(self.socket, dbProposal.getPaymentMonitorTotalCompletedResult, [data, data.index, data.limit], actionName, isValidData);
+        },
+
         approveCsPendingAndChangeStatus: function approveCsPendingAndChangeStatus(data) {
             let actionName = arguments.callee.name;
             let isDataValid = Boolean(data && data.proposalObjId && data.createTime);
