@@ -6157,7 +6157,7 @@ var proposal = {
             query['data.userAgent'] = {$in: convertStringNumber(data.userAgent)};
         }
         //get specific proposal status only for monitoring
-        query['status'] = {$in: ["PrePending", "Pending", "Fail", "Rejected", "Cancel"]};
+        query['status'] = {$in: ["PrePending", "Pending", "Fail", "Rejected", "Cancel", "Undetermined", 'Expired']};
 
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
@@ -6217,6 +6217,7 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
+                console.log("LH check payment monitor 1------------, query");
                 let proposalCountProm = dbconfig.collection_proposal.find(query).count();
                 let proposalsProm = dbconfig.collection_proposal.find(query).lean().sort(sort).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
@@ -6330,7 +6331,7 @@ var proposal = {
             query['data.userAgent'] = {$in: convertStringNumber(data.userAgent)};
         }
 
-        query['status'] = {$in: ["PrePending", "Pending", "Fail", "Rejected", "Cancel"]};
+        query['status'] = {$in: ["PrePending", "Pending", "Fail", "Rejected", "Cancel", "Undetermined", 'Expired']};
 
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
@@ -6390,6 +6391,7 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
+                console.log("LH check payment completed monitor 1------------, query");
                 let proposalCountProm = dbconfig.collection_proposal.find(query).count();
                 let proposalsProm = dbconfig.collection_proposal.find(query).lean().sort(sort).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
