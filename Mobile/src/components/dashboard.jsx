@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import LineChart from './lineChart';
 import Card from './card';
+import NavBar from './navBar';
+
 import $ from 'jquery';
 
 
@@ -228,61 +230,65 @@ class Dashboard extends Component {
 
     render() {
         return (
-            <div className="col-12">
+            <div>
+                <NavBar/>
                 <br></br>
-                <h1>平台選擇</h1>
-                <hr></hr>
-                <div className="card-deck">
-                    {this.state.cardsInfo.map(c =>
-                        <Card
-                            key = {c.id}
-                            info = {c.info}
-                            chinese = {c.chinese}
-                            value = {c.value}
-                            awesomeIcon = {c.awesomeIcon}
-                        />
-                    )}
-                </div>
-
                 <br></br>
-                <h1>统计数据</h1>
-                <hr></hr>
-
-                <div className="row">
-                    {this.state.chartData.map(cd =>
-                        <LineChart
-                            data = {cd.data}
-                            title = {cd.title}
-
-                        />
-                    )}
-                </div>
+                <div className="col-12">
 
 
+                    <br></br>
+                    <h1>平台選擇</h1>
+                    <hr></hr>
+                    <div className="card-deck">
+                        {this.state.cardsInfo.map(c =>
+                            <Card
+                                key = {c.id}
+                                info = {c.info}
+                                chinese = {c.chinese}
+                                value = {c.value}
+                                awesomeIcon = {c.awesomeIcon}
+                            />
+                        )}
+                    </div>
+
+                    <br></br>
+                    <h1>统计数据</h1>
+                    <hr></hr>
+
+                    <div className="row">
+                        {this.state.chartData.map(cd =>
+                            <LineChart
+                                data = {cd.data}
+                                title = {cd.title}
+
+                            />
+                        )}
+                    </div>
 
 
-                <br></br>
-                <h1>营运数据</h1>
-                <hr></hr>
+                    <br></br>
+                    <h1>营运数据</h1>
+                    <hr></hr>
 
-                <div className="row">
-                    <div className="col-sm-9 col-md-7">
-                        <div className="card-deck">
-                            {this.state.cardsInfoTwo.map(t =>
-                                <Card
-                                    key = {t.id}
-                                    info = {t.info}
-                                    chinese = {t.chinese}
-                                    value = {t.value}
-                                    awesomeIcon = {t.awesomeIcon}
-                                />
-                            )}
+                    <div className="row">
+                        <div className="col-sm-9 col-md-7">
+                            <div className="card-deck">
+                                {this.state.cardsInfoTwo.map(t =>
+                                    <Card
+                                        key = {t.id}
+                                        info = {t.info}
+                                        chinese = {t.chinese}
+                                        value = {t.value}
+                                        awesomeIcon = {t.awesomeIcon}
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-        );
+                 );
     }
 }
 

@@ -3829,7 +3829,7 @@ define(['js/app'], function (myApp) {
                 merchantNo: vm.paymentMonitorTotalQuery.merchantNo,
                 startTime: vm.paymentMonitorTotalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorTotalQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformList: vm.paymentMonitorTotalQuery.platformList,
+                platformList: vm.paymentMonitorTotalQuery.platformList || vm.platformByAdminId && vm.platformByAdminId.length ?  vm.platformByAdminId.map(p => p._id) : "",
                 index: vm.paymentMonitorTotalQuery.index,
                 limit: vm.paymentMonitorTotalQuery.limit || 10,
                 sortCol: vm.paymentMonitorTotalQuery.sortCol,
@@ -3903,6 +3903,14 @@ define(['js/app'], function (myApp) {
                                         item.lockedButtonDisplay = "商户";
                                     } else if (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
                                         item.lockedButtonDisplay = "玩家";
+                                    }
+
+                                    if(typeof item.data.userAgent == "number"){
+                                        item.userAgent$ = item.data.userAgent;
+                                    }else if(typeof item.data.userAgent == "object"){
+                                        item.userAgent$ = utilService.retrieveAgent(item.data.userAgent);
+                                    }else{
+                                        item.userAgent$ = 1;
                                     }
 
                                     return item;
@@ -4295,7 +4303,7 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('DEVICE'), data: "data.userAgent",
+                        title: $translate('DEVICE'), data: "userAgent$",
                         render: function (data, type, row) {
                             var text = $translate(data ? $scope.userAgentType[data] : "");
                             return "<div>" + text + "</div>";
