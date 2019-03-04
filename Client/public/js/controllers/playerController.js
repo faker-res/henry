@@ -7090,42 +7090,143 @@ define(['js/app'], function (myApp) {
                     });
 
                     vm.processDataTableinModal('#modalPlayerInfo', '#similarPlayersTable');
-                    vm.showProvinceStr = '';
-                    vm.showCityStr = '';
-                    vm.showDistrictStr = '';
-                    $scope.getProvinceStr(vm.selectedSinglePlayer.bankAccountProvince).then(data => {
-                        if (data.data.province) {
-                            vm.showProvinceStr = data.data.province.name;
-                            $scope.getCityStr(vm.selectedSinglePlayer.bankAccountCity).then(data => {
-                                if (data.data.city) {
-                                    vm.showCityStr = data.data.city.name;
-                                    $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
-                                        vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
-                                        $scope.safeApply();
-                                    }, err => {
-                                        vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
-                                        $scope.safeApply();
-                                    });
-                                }
-                                else {
-                                    vm.showCityStr = vm.selectedSinglePlayer.bankAccountCity;
-                                }
-                                vm.showCityStr = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.bankAccountCity;
-                                $scope.safeApply();
-                            }, err => {
-                                vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountCity || $translate("Unknown");
-                                $scope.safeApply();
-                            });
-                        }
-                        else {
-                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince;
-                        }
-                        $scope.safeApply();
-                    }, err => {
-                        vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince || $translate("Unknown");
-                        $scope.safeApply();
-                    });
 
+                    if (!authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                        vm.showProvinceStr = '';
+                        vm.showCityStr = '';
+                        vm.showDistrictStr = '';
+                        $scope.getProvinceStr(vm.selectedSinglePlayer.bankAccountProvince).then(data => {
+                            if (data.data.province) {
+                                vm.showProvinceStr = data.data.province.name;
+                                $scope.getCityStr(vm.selectedSinglePlayer.bankAccountCity).then(data => {
+                                    if (data.data.city) {
+                                        vm.showCityStr = data.data.city.name;
+                                        $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
+                                            vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
+                                            $scope.safeApply();
+                                        }, err => {
+                                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
+                                            $scope.safeApply();
+                                        });
+                                    }
+                                    else {
+                                        vm.showCityStr = vm.selectedSinglePlayer.bankAccountCity;
+                                    }
+                                    vm.showCityStr = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.bankAccountCity;
+                                    $scope.safeApply();
+                                }, err => {
+                                    vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountCity || $translate("Unknown");
+                                    $scope.safeApply();
+                                });
+                            }
+                            else {
+                                vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince;
+                            }
+                            $scope.safeApply();
+                        }, err => {
+                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince || $translate("Unknown");
+                            $scope.safeApply();
+                        });
+                    }
+
+                    if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                        vm.showProvinceStr = '';
+                        vm.showProvinceStr2 = '';
+                        vm.showProvinceStr3 = '';
+                        vm.showCityStr = '';
+                        vm.showCityStr2 = '';
+                        vm.showCityStr3 = '';
+                        vm.showDistrictStr = '';
+                        vm.showDistrictStr2 = '';
+                        vm.showDistrictStr3 = '';
+
+                        if (vm.allProvinceList && vm.allProvinceList.length > 0) {
+                            if (vm.selectedSinglePlayer.bankAccountProvince) {
+                                vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince || $translate("Unknown");
+                                vm.allProvinceList.forEach(province => {
+                                    if (province.id.toString() === vm.selectedSinglePlayer.bankAccountProvince.toString()) {
+                                        vm.showProvinceStr = province.name;
+                                    }
+                                });
+                                $scope.getCityStr(vm.selectedSinglePlayer.bankAccountCity).then(data => {
+                                    if (data.data.city) {
+                                        vm.showCityStr = data.data.city.name;
+                                        $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
+                                            vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
+                                            $scope.safeApply();
+                                        }, err => {
+                                            vm.showDistrictStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
+                                            $scope.safeApply();
+                                        });
+                                    }
+                                    else {
+                                        vm.showCityStr = vm.selectedSinglePlayer.bankAccountCity;
+                                    }
+                                    vm.showCityStr = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.bankAccountCity;
+                                    $scope.safeApply();
+                                }, err => {
+                                    vm.showCityStr = vm.selectedSinglePlayer.bankAccountCity || $translate("Unknown");
+                                    $scope.safeApply();
+                                });
+                            }
+                            if (vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2) {
+                                vm.showProvinceStr2 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2 || $translate("Unknown");
+                                vm.allProvinceList.forEach(province => {
+                                    if (province.id.toString() === vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2.toString()) {
+                                        vm.showProvinceStr2 = province.name;
+                                    }
+                                });
+                                $scope.getCityStr(vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountCity2).then(data => {
+                                    if (data.data.city) {
+                                        vm.showCityStr2 = data.data.city.name;
+                                        $scope.getDistrictStr(vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountDistrict2).then(data => {
+                                            vm.showDistrictStr2 = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountDistrict2;
+                                            $scope.safeApply();
+                                        }, err => {
+                                            vm.showDistrictStr2 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountDistrict2 || $translate("Unknown");
+                                            $scope.safeApply();
+                                        });
+                                    }
+                                    else {
+                                        vm.showCityStr2 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountCity2;
+                                    }
+                                    vm.showCityStr2 = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountCity2;
+                                    $scope.safeApply();
+                                }, err => {
+                                    vm.showCityStr2 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountCity2 || $translate("Unknown");
+                                    $scope.safeApply();
+                                });
+                            }
+                            if (vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3) {
+                                vm.showProvinceStr3 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3 || $translate("Unknown");
+                                vm.allProvinceList.forEach(province => {
+                                    if (province.id.toString() === vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3.toString()) {
+                                        vm.showProvinceStr3 = province.name;
+                                    }
+                                });
+                                $scope.getCityStr(vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountCity3).then(data => {
+                                    if (data.data.city) {
+                                        vm.showCityStr3 = data.data.city.name;
+                                        $scope.getDistrictStr(vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountDistrict3).then(data => {
+                                            vm.showDistrictStr3 = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountDistrict3;
+                                            $scope.safeApply();
+                                        }, err => {
+                                            vm.showDistrictStr3 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountDistrict3 || $translate("Unknown");
+                                            $scope.safeApply();
+                                        });
+                                    }
+                                    else {
+                                        vm.showCityStr3 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountCity3;
+                                    }
+                                    vm.showCityStr3 = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountCity3;
+                                    $scope.safeApply();
+                                }, err => {
+                                    vm.showCityStr3 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountCity3 || $translate("Unknown");
+                                    $scope.safeApply();
+                                });
+                            }
+                        }
+                    }
                 }
             });
             $scope.safeApply();
