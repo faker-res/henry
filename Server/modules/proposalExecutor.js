@@ -2141,6 +2141,12 @@ var proposalExecutor = {
                                            errorMessage: "Cannot request bonus"
                                        });
                                    }
+                               }, (error) => {
+                                   console.log('error xxxx', error);
+                                   return Q.reject({
+                                       name: "DataError",
+                                       errorMessage: "Cannot request bonus"
+                                   });
                                })
                        } else {
                            return pmsAPI.bonus_applyBonus(message).then(
