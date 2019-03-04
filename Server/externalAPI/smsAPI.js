@@ -23,9 +23,6 @@ function callSMSAPI(service, functionName, data) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
-    console.log('service===', service);
-    console.log('functionName===', functionName);
-    console.log('data===', data);
 
     let bOpen = false;
     var deferred = Q.defer();

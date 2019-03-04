@@ -2044,9 +2044,9 @@ function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedb
                 if(tsPhone && tsPhone.phoneNumber) {
                     let prom;
                     if (isFeedbackPhone) {
-                        prom = dbconfig.collection_feedbackPhoneTrade.findOne({phoneNumber: tsPhone.phoneNumber}, {phoneNumber: 1}).lean()
+                        prom = dbconfig.collection_feedbackPhoneTrade.findOne({phoneNumber: tsPhone.phoneNumber, platform: platformObjId}, {phoneNumber: 1}).lean();
                     } else {
-                        prom = dbconfig.collection_tsPhone.findOne({phoneNumber: tsPhone.phoneNumber}, {phoneNumber: 1}).lean()
+                        prom = dbconfig.collection_tsPhone.findOne({phoneNumber: tsPhone.phoneNumber, platform: platformObjId}, {phoneNumber: 1}).lean();
                     }
                     prom = prom.then(
                         isExist => {
