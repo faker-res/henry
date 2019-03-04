@@ -1017,7 +1017,8 @@ var proposal = {
                         // Some extra data
                         addDetailToProp(updObj.data, 'remark', callbackData.remark);
                         addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
-                        addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
+                        addDetailToProp(updObj.data, 'merchantName', callbackData.merchantName);
+                        addDetailToProp(updObj.data, 'merchantUseName', callbackData.merchantTypeName);
                         addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
                         addDetailToProp(updObj.data, 'bankCardType', callbackData.bankTypeId);
                         addDetailToProp(updObj.data, 'bankTypeId', callbackData.bankTypeId);
@@ -6176,6 +6177,9 @@ var proposal = {
             case constPlayerTopUpType.QUICKPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_QUICKPAY_TOP_UP;
                 break;
+            case constPlayerTopUpType.COMMON.toString():
+                mainTopUpType = constProposalType.PLAYER_COMMON_TOP_UP;
+                break;
             default:
                 mainTopUpType = {
                     $in: [
@@ -6183,7 +6187,8 @@ var proposal = {
                         constProposalType.PLAYER_ALIPAY_TOP_UP,
                         constProposalType.PLAYER_MANUAL_TOP_UP,
                         constProposalType.PLAYER_WECHAT_TOP_UP,
-                        constProposalType.PLAYER_QUICKPAY_TOP_UP
+                        constProposalType.PLAYER_QUICKPAY_TOP_UP,
+                        constProposalType.PLAYER_COMMON_TOP_UP,
                     ]
                 };
         }
@@ -6217,7 +6222,7 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                console.log("LH check payment monitor 1------------, query");
+                console.log("LH check payment monitor 1------------", query);
                 let proposalCountProm = dbconfig.collection_proposal.find(query).count();
                 let proposalsProm = dbconfig.collection_proposal.find(query).lean().sort(sort).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
@@ -6391,7 +6396,7 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                console.log("LH check payment completed monitor 1------------, query");
+                console.log("LH check payment completed monitor 1------------", query);
                 let proposalCountProm = dbconfig.collection_proposal.find(query).count();
                 let proposalsProm = dbconfig.collection_proposal.find(query).lean().sort(sort).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})

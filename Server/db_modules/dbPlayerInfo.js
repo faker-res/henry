@@ -19195,6 +19195,7 @@ let dbPlayerInfo = {
 
                     let onlineTopUpDetailByMerchant = data && data[7] ? data[7] : [];
                     let totalOnlineTopUpFee = 0;
+
                     if (onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 && merchantList && merchantList.length > 0) {
                         for (let i = 0, len = onlineTopUpDetailByMerchant.length; i < len; i++) {
                             let onlineTopUpDetail = onlineTopUpDetailByMerchant[i];

@@ -985,6 +985,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     }
 
     $scope.getUsableChannelList = function (callback) {
+        $scope.usableChannelList = $scope.usableChannelList && $scope.usableChannelList.length > 0 ? $scope.usableChannelList : [4]; // Bubles said default to channel 4 if get channel connection error
         socketService.$socket($scope.AppSocket, 'getUsableChannelList', {platformId: $scope.curPlatformId}, onSuccess, onFail, true);
 
         function onSuccess(data) {

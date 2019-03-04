@@ -1783,7 +1783,12 @@ let dbTeleSales = {
         );
         let distributedPhone = dbconfig.collection_tsDistributedPhone.find({tsPhone: tsPhoneObjId}).lean();
         return Promise.all([tsPhoneProm, distributedPhone]);
-    }
+    },
+
+    debugTsPhoneNumber: function (phoneNumber) {
+        let phoneNumberQuery = [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber), phoneNumber];
+        return dbconfig.collection_tsPhone.find({phoneNumber: {$in: phoneNumberQuery}}).lean();
+    },
 
 };
 

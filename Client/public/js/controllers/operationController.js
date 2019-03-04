@@ -2212,14 +2212,14 @@ define(['js/app'], function (myApp) {
                     provinceField = 'RECEIVE_BANK_ACC_PROVINCE'
                 }
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay[provinceField]}, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
+                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay[provinceField];
                     vm.selectedProposalDetailForDisplay[provinceField] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountProvince']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince']}, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
+                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay['bankAccountProvince'];
                     vm.selectedProposalDetailForDisplay['bankAccountProvince'] = text;
                     $scope.$evalAsync();
                 });
@@ -2227,7 +2227,7 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedProposalDetailForDisplay['atmProvince']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['atmProvince']}, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
+                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay['atmProvince'];
                     vm.selectedProposalDetailForDisplay['atmProvince'] = text;
                     $scope.$evalAsync();
                 });
@@ -2236,7 +2236,7 @@ define(['js/app'], function (myApp) {
             if (vm.selectedProposalDetailForDisplay['atmCity']) {
 
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['atmCity']}, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
+                    var text = data.data.city ? data.data.city.name : vm.selectedProposalDetailForDisplay['atmCity'];
                     vm.selectedProposalDetailForDisplay['atmCity'] = text;
                     $scope.$evalAsync();
                 });
