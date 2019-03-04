@@ -3179,14 +3179,9 @@ let dbPlayerReward = {
                     delete entry.__v;
                 }
 
-                if (entry.deletedStatus) {
+                if (entry.deletedStatus && entry._id) {
 
-                    prom.push(dbConfig.collection_openPromoCodeTemplate.remove({
-                        name: entry.name,
-                        code: entry.code,
-                        type: entry.type,
-                        platformObjId: entry.platformObjId
-                    }))
+                    prom.push(dbConfig.collection_openPromoCodeTemplate.remove({_id: ObjectId(entry._id)}))
                 }
                 else {
 
@@ -6105,6 +6100,14 @@ let dbPlayerReward = {
             }
 
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(freeTrialQuery).sort({createTime: -1}).limit(1).lean();
+
+            if (!playerData.phoneNumber && eventData.condition.checkPhoneFreeTrialReward) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: localization.localization.translate("Player need to have phone number to apply this reward")
+                });
+            }
 
             // check reward apply limit in period
             let countInRewardInterval = dbConfig.collection_proposal.aggregate(

@@ -6744,7 +6744,6 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 transferAmount += parseFloat(playerData.validCredit.toFixed(2));
-
                 if (playerData.platform.useProviderGroup && rewardTaskGroupData && rewardTaskGroupData.rewardAmt) {
                     transferAmount += rewardTaskGroupData.rewardAmt;
                 }
@@ -6780,15 +6779,16 @@ let dbPlayerInfo = {
                 dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
                     "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
+
                 if (playerData.platform.useProviderGroup) {
                     // Platform supporting provider group
                     if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
                         // if use eBet Wallet
-                        console.log("MT --checking --transfer to ebet wallets");
+                        console.log("MT --checking --transfer to ebet wallets", providerData);
                         return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     } else {
-                        console.log("MT --checking --transfer to provider");
+                        console.log("MT --checking --transfer to provider", providerData, providerId);
                         return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     }
@@ -12908,7 +12908,9 @@ let dbPlayerInfo = {
                                         }
                                     ).then(
                                         data => {
-                                            return transferCreditToProvider(data);
+                                            console.log('MT --checking after transfer credit', data);
+                                            let sumData = sumProviderCredit(data);
+                                            return transferCreditToProvider(sumData);
                                         },
                                         err => {
                                             if(isApplyBonusDoubledReward){
@@ -13007,7 +13009,6 @@ let dbPlayerInfo = {
 
         function transferCreditToProvider(transferAmount) {
             bTransferIn = Boolean(transferAmount && ((parseFloat(transferAmount.playerCredit) + parseFloat(transferAmount.rewardCredit)) >= 1));
-            console.log("MT --checking gameData", gameData);
             if (transferAmount && gameData && gameData.provider) {
                 //transfer in to current provider
                 if (bTransferIn) {
@@ -13029,6 +13030,20 @@ let dbPlayerInfo = {
             } else {
                 return Promise.reject({name: "DataError", message: "Cannot find game"});
             }
+        }
+
+        function sumProviderCredit(data){
+            let result = data;
+            if(Array.isArray(data)){
+                result = { playerCredit: 0,  rewardCredit: 0 };
+                if(Array.isArray(data) && data.length && data.length > 0){
+                    data.forEach(item=>{
+                        result.playerCredit += parseFloat(item.playerCredit);
+                        result.rewardCredit += parseFloat(item.rewardCredit);
+                    })
+                }
+            }
+            return result;
         }
     },
 
@@ -14884,7 +14899,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerCheckInBonus: function (userAgent, playerId) {
+    getPlayerCheckInBonus: function (userAgent, playerId, code) {
         let platformObjId;
         let playersQuery = {
             playerId: playerId
@@ -14904,6 +14919,9 @@ let dbPlayerInfo = {
                         platform: platformObjId,
                         type: rewardType._id
                     };
+                    if(code) {
+                        rewardEventQuery.code = code;
+                    }
                     return dbconfig.collection_rewardEvent.find(rewardEventQuery).lean().sort({validStartTime: -1});
                 } else {
                     return Q.reject({
@@ -18561,6 +18579,7 @@ let dbPlayerInfo = {
             merchantData => {
                 console.log('getConsumptionDetailOfPlayers - 3');
                 merchantList = merchantData;
+                console.log('JY merchantList - 3', merchantList);
 
                 return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
                     proposalTypeData => {
@@ -19176,6 +19195,7 @@ let dbPlayerInfo = {
 
                     let onlineTopUpDetailByMerchant = data && data[7] ? data[7] : [];
                     let totalOnlineTopUpFee = 0;
+                    console.log('JY merchantList xxx::', merchantList);
                     if (onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 && merchantList && merchantList.length > 0) {
                         for (let i = 0, len = onlineTopUpDetailByMerchant.length; i < len; i++) {
                             let onlineTopUpDetail = onlineTopUpDetailByMerchant[i];

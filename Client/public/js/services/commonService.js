@@ -592,6 +592,133 @@ define([], () => {
             return format.test(string);
         };
 
+        this.checkProgressOfRewardTasksWithinRTG = (result, dynRewardTaskGroupId, rtgBonusAmtObj, isLockedProviderGroup) => {
+            let rewardTaskProposalData = result;
+            console.log("rewardTaskProposalData", result);
+
+            result.forEach((item, index) => {
+                item.proposalId = item.proposalId || item.data.proposalId;
+                // item['createTime$'] = vm.dateReformat(item.data.createTime$);
+                item.useConsumption = item.data.useConsumption;
+                item.topUpProposal = item.data.topUpProposalId ? item.data.topUpProposalId : item.data.topUpProposal;
+                item.topUpAmount = item.data.topUpAmount;
+                item.bonusAmount = item.data.rewardAmount;
+                item.applyAmount = item.data.actualAmount || item.data.actualAmountReceived || item.data.applyAmount || item.data.amount;
+                item.requiredUnlockAmount = item.data.spendingAmount;
+                item.requiredBonusAmount = item.data.requiredBonusAmount;
+                // item['provider$'] = $translate(item.data.provider$);
+                item.rewardType = item.data.rewardType;
+
+                item.requiredUnlockAmount$ = item.requiredUnlockAmount;
+                // item.curConsumption$ = item.curConsumption;
+                if (isLockedProviderGroup) {
+                    let spendingAmt = calSpendingAmt(dynRewardTaskGroupId, rewardTaskProposalData, index);
+                    // let spendingAmt = vm.calSpendingAmt(index);
+
+                    item.curConsumption$ = spendingAmt.currentAmt;
+                    item.maxConsumption$ = spendingAmt.currentMax;
+                } else {
+                    item.curConsumption$ = item.requiredBonusAmount;
+                    item.maxConsumption$ = item.requiredUnlockAmount;
+                }
+                item.bonusAmount$ = item.data.bonusAmount;
+                item.requiredBonusAmount$ = item.requiredBonusAmount;
+                item.currentAmount$ = item.data.currentAmount;
+
+                item.availableAmt$ = item.bonusAmount ? item.bonusAmount : (item.applyAmount || 0);
+                item.archivedAmt$ = 0;
+
+                // exclude the proposal to be shown in the progress bar if the proposal is dynamicReward, type c promocode or limitedOffer
+                if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
+                    item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
+                }
+
+                let providerGroup = "undefined"; // this is the key to access vm.rtgBonusAmt for rewards/top ups that are not binding with providerGroup
+                if (item && item.data && item.data.providerGroup) {
+
+                    // extra checking on the type as the promocode will generate array of providerGroup
+                    if (typeof item.data.providerGroup == 'object') {
+
+                        if (item.data.providerGroup.length) {
+                            providerGroup = item.data.providerGroup[0];
+                        } else {
+                            providerGroup = "undefined";
+                        }
+                    } else {
+                        providerGroup = item.data.providerGroup;
+                    }
+                }
+                // let providerGroup = item && item.data && item.data.providerGroup ? (item.data.providerGroup.length == 0 ? 'undefined' : ):
+                if (rtgBonusAmtObj[providerGroup] <= -(item.availableAmt$)) {
+                    rtgBonusAmtObj[providerGroup] -= -(item.availableAmt$);
+                    item.archivedAmt$ = item.availableAmt$
+                } else if (rtgBonusAmtObj[providerGroup] != 0) {
+                    if (providerGroup === "undefined") {
+                        let archivedAmtEmpty = rtgBonusAmtObj["undefined"] ? rtgBonusAmtObj["undefined"] : 0;
+                        item.archivedAmt$ = -archivedAmtEmpty;
+                        rtgBonusAmtObj["undefined"] = 0;
+
+                    } else {
+                        item.archivedAmt$ = -rtgBonusAmtObj[providerGroup];
+                        rtgBonusAmtObj[providerGroup] = 0;
+                        item.archivedAmt$ = item.archivedAmt$ ? item.archivedAmt$ : 0;
+                    }
+                }
+                item.isArchived =
+                    item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
+
+
+            });
+
+            return result || [];
+
+            function calSpendingAmt(dynRewardTaskGroupId, rewardTaskProposalData, rowId) {
+                let rewardTaskGroup = dynRewardTaskGroupId[0] ? dynRewardTaskGroupId[0] : null;
+
+                if (!rewardTaskGroup) {
+                    return {'incCurConsumption': 0, 'currentAmt': 0, 'currentMax': 0}
+                } else {
+                    let spendingAmt = 0;
+
+                    //calculate the value between this rowId
+                    let currentMax = 0;
+                    let AmtNow = 0;
+                    let curConsumption = rewardTaskGroup.curConsumption ? rewardTaskGroup.curConsumption : 0;
+                    for (let i = 0; i <= rowId; i++) {
+                        if (rewardTaskProposalData[i]) {
+                            let proposalSpendingAmt =
+                                rewardTaskProposalData[i].data.spendingAmount
+                                || rewardTaskProposalData[i].data.requiredUnlockAmount
+                                || rewardTaskProposalData[i].data.actualAmountReceived
+                                || rewardTaskProposalData[i].data.amount
+                                || 0;
+
+                            let forbidXIMAAmt = 0;
+                            let spendingAmount = parseFloat(proposalSpendingAmt);
+                            let rewardTaskGroup = dynRewardTaskGroupId[0] ? dynRewardTaskGroupId[0] : null;
+                            if (rewardTaskGroup) {
+                                forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt ? rewardTaskGroup.forbidXIMAAmt : 0;
+                            }
+                            currentMax = parseFloat(proposalSpendingAmt);
+                            spendingAmt += spendingAmount;
+                        }
+                    }
+                    let incCurConsumption = curConsumption - spendingAmt;
+
+                    if (incCurConsumption >= 0) {
+                        AmtNow = currentMax;
+                    } else {
+                        AmtNow = currentMax + incCurConsumption;
+                        if (AmtNow <= 0) {
+                            AmtNow = 0;
+                        }
+                    }
+
+                    return {'incCurConsumption': incCurConsumption, 'currentAmt': AmtNow, 'currentMax': currentMax}
+                }
+            }
+        };
+
         this.setFixedPropDetail = ($scope, $translate, $noRoundTwoDecimalPlaces, vm, $fixTwoDecimalStr) => {
             let proposalDetail = vm.selectedProposal.data || {};
 

@@ -799,7 +799,7 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {String} playerId
      * @param eventCode
      */
-    getPlayerConsumptionReturn: function (playerId, eventCode) {
+    getPlayerConsumptionReturn: function (playerId, eventCode, isShowProviderId) {
         let platformData = null;
         let playerData = null;
         let eventObj = null;
@@ -833,7 +833,11 @@ var dbPlayerConsumptionWeekSummary = {
                         eventObj = eventsData[0];
                         var proms = [];
                         for (let eventData of eventsData) {
-                            proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id, false, true));
+                            if (isShowProviderId) {
+                                proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id, false, true, true, platformData));
+                            } else {
+                                proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id, false, true));
+                            }
                         }
                         return Q.all(proms);
                     }
@@ -850,23 +854,47 @@ var dbPlayerConsumptionWeekSummary = {
                 }
             ).then(
                 function (data) {
-                    var res = {totalAmount: 0, totalConsumptionAmount: 0, event: eventObj};
-                    for (let amounts of data) {
-                        Object.keys(amounts).forEach(
-                            type => {
-                                if (res[type]) {
-                                    if (res[type].returnAmount) {
-                                        res[type].returnAmount += amounts[type].returnAmount;
-                                    }
-                                    else {
-                                        res[type] += amounts[type];
-                                    }
-                                }
-                                else {
-                                    res[type] = amounts[type];
+                    var res = {};
+                    if (isShowProviderId) {
+                        // this mode will only have 1 event, if problem occurs please check total event
+                        res = {
+                            totalAmount: 0,
+                            totalConsumptionAmount: 0,
+                            event: eventObj,
+                            list: []
+                        };
+                        let consumeData = data && data[0] || null;
+                        if (consumeData) {
+                            res.totalAmount = consumeData.totalAmount;
+                            res.totalConsumptionAmount = consumeData.totalConsumptionAmount;
+                            res.startTime = consumeData.settleTime && consumeData.settleTime.startTime;
+                            res.endTime = consumeData.settleTime && consumeData.settleTime.endTime;
+
+                            if (consumeData.gameType) {
+                                for (let gameType in consumeData.gameType) {
+                                    res.list.push(consumeData.gameType[gameType]);
                                 }
                             }
-                        )
+                        }
+                    } else {
+                        res = {totalAmount: 0, totalConsumptionAmount: 0, event: eventObj};
+                        for (let amounts of data) {
+                            Object.keys(amounts).forEach(
+                                type => {
+                                    if (res[type]) {
+                                        if (res[type].hasOwnProperty("returnAmount")) {
+                                            res[type].returnAmount += amounts[type].returnAmount;
+                                        }
+                                        else {
+                                            res[type] += amounts[type];
+                                        }
+                                    }
+                                    else {
+                                        res[type] = amounts[type];
+                                    }
+                                }
+                            )
+                        }
                     }
                     return res;
                 }
@@ -897,8 +925,10 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {ObjectId} playerId
      * @param {Boolean} bDetail, if contain detailed player info
      * @param bRequest - Is user triggered early settlement
+     * @param isShowProviderId - for getConsumeRebateAmount API only
+     * @param platformObj - for getConsumeRebateAmount API only
      */
-    getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail, bRequest) {
+    getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail, bRequest, isShowProviderId, platformObj) {
         let settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         if (bRequest) {
             if(event.settlementPeriod == constSettlementPeriod.DAILY){
@@ -919,6 +949,17 @@ var dbPlayerConsumptionWeekSummary = {
         return dbconfig.collection_players.findById(playerId).populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
             playerData => {
                 // Get player consumption records
+                let recPromGroup = {
+                    $group: {
+                        _id: "$gameType",
+                        validAmount: {$sum: "$validAmount"}
+                    }
+                }
+
+                if (isShowProviderId) {
+                    recPromGroup.$group.providerId = {$addToSet: "$providerId"}
+                }
+
                 let recProm = dbconfig.collection_playerConsumptionRecord.aggregate(
                     {
                         $match: {
@@ -936,13 +977,25 @@ var dbPlayerConsumptionWeekSummary = {
                             ]
                         }
                     },
-                    {
-                        $group: {
-                            _id: "$gameType",
-                            validAmount: {$sum: "$validAmount"}
-                        }
-                    }
+                    recPromGroup
                 );
+
+                if (isShowProviderId) {
+                    recProm = recProm.then(
+                        recData => {
+                            if (recData && recData.length) {
+                                return dbconfig.collection_gameProvider.populate(recData, {
+                                    path: 'providerId',
+                                    model: dbconfig.collection_gameProvider,
+                                    select: "providerId name"
+                                })
+
+                            } else {
+                                return recData;
+                            }
+                        }
+                    )
+                }
 
                 // Get player consumption summary
                 let summaryProm = dbconfig.collection_playerConsumptionSummary.find(
@@ -965,6 +1018,9 @@ var dbPlayerConsumptionWeekSummary = {
 
                 let pastProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ);
                 let gameTypesProm = dbGameType.getAllGameTypes();
+                if (isShowProviderId) {
+                    gameTypesProm = dbGameType.getAllGameTypesName();
+                }
 
                 return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm, gameTypesProm]);
             }
@@ -1007,6 +1063,13 @@ var dbPlayerConsumptionWeekSummary = {
                     let res = {};
                     res.settleTime = settleTime;
                     res.totalConsumptionAmount = 0;
+                    let selectedGameTypeObj;
+                    if (isShowProviderId) { // different obj structure
+                        res.gameType = {};
+                        selectedGameTypeObj = res.gameType;
+                    } else {
+                        selectedGameTypeObj = res;
+                    }
 
                     if (recSumm && recSumm.length) {
                         recSumm.forEach(el => {
@@ -1062,19 +1125,45 @@ var dbPlayerConsumptionWeekSummary = {
 
                                 returnAmount += freeConsumption * ratio;
                                 res.totalConsumptionAmount += freeConsumption;
-                                res[gameType] = {
+                                selectedGameTypeObj[gameType] = {
                                     consumptionAmount: freeConsumption,
                                     returnAmount: freeConsumption * ratio,
                                     nonXIMAAmt: nonXIMAAmt,
                                     ratio: ratio
                                 };
+
                             } else {
-                                res[gameType] = {
+                                selectedGameTypeObj[gameType] = {
                                     consumptionAmount: 0,
                                     returnAmount: 0,
                                     nonXIMAAmt: 0,
                                     ratio: ratio
                                 };
+
+                            }
+                            if (isShowProviderId) {
+                                if (el.providerId && el.providerId.length) {
+                                    let providerListArr = [];
+                                    el.providerId.forEach(provider => {
+                                        let tempObj = {
+                                            providerId: provider.providerId,
+                                            nickName: provider.name
+                                        }
+
+                                        let providerIdString = String(provider._id);
+
+                                        if (providerIdString && platformObj && platformObj.gameProviderInfo
+                                        && platformObj.gameProviderInfo[providerIdString] && platformObj.gameProviderInfo[providerIdString].localNickName) {
+                                            tempObj.nickName = platformObj.gameProviderInfo[providerIdString].localNickName;
+                                        }
+
+                                        providerListArr.push(tempObj)
+                                    })
+                                    selectedGameTypeObj[gameType].providerList = providerListArr;
+                                } else {
+                                    selectedGameTypeObj[gameType].providerList = [];
+                                }
+                                selectedGameTypeObj[gameType].gameType =  allGameTypes[gameType] || String(gameType);
                             }
                         });
                     }
@@ -1095,13 +1184,18 @@ var dbPlayerConsumptionWeekSummary = {
                             ratio = 0;
                         }
 
-                        if (!res[gameType] && ratio >= 0) {
-                            res[gameType] = {
+                        if (!selectedGameTypeObj[gameType] && ratio >= 0) {
+                            selectedGameTypeObj[gameType] = {
                                 consumptionAmount: 0,
                                 returnAmount: 0,
                                 nonXIMAAmt: 0,
                                 ratio: ratio
                             };
+
+                            if (isShowProviderId) {
+                                selectedGameTypeObj[gameType].providerList = [];
+                                selectedGameTypeObj[gameType].gameType = allGameTypes[gameType] || String(gameType);
+                            }
                         }
                     });
 
