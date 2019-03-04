@@ -6176,6 +6176,9 @@ var proposal = {
             case constPlayerTopUpType.QUICKPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_QUICKPAY_TOP_UP;
                 break;
+            case constPlayerTopUpType.COMMON.toString():
+                mainTopUpType = constProposalType.PLAYER_COMMON_TOP_UP;
+                break;
             default:
                 mainTopUpType = {
                     $in: [
@@ -6183,7 +6186,8 @@ var proposal = {
                         constProposalType.PLAYER_ALIPAY_TOP_UP,
                         constProposalType.PLAYER_MANUAL_TOP_UP,
                         constProposalType.PLAYER_WECHAT_TOP_UP,
-                        constProposalType.PLAYER_QUICKPAY_TOP_UP
+                        constProposalType.PLAYER_QUICKPAY_TOP_UP,
+                        constProposalType.PLAYER_COMMON_TOP_UP,
                     ]
                 };
         }
