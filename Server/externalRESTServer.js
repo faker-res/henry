@@ -41,22 +41,25 @@ app.use(function(req, res, next) {
         return;
     }
     if (token) {
+        console.log("********************** token", token);
         // decode and verifies token
         jwt.verify(token, jwtSecret, function (err, decoded) {
+            console.log("********************** err", err);
+            console.log("********************** decoded", decoded);
             if (err) {
-                // return http 403 forbidden if token verification failed
-                return res.status(403).send({
+                // return false if token verification failed
+                return res.json({
                     success: false,
                     message: 'Failed to authenticate token.'
                 });
             } else {
-                req.decoded = decoded;
+                req.decoded_token = decoded;
                 next();
             }
         });
     } else {
-        // return http 403 forbidden if no token is provided
-        return res.status(403).send({
+        // return false if no token is provided
+        return res.json({
             success: false,
             message: 'No token provided.'
         });
