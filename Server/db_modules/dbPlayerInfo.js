@@ -18579,7 +18579,6 @@ let dbPlayerInfo = {
             merchantData => {
                 console.log('getConsumptionDetailOfPlayers - 3');
                 merchantList = merchantData;
-                console.log('JY merchantList - 3', merchantList);
 
                 return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
                     proposalTypeData => {
@@ -19195,7 +19194,7 @@ let dbPlayerInfo = {
 
                     let onlineTopUpDetailByMerchant = data && data[7] ? data[7] : [];
                     let totalOnlineTopUpFee = 0;
-                    console.log('JY merchantList xxx::', merchantList);
+
                     if (onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 && merchantList && merchantList.length > 0) {
                         for (let i = 0, len = onlineTopUpDetailByMerchant.length; i < len; i++) {
                             let onlineTopUpDetail = onlineTopUpDetailByMerchant[i];
