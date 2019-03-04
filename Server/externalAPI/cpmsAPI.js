@@ -20,6 +20,11 @@ function callCPMSAPI(service, functionName, data, fileData) {
         return Q.reject(new Error("Invalid data!"));
     }
 
+    let platformId = null;
+    if (data.hasOwnProperty('platformId')){
+        platformId = data.platformId;
+    }
+
     let bOpen = false;
     var deferred = Q.defer();
     //if can't connect in 30 seconds, treat as timeout
@@ -32,7 +37,7 @@ function callCPMSAPI(service, functionName, data, fileData) {
             });
         }
     }, 60 * 1000);
-    clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+    clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI", null, platformId).then(
         wsClient => {
             bOpen = true;
             // var reqTime = new Date().getTime();
@@ -76,6 +81,12 @@ function callCPMSAPIWithAutoMaintenance(service, functionName, data, fileData) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
+
+    let platformId = null;
+    if (data.hasOwnProperty('platformId')){
+        platformId = data.platformId;
+    }
+
     //check if provider is disable at FPMS
     let providerObjId, platformObjId;
     return dbconfig.collection_gameProvider.findOne({providerId: data.providerId}, {_id: 1}).lean().exec().then(provider => {
@@ -115,7 +126,7 @@ function callCPMSAPIWithAutoMaintenance(service, functionName, data, fileData) {
                     });
                 }
             }, 60 * 1000);
-            clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+            clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI", null, platformId).then(
                 wsClient => {
                     bOpen = true;
                     return wsClient.callAPIOnce(service, functionName, data).then(

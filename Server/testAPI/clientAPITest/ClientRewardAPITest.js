@@ -88,6 +88,13 @@
         this.rewardService.getConsumeRebateAmount.once(callback);
     };
 
+    proto.getConsumeRebateDetail = function (callback, requestData) {
+        var data = requestData || {};
+
+        this.rewardService.getConsumeRebateDetail.request(data);
+        this.rewardService.getConsumeRebateDetail.once(callback);
+    };
+
     proto.isValidForFirstTopUpReward = function (callback, requestData) {
 
         var data = requestData || {playerId: testPlayerId};
