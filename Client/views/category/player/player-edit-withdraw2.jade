@@ -44,11 +44,11 @@ form(name='form_playerPaymentInfo2')
     //        //option(value='6') {{'工商银行一卡通'|translate}}
     div.col-md-4
         label.control-label {{"PHONE_PROVINCE" | translate}}
-        select.form-control(type='text', ng-model='currentProvince2.province', ng-options='v.id as v.name for (i,v) in provinceList', ng-change='changeProvince(true)', ng-disabled='!isEditingPlayerPayment')
+        select.form-control(type='text', ng-model='currentProvince2.province', ng-options='v.id as v.name for (i,v) in provinceList', ng-change='changeProvince2(true)', ng-disabled='!isEditingPlayerPayment')
             option(ng-if="!isIdInList(provinceList, currentProvince2.province)" ng-value="currentProvince2.province") {{currentProvince2.province}}
     div.col-md-4
         label.control-label {{"PHONE_CITY" | translate}}
-        select.form-control(type='text', ng-model='currentCity2.city', ng-options='v.id as v.name for (i,v) in cityList', ng-change='changeCity(true)', ng-disabled='!isEditingPlayerPayment')
+        select.form-control(type='text', ng-model='currentCity2.city', ng-options='v.id as v.name for (i,v) in cityList', ng-change='changeCity2(true)', ng-disabled='!isEditingPlayerPayment')
             option(ng-if="!isIdInList(cityList, currentCity2.city)" ng-value="currentCity2.city") {{currentCity2.city}}
     div.col-md-4
         label.control-label {{"districtId" | translate}}

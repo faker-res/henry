@@ -7648,11 +7648,15 @@ define(['js/app'], function (myApp) {
                         currentProvince3: vm.currentProvince3,
                         provinceList: vm.provinceList,
                         changeProvince: vm.changeProvince,
+                        changeProvince2: vm.changeProvince2,
+                        changeProvince3: vm.changeProvince3,
                         currentCity: vm.currentCity,
                         currentCity2: vm.currentCity2,
                         currentCity3: vm.currentCity3,
                         cityList: vm.cityList,
                         changeCity: vm.changeCity,
+                        changeCity2: vm.changeCity2,
+                        changeCity3: vm.changeCity3,
                         currentDistrict: vm.currentDistrict,
                         currentDistrict2: vm.currentDistrict2,
                         currentDistrict3: vm.currentDistrict3,
@@ -12032,14 +12036,17 @@ define(['js/app'], function (myApp) {
                         // vm.provinceList.push(...data.data.provinces);
 
                         vm.changeProvince(false);
+                        vm.changeProvince2(false);
+                        vm.changeProvince3(false);
                         vm.changeCity(false);
+                        vm.changeCity2(false);
+                        vm.changeCity3(false);
                         $scope.safeApply();
                         resolve(vm.provinceList);
                     }
                 }, null, true);
                 $scope.safeApply();
             })
-
         }
 
         vm.changeProvince = function (reset) {
@@ -12057,6 +12064,46 @@ define(['js/app'], function (myApp) {
                     if (reset) {
                         vm.currentCity.city = vm.cityList[0].id;
                         vm.changeCity(reset);
+                        $scope.safeApply();
+                    }
+                }
+            }, null, true);
+        }
+        vm.changeProvince2 = function (reset) {
+            socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince2.province}, function (data) {
+                if (data) {
+                    // vm.cityList = data.data.cities;
+                    if (data.data.cities) {
+                        vm.cityList.length = 0;
+                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                            let city = data.data.cities[i];
+                            city.id = city.id.toString();
+                            vm.cityList.push(city);
+                        }
+                    }
+                    if (reset) {
+                        vm.currentCity2.city = vm.cityList[0].id;
+                        vm.changeCity2(reset);
+                        $scope.safeApply();
+                    }
+                }
+            }, null, true);
+        }
+        vm.changeProvince3 = function (reset) {
+            socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince3.province}, function (data) {
+                if (data) {
+                    // vm.cityList = data.data.cities;
+                    if (data.data.cities) {
+                        vm.cityList.length = 0;
+                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                            let city = data.data.cities[i];
+                            city.id = city.id.toString();
+                            vm.cityList.push(city);
+                        }
+                    }
+                    if (reset) {
+                        vm.currentCity3.city = vm.cityList[0].id;
+                        vm.changeCity3(reset);
                         $scope.safeApply();
                     }
                 }
@@ -12080,6 +12127,52 @@ define(['js/app'], function (myApp) {
                     if (reset && vm.districtList && vm.districtList[0]) {
                         // vm.currentDistrict.district = vm.districtList[0].id
                         vm.currentDistrict.district = ""
+                    }
+                    $scope.safeApply();
+                }
+            }, null, true);
+        }
+        vm.changeCity2 = function (reset) {
+            socketService.$socket($scope.AppSocket, 'getDistrictList', {
+                provinceId: vm.currentProvince2.province,
+                cityId: vm.currentCity2.city
+            }, function (data) {
+                if (data) {
+                    // vm.districtList = data.data.districts;
+                    if (data.data.districts) {
+                        vm.districtList.length = 0;
+                        for (let i = 0, len = data.data.districts.length; i < len; i++) {
+                            let district = data.data.districts[i];
+                            district.id = district.id.toString();
+                            vm.districtList.push(district);
+                        }
+                    }
+                    if (reset && vm.districtList && vm.districtList[0]) {
+                        // vm.currentDistrict.district = vm.districtList[0].id
+                        vm.currentDistrict2.district = ""
+                    }
+                    $scope.safeApply();
+                }
+            }, null, true);
+        }
+        vm.changeCity3 = function (reset) {
+            socketService.$socket($scope.AppSocket, 'getDistrictList', {
+                provinceId: vm.currentProvince3.province,
+                cityId: vm.currentCity3.city
+            }, function (data) {
+                if (data) {
+                    // vm.districtList = data.data.districts;
+                    if (data.data.districts) {
+                        vm.districtList.length = 0;
+                        for (let i = 0, len = data.data.districts.length; i < len; i++) {
+                            let district = data.data.districts[i];
+                            district.id = district.id.toString();
+                            vm.districtList.push(district);
+                        }
+                    }
+                    if (reset && vm.districtList && vm.districtList[0]) {
+                        // vm.currentDistrict.district = vm.districtList[0].id
+                        vm.currentDistrict3.district = ""
                     }
                     $scope.safeApply();
                 }
