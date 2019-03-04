@@ -28,6 +28,7 @@ function emit(request, response, dbCall, args, event, isValidData) {
             if (isAllowed) {
                 if(dbCall && args && isValidData) {
                     return dbCall.apply(null, args).then(data => {
+                        console.log(event);
                         console.log("******************************** data",data);
                         response.json({success:true, data:data});
                     });
@@ -329,13 +330,46 @@ router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
     emit(req, res, dbPlayerLoginRecord.countLoginPlayerbyPlatformWeek, [startTime, endTime, platform], 'countLoginPlayerbyPlatformWeek', isValidData);
 });
 
+router.post('/countLoginPlayerAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.startDate && data.endDate);
+    let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+    let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+    let platform = data.platform ? ObjectId(data.platform) : 'all';
+    emit(req, res, dbPlayerLoginRecord.countLoginPlayerbyPlatform, [platform, startTime, endTime, 'day'], 'countLoginPlayerbyPlatform', isValidData);
+});
+
 router.post('/countNewPlayerAllPlatform', function (req, res, next) {
     let data = req.body;
     let isValidData = Boolean(data && data.startDate && data.endDate);
     let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
     let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
     let platform = data.platform ? ObjectId(data.platform) : 'all';
-    emit(req, res, dbPlayerInfo.countDailyNewPlayerByPlatform, [platform, startTime, endTime], 'countDailyNewPlayerByPlatform', isValidData);
+    emit(req, res, dbPlayerInfo.countDailyNewPlayerByPlatform, [platform, startTime, endTime], 'countNewPlayerAllPlatform', isValidData);
 });
+
+router.post('/countPlayerBonusAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.startDate && data.endDate);
+    let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+    let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+    let platform = data.platform ? ObjectId(data.platform) : 'all';
+    emit(req, res, dbPlayerInfo.countDailyPlayerBonusByPlatform, [platform, startTime, endTime], 'countPlayerBonusAllPlatform', isValidData);
+});
+
+router.post('/countTopUpAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.platform);
+    let platform = data.platform ? ObjectId(data.platform) : 'all';
+    emit(req, res, dbPlayerInfo.dashboardTopupORConsumptionGraphData, [platform, 'day', 'topup'], 'countTopUpORConsumptionAllPlatform', isValidData);
+});
+
+router.post('/countConsumptionAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.platform);
+    let platform = data.platform ? ObjectId(data.platform) : 'all';
+    emit(req, res, dbPlayerInfo.dashboardTopupORConsumptionGraphData, [platform, 'day', 'consumption'], 'countTopUpORConsumptionAllPlatform', isValidData);
+});
+
 
 module.exports = router;

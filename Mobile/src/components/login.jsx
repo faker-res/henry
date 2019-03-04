@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import $ from 'jquery';
 import WSCONFIG from '../wsconfig.js';
 import authService from '../services/authService.js';
@@ -117,7 +117,7 @@ class Login extends Component {
             if(data.success) {
                 let exp = new Date();
                 exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
-                authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
+                authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, url, exp);
                 navService.goto('dashboard');
             } else {
                 console.log(data.error.message);
