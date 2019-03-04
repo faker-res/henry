@@ -14,6 +14,8 @@ var playerMultipleBankDetailInfoSchema = new Schema({
     bankAccount2: {type: String, index: true},
     // bank account name
     bankAccountName2: {type: String},
+    // bank account type
+    bankAccountType2: {type: String},
     // bank account province
     bankAccountProvince2: {type: String},
     // bank account city
@@ -32,6 +34,8 @@ var playerMultipleBankDetailInfoSchema = new Schema({
     bankAccount3: {type: String, index: true},
     // bank account name
     bankAccountName3: {type: String},
+    // bank account type
+    bankAccountType3: {type: String},
     // bank account province
     bankAccountProvince3: {type: String},
     // bank account city
