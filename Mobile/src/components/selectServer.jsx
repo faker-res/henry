@@ -1,25 +1,33 @@
-import React, { Component } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import $ from 'jquery';
-import WSCONFIG from '../wsconfig.js';
-import authService from '../services/authService.js';
-import navService from '../services/navService.js';
-import SelectServer from './selectServer';
+import React, {Component} from 'react';
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import WSCONFIG from "../wsconfig";
+import $ from "jquery";
+import authService from "../services/authService";
+import navService from "../services/navService";
 
 
-class Login extends Component {
+
+class SelectServer extends Component{
     constructor(props){
         super(props);
-        
+
         this.state = {
+            isFocus: false,
             fastestServer: '',
             fastestServerUrl: '',
             lowestLatency: 9999,
             servers: WSCONFIG,
-            selectedServer: 'Fastest Server',
-            path: 'login'
+            selectedServer: 'Fastest Server'
         };
         this.pingAllServers();
+    }
+
+    handleFocus = () => {
+        this.setState({ isFocus: true});
+    }
+
+    handleBlur= () => {
+        this.setState({ isFocus: false});
     }
 
     handleChange = (ev, key) => {
@@ -40,7 +48,7 @@ class Login extends Component {
             }
         }
     }
-    
+
     pingHTTPServer= (serverURL, server) =>{
         if(serverURL) {
             let WSCONFIG = this.state.servers;
@@ -77,7 +85,7 @@ class Login extends Component {
         }
     }
 
-    populateServerWithLatency = ()=>{
+    populateServerWithLatency = () => {
         let servers = this.state.servers;
         let list = []
         for(let server in servers) {
@@ -111,55 +119,58 @@ class Login extends Component {
             if(data.success) {
                 let exp = new Date();
                 exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
-                authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, url, exp);
+                authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
                 navService.goto('dashboard');
             } else {
                 console.log(data.error.message);
             }
         })
     }
-    
-    render() { 
-        console.log("Rendering...");
+
+    render(){
         return (
-            <div className="container centerMenu">
-                <div className="login card col-12">
-                    <div className="text-center">
-                        <h4>FMPS</h4>
-                    </div>
 
-                    <div className="login-group">
-                        <input type="text" className="login-control" id="username" onChange={(e)=>{this.handleChange(e,'username')}}/>
-                        <label htmlFor="username">Username</label>
-                    </div>
-
-                    <div className="login-group">
-                        <input type="password" className="login-control" id="pwd" onChange={(e)=>{this.handleChange(e,'password')}}/>
-                        <label htmlFor="pwd">Password</label>
-                    </div>
-
-                    <SelectServer
-                     path={this.state.path}
-                    />
-
-                    <div className="login-group">
-                        <label className="login-check-label">
-                            <input type="checkbox" /> Remember Me
-                        </label>
-                    </div>
-                    <div className="login-group">
-                        <a href="#">Forgot Password?</a>
-                    </div>
-                    <div className="login-group ">
-                        <button type="button" onClick={()=>{this.login()}} className="float-right btn-sm btn-dark">LOGIN</button>
-                    </div>
-                    
+                <div className={this.getGroupClasses()}>
+                    <select onFocus={this.handleFocus} onBlur={this.handleBlur} className={this.getControlClasses()} id="mgntServer" value={this.state.selectedServer} onChange={(e)=>{this.handleChange(e,'selectedServer')}}>
+                        <option key="Fastest Server" value="Fastest Server">Fastest Server</option>
+                        {this.populateServerWithLatency()}
+                    </select>
+                    <label className={this.getShowClasses()} htmlFor="mgntServer">Select Server</label><FontAwesomeIcon className={this.getfocusClasses()} icon="angle-down" />
                 </div>
-            </div>
 
-        );
+
+
+        )
+    }
+
+    getfocusClasses() {
+        let classes = "icon ";
+        classes += this.props.path === 'login' && this.state.isFocus === true ? "focusClass" : "";
+        classes += this.props.path === 'navbar' ? "d-none" : "";
+        return classes;
+    }
+
+    getGroupClasses() {
+        let group = "";
+        group += this.props.path === 'login' ? "login-group": "";
+        group += this.props.path === 'navbar' ? "form-group": "";
+        return group;
+    }
+
+    getControlClasses(){
+        let control = "";
+        control += this.props.path === 'login' ? "login-control": "";
+        control += this.props.path === 'navbar' ? "form-control": "";
+        return control;
+    }
+    getShowClasses(){
+        let show = "";
+        show += this.props.path === 'navbar' ? "d-none": "";
+        return show;
     }
 
 }
- 
-export default Login;
+
+export default SelectServer;
+
+
