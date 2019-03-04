@@ -154,8 +154,20 @@ function getContentProviderAPIClient (options) {
     if (env.disableCPAPI) {
         throw Error("You may not create this client: CPAPI is disabled.");
     }
+    let selectedCpAPIUrl = null;
+    if (options && options.platformId && env && env.cpAPIUrlList){
+        selectedCpAPIUrl = env.cpAPIUrlList[options.platformId];
+    }
+
+    // choose the default url if there is not matching url
+    if (!selectedCpAPIUrl){
+        selectedCpAPIUrl = env.cpAPIUrl;
+    }
+
+    console.log("checking selectedCpAPIUrl", selectedCpAPIUrl);
     //var loginData = { userName: 'admin', password: 'cpmsmon' };
-    return connectToServer(env.cpAPIUrl, allServicesIn(cpmsServices), null, options);
+    // return connectToServer(env.cpAPIUrl, allServicesIn(cpmsServices), null, options);
+    return connectToServer(selectedCpAPIUrl, allServicesIn(cpmsServices), null, options);
 }
 
 function getContentProviderAPIClientForGame (options) {

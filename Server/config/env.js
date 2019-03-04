@@ -230,6 +230,18 @@ var prodConfig = {
     messageServerUrl: "ws://10.167.11.108:9580",
    
     cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
+    cpAPIUrlList : {
+        4: "ws://10.167.11.153:8661/websocketapi",
+        7: "ws://10.167.11.153:8662/websocketapi",
+        8: "ws://10.167.11.153:8663/websocketapi",
+        6: "ws://10.167.11.153:8664/websocketapi",
+        5: "ws://10.167.11.153:8665/websocketapi",
+        2: "ws://10.167.11.153:8666/websocketapi",
+        10: "ws://10.167.11.153:8667/websocketapi",
+        30: "ws://10.167.11.153:8668/websocketapi",
+        29: "ws://10.167.11.153:8669/websocketapi",
+        28: "ws://10.167.11.153:8670/websocketapi"
+    },
     // cpAPIUrl : "ws://timeout.com:9020/websocketapi",
     cpAPIUrlForGame : "ws://gameapi-server.neweb.me/game",
     paymentAPIUrl: "ws://10.168.11.128:8330/acc",
