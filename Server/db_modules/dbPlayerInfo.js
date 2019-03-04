@@ -2423,6 +2423,7 @@ let dbPlayerInfo = {
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
             .populate({path: "csOfficer", model: dbconfig.collection_admin})
+            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo})
             .then(data => {
                 if (data) {
                     playerData = data;
@@ -5477,7 +5478,6 @@ let dbPlayerInfo = {
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                     .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
                     .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
-                    .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo})
                     .read("secondaryPreferred")
                     .lean().then(
                         playerData => {
