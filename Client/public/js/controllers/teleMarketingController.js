@@ -8680,19 +8680,25 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'dailyTradeTsPhone', {}, function (data) {
                 console.log("dailyTradeTsPhone", data)
             })
-        }
+        };
 
         vm.debugTsPhoneList = function (tsPhoneListObjId) { // for debug use only
             socketService.$socket($scope.AppSocket, 'debugTsPhoneList', {tsPhoneList: tsPhoneListObjId}, function (data) {
                 console.log("all tsPhone in tsPhoneList", data)
             })
-        }
+        };
 
         vm.debugTsPhone = function (tsPhoneObjId) { // for debug use only
             socketService.$socket($scope.AppSocket, 'debugTsPhone', {tsPhone: tsPhoneObjId}, function (data) {
                 console.log("tsPhone and all tsDistributedPhone", data)
             })
-        }
+        };
+
+        vm.debugTsPhoneNumber = function (phoneNumber) { // for debug use only
+            socketService.$socket($scope.AppSocket, 'debugTsPhoneNumber', {phoneNumber}, function (data) {
+                console.log("debugTsPhoneNumber", data)
+            })
+        };
 
         vm.initModalImportTsPhoneTrade = function () {
             vm.totalTsPhoneTrade = 1;

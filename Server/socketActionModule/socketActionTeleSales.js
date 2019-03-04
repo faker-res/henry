@@ -292,6 +292,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.debugTsPhone, [data.tsPhone], actionName, isValidData);
         },
 
+        debugTsPhoneNumber: function debugTsPhoneNumber(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.phoneNumber);
+            socketUtil.emitter(self.socket, dbTeleSales.debugTsPhoneNumber, [data.phoneNumber], actionName, isValidData);
+        },
+
         getDecomposedNewPhoneRecord: function getDecomposedNewPhoneRecord(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.startTime && data.endTime);

@@ -1017,7 +1017,8 @@ var proposal = {
                         // Some extra data
                         addDetailToProp(updObj.data, 'remark', callbackData.remark);
                         addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
-                        addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
+                        addDetailToProp(updObj.data, 'merchantName', callbackData.merchantName);
+                        addDetailToProp(updObj.data, 'merchantUseName', callbackData.merchantTypeName);
                         addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
                         addDetailToProp(updObj.data, 'bankCardType', callbackData.bankTypeId);
                         addDetailToProp(updObj.data, 'bankTypeId', callbackData.bankTypeId);
