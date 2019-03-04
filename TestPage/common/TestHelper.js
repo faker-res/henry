@@ -284,14 +284,14 @@
 
     var TestHelper = {
         // This is the default.  It may be overridden below if we are running in development
-        websocketIP: "devtest.wsweb.me",
-        wsMigration: "devtest.wsweb.me",
+        websocketIP: "10.167.11.118",
+        wsMigration: "10.167.11.118",
         // This will be set later, based on WebSocketIP
         websocketURL: null,
         //
-        cpmsWSURL: "ws://gameapi-server.neweb.me/websocketapi",
-        pmsWSURL: "ws://203.192.151.11:8330/acc",
-        smsWSURL: "ws://203.192.151.12:8560/sms",
+        cpmsWSURL: "ws://10.168.11.121:7124/websocketapi",
+        pmsWSURL: "ws://10.167.11.118:8330/acc",
+        smsWSURL: "ws://10.168.11.121:8451/sms",
 
         setAPIName: setAPIName,
         attachListeners: attachListeners,
@@ -301,13 +301,13 @@
     };
 
     // For development: If we are running the Test Page in a browser pointing at localhost, then point the sockets at localhost too
-    if (!isNode && typeof window !== 'undefined') {
-        var localNames = ['localhost', '127.0.0.1', '127.0.1.1', '0.0.0.0'];
-        if (localNames.indexOf(window.location.hostname) >= 0) {
-            TestHelper.websocketIP = window.location.hostname;
-            TestHelper.wsMigration = window.location.hostname;
-        }
-    }
+    // if (!isNode && typeof window !== 'undefined') {
+    //     var localNames = ['localhost', '127.0.0.1', '127.0.1.1', '0.0.0.0'];
+    //     if (localNames.indexOf(window.location.hostname) >= 0) {
+    //         TestHelper.websocketIP = window.location.hostname;
+    //         TestHelper.wsMigration = window.location.hostname;
+    //     }
+    // }
 
     TestHelper.websocketURL = "ws://" + TestHelper.websocketIP + ":9280";
 
