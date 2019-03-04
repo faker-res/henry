@@ -4,10 +4,10 @@ form(name='form_playerPaymentInfo2')
         input.form-control(ng-model='playerPayment2.bankAccountName2', ng-disabled='!isEditingPlayerPayment')
     div.col-sm-12.margin-top-10
         label.control-label *{{'BANK_NAME' | translate}}
-        select.form-control(ng-model='playerPayment2.bankName', ng-show='!isEditingPlayerPayment', disabled)
+        select.form-control(ng-model='playerPayment2.bankName2', ng-show='!isEditingPlayerPayment', disabled)
             option(ng-repeat="(i,v) in allBankTypeList", value='{{i}}') {{v}}
     div.col-md-6(ng-show='isEditingPlayerPayment')
-        select.form-control(ng-model='playerPayment2.bankName', ng-options='i as v for (i,v) in filteredBankTypeList', required)
+        select.form-control(ng-model='playerPayment2.bankName2', ng-options='i as v for (i,v) in filteredBankTypeList', required)
     div.col-md-6(ng-show='isEditingPlayerPayment')
         input.form-control(type='text', placeholder="{{'SEARCH' | translate}}", ng-model='filterBankName', ng-change='filterBankname("playerPayment2")')
     div.control-label

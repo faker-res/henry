@@ -12186,10 +12186,14 @@ define(['js/app'], function (myApp) {
             }
             vm.filteredBankTypeList = {};
             vm[which].bankName = '';
+            vm[which].bankName2 = '';
+            vm[which].bankName3 = '';
             $.each(vm.allBankTypeList, function (i, v) {
                 if (v.indexOf(key) > -1) {
                     vm.filteredBankTypeList[i] = v;
                     vm[which].bankName = i;
+                    vm[which].bankName2 = i;
+                    vm[which].bankName3 = i;
                 }
             })
             $scope.safeApply();
