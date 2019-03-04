@@ -6217,7 +6217,7 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                console.log("LH check payment monitor 1------------, query");
+                console.log("LH check payment monitor 1------------", query);
                 let proposalCountProm = dbconfig.collection_proposal.find(query).count();
                 let proposalsProm = dbconfig.collection_proposal.find(query).lean().sort(sort).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
@@ -6391,7 +6391,7 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                console.log("LH check payment completed monitor 1------------, query");
+                console.log("LH check payment completed monitor 1------------", query);
                 let proposalCountProm = dbconfig.collection_proposal.find(query).count();
                 let proposalsProm = dbconfig.collection_proposal.find(query).lean().sort(sort).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
