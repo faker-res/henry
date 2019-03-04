@@ -4368,6 +4368,25 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
+                        title: $translate('Contact Customer'),
+                        orderable: false,
+                        render: function (data, type, row) {
+                            data = data || '';
+                            var playerDetail = row.data && row.data.playerObjId ? row.data.playerObjId : "";
+                            var link = $('<div>', {});
+                            link.append($('<a>', {
+                                'class': 'fa fa-volume-control-phone margin-right-5' + (playerDetail && playerDetail.permission && playerDetail.permission.phoneCallFeedback &&playerDetail.permission.phoneCallFeedback === false ? " text-danger" : ""),
+                                'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerDetail._id + '",' + JSON.stringify(row) + ');',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'tooltip',
+                                'title': $translate("PHONE"),
+                                'data-placement': 'left',
+                            }));
+                            return link.prop('outerHTML');
+                        },
+                        "sClass": "alignLeft"
+                    },
+                    {
                         title: $translate('Followup_Content'),
                         data: "remark$",
                         "width": "200px",
