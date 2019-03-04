@@ -7407,13 +7407,13 @@ define(['js/app'], function (myApp) {
                         vm.selectedSinglePlayer.bankAccount ?
                             vm.selectedSinglePlayer.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-4)
                             : null;
-                    vm.selectedSinglePlayer.encodedBankAccount2 =
-                        vm.selectedSinglePlayer.bankAccount2 ?
-                            vm.selectedSinglePlayer.bankAccount2.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount2.slice(-4)
+                    vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount2 =
+                        vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2 ?
+                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(-4)
                             : null;
-                    vm.selectedSinglePlayer.encodedBankAccount3 =
-                        vm.selectedSinglePlayer.bankAccount3 ?
-                            vm.selectedSinglePlayer.bankAccount3.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount3.slice(-4)
+                    vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount3 =
+                        vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3 ?
+                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(-4)
                             : null;
 
                     // Fix partnerName disappeared on second load
@@ -12001,11 +12001,11 @@ define(['js/app'], function (myApp) {
                 vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
                 vm.playerPayment.showNewAccountNo = false;
-                vm.playerPayment2 = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys2);
+                vm.playerPayment2 = utilService.assignObjKeys(vm.isOneSelectedPlayer().multipleBankDetailInfo, vm.playerPaymentKeys2);
                 vm.playerPayment2.bankAccountName2 = (vm.playerPayment2.bankAccountName2) ? vm.playerPayment2.bankAccountName2 : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment2.newBankAccount2 = vm.playerPayment2.encodedBankAccount2;
                 vm.playerPayment2.showNewAccountNo2 = false;
-                vm.playerPayment3 = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys3);
+                vm.playerPayment3 = utilService.assignObjKeys(vm.isOneSelectedPlayer().multipleBankDetailInfo, vm.playerPaymentKeys3);
                 vm.playerPayment3.bankAccountName3 = (vm.playerPayment3.bankAccountName3) ? vm.playerPayment3.bankAccountName3 : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment3.newBankAccount3 = vm.playerPayment3.encodedBankAccount3;
                 vm.playerPayment3.showNewAccountNo3 = false;
