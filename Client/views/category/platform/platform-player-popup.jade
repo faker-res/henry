@@ -989,7 +989,7 @@
                         text {{"Failed Call Player" | translate}}
 
                         label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
-                        select(ng-model='vm.smsPlayer.channel', ng-options='a for a in channelList')
+                        select(ng-model='vm.smsPlayer.channel', ng-options='a for a in usableChannelList')
 
                         .pull-right(ng-if='vm.sendSMSResult.sent===true')
                             .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
