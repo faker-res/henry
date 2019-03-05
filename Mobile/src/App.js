@@ -3,11 +3,11 @@ import Login from './components/login';
 import Dashboard from './components/dashboard';
 import './App.css';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import {faAngleDown, faSmile as fasFaSmile, faArrowAltCircleRight, faDollarSign, faUserPlus, faBars, faUserCircle, faEllipsisV, faTachometerAlt, faChartLine} from '@fortawesome/free-solid-svg-icons'
+import {faAngleDown, faSmile as fasFaSmile, faArrowAltCircleRight, faDollarSign, faUserPlus, faBars, faUserCircle, faEllipsisV, faTachometerAlt, faChartLine, faSignOutAlt, faKey, faLanguage, faBookOpen, faEdit} from '@fortawesome/free-solid-svg-icons'
 import {faSmile as farFaSmile, faMoneyBillAlt, faRegistered, faStopCircle} from '@fortawesome/free-regular-svg-icons'
 import {Route, NavLink, HashRouter} from "react-router-dom";
 
-library.add(faAngleDown, farFaSmile, fasFaSmile, faArrowAltCircleRight, faDollarSign, faMoneyBillAlt, faUserPlus, faRegistered, faStopCircle, faBars, faUserCircle, faEllipsisV, faTachometerAlt, faChartLine)
+library.add(faAngleDown, farFaSmile, fasFaSmile, faArrowAltCircleRight, faDollarSign, faMoneyBillAlt, faUserPlus, faRegistered, faStopCircle, faBars, faUserCircle, faEllipsisV, faTachometerAlt, faChartLine, faSignOutAlt, faKey, faLanguage, faBookOpen, faEdit)
 
 class App extends Component {
 
