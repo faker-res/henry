@@ -3334,12 +3334,6 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded("#paymentMonitorTotalTablePage", function () {
                 vm.commonInitTime(vm.paymentMonitorTotalQuery, '#paymentMonitorTotalQuery');
                 vm.paymentMonitorTotalQuery.merchantType = null;
-                vm.paymentMonitorTotalQuery.pageObj = utilService.createPageForPagingTable("#paymentMonitorTotalTablePage", {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorTotalQuery", vm.getPaymentMonitorTotalRecord)
-                });
-                vm.paymentMonitorTotalCompletedQuery.pageObj = utilService.createPageForPagingTable("#paymentMonitorTotalCompletedTablePage", {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorTotalCompletedQuery", vm.getPaymentMonitorTotalCompletedRecord)
-                });
                 $scope.safeApply();
             })
         };
@@ -3813,7 +3807,6 @@ define(['js/app'], function (myApp) {
                 vm.paymentMonitorTotalQuery.merchantNo = '';
             }
 
-            vm.paymentMonitorTotalQuery.index = isNewSearch ? 0 : (vm.paymentMonitorTotalQuery.index || 0);
             var sendObj = {
                 playerName: vm.paymentMonitorTotalQuery.playerName,
                 proposalNo: vm.paymentMonitorTotalQuery.proposalID,
@@ -3830,8 +3823,6 @@ define(['js/app'], function (myApp) {
                 startTime: vm.paymentMonitorTotalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorTotalQuery.endTime.data('datetimepicker').getLocalDate(),
                 platformList: vm.paymentMonitorTotalQuery.platformList || vm.platformByAdminId && vm.platformByAdminId.length ?  vm.platformByAdminId.map(p => p._id) : "",
-                index: vm.paymentMonitorTotalQuery.index,
-                limit: vm.paymentMonitorTotalQuery.limit || 10,
                 sortCol: vm.paymentMonitorTotalQuery.sortCol,
 
             };
@@ -3915,7 +3906,7 @@ define(['js/app'], function (myApp) {
 
                                     return item;
                                 }
-                            }), data.data.size, {}, isNewSearch
+                            }), {}, isNewSearch
                         );
                     });
                 }, err => {
@@ -4269,7 +4260,7 @@ define(['js/app'], function (myApp) {
             $('#paymentMonitorTable tbody').on('click', 'tr', vm.tableRowClicked);
         };
 
-        vm.drawPaymentRecordTotalTable = function (data, size, summary, newSearch) {
+        vm.drawPaymentRecordTotalTable = function (data, summary, newSearch) {
             vm.paymentMonitorTotalQuery.totalCount = data.length;
             console.log('data', data);
             vm.paymentMonitorTotalData.followUpContent = {};
@@ -4444,14 +4435,12 @@ define(['js/app'], function (myApp) {
 
             vm.topUpProposalTable = utilService.createDatatableWithFooter('#paymentMonitorTotalTable', tableOptions, {}, true);
 
-            vm.paymentMonitorTotalQuery.pageObj.init({maxCount: size}, newSearch);
-
             $('#paymentMonitorTotalTable').resize();
 
             $('#paymentMonitorTotalTable tbody').on('click', 'tr', vm.tableRowClicked);
         };
 
-        vm.drawPaymentRecordTotalCompletedTable = function (data, size, summary, newSearch) {
+        vm.drawPaymentRecordTotalCompletedTable = function (data, summary, newSearch) {
             vm.paymentMonitorTotalQuery.totalCompletedCount = data.length;
             console.log('data', data);
             let tableOptions = {
@@ -4597,7 +4586,6 @@ define(['js/app'], function (myApp) {
 
             vm.topUpProposalTable = utilService.createDatatableWithFooter('#paymentMonitorTotalCompletedTable', tableOptions, {}, true);
 
-            vm.paymentMonitorTotalCompletedQuery.pageObj.init({maxCount: size}, newSearch);
 
             $('#paymentMonitorTotalCompletedTable').resize();
 
