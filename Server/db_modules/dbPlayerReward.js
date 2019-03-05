@@ -6458,10 +6458,16 @@ let dbPlayerReward = {
                                 selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
                                 //spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                                 spendingAmount = (actualAmount + rewardAmount) * selectedRewardParam.spendingTimes;
+                                console.log('MT --checking actualAmount + rewardAmount', applyAmount, actualAmount, rewardAmount, selectedRewardParam.spendingTimes);
+                                console.log('MT --checking spendingAmount',spendingAmount);
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
                                 selectedRewardParam.spendingTimesOnReward = selectedRewardParam.spendingTimesOnReward || 0;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
+                                console.log('MT --checking rewardAmount', rewardAmount);
+                                console.log('MT --checking selectedRewardParam.spendingTimesOnReward', selectedRewardParam.spendingTimesOnReward);
+                                console.log('MT --checking spendingAmount', spendingAmount);
+
                             }
 
                             // Set top up record update flag
