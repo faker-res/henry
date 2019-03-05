@@ -2414,6 +2414,7 @@
   "SPENDING_AMOUNT": "解锁流水",
   "HONOREE_DETAIL": "提款备注",
   "honoreeDetail": "提款备注",
+  "WITHDRAWAL_BANK": "提款银行",
   "FIRST_WITHDRAWAL_MANUAL_AUDIT_EXCEED_AMOUNT": "首次提款金额 ≥ X ( 转人工审核）",
   "FIRST_WITHDRAWAL_AND_CURRENT_MINUS_TOPUP_EXCEED_AMOUNT": "（首次提款金额+提款瞬间馀额）- 过去总存款 ≥ X (转人工审核）",
   "FIRST_WITHDRAWAL_TOTAL_BET_OVER_TOTAL_TOPUP_EXCEED_TIMES": "首提前总投注额/过去总存款 ≤ X 倍 ，而且，首次提款金额 ≥ Y （转人工审核）",
