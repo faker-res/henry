@@ -158,6 +158,7 @@ var ProposalServiceImplement = function () {
 
     this.setBonusProposalStatus.expectsData = 'proposalId, orderStatus, bonusId';
     this.setBonusProposalStatus.onRequest = function (wsFunc, conn, data) {
+        console.log("setBonusProposalStatus req:", data);
         var isValidData = Boolean(data && data.proposalId && data.orderStatus && data.bonusId);
         var statusText;
         switch (Number(data.orderStatus)) {

@@ -1188,7 +1188,8 @@ var proposal = {
             data => ({
                 proposalId: proposalId,
                 orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
-                bonusId: bonusId
+                bonusId: bonusId,
+                checkReqStatus: status
             }),
             error => {
                 if (!error.proposalId) {
