@@ -7508,14 +7508,16 @@ define(['js/app'], function (myApp) {
                         vm.selectedSinglePlayer.bankAccount ?
                             vm.selectedSinglePlayer.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-4)
                             : null;
-                    vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount2 =
-                        vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2 ?
-                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(-4)
-                            : null;
-                    vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount3 =
-                        vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3 ?
-                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(-4)
-                            : null;
+                    if (vm.selectedSinglePlayer.multipleBankDetailInfo) {
+                        vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount2 =
+                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2 ?
+                                vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(-4)
+                                : null;
+                        vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount3 =
+                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3 ?
+                                vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(-4)
+                                : null;
+                    }
 
                     // Fix partnerName disappeared on second load
                     if (!vm.selectedSinglePlayer.partnerName) {
