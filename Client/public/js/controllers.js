@@ -1772,6 +1772,24 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         });
     };
 
+    $scope.getAllProvinceList = function (callback) {
+        socketService.$socket($scope.AppSocket, 'getProvinceList', {}, onSuccess, onFail, true);
+
+        function onSuccess(data) {
+            $scope.provinceList = data.data.provinces;
+            console.log("Got provinceList:", $scope.provinceList);
+            if (callback) {
+                callback.call(this);
+            }
+        }
+
+        function onFail(error) {
+            console.error("Failed to get provinceList!", error);
+            if (callback) {
+                callback.call(this, error);
+            }
+        }
+    };
     $scope.getProvinceStr = function (provinceId) {
         if (!provinceId) return Q.resolve('');
         return new Q.Promise(function (resolve, reject) {
