@@ -113,11 +113,12 @@ input:focus+label ,select:focus+label  {
 
 
 .nav-bar{
-  background-color: #343a40;
+  background-color: #495057;
   padding: .5em 1em;
   position: fixed;
   z-index: 100;
   width: 100%;
+  color:#f1f1f1;
 }
 .nav-bar svg {
   cursor: pointer;
@@ -133,11 +134,25 @@ input:focus+label ,select:focus+label  {
   top: 0;
   background-color: #343a40;
   /*background-color: rgba(0,0,0, 0.9); */
-  overflow-x: hidden;
+  overflow-y: hidden;
   transition: 0.5s;
 }
 
+.dropdown{
+  height: 0px;
+  width: 170px;
+  position: fixed!important;
+  z-index: 100;
+  right: 0%;
+  top: 5%;
+  background-color: #343a40;
+  transition: 0.5s;
+  overflow-y: hidden;
+}
 
+.show{
+  height: 200px;
+}
 .overlay-header .form-control{
   color: #f1f1f1;
   background-color: #495057!important;
@@ -176,7 +191,7 @@ input:focus+label ,select:focus+label  {
 
 }
 
-.overlay a:hover, .overlay a:focus {
+.overlay a:hover, .overlay a:focus, .dropdown a:hover, .dropdown a:focus {
   color: #818181;
   text-decoration: none;
 }
@@ -187,6 +202,15 @@ input:focus+label ,select:focus+label  {
   font-size: 50px;
   border-bottom: none;
   font-weight: 100;
+}
+
+.dropdown a {
+  padding: 9px;
+  text-decoration: none;
+  font-size: 15px;
+  color: #f1f1f1;
+  display: block;
+  transition: 0.3s;
 }
 
 

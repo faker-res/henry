@@ -5612,7 +5612,7 @@ let dbPlayerReward = {
             // NOTE :: Use apply target date instead. There are old records that does not have applyTargetDate field,
             // so createTime is checked if applyTargetDate does not exist - Huat
         }
-
+        console.log('MT --checking eventInPeriodProm query', eventQuery);
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
@@ -6441,6 +6441,7 @@ let dbPlayerReward = {
 
                                 // Check reward amount exceed daily limit
                                 if (eventData.param.dailyMaxRewardAmount) {
+                                    console.log('MT --checking rewardAmountInPeriod', rewardAmount, rewardAmountInPeriod, eventData.param.dailyMaxRewardAmount);
                                     if (rewardAmountInPeriod >= eventData.param.dailyMaxRewardAmount) {
                                         return Q.reject({
                                             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -6455,10 +6456,16 @@ let dbPlayerReward = {
                                 selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
                                 //spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                                 spendingAmount = (actualAmount + rewardAmount) * selectedRewardParam.spendingTimes;
+                                console.log('MT --checking actualAmount + rewardAmount', applyAmount, actualAmount, rewardAmount, selectedRewardParam.spendingTimes);
+                                console.log('MT --checking spendingAmount',spendingAmount);
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
                                 selectedRewardParam.spendingTimesOnReward = selectedRewardParam.spendingTimesOnReward || 0;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
+                                console.log('MT --checking rewardAmount', rewardAmount);
+                                console.log('MT --checking selectedRewardParam.spendingTimesOnReward', selectedRewardParam.spendingTimesOnReward);
+                                console.log('MT --checking spendingAmount', spendingAmount);
+
                             }
 
                             // Set top up record update flag

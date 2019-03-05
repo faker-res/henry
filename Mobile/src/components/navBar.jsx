@@ -1,30 +1,37 @@
 import React, {Component} from 'react';
 import SelectServer from './selectServer';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faLanguage} from "@fortawesome/free-solid-svg-icons";
 
 
 
 class NavBar extends Component{
 
     state = {
-        path: 'navbar'
+        path: 'navbar',
+        isOpen: false
     }
 
     openNav () {
        const a = document.getElementById("myNav");
        a.style.height ="100%";
     }
-    closeNav = () => {
+    closeNav ()  {
         const a = document.getElementById("myNav");
         a.style.height ="0%";
-
     }
+
+    toggleNav () {
+        const b = document.getElementById("Nav");
+        b.classList.toggle("show");
+    }
+
     render(){
         return (
             <div>
                 <nav className="nav-bar">
-                    <FontAwesomeIcon icon="bars" size="2x" color="white" onClick={this.openNav}/>
-                    <FontAwesomeIcon className="float-right" icon="user-circle" size="2x" color="white" />
+                    <FontAwesomeIcon icon="bars" size="2x" onClick={this.openNav}/>
+                    <FontAwesomeIcon className="float-right" icon="user-circle" size="2x" onClick={this.toggleNav} />
                 </nav>
 
                 <div id="myNav" className="overlay" >
@@ -40,18 +47,8 @@ class NavBar extends Component{
                             </select>
                         </div>
 
-                        <SelectServer
-                         path={this.state.path}
-                        />
+                        <SelectServer path={this.state.path} />
 
-                        {/*<div className="form-group">*/}
-                            {/*<select className="form-control">*/}
-                                {/*<option>1</option>*/}
-                                {/*<option>2</option>*/}
-                                {/*<option>3</option>*/}
-                                {/*<option>4</option>*/}
-                            {/*</select>*/}
-                        {/*</div>*/}
                     </div>
 
                     <div className="overlay-content">
@@ -59,6 +56,16 @@ class NavBar extends Component{
                         <a href="#"> <FontAwesomeIcon icon="chart-line" /> 分析</a>
                     </div>
                 </div>
+
+                <div id="Nav" className="dropdown">
+                    <a href="#"> <FontAwesomeIcon icon="language"/> English</a>
+                    <a href="#"> <FontAwesomeIcon icon="edit"/> 开发日志</a>
+                    <a href="#"> <FontAwesomeIcon icon="book-open"/> 查看日志</a>
+                    <a href="#"> <FontAwesomeIcon icon="key"/> 更新密码</a>
+                    <a href="#"> <FontAwesomeIcon icon="sign-out-alt"/> 注销</a>
+
+                </div>
+
             </div>
         )
     }
