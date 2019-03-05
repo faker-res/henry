@@ -403,7 +403,7 @@ const dbPlayerPayment = {
         let platformMinTopUpAmount = 0;
         let result = {};
 
-        console.log('getMinMaxCommonTopupAmount before get player', new Date());
+        console.log('getMinMaxCommonTopupAmount before get player', playerId, new Date());
 
         return dbconfig.collection_players.findOne({
             playerId: playerId
