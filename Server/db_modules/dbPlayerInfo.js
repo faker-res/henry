@@ -9013,6 +9013,7 @@ let dbPlayerInfo = {
                         // Perform the level up
                         return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
                             platformData => {
+                                console.log("player level up checkpoint 1")
                                 let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                                 let platformPeriodTime;
                                 if (platformPeriod) {
@@ -9064,6 +9065,7 @@ let dbPlayerInfo = {
 
                                 return Promise.all([topUpProm, consumptionProm]).then(
                                     recordData => {
+                                        console.log("player level up checkpoint 2")
                                         let topUpSummary = recordData[0];
                                         let consumptionSummary = recordData[1];
                                         let topUpSumPeriod = {};
@@ -9073,6 +9075,7 @@ let dbPlayerInfo = {
 
                                         if (checkLevelUp) {
                                             let checkLevelUpEnd = false;
+                                            console.log("player level up checkpoint 3", levelUpObjArr.length)
                                             for (let a = 0; a < levelUpObjArr.length; a++) {
                                                 const conditionSets = levelUpObjArr[a].levelUpConfig;
 
@@ -9133,6 +9136,7 @@ let dbPlayerInfo = {
                                                     }
                                                 }
                                             }
+                                            console.log("player level up checkpoint 4", consumptionSumPeriod, topUpSumPeriod)
                                         } else {
                                             const conditionSet = levelDownLevel.levelDownConfig[0];
                                             const topupPeriod = conditionSet.topupPeriod;
@@ -9167,7 +9171,7 @@ let dbPlayerInfo = {
                                                 playerId: playerObj.playerId,
                                                 platformObjId: playerObj.platform
                                             };
-
+                                            console.log("player level up checkpoint 5")
                                             let inputDevice = dbUtility.getInputDevice(userAgent, false);
                                             let promResolve = Promise.resolve();
 
@@ -9205,6 +9209,7 @@ let dbPlayerInfo = {
                                             // )
                                             return dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", true, "lastApplyLevelUp").then(
                                                 playerState => {
+                                                    console.log("player level up checkpoint 6")
                                                     if (playerState) {
                                                         if (checkLevelUp) {
                                                             for (let i = 0; i < levelUpCounter; i++) {
@@ -9244,6 +9249,7 @@ let dbPlayerInfo = {
                                                 }
                                             ).then(
                                                 function (data) {
+                                                    console.log("player level up checkpoint 7")
                                                     dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false, "lastApplyLevelUp").catch(errorUtils.reportError);
                                                     return data;
                                                 }
@@ -9261,6 +9267,7 @@ let dbPlayerInfo = {
                                             );
                                         } else {
                                             if (checkLevelUp) {
+                                                console.log("check player level up",playerObj.name, topUpSumPeriod, consumptionSumPeriod)
                                                 return Q.reject({
                                                     status: levelUpErrorCode,
                                                     name: "DataError",
