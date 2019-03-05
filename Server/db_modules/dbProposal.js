@@ -1188,7 +1188,8 @@ var proposal = {
             data => ({
                 proposalId: proposalId,
                 orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
-                bonusId: bonusId
+                bonusId: bonusId,
+                checkReqStatus: status
             }),
             error => {
                 if (!error.proposalId) {
@@ -6062,13 +6063,9 @@ var proposal = {
         );
     },
 
-    getPaymentMonitorTotalResult: (data, index, limit) => {
+    getPaymentMonitorTotalResult: (data) => {
         let query = {};
-
         let sort = {createTime: -1};
-
-        limit = limit ? limit : 10;
-        index = index ? index : 0;
 
         query["createTime"] = {};
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
@@ -6222,34 +6219,28 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                console.log("LH check payment monitor 1------------", query);
-                let proposalCountProm = dbconfig.collection_proposal.find(query).count();
-                let proposalsProm = dbconfig.collection_proposal.find(query).lean().sort(sort).skip(index).limit(limit)
+                console.log("LH check payment monitor 1------------");
+
+                return dbconfig.collection_proposal.find(query).lean().sort(sort)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players});
-                return Promise.all([proposalCountProm, proposalsProm]);
             }
         ).then(
             proposalData => {
-                proposalCount = proposalData[0];
-                proposals = proposalData[1];
-
-                return insertRepeatCount(proposals, data.platformList);
+                console.log("LH check payment monitor 2------------");
+                return insertRepeatCount(proposalData, data.platformList);
             }
         ).then(
             proposals => {
-                return {size: proposalCount, data: proposals}
+                console.log("LH check payment monitor 3------------");
+                return {data: proposals};
             }
         );
     },
 
-    getPaymentMonitorTotalCompletedResult: (data, index, limit) => {
+    getPaymentMonitorTotalCompletedResult: (data) => {
         let query = {};
-
         let sort = {createTime: -1};
-
-        limit = limit ? limit : 10;
-        index = index ? index : 0;
 
         query["createTime"] = {};
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
@@ -6355,6 +6346,9 @@ var proposal = {
             case constPlayerTopUpType.QUICKPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_QUICKPAY_TOP_UP;
                 break;
+            case constPlayerTopUpType.COMMON.toString():
+                mainTopUpType = constProposalType.PLAYER_COMMON_TOP_UP;
+                break;
             default:
                 mainTopUpType = {
                     $in: [
@@ -6362,7 +6356,8 @@ var proposal = {
                         constProposalType.PLAYER_ALIPAY_TOP_UP,
                         constProposalType.PLAYER_MANUAL_TOP_UP,
                         constProposalType.PLAYER_WECHAT_TOP_UP,
-                        constProposalType.PLAYER_QUICKPAY_TOP_UP
+                        constProposalType.PLAYER_QUICKPAY_TOP_UP,
+                        constProposalType.PLAYER_COMMON_TOP_UP,
                     ]
                 };
         }
@@ -6396,23 +6391,20 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                console.log("LH check payment completed monitor 1------------", query);
-                let proposalCountProm = dbconfig.collection_proposal.find(query).count();
-                let proposalsProm = dbconfig.collection_proposal.find(query).lean().sort(sort).skip(index).limit(limit)
+                console.log("LH check payment completed monitor 1------------");
+                return dbconfig.collection_proposal.find(query).lean().sort(sort)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players});
-                return Promise.all([proposalCountProm, proposalsProm]);
             }
         ).then(
             proposalData => {
-                proposalCount = proposalData[0];
-                proposals = proposalData[1];
-
-                return insertRepeatCount(proposals, data.platformList);
+                console.log("LH check payment completed monitor 2------------");
+                return insertRepeatCount(proposalData, data.platformList);
             }
         ).then(
             proposals => {
-                return {size: proposalCount, data: proposals}
+                console.log("LH check payment completed monitor 3------------");
+                return {data: proposals};
             }
         );
     },
@@ -8650,7 +8642,8 @@ function getTopUpProposalTypeIds(platformList) {
             constProposalType.PLAYER_ALIPAY_TOP_UP,
             constProposalType.PLAYER_MANUAL_TOP_UP,
             constProposalType.PLAYER_WECHAT_TOP_UP,
-            constProposalType.PLAYER_QUICKPAY_TOP_UP
+            constProposalType.PLAYER_QUICKPAY_TOP_UP,
+            constProposalType.PLAYER_COMMON_TOP_UP
         ]
     };
 

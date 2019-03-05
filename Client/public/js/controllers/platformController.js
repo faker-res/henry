@@ -12956,7 +12956,7 @@ define(['js/app'], function (myApp) {
 
             vm.initBulkSMSToFailPlayers = () => {
                 vm.bulkPlayersToSendSMS = [];
-                vm.smsPlayer = {};
+                vm.smsPlayer = {channel: 4};
                 vm.ctiData.callee.map(callee => {
                     if (callee.status == 2) {
                         vm.bulkPlayersToSendSMS.push(callee.player.playerId)
