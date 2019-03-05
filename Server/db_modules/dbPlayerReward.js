@@ -5612,7 +5612,7 @@ let dbPlayerReward = {
             // NOTE :: Use apply target date instead. There are old records that does not have applyTargetDate field,
             // so createTime is checked if applyTargetDate does not exist - Huat
         }
-
+        console.log('MT --checking eventInPeriodProm query', eventQuery);
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
@@ -6444,6 +6444,7 @@ let dbPlayerReward = {
 
                                 // Check reward amount exceed daily limit
                                 if (eventData.param.dailyMaxRewardAmount) {
+                                    console.log('MT --checking rewardAmountInPeriod', rewardAmount, rewardAmountInPeriod, eventData.param.dailyMaxRewardAmount);
                                     if (rewardAmountInPeriod >= eventData.param.dailyMaxRewardAmount) {
                                         return Q.reject({
                                             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
