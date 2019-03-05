@@ -5419,7 +5419,7 @@ define(['js/app'], function (myApp) {
                                         'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.initPlayerBonus();',
+                                        'ng-click': 'vm.initPlayerBonus();vm.getPlayerBankList();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerBonus',
@@ -14436,6 +14436,44 @@ define(['js/app'], function (myApp) {
                 notSent: true,
                 bonusId: 1
             };
+        }
+
+        vm.getPlayerBankList = function () {
+            vm.playerBankList = [];
+            let isMultipleBank = false;
+
+            if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                isMultipleBank = true;
+            }
+
+            let sendQuery = {
+                playerObjId: vm.selectedSinglePlayer._id,
+                platformObjId: vm.selectedSinglePlayer.platform,
+                isMultipleBank: isMultipleBank
+            };
+            console.log('getPlayerBankList sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getPlayerBankList', sendQuery, function (data) {
+                console.log('getPlayerBankList', data);
+                $scope.$evalAsync(() => {
+                    if (data && data.data) {
+                        vm.playerBankList = data.data.map(
+                            bankList => {
+                                bankList.encodedBankAccount =
+                                    bankList.bankAccount ?
+                                        bankList.bankAccount.slice(0, 6) + "**********" + bankList.bankAccount.slice(-4)
+                                        : null;
+
+                                for (let x in vm.allActiveBankTypeList) {
+                                    bankList.bankNameStr = vm.allActiveBankTypeList[bankList.bankName];
+                                }
+
+                                return bankList;
+                            }
+                        );
+                    }
+                });
+            });
         }
 
         vm.initPlayerCreditLog = function () {

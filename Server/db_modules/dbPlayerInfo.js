@@ -11987,6 +11987,71 @@ let dbPlayerInfo = {
             );
     },
 
+    getPlayerBankList: function (playerObjId, platformObjId, isMultipleBank) {
+        let playerBankList = [];
+        return dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+                if (!playerData.bankName) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player bank details"});
+                }
+
+                playerBankList.push({
+                    bankName: playerData.bankName,
+                    bankAccount: playerData.bankAccount,
+                    bankAccountName: playerData.bankAccountName,
+                    bankAccountType: playerData.bankAccountType,
+                    bankAccountProvince: playerData.AccountProvince,
+                    bankAccountCity: playerData.bankAccountCity,
+                    bankAccountDistrict: playerData.bankAccountDistrict,
+                    bankAddress: playerData.bankAddress,
+                    bankBranch: playerData.bankBranch,
+                });
+                return playerBankList;
+            }
+        ).then(
+            () => {
+                if (!isMultipleBank) return playerBankList;
+
+                return dbconfig.collection_playerMultipleBankDetailInfo.findOne({playerObjId: playerObjId, platformObjId: platformObjId}).then(
+                    bankData => {
+                        if (bankData && !bankData.bankName2 && !bankData.bankName3) {
+                            return playerBankList;
+                        }
+                        if (bankData && bankData.bankName2) {
+                            playerBankList.push({
+                                bankName: bankData.bankName2,
+                                bankAccount: bankData.bankAccount2,
+                                bankAccountName: bankData.bankAccountName2,
+                                bankAccountType: bankData.bankAccountType2,
+                                bankAccountProvince: bankData.AccountProvince2,
+                                bankAccountCity: bankData.bankAccountCity2,
+                                bankAccountDistrict: bankData.bankAccountDistrict2,
+                                bankAddress: bankData.bankAddress2,
+                                bankBranch: bankData.bankBranch2,
+                            });
+                        }
+                        if (bankData && bankData.bankName3) {
+                            playerBankList.push({
+                                bankName: bankData.bankName3,
+                                bankAccount: bankData.bankAccount3,
+                                bankAccountName: bankData.bankAccountName3,
+                                bankAccountType: bankData.bankAccountType3,
+                                bankAccountProvince: bankData.AccountProvince3,
+                                bankAccountCity: bankData.bankAccountCity3,
+                                bankAccountDistrict: bankData.bankAccountDistrict3,
+                                bankAddress: bankData.bankAddress3,
+                                bankBranch: bankData.bankBranch3,
+                            });
+                        }
+                        return playerBankList;
+                    }
+                )
+            }
+        );
+    },
 
     getAllAppliedBonusList: function (platformId, startIndex, count, startTime, endTime, status, sort) {
         var seq = sort ? -1 : 1;

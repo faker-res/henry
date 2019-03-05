@@ -839,6 +839,12 @@ function socketActionPlayer(socketIO, socket) {
             }, data.platform], actionName, isValidData);
         },
 
+        getPlayerBankList: function getPlayerBankList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerBankList, [data.playerObjId, data.platformObjId, data.isMultipleBank], actionName, isValidData);
+        },
+
         applyRewardEvent: function applyRewardEvent(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.code && data.data);
