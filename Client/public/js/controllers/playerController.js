@@ -11928,7 +11928,8 @@ define(['js/app'], function (myApp) {
                 bonusId: vm.playerBonus.bonusId,
                 honoreeDetail: vm.playerBonus.honoreeDetail,
                 bForce: vm.playerBonus.bForce,
-                platform: vm.selectedPlatform.id
+                platform: vm.selectedPlatform.id,
+                withdrawalBank: vm.playerBonus.withdrawalBank,
             };
             console.log('applyBonusRequest', sendData);
             vm.playerBonus.resMsg = '';

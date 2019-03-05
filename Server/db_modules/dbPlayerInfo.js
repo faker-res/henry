@@ -11554,7 +11554,7 @@ let dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
+    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank) {
         let ximaWithdrawUsed = 0;
         if (amount < 100 && !adminInfo) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});

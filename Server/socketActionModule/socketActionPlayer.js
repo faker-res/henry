@@ -836,7 +836,7 @@ function socketActionPlayer(socketIO, socket) {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
-            }, data.platform], actionName, isValidData);
+            }, data.platform, data.withdrawalBank], actionName, isValidData);
         },
 
         getPlayerBankList: function getPlayerBankList(data) {
@@ -918,10 +918,12 @@ function socketActionPlayer(socketIO, socket) {
 
         getSMSChannelList: function getSMSChannelList(data) {
             var actionName = arguments.callee.name;
+            console.log('SMS data===', data);
             socketUtil.emitter(self.socket, smsAPI.channel_getChannelList, [data], actionName, true);
         },
         getUsableChannelList: function getUsableChannelList(data) {
             var actionName = arguments.callee.name;
+            console.log('USABLE SMS data===', data);
             socketUtil.emitter(self.socket, smsAPI.getUsableChannel_getUsableChannelList, [data], actionName, true);
         },
         vertificationSMSQuery: function vertificationSMSQuery(data) {
