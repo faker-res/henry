@@ -12510,7 +12510,7 @@ define(['js/app'], function (myApp) {
                     sendData.bankAccountProvince2 = vm.currentProvince2.province;
                     sendData.bankAccountCity2 = vm.currentCity2.city;
                     sendData.bankAccountDistrict2 = vm.currentDistrict2.district;
-                    sendData.bankName2 = vm.playerPayment2.bankName;
+                    sendData.bankName2 = vm.playerPayment2.bankName2;
                     console.log('send===', sendData);
                     if (sendData.newBankAccount2 != sendData.encodedBankAccount2) {
                         sendData.bankAccount2 = sendData.newBankAccount2;
@@ -12524,7 +12524,7 @@ define(['js/app'], function (myApp) {
                     sendData.bankAccountProvince3 = vm.currentProvince3.province;
                     sendData.bankAccountCity3 = vm.currentCity3.city;
                     sendData.bankAccountDistrict3 = vm.currentDistrict3.district;
-                    sendData.bankName3 = vm.playerPayment3.bankName;
+                    sendData.bankName3 = vm.playerPayment3.bankName3;
                     console.log('send===', sendData);
                     if (sendData.newBankAccount3 != sendData.encodedBankAccount3) {
                         sendData.bankAccount3 = sendData.newBankAccount3;
