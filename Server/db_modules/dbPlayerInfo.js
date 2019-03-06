@@ -20486,10 +20486,12 @@ let dbPlayerInfo = {
 
                     // remove the unrelated provderID and return data
                     returnData.sameLineProviders = {};
+                    console.log('MT --checking tempSameLineProviderList', tempSameLineProviderList);
                     for (let i = 0; i < tempSameLineProviderList.length; i ++) {
                         if (tempSameLineProviderList[i].length) {
                             returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
                             amountGameProviderList.push(returnData.sameLineProviders[i][0]);
+                            console.log('MT --checking amountGameProviderList', amountGameProviderList);
                         }
                     }
                 }
@@ -20547,9 +20549,13 @@ let dbPlayerInfo = {
                             providerId: gameCreditList[i].providerId
                         };
                         // check the game credit from the same platform
+                       console.log('MT --checking amountGameProviderList', amountGameProviderList);
+                       console.log('MT --checking gameCreditList[i].providerId', gameCreditList[i].providerId);
                        if (amountGameProviderList.indexOf(gameCreditList[i].providerId) > -1){
                            totalGameCreditAmount += parseInt(gameCreditList[i].gameCredit) || 0;
                            console.log('MT --checking totalGameCreditAmount', totalGameCreditAmount);
+                       }else{
+                           console.log('MT --checking gameCreditList[i].gameCredit', gameCreditList[i].gameCredit);
                        }
                     }
 
