@@ -2702,6 +2702,23 @@ let dbPlayerReward = {
                                             "isViewed": promocode.isViewed,
                                             "usedTime": usedTime
                                         };
+                                        if (promocode.promoCodeTypeObjId && promocode.promoCodeTypeObjId.type) {
+                                            switch (promocode.promoCodeTypeObjId.type) {
+                                                case 1:
+                                                    promo.type = "A";
+                                                    break;
+                                                case 2:
+                                                    promo.type = "B";
+                                                    break;
+                                                case 3:
+                                                    promo.type = "C";
+                                                    break;
+                                                default:
+                                                    promo.type = "";
+                                                    break;
+
+                                            }
+                                        }
                                         if (promocode.maxRewardAmount) {
                                             promo.bonusLimit = promocode.maxRewardAmount;
                                         }
@@ -2972,8 +2989,8 @@ let dbPlayerReward = {
                         (e.promoCodeTemplateObjId &&  e.promoCodeTemplateObjId.type && e.promoCodeTemplateObjId.type == searchQuery.promoCodeType)
                     ) : res[0];
                     let f2 = searchQuery.promoCodeSubType ? f1.filter(e =>
-                        (e.promoCodeTypeObjId &&  e.promoCodeTypeObjId.name && e.promoCodeTypeObjId.name == searchQuery.promoCodeSubType) ||
-                        (e.promoCodeTemplateObjId &&  e.promoCodeTemplateObjId.name && e.promoCodeTemplateObjId.name == searchQuery.promoCodeSubType)
+                        (e.promoCodeTypeObjId &&  e.promoCodeTypeObjId.name && searchQuery.promoCodeSubType.includes(e.promoCodeTypeObjId.name)) ||
+                        (e.promoCodeTemplateObjId &&  e.promoCodeTemplateObjId.name && searchQuery.promoCodeSubType.includes(e.promoCodeTemplateObjId.name))
                     ) : f1;
 
                     // special handling for openPromoCode as its structure is different

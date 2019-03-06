@@ -318,15 +318,14 @@
                             input.form-control(type='text', ng-model='vm.promoCodeQuery.playerName')
                         .search-filters-item
                             label {{"PROMO_CODE_TYPE" | translate}}
-                            select.form-control(ng-model='vm.promoCodeQuery.promoCodeType')
+                            select.form-control(ng-model='vm.promoCodeQuery.promoCodeType' ng-change='vm.checkAllPromoCodeSubType()')
                                 option(value='') {{'any' | translate}}
                                 option(value='1') {{"PROMO_CODE_TYPE_1" | translate}}
                                 option(value='2') {{"PROMO_CODE_TYPE_2" | translate}}
                                 option(value='3') {{"PROMO_CODE_TYPE_3" | translate}}
                         .search-filters-item(ng-if='vm.promoCodeQuery.promoCodeType')
                             label {{"PROMO_CODE_SUB_TYPE" | translate}}
-                            select.form-control(ng-model='vm.promoCodeQuery.promoCodeSubType' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: vm.promoCodeQuery.promoCodeType}")
-                                option(value='') {{'any' | translate}}
+                            select.spicker.form-control#promoCodeSubMultiSelect(ng-model='vm.promoCodeQuery.promoCodeSubType', bsp, multiple, data-actions-box='true', ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: vm.promoCodeQuery.promoCodeType}")
                         .search-filters-twoBoxes
                             label {{"STATUS" | translate}}
                             select.form-control(ng-model='vm.promoCodeQuery.status')
