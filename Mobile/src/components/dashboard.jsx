@@ -11,18 +11,18 @@ const chartEndDate = new Date(new Date().setDate(new Date().getDate() + 1)).toDa
 
 class Dashboard extends Component {
     state = {
-        cardsInfo: [
-            {id:1, info: "onlinePlayer", chinese: "在线玩家", value: 0, awesomeIcon: ['far', 'smile']},
-            {id:2, info: "topup", chinese: "充值额度", value: 0, awesomeIcon: ['fas', 'dollar-sign']},
-            {id:3, info: "withdrawal", chinese: "提款额", value: 0, awesomeIcon: ['fas', 'dollar-sign']},
-            {id:4, info: "bet", chinese: "投注额", value: 0, awesomeIcon: ['far', 'money-bill-alt']},
-            {id:5, info: "newPlayer", chinese: "新玩家", value: 0, awesomeIcon: ['fas', 'user-plus']},
-        ],
-        cardsInfoTwo: [
-            {id: 1, info: "newPlayer", chinese: "提案", value: 0, awesomeIcon:['far','smile']},
-            {id: 2, info: "topup", chinese: "优惠申请数", value: 0, awesomeIcon:['far','registered']},
-            {id: 3, info: "bet", chinese: "优惠申请额度", value: 0, awesomeIcon:['far','stop-circle']},
-        ],
+        cardData: {
+            onlinePlayer: {info: "onlinePlayer", chinese: "在线玩家", value: 0, awesomeIcon: ['far', 'smile']},
+            topup: {info: "topup", chinese: "充值额度", value: 0, awesomeIcon: ['fas', 'dollar-sign']},
+            withdrawal: {info: "withdrawal", chinese: "提款额", value: 0, awesomeIcon: ['fas', 'dollar-sign']},
+            bet: {info: "bet", chinese: "投注额", value: 0, awesomeIcon: ['far', 'money-bill-alt']},
+            newPlayer: {info: "newPlayer", chinese: "新玩家", value: 0, awesomeIcon: ['fas', 'user-plus']},
+        },
+        operationCardData: {
+            // newPlayer: {info: "newPlayer", chinese: "提案", value: 0, awesomeIcon:['far','smile']},
+            rewardCount: {info: "topup", chinese: "优惠申请数", value: 0, awesomeIcon:['far','registered']},
+            rewardCredit: {info: "bet", chinese: "优惠申请额度", value: 0, awesomeIcon:['far','stop-circle']},
+        },
         chartData: {
             login: {
                 data: {
@@ -38,7 +38,7 @@ class Dashboard extends Component {
                 },
                 title: "登录玩家"
             },
-            topUp: {
+            topup: {
                 data: {
                     labels: [],
                     datasets: [{
@@ -97,18 +97,20 @@ class Dashboard extends Component {
         }
     }
 
-    getChartData = (method, chartName) => {
-        socketService.emit(method, {
-            platform: authService.getPlatform(),
+    getChartData = (path, chartName) => {
+        socketService.emit(path, {
+            platformObjId: authService.getPlatform(),
             startDate: chartStartDate,
             endDate: chartEndDate
         }).then(data => {
-            console.log(method, " success! ", data);
+            console.log(path, " success! ", data);
             if(data && data.success) {
                 this.updateChartData(data.data, chartName);
+            } else {
+                console.error(path, "unsuccessful! ", data);
             }
         }, err => {
-            console.log(method, " error!");
+            console.log(path, " error!");
             console.log(err);
         });
     }
@@ -132,32 +134,32 @@ class Dashboard extends Component {
             switch(chartKey) {
                 case 'login':
                 case 'newPlayer':
-                    rawData.forEach(item => {
-                        let dateText = new Date(item._id.date);
-                        dateText =  months[dateText.getMonth()] + " " + dateText.getDate();
-                        existingNumber[dateText] = item.number;
-                    });
-                    prepData(existingNumber);
-                    break;
+                rawData.forEach(item => {
+                    let dateText = new Date(item._id.date);
+                    dateText =  months[dateText.getMonth()] + " " + dateText.getDate();
+                    existingNumber[dateText] = item.number;
+                });
+                prepData(existingNumber);
+                break;
 
-                case 'topUp':
+                case 'topup':
                 case 'consumption':
-                    rawData.forEach(item => {
-                        let dateText = new Date(item._id.date);
-                        dateText =  months[dateText.getMonth()] + " " + dateText.getDate();
-                        existingNumber[dateText] = item.number;
-                    });
-                    prepData(existingNumber);
-                    break;
+                rawData.forEach(item => {
+                    let dateText = new Date(item._id.date);
+                    dateText =  months[dateText.getMonth()] + " " + dateText.getDate();
+                    existingNumber[dateText] = item.number;
+                });
+                prepData(existingNumber);
+                break;
 
                 case 'bonus':
-                    rawData.forEach(item => {
-                        let dateText = new Date(`${item._id.year}-${item._id.month}-${item._id.day}`);
-                        dateText =  months[dateText.getMonth()] + " " + dateText.getDate();
-                        existingNumber[dateText] = item.number;
-                    });
-                    prepData(existingNumber);
-                    break;
+                rawData.forEach(item => {
+                    let dateText = new Date(`${item._id.year}-${item._id.month}-${item._id.day}`);
+                    dateText =  months[dateText.getMonth()] + " " + dateText.getDate();
+                    existingNumber[dateText] = item.number;
+                });
+                prepData(existingNumber);
+                break;
             }
         } else {
             prepData();
@@ -170,12 +172,93 @@ class Dashboard extends Component {
         console.log(this.state);
     }
 
-    componentDidMount() {
+    getCardData = (path, cardName) => {
+        socketService.emit(path, {
+            platformObjId: authService.getPlatform(),
+            startDate: new Date(),
+            endDate: new Date()
+        }).then(data => {
+            console.log(path, " success! ", data);
+            if(data && data.success) {
+                let rawData = data.data;
+                let total = 0;
+                switch(cardName) {
+                    case 'onlinePlayer':
+                    case 'newPlayer':
+                    rawData.forEach(item => {
+                        total += item.number || 0;
+                    })
+                    break;
+
+                    case 'topup':
+                    case 'bet':                    
+                    rawData.forEach(item => {
+                        total += item.totalAmount || 0;
+                    });
+                    break;
+
+                    case 'withdrawal':
+                    rawData.records.forEach(item => {
+                        total += item.amount || 0;
+                    });
+                    break;
+                }
+                this.state.cardData[cardName].value = total;
+            } else {
+                console.error(path, "unsuccessful! ", data);
+            }
+        }, err => {
+            console.log(path, " error!");
+            console.log(err);
+        });
+    }
+
+    getAllCardData() {
+        this.getCardData("countLoginPlayerbyPlatformWeek", "onlinePlayer");
+        this.getCardData("getTopUpTotalAmountForAllPlatform", "topup");
+        this.getCardData("getBonusRequestList", "withdrawal");
+        this.getCardData("getPlayerConsumptionSumForAllPlatform", "bet");
+        this.getCardData("countNewPlayers", "newPlayer");
+    }
+    getAllChartData() {
         this.getChartData("countLoginPlayerAllPlatform", "login");
-        this.getChartData("countTopUpAllPlatform", "topUp");
+        this.getChartData("countTopUpAllPlatform", "topup");
         this.getChartData("countPlayerBonusAllPlatform", "bonus");
         this.getChartData("countConsumptionAllPlatform", "consumption");
         this.getChartData("countNewPlayerAllPlatform", "newPlayer");
+    }
+    getAllRewardProposalCountAndCredit() {
+        let path = "getAllRewardProposal";
+        let sendData = {
+            platformObjId: authService.getPlatform()
+        };
+        
+        socketService.emit(path, sendData).then(data => {
+            console.log(path, " success! ", data);
+            if(data && data.success) {
+                let proposals = data.data;
+                let count = proposals.length;
+                let totalCredit = 0;
+                proposals.forEach(proposal => {
+                    totalCredit += proposal.data.amount;
+                })
+
+                this.state.operationCardData.rewardCount.value = count;
+                this.state.operationCardData.rewardCredit.value = totalCredit;
+                this.forceUpdate();
+            } else {
+                console.error(path, "unsuccessful! ", data);
+            }
+        }, err => {
+            console.log(path, " error!");
+            console.log(err);
+        });
+    }
+
+    componentDidMount() {
+        this.getAllCardData();
+        this.getAllChartData();
+        this.getAllRewardProposalCountAndCredit();
     }
 
     render() {
@@ -191,15 +274,36 @@ class Dashboard extends Component {
                     <h1>平台選擇</h1>
                     <hr></hr>
                     <div className="card-deck">
-                        {this.state.cardsInfo.map(c =>
-                            <Card
-                                key = {c.id}
-                                info = {c.info}
-                                chinese = {c.chinese}
-                                value = {c.value}
-                                awesomeIcon = {c.awesomeIcon}
-                            />
-                        )}
+                        <Card
+                            info = {this.state.cardData.onlinePlayer.info}
+                            chinese = {this.state.cardData.onlinePlayer.chinese}
+                            value = {this.state.cardData.onlinePlayer.value}
+                            awesomeIcon = {this.state.cardData.onlinePlayer.awesomeIcon}
+                        />
+                        <Card
+                            info = {this.state.cardData.topup.info}
+                            chinese = {this.state.cardData.topup.chinese}
+                            value = {this.state.cardData.topup.value}
+                            awesomeIcon = {this.state.cardData.topup.awesomeIcon}
+                        />
+                        <Card
+                            info = {this.state.cardData.withdrawal.info}
+                            chinese = {this.state.cardData.withdrawal.chinese}
+                            value = {this.state.cardData.withdrawal.value}
+                            awesomeIcon = {this.state.cardData.withdrawal.awesomeIcon}
+                        />
+                        <Card
+                            info = {this.state.cardData.bet.info}
+                            chinese = {this.state.cardData.bet.chinese}
+                            value = {this.state.cardData.bet.value}
+                            awesomeIcon = {this.state.cardData.bet.awesomeIcon}
+                        />
+                        <Card
+                            info = {this.state.cardData.newPlayer.info}
+                            chinese = {this.state.cardData.newPlayer.chinese}
+                            value = {this.state.cardData.newPlayer.value}
+                            awesomeIcon = {this.state.cardData.newPlayer.awesomeIcon}
+                        />
                     </div>
 
                     <br></br>
@@ -212,8 +316,8 @@ class Dashboard extends Component {
                         title = {this.state.chartData.login.title}
                     />
                     <LineChart
-                        data = {this.state.chartData.topUp.data}
-                        title = {this.state.chartData.topUp.title}
+                        data = {this.state.chartData.topup.data}
+                        title = {this.state.chartData.topup.title}
                     />
                     <LineChart
                         data = {this.state.chartData.bonus.data}
@@ -236,15 +340,18 @@ class Dashboard extends Component {
                     <div className="row">
                         <div className="col-sm-9 col-md-7">
                             <div className="card-deck">
-                                {this.state.cardsInfoTwo.map(t =>
-                                    <Card
-                                        key = {t.id}
-                                        info = {t.info}
-                                        chinese = {t.chinese}
-                                        value = {t.value}
-                                        awesomeIcon = {t.awesomeIcon}
-                                    />
-                                )}
+                                <Card
+                                    info = {this.state.operationCardData.rewardCount.info}
+                                    chinese = {this.state.operationCardData.rewardCount.chinese}
+                                    value = {this.state.operationCardData.rewardCount.value}
+                                    awesomeIcon = {this.state.operationCardData.rewardCount.awesomeIcon}
+                                />
+                                <Card
+                                    info = {this.state.operationCardData.rewardCredit.info}
+                                    chinese = {this.state.operationCardData.rewardCredit.chinese}
+                                    value = {this.state.operationCardData.rewardCredit.value}
+                                    awesomeIcon = {this.state.operationCardData.rewardCredit.awesomeIcon}
+                                />
                             </div>
                         </div>
                     </div>

@@ -330,6 +330,18 @@
         this.playerService.updatePassword.once(callback);
     };
 
+    proto.inquireAccountByPhoneNumber = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.inquireAccountByPhoneNumber.request(data);
+        this.playerService.inquireAccountByPhoneNumber.once(callback);
+    };
+
+    proto.resetPassword = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.resetPassword.request(data);
+        this.playerService.resetPassword.once(callback);
+    };
+
     proto.updatePasswordPlayerPartner = function (callback, requestData) {
         let data = requestData || {playerId: testPlayerId, oldPassword: "123456", newPassword: "654321"};
         this.playerService.updatePasswordPlayerPartner.request(data);
@@ -653,11 +665,11 @@
         });
     };
 
-    proto.createDemoPlayer = function (callback, requestData) {
+    proto.createGuestPlayer = function (callback, requestData) {
         let data = requestData || {};
 
-        this.playerService.createDemoPlayer.request(data);
-        this.playerService.createDemoPlayer.once(function (data) {
+        this.playerService.createGuestPlayer.request(data);
+        this.playerService.createGuestPlayer.once(function (data) {
             if (callback && typeof callback === "function") {
                 callback(data);
             }
@@ -669,6 +681,28 @@
 
         this.playerService.getLastPlayedGameInfo.request(data);
         this.playerService.getLastPlayedGameInfo.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.createDemoPlayer = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.createDemoPlayer.request(data);
+        this.playerService.createDemoPlayer.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.changeBirthdayDate = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.changeBirthdayDate.request(data);
+        this.playerService.changeBirthdayDate.once(function (data) {
             if (callback && typeof callback === "function") {
                 callback(data);
             }
@@ -717,6 +751,18 @@
                 callback(data);
             }
         });
+    };
+
+    proto.getReceiveTransferList = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.getReceiveTransferList.request(data);
+        this.playerService.getReceiveTransferList.once(callback);
+    };
+
+    proto.playerLoginOrRegisterWithSMS = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.playerLoginOrRegisterWithSMS.request(data);
+        this.playerService.playerLoginOrRegisterWithSMS.once(callback);
     };
 
     if (isNode) {

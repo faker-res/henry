@@ -110,6 +110,9 @@ let authService = {
     getPlatform: () => {
         return cookie.load(authKey.platform);
     },
+    getAdminObjId: () => {
+        return cookie.load(authKey.adminId);
+    },
 };
 
 export default authService;
