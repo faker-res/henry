@@ -99,7 +99,7 @@ class Dashboard extends Component {
 
     getChartData = (path, chartName) => {
         socketService.emit(path, {
-            platformObjId: authService.getPlatform(),
+            platformObjId: authService.getPlatformObjId(),
             startDate: chartStartDate,
             endDate: chartEndDate
         }).then(data => {
@@ -174,7 +174,7 @@ class Dashboard extends Component {
 
     getCardData = (path, cardName) => {
         socketService.emit(path, {
-            platformObjId: authService.getPlatform(),
+            platformObjId: authService.getPlatformObjId(),
             startDate: new Date(),
             endDate: new Date()
         }).then(data => {
@@ -230,7 +230,7 @@ class Dashboard extends Component {
     getAllRewardProposalCountAndCredit() {
         let path = "getAllRewardProposal";
         let sendData = {
-            platformObjId: authService.getPlatform()
+            platformObjId: authService.getPlatformObjId()
         };
         
         socketService.emit(path, sendData).then(data => {
