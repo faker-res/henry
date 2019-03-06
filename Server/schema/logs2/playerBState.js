@@ -50,7 +50,7 @@ let playerBStateSchema = new Schema({
     auctionBiddingUpdatedTime: {type: Date, default: Date.now},
     // update the player's payment info
     updatePaymentInfo: {type: Boolean, default: false},
-    // the tome when updating the player's payment info
+    // the time when updating the player's payment info
     updatePaymentInfoUpdatedTime: {type: Date, default: Date.now}
 });
 
