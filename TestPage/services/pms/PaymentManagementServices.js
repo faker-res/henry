@@ -48,7 +48,8 @@
                 "update",
                 "delete",
                 "modifyCode",
-                "syncData"
+                "syncData",
+                "queryNetworkPlatformAmount"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -75,7 +76,9 @@
                 "requestBankTypeByUsername",
                 "requestOnLinepayByUsername",
                 "requestWechatpayByUsername",
-                "requestAlipayByUsername"
+                "requestAlipayByUsername",
+                "mandatoryMatch",
+                "userDepositSettings"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
         };
@@ -165,7 +168,9 @@
                 "getBankcardList",
                 "getBankcard",
                 "getBankTypeList",
-                "getBankType"
+                "getBankType",
+                "bankCardByGroupReq",
+                "bankCardByUserReq",
             ];
             addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
         };

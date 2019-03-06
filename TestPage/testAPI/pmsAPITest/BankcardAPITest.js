@@ -34,6 +34,27 @@
         this._service.getBankType.onceSync(key, callback);
     };
 
+    proto.bankCardByGroupReq = function(callback, requestData){
+        let data = requestData && requestData.platformId ? requestData : {
+            "platformId": "100"
+        };
+        data.queryId = data.queryId ? Number(data.queryId) : data.queryId;
+        this._service.bankCardByGroupReq.request(data);
+        let key = this._service.bankCardByGroupReq.generateSyncKey(data);
+        this._service.bankCardByGroupReq.onceSync(key, callback);
+    };
+
+    proto.bankCardByUserReq = function(callback, requestData){
+        let data = requestData && requestData.platformId ? requestData : {
+            "platformId": "100",
+            "userName": "111"
+        };
+        data.queryId = data.queryId ? Number(data.queryId) : data.queryId;
+        this._service.bankCardByUserReq.request(data);
+        let key = this._service.bankCardByUserReq.generateSyncKey(data);
+        this._service.bankCardByUserReq.onceSync(key, callback);
+    };
+
     if(isNode){
         module.exports = BankcardAPITest;
     } else {
