@@ -7169,10 +7169,10 @@ define(['js/app'], function (myApp) {
                                     $scope.safeApply();
                                 });
                             }
-                            if (vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2) {
+                            if (vm.selectedSinglePlayer.multipleBankDetailInfo && vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2) {
                                 vm.showProvinceStr2 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2 || $translate("Unknown");
                                 vm.allProvinceList.forEach(province => {
-                                    if (province.id.toString() === vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2.toString()) {
+                                    if (vm.selectedSinglePlayer.multipleBankDetailInfo && province.id.toString() === vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2.toString()) {
                                         vm.showProvinceStr2 = province.name;
                                     }
                                 });
@@ -7197,10 +7197,10 @@ define(['js/app'], function (myApp) {
                                     $scope.safeApply();
                                 });
                             }
-                            if (vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3) {
+                            if (vm.selectedSinglePlayer.multipleBankDetailInfo && vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3) {
                                 vm.showProvinceStr3 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3 || $translate("Unknown");
                                 vm.allProvinceList.forEach(province => {
-                                    if (province.id.toString() === vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3.toString()) {
+                                    if (vm.selectedSinglePlayer.multipleBankDetailInfo && province.id.toString() === vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3.toString()) {
                                         vm.showProvinceStr3 = province.name;
                                     }
                                 });
@@ -12105,14 +12105,16 @@ define(['js/app'], function (myApp) {
                 vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
                 vm.playerPayment.showNewAccountNo = false;
-                vm.playerPayment2 = utilService.assignObjKeys(vm.isOneSelectedPlayer().multipleBankDetailInfo, vm.playerPaymentKeys2);
-                vm.playerPayment2.bankAccountName2 = (vm.playerPayment2.bankAccountName2) ? vm.playerPayment2.bankAccountName2 : vm.isOneSelectedPlayer().realName;
-                vm.playerPayment2.newBankAccount2 = vm.playerPayment2.encodedBankAccount2;
-                vm.playerPayment2.showNewAccountNo2 = false;
-                vm.playerPayment3 = utilService.assignObjKeys(vm.isOneSelectedPlayer().multipleBankDetailInfo, vm.playerPaymentKeys3);
-                vm.playerPayment3.bankAccountName3 = (vm.playerPayment3.bankAccountName3) ? vm.playerPayment3.bankAccountName3 : vm.isOneSelectedPlayer().realName;
-                vm.playerPayment3.newBankAccount3 = vm.playerPayment3.encodedBankAccount3;
-                vm.playerPayment3.showNewAccountNo3 = false;
+                if (vm.isOneSelectedPlayer() && vm.isOneSelectedPlayer().multipleBankDetailInfo) {
+                    vm.playerPayment2 = utilService.assignObjKeys(vm.isOneSelectedPlayer().multipleBankDetailInfo, vm.playerPaymentKeys2);
+                    vm.playerPayment2.bankAccountName2 = (vm.playerPayment2.bankAccountName2) ? vm.playerPayment2.bankAccountName2 : vm.isOneSelectedPlayer().realName;
+                    vm.playerPayment2.newBankAccount2 = vm.playerPayment2.encodedBankAccount2;
+                    vm.playerPayment2.showNewAccountNo2 = false;
+                    vm.playerPayment3 = utilService.assignObjKeys(vm.isOneSelectedPlayer().multipleBankDetailInfo, vm.playerPaymentKeys3);
+                    vm.playerPayment3.bankAccountName3 = (vm.playerPayment3.bankAccountName3) ? vm.playerPayment3.bankAccountName3 : vm.isOneSelectedPlayer().realName;
+                    vm.playerPayment3.newBankAccount3 = vm.playerPayment3.encodedBankAccount3;
+                    vm.playerPayment3.showNewAccountNo3 = false;
+                }
                 vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
                 vm.filterBankName = '';
                 vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
