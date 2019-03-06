@@ -20414,10 +20414,12 @@ let dbPlayerInfo = {
 
                     // remove the unrelated provderID and return data
                     returnData.sameLineProviders = {};
+                    console.log('MT --checking tempSameLineProviderList', tempSameLineProviderList);
                     for (let i = 0; i < tempSameLineProviderList.length; i ++) {
                         if (tempSameLineProviderList[i].length) {
                             returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
                             amountGameProviderList.push(returnData.sameLineProviders[i][0]);
+                            console.log('MT --checking amountGameProviderList', amountGameProviderList);
                         }
                     }
                 }
