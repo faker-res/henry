@@ -48,6 +48,10 @@ let playerBStateSchema = new Schema({
     auctionBidding: {type: Boolean, default: false},
     // the tome when bidding
     auctionBiddingUpdatedTime: {type: Date, default: Date.now},
+    // update the player's payment info
+    updatePaymentInfo: {type: Boolean, default: false},
+    // the tome when updating the player's payment info
+    updatePaymentInfoUpdatedTime: {type: Date, default: Date.now}
 });
 
 module.exports = playerBStateSchema;
