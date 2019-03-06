@@ -5612,7 +5612,6 @@ let dbPlayerReward = {
             // NOTE :: Use apply target date instead. There are old records that does not have applyTargetDate field,
             // so createTime is checked if applyTargetDate does not exist - Huat
         }
-        console.log('MT --checking eventInPeriodProm query', JSON.stringify(eventQuery,null,2));
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
