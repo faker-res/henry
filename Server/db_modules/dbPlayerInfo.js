@@ -6140,69 +6140,54 @@ let dbPlayerInfo = {
                 if (verificationSMS && verificationSMS.code) {
                     if (verificationSMS.code == loginData.smsCode) {
                         // Verified
+                        let platformId, platformPrefix;
+
                         return dbconfig.collection_smsVerificationLog.remove(
                             {_id: verificationSMS._id}
                         ).then(
-                            data => {
+                            () => {
                                 dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                 isSMSVerified = true;
 
-                                let platformId, platformPrefix;
-                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId}).then(
-                                    platformData => {
-                                        if (platformData) {
-                                            platformId = platformData.platformId;
-                                            platformPrefix = platformData.prefix;
-                                            let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
-                                            let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
-
-                                            return dbconfig.collection_players.findOne(
-                                                {
-                                                    $or: [
-                                                        {phoneNumber: encryptedPhoneNumber},
-                                                        {phoneNumber: loginData.phoneNumber},
-                                                        {phoneNumber: enOldPhoneNumber}
-                                                    ],
-                                                    platform: platformData._id
-                                                }
-                                            ).lean();
-                                        }
-                                    }
-                                ).then(
-                                    player => {
-                                        if (player) {
-                                            return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified).catch(
-                                                error => {
-                                                    return Q.reject({
-                                                        status: constServerCode.DB_ERROR,
-                                                        name: "DBError",
-                                                        message: error.message
-                                                    });
-                                                }
-                                            )
-                                        } else {
-                                            let newPlayerData = {
-                                                platformId: loginData.platformId,
-                                                name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
-                                                password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
-                                                phoneNumber: loginData.phoneNumber,
-                                            };
-                                            return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true).then(registerData => {
-                                                return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified).catch(
-                                                    error => {
-                                                        return Q.reject({
-                                                            status: constServerCode.DB_ERROR,
-                                                            name: "DBError",
-                                                            message: error.message
-                                                        });
-                                                    }
-                                                )
-                                            });
-                                        }
-                                    }
-                                );
+                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId})
                             }
-                        )
+                        ).then(
+                            platformData => {
+                                if (platformData) {
+                                    platformId = platformData.platformId;
+                                    platformPrefix = platformData.prefix;
+                                    let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
+                                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
+
+                                    return dbconfig.collection_players.findOne(
+                                        {
+                                            $or: [
+                                                {phoneNumber: encryptedPhoneNumber},
+                                                {phoneNumber: loginData.phoneNumber},
+                                                {phoneNumber: enOldPhoneNumber}
+                                            ],
+                                            platform: platformData._id
+                                        }
+                                    ).lean();
+                                }
+                            }
+                        ).then(
+                            player => {
+                                if (player) {
+                                    return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
+                                } else {
+                                    let newPlayerData = {
+                                        platformId: loginData.platformId,
+                                        name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
+                                        password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
+                                        phoneNumber: loginData.phoneNumber,
+                                    };
+
+                                    return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
+                                        .then(() => dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified));
+                                }
+                            }
+                        );
                     } else {
                         // Not verified
                         if (verificationSMS.loginAttempts >= 10) {
@@ -6231,7 +6216,6 @@ let dbPlayerInfo = {
     },
 
     playerLoginWithSMS: function (loginData, userAgent, isSMSVerified) {
-        let deferred = Q.defer();
         let newAgentArray = [];
         let platformId = null;
         let uaObj = null;
@@ -6239,7 +6223,7 @@ let dbPlayerInfo = {
         let retObj = {};
         let platformPrefix = "";
 
-        dbconfig.collection_platform.findOne({platformId: loginData.platformId}).then(
+        return dbconfig.collection_platform.findOne({platformId: loginData.platformId}).then(
             platformData => {
                 if (platformData) {
                     platformId = platformData._id;
@@ -6258,11 +6242,11 @@ let dbPlayerInfo = {
                     ).lean();
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Cannot find platform"});
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
             },
             error => {
-                deferred.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+                return Promise.reject({name: "DBError", message: "Error in getting player platform data", error: error});
             }
         ).then(
             data => {
@@ -6270,12 +6254,11 @@ let dbPlayerInfo = {
                     playerObj = data;
 
                     if (playerObj.permission.forbidPlayerFromLogin) {
-                        deferred.reject({
+                        return Promise.reject({
                             name: "DataError",
                             message: "Player is not enable",
                             code: constServerCode.PLAYER_IS_FORBIDDEN
                         });
-                        return;
                     }
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
@@ -6327,7 +6310,8 @@ let dbPlayerInfo = {
                     if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
                         updateData.$push = {loginIps: loginData.lastLoginIp};
                     }
-                    dbconfig.collection_players.findOneAndUpdate({
+
+                    return dbconfig.collection_players.findOneAndUpdate({
                         _id: playerObj._id,
                         platform: playerObj.platform
                     }, updateData).populate({
@@ -6360,7 +6344,7 @@ let dbPlayerInfo = {
                                 }
                             ).then(
                                 () => {
-                                    dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                    return dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "platform",
                                         model: dbconfig.collection_platform
                                     }).populate({
@@ -6383,17 +6367,17 @@ let dbPlayerInfo = {
                                             retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
-                                            deferred.resolve(retObj);
+                                            return retObj;
                                         },
                                         errorZone => {
-                                            deferred.resolve(retObj);
+                                            return retObj;
                                         }
                                     );
                                 }
                             );
                         },
                         error => {
-                            deferred.reject({
+                            return Promise.reject({
                                 name: "DBError",
                                 message: "Error in updating player",
                                 error: error
@@ -6401,7 +6385,7 @@ let dbPlayerInfo = {
                         }
                     );
                 } else {
-                    deferred.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "Cannot find player",
                         code: constServerCode.INVALID_USER_PASSWORD
@@ -6409,10 +6393,9 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                deferred.reject({name: "DBError", message: "Error in getting player data", error: error});
+                return Promise.reject({name: "DBError", message: "Error in getting player data", error: error});
             }
         );
-        return deferred.promise;
     },
 
     updateGeoipws: function (playerObjId, platformObjId, ip) {
