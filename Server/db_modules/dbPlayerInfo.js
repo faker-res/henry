@@ -20499,7 +20499,7 @@ let dbPlayerInfo = {
                     for (let i = 0; i < tempSameLineProviderList.length; i ++) {
                         if (tempSameLineProviderList[i].length) {
                             returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
-                            amountGameProviderList.push(returnData.sameLineProviders[i][0]);
+                            amountGameProviderList.push(returnData.sameLineProviders[i]);
                             console.log('MT --checking amountGameProviderList', amountGameProviderList);
                         }
                     }
@@ -20558,16 +20558,9 @@ let dbPlayerInfo = {
                             providerId: gameCreditList[i].providerId
                         };
                         // check the game credit from the same platform
-                       console.log('MT --checking amountGameProviderList', amountGameProviderList);
-                       console.log('MT --checking gameCreditList[i].providerId', gameCreditList[i].providerId);
-                       if (amountGameProviderList.indexOf(gameCreditList[i].providerId) > -1){
-                           totalGameCreditAmount += parseInt(gameCreditList[i].gameCredit) || 0;
-                           console.log('MT --checking totalGameCreditAmount', totalGameCreditAmount);
-                       }else{
-                           console.log('MT --checking gameCreditList[i].gameCredit', gameCreditList[i].gameCredit);
-                       }
                     }
-
+                    totalGameCreditAmount = calculateGameCredit(amountGameProviderList, gameCreditList);
+                    console.log('totalGameCreditAmount', totalGameCreditAmount)
                     return dbconfig.collection_rewardTaskGroup.find({
                         platformId: playerDetails.platformObjId,
                         playerId: playerObjId,
@@ -25071,6 +25064,22 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
             return output;
         }
     );
+}
+
+function calculateGameCredit (amountGameProviderList, gameCreditList) {
+    let result = 0;
+    amountGameProviderList.forEach( gameProvider => {
+        gameProvider.forEach( item => {
+            //if multi provider, we find one of it with active status
+            let credit = gameCreditList.filter(gameCredit => {
+                return ( gameCredit.providerId == item ) && parseFloat(gameCredit.gameCredit);
+            })
+            if ( credit && credit[0] ) {
+                result += parseFloat(credit[0].gameCredit);
+            }
+        })
+    })
+    return result
 }
 
 var proto = dbPlayerInfoFunc.prototype;
