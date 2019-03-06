@@ -836,7 +836,13 @@ function socketActionPlayer(socketIO, socket) {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
-            }, data.platform], actionName, isValidData);
+            }, data.platform, data.withdrawalBank], actionName, isValidData);
+        },
+
+        getPlayerBankList: function getPlayerBankList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerBankList, [data.playerObjId, data.platformObjId, data.isMultipleBank], actionName, isValidData);
         },
 
         applyRewardEvent: function applyRewardEvent(data) {

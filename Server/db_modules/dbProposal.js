@@ -8995,6 +8995,7 @@ function isBankInfoMatched(proposalData, playerId){
 
 
     return dbconfig.collection_players.findOne({playerId: playerId})
+        .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean()
         .then(
             player => {
@@ -9059,8 +9060,20 @@ function isBankInfoMatched(proposalData, playerId){
                                         } else if (proposal.data.bankAccount != playerData.bankAccount) {
                                             return false;
                                         }
-                                    } else if (playerData.bankAccount) {
-                                        return false;
+                                    }
+                                    if (proposal.data.bankAccount2) {
+                                        if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount2) {
+                                            return false;
+                                        } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount2 != playerData.multipleBankDetailInfo.bankAccount2) {
+                                            return false;
+                                        }
+                                    }
+                                    if (proposal.data.bankAccount3) {
+                                        if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount3) {
+                                            return false;
+                                        } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount3 != playerData.multipleBankDetailInfo.bankAccount3) {
+                                            return false;
+                                        }
                                     }
                                 }
 

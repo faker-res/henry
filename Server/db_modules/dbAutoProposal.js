@@ -321,7 +321,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             let RTGPromise = dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: proposal.data.playerObjId}, proposal.createTime);
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).read("secondaryPreferred").sort({createTime: 1}).lean();
-            let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
+            let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0})
+                                    .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean();
             let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
 
             if (proposal.data.playerId) {
@@ -1117,7 +1118,7 @@ function isFirstWithdrawalAfterPaymentInfoUpdated(proposals) {
     return false;
 }
 
-function isPaymentInfoMatched(proposals, playerData){
+function isPaymentInfoMatched(proposals, playerData) {
     let length = proposals.length;
     for (let i = 0; i < length; i++) {
         let proposal = proposals[i];
@@ -1129,8 +1130,20 @@ function isPaymentInfoMatched(proposals, playerData){
                     }else if(proposal.data.bankAccount != playerData.bankAccount){
                         return false;
                     }
-                }else if(playerData.bankAccount){
-                    return false;
+                }
+                if (proposal.data.bankAccount2) {
+                    if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount2) {
+                        return false;
+                    } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount2 != playerData.multipleBankDetailInfo.bankAccount2) {
+                        return false;
+                    }
+                }
+                if (proposal.data.bankAccount3) {
+                    if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount3) {
+                        return false;
+                    } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount3 != playerData.multipleBankDetailInfo.bankAccount3) {
+                        return false;
+                    }
                 }
             }
 

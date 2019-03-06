@@ -5419,7 +5419,7 @@ define(['js/app'], function (myApp) {
                                         'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.initPlayerBonus();',
+                                        'ng-click': 'vm.initPlayerBonus();vm.getPlayerBankList();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerBonus',
@@ -7508,14 +7508,16 @@ define(['js/app'], function (myApp) {
                         vm.selectedSinglePlayer.bankAccount ?
                             vm.selectedSinglePlayer.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-4)
                             : null;
-                    vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount2 =
-                        vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2 ?
-                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(-4)
-                            : null;
-                    vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount3 =
-                        vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3 ?
-                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(-4)
-                            : null;
+                    if (vm.selectedSinglePlayer.multipleBankDetailInfo) {
+                        vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount2 =
+                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2 ?
+                                vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(-4)
+                                : null;
+                        vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount3 =
+                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3 ?
+                                vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(-4)
+                                : null;
+                    }
 
                     // Fix partnerName disappeared on second load
                     if (!vm.selectedSinglePlayer.partnerName) {
@@ -11926,7 +11928,8 @@ define(['js/app'], function (myApp) {
                 bonusId: vm.playerBonus.bonusId,
                 honoreeDetail: vm.playerBonus.honoreeDetail,
                 bForce: vm.playerBonus.bForce,
-                platform: vm.selectedPlatform.id
+                platform: vm.selectedPlatform.id,
+                withdrawalBank: vm.playerBonus.withdrawalBank,
             };
             console.log('applyBonusRequest', sendData);
             vm.playerBonus.resMsg = '';
@@ -14434,6 +14437,44 @@ define(['js/app'], function (myApp) {
                 notSent: true,
                 bonusId: 1
             };
+        }
+
+        vm.getPlayerBankList = function () {
+            vm.playerBankList = [];
+            let isMultipleBank = false;
+
+            if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                isMultipleBank = true;
+            }
+
+            let sendQuery = {
+                playerObjId: vm.selectedSinglePlayer._id,
+                platformObjId: vm.selectedSinglePlayer.platform,
+                isMultipleBank: isMultipleBank
+            };
+            console.log('getPlayerBankList sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getPlayerBankList', sendQuery, function (data) {
+                console.log('getPlayerBankList', data);
+                $scope.$evalAsync(() => {
+                    if (data && data.data) {
+                        vm.playerBankList = data.data.map(
+                            bankList => {
+                                bankList.encodedBankAccount =
+                                    bankList.bankAccount ?
+                                        bankList.bankAccount.slice(0, 6) + "**********" + bankList.bankAccount.slice(-4)
+                                        : null;
+
+                                for (let x in vm.allActiveBankTypeList) {
+                                    bankList.bankNameStr = vm.allActiveBankTypeList[bankList.bankName];
+                                }
+
+                                return bankList;
+                            }
+                        );
+                    }
+                });
+            });
         }
 
         vm.initPlayerCreditLog = function () {
