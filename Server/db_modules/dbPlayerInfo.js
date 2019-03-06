@@ -20379,6 +20379,7 @@ let dbPlayerInfo = {
 
                             if (!groupSameLineProviders.length) {
                                 groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId])
+                                console.log('MT --checking !groupSameLineProviders', groupSameLineProviders);
                             }
                             else {
                                 // check each of the providerId
@@ -20405,6 +20406,7 @@ let dbPlayerInfo = {
                                     groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]);
                                 }
                             }
+                            console.log('MT --checking groupSameLineProviders', groupSameLineProviders);
                         }
                         else{
                             // for those game provider does not have samelineProvider
@@ -20435,11 +20437,13 @@ let dbPlayerInfo = {
                             nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                             status: status
                         };
+                        console.log('MT --checking providerCredit', providerCredit);
                     }
 
                     let tempSameLineProviderList = [];
                     let skipList= [];
                     // check if the newly added row is intercept with the current set of data
+                    console.log('MT --checking groupSameLineProviders', groupSameLineProviders);
                     for (let index1 = 0; index1 < groupSameLineProviders.length; index1++) {
 
                         if (!skipList.length && skipList.indexOf(index1) > -1){
@@ -20489,11 +20493,12 @@ let dbPlayerInfo = {
                         }
                     }
                 }
-
+                console.log('MT --checking providerCredit', providerCredit);
                 return providerCredit;
             }
         ).then(
             providerList => {
+                console.log('MT --checking providerList', providerList);
                 if (providerList && providerList.gameCreditList && providerList.gameCreditList.length > 0 && isRealPlayer) {
                     let promArray = [];
                     for (let i = 0; i < providerList.gameCreditList.length; i++) {
@@ -20531,6 +20536,7 @@ let dbPlayerInfo = {
             }
         ).then(
             gameCreditList => {
+                console.log('MT --checking gameCreditList', gameCreditList);
                 if (gameCreditList && gameCreditList.length > 0) {
                     gameData = gameCreditList;
                     for (let i = 0; i < gameCreditList.length; i++) {
@@ -20542,7 +20548,8 @@ let dbPlayerInfo = {
                         };
                         // check the game credit from the same platform
                        if (amountGameProviderList.indexOf(gameCreditList[i].providerId) > -1){
-                           totalGameCreditAmount +=  parseInt(gameCreditList[i].gameCredit) || 0;
+                           totalGameCreditAmount += parseInt(gameCreditList[i].gameCredit) || 0;
+                           console.log('MT --checking totalGameCreditAmount', totalGameCreditAmount);
                        }
                     }
 
