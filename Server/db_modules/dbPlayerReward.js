@@ -2702,6 +2702,23 @@ let dbPlayerReward = {
                                             "isViewed": promocode.isViewed,
                                             "usedTime": usedTime
                                         };
+                                        if (promocode.promoCodeTypeObjId && promocode.promoCodeTypeObjId.type) {
+                                            switch (promocode.promoCodeTypeObjId.type) {
+                                                case 1:
+                                                    promo.type = "A";
+                                                    break;
+                                                case 2:
+                                                    promo.type = "B";
+                                                    break;
+                                                case 3:
+                                                    promo.type = "C";
+                                                    break;
+                                                default:
+                                                    promo.type = "";
+                                                    break;
+
+                                            }
+                                        }
                                         if (promocode.maxRewardAmount) {
                                             promo.bonusLimit = promocode.maxRewardAmount;
                                         }
