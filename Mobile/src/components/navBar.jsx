@@ -2,7 +2,8 @@ import React, {Component} from 'react';
 import SelectServer from './selectServer';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faLanguage} from "@fortawesome/free-solid-svg-icons";
-
+import authService from '../services/authService';
+import navService from '../services/navService.js';
 
 
 class NavBar extends Component{
@@ -24,6 +25,11 @@ class NavBar extends Component{
     toggleNav () {
         const b = document.getElementById("Nav");
         b.classList.toggle("show");
+    }
+
+    logout() {
+        authService.logout();
+        navService.goto('');
     }
 
     render(){
@@ -62,7 +68,7 @@ class NavBar extends Component{
                     <a href="#"> <FontAwesomeIcon icon="edit"/> 开发日志</a>
                     <a href="#"> <FontAwesomeIcon icon="book-open"/> 查看日志</a>
                     <a href="#"> <FontAwesomeIcon icon="key"/> 更新密码</a>
-                    <a href="#"> <FontAwesomeIcon icon="sign-out-alt"/> 注销</a>
+                    <a href="#" onClick={this.logout}> <FontAwesomeIcon icon="sign-out-alt"/> 注销</a>
 
                 </div>
 
