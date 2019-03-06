@@ -17423,6 +17423,28 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            function getQueryDepartments () {
+                vm.currentPlatformDepartment = vm.currentPlatformDepartment || [];
+
+                vm.currentPlatformDepartment.map(e => {
+                    // this implies the name has to be exactly the same, case sensitive.
+                    if (e.departmentName == vm.selectedPlatform.data.name) {
+                        vm.queryDepartments.push(e);
+                        parentId = e._id;
+                    }
+                });
+
+                vm.currentPlatformDepartment.map(e => {
+                    if (String(parentId) == String(e.parent)) {
+                        vm.queryDepartments.push(e);
+                    }
+                });
+                vm.setupRemarksMultiInputFeedback();
+                vm.setupRemarksMultiInputFeedbackFilter();
+                vm.setupGameProviderMultiInputFeedback();
+                vm.setupMultiInputFeedbackTopicFilter();
+            };
+
             vm.initPlayerFeedback = function () {
                 console.log("initPlayerFeedback");
                 vm.playerFeedbackSearchType = "many";
@@ -17446,28 +17468,7 @@ define(['js/app'], function (myApp) {
                         } else {
                             getQueryDepartments();
                         }
-
-                        function getQueryDepartments () {
-                            vm.currentPlatformDepartment = vm.currentPlatformDepartment || [];
-
-                            vm.currentPlatformDepartment.map(e => {
-                                // this implies the name has to be exactly the same, case sensitive.
-                                if (e.departmentName == vm.selectedPlatform.data.name) {
-                                    vm.queryDepartments.push(e);
-                                    parentId = e._id;
-                                }
-                            });
-
-                            vm.currentPlatformDepartment.map(e => {
-                                if (String(parentId) == String(e.parent)) {
-                                    vm.queryDepartments.push(e);
-                                }
-                            });
-                            vm.setupRemarksMultiInputFeedback();
-                            vm.setupRemarksMultiInputFeedbackFilter();
-                            vm.setupGameProviderMultiInputFeedback();
-                            vm.setupMultiInputFeedbackTopicFilter();
-                        }
+                        
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
                     $('#registerStartTimePicker').datetimepicker({
@@ -35352,6 +35353,7 @@ define(['js/app'], function (myApp) {
                 vm.feedbackAdminQuery = vm.feedbackAdminQuery || {};
                 vm.feedbackAdminQuery.total = 0;
                 vm.feedbackAdminQuery.cs = '';
+                vm.loadAlldepartment(getQueryDepartments);
                 let departmentID = vm.platformDepartmentObjId;
                 if (departmentID) {
                     socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.platformDepartmentObjId}, function (data) {
