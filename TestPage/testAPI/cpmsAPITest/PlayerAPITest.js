@@ -235,6 +235,21 @@
         });
 
     };
+
+    proto.getTestLoginURLWithOutUser = function (callback, requestData) {
+
+        var data = requestData || {};
+        this._service.getTestLoginURLWithOutUser.request(data);
+        var key = this._service.getTestLoginURLWithOutUser.generateSyncKey(data);
+        this._service.getTestLoginURLWithOutUser.onceSync(key, function (data) {
+
+            if (typeof callback === "function") {
+                console.log("data", data);
+                callback(data);
+            }
+        });
+
+    };
     
     if (isNode) {
         module.exports = PlayerAPITest;

@@ -88,6 +88,13 @@
         this.rewardService.getConsumeRebateAmount.once(callback);
     };
 
+    proto.getConsumeRebateDetail = function (callback, requestData) {
+        var data = requestData || {};
+
+        this.rewardService.getConsumeRebateDetail.request(data);
+        this.rewardService.getConsumeRebateDetail.once(callback);
+    };
+
     proto.isValidForFirstTopUpReward = function (callback, requestData) {
 
         var data = requestData || {playerId: testPlayerId};
@@ -136,11 +143,14 @@
         var data = requestData || {proposalId: xxxxx};
         this.rewardService.cancelAppliedBonus.request(data);
         this.rewardService.cancelAppliedBonus.once(callback);
-    };
+    }
 
     proto.applyRewardEvent = function (callback, requestData) {
         var sendReq = {
             code: requestData.code,
+            appliedObjIdList: requestData.appliedObjIdList,
+            type: requestData.type,
+            forceSettled: requestData.forceSettled,
             data: {
                 requestId: requestData.requestId,
                 //topUpRecordId: requestData.topUpRecordId,
@@ -148,7 +158,9 @@
                 code: requestData.code,
                 amount: requestData.amount,
                 referralName: requestData.referralName,
-                smsCode: requestData.smsCode
+                smsCode: requestData.smsCode,
+                type: requestData.type,
+                forceSettled: requestData.forceSettled,
             }
         }
         var data = sendReq ||
@@ -180,6 +192,13 @@
 
     proto.getPromoCode = function (callback, requestData) {
         let data = requestData || {};
+
+        if (data.noLogin === "false") {
+            data.noLogin = false;
+        } else {
+            data.noLogin = Boolean(data.noLogin)
+        }
+
         this.rewardService.getPromoCode.request(data);
         this.rewardService.getPromoCode.once(callback);
     };
@@ -226,6 +245,12 @@
         this.rewardService.setBonusShowInfo.once(callback);
     };
 
+    proto.getRewardApplicationData = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getRewardApplicationData.request(data);
+        this.rewardService.getRewardApplicationData.once(callback);
+    };
+
     proto.getSignInfo = function (callback, requestData) {
         let data = requestData || {};
 
@@ -252,6 +277,12 @@
 
         this.rewardService.getRandBonusInfo.request(data);
         this.rewardService.getRandBonusInfo.once(callback);
+    };
+
+    proto.getRewardRanking = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getRewardRanking.request(data);
+        this.rewardService.getRewardRanking.once(callback);
     };
 
     if (isNode) {
