@@ -12114,18 +12114,18 @@ define(['js/app'], function (myApp) {
                     vm.playerPayment3.bankAccountName3 = (vm.playerPayment3.bankAccountName3) ? vm.playerPayment3.bankAccountName3 : vm.isOneSelectedPlayer().realName;
                     vm.playerPayment3.newBankAccount3 = vm.playerPayment3.encodedBankAccount3;
                     vm.playerPayment3.showNewAccountNo3 = false;
+                    vm.currentProvince2.province = vm.playerPayment2.bankAccountProvince2;
+                    vm.currentProvince3.province = vm.playerPayment3.bankAccountProvince3;
+                    vm.currentCity2.city = vm.playerPayment2.bankAccountCity2;
+                    vm.currentCity3.city = vm.playerPayment3.bankAccountCity3;
+                    vm.currentDistrict2.district = vm.playerPayment2.bankAccountDistrict2;
+                    vm.currentDistrict3.district = vm.playerPayment3.bankAccountDistrict3;
                 }
                 vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
                 vm.filterBankName = '';
                 vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
-                vm.currentProvince2.province = vm.playerPayment2.bankAccountProvince2;
-                vm.currentProvince3.province = vm.playerPayment3.bankAccountProvince3;
                 vm.currentCity.city = vm.playerPayment.bankAccountCity;
-                vm.currentCity2.city = vm.playerPayment2.bankAccountCity2;
-                vm.currentCity3.city = vm.playerPayment3.bankAccountCity3;
                 vm.currentDistrict.district = vm.playerPayment.bankAccountDistrict;
-                vm.currentDistrict2.district = vm.playerPayment2.bankAccountDistrict2;
-                vm.currentDistrict3.district = vm.playerPayment3.bankAccountDistrict3;
                 socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
                     if (data) {
                         // vm.provinceList = data.data.provinces.map(item => {
