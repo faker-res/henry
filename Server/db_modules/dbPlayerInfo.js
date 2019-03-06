@@ -20475,9 +20475,13 @@ let dbPlayerInfo = {
                             providerId: gameCreditList[i].providerId
                         };
                         // check the game credit from the same platform
+                       console.log('MT --checking amountGameProviderList', amountGameProviderList);
+                       console.log('MT --checking gameCreditList[i].providerId', gameCreditList[i].providerId);
                        if (amountGameProviderList.indexOf(gameCreditList[i].providerId) > -1){
                            totalGameCreditAmount += parseInt(gameCreditList[i].gameCredit) || 0;
                            console.log('MT --checking totalGameCreditAmount', totalGameCreditAmount);
+                       }else{
+                           console.log('MT --checking gameCreditList[i].gameCredit', gameCreditList[i].gameCredit);
                        }
                     }
 
