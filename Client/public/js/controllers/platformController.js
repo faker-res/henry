@@ -23215,6 +23215,8 @@ define(['js/app'], function (myApp) {
                             vm.promoCodeQuery.pageObj = utilService.createPageForPagingTable("#promoCodeTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
                                 vm.commonPageChangeHandler(curP, pageSize, "promoCodeQuery", vm.getPromoCodeHistory)
                             });
+
+                            vm.refreshDropDown();
                         });
                         break;
                     case 'monitorTypeB':
@@ -24806,6 +24808,19 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.checkAllPromoCodeSubType = function () {
+                vm.promoCodeQuery.promoCodeSubType = [];
+                vm.promoCodeQuery.promoCodeSubTypeTotal = 0;
+                if (vm.promoCodeQuery && vm.promoCodeTypes && vm.promoCodeTypes.length && vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType) {
+                    vm.promoCodeTypes.forEach(promoCode => {
+                        if (promoCode.name && promoCode.type == vm.promoCodeQuery.promoCodeType) {
+                            vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                        }
+                    });
+                    vm.promoCodeQuery.promoCodeSubTypeTotal = vm.promoCodeQuery.promoCodeSubType.length;
+                }
+            }
+
             vm.getPromoCodeHistory = function (isNewSearch, type) {
                 vm.selectedPromoCodes = [];
                 vm.selectedPromoCode = null;
@@ -24816,7 +24831,6 @@ define(['js/app'], function (myApp) {
 
                 let sendObj = {
                     promoCodeType: vm.promoCodeQuery.promoCodeType,
-                    promoCodeSubType: vm.promoCodeQuery.promoCodeSubType,
                     status: vm.promoCodeQuery.status,
                     platformObjId: vm.promoCodeQuery.platformId,
                     index: vm.promoCodeQuery.index || 0,
@@ -24824,6 +24838,10 @@ define(['js/app'], function (myApp) {
                     sortCol: vm.promoCodeQuery.sortCol,
                     isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
                 };
+
+                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeSubType.length && vm.promoCodeQuery.promoCodeSubType.length != vm.promoCodeQuery.promoCodeSubTypeTotal) {
+                    sendObj.promoCodeSubType = vm.promoCodeQuery.promoCodeSubType
+                }
 
                 if (vm.promoCodeQuery.playerName && vm.promoCodeQuery.playerName.length) {
                     sendObj.playerName = vm.promoCodeQuery.playerName;
