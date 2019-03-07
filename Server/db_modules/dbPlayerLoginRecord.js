@@ -55,9 +55,28 @@ var dbPlayerLoginRecord = {
             matchObj['inputDeviceType'] = type;
         }
 
-        return dbconfig.collection_playerLoginRecord.find(matchObj, {'loginTime':1, 'player':1, 'inputDeviceType':1})
+        return dbconfig.collection_playerLoginRecord.find(matchObj, {'loginTime':1, 'player':1, 'inputDeviceType':1}).lean()
                 .populate({path: 'player', model: dbconfig.collection_players})
+            .then(
+                playerLoginRecord => {
+                    let finalResult = [];
+                    if(playerLoginRecord && playerLoginRecord.length){
+                        playerLoginRecord.forEach(
+                            loginRecord => {
+                                if(loginRecord && loginRecord.player._id){
+                                    let indexNo = finalResult.findIndex(f => f.player && f.player._id && f.player._id.toString() == loginRecord.player._id.toString());
 
+                                    if(indexNo == -1){
+                                        finalResult.push(loginRecord);
+                                    }
+                                }
+                            }
+                        )
+                    }
+
+                    return finalResult;
+                }
+            )
     },
     getIpHistory: function (playerId) {
         var p1 = dbconfig.collection_playerLoginRecord.find({

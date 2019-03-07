@@ -22,6 +22,7 @@
   padding: .5em;
   display: table;
 }
+
 label{
   display: table-header-group!important;
 }
@@ -96,11 +97,11 @@ input:focus+label ,select:focus+label  {
   border-color:#d9534f!important;
 }
 
-.bigWord{
+.infoNum{
   font-size: 2rem;
 }
 
-.smallWord{
+.infoText{
   font-size:16px
 }
 
@@ -110,18 +111,121 @@ input:focus+label ,select:focus+label  {
 .bet-footer{color: #f39c12;}
 .newPlayer-footer{color: #d9534f;}
 
+
+.nav-bar{
+  background-color: #495057;
+  padding: .5em 1em;
+  position: fixed;
+  z-index: 100;
+  width: 100%;
+  color:#f1f1f1;
+}
+.nav-bar svg {
+  cursor: pointer;
+}
+
+/* The Overlay (background) */
+.overlay {
+  height: 0;
+  width: 100%;
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 0;
+  background-color: #343a40;
+  /*background-color: rgba(0,0,0, 0.9); */
+  overflow-y: hidden;
+  transition: 0.5s;
+}
+
+.dropdown{
+  height: 0px;
+  width: 170px;
+  position: fixed!important;
+  z-index: 100;
+  right: 0%;
+  top: 5%;
+  background-color: #343a40;
+  transition: 0.5s;
+  overflow-y: hidden;
+}
+
+.show{
+  height: 200px;
+}
+.overlay-header .form-control{
+  color: #f1f1f1;
+  background-color: #495057!important;
+  border: none!important;
+}
+
+.overlay-header .form-control:focus{
+  color: #f1f1f1!important;
+}
+.overlay-header {
+  position: relative;
+  top: 5%;
+  width: 100%;
+  padding: 1em;
+}
+
+.overlay-content {
+  position: relative;
+  top: 5%;
+  width: 100%;
+  padding: 0 1em;
+}
+
+.overlay a {
+  padding: 8px;
+  text-decoration: none;
+  font-size: 30px;
+  color: #f1f1f1;
+  display: block;
+  transition: 0.3s;
+  border-bottom: 1px solid #818181;
+}
+
+.overlay a:last-child{
+  border-bottom: none;
+
+}
+
+.overlay a:hover, .overlay a:focus, .dropdown a:hover, .dropdown a:focus {
+  color: #818181;
+  text-decoration: none;
+}
+
+.overlay .closebtn {
+  position: absolute;
+  top: -25px;
+  font-size: 50px;
+  border-bottom: none;
+  font-weight: 100;
+}
+
+.dropdown a {
+  padding: 9px;
+  text-decoration: none;
+  font-size: 15px;
+  color: #f1f1f1;
+  display: block;
+  transition: 0.3s;
+}
+
+
 @media screen and (min-width: 576px) {
 
-  .smallWord, .bigWord{
+  .infoText, .infoNum{
     font-size: 12px;
   }
 }
 
 @media screen and (min-width: 992px) {
-  .bigWord{
+  .infoNum{
     font-size: 1.5rem;
   }
-  .smallWord{
+  .infoText{
     font-size:15px
   }
 }

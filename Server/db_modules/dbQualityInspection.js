@@ -336,8 +336,7 @@ var dbQualityInspection = {
         console.log(queryQA);
         let qaResult =  dbconfig.collection_qualityInspection.find(queryQA)
             .populate({path: 'qualityAssessor', model: dbconfig.collection_admin})
-            .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean()
-            .lean().sort({createTime: 1})
+            .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean().sort({createTime: 1})
             .then(results => {
                 results.forEach(item => {
                     let live800Chat = {conversation: []};

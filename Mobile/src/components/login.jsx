@@ -1,31 +1,25 @@
 import React, { Component } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import $ from 'jquery';
 import WSCONFIG from '../wsconfig.js';
 import authService from '../services/authService.js';
 import navService from '../services/navService.js';
+import SelectServer from './selectServer';
+
 
 class Login extends Component {
     constructor(props){
         super(props);
         
         this.state = {
-            isFocus: false,
             fastestServer: '',
             fastestServerUrl: '',
             lowestLatency: 9999,
             servers: WSCONFIG,
-            selectedServer: 'Fastest Server'
+            selectedServer: 'Fastest Server',
+            path: 'login'
         };
         this.pingAllServers();
-    }
-
-    handleFocus = () => {
-        this.setState({ isFocus: true});
-    }
-
-    handleBlur= () => {
-        this.setState({ isFocus: false});
     }
 
     handleChange = (ev, key) => {
@@ -82,7 +76,7 @@ class Login extends Component {
             });
         }
     }
-    
+
     populateServerWithLatency = ()=>{
         let servers = this.state.servers;
         let list = []
@@ -117,7 +111,7 @@ class Login extends Component {
             if(data.success) {
                 let exp = new Date();
                 exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
-                authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
+                authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, url, exp);
                 navService.goto('dashboard');
             } else {
                 console.log(data.error.message);
@@ -144,13 +138,9 @@ class Login extends Component {
                         <label htmlFor="pwd">Password</label>
                     </div>
 
-                    <div className="login-group">
-                        <select onFocus={this.handleFocus} onBlur={this.handleBlur} className="login-control" id="mgntServer" value={this.state.selectedServer} onChange={(e)=>{this.handleChange(e,'selectedServer')}}>
-                            <option key="Fastest Server" value="Fastest Server">Fastest Server</option>
-                            {this.populateServerWithLatency()}
-                        </select>
-                        <label htmlFor="mgntServer">Select Server</label><FontAwesomeIcon className={this.getfocusClasses()} icon="angle-down" />
-                    </div>
+                    <SelectServer
+                     path={this.state.path}
+                    />
 
                     <div className="login-group">
                         <label className="login-check-label">
@@ -170,12 +160,6 @@ class Login extends Component {
         );
     }
 
-    getfocusClasses() {
-        let classes = "icon ";
-        classes += this.state.isFocus === true ? "focusClass" : "";
-        return classes;
-      }
-      
 }
  
 export default Login;

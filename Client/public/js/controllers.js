@@ -985,6 +985,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     }
 
     $scope.getUsableChannelList = function (callback) {
+        $scope.usableChannelList = $scope.usableChannelList && $scope.usableChannelList.length > 0 ? $scope.usableChannelList : [4]; // Bubles said default to channel 4 if get channel connection error
         socketService.$socket($scope.AppSocket, 'getUsableChannelList', {platformId: $scope.curPlatformId}, onSuccess, onFail, true);
 
         function onSuccess(data) {
@@ -1015,6 +1016,15 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
 
         function onFail(error) {
+            if (error && error.error && error.error.originalMessage) {
+                if (error.error.originalMessage.errorMessage) {
+                    socketService.showErrorMessage(error.error.originalMessage.errorMessage)
+                } else if (error.error.originalMessage.errorMsg) {
+                    socketService.showErrorMessage(error.error.originalMessage.errorMsg)
+                } else {
+                    socketService.showErrorMessage(error.error.originalMessage)
+                }
+            }
             if (callback) {
                 callback.call(this, error);
             }
@@ -1762,6 +1772,24 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         });
     };
 
+    $scope.getAllProvinceList = function (callback) {
+        socketService.$socket($scope.AppSocket, 'getProvinceList', {}, onSuccess, onFail, true);
+
+        function onSuccess(data) {
+            $scope.provinceList = data.data.provinces;
+            console.log("Got provinceList:", $scope.provinceList);
+            if (callback) {
+                callback.call(this);
+            }
+        }
+
+        function onFail(error) {
+            console.error("Failed to get provinceList!", error);
+            if (callback) {
+                callback.call(this, error);
+            }
+        }
+    };
     $scope.getProvinceStr = function (provinceId) {
         if (!provinceId) return Q.resolve('');
         return new Q.Promise(function (resolve, reject) {
@@ -2033,7 +2061,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         } else if (String(merchantTypeId) === "9997") {
                             $scope.merchantNoList[item].merchantTypeName = $trans('PERSONAL_ALIPAY_GROUP');
                         } else if (String(merchantTypeId) !== "9997" && String(merchantTypeId) !== "9998" && String(merchantTypeId) !== "9999") {
-                            let merchantInfo = $scope.merchantTypes.filter(mitem => String(mitem.merchantTypeId) === String(merchantTypeId));
+                            let merchantInfo = $scope.merchantTypes && $scope.merchantTypes.filter(mitem => String(mitem.merchantTypeId) === String(merchantTypeId)) || [];
                             $scope.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
                         } else {
                             $scope.merchantNoList[item].merchantTypeName = '';

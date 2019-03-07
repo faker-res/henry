@@ -3375,6 +3375,7 @@ define(['js/app'], function (myApp) {
                     for (var i = 0; i < vm.platformGameGroupList.length; i++) {
                         if (vm.platformGameGroupList[i]._id == vm.SelectedGameGroupNode.id) {
                             vm.platformGameGroupList.splice(i, 1);
+                            vm.SelectedGameGroupNode = null;
                             break;
                         }
                     }
@@ -12955,7 +12956,7 @@ define(['js/app'], function (myApp) {
 
             vm.initBulkSMSToFailPlayers = () => {
                 vm.bulkPlayersToSendSMS = [];
-                vm.smsPlayer = {};
+                vm.smsPlayer = {channel: 4};
                 vm.ctiData.callee.map(callee => {
                     if (callee.status == 2) {
                         vm.bulkPlayersToSendSMS.push(callee.player.playerId)
@@ -17221,7 +17222,7 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getCtiData = function() {
+            vm.getCtiData = function(isRetry) {
                 $('#platformFeedbackSpin').show();
 
                 vm.getCtiDataRepeatCount = vm.getCtiDataRepeatCount || 0;
@@ -17360,6 +17361,12 @@ define(['js/app'], function (myApp) {
                         vm.calleeCallOutStatus = undefined;
                     }
                     $('#platformFeedbackSpin').hide();
+                }, function (err) {
+                    if (isRetry) {
+                        socketService.showErrorMessage($translate("Fail to get CTI data twice, click search to try again"));
+                        return;
+                    }
+                    vm.getCtiData(true);
                 });
                 vm.isSingleFeedBackPageChange = false;
             };
@@ -17416,6 +17423,29 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            function getQueryDepartments () {
+                let parentId;
+                vm.currentPlatformDepartment = vm.currentPlatformDepartment || [];
+
+                vm.currentPlatformDepartment.map(e => {
+                    // this implies the name has to be exactly the same, case sensitive.
+                    if (e.departmentName == vm.selectedPlatform.data.name) {
+                        vm.queryDepartments.push(e);
+                        parentId = e._id;
+                    }
+                });
+
+                vm.currentPlatformDepartment.map(e => {
+                    if (String(parentId) == String(e.parent)) {
+                        vm.queryDepartments.push(e);
+                    }
+                });
+                vm.setupRemarksMultiInputFeedback();
+                vm.setupRemarksMultiInputFeedbackFilter();
+                vm.setupGameProviderMultiInputFeedback();
+                vm.setupMultiInputFeedbackTopicFilter();
+            };
+
             vm.initPlayerFeedback = function () {
                 console.log("initPlayerFeedback");
                 vm.playerFeedbackSearchType = "many";
@@ -17439,28 +17469,7 @@ define(['js/app'], function (myApp) {
                         } else {
                             getQueryDepartments();
                         }
-
-                        function getQueryDepartments () {
-                            vm.currentPlatformDepartment = vm.currentPlatformDepartment || [];
-
-                            vm.currentPlatformDepartment.map(e => {
-                                // this implies the name has to be exactly the same, case sensitive.
-                                if (e.departmentName == vm.selectedPlatform.data.name) {
-                                    vm.queryDepartments.push(e);
-                                    parentId = e._id;
-                                }
-                            });
-
-                            vm.currentPlatformDepartment.map(e => {
-                                if (String(parentId) == String(e.parent)) {
-                                    vm.queryDepartments.push(e);
-                                }
-                            });
-                            vm.setupRemarksMultiInputFeedback();
-                            vm.setupRemarksMultiInputFeedbackFilter();
-                            vm.setupGameProviderMultiInputFeedback();
-                            vm.setupMultiInputFeedbackTopicFilter();
-                        }
+                        
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
                     $('#registerStartTimePicker').datetimepicker({
@@ -17785,9 +17794,9 @@ define(['js/app'], function (myApp) {
                 if (vm.feedbackAdminQuery.admin && vm.feedbackAdminQuery.admin != 'all') {
                     sendQuery.admin = vm.feedbackAdminQuery.admin;
                 }
-                if (vm.feedbackAdminQuery.cs && vm.feedbackAdminQuery != '') {
-                    sendQuery.cs = vm.feedbackAdminQuery.cs;
-                }
+                // if (vm.feedbackAdminQuery.cs && vm.feedbackAdminQuery != '') {
+                //     sendQuery.cs = vm.feedbackAdminQuery.cs;
+                // }
                 if (vm.feedbackAdminQuery.player) {
                     sendQuery.player = vm.feedbackAdminQuery.player;
                 }
@@ -23207,6 +23216,8 @@ define(['js/app'], function (myApp) {
                             vm.promoCodeQuery.pageObj = utilService.createPageForPagingTable("#promoCodeTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
                                 vm.commonPageChangeHandler(curP, pageSize, "promoCodeQuery", vm.getPromoCodeHistory)
                             });
+
+                            vm.refreshDropDown();
                         });
                         break;
                     case 'monitorTypeB':
@@ -24798,6 +24809,19 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.checkAllPromoCodeSubType = function () {
+                vm.promoCodeQuery.promoCodeSubType = [];
+                vm.promoCodeQuery.promoCodeSubTypeTotal = 0;
+                if (vm.promoCodeQuery && vm.promoCodeTypes && vm.promoCodeTypes.length && vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType) {
+                    vm.promoCodeTypes.forEach(promoCode => {
+                        if (promoCode.name && promoCode.type == vm.promoCodeQuery.promoCodeType) {
+                            vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                        }
+                    });
+                    vm.promoCodeQuery.promoCodeSubTypeTotal = vm.promoCodeQuery.promoCodeSubType.length;
+                }
+            }
+
             vm.getPromoCodeHistory = function (isNewSearch, type) {
                 vm.selectedPromoCodes = [];
                 vm.selectedPromoCode = null;
@@ -24808,7 +24832,6 @@ define(['js/app'], function (myApp) {
 
                 let sendObj = {
                     promoCodeType: vm.promoCodeQuery.promoCodeType,
-                    promoCodeSubType: vm.promoCodeQuery.promoCodeSubType,
                     status: vm.promoCodeQuery.status,
                     platformObjId: vm.promoCodeQuery.platformId,
                     index: vm.promoCodeQuery.index || 0,
@@ -24816,6 +24839,10 @@ define(['js/app'], function (myApp) {
                     sortCol: vm.promoCodeQuery.sortCol,
                     isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
                 };
+
+                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeSubType.length && vm.promoCodeQuery.promoCodeSubType.length != vm.promoCodeQuery.promoCodeSubTypeTotal) {
+                    sendObj.promoCodeSubType = vm.promoCodeQuery.promoCodeSubType
+                }
 
                 if (vm.promoCodeQuery.playerName && vm.promoCodeQuery.playerName.length) {
                     sendObj.playerName = vm.promoCodeQuery.playerName;
@@ -29295,10 +29322,10 @@ define(['js/app'], function (myApp) {
                 else if (func == 'remove') {
 
                     if (data && collection && tab == 'openPromoCode' && typeof index != 'undefined') {
-
-                        if (data.code) {
-                            vm.deletedOpenPromoCodeTemplateData.push({name: data.name, code: data.code, type:data.type, deletedStatus: true,  platformObjId: vm.selectedPlatform.id});
+                        if (data._id){
+                            vm.deletedOpenPromoCodeTemplateData.push({_id: data._id, deletedStatus: true});
                         }
+
 
                         collection.splice(index, 1);
 
@@ -35345,6 +35372,7 @@ define(['js/app'], function (myApp) {
                 vm.feedbackAdminQuery = vm.feedbackAdminQuery || {};
                 vm.feedbackAdminQuery.total = 0;
                 vm.feedbackAdminQuery.cs = '';
+                vm.loadAlldepartment(getQueryDepartments);
                 let departmentID = vm.platformDepartmentObjId;
                 if (departmentID) {
                     socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.platformDepartmentObjId}, function (data) {

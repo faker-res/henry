@@ -2702,6 +2702,23 @@ let dbPlayerReward = {
                                             "isViewed": promocode.isViewed,
                                             "usedTime": usedTime
                                         };
+                                        if (promocode.promoCodeTypeObjId && promocode.promoCodeTypeObjId.type) {
+                                            switch (promocode.promoCodeTypeObjId.type) {
+                                                case 1:
+                                                    promo.type = "A";
+                                                    break;
+                                                case 2:
+                                                    promo.type = "B";
+                                                    break;
+                                                case 3:
+                                                    promo.type = "C";
+                                                    break;
+                                                default:
+                                                    promo.type = "";
+                                                    break;
+
+                                            }
+                                        }
                                         if (promocode.maxRewardAmount) {
                                             promo.bonusLimit = promocode.maxRewardAmount;
                                         }
@@ -2972,8 +2989,8 @@ let dbPlayerReward = {
                         (e.promoCodeTemplateObjId &&  e.promoCodeTemplateObjId.type && e.promoCodeTemplateObjId.type == searchQuery.promoCodeType)
                     ) : res[0];
                     let f2 = searchQuery.promoCodeSubType ? f1.filter(e =>
-                        (e.promoCodeTypeObjId &&  e.promoCodeTypeObjId.name && e.promoCodeTypeObjId.name == searchQuery.promoCodeSubType) ||
-                        (e.promoCodeTemplateObjId &&  e.promoCodeTemplateObjId.name && e.promoCodeTemplateObjId.name == searchQuery.promoCodeSubType)
+                        (e.promoCodeTypeObjId &&  e.promoCodeTypeObjId.name && searchQuery.promoCodeSubType.includes(e.promoCodeTypeObjId.name)) ||
+                        (e.promoCodeTemplateObjId &&  e.promoCodeTemplateObjId.name && searchQuery.promoCodeSubType.includes(e.promoCodeTemplateObjId.name))
                     ) : f1;
 
                     // special handling for openPromoCode as its structure is different
@@ -3179,14 +3196,9 @@ let dbPlayerReward = {
                     delete entry.__v;
                 }
 
-                if (entry.deletedStatus) {
+                if (entry.deletedStatus && entry._id) {
 
-                    prom.push(dbConfig.collection_openPromoCodeTemplate.remove({
-                        name: entry.name,
-                        code: entry.code,
-                        type: entry.type,
-                        platformObjId: entry.platformObjId
-                    }))
+                    prom.push(dbConfig.collection_openPromoCodeTemplate.remove({_id: ObjectId(entry._id)}))
                 }
                 else {
 
@@ -5617,7 +5629,6 @@ let dbPlayerReward = {
             // NOTE :: Use apply target date instead. There are old records that does not have applyTargetDate field,
             // so createTime is checked if applyTargetDate does not exist - Huat
         }
-
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
@@ -6106,6 +6117,14 @@ let dbPlayerReward = {
 
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(freeTrialQuery).sort({createTime: -1}).limit(1).lean();
 
+            if (!playerData.phoneNumber && eventData.condition.checkPhoneFreeTrialReward) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: localization.localization.translate("Player need to have phone number to apply this reward")
+                });
+            }
+
             // check reward apply limit in period
             let countInRewardInterval = dbConfig.collection_proposal.aggregate(
                 {
@@ -6172,10 +6191,7 @@ let dbPlayerReward = {
                         // execute if IP is not empty
                         for (let i = 0; i < countReward.length; i++) {
                             // check if same IP address  has already received this reward
-                            console.log('playerData.lastLoginIp===', playerData.lastLoginIp);
-                            console.log('countReward[i].data.lastLoginIp===', countReward[i].data.lastLoginIp);
                             if (playerData.lastLoginIp === countReward[i].data.lastLoginIp) {
-                                console.log('SAME IP===');
                                 sameIPAddress++;
                             }
                         }
@@ -6441,6 +6457,7 @@ let dbPlayerReward = {
 
                                 // Check reward amount exceed daily limit
                                 if (eventData.param.dailyMaxRewardAmount) {
+                                    console.log('MT --checking rewardAmountInPeriod', rewardAmount, rewardAmountInPeriod, eventData.param.dailyMaxRewardAmount);
                                     if (rewardAmountInPeriod >= eventData.param.dailyMaxRewardAmount) {
                                         return Q.reject({
                                             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -6455,10 +6472,16 @@ let dbPlayerReward = {
                                 selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
                                 //spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                                 spendingAmount = (actualAmount + rewardAmount) * selectedRewardParam.spendingTimes;
+                                console.log('MT --checking actualAmount + rewardAmount', applyAmount, actualAmount, rewardAmount, selectedRewardParam.spendingTimes);
+                                console.log('MT --checking spendingAmount',spendingAmount);
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
                                 selectedRewardParam.spendingTimesOnReward = selectedRewardParam.spendingTimesOnReward || 0;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
+                                console.log('MT --checking rewardAmount', rewardAmount);
+                                console.log('MT --checking selectedRewardParam.spendingTimesOnReward', selectedRewardParam.spendingTimesOnReward);
+                                console.log('MT --checking spendingAmount', spendingAmount);
+
                             }
 
                             // Set top up record update flag
@@ -6866,8 +6889,6 @@ let dbPlayerReward = {
                                     message: localization.localization.translate("This player has applied for max reward times in event period")
                                 });
                             }
-
-                            console.log('matchIPAddress===', matchIPAddress);
 
                             if (!matchIPAddress) {
                                 return Q.reject({

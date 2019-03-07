@@ -929,6 +929,7 @@ var proposalExecutor = {
              */
             executeUpdatePlayerBankInfo: function (proposalData, deferred) {
                 //valid data
+                let updateMultipleBankInfo = false;
                 if (proposalData && proposalData.data && proposalData.data._id) {
                     var curPartnerId = null;
                     dbconfig.collection_players.findOne({_id: proposalData.data._id}).then(
@@ -942,6 +943,9 @@ var proposalExecutor = {
                                 // if(playerUpdate.bankAccountName){
                                 //     playerUpdate.realName = playerUpdate.bankAccountName;
                                 // }
+                                if (playerUpdate.bankName2 || playerUpdate.bankName3) {
+                                    updateMultipleBankInfo = true;
+                                }
 
                                 let propQuery = {
                                     status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -953,13 +957,34 @@ var proposalExecutor = {
                                 return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
                                     proposal => {
                                         if (proposal && proposal.length > 1) {
-                                            return dbconfig.collection_players.findOneAndUpdate(
-                                                {_id: data._id, platform: data.platform},
-                                                playerUpdate,
-                                                {returnNewDocument: true}
-                                            );
+                                            if (updateMultipleBankInfo) {
+                                                return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
+                                                    {playerObjId: proposalData.data._id, platformObjId: data.platform},
+                                                    playerUpdate,
+                                                    {upsert: true, new: true}
+                                                ).then(
+                                                    bankData => {
+                                                        if (bankData && bankData._id) {
+                                                            return dbconfig.collection_players.findOneAndUpdate(
+                                                                {_id: data._id, platform: data.platform},
+                                                                {multipleBankDetailInfo: bankData._id},
+                                                                {upsert: true, new: true}
+                                                            ).populate({
+                                                                path: "multipleBankDetailInfo",
+                                                                model: dbconfig.collection_playerMultipleBankDetailInfo
+                                                            })
+                                                        }
+                                                    }
+                                                );
+                                            } else {
+                                                return dbconfig.collection_players.findOneAndUpdate(
+                                                    {_id: data._id, platform: data.platform},
+                                                    playerUpdate,
+                                                    {returnNewDocument: true}
+                                                );
+                                            }
                                         } else {
-                                            if(playerUpdate.bankAccountName){
+                                            if (playerUpdate.bankAccountName) {
                                                 playerUpdate.realName = playerUpdate.bankAccountName;
                                             }
 
@@ -981,28 +1006,65 @@ var proposalExecutor = {
                         }
                     ).then(
                         function (data) {
-                            var loggerInfo = {
-                                source: constProposalEntryType.ADMIN,
-                                bankName: proposalData.data.bankName,
-                                bankAccount: proposalData.data.bankAccount,
-                                bankAccountName: proposalData.data.bankAccountName,
-                                bankAccountType: proposalData.data.bankAccountType,
-                                bankAccountProvince: proposalData.data.bankAccountProvince,
-                                bankAccountCity: proposalData.data.bankAccountCity,
-                                bankAccountDistrict: proposalData.data.bankAccountDistrict,
-                                bankAddress: proposalData.data.bankAddress,
-                                bankBranch: proposalData.data.bankBranch,
-                                targetObjectId: proposalData.data._id,
-                                targetType: constProposalUserType.PLAYERS,
-                                creatorType: constProposalUserType.SYSTEM_USERS,
-                                creatorObjId: proposalData.creator ? proposalData.creator.id : null
+                            let loggerInfo = {};
+                            if (proposalData.data.bankName) {
+                                loggerInfo = {
+                                    bankName: proposalData.data.bankName,
+                                    bankAccount: proposalData.data.bankAccount,
+                                    bankAccountName: proposalData.data.bankAccountName,
+                                    bankAccountType: proposalData.data.bankAccountType,
+                                    bankAccountProvince: proposalData.data.bankAccountProvince,
+                                    bankAccountCity: proposalData.data.bankAccountCity,
+                                    bankAccountDistrict: proposalData.data.bankAccountDistrict,
+                                    bankAddress: proposalData.data.bankAddress,
+                                    bankBranch: proposalData.data.bankBranch,
+                                };
+                            } else if (proposalData.data.bankName2) {
+                                loggerInfo = {
+                                    bankName2: proposalData.data.bankName2,
+                                    bankAccount2: proposalData.data.bankAccount2,
+                                    bankAccountName2: proposalData.data.bankAccountName2,
+                                    bankAccountType2: proposalData.data.bankAccountType2,
+                                    bankAccountProvince2: proposalData.data.bankAccountProvince2,
+                                    bankAccountCity2: proposalData.data.bankAccountCity2,
+                                    bankAccountDistrict2: proposalData.data.bankAccountDistrict2,
+                                    bankAddress2: proposalData.data.bankAddress2,
+                                    bankBranch2: proposalData.data.bankBranch2,
+                                };
+                            } else if (proposalData.data.bankName3) {
+                                loggerInfo = {
+                                    bankName3: proposalData.data.bankName3,
+                                    bankAccount3: proposalData.data.bankAccount3,
+                                    bankAccountName3: proposalData.data.bankAccountName3,
+                                    bankAccountType3: proposalData.data.bankAccountType3,
+                                    bankAccountProvince3: proposalData.data.bankAccountProvince3,
+                                    bankAccountCity3: proposalData.data.bankAccountCity3,
+                                    bankAccountDistrict3: proposalData.data.bankAccountDistrict3,
+                                    bankAddress3: proposalData.data.bankAddress3,
+                                    bankBranch3: proposalData.data.bankBranch3,
+                                };
                             }
-                            dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'bankAccount', proposalData.data.bankAccount).then();
+
+                            loggerInfo.source = constProposalEntryType.ADMIN;
+                            loggerInfo.targetObjectId = proposalData.data._id;
+                            loggerInfo.targetType = constProposalUserType.PLAYERS;
+                            loggerInfo.creatorType = constProposalUserType.SYSTEM_USERS;
+                            loggerInfo.creatorObjId = proposalData.creator ? proposalData.creator.id : null;
+
+                            // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'bankAccount', proposalData.data.bankAccount).then();
                             dbLogger.createBankInfoLog(loggerInfo);
                             //SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
                             //bankcardLast4Number(new) send message to player
                             if (proposalData.data.bankAccount) {
                                 proposalData.data.bankAccount = proposalData.data.bankAccount.substr(proposalData.data.bankAccount.length - 4);
+                                proposalData.data.playerObjId = proposalData.data._id;
+                                sendMessageToPlayer(proposalData, constMessageType.UPDATE_BANK_INFO_SUCCESS, {});
+                            } else if (proposalData.data.bankAccount2) {
+                                proposalData.data.bankAccount2 = proposalData.data.bankAccount2.substr(proposalData.data.bankAccount2.length - 4);
+                                proposalData.data.playerObjId = proposalData.data._id;
+                                sendMessageToPlayer(proposalData, constMessageType.UPDATE_BANK_INFO_SUCCESS, {});
+                            } else if (proposalData.data.bankAccount3) {
+                                proposalData.data.bankAccount3 = proposalData.data.bankAccount3.substr(proposalData.data.bankAccount3.length - 4);
                                 proposalData.data.playerObjId = proposalData.data._id;
                                 sendMessageToPlayer(proposalData, constMessageType.UPDATE_BANK_INFO_SUCCESS, {});
                             }
@@ -2100,6 +2162,8 @@ var proposalExecutor = {
                            loginName: player.name || "",
                            applyTime: cTimeString
                         };
+
+                       console.log('withdrawAPIAddr req:', message);
 
                        if (extConfig && extConfig[player.platform.bonusSystemType]
                            && extConfig[player.platform.bonusSystemType].withdrawAPIAddr

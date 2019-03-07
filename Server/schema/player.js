@@ -256,6 +256,9 @@ var playerSchema = new Schema({
     bankAddress: {type: String},
     //bank branch
     bankBranch: {type: String},
+
+    //multiple bank detail info
+    multipleBankDetailInfo: {type: Schema.ObjectId, ref: 'playerMultipleBankDetailInfo', index: true},
     //internet banking
     internetBanking: {type: String},
     //bank card group

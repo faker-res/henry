@@ -4906,6 +4906,127 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.sendSMSToPlayer = function () {
+            vm.sendSMSResult = {sent: "sending"};
+
+            if (vm.smsPlayer.playerId == '') {
+                return $scope.sendSMSToNewPlayer(vm.smsPlayer, function (data) {
+                    vm.sendSMSResult = {sent: true, result: data.success};
+                    $scope.$evalAsync();
+                });
+            } else {
+                return $scope.sendSMSToPlayer(vm.smsPlayer, function (data) {
+                    vm.sendSMSResult = {sent: true, result: data.success};
+                    $scope.$evalAsync();
+                });
+            }
+        };
+
+        vm.searchSMSLog = function (newSearch) {
+            var platformId = (vm.selectedPlatform.data && vm.selectedPlatform.data.platformId) ? vm.selectedPlatform.data.platformId : null;
+            var requestData = {
+                // playerId: vm.selectedSinglePlayer.playerId,
+                isAdmin: vm.smsLog.query.isAdmin,
+                isSystem: vm.smsLog.query.isSystem,
+                status: vm.smsLog.query.status,
+                startTime: vm.smsLog.query.startTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .startTime input').val() || undefined,
+                endTime: vm.smsLog.query.endTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .endTime   input').val() || undefined,
+                index: newSearch ? 0 : vm.smsLog.index,
+                limit: newSearch ? 10 : vm.smsLog.limit,
+                platformId: platformId
+            };
+
+            if (vm.smsLog.type == "single") {
+                requestData.playerId = vm.selectedSinglePlayer.playerId;
+            }
+
+            console.log("searchSMSLog requestData:", requestData);
+            $scope.$socketPromise('searchSMSLog', requestData).then(result => {
+                $scope.$evalAsync(() => {
+                    console.log("searchSMSLog result", result);
+                    vm.smsLog.searchResults = result.data.data.map(item => {
+                        item.createTime$ = vm.dateReformat(item.createTime);
+                        if (item.status == "failure" && item.error && item.error.status == 430) {
+                            item.error = $translate('RESPONSE_TIMEOUT');
+                            item.status$ = $translate('unknown');
+                        } else {
+                            item.status$ = $translate(item.status);
+                        }
+                        return item;
+                    });
+                    vm.smsLog.totalCount = result.data.size;
+                    vm.smsLog.pageObj.init({maxCount: vm.smsLog.totalCount}, newSearch);
+                    if (vm.smsLog.type === "multi") {
+                        vm.drawSMSTable(vm.smsLog.searchResults, result.data.size, newSearch);
+                    }
+                })
+            }).catch(console.error);
+        };
+
+        vm.drawSMSTable = function (data, size, newSearch) {
+            var option = $.extend({}, vm.generalDataTableOptions, {
+                data: data,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {'title': $translate('date'), data: 'createTime$'},
+                    {'title': $translate('ADMIN'), sClass: "wordWrap realNameCell", data: 'adminName'},
+                    {'title': $translate('Recipient'), data: 'recipientName'},
+                    {'title': $translate('Channel'), data: 'channel'},
+                    {'title': $translate('CONTENT'), data: 'message'},
+                    {
+                        title: $translate('eventName'),
+                        data: "status$",
+                        render: function (data, type, row) {
+                            let result = '<div>' + data + '</div>';
+                            let error = '';
+                            if(row.error){
+                                error = JSON.stringify(row.error);
+                            }
+                            if(row.status=='failure'){
+                                result = "<text class='sn-hoverable-text' title='" + error + "' sn-tooltip='sn-tooltip'>" + data +"</text>";
+                            }
+                            return result;
+                        }
+                    },
+                ],
+                paging: false,
+            });
+            let aTable = utilService.createDatatableWithFooter('#groupSmsLogTable', option, {});
+            aTable.columns.adjust().draw();
+            vm.smsLog.pageObj.init({maxCount: size}, newSearch);
+            $('#groupSmsLogTable').resize();
+        };
+
+        vm.loadSMSSettings = function () {
+            let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
+            let editPlayer = vm.editPlayer;                  // ~ 6 fields
+            vm.playerBeingEdited = {
+                smsSetting: editPlayer.smsSetting,
+                receiveSMS: editPlayer.receiveSMS
+            };
+        };
+
+        vm.updateSMSSettings = function () {
+            //oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
+            let playerId = vm.isOneSelectedPlayer()._id;
+
+            var updateSMS = {
+                receiveSMS: vm.playerBeingEdited.receiveSMS != null ? vm.playerBeingEdited.receiveSMS : undefined,
+                smsSetting: vm.playerBeingEdited.smsSetting,
+            };
+
+            socketService.$socket($scope.AppSocket, 'updatePlayer', {
+                query: {_id: playerId},
+                updateData: updateSMS
+            }, function (updated) {
+                console.log('updated', updated);
+                vm.getPlatformPlayersData();
+            });
+
+        };
+
         vm.getPlatformSmsGroups = () => {
             return $scope.$socketPromise('getPlatformSmsGroups', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
                 vm.smsGroups = data.data;

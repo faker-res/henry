@@ -2212,22 +2212,36 @@ define(['js/app'], function (myApp) {
                     provinceField = 'RECEIVE_BANK_ACC_PROVINCE'
                 }
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay[provinceField]}, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
+                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay[provinceField];
                     vm.selectedProposalDetailForDisplay[provinceField] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountProvince']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince']}, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
+                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay['bankAccountProvince'];
                     vm.selectedProposalDetailForDisplay['bankAccountProvince'] = text;
+                    $scope.$evalAsync();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountProvince2']) {
+                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince2']}, function (data) {
+                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay['bankAccountProvince2'];
+                    vm.selectedProposalDetailForDisplay['bankAccountProvince2'] = text;
+                    $scope.$evalAsync();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountProvince3']) {
+                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince3']}, function (data) {
+                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay['bankAccountProvince3'];
+                    vm.selectedProposalDetailForDisplay['bankAccountProvince3'] = text;
                     $scope.$evalAsync();
                 });
             }
 
             if (vm.selectedProposalDetailForDisplay['atmProvince']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['atmProvince']}, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
+                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay['atmProvince'];
                     vm.selectedProposalDetailForDisplay['atmProvince'] = text;
                     $scope.$evalAsync();
                 });
@@ -2236,7 +2250,7 @@ define(['js/app'], function (myApp) {
             if (vm.selectedProposalDetailForDisplay['atmCity']) {
 
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['atmCity']}, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
+                    var text = data.data.city ? data.data.city.name : vm.selectedProposalDetailForDisplay['atmCity'];
                     vm.selectedProposalDetailForDisplay['atmCity'] = text;
                     $scope.$evalAsync();
                 });
@@ -2260,6 +2274,20 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync();
                 });
             }
+            if (vm.selectedProposalDetailForDisplay['bankAccountCity2']) {
+                socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['bankAccountCity2']}, function (data) {
+                    var text = data.data.city ? data.data.city.name : val;
+                    vm.selectedProposalDetailForDisplay['bankAccountCity2'] = text;
+                    $scope.$evalAsync();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountCity3']) {
+                socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['bankAccountCity3']}, function (data) {
+                    var text = data.data.city ? data.data.city.name : val;
+                    vm.selectedProposalDetailForDisplay['bankAccountCity3'] = text;
+                    $scope.$evalAsync();
+                });
+            }
 
             if (vm.selectedProposalDetailForDisplay['districtId']) {
                 socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposalDetailForDisplay['districtId']}, function (data) {
@@ -2272,6 +2300,20 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposalDetailForDisplay['bankAccountDistrict']}, function (data) {
                     var text = data.data.district ? data.data.district.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountDistrict'] = text;
+                    $scope.$evalAsync();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountDistrict2']) {
+                socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposalDetailForDisplay['bankAccountDistrict2']}, function (data) {
+                    var text = data.data.district ? data.data.district.name : val;
+                    vm.selectedProposalDetailForDisplay['bankAccountDistrict2'] = text;
+                    $scope.$evalAsync();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountDistrict3']) {
+                socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposalDetailForDisplay['bankAccountDistrict3']}, function (data) {
+                    var text = data.data.district ? data.data.district.name : val;
+                    vm.selectedProposalDetailForDisplay['bankAccountDistrict3'] = text;
                     $scope.$evalAsync();
                 });
             }

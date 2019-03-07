@@ -1006,7 +1006,7 @@ let dbPlayerCreditTransfer = {
 		                            rewardCredit: parseFloat(rewardAmount).toFixed(2)
 		                        }
 		                    };
-
+                            console.log('MT --checking --providerGroup ', responseData);
 		                    return responseData;
                         });
 
@@ -1128,12 +1128,14 @@ let dbPlayerCreditTransfer = {
                     throw new Error("Error when querying CPMS");
                 }
                 else{
-                    if (!isMultiProvider) {
-                        return Promise.reject(err);
-                    }
+                    return Promise.reject(err);
                 }
             }
-        );
+        ).catch(err => {
+            if (!isMultiProvider) {
+                return Promise.reject(err);
+            }
+        });
     },
 
     /**
@@ -1733,7 +1735,7 @@ let dbPlayerCreditTransfer = {
         );
     },
 
-    playerCreditTransferFromEbetWallets: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
+    playerCreditTransferFromEbetWallets: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync, isMultiProvider) {
         let checkRTGProm = [];
         let transferOut = Promise.resolve();
         let transferOutSuccessData = [];
@@ -1862,6 +1864,10 @@ let dbPlayerCreditTransfer = {
                 } else {
                     return Promise.reject({message: "No wallet is set for EBET provider."});
                 }
+            }
+        }).catch(err => {
+            if (!isMultiProvider) {
+                return Promise.reject(err);
             }
         });
     },

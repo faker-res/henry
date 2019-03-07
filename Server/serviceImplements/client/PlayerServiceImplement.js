@@ -33,7 +33,7 @@ let PlayerServiceImplement = function () {
     //player create api handler
     this.create.expectsData = 'platformId: String, password: String';
     this.create.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data.name && data.platformId && data.password /*&& (data.password.length >= constSystemParam.PASSWORD_LENGTH)*/ && (!data.realName || data.realName.match(/\d+/g) === null) && data.phoneNumber);
+        var isValidData = Boolean(data.name && data.platformId && data.password /*&& (data.password.length >= constSystemParam.PASSWORD_LENGTH)*/ && (!data.realName || data.realName.match(/\d+/g) === null));
         data.lastLoginIp = dbUtility.getIpAddress(conn);
         data.loginIps = [data.lastLoginIp];
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
@@ -1330,7 +1330,7 @@ let PlayerServiceImplement = function () {
         let ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua], isValidData, true, true, true).then(
             player => {
-                let playerData = player[0];
+                let playerData = player[0] || player;
 
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {

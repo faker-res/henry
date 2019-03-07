@@ -774,6 +774,12 @@ var proposal = {
                         proposalData.data.bankCardNo = dbutility.encodeBankAcc(proposalData.data.bankCardNo);
                     }
 
+                    if (proposalData && proposalData.type && proposalData.type.name && proposalData.type.name &&
+                        (proposalData.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || proposalData.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
+                        proposalData.data && proposalData.data.bankAccount) {
+                        proposalData.data.bankAccount = dbutility.encodeBankAcc(proposalData.data.bankAccount);
+                    }
+
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {
@@ -1017,7 +1023,8 @@ var proposal = {
                         // Some extra data
                         addDetailToProp(updObj.data, 'remark', callbackData.remark);
                         addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
-                        addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
+                        addDetailToProp(updObj.data, 'merchantName', callbackData.merchantName);
+                        addDetailToProp(updObj.data, 'merchantUseName', callbackData.merchantTypeName);
                         addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
                         addDetailToProp(updObj.data, 'bankCardType', callbackData.bankTypeId);
                         addDetailToProp(updObj.data, 'bankTypeId', callbackData.bankTypeId);
@@ -1187,7 +1194,8 @@ var proposal = {
             data => ({
                 proposalId: proposalId,
                 orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
-                bonusId: bonusId
+                bonusId: bonusId,
+                checkReqStatus: status
             }),
             error => {
                 if (!error.proposalId) {
@@ -2058,6 +2066,11 @@ var proposal = {
                                 if (item.data && item.data.phoneNumber) {
                                     item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                 }
+                                if (item && item.type && item.type.name && item.type.name &&
+                                    (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO)
+                                    && item.data && item.data.bankAccount) {
+                                    item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                }
                                 return item;
                             }
 
@@ -2258,6 +2271,11 @@ var proposal = {
                                             if (item.data && item.data.phoneNumber && !displayPhoneNum) {
                                                 item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                             }
+                                            if (item && item.type && item.type.name && item.type.name &&
+                                                (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
+                                                item.data && item.data.bankAccount) {
+                                                item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                            }
                                             if (item.data && item.data.updateData) {
                                                 switch (Object.keys(item.data.updateData)[0]) {
                                                     case "phoneNumber":
@@ -2329,7 +2347,22 @@ var proposal = {
                                         }
                                         retData.push(prom);
                                     }
-                                    return Q.all(retData);
+                                    return Q.all(retData).then(
+                                        data => {
+                                            data.map(item => {
+
+                                                if (item && item.type && item.type.name && item.type.name &&
+                                                    (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
+                                                    item.data && item.data.bankAccount) {
+                                                    item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                                }
+
+                                                return item
+                                            });
+
+                                            return data;
+                                        }
+                                    );
                                 });
                         var b = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").count();
                         var c = dbconfig.collection_proposal.aggregate(
@@ -6061,14 +6094,9 @@ var proposal = {
         );
     },
 
-    getPaymentMonitorTotalResult: (data, index, limit) => {
+    getPaymentMonitorTotalResult: (data) => {
         let query = {};
-        let orQuery = [];
-
         let sort = {createTime: -1};
-
-        limit = limit ? limit : 10;
-        index = index ? index : 0;
 
         query["createTime"] = {};
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
@@ -6095,40 +6123,21 @@ var proposal = {
                 ]}
             );
 
-            if(data.searchType && data.searchType == "completed"){
-                query['$and'].push(
-                    {'data.followUpContent': {$exists: true}},
-                    {'data.followUpContent': {$ne: null}},
-                    {'data.followUpContent': {$ne: ""}}
-                );
-            }else{
-                query['$and'].push({$or: [
-                        {'data.followUpContent': {$exists: true, $eq: null}},
-                        {'data.followUpContent': {$exists: true, $size: 0}},
-                        {'data.followUpContent': {$exists: false}},
-                        {'data.followUpContent': ""}
-                    ]}
-                );
-            }
-
-        }else{
-            if(data.searchType && data.searchType == "completed"){
-                query['$and'] = [];
-
-                query['$and'].push(
-                        {'data.followUpContent': {$exists: true}},
-                        {'data.followUpContent': {$ne: null}},
-                        {'data.followUpContent': {$ne: ""}}
-                );
-            }else{
-                query['$or'] = [
+            query['$and'].push({$or: [
                     {'data.followUpContent': {$exists: true, $eq: null}},
                     {'data.followUpContent': {$exists: true, $size: 0}},
                     {'data.followUpContent': {$exists: false}},
                     {'data.followUpContent': ""}
-                ];
-            }
+                ]}
+            );
 
+        }else{
+            query['$or'] = [
+                {'data.followUpContent': {$exists: true, $eq: null}},
+                {'data.followUpContent': {$exists: true, $size: 0}},
+                {'data.followUpContent': {$exists: false}},
+                {'data.followUpContent': ""}
+            ];
         }
 
         if ((!data.merchantNo || data.merchantNo.length == 0) && data.merchantGroup && data.merchantGroup.length > 0) {
@@ -6176,9 +6185,9 @@ var proposal = {
         if (data.userAgent && data.userAgent.length > 0) {
             query['data.userAgent'] = {$in: convertStringNumber(data.userAgent)};
         }
-        if (data.status && data.status.length > 0) {
-            query['status'] = {$in: convertStringNumber(data.status)};
-        }
+        //get specific proposal status only for monitoring
+        query['status'] = {$in: ["PrePending", "Pending", "Fail", "Rejected", "Cancel", "Undetermined", 'Expired']};
+
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
             case constPlayerTopUpType.ONLINE.toString():
@@ -6196,6 +6205,9 @@ var proposal = {
             case constPlayerTopUpType.QUICKPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_QUICKPAY_TOP_UP;
                 break;
+            case constPlayerTopUpType.COMMON.toString():
+                mainTopUpType = constProposalType.PLAYER_COMMON_TOP_UP;
+                break;
             default:
                 mainTopUpType = {
                     $in: [
@@ -6203,7 +6215,8 @@ var proposal = {
                         constProposalType.PLAYER_ALIPAY_TOP_UP,
                         constProposalType.PLAYER_MANUAL_TOP_UP,
                         constProposalType.PLAYER_WECHAT_TOP_UP,
-                        constProposalType.PLAYER_QUICKPAY_TOP_UP
+                        constProposalType.PLAYER_QUICKPAY_TOP_UP,
+                        constProposalType.PLAYER_COMMON_TOP_UP,
                     ]
                 };
         }
@@ -6237,23 +6250,192 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                let proposalCountProm = dbconfig.collection_proposal.find(query).count();
-                let proposalsProm = dbconfig.collection_proposal.find(query).sort(sort).skip(index).limit(limit)
+                console.log("LH check payment monitor 1------------");
+
+                return dbconfig.collection_proposal.find(query).lean().sort(sort)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players});
-                return Promise.all([proposalCountProm, proposalsProm]);
             }
         ).then(
             proposalData => {
-                proposalCount = proposalData[0];
-                proposals = proposalData[1];
-
-
-                return insertRepeatCount(proposals, data.platformList);
+                console.log("LH check payment monitor 2------------");
+                return insertRepeatCount(proposalData, data.platformList);
             }
         ).then(
             proposals => {
-                return {size: proposalCount, data: proposals}
+                console.log("LH check payment monitor 3------------");
+                return {data: proposals};
+            }
+        );
+    },
+
+    getPaymentMonitorTotalCompletedResult: (data) => {
+        let query = {};
+        let sort = {createTime: -1};
+
+        query["createTime"] = {};
+        query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
+        query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
+
+        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
+        let searchInterval = Math.abs(query.createTime.$gte.getTime() - query.createTime.$lt.getTime());
+        if (searchInterval > maxDiffTime) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Exceed proposal search max time frame"
+            });
+        }
+
+        if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup || data.merchantGroup.length == 0)) {
+            query['$and'] = [];
+            query['$and'].push({$or: [
+                    {'data.merchantNo': {$in: convertStringNumber(data.merchantNo)}},
+                    {'data.bankCardNo': {$in: convertStringNumber(data.merchantNo)}},
+                    {'data.accountNo': {$in: convertStringNumber(data.merchantNo)}},
+                    {'data.alipayAccount': {$in: convertStringNumber(data.merchantNo)}},
+                    {'data.wechatAccount': {$in: convertStringNumber(data.merchantNo)}},
+                    {'data.weChatAccount': {$in: convertStringNumber(data.merchantNo)}}
+                ]}
+            );
+            query['$and'].push(
+                {'data.followUpContent': {$exists: true}},
+                {'data.followUpContent': {$ne: null}},
+                {'data.followUpContent': {$ne: ""}}
+            );
+        }else{
+            query['$and'] = [];
+
+            query['$and'].push(
+                    {'data.followUpContent': {$exists: true}},
+                    {'data.followUpContent': {$ne: null}},
+                    {'data.followUpContent': {$ne: ""}}
+            );
+        }
+
+        if ((!data.merchantNo || data.merchantNo.length == 0) && data.merchantGroup && data.merchantGroup.length > 0) {
+            let mGroupList = [];
+            data.merchantGroup.forEach(item => {
+                item.forEach(sItem => {
+                    mGroupList.push(sItem)
+                })
+            });
+            query['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
+        }
+
+        if (data.merchantNo && data.merchantNo.length > 0 && data.merchantGroup && data.merchantGroup.length > 0) {
+            if (data.merchantGroup.length > 0) {
+                let mGroupC = [];
+                let mGroupD = [];
+                data.merchantNo.forEach(item => {
+                    mGroupC.push(item);
+                });
+                data.merchantGroup.forEach(item => {
+                    item.forEach(sItem => {
+                        mGroupD.push(sItem)
+                    });
+                });
+                if (data.merchantNo.length > 0) {
+                    query['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
+                } else if (data.merchantGroup.length > 0 && data.merchantNo.length == 0) {
+                    query['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
+                }
+            }
+        }
+
+        if (data.orderId) {
+            query['data.requestId'] = data.orderId;
+        }
+        if (data.playerName) {
+            query['data.playerName'] = data.playerName;
+        }
+        if (data.proposalNo) {
+            query['proposalId'] = data.proposalNo;
+        }
+        if (data.bankTypeId && data.bankTypeId.length > 0) {
+            query['data.bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
+        }
+        if (data.userAgent && data.userAgent.length > 0) {
+            query['data.userAgent'] = {$in: convertStringNumber(data.userAgent)};
+        }
+
+        query['status'] = {$in: ["PrePending", "Pending", "Fail", "Rejected", "Cancel", "Undetermined", 'Expired']};
+
+        let mainTopUpType;
+        switch (String(data.mainTopupType)) {
+            case constPlayerTopUpType.ONLINE.toString():
+                mainTopUpType = constProposalType.PLAYER_TOP_UP;
+                break;
+            case constPlayerTopUpType.ALIPAY.toString():
+                mainTopUpType = constProposalType.PLAYER_ALIPAY_TOP_UP;
+                break;
+            case constPlayerTopUpType.MANUAL.toString():
+                mainTopUpType = constProposalType.PLAYER_MANUAL_TOP_UP;
+                break;
+            case constPlayerTopUpType.WECHAT.toString():
+                mainTopUpType = constProposalType.PLAYER_WECHAT_TOP_UP;
+                break;
+            case constPlayerTopUpType.QUICKPAY.toString():
+                mainTopUpType = constProposalType.PLAYER_QUICKPAY_TOP_UP;
+                break;
+            case constPlayerTopUpType.COMMON.toString():
+                mainTopUpType = constProposalType.PLAYER_COMMON_TOP_UP;
+                break;
+            default:
+                mainTopUpType = {
+                    $in: [
+                        constProposalType.PLAYER_TOP_UP,
+                        constProposalType.PLAYER_ALIPAY_TOP_UP,
+                        constProposalType.PLAYER_MANUAL_TOP_UP,
+                        constProposalType.PLAYER_WECHAT_TOP_UP,
+                        constProposalType.PLAYER_QUICKPAY_TOP_UP,
+                        constProposalType.PLAYER_COMMON_TOP_UP,
+                    ]
+                };
+        }
+        if (data.topupType && data.topupType.length > 0) {
+            query['data.topupType'] = {$in: convertStringNumber(data.topupType)}
+        }
+
+        if (data.depositMethod && data.depositMethod.length > 0) {
+            query['data.depositMethod'] = {'$in': convertStringNumber(data.depositMethod)};
+        }
+
+        if(data.line){
+            query['data.line'] = data.line;
+        }
+
+        let proposalCount, proposals;
+        let proposalTypeQuery = {
+            name: mainTopUpType
+        };
+
+        if(data.platformList && data.platformList.length > 0){
+            proposalTypeQuery.platformId = {$in: data.platformList};
+        }
+
+        // get all the relevant proposal
+        return dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(
+            proposalTypes => {
+                let typeIds = proposalTypes.map(type => {
+                    return type._id;
+                });
+
+                query.type = {$in: typeIds};
+
+                console.log("LH check payment completed monitor 1------------");
+                return dbconfig.collection_proposal.find(query).lean().sort(sort)
+                    .populate({path: 'type', model: dbconfig.collection_proposalType})
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players});
+            }
+        ).then(
+            proposalData => {
+                console.log("LH check payment completed monitor 2------------");
+                return insertRepeatCount(proposalData, data.platformList);
+            }
+        ).then(
+            proposals => {
+                console.log("LH check payment completed monitor 3------------");
+                return {data: proposals};
             }
         );
     },
@@ -8491,7 +8673,8 @@ function getTopUpProposalTypeIds(platformList) {
             constProposalType.PLAYER_ALIPAY_TOP_UP,
             constProposalType.PLAYER_MANUAL_TOP_UP,
             constProposalType.PLAYER_WECHAT_TOP_UP,
-            constProposalType.PLAYER_QUICKPAY_TOP_UP
+            constProposalType.PLAYER_QUICKPAY_TOP_UP,
+            constProposalType.PLAYER_COMMON_TOP_UP
         ]
     };
 
@@ -8843,6 +9026,7 @@ function isBankInfoMatched(proposalData, playerId){
 
 
     return dbconfig.collection_players.findOne({playerId: playerId})
+        .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean()
         .then(
             player => {
@@ -8907,8 +9091,20 @@ function isBankInfoMatched(proposalData, playerId){
                                         } else if (proposal.data.bankAccount != playerData.bankAccount) {
                                             return false;
                                         }
-                                    } else if (playerData.bankAccount) {
-                                        return false;
+                                    }
+                                    if (proposal.data.bankAccount2) {
+                                        if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount2) {
+                                            return false;
+                                        } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount2 != playerData.multipleBankDetailInfo.bankAccount2) {
+                                            return false;
+                                        }
+                                    }
+                                    if (proposal.data.bankAccount3) {
+                                        if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount3) {
+                                            return false;
+                                        } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount3 != playerData.multipleBankDetailInfo.bankAccount3) {
+                                            return false;
+                                        }
                                     }
                                 }
 

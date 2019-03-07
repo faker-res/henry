@@ -17,7 +17,34 @@ const dbconfig = require('./../modules/dbproperties');
 const ObjectId = mongoose.Types.ObjectId;
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const dbPlayerLoginRecord = require('./../db_modules/dbPlayerLoginRecord');
+const dbProposal = require('./../db_modules/dbProposal');
+const dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
+const dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+const roleChecker = require('../modules/roleChecker');
+const dbUtil = require("../modules/dbutility");
 
+
+function emit(request, response, dbCall, args, event, isValidData) {
+    roleChecker.isValid(request, event).then(
+        function (isAllowed) {
+            //if admin user has the permission for this socket action
+            if (isAllowed) {
+                if(dbCall && args && isValidData) {
+                    return dbCall.apply(null, args).then(data => {
+                        console.log(event);
+                        console.log("******************************** data",data);
+                        response.json({success:true, data:data});
+                    });
+                }
+            } else {
+                return response.json({
+                    success: false,
+                    message: 'Access Denied. No permission to access.'
+                });
+            }
+        }
+    ).catch(err => {console.log("-------------------- err",err)});
+}
 
 router.post('/fkpNotify', function(req, res, next) {
     let isValidData = req && req.body && req.body.merchantCode && req.body.orderNo && req.body.payOrderNo && Number.isFinite(Number(req.body.amount))
@@ -297,26 +324,95 @@ router.post('/loginKeyServer', function (req, res, next) {
     }
 });
 
-router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
-    let decoded = req.decoded;
-    let startDate = req.body.startDate;
-    let endDate = req.body.endDate;
-    let platform = req.body.platform;
-    dbPlayerLoginRecord.countLoginPlayerbyPlatformWeek(startDate, endDate, platform).then(
-        data=>{
-            res.json({success:true, data:data});
-
-    })
+//DASHBOARD
+router.post('/countLoginPlayerAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+    let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+    let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
+    emit(req, res, dbPlayerLoginRecord.countLoginPlayerbyPlatform, [platform, startTime, endTime, 'day'], 'countLoginPlayerbyPlatform', isValidData);
 });
-//
-// router.post('/countNewPlayerAllPlatform', function (req, res, next) {
-//     let startDate = new Date(req.body.startDate);
-//     let endDate = new Date(req.body.endDate);
-//     let platform = req.body.platform;
-//     dbPlayerInfo.countDailyNewPlayerByPlatform(platform, startDate, endDate).then(
-//         data=>{
-//             res.json({success:true, data:data});
-//     })
-// });
+router.post('/countNewPlayerAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+    let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+    let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
+    emit(req, res, dbPlayerInfo.countDailyNewPlayerByPlatform, [platform, startTime, endTime], 'countNewPlayerAllPlatform', isValidData);
+});
+router.post('/countPlayerBonusAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+    let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+    let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
+    emit(req, res, dbPlayerInfo.countDailyPlayerBonusByPlatform, [platform, startTime, endTime], 'countPlayerBonusAllPlatform', isValidData);
+});
+router.post('/countTopUpAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.platformObjId);
+    let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
+    emit(req, res, dbPlayerInfo.dashboardTopupORConsumptionGraphData, [platform, 'day', 'topup'], 'countTopUpORConsumptionAllPlatform', isValidData);
+});
+router.post('/countConsumptionAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.platformObjId);
+    let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
+    emit(req, res, dbPlayerInfo.dashboardTopupORConsumptionGraphData, [platform, 'day', 'consumption'], 'countTopUpORConsumptionAllPlatform', isValidData);
+});
+
+router.post('/getAllPlatformAvailableProposalsForAdminId', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.adminObjId && data.platformObjId);
+    emit(req, res, dbProposal.getAllPlatformAvailableProposalsForAdminId, [data.adminObjId, data.platformObjId], 'getAllPlatformAvailableProposalsForAdminId', isValidData);
+});
+router.post('/getAllRewardProposal', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.platformObjId);
+    emit(req, res, dbProposal.getAllRewardProposal, [data.platformObjId], 'getAllRewardProposal', isValidData);
+});
+
+router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+    let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+    let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
+    emit(req, res, dbPlayerLoginRecord.countLoginPlayerbyPlatformWeek, [startTime, endTime, platform], 'countLoginPlayerbyPlatformWeek', isValidData);
+});
+router.post('/getTopUpTotalAmountForAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+    let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+    let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
+    emit(req, res, dbPlayerTopUpRecord.getTopUpTotalAmountForAllPlatform, [startTime, endTime, platform], 'getTopUpTotalAmountForAllPlatform', isValidData);
+});
+router.post('/getBonusRequestList', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+    let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+    let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
+    emit(req, res, dbPlayerInfo.getAllAppliedBonusList, [platform, null, null, startTime, endTime, ['Success','Approved']], 'getBonusRequestList', isValidData);
+});
+router.post('/getPlayerConsumptionSumForAllPlatform', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+    let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+    let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
+    emit(req, res, dbPlayerConsumptionRecord.getConsumptionTotalAmountForAllPlatform, [startTime, endTime, platform], 'getPlayerConsumptionSumForAllPlatform', isValidData);
+});
+router.post('/countNewPlayers', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+    let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+    let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
+    emit(req, res, dbPlayerInfo.countNewPlayersAllPlatform, [startTime, endTime, platform], 'countNewPlayers', isValidData);
+});
+//DASHBOARD END
 
 module.exports = router;
