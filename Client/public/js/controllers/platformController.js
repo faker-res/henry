@@ -17793,9 +17793,9 @@ define(['js/app'], function (myApp) {
                 if (vm.feedbackAdminQuery.admin && vm.feedbackAdminQuery.admin != 'all') {
                     sendQuery.admin = vm.feedbackAdminQuery.admin;
                 }
-                if (vm.feedbackAdminQuery.cs && vm.feedbackAdminQuery != '') {
-                    sendQuery.cs = vm.feedbackAdminQuery.cs;
-                }
+                // if (vm.feedbackAdminQuery.cs && vm.feedbackAdminQuery != '') {
+                //     sendQuery.cs = vm.feedbackAdminQuery.cs;
+                // }
                 if (vm.feedbackAdminQuery.player) {
                     sendQuery.player = vm.feedbackAdminQuery.player;
                 }
