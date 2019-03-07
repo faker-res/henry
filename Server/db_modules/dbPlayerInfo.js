@@ -581,7 +581,7 @@ let dbPlayerInfo = {
                     if (!platformData) {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
-                    if(inputData.phoneNumber && inputData.phoneNumber.toString().length != 11){
+                    if (platformData.requireSMSVerification && inputData.phoneNumber && inputData.phoneNumber.toString().length != 11) {
                         return Q.reject({
                             name: "DataError",
                             message: localization.localization.translate("phone number is invalid")
@@ -859,7 +859,7 @@ let dbPlayerInfo = {
                     }
 
                     let checktsPhoneFeedback = Promise.resolve();
-                    if (!(inputData && inputData.tsPhone)) {
+                    if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
                         checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
                     }
                     return checktsPhoneFeedback.then(
@@ -3322,91 +3322,104 @@ let dbPlayerInfo = {
                 playerObj = playerData;
                 platformObjId = playerData.platform;
 
-                let realNameCountProm = dbconfig.collection_players.find({
-                    realName: updateData.bankAccountName,
-                    platform: platformObjId
-                }).lean().count();
+                return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePaymentInfo", true);
+            }
+        ).then(
+            playerBstate => {
+                if (playerBstate) {
+                    let realNameCountProm = dbconfig.collection_players.find({
+                        realName: updateData.bankAccountName,
+                        platform: platformObjId
+                    }).lean().count();
 
-                let sameBankAccountCountProm = dbconfig.collection_players.find({
-                    bankAccount: updateData.bankAccount,
-                    platform: platformObjId,
-                    'permission.forbidPlayerFromLogin': false
-                }).lean().count();
+                    let sameBankAccountCountProm = dbconfig.collection_players.find({
+                        bankAccount: updateData.bankAccount,
+                        platform: platformObjId,
+                        'permission.forbidPlayerFromLogin': false
+                    }).lean().count();
 
-                let propQuery = {
-                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                    'data.platformId': platformObjId,
-                    'data.playerName': playerObj.name,
-                    'data.playerId': playerObj.playerId,
-                };
+                    let propQuery = {
+                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        'data.platformId': platformObjId,
+                        'data.playerName': playerObj.name,
+                        'data.playerId': playerObj.playerId,
+                    };
 
-                let firstBankInfoProm = dbPropUtil.getOneProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
-                    proposal => {
-                        if (!proposal) {
-                            return {isFirstBankInfo: true};
+                    let firstBankInfoProm = dbPropUtil.getOneProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
+                        proposal => {
+                            if (!proposal) {
+                                return {isFirstBankInfo: true};
+                            }
                         }
+                    );
+
+                    return Promise.all([realNameCountProm, sameBankAccountCountProm, firstBankInfoProm])
+                }
+                else{
+                    return Promise.reject({
+                        name: "DBError",
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        message: "Update payment information is processing, please try again later"
+                    })
+                }
+            }
+        ).then(
+            data => {
+                if (!data){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "data is not found"})
+                }
+
+                duplicatedRealNameCount = data[0] || 0;
+                sameBankAccountCount = data[1] || 0;
+
+                if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
+                    if (updateData && updateData.bankAccountName) {
+                        updateData.realName = updateData.bankAccountName;
                     }
-                );
-
-                return Promise.all([realNameCountProm, sameBankAccountCountProm, firstBankInfoProm]).then(
-                    data => {
-                        if (!data){
-                            return Promise.reject({
-                                name: "DataError",
-                                message: "data is not found"})
-                        }
-
-                        duplicatedRealNameCount = data[0] || 0;
-                        sameBankAccountCount = data[1] || 0;
-
-                        if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
-                            if (updateData && updateData.bankAccountName) {
-                                updateData.realName = updateData.bankAccountName;
-                            }
-                        } else {
-                            if (playerData.bankAccountName) {
-                                delete updateData.bankAccountName;
-                            }
-                            //check if bankAccountName in update data is the same as player's real name
-                            if (updateData.bankAccountName && !playerData.realName) {
-                                // return Q.reject({
-                                //     name: "DataError",
-                                //     code: constServerCode.INVALID_DATA,
-                                //     message: "Bank account name is different from real name"
-                                // });
-                                if (updateData.bankAccountName.indexOf('*') > -1)
-                                    delete updateData.bankAccountName;
-                                else
-                                    updateData.realName = updateData.bankAccountName;
-                            }
-                            if (!updateData.bankAccountName && !playerData.bankAccountName && !playerData.realName) {
-                                return Q.reject({
-                                    name: "DataError",
-                                    code: constServerCode.INVALID_DATA,
-                                    message: "Please enter bank account name or contact cs"
-                                });
-                            }
-                        }
-
-                        // if (updateData.bankAccountType) {
-                        //     let tempBankAccountType = updateData.bankAccountType;
-                        //     let isValidBankType = Number.isInteger(Number(tempBankAccountType));
-                        //     if (!isValidBankType) {
-                        //         return Q.reject({
-                        //             name: "DataError",
-                        //             code: constServerCode.INVALID_DATA,
-                        //             message: "Please enter bank account name or contact cs"
-                        //         });
-                        //     }
-                        // }
-                        updateData.bankAccountType = 2;
-
-                        return dbconfig.collection_platform.findOne({
-                            _id: playerData.platform
-                        })
-
+                } else {
+                    if (playerObj.bankAccountName) {
+                        delete updateData.bankAccountName;
                     }
-                )
+                    //check if bankAccountName in update data is the same as player's real name
+                    if (updateData.bankAccountName && !playerObj.realName) {
+                        // return Q.reject({
+                        //     name: "DataError",
+                        //     code: constServerCode.INVALID_DATA,
+                        //     message: "Bank account name is different from real name"
+                        // });
+                        if (updateData.bankAccountName.indexOf('*') > -1)
+                            delete updateData.bankAccountName;
+                        else
+                            updateData.realName = updateData.bankAccountName;
+                    }
+                    if (!updateData.bankAccountName && !playerObj.bankAccountName && !playerObj.realName) {
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "Please enter bank account name or contact cs"
+                        });
+                    }
+                }
+
+                // if (updateData.bankAccountType) {
+                //     let tempBankAccountType = updateData.bankAccountType;
+                //     let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                //     if (!isValidBankType) {
+                //         return Q.reject({
+                //             name: "DataError",
+                //             code: constServerCode.INVALID_DATA,
+                //             message: "Please enter bank account name or contact cs"
+                //         });
+                //     }
+                // }
+                updateData.bankAccountType = 2;
+
+                return dbconfig.collection_platform.findOne({
+                    _id: playerObj.platform
+                })
+
             }
         ).then(
             platformData => {
@@ -3474,7 +3487,20 @@ let dbPlayerInfo = {
                         }).catch(errorUtils.reportError);
                 }
 
+                dbPlayerUtil.setPlayerBState(playerObj._id, "updatePaymentInfo", false).catch(errorUtils.reportError);
                 return updatedData;
+            }
+        ).catch (
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePaymentInfo", false).catch(errorUtils.reportError);
+                }
+
+                console.log('update player payment info error', playerObj.playerId, err);
+                throw err;
             }
         )
     },
@@ -20362,7 +20388,6 @@ let dbPlayerInfo = {
 
                             if (!groupSameLineProviders.length) {
                                 groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId])
-                                console.log('MT --checking !groupSameLineProviders', groupSameLineProviders);
                             }
                             else {
                                 // check each of the providerId
@@ -20389,7 +20414,6 @@ let dbPlayerInfo = {
                                     groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]);
                                 }
                             }
-                            console.log('MT --checking groupSameLineProviders', groupSameLineProviders);
                         }
                         else{
                             // for those game provider does not have samelineProvider
@@ -20420,13 +20444,11 @@ let dbPlayerInfo = {
                             nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                             status: status
                         };
-                        console.log('MT --checking providerCredit', providerCredit);
                     }
 
                     let tempSameLineProviderList = [];
                     let skipList= [];
                     // check if the newly added row is intercept with the current set of data
-                    console.log('MT --checking groupSameLineProviders', groupSameLineProviders);
                     for (let index1 = 0; index1 < groupSameLineProviders.length; index1++) {
 
                         if (!skipList.length && skipList.indexOf(index1) > -1){
@@ -20469,21 +20491,17 @@ let dbPlayerInfo = {
 
                     // remove the unrelated provderID and return data
                     returnData.sameLineProviders = {};
-                    console.log('MT --checking tempSameLineProviderList', tempSameLineProviderList);
                     for (let i = 0; i < tempSameLineProviderList.length; i ++) {
                         if (tempSameLineProviderList[i].length) {
                             returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
-                            amountGameProviderList.push(returnData.sameLineProviders[i][0]);
-                            console.log('MT --checking amountGameProviderList', amountGameProviderList);
+                            amountGameProviderList.push(returnData.sameLineProviders[i]);
                         }
                     }
                 }
-                console.log('MT --checking providerCredit', providerCredit);
                 return providerCredit;
             }
         ).then(
             providerList => {
-                console.log('MT --checking providerList', providerList);
                 if (providerList && providerList.gameCreditList && providerList.gameCreditList.length > 0 && isRealPlayer) {
                     let promArray = [];
                     for (let i = 0; i < providerList.gameCreditList.length; i++) {
@@ -20521,7 +20539,6 @@ let dbPlayerInfo = {
             }
         ).then(
             gameCreditList => {
-                console.log('MT --checking gameCreditList', gameCreditList);
                 if (gameCreditList && gameCreditList.length > 0) {
                     gameData = gameCreditList;
                     for (let i = 0; i < gameCreditList.length; i++) {
@@ -20532,16 +20549,8 @@ let dbPlayerInfo = {
                             providerId: gameCreditList[i].providerId
                         };
                         // check the game credit from the same platform
-                       console.log('MT --checking amountGameProviderList', amountGameProviderList);
-                       console.log('MT --checking gameCreditList[i].providerId', gameCreditList[i].providerId);
-                       if (amountGameProviderList.indexOf(gameCreditList[i].providerId) > -1){
-                           totalGameCreditAmount += parseInt(gameCreditList[i].gameCredit) || 0;
-                           console.log('MT --checking totalGameCreditAmount', totalGameCreditAmount);
-                       }else{
-                           console.log('MT --checking gameCreditList[i].gameCredit', gameCreditList[i].gameCredit);
-                       }
                     }
-
+                    totalGameCreditAmount = calculateGameCredit(amountGameProviderList, gameCreditList);
                     return dbconfig.collection_rewardTaskGroup.find({
                         platformId: playerDetails.platformObjId,
                         playerId: playerObjId,
@@ -22744,6 +22753,7 @@ let dbPlayerInfo = {
                 applyRewardPoint: false,
                 deductRewardPoint: false,
                 auctionBidding: false,
+                updatePaymentInfo: false
             }
         })
     },
@@ -25044,6 +25054,21 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
             return output;
         }
     );
+}
+
+function calculateGameCredit (amountGameProviderList, gameCreditList) {
+    let result = 0;
+    amountGameProviderList.forEach( gameProviders => {
+        let credit = gameCreditList.filter(gameCredit => {
+            // find provider inside sameLineProvider , example , [16, 24, 120]  , with correct credit.
+            return (gameProviders.includes(gameCredit.providerId)) && parseFloat(gameCredit.gameCredit);
+        })
+        // get one of it with status active
+        if ( credit && credit[0] ) {
+            result += parseFloat(credit[0].gameCredit);
+        }
+    })
+    return result
 }
 
 var proto = dbPlayerInfoFunc.prototype;

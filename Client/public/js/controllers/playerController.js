@@ -12098,6 +12098,9 @@ define(['js/app'], function (myApp) {
                 if (!vm.currentDistrict3) {
                     vm.currentDistrict3 = {};
                 }
+                if (!vm.isOneSelectedPlayer().multipleBankDetailInfo) {
+                    vm.isOneSelectedPlayer().multipleBankDetailInfo = {};
+                }
                 vm.correctVerifyBankAccount = undefined;
                 vm.isEditingPlayerPayment = false;
                 vm.isEditingPlayerPaymentShowVerify = false;
