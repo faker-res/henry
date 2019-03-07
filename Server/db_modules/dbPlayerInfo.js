@@ -24976,16 +24976,15 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
 
 function calculateGameCredit (amountGameProviderList, gameCreditList) {
     let result = 0;
-    amountGameProviderList.forEach( gameProvider => {
-        gameProvider.forEach( item => {
-            //if multi provider, we find one of it with active status
-            let credit = gameCreditList.filter(gameCredit => {
-                return ( gameCredit.providerId == item ) && parseFloat(gameCredit.gameCredit);
-            })
-            if ( credit && credit[0] ) {
-                result += parseFloat(credit[0].gameCredit);
-            }
+    amountGameProviderList.forEach( gameProviders => {
+        let credit = gameCreditList.filter(gameCredit => {
+            // find provider inside sameLineProvider , example , [16, 24, 120]  , with correct credit.
+            return (gameProviders.includes(gameCredit.providerId)) && parseFloat(gameCredit.gameCredit);
         })
+        // get one of it with status active
+        if ( credit && credit[0] ) {
+            result += parseFloat(credit[0].gameCredit);
+        }
     })
     return result
 }
