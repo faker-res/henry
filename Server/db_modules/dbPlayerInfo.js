@@ -11684,7 +11684,7 @@ let dbPlayerInfo = {
                             } else {
                                 return Promise.reject({
                                     name: "DataError",
-                                    errorMessage: "Player does not have matching bank info"
+                                    errorMessage: localization.localization.translate("Player does not have matching bank info")
                                 });
                             }
                         }
