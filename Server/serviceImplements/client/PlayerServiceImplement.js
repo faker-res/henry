@@ -1330,7 +1330,7 @@ let PlayerServiceImplement = function () {
         let ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua], isValidData, true, true, true).then(
             player => {
-                let playerData = player[0];
+                let playerData = player[0] || player;
 
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
