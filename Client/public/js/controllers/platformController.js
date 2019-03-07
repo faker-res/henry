@@ -17424,7 +17424,6 @@ define(['js/app'], function (myApp) {
             };
 
             function getQueryDepartments () {
-                let parentId;
                 vm.currentPlatformDepartment = vm.currentPlatformDepartment || [];
 
                 vm.currentPlatformDepartment.map(e => {
