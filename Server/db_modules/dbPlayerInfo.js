@@ -20459,7 +20459,6 @@ let dbPlayerInfo = {
 
                             if (!groupSameLineProviders.length) {
                                 groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId])
-                                console.log('MT --checking !groupSameLineProviders', groupSameLineProviders);
                             }
                             else {
                                 // check each of the providerId
@@ -20486,7 +20485,6 @@ let dbPlayerInfo = {
                                     groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]);
                                 }
                             }
-                            console.log('MT --checking groupSameLineProviders', groupSameLineProviders);
                         }
                         else{
                             // for those game provider does not have samelineProvider
@@ -20517,13 +20515,11 @@ let dbPlayerInfo = {
                             nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                             status: status
                         };
-                        console.log('MT --checking providerCredit', providerCredit);
                     }
 
                     let tempSameLineProviderList = [];
                     let skipList= [];
                     // check if the newly added row is intercept with the current set of data
-                    console.log('MT --checking groupSameLineProviders', groupSameLineProviders);
                     for (let index1 = 0; index1 < groupSameLineProviders.length; index1++) {
 
                         if (!skipList.length && skipList.indexOf(index1) > -1){
@@ -20566,21 +20562,17 @@ let dbPlayerInfo = {
 
                     // remove the unrelated provderID and return data
                     returnData.sameLineProviders = {};
-                    console.log('MT --checking tempSameLineProviderList', tempSameLineProviderList);
                     for (let i = 0; i < tempSameLineProviderList.length; i ++) {
                         if (tempSameLineProviderList[i].length) {
                             returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
                             amountGameProviderList.push(returnData.sameLineProviders[i]);
-                            console.log('MT --checking amountGameProviderList', amountGameProviderList);
                         }
                     }
                 }
-                console.log('MT --checking providerCredit', providerCredit);
                 return providerCredit;
             }
         ).then(
             providerList => {
-                console.log('MT --checking providerList', providerList);
                 if (providerList && providerList.gameCreditList && providerList.gameCreditList.length > 0 && isRealPlayer) {
                     let promArray = [];
                     for (let i = 0; i < providerList.gameCreditList.length; i++) {
@@ -20618,7 +20610,6 @@ let dbPlayerInfo = {
             }
         ).then(
             gameCreditList => {
-                console.log('MT --checking gameCreditList', gameCreditList);
                 if (gameCreditList && gameCreditList.length > 0) {
                     gameData = gameCreditList;
                     for (let i = 0; i < gameCreditList.length; i++) {
@@ -20631,7 +20622,6 @@ let dbPlayerInfo = {
                         // check the game credit from the same platform
                     }
                     totalGameCreditAmount = calculateGameCredit(amountGameProviderList, gameCreditList);
-                    console.log('totalGameCreditAmount', totalGameCreditAmount)
                     return dbconfig.collection_rewardTaskGroup.find({
                         platformId: playerDetails.platformObjId,
                         playerId: playerObjId,
@@ -25139,16 +25129,15 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
 
 function calculateGameCredit (amountGameProviderList, gameCreditList) {
     let result = 0;
-    amountGameProviderList.forEach( gameProvider => {
-        gameProvider.forEach( item => {
-            //if multi provider, we find one of it with active status
-            let credit = gameCreditList.filter(gameCredit => {
-                return ( gameCredit.providerId == item ) && parseFloat(gameCredit.gameCredit);
-            })
-            if ( credit && credit[0] ) {
-                result += parseFloat(credit[0].gameCredit);
-            }
+    amountGameProviderList.forEach( gameProviders => {
+        let credit = gameCreditList.filter(gameCredit => {
+            // find provider inside sameLineProvider , example , [16, 24, 120]  , with correct credit.
+            return (gameProviders.includes(gameCredit.providerId)) && parseFloat(gameCredit.gameCredit);
         })
+        // get one of it with status active
+        if ( credit && credit[0] ) {
+            result += parseFloat(credit[0].gameCredit);
+        }
     })
     return result
 }
