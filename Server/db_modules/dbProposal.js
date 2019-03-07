@@ -6241,42 +6241,35 @@ var proposal = {
         let query = {};
         let sort = {createTime: -1};
 
-        query["createTime"] = {};
-        query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
-        query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
+        query["proposalCreateTime"] = {};
+        query["proposalCreateTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
+        query["proposalCreateTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
-        let searchInterval = Math.abs(query.createTime.$gte.getTime() - query.createTime.$lt.getTime());
-        if (searchInterval > maxDiffTime) {
-            return Promise.reject({
-                name: "DataError",
-                message: "Exceed proposal search max time frame"
-            });
+        if (data.playerName) {
+            query['playerName'] = data.playerName;
+        }
+        if (data.proposalNo) {
+            query['proposalId'] = data.proposalNo;
+        }
+
+        if (data.userAgent && data.userAgent.length > 0) {
+            query['userAgent'] = {$in: convertStringNumber(data.userAgent)};
+        }
+
+        if (data.topupType && data.topupType.length > 0) {
+            query['topupType'] = {$in: convertStringNumber(data.topupType)}
         }
 
         if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup || data.merchantGroup.length == 0)) {
             query['$and'] = [];
             query['$and'].push({$or: [
-                    {'data.merchantNo': {$in: convertStringNumber(data.merchantNo)}},
-                    {'data.bankCardNo': {$in: convertStringNumber(data.merchantNo)}},
-                    {'data.accountNo': {$in: convertStringNumber(data.merchantNo)}},
-                    {'data.alipayAccount': {$in: convertStringNumber(data.merchantNo)}},
-                    {'data.wechatAccount': {$in: convertStringNumber(data.merchantNo)}},
-                    {'data.weChatAccount': {$in: convertStringNumber(data.merchantNo)}}
+                    {'merchantNo': {$in: convertStringNumber(data.merchantNo)}},
+                    {'bankCardNo': {$in: convertStringNumber(data.merchantNo)}},
+                    {'accountNo': {$in: convertStringNumber(data.merchantNo)}},
+                    {'alipayAccount': {$in: convertStringNumber(data.merchantNo)}},
+                    {'wechatAccount': {$in: convertStringNumber(data.merchantNo)}},
+                    {'weChatAccount': {$in: convertStringNumber(data.merchantNo)}}
                 ]}
-            );
-            query['$and'].push(
-                {'data.followUpContent': {$exists: true}},
-                {'data.followUpContent': {$ne: null}},
-                {'data.followUpContent': {$ne: ""}}
-            );
-        }else{
-            query['$and'] = [];
-
-            query['$and'].push(
-                    {'data.followUpContent': {$exists: true}},
-                    {'data.followUpContent': {$ne: null}},
-                    {'data.followUpContent': {$ne: ""}}
             );
         }
 
@@ -6287,7 +6280,7 @@ var proposal = {
                     mGroupList.push(sItem)
                 })
             });
-            query['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
+            query['merchantNo'] = {$in: convertStringNumber(mGroupList)};
         }
 
         if (data.merchantNo && data.merchantNo.length > 0 && data.merchantGroup && data.merchantGroup.length > 0) {
@@ -6303,30 +6296,20 @@ var proposal = {
                     });
                 });
                 if (data.merchantNo.length > 0) {
-                    query['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
+                    query['merchantNo'] = {$in: convertStringNumber(mGroupC)};
                 } else if (data.merchantGroup.length > 0 && data.merchantNo.length == 0) {
-                    query['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
+                    query['merchantNo'] = {$in: convertStringNumber(mGroupD)}
                 }
             }
         }
 
-        if (data.orderId) {
-            query['data.requestId'] = data.orderId;
-        }
-        if (data.playerName) {
-            query['data.playerName'] = data.playerName;
-        }
-        if (data.proposalNo) {
-            query['proposalId'] = data.proposalNo;
-        }
-        if (data.bankTypeId && data.bankTypeId.length > 0) {
-            query['data.bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
-        }
-        if (data.userAgent && data.userAgent.length > 0) {
-            query['data.userAgent'] = {$in: convertStringNumber(data.userAgent)};
+        if (data.depositMethod && data.depositMethod.length > 0) {
+            query['depositMethod'] = {'$in': convertStringNumber(data.depositMethod)};
         }
 
-        query['status'] = {$in: ["PrePending", "Pending", "Fail", "Rejected", "Cancel", "Undetermined", 'Expired']};
+        if (data.bankTypeId && data.bankTypeId.length > 0) {
+            query['bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
+        }
 
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
@@ -6360,19 +6343,7 @@ var proposal = {
                     ]
                 };
         }
-        if (data.topupType && data.topupType.length > 0) {
-            query['data.topupType'] = {$in: convertStringNumber(data.topupType)}
-        }
 
-        if (data.depositMethod && data.depositMethod.length > 0) {
-            query['data.depositMethod'] = {'$in': convertStringNumber(data.depositMethod)};
-        }
-
-        if(data.line){
-            query['data.line'] = data.line;
-        }
-
-        let proposalCount, proposals;
         let proposalTypeQuery = {
             name: mainTopUpType
         };
@@ -6381,29 +6352,19 @@ var proposal = {
             proposalTypeQuery.platformId = {$in: data.platformList};
         }
 
-        // get all the relevant proposal
         return dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(
             proposalTypes => {
-                let typeIds = proposalTypes.map(type => {
-                    return type._id;
-                });
+                if(proposalTypes){
+                    let typeIds = proposalTypes.map(type => {
+                        return type._id;
+                    });
 
-                query.type = {$in: typeIds};
+                    query.type = {$in: typeIds};
 
-                console.log("LH check payment completed monitor 1------------");
-                return dbconfig.collection_proposal.find(query).lean().sort(sort)
-                    .populate({path: 'type', model: dbconfig.collection_proposalType})
-                    .populate({path: "data.playerObjId", model: dbconfig.collection_players});
-            }
-        ).then(
-            proposalData => {
-                console.log("LH check payment completed monitor 2------------");
-                return insertRepeatCount(proposalData, data.platformList);
-            }
-        ).then(
-            proposals => {
-                console.log("LH check payment completed monitor 3------------");
-                return {data: proposals};
+                    return dbconfig.collection_paymentMonitorFollowUp.find(query)
+                        .populate({path: "type", model: dbconfig.collection_proposalType})
+                        .populate({path: "playerObjId", model: dbconfig.collection_players}).lean();
+                }
             }
         );
     },
@@ -7880,12 +7841,44 @@ var proposal = {
         return dbconfig.collection_proposal.findOneAndUpdate({proposalId: proposalId},{'data.lockedAdminId': "", 'data.lockedAdminName': "" ,'data.followUpContent': ""});
     },
 
-    updateFollowUpContent: (proposalId, followUpContent) => {
-        if(!proposalId){
+    updateFollowUpContent: (followUpData, followUpContent) => {
+        if(!followUpData){
             return;
         }
 
-        return dbconfig.collection_proposal.findOneAndUpdate({proposalId: proposalId},{'data.followUpContent': followUpContent, 'data.followUpCompletedTime': new Date()});
+        let followUpObj = {
+            platformObjId: followUpData.platformObjId,
+            website: followUpData.website,
+            proposalId: followUpData.proposalId,
+            type: followUpData.type,
+            userAgent: followUpData.userAgent,
+            topupType: followUpData.topupType,
+            merchantNo: followUpData.merchantNo,
+            merchantNo$: followUpData.merchantNo$,
+            inputDevice: followUpData.inputDevice,
+            depositMethod: followUpData.depositMethod,
+            bankTypeId: followUpData.bankTypeId,
+            merchantName: followUpData.merchantName,
+            merchantCurrentCount: followUpData.merchantCurrentCount,
+            merchantTotalCount: followUpData.merchantTotalCount,
+            merchantGapTime: followUpData.merchantGapTime,
+            status: followUpData.status,
+            playerObjId: followUpData.playerObjId,
+            playerName: followUpData.playerName,
+            playerCurrentCount: followUpData.playerCurrentCount,
+            playerTotalCount: followUpData.playerTotalCount,
+            playerGapTime: followUpData.playerGapTime,
+            amount: followUpData.amount,
+            proposalCreateTime: followUpData.proposalCreateTime,
+            createTime: followUpData.createTime,
+            lockedAdminId: followUpData.lockedAdminId,
+            lockedAdminName: followUpData.lockedAdminName,
+            followUpCompletedTime: followUpData.followUpCompletedTime,
+            followUpContent: followUpContent,
+            line: followUpData.line
+        };
+
+        return dbconfig.collection_paymentMonitorFollowUp(followUpObj).save();
     },
 
     rejectPendingProposalIfAvailable: (platformObjId, playerName, proposalType, remark) => {
