@@ -139,7 +139,7 @@ input:focus+label ,select:focus+label  {
 }
 
 .dropdown{
-  height: 0px;
+  height: 200px;
   width: 170px;
   position: fixed!important;
   z-index: 100;
@@ -150,9 +150,10 @@ input:focus+label ,select:focus+label  {
   overflow-y: hidden;
 }
 
-.show{
-  height: 200px;
-}
+/*.show{*/
+  /*height: 200px;*/
+/*}*/
+
 .overlay-header .form-control{
   color: #f1f1f1;
   background-color: #495057!important;
