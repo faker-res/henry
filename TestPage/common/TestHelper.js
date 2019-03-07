@@ -284,14 +284,14 @@
 
     var TestHelper = {
         // This is the default.  It may be overridden below if we are running in development
-        websocketIP: "10.167.11.118",
-        wsMigration: "10.167.11.118",
+        websocketIP: "papi99.fpms8.me",
+        wsMigration: "papi99.fpms8.me",
         // This will be set later, based on WebSocketIP
         websocketURL: null,
         //
-        cpmsWSURL: "ws://10.168.11.121:7124/websocketapi",
-        pmsWSURL: "ws://10.167.11.118:8330/acc",
-        smsWSURL: "ws://10.168.11.121:8451/sms",
+        cpmsWSURL: "ws://cpapi99.cpms8.me:8660/websocketapi",
+        pmsWSURL: "ws://papi99.pms8.me:8330/acc",
+        smsWSURL: "ws://smsapiserver99.pms8.me/sms",
 
         setAPIName: setAPIName,
         attachListeners: attachListeners,

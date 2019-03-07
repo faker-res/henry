@@ -403,6 +403,8 @@ const dbPlayerPayment = {
         let platformMinTopUpAmount = 0;
         let result = {};
 
+        console.log('getMinMaxCommonTopupAmount before get player', playerId, new Date());
+
         return dbconfig.collection_players.findOne({
             playerId: playerId
         }).populate({
@@ -438,7 +440,7 @@ const dbPlayerPayment = {
                             + "username=" + playerData.name + "&"
                             + "clientType=" + clientType;
 
-                        console.log('getMinMaxCommonTopupAmount url', url);
+                        console.log('getMinMaxCommonTopupAmount url', url, playerId, playerData.platform.topUpSystemType, new Date());
 
                         return rp(url);
                     } else {
@@ -450,6 +452,9 @@ const dbPlayerPayment = {
             ret => {
                 if (ret) {
                     if (!topUpSystemConfig || topUpSystemName === 'PMS' || topUpSystemName === 'PMS2') {
+
+                        console.log('getMinMaxCommonTopupAmount res', playerId, new Date());
+
                         ret = JSON.parse(ret);
 
                         if (ret.code && Number(ret.code) === 1) {

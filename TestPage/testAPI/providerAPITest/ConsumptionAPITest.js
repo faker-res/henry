@@ -144,6 +144,10 @@
                 createTime: Date.now(),
                 detail: 'detail'
             };
+        if (data.betDetails) {
+            data.betDetails = JSON.parse(data.betDetails);
+        }
+
 
         data.orderNo = data.orderNo || Math.random().toString(36).substring(2, 9) + Math.random().toString(36).substring(2, 9);
         // We need to get the latest values for testProviderId and testGameId above, because this module's vars might

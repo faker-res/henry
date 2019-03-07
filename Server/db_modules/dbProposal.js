@@ -774,6 +774,12 @@ var proposal = {
                         proposalData.data.bankCardNo = dbutility.encodeBankAcc(proposalData.data.bankCardNo);
                     }
 
+                    if (proposalData && proposalData.type && proposalData.type.name && proposalData.type.name &&
+                        (proposalData.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || proposalData.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
+                        proposalData.data && proposalData.data.bankAccount) {
+                        proposalData.data.bankAccount = dbutility.encodeBankAcc(proposalData.data.bankAccount);
+                    }
+
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {
@@ -1188,7 +1194,8 @@ var proposal = {
             data => ({
                 proposalId: proposalId,
                 orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
-                bonusId: bonusId
+                bonusId: bonusId,
+                checkReqStatus: status
             }),
             error => {
                 if (!error.proposalId) {
@@ -2059,6 +2066,11 @@ var proposal = {
                                 if (item.data && item.data.phoneNumber) {
                                     item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                 }
+                                if (item && item.type && item.type.name && item.type.name &&
+                                    (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO)
+                                    && item.data && item.data.bankAccount) {
+                                    item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                }
                                 return item;
                             }
 
@@ -2259,6 +2271,11 @@ var proposal = {
                                             if (item.data && item.data.phoneNumber && !displayPhoneNum) {
                                                 item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                             }
+                                            if (item && item.type && item.type.name && item.type.name &&
+                                                (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
+                                                item.data && item.data.bankAccount) {
+                                                item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                            }
                                             if (item.data && item.data.updateData) {
                                                 switch (Object.keys(item.data.updateData)[0]) {
                                                     case "phoneNumber":
@@ -2330,7 +2347,22 @@ var proposal = {
                                         }
                                         retData.push(prom);
                                     }
-                                    return Q.all(retData);
+                                    return Q.all(retData).then(
+                                        data => {
+                                            data.map(item => {
+
+                                                if (item && item.type && item.type.name && item.type.name &&
+                                                    (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
+                                                    item.data && item.data.bankAccount) {
+                                                    item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                                }
+
+                                                return item
+                                            });
+
+                                            return data;
+                                        }
+                                    );
                                 });
                         var b = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").count();
                         var c = dbconfig.collection_proposal.aggregate(
@@ -8987,6 +9019,7 @@ function isBankInfoMatched(proposalData, playerId){
 
 
     return dbconfig.collection_players.findOne({playerId: playerId})
+        .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean()
         .then(
             player => {
@@ -9051,8 +9084,20 @@ function isBankInfoMatched(proposalData, playerId){
                                         } else if (proposal.data.bankAccount != playerData.bankAccount) {
                                             return false;
                                         }
-                                    } else if (playerData.bankAccount) {
-                                        return false;
+                                    }
+                                    if (proposal.data.bankAccount2) {
+                                        if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount2) {
+                                            return false;
+                                        } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount2 != playerData.multipleBankDetailInfo.bankAccount2) {
+                                            return false;
+                                        }
+                                    }
+                                    if (proposal.data.bankAccount3) {
+                                        if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount3) {
+                                            return false;
+                                        } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount3 != playerData.multipleBankDetailInfo.bankAccount3) {
+                                            return false;
+                                        }
                                     }
                                 }
 

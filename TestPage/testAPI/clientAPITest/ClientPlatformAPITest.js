@@ -189,6 +189,42 @@
         });
     };
 
+    proto.getLockedLobbyConfig = function (callback, requestData) {
+        this._service.getLockedLobbyConfig.request(requestData);
+        this._service.getLockedLobbyConfig.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.saveFrontEndData = function (callback, requestData) {
+        this._service.saveFrontEndData.request(requestData);
+        this._service.saveFrontEndData.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.getFrontEndData = function (callback, requestData) {
+        this._service.getFrontEndData.request(requestData);
+        this._service.getFrontEndData.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.sendFileFTP = function (callback, requestData) {
+        this._service.sendFileFTP.request(requestData);
+        this._service.sendFileFTP.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlatformAPITest;
     } else {

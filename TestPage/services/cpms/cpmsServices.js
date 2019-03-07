@@ -75,15 +75,48 @@
         rootObj.PlayerService = PlayerService;
     };
 
+    var defineGameService = function (sinonet) {
+        var GameService = function (connection) {
+            sinonet.WebSocketService.call(this, "game", connection);
+            //define functions
+            var functionNames = [
+                "updateImageUrl"
+            ];
+            addServiceSyncFunctions(sinonet, this, functionNames, ["platformId", "gameId", "gameName"]);
+        };
+        GameService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        GameService.prototype.constructor = GameService;
+        rootObj.GameService = GameService;
+    };
+
+    var defineConsumptionService = function (sinonet) {
+        var ConsumptionService = function (connection) {
+            sinonet.WebSocketService.call(this, "consumption", connection);
+            //define functions
+            var functionNames = [
+                "getConsumptionSummary",
+                "reSendConsumption"
+            ];
+            addServiceSyncFunctions(sinonet, this, functionNames, ["platformId"]);
+        };
+        ConsumptionService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        ConsumptionService.prototype.constructor = ConsumptionService;
+        rootObj.ConsumptionService = ConsumptionService;
+    };
+
     if (isNode) {
         var sinonet = require("./../../server_common/WebSocketService");
         definePlayerService(sinonet);
         defineConnectionService(sinonet);
+        defineGameService(sinonet);
+        defineConsumptionService(sinonet);
         module.exports = rootObj;
     } else {
         define(["common/WebSocketService"], function (sinonet) {
             defineConnectionService(sinonet);
             definePlayerService(sinonet);
+            defineGameService(sinonet);
+            defineConsumptionService(sinonet);
             return rootObj;
         });
     }

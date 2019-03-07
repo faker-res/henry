@@ -2163,6 +2163,8 @@ var proposalExecutor = {
                            applyTime: cTimeString
                         };
 
+                       console.log('withdrawAPIAddr req:', message);
+
                        if (extConfig && extConfig[player.platform.bonusSystemType]
                            && extConfig[player.platform.bonusSystemType].withdrawAPIAddr
                        ) {

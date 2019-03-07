@@ -58,6 +58,8 @@
                 "updatePlayerPartnerPaymentInfo",
                 "updateSmsSetting",
                 "updatePassword",
+                "resetPassword",
+                "inquireAccountByPhoneNumber",
                 "updatePasswordPlayerPartner",
                 "updateSMSSetting",
                 "getSmsStatus",
@@ -93,11 +95,15 @@
                 "updatePlayerEmail",
                 "loginJblShow",
                 "createDemoPlayer",
+                "createGuestPlayer",
                 "getLastPlayedGameInfo",
                 "getClientData",
+                "changeBirthdayDate",
                 "saveClientData",
                 "callBackToUser",
                 "getOMCaptcha",
+                "getReceiveTransferList",
+                "playerLoginOrRegisterWithSMS"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -132,7 +138,11 @@
                 "turnUrlToQr",
                 "getTemplateSetting",
                 "addIpDomainLog",
-                "getIDCIpDetail"
+                "getIDCIpDetail",
+                "getLockedLobbyConfig",
+                "saveFrontEndData",
+                "getFrontEndData",
+                "sendFileFTP"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -210,7 +220,8 @@
                 "getMinMaxCommonTopupAmount",
                 "createCommonTopupProposal",
                 "createFKPTopupProposal",
-                "applyFKPWithdraw"
+                "applyFKPWithdraw",
+                "getPlayerConsumptionSum"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -288,6 +299,7 @@
                 "getRewardTask",
                 "requestConsumeRebate",
                 "getConsumeRebateAmount",
+                "getConsumeRebateDetail",
                 "isValidForFirstTopUpReward",
                 "createFirstTopUpRewardProposal",
                 "applyProviderReward",
@@ -304,10 +316,12 @@
                 "getLimitedOfferBonus",
                 "setLimitedOfferShowInfo",
                 "setBonusShowInfo",
+                "getRewardApplicationData",
                 "getSignInfo",
                 "getSignBonus",
                 "getSlotInfo",
                 "getRandBonusInfo",
+                "getRewardRanking",
             ];
             addServiceFunctions(sinonet, this, functionNames);
 
@@ -337,7 +351,8 @@
                 "applyPointToCredit",
                 "getMissonList",
                 "applyRewardPoints",
-                "getPointChangeRecord"
+                "getPointChangeRecord",
+                "getSpendRewardRank"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 
@@ -381,7 +396,9 @@
                 "searchGame",
                 "getGameGroupTreeInfo",
                 "searchGameByGroup",
-                "getGamePassword"
+                "getGamePassword",
+                "getLiveGameInfo",
+                "notifyLiveGameStatus"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -439,6 +456,10 @@
                 "getCommissionProposalList",
                 "getPartnerConfig",
                 "checkAllCrewDetail",
+                "getDownPartnerInfo",
+                "partnerCreditToPlayer",
+                "getDownPartnerContribution",
+                "getPartnerTransferList",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",
@@ -474,6 +495,46 @@
 
         rootObj.DXMissionService = DXMissionService;
     };
+
+    var defineWCGroupControlService = function (sinonet) {
+        var WCGroupControlService = function (connection) {
+            sinonet.WebSocketService.call(this, "wcgroupcontrol", connection);
+
+            //define functions
+            var functionNames = [
+                "sendWCGroupControlSessionToFPMS",
+                "sendWechatConversationToFPMS",
+                "bindPlayerWechatInfo"
+            ];
+            addServiceFunctions(sinonet, this, functionNames);
+        };
+
+        WCGroupControlService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        WCGroupControlService.prototype.constructor = WCGroupControlService;
+
+        rootObj.WCGroupControlService = WCGroupControlService;
+    };
+
+    var defineAuctionService = function (sinonet) {
+        var AuctionService = function (connection) {
+            sinonet.WebSocketService.call(this, "auction", connection);
+
+            //define functions
+            var functionNames = [
+                "listAuctionItems",
+                "applyAuction",
+                "getAuctions",
+                "bidAuctionItem",
+            ];
+            addServiceFunctions(sinonet, this, functionNames);
+        };
+
+        AuctionService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        AuctionService.prototype.constructor = AuctionService;
+
+        rootObj.AuctionService = AuctionService;
+    };
+
     // Individual services should be declared above, and called in here
     var defineServices = function (sinonet) {
         defineConnectionService(sinonet);
@@ -489,6 +550,8 @@
         defineGameService(sinonet);
         definePartnerService(sinonet);
         defineDXMissionService(sinonet);
+        defineWCGroupControlService(sinonet);
+        defineAuctionService(sinonet);
     };
 
     if (isNode) {
