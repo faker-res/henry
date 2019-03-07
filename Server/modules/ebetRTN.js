@@ -64,7 +64,7 @@ var ebetRTN = {
                     }
 
                     if (data && data.command && data.command == "listen") {
-                        dbGame.notifyLiveGameStatus(data);
+                        // dbGame.notifyLiveGameStatus(data);
                     } else if (data && data.command && data.command == "query" && data.requestId) {
                         // data is sort by time
                         events.emit(data.requestId, data);
