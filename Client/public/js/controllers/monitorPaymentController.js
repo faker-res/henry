@@ -4002,7 +4002,7 @@ define(['js/app'], function (myApp) {
                                     item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.proposalCreateTime));
                                     return item;
                                 }
-                            }), data.data.size, {}, isNewSearch
+                            }), {}, isNewSearch
                         );
                     });
                 }, err => {
