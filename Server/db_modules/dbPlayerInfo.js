@@ -11618,6 +11618,21 @@ let dbPlayerInfo = {
 
                         platform = playerData.platform;
 
+                        // if no withdrawal bank was selected, use default first bank in player data
+                        if (!withdrawalBank) {
+                            withdrawalBank = {
+                                bankName: playerData.bankName || null,
+                                bankAccount: playerData.bankName || null,
+                                bankAccountName: playerData.bankAccountName || null,
+                                bankAccountType: playerData.bankAccountType || null,
+                                bankAccountProvince: playerData.bankAccountProvince || null,
+                                bankAccountCity: playerData.bankAccountCity || null,
+                                bankAccountDistrict: playerData.bankAccountDistrict || null,
+                                bankAddress: playerData.bankAddress || null,
+                                bankBranch: playerData.bankBranch || null,
+                            }
+                        }
+
                         return dbPropUtil.getProposalDataOfType(playerData.platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, propQ).then(
                             proposals => {
                                 if (proposals && proposals.length > 0) {
@@ -11755,7 +11770,7 @@ let dbPlayerInfo = {
             ).then(
                 RTGs => {
                     if (!RTGs || isUsingXima) {
-                        if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
+                        if (!withdrawalBank.bankName || !withdrawalBank.bankAccountName || !withdrawalBank.bankAccount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                                 name: "DataError",
@@ -11900,7 +11915,7 @@ let dbPlayerInfo = {
                                                 bonusId: bonusId,
                                                 platformId: player.platform._id,
                                                 platform: player.platform.platformId,
-                                                bankTypeId: player.bankName,
+                                                bankTypeId: withdrawalBank.bankName,
                                                 amount: finalAmount,
                                                 // bonusCredit: bonusDetail.credit,
                                                 curAmount: player.validCredit,
@@ -11911,8 +11926,8 @@ let dbPlayerInfo = {
                                                 oriCreditCharge: creditCharge,
                                                 ximaWithdrawUsed: ximaWithdrawUsed,
                                                 isAutoApproval: player.platform.enableAutoApplyBonus,
-                                                bankAccountWhenSubmit: player && player.bankAccount ? dbUtil.encodeBankAcc(player.bankAccount) : "",
-                                                bankNameWhenSubmit: player && player.bankName ? player.bankName : ""
+                                                bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
+                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : ""
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
                                             if (!player.permission.applyBonus) {
@@ -11982,7 +11997,7 @@ let dbPlayerInfo = {
                             if (platform && platform.useProviderGroup && proposal.status == constProposalStatus.AUTOAUDIT) {
                                 let proposals = [];
                                 proposals.push(proposal);
-                                dbAutoProposal.processAutoProposals(proposals, platform);
+                                dbAutoProposal.processAutoProposals(proposals, platform, withdrawalBank);
                             }
                             return data;
                         },
