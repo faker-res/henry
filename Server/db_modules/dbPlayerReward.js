@@ -5631,7 +5631,7 @@ let dbPlayerReward = {
         }
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
-
+        let dailyMaxRewardPointProm;
         // reward specific promise
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP || eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
             if (rewardData && rewardData.selectedTopup) {
@@ -5668,7 +5668,7 @@ let dbPlayerReward = {
                             {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
                         ];
                     }
-                    eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
+                    dailyMaxRewardPointProm = dbConfig.collection_proposal.find(eventQuery).lean();
                 }
             }
         }
@@ -6345,7 +6345,7 @@ let dbPlayerReward = {
             promArr.push(checkForbidRewardProm.then(data => {console.log('checkForbidRewardProm'); return data;}).catch(errorUtils.reportError));
         }
 
-        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm]).then(
+        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm, dailyMaxRewardPointProm]).then(
             data => {
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
@@ -6353,7 +6353,13 @@ let dbPlayerReward = {
                 lastConsumptionRecord = data[3] && data[3][0] ? data[3][0] : {};
                 let topupInPeriodCount = topupInPeriodData.length;
                 let eventInPeriodCount = eventInPeriodData.length;
-                let rewardAmountInPeriod = eventInPeriodData.reduce((a, b) => a + b.data.rewardAmount, 0);
+                console.log('MT --checking eventInPeriodDataCount',eventInPeriodCount);
+                let dailyRewardPointData = data[4];
+
+                let rewardAmountInPeriod = 0;
+                if (dailyRewardPointData && dailyRewardPointData.length > 0) {
+                    rewardAmountInPeriod = dailyRewardPointData.reduce((a, b) => a + b.data.rewardAmount, 0);
+                }
 
                 // Check reward apply limit in period
                 if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
