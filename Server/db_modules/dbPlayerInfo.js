@@ -581,7 +581,7 @@ let dbPlayerInfo = {
                     if (!platformData) {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
-                    if(inputData.phoneNumber && inputData.phoneNumber.toString().length != 11){
+                    if (platformData.requireSMSVerification && inputData.phoneNumber && inputData.phoneNumber.toString().length != 11) {
                         return Q.reject({
                             name: "DataError",
                             message: localization.localization.translate("phone number is invalid")
@@ -859,7 +859,7 @@ let dbPlayerInfo = {
                     }
 
                     let checktsPhoneFeedback = Promise.resolve();
-                    if (!(inputData && inputData.tsPhone)) {
+                    if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
                         checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
                     }
                     return checktsPhoneFeedback.then(
