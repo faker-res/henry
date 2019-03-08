@@ -6267,20 +6267,26 @@ var proposal = {
                             proposals.forEach(
                                 proposal => {
                                     if(proposal){
-                                        if(data.failCount){
-                                            if(data.failCount == "merchant" && proposal.$merchantCurrentCount && proposal.$merchantAllCount
+                                        if(data.failCount && data.failCount.length) {
+                                            let merchantIndex = data.failCount.findIndex(f => f == "merchant");
+                                            let memberIndex = data.failCount.findIndex(f => f == "member");
+
+                                            if (merchantIndex > -1 && memberIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount
+                                                && ((proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)
+                                                    || (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))))
+                                            {
+                                                filteredProposal.push(proposal);
+                                            }else if(merchantIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount
                                                 && (proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)))
                                             {
                                                 filteredProposal.push(proposal);
-                                            }else if(data.failCount == "member" && proposal.$playerCurrentCount && proposal.$playerAllCount &&
+                                            }else if(memberIndex > -1 && proposal.$playerCurrentCount && proposal.$playerAllCount &&
                                                 (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))
                                             {
                                                 filteredProposal.push(proposal);
-
                                             }
-                                        }else if (proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount
-                                            && ((proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)
-                                            || (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))))
+                                        }else if (proposal.$playerCurrentCount && proposal.$playerAllCount && proposal.$playerCurrentCount == proposal.$playerAllCount
+                                            && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4))
                                         {
                                             filteredProposal.push(proposal);
                                         }
@@ -6471,15 +6477,22 @@ var proposal = {
                             if(platformDetail){
                                 followUpDataList.forEach(
                                     followUpData => {
-                                        if(data.failCount){
-                                            if(data.failCount == "merchant" && followUpData.merchantCurrentCount && followUpData.merchantTotalCount
+                                        if(data.failCount && data.failCount.length){
+                                            let merchantIndex = data.failCount.findIndex(f => f == "merchant");
+                                            let memberIndex = data.failCount.findIndex(f => f == "member");
+
+                                            if(merchantIndex > -1 && memberIndex > -1){
+                                                filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                            }else if(merchantIndex > -1 && followUpData.merchantCurrentCount && followUpData.merchantTotalCount
                                                 && followUpData.merchantCurrentCount == followUpData.merchantTotalCount && followUpData.merchantTotalCount >= (platformDetail.monitorMerchantCount || 10)){
                                                 filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
-                                            }else if(data.failCount == "member" && followUpData.playerCurrentCount && followUpData.playerTotalCount
+                                            }else if(memberIndex > -1 && followUpData.playerCurrentCount && followUpData.playerTotalCount
                                                 && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformDetail.monitorPlayerCount || 4)){
                                                 filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
                                             }
-                                        }else {
+                                        }else if(followUpData.playerCurrentCount && followUpData.playerTotalCount
+                                            && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformDetail.monitorPlayerCount || 4))
+                                        {
                                             filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
                                         }
                                     }
