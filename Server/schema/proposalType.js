@@ -8,7 +8,7 @@ var proposalTypeSchema = new Schema({
     //platform id
     platformId: {type: Schema.Types.ObjectId, required: true, index: true},
     //proposal type name
-    name : {type: String, required: true},
+    name : {type: String, required: true, index: true},
     //proposal process type
     process: {type:Schema.Types.ObjectId, ref:'proposalTypeProcess'},
     //execution type
