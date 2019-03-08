@@ -24841,7 +24841,7 @@ define(['js/app'], function (myApp) {
                     isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
                 };
 
-                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeSubType.length && vm.promoCodeQuery.promoCodeSubType.length != vm.promoCodeQuery.promoCodeSubTypeTotal) {
+                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeSubType && vm.promoCodeQuery.promoCodeSubType.length && vm.promoCodeQuery.promoCodeSubType.length != vm.promoCodeQuery.promoCodeSubTypeTotal) {
                     sendObj.promoCodeSubType = vm.promoCodeQuery.promoCodeSubType
                 }
 
