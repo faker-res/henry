@@ -11608,7 +11608,8 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean().then(
+            .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider})
+            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean().then(
                 playerData => {
                     //check if player has pending proposal to update bank info
                     if (playerData) {
@@ -11617,6 +11618,76 @@ let dbPlayerInfo = {
                         };
 
                         platform = playerData.platform;
+
+                        // if no withdrawal bank was selected, use default first bank in player data
+                        if (!withdrawalBank) {
+                            withdrawalBank = {
+                                bankName: playerData.bankName || null,
+                                bankAccount: playerData.bankName || null,
+                                bankAccountName: playerData.bankAccountName || null,
+                                bankAccountType: playerData.bankAccountType || null,
+                                bankAccountProvince: playerData.bankAccountProvince || null,
+                                bankAccountCity: playerData.bankAccountCity || null,
+                                bankAccountDistrict: playerData.bankAccountDistrict || null,
+                                bankAddress: playerData.bankAddress || null,
+                                bankBranch: playerData.bankBranch || null,
+                            }
+                        } else {
+                            // if a withdrawal bank was selected, match the bank input and player existing bank data
+                            // compare with first bank info
+                            if (withdrawalBank.bankName === playerData.bankName 
+                                && withdrawalBank.bankAccount === playerData.bankAccount 
+                                && withdrawalBank.bankAccountName === playerData.bankAccountName) {
+                                withdrawalBank = {
+                                    bankName: playerData.bankName || null,
+                                    bankAccount: playerData.bankName || null,
+                                    bankAccountName: playerData.bankAccountName || null,
+                                    bankAccountType: playerData.bankAccountType || null,
+                                    bankAccountProvince: playerData.bankAccountProvince || null,
+                                    bankAccountCity: playerData.bankAccountCity || null,
+                                    bankAccountDistrict: playerData.bankAccountDistrict || null,
+                                    bankAddress: playerData.bankAddress || null,
+                                    bankBranch: playerData.bankBranch || null,
+                                }
+                            } else if (playerData.multipleBankDetailInfo) {
+                                // compare with second and third bank info
+                                if (withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName2
+                                    && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount2
+                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName2) {
+                                    withdrawalBank = {
+                                        bankName: playerData.multipleBankDetailInfo.bankName2 || null,
+                                        bankAccount: playerData.multipleBankDetailInfo.bankName2 || null,
+                                        bankAccountName: playerData.multipleBankDetailInfo.bankAccountName2 || null,
+                                        bankAccountType: playerData.multipleBankDetailInfo.bankAccountType2 || null,
+                                        bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince2 || null,
+                                        bankAccountCity: playerData.multipleBankDetailInfo.bankAccountCity2 || null,
+                                        bankAccountDistrict: playerData.multipleBankDetailInfo.bankAccountDistrict2 || null,
+                                        bankAddress: playerData.multipleBankDetailInfo.bankAddress2 || null,
+                                        bankBranch: playerData.multipleBankDetailInfo.bankBranch2 || null,
+                                    }
+                                }
+                                if (withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName3
+                                    && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount3
+                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName3) {
+                                    withdrawalBank = {
+                                        bankName: playerData.multipleBankDetailInfo.bankName3 || null,
+                                        bankAccount: playerData.multipleBankDetailInfo.bankName3 || null,
+                                        bankAccountName: playerData.multipleBankDetailInfo.bankAccountName3 || null,
+                                        bankAccountType: playerData.multipleBankDetailInfo.bankAccountType3 || null,
+                                        bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince3 || null,
+                                        bankAccountCity: playerData.multipleBankDetailInfo.bankAccountCity3 || null,
+                                        bankAccountDistrict: playerData.multipleBankDetailInfo.bankAccountDistrict3 || null,
+                                        bankAddress: playerData.multipleBankDetailInfo.bankAddress3 || null,
+                                        bankBranch: playerData.multipleBankDetailInfo.bankBranch3 || null,
+                                    }
+                                }
+                            } else {
+                                return Promise.reject({
+                                    name: "DataError",
+                                    errorMessage: localization.localization.translate("Player does not have matching bank info")
+                                });
+                            }
+                        }
 
                         return dbPropUtil.getProposalDataOfType(playerData.platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, propQ).then(
                             proposals => {
@@ -11755,7 +11826,7 @@ let dbPlayerInfo = {
             ).then(
                 RTGs => {
                     if (!RTGs || isUsingXima) {
-                        if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
+                        if (!withdrawalBank.bankName || !withdrawalBank.bankAccountName || !withdrawalBank.bankAccount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                                 name: "DataError",
@@ -11900,7 +11971,7 @@ let dbPlayerInfo = {
                                                 bonusId: bonusId,
                                                 platformId: player.platform._id,
                                                 platform: player.platform.platformId,
-                                                bankTypeId: player.bankName,
+                                                bankTypeId: withdrawalBank.bankName,
                                                 amount: finalAmount,
                                                 // bonusCredit: bonusDetail.credit,
                                                 curAmount: player.validCredit,
@@ -11911,8 +11982,8 @@ let dbPlayerInfo = {
                                                 oriCreditCharge: creditCharge,
                                                 ximaWithdrawUsed: ximaWithdrawUsed,
                                                 isAutoApproval: player.platform.enableAutoApplyBonus,
-                                                bankAccountWhenSubmit: player && player.bankAccount ? dbUtil.encodeBankAcc(player.bankAccount) : "",
-                                                bankNameWhenSubmit: player && player.bankName ? player.bankName : ""
+                                                bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
+                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : ""
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
                                             if (!player.permission.applyBonus) {
@@ -11982,7 +12053,7 @@ let dbPlayerInfo = {
                             if (platform && platform.useProviderGroup && proposal.status == constProposalStatus.AUTOAUDIT) {
                                 let proposals = [];
                                 proposals.push(proposal);
-                                dbAutoProposal.processAutoProposals(proposals, platform);
+                                dbAutoProposal.processAutoProposals(proposals, platform, withdrawalBank);
                             }
                             return data;
                         },
