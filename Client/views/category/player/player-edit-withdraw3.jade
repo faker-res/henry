@@ -63,3 +63,4 @@ form(name='form_playerPaymentInfo3')
         button.common-button.margin-right-5.btn.btn-primary(ng-show='isEditingPlayerPayment', ng-click="prepareEditPlayerPayment()") {{"CANCEL" | translate}}
         button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog',ng-show='isEditingPlayerPayment', ng-disabled='form_playerPaymentInfo3.$invalid || form_playerPaymentInfo3.$pristine || playerPayment3.invalid', ng-click="updatePlayerPayment('bank3');") {{"UPDATE" | translate}}
         button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog') {{"CLOSE" | translate}}
+        button.common-button.margin-right-5.btn.btn-danger(ng-show='isEditingPlayerPayment', ng-click="deletePlayerPayment('bank3', false);") {{"DELETE" | translate}}

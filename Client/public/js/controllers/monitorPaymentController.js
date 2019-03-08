@@ -3824,7 +3824,8 @@ define(['js/app'], function (myApp) {
                 endTime: vm.paymentMonitorTotalQuery.endTime.data('datetimepicker').getLocalDate(),
                 platformList: vm.paymentMonitorTotalQuery.platformList || vm.platformByAdminId && vm.platformByAdminId.length ?  vm.platformByAdminId.map(p => p._id) : "",
                 sortCol: vm.paymentMonitorTotalQuery.sortCol,
-
+                currentPlatformId: vm.selectedPlatform._id,
+                failCount: vm.paymentMonitorTotalQuery.failCount
             };
 
             vm.paymentMonitorTotalQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorTotalQuery.merchantNo : null;
@@ -3848,10 +3849,7 @@ define(['js/app'], function (myApp) {
 
                         vm.drawPaymentRecordTotalTable(
                             data.data.data.filter(item => {
-                                if (item && item.$merchantCurrentCount && item.$merchantAllCount && item.$playerCurrentCount && item.$playerAllCount
-                                    && ((item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)
-                                        || (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4))))) {
-
+                                if(item){
                                     item.amount$ = parseFloat(item.data.amount).toFixed(2);
                                     item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
                                         : item.data.wechatAccount ? item.data.wechatAccount

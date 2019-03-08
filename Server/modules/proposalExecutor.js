@@ -957,6 +957,13 @@ var proposalExecutor = {
                                 return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
                                     proposal => {
                                         if (proposal && proposal.length > 1) {
+                                            if (playerUpdate.isDeleteBank2 || playerUpdate.isDeleteBank3) {
+                                                return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
+                                                    {playerObjId: proposalData.data._id, platformObjId: data.platform},
+                                                    playerUpdate,
+                                                    {upsert: true, new: true}
+                                                );
+                                            }
                                             if (updateMultipleBankInfo) {
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
