@@ -21,7 +21,6 @@ let WSCONFIG = {
         "socketURL": "devtest-all.fpms8.me:7000",
     },
     "Default": {
-        "NODE_ENV":"local",
         "local":{
             "MANAGEMENT_SERVER_URL":"http://localhost:7000",
             "STATISTICS_SERVER_URL":"http://localhost:8080"

@@ -7767,6 +7767,7 @@ define(['js/app'], function (myApp) {
                         verifyBankAccount: vm.verifyBankAccount,
                         verifyPlayerBankAccount: vm.verifyPlayerBankAccount,
                         updatePlayerPayment: vm.updatePlayerPayment,
+                        deletePlayerPayment: vm.deletePlayerPayment,
                         today: new Date().toISOString(),
                         allPlayerLevel: allPlayerLevel,
                         allPartner: allPartner,
@@ -12553,6 +12554,71 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformPlayersData();
                 console.log('playerpayment', data);
             }, null, true);
+        }
+
+        vm.deletePlayerPayment = function (choice, isConfirm) {
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("Delete player payment info");
+                vm.modalYesNo.modalText = $translate("Are you sure");
+                vm.modalYesNo.actionYes = () => vm.deletePlayerPayment(choice, true);
+                $('#modalYesNo').modal();
+            }
+            else {
+                let sendData = {};
+
+                // only can delete 2nd and 3rd bank info, 1st bank info can only edit
+                switch (choice) {
+                    case 'bank2':
+                        sendData = $.extend({}, vm.playerPayment2);
+                        sendData.bankName2 = '';
+                        sendData.bankAccount2 = '';
+                        sendData.bankAccountName2 = '';
+                        sendData.bankAddress2 = '';
+                        sendData.bankAccountProvince2 = '';
+                        sendData.bankAccountCity2 = '';
+                        sendData.bankAccountDistrict2 = '';
+                        sendData.remark = '删除银行资料2';
+                        sendData.isDeleteBank2 = true;
+                        delete sendData.bankName;
+                        delete sendData.newBankAccount2;
+                        delete sendData.encodedBankAccount2;
+                        delete sendData.showNewAccountNo2;
+                        break;
+                    case 'bank3':
+                        sendData = $.extend({}, vm.playerPayment3);
+                        sendData.bankName3 = '';
+                        sendData.bankAccount3 = '';
+                        sendData.bankAccountName3 = '';
+                        sendData.bankAddress3 = '';
+                        sendData.bankAccountProvince3 = '';
+                        sendData.bankAccountCity3 = '';
+                        sendData.bankAccountDistrict3 = '';
+                        sendData.remark = '删除银行资料3';
+                        sendData.isDeleteBank3 = true;
+                        delete sendData.bankName;
+                        delete sendData.newBankAccount3;
+                        delete sendData.encodedBankAccount3;
+                        delete sendData.showNewAccountNo3;
+                        break;
+                }
+                sendData._id = vm.isOneSelectedPlayer()._id;
+                sendData.playerName = vm.isOneSelectedPlayer().name;
+                sendData.playerId = vm.isOneSelectedPlayer().playerId;
+                console.log('send', sendData);
+
+                socketService.$socket($scope.AppSocket, 'createUpdatePlayerBankInfoProposal', {
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                    data: sendData,
+                    platformId: vm.selectedPlatform.id
+                }, function (data) {
+                    if (data.data && data.data.stepInfo) {
+                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                    }
+                    vm.getPlatformPlayersData();
+                    console.log('playerpayment', data);
+                }, null, true);
+            }
         }
         vm.getPaymentInfoHistory = function () {
             vm.paymetHistoryCount = 0;
