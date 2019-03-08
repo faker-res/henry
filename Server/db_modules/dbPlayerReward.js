@@ -5645,7 +5645,6 @@ let dbPlayerReward = {
                     createTime: {$gt: selectedTopUp.createTime},
                     status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
                 };
-
                 promArr.push(dbProposalUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery));
 
                 if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
@@ -5659,6 +5658,17 @@ let dbPlayerReward = {
 
                     // check the requirement
                     promArr.push(dbRewardUtil.checkApplyRetentionReward(playerData, eventData, applyAmount, null, selectedTopUp.topUpType, selectedTopUp));
+                }
+                if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+                    // calculate the daily top up return reward
+                    intervalTime = dbUtility.getTodaySGTime();
+                    if ( intervalTime ) {
+                        eventQuery["$or"] = [
+                            {"data.applyTargetDate": {$gte: intervalTime.startTime, $lt: intervalTime.endTime}},
+                            {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
+                        ];
+                    }
+                    eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
                 }
             }
         }
@@ -6472,16 +6482,10 @@ let dbPlayerReward = {
                                 selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
                                 //spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                                 spendingAmount = (actualAmount + rewardAmount) * selectedRewardParam.spendingTimes;
-                                console.log('MT --checking actualAmount + rewardAmount', applyAmount, actualAmount, rewardAmount, selectedRewardParam.spendingTimes);
-                                console.log('MT --checking spendingAmount',spendingAmount);
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
                                 selectedRewardParam.spendingTimesOnReward = selectedRewardParam.spendingTimesOnReward || 0;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
-                                console.log('MT --checking rewardAmount', rewardAmount);
-                                console.log('MT --checking selectedRewardParam.spendingTimesOnReward', selectedRewardParam.spendingTimesOnReward);
-                                console.log('MT --checking spendingAmount', spendingAmount);
-
                             }
 
                             // Set top up record update flag
