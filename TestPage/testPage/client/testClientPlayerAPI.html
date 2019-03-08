@@ -1903,6 +1903,26 @@
     </div>
 </div>
 
+<h3>Set Phone Number (初次设置手机号码)</h3>
+<div class="test-container">
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>SMS Code
+            <input name="date" type="smsCode">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="setPhoneNumber">Send</button>
+    </div>
+    <div>
+        <textarea id="setPhoneNumberOutput"></textarea>
+    </div>
+</div>
+
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],

@@ -18,6 +18,22 @@ const dbProposalUtility = {
         )
     },
 
+    // check the next proposal (either top up or withdrawal) after applying promo code
+    getNextProposalRecord: (platformObjId, proposalType, proposalQuery) => {
+        return dbConfig.collection_proposalType.findOne({
+            platformId: platformObjId,
+            name: proposalType
+        }).lean().then(
+            proposalType => {
+                if (proposalType && proposalType._id) {
+                    proposalQuery.$or = [{type: proposalType._id}, {mainType: "TopUp"}];
+
+                    return dbConfig.collection_proposal.findOne(proposalQuery).lean();
+                }
+            }
+        )
+    },
+
     getOneProposalDataOfType: (platformObjId, proposalType, proposalQuery) => {
         return dbConfig.collection_proposalType.findOne({
             platformId: platformObjId,
