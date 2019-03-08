@@ -17,7 +17,8 @@ const constSMSPurpose = {
     PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
     UPDATE_PLAYER_INFO: 'updatePlayerInfo',
     INQUIRE_ACCOUNT: 'inquireAccount',
-    PLAYER_LOGIN: 'playerLogin'
+    PLAYER_LOGIN: 'playerLogin',
+    SET_PHONE_NUMBER: 'setPhoneNumber',
 };
 
 module.exports = constSMSPurpose;

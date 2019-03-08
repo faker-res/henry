@@ -333,6 +333,7 @@ define(['js/app'], function (myApp) {
                 PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
                 PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
                 RESET_PASSWORD: 'resetPassword',
+                SET_PHONE_NUMBER: 'setPhoneNumber',
                 INQUIRE_ACCOUNT: 'inquireAccount'
             };
 
