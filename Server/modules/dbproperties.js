@@ -399,6 +399,9 @@ let frontendDataModel = dbLogs2.model('frontendData', frontendDataSchema, 'front
 let resetPasswordVerificationSchema = require('./../schema/logs2/resetPasswordVerification');
 let resetPasswordVerificationModel = dbLogs2.model('resetPasswordVerification', resetPasswordVerificationSchema, 'resetPasswordVerification');
 
+let paymentMonitorFollowUpSchema = require('./../schema/logs2/paymentMonitorFollowUp');
+let paymentMonitorFollowUpModel = dbLogs2.model('paymentMonitorFollowUp', paymentMonitorFollowUpSchema, 'paymentMonitorFollowUp');
+
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
@@ -598,6 +601,7 @@ var dbProperties = {
     collection_clientQnATemplate: clientQnATemplateModel,
     collection_clientQnATemplateConfig: clientQnATemplateConfigModel,
     collection_resetPasswordVerification: resetPasswordVerificationModel,
+    collection_paymentMonitorFollowUp: paymentMonitorFollowUpModel,
     collection_platformFeeEstimate: platformFeeEstimateModel,
     collection_platformBankCardList: platformBankCardListModel,
     collection_platformMerchantGroup: platformMerchantGroupModel,
