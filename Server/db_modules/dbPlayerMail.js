@@ -777,7 +777,11 @@ const dbPlayerMail = {
                     }).lean();
 
                     let validPhoneNumberProm = Promise.resolve({isPhoneNumberValid: true});
-                    if (purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.PARTNER_REGISTRATION || purpose === constSMSPurpose.NEW_PHONE_NUMBER) {
+                    if (purpose === constSMSPurpose.REGISTRATION
+                        || purpose === constSMSPurpose.PARTNER_REGISTRATION
+                        || purpose === constSMSPurpose.NEW_PHONE_NUMBER
+                        || purpose === constSMSPurpose.SET_PHONE_NUMBER
+                    ) {
                         if (!(platform[whiteListPhone]
                                 && platform[whiteListPhone].length > 0
                                 && platform[whiteListPhone].indexOf(telNum) > -1)) {
