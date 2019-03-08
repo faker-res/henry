@@ -222,6 +222,7 @@ var dbPlatformGameStatus = {
         let platformProm = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
         let groupProm = dbPlatformGameStatus.getGroupGames(platformId, groupCode);
         let playerRouteSetting = null;
+        let gamesInGroup = null;
 
         return Promise.all([platformProm, typeProm, groupProm]).then(
             data => {
@@ -245,6 +246,8 @@ var dbPlatformGameStatus = {
 
                     if (data[2]) {
                         let groupGames = data[2];//.games.map(game => game.game);
+                        gamesInGroup =  data[2];
+
                         if (games) {
                             //and game arrays
                             games = games.filter(
@@ -297,7 +300,11 @@ var dbPlatformGameStatus = {
                 if (queryField && changedNameSearch) {
                     let customNameObj = {};
                     customNameObj[queryField] = changedNameSearch;
-                    queryObj.$or.push(customNameObj);
+                    if (gamesInGroup && gamesInGroup.length) {
+                        queryObj.$or.push({$and: [customNameObj, {_id: {$in: gamesInGroup}}]});
+                    } else {
+                        queryObj.$or.push(customNameObj);
+                    }
                 }
 
                 if (playGameType) {
