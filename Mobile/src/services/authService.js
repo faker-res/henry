@@ -1,9 +1,8 @@
-import $ from 'jquery';
 import cookie from 'react-cookies';
 
 const auth = {
     token: null,
-    adminId: null,
+    adminObjId: null,
     adminName: null,
     department: null,
     roleData: null,
@@ -12,24 +11,24 @@ const auth = {
 }
 
 const authKey = {
-    token: 'sinonet-management-token',
-    adminId: 'sinonet-management-adminId',
-    adminName: 'sinonet-management-adminName',
-    policy: 'sinonet-management-role',
-    department: 'sinonet-management-departments',
-    language: 'sinonet-management-language',
-    platform: 'sinonet-management-platform',
-    socketUrl: 'sinonet-management-socketUrl',
+    token: 'sinonet-mobile-token',
+    adminObjId: 'sinonet-mobile-adminObjId',
+    adminName: 'sinonet-mobile-adminName',
+    policy: 'sinonet-mobile-role',
+    department: 'sinonet-mobile-departments',
+    language: 'sinonet-mobile-language',
+    platformObjId: 'sinonet-mobile-platformObjId',
+    socketUrl: 'sinonet-mobile-socketUrl',
 }
 
 let authService = {
     
-    storeAuth: function(token, adminId, adminName, department, roleData, language, socketUrl, exp) {
+    storeAuth: function(token, adminObjId, adminName, department, roleData, language, socketUrl, exp) {
         cookie.save(authKey.token, token, {
             expires: exp,
             path: '/'
         });
-        cookie.save(authKey.adminId, adminId, {
+        cookie.save(authKey.adminObjId, adminObjId, {
             expires: exp,
             path: '/'
         });
@@ -45,7 +44,7 @@ let authService = {
             expires: exp,
             path: '/'
         });
-        cookie.save(authKey.platform, "5733e26ef8c8a9355caf49d8", {
+        cookie.save(authKey.platformObjId, "5733e26ef8c8a9355caf49d8", {
             expires: exp,
             path: '/'
         });
@@ -66,8 +65,8 @@ let authService = {
         if (!auth.token) {
             auth.token = cookie.load(authKey.token);
         }
-        if (!auth.adminId) {
-            auth.adminId = cookie.load(authKey.adminId);
+        if (!auth.adminObjId) {
+            auth.adminObjId = cookie.load(authKey.adminObjId);
         }
         if (!auth.adminName) {
             auth.adminName = cookie.load(authKey.adminName);
@@ -89,26 +88,29 @@ let authService = {
 
     logout: function () {
         // remove cookies when logout
-        $.removeCookie(authKey.token);
-        $.removeCookie(authKey.adminId);
-        $.removeCookie(authKey.adminName);
-        $.removeCookie(authKey.policy);
-        $.removeCookie(authKey.department);
-        $.removeCookie(authKey.platform);
-        $.removeCookie("platform");
-        $.removeCookie("SRVNAME");
+        cookie.remove(authKey.token);
+        cookie.remove(authKey.adminObjId);
+        cookie.remove(authKey.adminName);
+        cookie.remove(authKey.policy);
+        cookie.remove(authKey.department);
+        cookie.remove(authKey.platformObjId);
+        cookie.remove(authKey.socketUrl);
 
-        localStorage.remove(authKey.policy);
+        localStorage.removeItem(authKey.policy);
     },
 
     getToken: () => {
         return cookie.load(authKey.token);
     },
     getSocketUrl: () => {
+        console.log("socketUrl", cookie.load(authKey.socketUrl))
         return cookie.load(authKey.socketUrl);
     },
-    getPlatform: () => {
-        return cookie.load(authKey.platform);
+    getPlatformObjId: () => {
+        return cookie.load(authKey.platformObjId);
+    },
+    getAdminObjId: () => {
+        return cookie.load(authKey.adminObjId);
     },
 };
 

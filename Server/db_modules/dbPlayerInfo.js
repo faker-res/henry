@@ -3322,91 +3322,104 @@ let dbPlayerInfo = {
                 playerObj = playerData;
                 platformObjId = playerData.platform;
 
-                let realNameCountProm = dbconfig.collection_players.find({
-                    realName: updateData.bankAccountName,
-                    platform: platformObjId
-                }).lean().count();
+                return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePaymentInfo", true);
+            }
+        ).then(
+            playerBstate => {
+                if (playerBstate) {
+                    let realNameCountProm = dbconfig.collection_players.find({
+                        realName: updateData.bankAccountName,
+                        platform: platformObjId
+                    }).lean().count();
 
-                let sameBankAccountCountProm = dbconfig.collection_players.find({
-                    bankAccount: updateData.bankAccount,
-                    platform: platformObjId,
-                    'permission.forbidPlayerFromLogin': false
-                }).lean().count();
+                    let sameBankAccountCountProm = dbconfig.collection_players.find({
+                        bankAccount: updateData.bankAccount,
+                        platform: platformObjId,
+                        'permission.forbidPlayerFromLogin': false
+                    }).lean().count();
 
-                let propQuery = {
-                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                    'data.platformId': platformObjId,
-                    'data.playerName': playerObj.name,
-                    'data.playerId': playerObj.playerId,
-                };
+                    let propQuery = {
+                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        'data.platformId': platformObjId,
+                        'data.playerName': playerObj.name,
+                        'data.playerId': playerObj.playerId,
+                    };
 
-                let firstBankInfoProm = dbPropUtil.getOneProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
-                    proposal => {
-                        if (!proposal) {
-                            return {isFirstBankInfo: true};
+                    let firstBankInfoProm = dbPropUtil.getOneProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
+                        proposal => {
+                            if (!proposal) {
+                                return {isFirstBankInfo: true};
+                            }
                         }
+                    );
+
+                    return Promise.all([realNameCountProm, sameBankAccountCountProm, firstBankInfoProm])
+                }
+                else{
+                    return Promise.reject({
+                        name: "DBError",
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        message: "Update payment information is processing, please try again later"
+                    })
+                }
+            }
+        ).then(
+            data => {
+                if (!data){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "data is not found"})
+                }
+
+                duplicatedRealNameCount = data[0] || 0;
+                sameBankAccountCount = data[1] || 0;
+
+                if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
+                    if (updateData && updateData.bankAccountName) {
+                        updateData.realName = updateData.bankAccountName;
                     }
-                );
-
-                return Promise.all([realNameCountProm, sameBankAccountCountProm, firstBankInfoProm]).then(
-                    data => {
-                        if (!data){
-                            return Promise.reject({
-                                name: "DataError",
-                                message: "data is not found"})
-                        }
-
-                        duplicatedRealNameCount = data[0] || 0;
-                        sameBankAccountCount = data[1] || 0;
-
-                        if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
-                            if (updateData && updateData.bankAccountName) {
-                                updateData.realName = updateData.bankAccountName;
-                            }
-                        } else {
-                            if (playerData.bankAccountName) {
-                                delete updateData.bankAccountName;
-                            }
-                            //check if bankAccountName in update data is the same as player's real name
-                            if (updateData.bankAccountName && !playerData.realName) {
-                                // return Q.reject({
-                                //     name: "DataError",
-                                //     code: constServerCode.INVALID_DATA,
-                                //     message: "Bank account name is different from real name"
-                                // });
-                                if (updateData.bankAccountName.indexOf('*') > -1)
-                                    delete updateData.bankAccountName;
-                                else
-                                    updateData.realName = updateData.bankAccountName;
-                            }
-                            if (!updateData.bankAccountName && !playerData.bankAccountName && !playerData.realName) {
-                                return Q.reject({
-                                    name: "DataError",
-                                    code: constServerCode.INVALID_DATA,
-                                    message: "Please enter bank account name or contact cs"
-                                });
-                            }
-                        }
-
-                        // if (updateData.bankAccountType) {
-                        //     let tempBankAccountType = updateData.bankAccountType;
-                        //     let isValidBankType = Number.isInteger(Number(tempBankAccountType));
-                        //     if (!isValidBankType) {
-                        //         return Q.reject({
-                        //             name: "DataError",
-                        //             code: constServerCode.INVALID_DATA,
-                        //             message: "Please enter bank account name or contact cs"
-                        //         });
-                        //     }
-                        // }
-                        updateData.bankAccountType = 2;
-
-                        return dbconfig.collection_platform.findOne({
-                            _id: playerData.platform
-                        })
-
+                } else {
+                    if (playerObj.bankAccountName) {
+                        delete updateData.bankAccountName;
                     }
-                )
+                    //check if bankAccountName in update data is the same as player's real name
+                    if (updateData.bankAccountName && !playerObj.realName) {
+                        // return Q.reject({
+                        //     name: "DataError",
+                        //     code: constServerCode.INVALID_DATA,
+                        //     message: "Bank account name is different from real name"
+                        // });
+                        if (updateData.bankAccountName.indexOf('*') > -1)
+                            delete updateData.bankAccountName;
+                        else
+                            updateData.realName = updateData.bankAccountName;
+                    }
+                    if (!updateData.bankAccountName && !playerObj.bankAccountName && !playerObj.realName) {
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "Please enter bank account name or contact cs"
+                        });
+                    }
+                }
+
+                // if (updateData.bankAccountType) {
+                //     let tempBankAccountType = updateData.bankAccountType;
+                //     let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                //     if (!isValidBankType) {
+                //         return Q.reject({
+                //             name: "DataError",
+                //             code: constServerCode.INVALID_DATA,
+                //             message: "Please enter bank account name or contact cs"
+                //         });
+                //     }
+                // }
+                updateData.bankAccountType = 2;
+
+                return dbconfig.collection_platform.findOne({
+                    _id: playerObj.platform
+                })
+
             }
         ).then(
             platformData => {
@@ -3474,7 +3487,20 @@ let dbPlayerInfo = {
                         }).catch(errorUtils.reportError);
                 }
 
+                dbPlayerUtil.setPlayerBState(playerObj._id, "updatePaymentInfo", false).catch(errorUtils.reportError);
                 return updatedData;
+            }
+        ).catch (
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePaymentInfo", false).catch(errorUtils.reportError);
+                }
+
+                console.log('update player payment info error', playerObj.playerId, err);
+                throw err;
             }
         )
     },
@@ -6114,69 +6140,54 @@ let dbPlayerInfo = {
                 if (verificationSMS && verificationSMS.code) {
                     if (verificationSMS.code == loginData.smsCode) {
                         // Verified
+                        let platformId, platformPrefix;
+
                         return dbconfig.collection_smsVerificationLog.remove(
                             {_id: verificationSMS._id}
                         ).then(
-                            data => {
+                            () => {
                                 dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                 isSMSVerified = true;
 
-                                let platformId, platformPrefix;
-                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId}).then(
-                                    platformData => {
-                                        if (platformData) {
-                                            platformId = platformData.platformId;
-                                            platformPrefix = platformData.prefix;
-                                            let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
-                                            let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
-
-                                            return dbconfig.collection_players.findOne(
-                                                {
-                                                    $or: [
-                                                        {phoneNumber: encryptedPhoneNumber},
-                                                        {phoneNumber: loginData.phoneNumber},
-                                                        {phoneNumber: enOldPhoneNumber}
-                                                    ],
-                                                    platform: platformData._id
-                                                }
-                                            ).lean();
-                                        }
-                                    }
-                                ).then(
-                                    player => {
-                                        if (player) {
-                                            return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified).catch(
-                                                error => {
-                                                    return Q.reject({
-                                                        status: constServerCode.DB_ERROR,
-                                                        name: "DBError",
-                                                        message: error.message
-                                                    });
-                                                }
-                                            )
-                                        } else {
-                                            let newPlayerData = {
-                                                platformId: loginData.platformId,
-                                                name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
-                                                password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
-                                                phoneNumber: loginData.phoneNumber,
-                                            };
-                                            return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true).then(registerData => {
-                                                return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified).catch(
-                                                    error => {
-                                                        return Q.reject({
-                                                            status: constServerCode.DB_ERROR,
-                                                            name: "DBError",
-                                                            message: error.message
-                                                        });
-                                                    }
-                                                )
-                                            });
-                                        }
-                                    }
-                                );
+                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId})
                             }
-                        )
+                        ).then(
+                            platformData => {
+                                if (platformData) {
+                                    platformId = platformData.platformId;
+                                    platformPrefix = platformData.prefix;
+                                    let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
+                                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
+
+                                    return dbconfig.collection_players.findOne(
+                                        {
+                                            $or: [
+                                                {phoneNumber: encryptedPhoneNumber},
+                                                {phoneNumber: loginData.phoneNumber},
+                                                {phoneNumber: enOldPhoneNumber}
+                                            ],
+                                            platform: platformData._id
+                                        }
+                                    ).lean();
+                                }
+                            }
+                        ).then(
+                            player => {
+                                if (player) {
+                                    return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
+                                } else {
+                                    let newPlayerData = {
+                                        platformId: loginData.platformId,
+                                        name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
+                                        password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
+                                        phoneNumber: loginData.phoneNumber,
+                                    };
+
+                                    return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
+                                        .then(() => dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified));
+                                }
+                            }
+                        );
                     } else {
                         // Not verified
                         if (verificationSMS.loginAttempts >= 10) {
@@ -6205,7 +6216,6 @@ let dbPlayerInfo = {
     },
 
     playerLoginWithSMS: function (loginData, userAgent, isSMSVerified) {
-        let deferred = Q.defer();
         let newAgentArray = [];
         let platformId = null;
         let uaObj = null;
@@ -6213,7 +6223,7 @@ let dbPlayerInfo = {
         let retObj = {};
         let platformPrefix = "";
 
-        dbconfig.collection_platform.findOne({platformId: loginData.platformId}).then(
+        return dbconfig.collection_platform.findOne({platformId: loginData.platformId}).then(
             platformData => {
                 if (platformData) {
                     platformId = platformData._id;
@@ -6232,11 +6242,11 @@ let dbPlayerInfo = {
                     ).lean();
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Cannot find platform"});
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
             },
             error => {
-                deferred.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+                return Promise.reject({name: "DBError", message: "Error in getting player platform data", error: error});
             }
         ).then(
             data => {
@@ -6244,12 +6254,11 @@ let dbPlayerInfo = {
                     playerObj = data;
 
                     if (playerObj.permission.forbidPlayerFromLogin) {
-                        deferred.reject({
+                        return Promise.reject({
                             name: "DataError",
                             message: "Player is not enable",
                             code: constServerCode.PLAYER_IS_FORBIDDEN
                         });
-                        return;
                     }
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
@@ -6301,7 +6310,8 @@ let dbPlayerInfo = {
                     if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
                         updateData.$push = {loginIps: loginData.lastLoginIp};
                     }
-                    dbconfig.collection_players.findOneAndUpdate({
+
+                    return dbconfig.collection_players.findOneAndUpdate({
                         _id: playerObj._id,
                         platform: playerObj.platform
                     }, updateData).populate({
@@ -6334,7 +6344,7 @@ let dbPlayerInfo = {
                                 }
                             ).then(
                                 () => {
-                                    dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                    return dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "platform",
                                         model: dbconfig.collection_platform
                                     }).populate({
@@ -6357,17 +6367,17 @@ let dbPlayerInfo = {
                                             retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
-                                            deferred.resolve(retObj);
+                                            return retObj;
                                         },
                                         errorZone => {
-                                            deferred.resolve(retObj);
+                                            return retObj;
                                         }
                                     );
                                 }
                             );
                         },
                         error => {
-                            deferred.reject({
+                            return Promise.reject({
                                 name: "DBError",
                                 message: "Error in updating player",
                                 error: error
@@ -6375,7 +6385,7 @@ let dbPlayerInfo = {
                         }
                     );
                 } else {
-                    deferred.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "Cannot find player",
                         code: constServerCode.INVALID_USER_PASSWORD
@@ -6383,10 +6393,9 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                deferred.reject({name: "DBError", message: "Error in getting player data", error: error});
+                return Promise.reject({name: "DBError", message: "Error in getting player data", error: error});
             }
         );
-        return deferred.promise;
     },
 
     updateGeoipws: function (playerObjId, platformObjId, ip) {
@@ -9016,6 +9025,7 @@ let dbPlayerInfo = {
                         // Perform the level up
                         return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
                             platformData => {
+                                console.log("player level up checkpoint 1")
                                 let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                                 let platformPeriodTime;
                                 if (platformPeriod) {
@@ -9067,6 +9077,7 @@ let dbPlayerInfo = {
 
                                 return Promise.all([topUpProm, consumptionProm]).then(
                                     recordData => {
+                                        console.log("player level up checkpoint 2")
                                         let topUpSummary = recordData[0];
                                         let consumptionSummary = recordData[1];
                                         let topUpSumPeriod = {};
@@ -9076,6 +9087,7 @@ let dbPlayerInfo = {
 
                                         if (checkLevelUp) {
                                             let checkLevelUpEnd = false;
+                                            console.log("player level up checkpoint 3", levelUpObjArr.length)
                                             for (let a = 0; a < levelUpObjArr.length; a++) {
                                                 const conditionSets = levelUpObjArr[a].levelUpConfig;
 
@@ -9136,6 +9148,7 @@ let dbPlayerInfo = {
                                                     }
                                                 }
                                             }
+                                            console.log("player level up checkpoint 4", consumptionSumPeriod, topUpSumPeriod)
                                         } else {
                                             const conditionSet = levelDownLevel.levelDownConfig[0];
                                             const topupPeriod = conditionSet.topupPeriod;
@@ -9170,7 +9183,7 @@ let dbPlayerInfo = {
                                                 playerId: playerObj.playerId,
                                                 platformObjId: playerObj.platform
                                             };
-
+                                            console.log("player level up checkpoint 5")
                                             let inputDevice = dbUtility.getInputDevice(userAgent, false);
                                             let promResolve = Promise.resolve();
 
@@ -9208,6 +9221,7 @@ let dbPlayerInfo = {
                                             // )
                                             return dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", true, "lastApplyLevelUp").then(
                                                 playerState => {
+                                                    console.log("player level up checkpoint 6")
                                                     if (playerState) {
                                                         if (checkLevelUp) {
                                                             for (let i = 0; i < levelUpCounter; i++) {
@@ -9247,6 +9261,7 @@ let dbPlayerInfo = {
                                                 }
                                             ).then(
                                                 function (data) {
+                                                    console.log("player level up checkpoint 7")
                                                     dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false, "lastApplyLevelUp").catch(errorUtils.reportError);
                                                     return data;
                                                 }
@@ -9264,6 +9279,7 @@ let dbPlayerInfo = {
                                             );
                                         } else {
                                             if (checkLevelUp) {
+                                                console.log("check player level up",playerObj.name, topUpSumPeriod, consumptionSumPeriod)
                                                 return Q.reject({
                                                     status: levelUpErrorCode,
                                                     name: "DataError",
@@ -11554,7 +11570,7 @@ let dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
+    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank) {
         let ximaWithdrawUsed = 0;
         if (amount < 100 && !adminInfo) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
@@ -11987,6 +12003,71 @@ let dbPlayerInfo = {
             );
     },
 
+    getPlayerBankList: function (playerObjId, platformObjId, isMultipleBank) {
+        let playerBankList = [];
+        return dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+                if (!playerData.bankName) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player bank details"});
+                }
+
+                playerBankList.push({
+                    bankName: playerData.bankName,
+                    bankAccount: playerData.bankAccount,
+                    bankAccountName: playerData.bankAccountName,
+                    bankAccountType: playerData.bankAccountType,
+                    bankAccountProvince: playerData.AccountProvince,
+                    bankAccountCity: playerData.bankAccountCity,
+                    bankAccountDistrict: playerData.bankAccountDistrict,
+                    bankAddress: playerData.bankAddress,
+                    bankBranch: playerData.bankBranch,
+                });
+                return playerBankList;
+            }
+        ).then(
+            () => {
+                if (!isMultipleBank) return playerBankList;
+
+                return dbconfig.collection_playerMultipleBankDetailInfo.findOne({playerObjId: playerObjId, platformObjId: platformObjId}).then(
+                    bankData => {
+                        if (bankData && !bankData.bankName2 && !bankData.bankName3) {
+                            return playerBankList;
+                        }
+                        if (bankData && bankData.bankName2) {
+                            playerBankList.push({
+                                bankName: bankData.bankName2,
+                                bankAccount: bankData.bankAccount2,
+                                bankAccountName: bankData.bankAccountName2,
+                                bankAccountType: bankData.bankAccountType2,
+                                bankAccountProvince: bankData.AccountProvince2,
+                                bankAccountCity: bankData.bankAccountCity2,
+                                bankAccountDistrict: bankData.bankAccountDistrict2,
+                                bankAddress: bankData.bankAddress2,
+                                bankBranch: bankData.bankBranch2,
+                            });
+                        }
+                        if (bankData && bankData.bankName3) {
+                            playerBankList.push({
+                                bankName: bankData.bankName3,
+                                bankAccount: bankData.bankAccount3,
+                                bankAccountName: bankData.bankAccountName3,
+                                bankAccountType: bankData.bankAccountType3,
+                                bankAccountProvince: bankData.AccountProvince3,
+                                bankAccountCity: bankData.bankAccountCity3,
+                                bankAccountDistrict: bankData.bankAccountDistrict3,
+                                bankAddress: bankData.bankAddress3,
+                                bankBranch: bankData.bankBranch3,
+                            });
+                        }
+                        return playerBankList;
+                    }
+                )
+            }
+        );
+    },
 
     getAllAppliedBonusList: function (platformId, startIndex, count, startTime, endTime, status, sort) {
         var seq = sort ? -1 : 1;
@@ -20413,11 +20494,10 @@ let dbPlayerInfo = {
                     for (let i = 0; i < tempSameLineProviderList.length; i ++) {
                         if (tempSameLineProviderList[i].length) {
                             returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
-                            amountGameProviderList.push(returnData.sameLineProviders[i][0]);
+                            amountGameProviderList.push(returnData.sameLineProviders[i]);
                         }
                     }
                 }
-
                 return providerCredit;
             }
         ).then(
@@ -20469,11 +20549,8 @@ let dbPlayerInfo = {
                             providerId: gameCreditList[i].providerId
                         };
                         // check the game credit from the same platform
-                       if (amountGameProviderList.indexOf(gameCreditList[i].providerId) > -1){
-                           totalGameCreditAmount +=  parseInt(gameCreditList[i].gameCredit) || 0;
-                       }
                     }
-
+                    totalGameCreditAmount = calculateGameCredit(amountGameProviderList, gameCreditList);
                     return dbconfig.collection_rewardTaskGroup.find({
                         platformId: playerDetails.platformObjId,
                         playerId: playerObjId,
@@ -22676,6 +22753,7 @@ let dbPlayerInfo = {
                 applyRewardPoint: false,
                 deductRewardPoint: false,
                 auctionBidding: false,
+                updatePaymentInfo: false
             }
         })
     },
@@ -24976,6 +25054,21 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
             return output;
         }
     );
+}
+
+function calculateGameCredit (amountGameProviderList, gameCreditList) {
+    let result = 0;
+    amountGameProviderList.forEach( gameProviders => {
+        let credit = gameCreditList.filter(gameCredit => {
+            // find provider inside sameLineProvider , example , [16, 24, 120]  , with correct credit.
+            return (gameProviders.includes(gameCredit.providerId)) && parseFloat(gameCredit.gameCredit);
+        })
+        // get one of it with status active
+        if ( credit && credit[0] ) {
+            result += parseFloat(credit[0].gameCredit);
+        }
+    })
+    return result
 }
 
 var proto = dbPlayerInfoFunc.prototype;

@@ -774,6 +774,12 @@ var proposal = {
                         proposalData.data.bankCardNo = dbutility.encodeBankAcc(proposalData.data.bankCardNo);
                     }
 
+                    if (proposalData && proposalData.type && proposalData.type.name && proposalData.type.name &&
+                        (proposalData.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || proposalData.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
+                        proposalData.data && proposalData.data.bankAccount) {
+                        proposalData.data.bankAccount = dbutility.encodeBankAcc(proposalData.data.bankAccount);
+                    }
+
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {
@@ -1188,7 +1194,8 @@ var proposal = {
             data => ({
                 proposalId: proposalId,
                 orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
-                bonusId: bonusId
+                bonusId: bonusId,
+                checkReqStatus: status
             }),
             error => {
                 if (!error.proposalId) {
@@ -2059,6 +2066,11 @@ var proposal = {
                                 if (item.data && item.data.phoneNumber) {
                                     item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                 }
+                                if (item && item.type && item.type.name && item.type.name &&
+                                    (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO)
+                                    && item.data && item.data.bankAccount) {
+                                    item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                }
                                 return item;
                             }
 
@@ -2259,6 +2271,11 @@ var proposal = {
                                             if (item.data && item.data.phoneNumber && !displayPhoneNum) {
                                                 item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                             }
+                                            if (item && item.type && item.type.name && item.type.name &&
+                                                (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
+                                                item.data && item.data.bankAccount) {
+                                                item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                            }
                                             if (item.data && item.data.updateData) {
                                                 switch (Object.keys(item.data.updateData)[0]) {
                                                     case "phoneNumber":
@@ -2330,7 +2347,22 @@ var proposal = {
                                         }
                                         retData.push(prom);
                                     }
-                                    return Q.all(retData);
+                                    return Q.all(retData).then(
+                                        data => {
+                                            data.map(item => {
+
+                                                if (item && item.type && item.type.name && item.type.name &&
+                                                    (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
+                                                    item.data && item.data.bankAccount) {
+                                                    item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                                }
+
+                                                return item
+                                            });
+
+                                            return data;
+                                        }
+                                    );
                                 });
                         var b = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").count();
                         var c = dbconfig.collection_proposal.aggregate(
@@ -6062,13 +6094,9 @@ var proposal = {
         );
     },
 
-    getPaymentMonitorTotalResult: (data, index, limit) => {
+    getPaymentMonitorTotalResult: (data) => {
         let query = {};
-
         let sort = {createTime: -1};
-
-        limit = limit ? limit : 10;
-        index = index ? index : 0;
 
         query["createTime"] = {};
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
@@ -6222,34 +6250,28 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                console.log("LH check payment monitor 1------------", query);
-                let proposalCountProm = dbconfig.collection_proposal.find(query).count();
-                let proposalsProm = dbconfig.collection_proposal.find(query).lean().sort(sort).skip(index).limit(limit)
+                console.log("LH check payment monitor 1------------");
+
+                return dbconfig.collection_proposal.find(query).lean().sort(sort)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players});
-                return Promise.all([proposalCountProm, proposalsProm]);
             }
         ).then(
             proposalData => {
-                proposalCount = proposalData[0];
-                proposals = proposalData[1];
-
-                return insertRepeatCount(proposals, data.platformList);
+                console.log("LH check payment monitor 2------------");
+                return insertRepeatCount(proposalData, data.platformList);
             }
         ).then(
             proposals => {
-                return {size: proposalCount, data: proposals}
+                console.log("LH check payment monitor 3------------");
+                return {data: proposals};
             }
         );
     },
 
-    getPaymentMonitorTotalCompletedResult: (data, index, limit) => {
+    getPaymentMonitorTotalCompletedResult: (data) => {
         let query = {};
-
         let sort = {createTime: -1};
-
-        limit = limit ? limit : 10;
-        index = index ? index : 0;
 
         query["createTime"] = {};
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
@@ -6355,6 +6377,9 @@ var proposal = {
             case constPlayerTopUpType.QUICKPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_QUICKPAY_TOP_UP;
                 break;
+            case constPlayerTopUpType.COMMON.toString():
+                mainTopUpType = constProposalType.PLAYER_COMMON_TOP_UP;
+                break;
             default:
                 mainTopUpType = {
                     $in: [
@@ -6362,7 +6387,8 @@ var proposal = {
                         constProposalType.PLAYER_ALIPAY_TOP_UP,
                         constProposalType.PLAYER_MANUAL_TOP_UP,
                         constProposalType.PLAYER_WECHAT_TOP_UP,
-                        constProposalType.PLAYER_QUICKPAY_TOP_UP
+                        constProposalType.PLAYER_QUICKPAY_TOP_UP,
+                        constProposalType.PLAYER_COMMON_TOP_UP,
                     ]
                 };
         }
@@ -6396,23 +6422,20 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                console.log("LH check payment completed monitor 1------------", query);
-                let proposalCountProm = dbconfig.collection_proposal.find(query).count();
-                let proposalsProm = dbconfig.collection_proposal.find(query).lean().sort(sort).skip(index).limit(limit)
+                console.log("LH check payment completed monitor 1------------");
+                return dbconfig.collection_proposal.find(query).lean().sort(sort)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players});
-                return Promise.all([proposalCountProm, proposalsProm]);
             }
         ).then(
             proposalData => {
-                proposalCount = proposalData[0];
-                proposals = proposalData[1];
-
-                return insertRepeatCount(proposals, data.platformList);
+                console.log("LH check payment completed monitor 2------------");
+                return insertRepeatCount(proposalData, data.platformList);
             }
         ).then(
             proposals => {
-                return {size: proposalCount, data: proposals}
+                console.log("LH check payment completed monitor 3------------");
+                return {data: proposals};
             }
         );
     },
@@ -8650,7 +8673,8 @@ function getTopUpProposalTypeIds(platformList) {
             constProposalType.PLAYER_ALIPAY_TOP_UP,
             constProposalType.PLAYER_MANUAL_TOP_UP,
             constProposalType.PLAYER_WECHAT_TOP_UP,
-            constProposalType.PLAYER_QUICKPAY_TOP_UP
+            constProposalType.PLAYER_QUICKPAY_TOP_UP,
+            constProposalType.PLAYER_COMMON_TOP_UP
         ]
     };
 
@@ -9002,6 +9026,7 @@ function isBankInfoMatched(proposalData, playerId){
 
 
     return dbconfig.collection_players.findOne({playerId: playerId})
+        .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean()
         .then(
             player => {
@@ -9066,8 +9091,20 @@ function isBankInfoMatched(proposalData, playerId){
                                         } else if (proposal.data.bankAccount != playerData.bankAccount) {
                                             return false;
                                         }
-                                    } else if (playerData.bankAccount) {
-                                        return false;
+                                    }
+                                    if (proposal.data.bankAccount2) {
+                                        if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount2) {
+                                            return false;
+                                        } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount2 != playerData.multipleBankDetailInfo.bankAccount2) {
+                                            return false;
+                                        }
+                                    }
+                                    if (proposal.data.bankAccount3) {
+                                        if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount3) {
+                                            return false;
+                                        } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount3 != playerData.multipleBankDetailInfo.bankAccount3) {
+                                            return false;
+                                        }
                                     }
                                 }
 

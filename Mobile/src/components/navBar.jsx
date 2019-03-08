@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import SelectServer from './selectServer';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
+import authService from '../services/authService';
+import navService from '../services/navService.js';
 
 
 class NavBar extends Component{
@@ -48,6 +50,11 @@ class NavBar extends Component{
     //     const b = document.getElementById("Nav");
     //     b.classList.toggle("show");
     // }
+    
+    logout() {
+        authService.logout();
+        navService.goto('');
+    }
 
     render(){
         // window.onclick = function(event) {
@@ -98,6 +105,15 @@ class NavBar extends Component{
                         <a href="#"> <FontAwesomeIcon icon="chart-line" /> 分析</a>
                     </div>
                 </div>
+
+<!--            <div id="Nav" className="dropdown">
+                    <a href="#"> <FontAwesomeIcon icon="language"/> English</a>
+                    <a href="#"> <FontAwesomeIcon icon="edit"/> 开发日志</a>
+                    <a href="#"> <FontAwesomeIcon icon="book-open"/> 查看日志</a>
+                    <a href="#"> <FontAwesomeIcon icon="key"/> 更新密码</a>
+                    <a href="#" onClick={this.logout}> <FontAwesomeIcon icon="sign-out-alt"/> 注销</a>
+                </div> -->
+
             </div>
         )
     }

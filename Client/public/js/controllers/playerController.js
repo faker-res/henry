@@ -5419,7 +5419,7 @@ define(['js/app'], function (myApp) {
                                         'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.initPlayerBonus();',
+                                        'ng-click': 'vm.initPlayerBonus();vm.getPlayerBankList();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerBonus',
@@ -7169,10 +7169,10 @@ define(['js/app'], function (myApp) {
                                     $scope.safeApply();
                                 });
                             }
-                            if (vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2) {
+                            if (vm.selectedSinglePlayer.multipleBankDetailInfo && vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2) {
                                 vm.showProvinceStr2 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2 || $translate("Unknown");
                                 vm.allProvinceList.forEach(province => {
-                                    if (province.id.toString() === vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2.toString()) {
+                                    if (vm.selectedSinglePlayer.multipleBankDetailInfo && province.id.toString() === vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince2.toString()) {
                                         vm.showProvinceStr2 = province.name;
                                     }
                                 });
@@ -7197,10 +7197,10 @@ define(['js/app'], function (myApp) {
                                     $scope.safeApply();
                                 });
                             }
-                            if (vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3) {
+                            if (vm.selectedSinglePlayer.multipleBankDetailInfo && vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3) {
                                 vm.showProvinceStr3 = vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3 || $translate("Unknown");
                                 vm.allProvinceList.forEach(province => {
-                                    if (province.id.toString() === vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3.toString()) {
+                                    if (vm.selectedSinglePlayer.multipleBankDetailInfo && province.id.toString() === vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccountProvince3.toString()) {
                                         vm.showProvinceStr3 = province.name;
                                     }
                                 });
@@ -7508,14 +7508,16 @@ define(['js/app'], function (myApp) {
                         vm.selectedSinglePlayer.bankAccount ?
                             vm.selectedSinglePlayer.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-4)
                             : null;
-                    vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount2 =
-                        vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2 ?
-                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(-4)
-                            : null;
-                    vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount3 =
-                        vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3 ?
-                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(-4)
-                            : null;
+                    if (vm.selectedSinglePlayer.multipleBankDetailInfo) {
+                        vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount2 =
+                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2 ?
+                                vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount2.slice(-4)
+                                : null;
+                        vm.selectedSinglePlayer.multipleBankDetailInfo.encodedBankAccount3 =
+                            vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3 ?
+                                vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(0, 6) + "**********" + vm.selectedSinglePlayer.multipleBankDetailInfo.bankAccount3.slice(-4)
+                                : null;
+                    }
 
                     // Fix partnerName disappeared on second load
                     if (!vm.selectedSinglePlayer.partnerName) {
@@ -11926,7 +11928,8 @@ define(['js/app'], function (myApp) {
                 bonusId: vm.playerBonus.bonusId,
                 honoreeDetail: vm.playerBonus.honoreeDetail,
                 bForce: vm.playerBonus.bForce,
-                platform: vm.selectedPlatform.id
+                platform: vm.selectedPlatform.id,
+                withdrawalBank: vm.playerBonus.withdrawalBank,
             };
             console.log('applyBonusRequest', sendData);
             vm.playerBonus.resMsg = '';
@@ -12095,6 +12098,9 @@ define(['js/app'], function (myApp) {
                 if (!vm.currentDistrict3) {
                     vm.currentDistrict3 = {};
                 }
+                if (!vm.isOneSelectedPlayer().multipleBankDetailInfo) {
+                    vm.isOneSelectedPlayer().multipleBankDetailInfo = {};
+                }
                 vm.correctVerifyBankAccount = undefined;
                 vm.isEditingPlayerPayment = false;
                 vm.isEditingPlayerPaymentShowVerify = false;
@@ -12102,25 +12108,27 @@ define(['js/app'], function (myApp) {
                 vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
                 vm.playerPayment.showNewAccountNo = false;
-                vm.playerPayment2 = utilService.assignObjKeys(vm.isOneSelectedPlayer().multipleBankDetailInfo, vm.playerPaymentKeys2);
-                vm.playerPayment2.bankAccountName2 = (vm.playerPayment2.bankAccountName2) ? vm.playerPayment2.bankAccountName2 : vm.isOneSelectedPlayer().realName;
-                vm.playerPayment2.newBankAccount2 = vm.playerPayment2.encodedBankAccount2;
-                vm.playerPayment2.showNewAccountNo2 = false;
-                vm.playerPayment3 = utilService.assignObjKeys(vm.isOneSelectedPlayer().multipleBankDetailInfo, vm.playerPaymentKeys3);
-                vm.playerPayment3.bankAccountName3 = (vm.playerPayment3.bankAccountName3) ? vm.playerPayment3.bankAccountName3 : vm.isOneSelectedPlayer().realName;
-                vm.playerPayment3.newBankAccount3 = vm.playerPayment3.encodedBankAccount3;
-                vm.playerPayment3.showNewAccountNo3 = false;
+                if (vm.isOneSelectedPlayer() && vm.isOneSelectedPlayer().multipleBankDetailInfo) {
+                    vm.playerPayment2 = utilService.assignObjKeys(vm.isOneSelectedPlayer().multipleBankDetailInfo, vm.playerPaymentKeys2);
+                    vm.playerPayment2.bankAccountName2 = (vm.playerPayment2.bankAccountName2) ? vm.playerPayment2.bankAccountName2 : vm.isOneSelectedPlayer().realName;
+                    vm.playerPayment2.newBankAccount2 = vm.playerPayment2.encodedBankAccount2;
+                    vm.playerPayment2.showNewAccountNo2 = false;
+                    vm.playerPayment3 = utilService.assignObjKeys(vm.isOneSelectedPlayer().multipleBankDetailInfo, vm.playerPaymentKeys3);
+                    vm.playerPayment3.bankAccountName3 = (vm.playerPayment3.bankAccountName3) ? vm.playerPayment3.bankAccountName3 : vm.isOneSelectedPlayer().realName;
+                    vm.playerPayment3.newBankAccount3 = vm.playerPayment3.encodedBankAccount3;
+                    vm.playerPayment3.showNewAccountNo3 = false;
+                    vm.currentProvince2.province = vm.playerPayment2.bankAccountProvince2;
+                    vm.currentProvince3.province = vm.playerPayment3.bankAccountProvince3;
+                    vm.currentCity2.city = vm.playerPayment2.bankAccountCity2;
+                    vm.currentCity3.city = vm.playerPayment3.bankAccountCity3;
+                    vm.currentDistrict2.district = vm.playerPayment2.bankAccountDistrict2;
+                    vm.currentDistrict3.district = vm.playerPayment3.bankAccountDistrict3;
+                }
                 vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
                 vm.filterBankName = '';
                 vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
-                vm.currentProvince2.province = vm.playerPayment2.bankAccountProvince2;
-                vm.currentProvince3.province = vm.playerPayment3.bankAccountProvince3;
                 vm.currentCity.city = vm.playerPayment.bankAccountCity;
-                vm.currentCity2.city = vm.playerPayment2.bankAccountCity2;
-                vm.currentCity3.city = vm.playerPayment3.bankAccountCity3;
                 vm.currentDistrict.district = vm.playerPayment.bankAccountDistrict;
-                vm.currentDistrict2.district = vm.playerPayment2.bankAccountDistrict2;
-                vm.currentDistrict3.district = vm.playerPayment3.bankAccountDistrict3;
                 socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
                     if (data) {
                         // vm.provinceList = data.data.provinces.map(item => {
@@ -12505,7 +12513,7 @@ define(['js/app'], function (myApp) {
                     sendData.bankAccountProvince2 = vm.currentProvince2.province;
                     sendData.bankAccountCity2 = vm.currentCity2.city;
                     sendData.bankAccountDistrict2 = vm.currentDistrict2.district;
-                    sendData.bankName2 = vm.playerPayment2.bankName;
+                    sendData.bankName2 = vm.playerPayment2.bankName2;
                     console.log('send===', sendData);
                     if (sendData.newBankAccount2 != sendData.encodedBankAccount2) {
                         sendData.bankAccount2 = sendData.newBankAccount2;
@@ -12519,7 +12527,7 @@ define(['js/app'], function (myApp) {
                     sendData.bankAccountProvince3 = vm.currentProvince3.province;
                     sendData.bankAccountCity3 = vm.currentCity3.city;
                     sendData.bankAccountDistrict3 = vm.currentDistrict3.district;
-                    sendData.bankName3 = vm.playerPayment3.bankName;
+                    sendData.bankName3 = vm.playerPayment3.bankName3;
                     console.log('send===', sendData);
                     if (sendData.newBankAccount3 != sendData.encodedBankAccount3) {
                         sendData.bankAccount3 = sendData.newBankAccount3;
@@ -14434,6 +14442,44 @@ define(['js/app'], function (myApp) {
                 notSent: true,
                 bonusId: 1
             };
+        }
+
+        vm.getPlayerBankList = function () {
+            vm.playerBankList = [];
+            let isMultipleBank = false;
+
+            if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                isMultipleBank = true;
+            }
+
+            let sendQuery = {
+                playerObjId: vm.selectedSinglePlayer._id,
+                platformObjId: vm.selectedSinglePlayer.platform,
+                isMultipleBank: isMultipleBank
+            };
+            console.log('getPlayerBankList sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getPlayerBankList', sendQuery, function (data) {
+                console.log('getPlayerBankList', data);
+                $scope.$evalAsync(() => {
+                    if (data && data.data) {
+                        vm.playerBankList = data.data.map(
+                            bankList => {
+                                bankList.encodedBankAccount =
+                                    bankList.bankAccount ?
+                                        bankList.bankAccount.slice(0, 6) + "**********" + bankList.bankAccount.slice(-4)
+                                        : null;
+
+                                for (let x in vm.allActiveBankTypeList) {
+                                    bankList.bankNameStr = vm.allActiveBankTypeList[bankList.bankName];
+                                }
+
+                                return bankList;
+                            }
+                        );
+                    }
+                });
+            });
         }
 
         vm.initPlayerCreditLog = function () {
