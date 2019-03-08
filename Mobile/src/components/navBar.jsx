@@ -105,15 +105,6 @@ class NavBar extends Component{
                         <a href="#"> <FontAwesomeIcon icon="chart-line" /> 分析</a>
                     </div>
                 </div>
-
-<!--            <div id="Nav" className="dropdown">
-                    <a href="#"> <FontAwesomeIcon icon="language"/> English</a>
-                    <a href="#"> <FontAwesomeIcon icon="edit"/> 开发日志</a>
-                    <a href="#"> <FontAwesomeIcon icon="book-open"/> 查看日志</a>
-                    <a href="#"> <FontAwesomeIcon icon="key"/> 更新密码</a>
-                    <a href="#" onClick={this.logout}> <FontAwesomeIcon icon="sign-out-alt"/> 注销</a>
-                </div> -->
-
             </div>
         )
     }
