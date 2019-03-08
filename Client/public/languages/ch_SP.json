@@ -1541,6 +1541,7 @@
   "nextTopUpAmount": "提款后第一笔存款额",
   "promoCodeProposalId": "优惠提案号",
   "nextWithdrawProposalId": "提款提案号",
+  "nextTopUpProposalId": "存款提案号",
   "playerCredit": "玩家账户余额",
   "withdrawConsumption": "提款流水",
   "withdrawAmount": "提款额",
