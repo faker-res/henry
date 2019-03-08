@@ -872,7 +872,7 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
             let subject = getLogDetailEmailSubject(largeWithdrawalLog);
 
             let emailConfig = {
-                sender: "no-reply@snsoft.my", // company email?
+                sender: 'FPMS系统 <no-reply@snsoft.my>', // company email?
                 recipient: admin.email, // admin email
                 subject: subject, // title
                 body: html, // html content
