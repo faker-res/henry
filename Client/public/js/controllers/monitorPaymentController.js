@@ -4239,11 +4239,11 @@ define(['js/app'], function (myApp) {
             vm.paymentMonitorTotalData.followUpContent = {};
             let tableOptions = {
                 data: data,
-                "order": vm.paymentMonitorTotalQuery.aaSorting || [[14, 'desc']],
+                "order": vm.paymentMonitorTotalQuery.aaSorting || [[15, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [14]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [15]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -4420,11 +4420,11 @@ define(['js/app'], function (myApp) {
             console.log('data', data);
             let tableOptions = {
                 data: data,
-                "order": vm.paymentMonitorTotalQuery.aaSorting || [[14, 'desc']],
+                "order": vm.paymentMonitorTotalQuery.aaSorting || [[15, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [14]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [15]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [

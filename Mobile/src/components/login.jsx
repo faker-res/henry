@@ -4,10 +4,13 @@ import $ from 'jquery';
 import WSCONFIG from '../wsconfig.js';
 import authService from '../services/authService.js';
 import navService from '../services/navService.js';
+import socketService from '../services/socketService.js';
+import localStorageService from '../services/localStorageService.js';
 import SelectServer from './selectServer';
 
 console.log(process.env);
 const ENV = process.env.REACT_APP_ENV;
+const defaultPlatformId = process.env.REACT_APP_DEFAULT_PLATFORM_ID;
 
 class Login extends Component {
     constructor(props){
@@ -95,6 +98,16 @@ class Login extends Component {
         return list;
     }
 
+    getPlatformByAdminId = () => {
+        return socketService.emit("getPlatformByAdminId", {adminObjId: authService.getAdminObjId()}).then(platforms => {
+            console.log("getPlatformByAdminId ret", platforms);
+            if(platforms && platforms.success && platforms.data.length > 0) {
+                localStorageService.setJson("platforms",platforms.data);
+            }
+            return platforms.data;
+        });
+    }
+
     login() {
         console.log("login...");
         let url = this.state.selectedServer === "Fastest Server" ? this.state.fastestServerUrl : this.state.selectedServer;
@@ -114,8 +127,21 @@ class Login extends Component {
             if(data.success) {
                 let exp = new Date();
                 exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
-                authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, url, exp);
-                navService.goto('dashboard');
+                
+                localStorageService.set("socketUrl", url);
+                authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
+                this.getPlatformByAdminId().then(platforms => {
+                    if(platforms && platforms.length > 0) {
+                        let platformObjId;
+                        platforms.forEach(platform=>{
+                            if(platform.platformId == defaultPlatformId) {
+                                platformObjId = platform._id;
+                            }
+                        })
+                        localStorageService.set("platformObjId", platformObjId);
+                    }
+                    navService.goto('dashboard');
+                });
             } else {
                 console.log(data.error.message);
             }
