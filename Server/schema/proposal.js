@@ -91,18 +91,15 @@ proposalSchema.index({"data.deviceId": 1});
 proposalSchema.index({"data.depositMethod": 1});
 proposalSchema.index({"data.platformId": 1});
 proposalSchema.index({"data.line": 1});
-<<<<<<< HEAD
 proposalSchema.index({"data.topUpProposal": 1});
 proposalSchema.index({"data.topUpProposalId": 1});
 proposalSchema.index({"data.topUpRecordId": 1});
-=======
 proposalSchema.index({"data.accountNo": 1});
 proposalSchema.index({"data.wechatAccount": 1});
 proposalSchema.index({"data.weChatAccount": 1});
 proposalSchema.index({"data.requestId": 1});
 proposalSchema.index({"data.followUpContent": 1});
 proposalSchema.index({"data.bankTypeId": 1});
->>>>>>> upstream/develop-1.1
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.depositMethod": 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.topupType": 1});
