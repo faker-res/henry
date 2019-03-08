@@ -3956,8 +3956,7 @@ define(['js/app'], function (myApp) {
                 platformList: vm.paymentMonitorTotalQuery.platformList,
                 index: vm.paymentMonitorTotalCompletedQuery.index,
                 limit: vm.paymentMonitorTotalCompletedQuery.limit || 10,
-                sortCol: vm.paymentMonitorTotalCompletedQuery.sortCol,
-                searchType: "completed"
+                sortCol: vm.paymentMonitorTotalCompletedQuery.sortCol
             };
 
             vm.paymentMonitorTotalQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorTotalQuery.merchantNo : null;
@@ -3979,58 +3978,31 @@ define(['js/app'], function (myApp) {
                         console.log('Payment Monitor Total  Completed Result', data);
 
                         vm.drawPaymentRecordTotalCompletedTable(
-                            data.data.data.filter(item => {
-                                if (item && item.$merchantCurrentCount && item.$merchantAllCount && item.$playerCurrentCount && item.$playerAllCount
-                                    && ((item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)
-                                        || (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4))))) {
-
-                                    item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                                    item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
-                                        : item.data.wechatAccount ? item.data.wechatAccount
-                                            : item.data.weChatAccount != null ? item.data.weChatAccount
-                                                : item.data.alipayAccount ? item.data.alipayAccount
-                                                    : item.data.bankCardNo ? item.data.bankCardNo
-                                                        : item.data.accountNo ? item.data.accountNo : null;
-                                    item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
-                                    item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
-                                    item.status$ = $translate(item.status);
-                                    item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
-                                    item.website = item && item.data && item.data.platform && item.data.platformId ?
-                                        item.data.platform + "." + getPlatformNameByPlatformObjId(item.data.platformId) : "";
-
-                                    if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
-                                        let msgSplit = item.data.msg.split(" 单号:");
-                                        item.merchantName = msgSplit[0];
-                                        item.merchantNo$ = msgSplit[1];
-                                    }
-
+                            data.data.filter(item => {
+                                if(item){
                                     if (item.type.name === 'PlayerTopUp') {
                                         //show detail topup type info for online topup.
-                                        let typeID = item.data.topUpType || item.data.topupType;
+                                        let typeID = item.topUpType || item.topupType;
                                         item.topupTypeStr = typeID
                                             ? $translate(vm.topUpTypeList[typeID])
-                                            : $translate("Unknown")
+                                            : $translate("Unknown");
                                         let merchantNo = '';
-                                        if(item.data.merchantNo){
-                                            merchantNo = item.data.merchantNo;
+                                        if(item.merchantNo){
+                                            merchantNo = item.merchantNo;
                                         }
                                         item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                                     } else {
                                         //show topup type for other types
                                         item.topupTypeStr = $translate(item.type.name);
                                     }
-                                    item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
-                                    item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "-";
-                                    item.remark$ = item.data.remark ? item.data.remark : "";
-                                    if (item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
-                                        item.lockedButtonDisplay = "商户";
-                                    } else if (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
-                                        item.lockedButtonDisplay = "玩家";
-                                    }
 
+                                    item.merchantCount$ = item.merchantCurrentCount + "/" + item.merchantTotalCount + " (" + item.merchantGapTime + ")";
+                                    item.playerCount$ = item.playerCurrentCount + "/" + item.playerTotalCount + " (" + item.playerGapTime + ")";
+                                    item.status$ = $translate(item.status);
+                                    item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.proposalCreateTime));
                                     return item;
                                 }
-                            }), data.data.size, {}, isNewSearch
+                            }), {}, isNewSearch
                         );
                     });
                 }, err => {
@@ -4355,14 +4327,16 @@ define(['js/app'], function (myApp) {
                         data: "lockedButtonDisplay",
                         render: function (data, type, row) {
                             if(row.data.lockedAdminId && authService.adminId == row.data.lockedAdminId && !row.data.followUpContent){
-                                return '<div id="link' + row.proposalId +'"><a ng-click="vm.unlockProposal(\'' + row.proposalId + '\', \'link' + row.proposalId + '\', \'content' + row.proposalId + '\')">' + authService.adminName + " - " + $translate("UNLOCK")  + '</a></div>';
+                                let linkId = "link" + row.proposalId;
+                                return "<div id=" + linkId + "><a ng-click='vm.unlockProposal(" + JSON.stringify(row) + ")'>" + authService.adminName + " - " + $translate("UNLOCK") + "</a></div>";
                             }else if(row.data.lockedAdminId && !row.data.followUpContent) {
                                 return row.data.lockedAdminName + " " + $translate("is following up");
                             }else if(row.data.lockedAdminId && row.data.followUpContent && row.data.followUpCompletedTime){
                                 let completedDate = utilService.$getTimeFromStdTimeFormat(new Date(row.data.followUpCompletedTime));
                                 return row.data.lockedAdminName + " " + $translate("follow up completed") + "<br> (" + completedDate + ")";
                             }else{
-                                return '<div id="link' + row.proposalId +'"><a ng-click="vm.lockProposal(\'' + row.proposalId + '\', \'link' + row.proposalId + '\', \'content' + row.proposalId + '\')">' + data + '</a></div>';
+                                let linkId = "link" + row.proposalId;
+                                return "<div id=" + linkId + "><a ng-click='vm.lockProposal(" + JSON.stringify(row) + ")'>" + data + "</a></div>";
                             }
                         }
                     },
@@ -4390,10 +4364,10 @@ define(['js/app'], function (myApp) {
                         data: "remark$",
                         "width": "200px",
                         render: function(data, type, row){
-                            //ng-submit="vm.editFollowUpContent(\'' + row.proposalId + ',' + +'\');"
                             if(row.data.lockedAdminId && authService.adminId == row.data.lockedAdminId && !row.data.followUpContent){
-                                return '<div id="content' + row.proposalId +'"><a ng-click="vm.showEditFollowUpContent = true;" ng-if="!vm.showEditFollowUpContent">' + $translate("EDIT")  + '</a>' +
-                                    '<div ng-if="vm.showEditFollowUpContent"><form ng-submit="vm.editFollowUpContent(\'' + row.proposalId + '\')"><input type="text" ng-model="vm.paymentMonitorTotalQuery.followUpContent[' + row.proposalId + ']"></form></div></div>';
+                                let contentId = "content" + row.proposalId;
+                                return "<div id=" + contentId + "><a ng-click='vm.showEditFollowUpContent = true;' ng-if='!vm.showEditFollowUpContent'>" + $translate("EDIT") + "</a>" +
+                                    "<div ng-if='vm.showEditFollowUpContent'><form ng-submit='vm.editFollowUpContent(" + JSON.stringify(row) + ")'><input type='text' ng-model='vm.paymentMonitorTotalQuery.followUpContent[" + row.proposalId + "]'></form></div></div>";
                             }else if(row.data.lockedAdminId && row.data.followUpContent){
                                 return '<div>' + row.data.followUpContent + '</div>';
                             }else{
@@ -4472,14 +4446,14 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('DEVICE'), data: "data.userAgent",
+                        title: $translate('DEVICE'), data: "userAgent",
                         render: function (data, type, row) {
                             var text = $translate(data ? $scope.userAgentType[data] : "");
                             return "<div>" + text + "</div>";
                         }
                     },
                     {
-                        "title": $translate('Online Topup Type'), "data": 'data.topupType',
+                        "title": $translate('Online Topup Type'), "data": 'topupType',
                         render: function (data, type, row) {
                             var text = $translate(data ? $scope.merchantTopupTypeJson[data] : "");
                             return "<div>" + text + "</div>";
@@ -4488,7 +4462,7 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate('3rd Party Platform'), data: "merchantName", sClass: 'merchantCount'},
                     {
-                        "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
+                        "title": $translate('DEPOSIT_METHOD'), "data": 'depositMethod',
                         render: function (data, type, row) {
                             var text = $translate(data ? vm.getDepositMethodbyId[data] : "");
                             return "<div>" + text + "</div>";
@@ -4496,7 +4470,7 @@ define(['js/app'], function (myApp) {
                         sClass: 'merchantCount'
                     },
                     {
-                        title: $translate('From Bank Type'), data: "data.bankTypeId",
+                        title: $translate('From Bank Type'), data: "bankTypeId",
                         render: function (data, type, row) {
                             if (data) {
                                 var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data] : "");
@@ -4513,7 +4487,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             var text = data;
                             let additional = '';
-                            if( row.data.line && row.data.line == '2'){
+                            if( row.line && row.line == '2'){
                                 additional = '(MMM)';
                             }
                             return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + additional + '</div>'
@@ -4522,19 +4496,19 @@ define(['js/app'], function (myApp) {
                         "width": "90px"},
                     {title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
                     {title: $translate('STATUS'), data: "status$"},
-                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "playerCount"},
-                    {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText playerCount"},
+                    {title: $translate('PLAYER_NAME'), data: "playerObjId.name", sClass: "playerCount"},
+                    {title: $translate('Real Name'), data: "playerObjId.realName", sClass: "sumText playerCount"},
                     {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount"},
-                    {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight playerCount"},
+                    {title: $translate('TopUp Amount'), data: "amount", sClass: "sumFloat alignRight playerCount"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {
                         title: $translate('Admin_Locked'),
                         data: "lockedButtonDisplay",
                         render: function (data, type, row) {
-                            if(row.data.lockedAdminId && row.data.followUpContent && row.data.followUpCompletedTime){
-                                let completedDate = utilService.$getTimeFromStdTimeFormat(new Date(row.data.followUpCompletedTime));
-                                return row.data.lockedAdminName + " " + $translate("follow up completed") + "<br> (" + completedDate + ")";
+                            if(row.lockedAdminId && row.followUpContent && row.followUpCompletedTime){
+                                let completedDate = utilService.$getTimeFromStdTimeFormat(new Date(row.followUpCompletedTime));
+                                return row.lockedAdminName + " " + $translate("follow up completed") + "<br> (" + completedDate + ")";
                             }else{
                                 return "";
                             }
@@ -4545,8 +4519,8 @@ define(['js/app'], function (myApp) {
                         data: "remark$",
                         "width": "200px",
                         render: function(data, type, row){
-                            if(row.data.lockedAdminId && row.data.followUpContent){
-                                return row.data.followUpContent;
+                            if(row.lockedAdminId && row.followUpContent){
+                                return row.followUpContent;
                             }else{
                                 return '-';
                             }
@@ -4556,7 +4530,7 @@ define(['js/app'], function (myApp) {
                 "autoWidth": true,
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    if (aData.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
+                    if (aData.merchantTotalCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
                         $(nRow).addClass('merchantExceed');
                         if ($('#autoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorMerchantUseSound) {
                             checkMerchantNotificationAlert(aData);
@@ -4566,7 +4540,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
-                    if (aData.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
+                    if (aData.playerTotalCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
                         $(nRow).addClass('playerExceed');
                         if ($('#autoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorPlayerUseSound) {
                             checkPlayerNotificationAlert(aData);
@@ -4592,19 +4566,22 @@ define(['js/app'], function (myApp) {
             $('#paymentMonitorTotalCompletedTable tbody').on('click', 'tr', vm.tableRowClicked);
         };
 
+        vm.lockProposal = function (rowData){
+            let proposalId = rowData.proposalId;
+            let linkId = "link" + rowData.proposalId;
+            let contentId = "content" + rowData.proposalId;
 
-        vm.lockProposal = function (proposalId, linkId, contentId){
             let sendObj = {
                 proposalId: proposalId,
                 adminId: authService.adminId,
                 adminName: authService.adminName
-            }
+            };
             socketService.$socket($scope.AppSocket, 'lockProposalByAdmin', sendObj, function (data) {
                 $scope.$evalAsync(() => {
                     //re-structure Admin_Locked
                     $('#' + linkId).empty();
                     $('#' + linkId).append('<a>' + authService.adminName + " - " + $translate("UNLOCK")  + '</a>');
-                    $('#' + linkId + ' a').click(function () {vm.unlockProposal(proposalId, linkId, contentId);});
+                    $('#' + linkId + ' a').click(function () {vm.unlockProposal(rowData);});
 
                     //re-structure Followup_Content
                     $('#' + contentId).empty();
@@ -4614,7 +4591,7 @@ define(['js/app'], function (myApp) {
                     $('#' + contentId + ' a').click(function () { $('#' + contentId + ' a').hide(); $('#' + contentId + ' div').show();});
                     $('#' + contentId + ' input').keypress(function (e) {
                         if(e.keyCode == 13){
-                            vm.editFollowUpContent(proposalId)
+                            vm.editFollowUpContent(rowData)
                         }
 
                     });
@@ -4623,7 +4600,11 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.unlockProposal = function (proposalId, linkId, contentId){
+        vm.unlockProposal = function (rowData){
+            let proposalId = rowData.proposalId;
+            let linkId = "link" + rowData.proposalId;
+            let contentId = "content" + rowData.proposalId;
+
             let sendObj = {
                 proposalId: proposalId,
                 adminId: authService.adminId,
@@ -4636,14 +4617,16 @@ define(['js/app'], function (myApp) {
 
                     $('#' + linkId).empty();
                     $('#' + linkId).append('<a>' + textToDisplay  + '</a>');
-                    $('#' + linkId + ' a').click(function () {vm.lockProposal(proposalId, linkId, contentId);});
+                    $('#' + linkId + ' a').click(function () {vm.lockProposal(rowData);});
                     $('#' + contentId).empty();
                     $('#' + contentId).append('-');
                 })
             });
         };
 
-        vm.editFollowUpContent = function(proposalId){
+        vm.editFollowUpContent = function(rowData){
+            let proposalId = rowData.proposalId;
+
             if(!vm.paymentMonitorTotalQuery.followUpContent || !vm.paymentMonitorTotalQuery.followUpContent[proposalId]){
                 vm.showEditFollowUpContent = false;
 
@@ -4651,14 +4634,56 @@ define(['js/app'], function (myApp) {
                 $('#content' + proposalId + ' input').hide();
                 return;
             }
+
+            let followUpData = {};
+            if(rowData){
+                followUpData = {
+                    platformObjId: rowData.data.platformId,
+                    website: rowData.website,
+                    proposalId: rowData.proposalId,
+                    type: rowData.type._id,
+                    userAgent: rowData.userAgent$,
+                    topupType: rowData.data.topupType,
+                    merchantNo: rowData.data.merchantNo,
+                    merchantNo$: rowData.merchantNo$,
+                    inputDevice: rowData.inputDevice,
+                    depositMethod: rowData.data.depositMethod,
+                    bankTypeId: rowData.data.bankTypeId,
+                    merchantName: rowData.merchantName,
+                    merchantCurrentCount: rowData.$merchantCurrentCount,
+                    merchantTotalCount: rowData.$merchantAllCount,
+                    merchantGapTime: rowData.$merchantGapTime,
+                    status: rowData.status,
+                    playerObjId: rowData.data.playerObjId._id,
+                    playerName: rowData.data.playerObjId.name,
+                    playerCurrentCount: rowData.$playerCurrentCount,
+                    playerTotalCount: rowData.$playerAllCount,
+                    playerGapTime: rowData.$playerGapTime,
+                    amount: rowData.amount$,
+                    proposalCreateTime: rowData.createTime,
+                    createTime: new Date(),
+                    lockedAdminId: rowData.data.lockedAdminId || authService.adminId,
+                    lockedAdminName: rowData.data.lockedAdminName || authService.adminName,
+                    followUpCompletedTime: rowData.data.followUpCompletedTime,
+                    line: rowData.data.line,
+                    bankCardNo: rowData.data.bankCardNo,
+                    accountNo: rowData.data.accountNo,
+                    alipayAccount: rowData.data.alipayAccount,
+                    wechatAccount: rowData.data.wechatAccount,
+                    weChatAccount: rowData.data.weChatAccount
+                };
+
+            }
+
             let sendObj = {
-                proposalId: proposalId,
+                followUpData: followUpData,
                 followUpContent: vm.paymentMonitorTotalQuery.followUpContent[proposalId] ? vm.paymentMonitorTotalQuery.followUpContent[proposalId] : ""
             };
 
             socketService.$socket($scope.AppSocket, 'updateFollowUpContent', sendObj, function (data) {
                 vm.showEditFollowUpContent = false;
                 vm.getPaymentMonitorTotalRecord(true);
+                vm.getPaymentMonitorTotalCompletedRecord(true);
             });
         };
 

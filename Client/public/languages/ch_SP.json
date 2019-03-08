@@ -3509,6 +3509,7 @@
   "WITHDRAW_INFO_1": "提款资料1",
   "WITHDRAW_INFO_2": "提款资料2",
   "WITHDRAW_INFO_3": "提款资料3",
+  "Player does not have matching bank info": "玩家没有匹配的银行信息",
   "ONLINE_TOP_UP_GROUP": "在线充值组",
   "PERSONAL_ALIPAY_GROUP": "个人支付宝组",
   "PERSONAL_WECHAT_GROUP": "个人微信组",
