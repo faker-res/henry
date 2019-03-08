@@ -9,35 +9,35 @@ var playerReportDataDaySummarySchema = new Schema({
     // payment time
     date: {type: Date, required: true, index: true},
     //numerical value of the amount top-upped by manual
-    manualTopUpAmount: {type: Number, required: true, default: 0},
+    manualTopUpAmount: {type: Number, required: true, default: 0, index: true},
     //numerical value of the amount top-upped by online
-    onlineTopUpAmount: {type: Number, required: true, default: 0},
+    onlineTopUpAmount: {type: Number, required: true, default: 0, index: true},
     //numerical value of the amount top-upped by alipay
-    alipayTopUpAmount: {type: Number, required: true, default: 0},
+    alipayTopUpAmount: {type: Number, required: true, default: 0, index: true},
     //numerical value of the amount top-upped by wechatpay
-    wechatpayTopUpAmount: {type: Number, required: true, default: 0},
+    wechatpayTopUpAmount: {type: Number, required: true, default: 0, index: true},
     //top up times
-    topUpTimes: {type: Number, default: 0},
+    topUpTimes: {type: Number, default: 0, index: true},
     //consumption times
-    consumptionTimes: {type: Number, required: true, default: 0},
+    consumptionTimes: {type: Number, required: true, default: 0, index: true},
     //consumption amount
-    consumptionAmount: {type: Number, required: true, default: 0},
+    consumptionAmount: {type: Number, required: true, default: 0, index: true},
     //consumption valid amount
-    consumptionValidAmount: {type: Number, required: true, default: 0},
+    consumptionValidAmount: {type: Number, required: true, default: 0, index: true},
     //consumption bonus amount
-    consumptionBonusAmount: {type: Number, required: true, default: 0},
+    consumptionBonusAmount: {type: Number, required: true, default: 0, index: true},
     //provider Detail
     providerDetail: {type: JSON, default: {}},
     //bonus times
-    bonusTimes:{type: Number, required: true, default: 0},
+    bonusTimes:{type: Number, required: true, default: 0, index: true},
     //bonus amount
-    bonusAmount:{type: Number, required: true, default: 0},
+    bonusAmount:{type: Number, required: true, default: 0, index: true},
     //consumption return reward amount
-    consumptionReturnAmount: {type: Number, required: true, default: 0},
+    consumptionReturnAmount: {type: Number, required: true, default: 0, index: true},
     //reward amount
-    rewardAmount: {type: Number, required: true, default: 0},
+    rewardAmount: {type: Number, required: true, default: 0, index: true},
     //total online top up fee in %
-    totalOnlineTopUpFee: {type: Number, required: true, default: 0},
+    totalOnlineTopUpFee: {type: Number, required: true, default: 0, index: true},
     //online top up fee detail
     onlineTopUpFeeDetail: [
         {

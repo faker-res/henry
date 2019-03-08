@@ -697,8 +697,8 @@ function socketActionProposal(socketIO, socket) {
         },
         updateFollowUpContent: function updateFollowUpContent(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.proposalId && data.followUpContent);
-            socketUtil.emitter(self.socket, dbProposal.updateFollowUpContent, [data.proposalId, data.followUpContent], actionName, isValidData);
+            var isValidData = Boolean(data && data.followUpData && data.followUpContent);
+            socketUtil.emitter(self.socket, dbProposal.updateFollowUpContent, [data.followUpData, data.followUpContent], actionName, isValidData);
         },
 
         forcePairingWithReferenceNumber: function forcePairingWithReferenceNumber(data) {

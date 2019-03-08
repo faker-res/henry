@@ -102,7 +102,7 @@ var dbPlayerFeedback = {
                         amount: {$sum: "$amount"}
                     }
                 }
-            ]).then(
+            ]).read("secondaryPreferred").then(
                 res => {
                     return {topup: res, time: feedback.createTime}
                 }

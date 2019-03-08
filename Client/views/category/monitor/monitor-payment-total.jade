@@ -57,6 +57,12 @@ div
         .search-filters-item
             label 网站（复选）
             select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.platformList', ng-options='v._id as v.name for v in vm.platformByAdminId', multiple, bsp, data-actions-box='true')
+        .search-filters-item
+            label {{'Fail Counter' | translate}}
+            select.form-control(ng-model='vm.paymentMonitorTotalQuery.failCount', required)
+                option(value='') {{'any' | translate}}
+                option(value='merchant') {{'merchantCount' | translate}}
+                option(value='member') {{'memberCount' | translate}}
         .text-right.widthto100
             button.btn.btn-warning.btn-space(ng-click='vm.resetTopUpMonitorQuery()') {{'Reset' | translate}}
             button.btn.btn-success.btn-space(ng-click='vm.getPaymentMonitorTotalRecord(true); vm.getPaymentMonitorTotalCompletedRecord(true)') {{'SEARCH' | translate}}

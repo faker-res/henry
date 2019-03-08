@@ -6,6 +6,8 @@ import authService from '../services/authService.js';
 import navService from '../services/navService.js';
 import SelectServer from './selectServer';
 
+console.log(process.env);
+const ENV = process.env.NODE_ENV;
 
 class Login extends Component {
     constructor(props){
@@ -34,7 +36,8 @@ class Login extends Component {
         let servers = this.state.servers;
         for(let server in servers) {
             if (server === 'Default') {
-                this.pingHTTPServer(servers[server].MANAGEMENT_SERVER_URL, server);
+                this.pingHTTPServer(servers[server][ENV].MANAGEMENT_SERVER_URL, server);
+                servers[server].socketURL = servers[server][ENV].MANAGEMENT_SERVER_URL;
             } else {
                 this.pingHTTPServer(servers[server].socketURL, server);
             }

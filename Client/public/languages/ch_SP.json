@@ -3003,6 +3003,7 @@
   "ConsumptionRecord":"投注收录监控",
   "AttemptCreate":"尝试开户监控",
   "merchantCount": "商户计数",
+  "memberCount": "会员计数",
   "playerCount": "玩家计数",
   "merchantNo": "商户号",
   "proposalPlayerLevelValue": "玩家提案值",
@@ -5336,5 +5337,6 @@
   "PROVIDER_CONSUMPTION_REPORT": "提供商投注报表",
   "Set provider to maintenance after consecutive timeout count": "在N次连续超时后将游戏提供商设为维护状态",
   "Provider consecutive timeout count search time frame (minutes; default 3 minutes)": "游戏提供商连续超时搜索范围（最后N分钟；默认3分钟）",
-  "Contact Customer": "联系客户"
+  "Contact Customer": "联系客户",
+  "Fail Counter": "失败计数"
 }
