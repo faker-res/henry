@@ -3,6 +3,7 @@ import SelectServer from './selectServer';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 import authService from '../services/authService';
+import localStorageService from '../services/localStorageService';
 import navService from '../services/navService.js';
 
 
@@ -39,7 +40,7 @@ class NavBar extends Component{
     }
 
     handleOutsideClick = (e) => {
-        if (this.node.contains(e.target)) {
+        if (this.node && this.node.contains(e.target)) {
             return;
         }
 
@@ -53,6 +54,7 @@ class NavBar extends Component{
     
     logout() {
         authService.logout();
+        localStorageService.logout();
         navService.goto('');
     }
 
@@ -80,7 +82,7 @@ class NavBar extends Component{
                             <a href="#"> <FontAwesomeIcon icon="edit"/> 开发日志</a>
                             <a href="#"> <FontAwesomeIcon icon="book-open"/> 查看日志</a>
                             <a href="#"> <FontAwesomeIcon icon="key"/> 更新密码</a>
-                            <a href="#"> <FontAwesomeIcon icon="sign-out-alt"/> 注销</a>
+                            <a onClick={this.logout}> <FontAwesomeIcon icon="sign-out-alt"/> 注销</a>
                         </div>
                     )}
                 </nav>
