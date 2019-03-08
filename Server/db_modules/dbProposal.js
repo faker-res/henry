@@ -6097,6 +6097,7 @@ var proposal = {
     getPaymentMonitorTotalResult: (data) => {
         let query = {};
         let sort = {createTime: -1};
+        let filteredProposal = [];
 
         query["createTime"] = {};
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
@@ -6250,23 +6251,87 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                console.log("LH check payment monitor 1------------");
-
                 return dbconfig.collection_proposal.find(query).lean().sort(sort)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players});
             }
         ).then(
             proposalData => {
-                console.log("LH check payment monitor 2------------");
                 return insertRepeatCount(proposalData, data.platformList);
             }
         ).then(
             proposals => {
-                console.log("LH check payment monitor 3------------");
-                return {data: proposals};
+                return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
+                    platformDetail => {
+                        if(platformDetail){
+                            proposals.forEach(
+                                proposal => {
+                                    if(proposal){
+                                        if(data.failCount){
+                                            if(data.failCount == "merchant" && proposal.$merchantCurrentCount && proposal.$merchantAllCount
+                                                && (proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)))
+                                            {
+                                                filteredProposal.push(proposal);
+                                            }else if(data.failCount == "member" && proposal.$playerCurrentCount && proposal.$playerAllCount &&
+                                                (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))
+                                            {
+                                                filteredProposal.push(proposal);
+
+                                            }
+                                        }else if (proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount
+                                            && ((proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)
+                                            || (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))))
+                                        {
+                                            filteredProposal.push(proposal);
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        return filteredProposal;
+                    }
+                );
+            }
+        ).then(
+            filteredResult => {
+                if(filteredResult && filteredResult.length){
+                    let checkFollowUpProm = [];
+
+                    filteredResult.forEach(
+                        result => {
+                            if(result){
+                                checkFollowUpProm.push(proposal.checkIfProposalIsFollowUp(result, query.createTime));
+                            }
+                        }
+                    );
+
+                    return Promise.all(checkFollowUpProm);
+                }
+            }
+        ).then(
+            finalResult => {
+                return {data: finalResult};
             }
         );
+    },
+
+    checkIfProposalIsFollowUp: (proposal, createTimeQuery) => {
+        if(proposal && proposal.proposalId){
+            return dbconfig.collection_paymentMonitorFollowUp.findOne({proposalId: proposal.proposalId}).then(
+                followUpRecord => {
+                    if(followUpRecord && followUpRecord.createTime){
+                        let hoursSinceLastFollowUp = Math.abs(new Date() - followUpRecord.createTime) / 36e5;
+
+                        if(hoursSinceLastFollowUp < 24){
+                            return;
+                        }
+                    }
+
+                    return proposal;
+                }
+            )
+        }
     },
 
     getPaymentMonitorTotalCompletedResult: (data) => {
