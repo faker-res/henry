@@ -4306,9 +4306,8 @@ let dbPlayerReward = {
                         isSharedWithXIMA: !p.data.useConsumption
                     }
                 });
-
                 monitorObjs.forEach((elem, index) => {
-                    let withdrawPropQuery = {
+                    let monitorQuery = {
                         'data.platformId': elem.platformObjId,
                         'data.playerObjId': elem.playerObjId,
                         settleTime: {$gt: elem.acceptedTime},
@@ -4316,12 +4315,21 @@ let dbPlayerReward = {
                     };
 
                     delProm.push(
-                        dbProposalUtil.getOneProposalDataOfType(elem.platformObjId, constProposalType.PLAYER_BONUS, withdrawPropQuery).then(
-                            withdrawProp => {
-                                if (withdrawProp) {
-                                    monitorObjs[index].nextWithdrawProposalId = withdrawProp.proposalId;
-                                    monitorObjs[index].nextWithdrawAmount = withdrawProp.data.amount;
-                                    monitorObjs[index].nextWithdrawTime = withdrawProp.settleTime;
+                        dbProposalUtil.getNextProposalRecord(elem.platformObjId, constProposalType.PLAYER_BONUS, monitorQuery).then(
+                            proposalRecord => {
+                                if (proposalRecord && proposalRecord.mainType) {
+
+                                    if (proposalRecord.mainType == "PlayerBonus"){
+                                        monitorObjs[index].nextWithdrawProposalId = proposalRecord.proposalId || null;
+                                        monitorObjs[index].nextWithdrawAmount = proposalRecord.data.amount || null;
+                                        monitorObjs[index].nextWithdrawTime = proposalRecord.settleTime || null;
+                                    }
+                                    else if (proposalRecord.mainType == "TopUp"){
+                                        monitorObjs[index].nextTopUpProposalId = proposalRecord.proposalId || null;
+                                        monitorObjs[index].nextTopUpAmount = proposalRecord.data.amount || null;
+                                        monitorObjs[index].nextTopUpTime = proposalRecord.settleTime || null;
+                                    }
+
                                 }
                             }
                         )
@@ -4334,35 +4342,21 @@ let dbPlayerReward = {
             () => {
                 let proms = [];
 
-                monitorObjs = monitorObjs.filter(e => e.nextWithdrawProposalId);
-
+                // monitorObjs = monitorObjs.filter(e => e.nextWithdrawProposalId);
                 monitorObjs.forEach((elem, index) => {
-                    proms.push(
-                        getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
-                            res => {
-                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? dbUtility.noRoundTwoDecimalPlaces(res[0].validAmount) : 0;
 
-                                return dbPlayerUtil.getPlayerCreditByObjId(elem.playerObjId);
-                            }
-                        ).then(
-                            creditRes => {
-                                monitorObjs[index].playerCredit = creditRes ? creditRes.gameCredit + dbUtility.noRoundTwoDecimalPlaces(creditRes.validCredit) + dbUtility.noRoundTwoDecimalPlaces(creditRes.lockedCredit) : 0;
+                    if (elem && elem.nextWithdrawTime){
+                        proms.push(
+                            getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
+                                res => {
+                                    monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? dbUtility.noRoundTwoDecimalPlaces(res[0].validAmount) : 0;
 
-                                return dbConfig.collection_proposal.find({
-                                    'data.platformId': elem.platformObjId,
-                                    'data.playerObjId': elem.playerObjId,
-                                    settleTime: {$gt: elem.nextWithdrawTime},
-                                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                                    mainType: "TopUp",
-                                    // 'data.promoCode': {$exists: true}
-                                }).sort({settleTime: 1}).limit(1).lean();
-                            }
-                        ).then(
-                            topUpRes => {
-                                monitorObjs[index].nextTopUpAmount = topUpRes && topUpRes[0] ? topUpRes[0].data.amount : 0;
-                            }
+                                    // return dbPlayerUtil.getPlayerCreditByObjId(elem.playerObjId);
+                                }
+                            )
                         )
-                    )
+                    }
+
                 });
 
                 return Promise.all(proms);
