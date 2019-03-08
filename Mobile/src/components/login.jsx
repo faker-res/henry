@@ -7,7 +7,7 @@ import navService from '../services/navService.js';
 import SelectServer from './selectServer';
 
 console.log(process.env);
-const ENV = process.env.NODE_ENV;
+const ENV = process.env.REACT_APP_ENV;
 
 class Login extends Component {
     constructor(props){

@@ -333,6 +333,7 @@ define(['js/app'], function (myApp) {
                 PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
                 PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
                 RESET_PASSWORD: 'resetPassword',
+                SET_PHONE_NUMBER: 'setPhoneNumber',
                 INQUIRE_ACCOUNT: 'inquireAccount'
             };
 
@@ -25537,13 +25538,17 @@ define(['js/app'], function (myApp) {
                             title: $translate('withdrawAmount'),
                             data: "nextWithdrawAmount"
                         },
+                        // {
+                        //     title: $translate('playerCredit'),
+                        //     data: "playerCredit"
+                        // },
                         {
-                            title: $translate('playerCredit'),
-                            data: "playerCredit"
+                            title: $translate('topUpAmount'),
+                            data: "nextTopUpAmount"
                         },
                         {
-                            title: $translate('nextTopUpAmount'),
-                            data: "nextTopUpAmount"
+                            title: $translate('nextTopUpProposalId'),
+                            data: "nextTopUpProposalId",
                         },
                         {
                             title: $translate('nextWithdrawProposalId'),
@@ -25610,13 +25615,17 @@ define(['js/app'], function (myApp) {
                             title: $translate('withdrawAmount'),
                             data: "nextWithdrawAmount"
                         },
+                        // {
+                        //     title: $translate('playerCredit'),
+                        //     data: "playerCredit"
+                        // },
                         {
-                            title: $translate('playerCredit'),
-                            data: "playerCredit"
+                            title: $translate('topUpAmount'),
+                            data: "nextTopUpAmount"
                         },
                         {
-                            title: $translate('nextTopUpAmount'),
-                            data: "nextTopUpAmount"
+                            title: $translate('nextTopUpProposalId'),
+                            data: "nextTopUpProposalId",
                         },
                         {
                             title: $translate('nextWithdrawProposalId'),

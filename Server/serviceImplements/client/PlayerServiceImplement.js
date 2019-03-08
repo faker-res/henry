@@ -1315,6 +1315,11 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getReceiveTransferList, [data.platformId, conn.playerId, data.startTime, data.endTime, data.requestPage, data.count], isValidData);
     };
 
+    this.setPhoneNumber.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.number);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPhoneNumber, [conn.playerId, data.number, data.smsCode], isValidData)
+    };
+
     this.playerLoginOrRegisterWithSMS.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.smsCode && data.platformId);
 
