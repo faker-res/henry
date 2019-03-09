@@ -23735,7 +23735,38 @@ let dbPlayerInfo = {
                 }
             )
         }
-    }
+    },
+
+    setPhoneNumber: (playerId, phoneNumber, smsCode) => {
+        let player, platform;
+        return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
+            playerData => {
+                player = playerData;
+
+                if (!player) {
+                    return Promise.reject({message: "User not found OR Invalid Password"});
+                }
+
+                platform = playerData.platform;
+
+                if (player.phoneNumber) {
+                    return Promise.reject({message: "Phone number already set"}); // translate needed
+                }
+
+                return dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode);
+            }
+        ).then(
+            () => {
+                let encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: player._id}, {phoneNumber: encryptedPhoneNumber}, constShardKeys.collection_players);
+            }
+        ).then(
+            () => {
+                return {number: phoneNumber};
+            }
+        )
+    },
 };
 
 function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {

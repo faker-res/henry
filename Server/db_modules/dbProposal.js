@@ -6267,20 +6267,26 @@ var proposal = {
                             proposals.forEach(
                                 proposal => {
                                     if(proposal){
-                                        if(data.failCount){
-                                            if(data.failCount == "merchant" && proposal.$merchantCurrentCount && proposal.$merchantAllCount
+                                        if(data.failCount && data.failCount.length) {
+                                            let merchantIndex = data.failCount.findIndex(f => f == "merchant");
+                                            let memberIndex = data.failCount.findIndex(f => f == "member");
+
+                                            if (merchantIndex > -1 && memberIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount
+                                                && ((proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)
+                                                    || (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))))
+                                            {
+                                                filteredProposal.push(proposal);
+                                            }else if(merchantIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount
                                                 && (proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)))
                                             {
                                                 filteredProposal.push(proposal);
-                                            }else if(data.failCount == "member" && proposal.$playerCurrentCount && proposal.$playerAllCount &&
+                                            }else if(memberIndex > -1 && proposal.$playerCurrentCount && proposal.$playerAllCount &&
                                                 (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))
                                             {
                                                 filteredProposal.push(proposal);
-
                                             }
-                                        }else if (proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount
-                                            && ((proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)
-                                            || (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))))
+                                        }else if (proposal.$playerCurrentCount && proposal.$playerAllCount && proposal.$playerCurrentCount == proposal.$playerAllCount
+                                            && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4))
                                         {
                                             filteredProposal.push(proposal);
                                         }
@@ -6337,7 +6343,7 @@ var proposal = {
     getPaymentMonitorTotalCompletedResult: (data) => {
         let query = {};
         let sort = {createTime: -1};
-
+        let filteredProposal = [];
         query["proposalCreateTime"] = {};
         query["proposalCreateTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["proposalCreateTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
@@ -6463,7 +6469,86 @@ var proposal = {
                         .populate({path: "playerObjId", model: dbconfig.collection_players}).lean();
                 }
             }
+        ).then(
+            followUpDataList => {
+                if(followUpDataList && followUpDataList.length){
+                    return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
+                        platformDetail => {
+                            if(platformDetail){
+                                followUpDataList.forEach(
+                                    followUpData => {
+                                        if(data.failCount && data.failCount.length){
+                                            let merchantIndex = data.failCount.findIndex(f => f == "merchant");
+                                            let memberIndex = data.failCount.findIndex(f => f == "member");
+
+                                            if(merchantIndex > -1 && memberIndex > -1){
+                                                filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                            }else if(merchantIndex > -1 && followUpData.merchantCurrentCount && followUpData.merchantTotalCount
+                                                && followUpData.merchantCurrentCount == followUpData.merchantTotalCount && followUpData.merchantTotalCount >= (platformDetail.monitorMerchantCount || 10)){
+                                                filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                            }else if(memberIndex > -1 && followUpData.playerCurrentCount && followUpData.playerTotalCount
+                                                && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformDetail.monitorPlayerCount || 4)){
+                                                filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                            }
+                                        }else if(followUpData.playerCurrentCount && followUpData.playerTotalCount
+                                            && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformDetail.monitorPlayerCount || 4))
+                                        {
+                                            filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                        }
+                                    }
+                                )
+                            }
+
+                            return Promise.all(filteredProposal);
+                        }
+                    );
+                }
+            }
         );
+    },
+
+    getTotalSuccessNoAfterFollowUp: (proposalData) => {
+        if(proposalData && proposalData.playerObjId && proposalData.playerObjId._id && proposalData.createTime){
+            let query = {
+                'data.playerObjId': proposalData.playerObjId._id,
+                createTime: {
+                    $gte: proposalData.createTime,
+                },
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVE, constProposalStatus.APPROVED]}
+            };
+
+            let proposalTypeQuery = {
+                name: {
+                    $in: [
+                        constProposalType.PLAYER_TOP_UP,
+                        constProposalType.PLAYER_ALIPAY_TOP_UP,
+                        constProposalType.PLAYER_MANUAL_TOP_UP,
+                        constProposalType.PLAYER_WECHAT_TOP_UP,
+                        constProposalType.PLAYER_QUICKPAY_TOP_UP,
+                        constProposalType.PLAYER_COMMON_TOP_UP,
+                    ]
+                }
+            };
+
+            return dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(
+                proposalType => {
+                    if(proposalType){
+                        let typeIds = proposalType.map(type => {
+                            return type._id;
+                        });
+
+                        query.type = {$in: typeIds};
+
+                        return dbconfig.collection_proposal.find(query).count();
+                    }
+                }
+            ).then(
+                totalSuccessTopUp => {
+                    proposalData.totalSuccess = totalSuccessTopUp || 0;
+                    return proposalData
+                }
+            );
+        }
     },
 
     approveCsPendingAndChangeStatus: (proposalObjId, createTime, adminName) => {

@@ -4306,9 +4306,8 @@ let dbPlayerReward = {
                         isSharedWithXIMA: !p.data.useConsumption
                     }
                 });
-
                 monitorObjs.forEach((elem, index) => {
-                    let withdrawPropQuery = {
+                    let monitorQuery = {
                         'data.platformId': elem.platformObjId,
                         'data.playerObjId': elem.playerObjId,
                         settleTime: {$gt: elem.acceptedTime},
@@ -4316,12 +4315,21 @@ let dbPlayerReward = {
                     };
 
                     delProm.push(
-                        dbProposalUtil.getOneProposalDataOfType(elem.platformObjId, constProposalType.PLAYER_BONUS, withdrawPropQuery).then(
-                            withdrawProp => {
-                                if (withdrawProp) {
-                                    monitorObjs[index].nextWithdrawProposalId = withdrawProp.proposalId;
-                                    monitorObjs[index].nextWithdrawAmount = withdrawProp.data.amount;
-                                    monitorObjs[index].nextWithdrawTime = withdrawProp.settleTime;
+                        dbProposalUtil.getNextProposalRecord(elem.platformObjId, constProposalType.PLAYER_BONUS, monitorQuery).then(
+                            proposalRecord => {
+                                if (proposalRecord && proposalRecord.mainType) {
+
+                                    if (proposalRecord.mainType == "PlayerBonus"){
+                                        monitorObjs[index].nextWithdrawProposalId = proposalRecord.proposalId || null;
+                                        monitorObjs[index].nextWithdrawAmount = proposalRecord.data.amount || null;
+                                        monitorObjs[index].nextWithdrawTime = proposalRecord.settleTime || null;
+                                    }
+                                    else if (proposalRecord.mainType == "TopUp"){
+                                        monitorObjs[index].nextTopUpProposalId = proposalRecord.proposalId || null;
+                                        monitorObjs[index].nextTopUpAmount = proposalRecord.data.amount || null;
+                                        monitorObjs[index].nextTopUpTime = proposalRecord.settleTime || null;
+                                    }
+
                                 }
                             }
                         )
@@ -4334,35 +4342,21 @@ let dbPlayerReward = {
             () => {
                 let proms = [];
 
-                monitorObjs = monitorObjs.filter(e => e.nextWithdrawProposalId);
-
+                // monitorObjs = monitorObjs.filter(e => e.nextWithdrawProposalId);
                 monitorObjs.forEach((elem, index) => {
-                    proms.push(
-                        getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
-                            res => {
-                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? dbUtility.noRoundTwoDecimalPlaces(res[0].validAmount) : 0;
 
-                                return dbPlayerUtil.getPlayerCreditByObjId(elem.playerObjId);
-                            }
-                        ).then(
-                            creditRes => {
-                                monitorObjs[index].playerCredit = creditRes ? creditRes.gameCredit + dbUtility.noRoundTwoDecimalPlaces(creditRes.validCredit) + dbUtility.noRoundTwoDecimalPlaces(creditRes.lockedCredit) : 0;
+                    if (elem && elem.nextWithdrawTime){
+                        proms.push(
+                            getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
+                                res => {
+                                    monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? dbUtility.noRoundTwoDecimalPlaces(res[0].validAmount) : 0;
 
-                                return dbConfig.collection_proposal.find({
-                                    'data.platformId': elem.platformObjId,
-                                    'data.playerObjId': elem.playerObjId,
-                                    settleTime: {$gt: elem.nextWithdrawTime},
-                                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                                    mainType: "TopUp",
-                                    // 'data.promoCode': {$exists: true}
-                                }).sort({settleTime: 1}).limit(1).lean();
-                            }
-                        ).then(
-                            topUpRes => {
-                                monitorObjs[index].nextTopUpAmount = topUpRes && topUpRes[0] ? topUpRes[0].data.amount : 0;
-                            }
+                                    // return dbPlayerUtil.getPlayerCreditByObjId(elem.playerObjId);
+                                }
+                            )
                         )
-                    )
+                    }
+
                 });
 
                 return Promise.all(proms);
@@ -5631,7 +5625,7 @@ let dbPlayerReward = {
         }
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
-
+        let dailyMaxRewardPointProm;
         // reward specific promise
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP || eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
             if (rewardData && rewardData.selectedTopup) {
@@ -5645,7 +5639,6 @@ let dbPlayerReward = {
                     createTime: {$gt: selectedTopUp.createTime},
                     status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
                 };
-
                 promArr.push(dbProposalUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery));
 
                 if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
@@ -5659,6 +5652,17 @@ let dbPlayerReward = {
 
                     // check the requirement
                     promArr.push(dbRewardUtil.checkApplyRetentionReward(playerData, eventData, applyAmount, null, selectedTopUp.topUpType, selectedTopUp));
+                }
+                if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+                    // calculate the daily top up return reward
+                    intervalTime = dbUtility.getTodaySGTime();
+                    if ( intervalTime ) {
+                        eventQuery["$or"] = [
+                            {"data.applyTargetDate": {$gte: intervalTime.startTime, $lt: intervalTime.endTime}},
+                            {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
+                        ];
+                    }
+                    dailyMaxRewardPointProm = dbConfig.collection_proposal.find(eventQuery).lean();
                 }
             }
         }
@@ -6335,7 +6339,7 @@ let dbPlayerReward = {
             promArr.push(checkForbidRewardProm.then(data => {console.log('checkForbidRewardProm'); return data;}).catch(errorUtils.reportError));
         }
 
-        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm]).then(
+        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm, dailyMaxRewardPointProm]).then(
             data => {
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
@@ -6343,7 +6347,13 @@ let dbPlayerReward = {
                 lastConsumptionRecord = data[3] && data[3][0] ? data[3][0] : {};
                 let topupInPeriodCount = topupInPeriodData.length;
                 let eventInPeriodCount = eventInPeriodData.length;
-                let rewardAmountInPeriod = eventInPeriodData.reduce((a, b) => a + b.data.rewardAmount, 0);
+                console.log('MT --checking eventInPeriodDataCount',eventInPeriodCount);
+                let dailyRewardPointData = data[4];
+
+                let rewardAmountInPeriod = 0;
+                if (dailyRewardPointData && dailyRewardPointData.length > 0) {
+                    rewardAmountInPeriod = dailyRewardPointData.reduce((a, b) => a + b.data.rewardAmount, 0);
+                }
 
                 // Check reward apply limit in period
                 if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
@@ -6472,16 +6482,10 @@ let dbPlayerReward = {
                                 selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
                                 //spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                                 spendingAmount = (actualAmount + rewardAmount) * selectedRewardParam.spendingTimes;
-                                console.log('MT --checking actualAmount + rewardAmount', applyAmount, actualAmount, rewardAmount, selectedRewardParam.spendingTimes);
-                                console.log('MT --checking spendingAmount',spendingAmount);
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
                                 selectedRewardParam.spendingTimesOnReward = selectedRewardParam.spendingTimesOnReward || 0;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
-                                console.log('MT --checking rewardAmount', rewardAmount);
-                                console.log('MT --checking selectedRewardParam.spendingTimesOnReward', selectedRewardParam.spendingTimesOnReward);
-                                console.log('MT --checking spendingAmount', spendingAmount);
-
                             }
 
                             // Set top up record update flag
