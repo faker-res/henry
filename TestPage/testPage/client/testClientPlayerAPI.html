@@ -1869,6 +1869,11 @@
             <input type=text name="phoneNumber">
         </label>
     </div>
+    <div>
+        <label id="captchaCode">Captcha Code
+            <input id="captchaCodeInput" type=text name="captcha">
+        </label>
+    </div>
     <button data-api-name="getSMSCode">Get Verification Code</button>
     <label>SMSCode
         <input type=text name="smsCode">
@@ -1876,6 +1881,37 @@
 
     <div>
         <button data-api-name="playerLoginOrRegisterWithSMS">Login With SMS</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+
+<h3>Player Login via Phone Number with Password (玩家电话号码与密码登入)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input type=text name="password">
+        </label>
+    </div>
+    <div>
+        <label id="captchaCode">Captcha Code
+            <input id="captchaCodeInput" type=text name="captcha">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="phoneNumberLoginWithPassword">Login With Password</button>
     </div>
     <div>
         <textarea></textarea>
