@@ -105,7 +105,8 @@
                 "getReceiveTransferList",
                 "phoneNumberLoginWithPassword",
                 "setPhoneNumber",
-                "playerLoginOrRegisterWithSMS"
+                "playerLoginOrRegisterWithSMS",
+                "getBindBankCardList",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

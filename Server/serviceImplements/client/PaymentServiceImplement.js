@@ -87,7 +87,7 @@ var PaymentServiceImplement = function () {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
         var isValidData = Boolean(conn.playerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [data.userAgent, conn.playerId, data.bonusId, data.amount, data.honoreeDetail], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [data.userAgent, conn.playerId, data.bonusId, data.amount, data.honoreeDetail, null, null, null, null, data.bankId], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
