@@ -6319,7 +6319,7 @@ var proposal = {
             }
         ).then(
             finalResult => {
-                return {data: finalResult};
+                return {data: finalResult || []};
             }
         );
     },
@@ -6504,6 +6504,8 @@ var proposal = {
                             return Promise.all(filteredProposal);
                         }
                     );
+                }else{
+                    return [];
                 }
             }
         );

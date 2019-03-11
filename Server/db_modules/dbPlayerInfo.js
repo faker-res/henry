@@ -6215,6 +6215,348 @@ let dbPlayerInfo = {
         )
     },
 
+    phoneNumberLoginWithPassword: function (playerData, userAgent, inputDevice, mobileDetect) {
+        let db_password = null;
+        let newAgentArray = [];
+        let platformId = null;
+        let uaObj = null;
+        let playerObj = null;
+        let retObj = {};
+        let platformPrefix = "";
+        let requireLogInCaptcha = null;
+        let platformObj = {};
+        let bUpdateIp = false;
+        let geoInfo = {};
+
+        return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+                    requireLogInCaptcha = platformData.requireLogInCaptcha || false;
+                    platformId = platformData._id;
+
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(playerData.phoneNumber);
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(playerData.phoneNumber);
+
+                    let playerQuery = {
+                        platform: platformData._id,
+                        $or: [
+                            {phoneNumber: encryptedPhoneNumber},
+                            {phoneNumber: playerData.phoneNumber},
+                            {phoneNumber: enOldPhoneNumber}
+                        ]
+                    };
+
+                    // if (playerData.name && playerData.name[0] === "f") {
+                    //     playerQuery.$or.push({
+                    //         name: playerData.name,
+                    //         platform: platformData._id,
+                    //         isRealPlayer: false
+                    //     });
+                    // }
+
+                    return dbconfig.collection_players.findOne(playerQuery).lean();
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
+            data => {
+                if (data) {
+                    playerObj = data;
+
+                    if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Only new system user can login",
+                            code: constServerCode.NO_USER_FOUND
+                        });
+                    }
+                    db_password = String(data.password); // hashedPassword from db
+                    if (dbUtility.isMd5(db_password)) {
+                        console.log('rt playerLogin 2.1');
+                        if (md5(playerData.password) == db_password) {
+                            return Promise.resolve(true);
+                        }
+                        else {
+                            return Promise.resolve(false);
+                        }
+                    }
+                    else {
+                        return new Promise((resolve, reject) => {
+                            try {
+                                let bcrypt = require('bcrypt');
+
+                                bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
+                                    console.log('rt playerLogin 2.2.2', err, isMatch);
+                                    if (err) {
+                                        reject({
+                                            name: "DataError",
+                                            message: "Error in matching password",
+                                            error: err
+                                        });
+                                    }
+                                    resolve(isMatch);
+                                });
+                            } catch (err) {
+                                console.log('err', err);
+                                throw err;
+                            }
+
+                        })
+                    }
+                }
+                else {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cannot find player",
+                        code: constServerCode.PLAYER_NAME_INVALID
+                    });
+                }
+            }
+        ).then(
+            isMatch => {
+                if (!isMatch) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "User name and password don't match",
+                        code: constServerCode.INVALID_USER_PASSWORD
+                    });
+                }
+
+                if (playerObj.permission.forbidPlayerFromLogin) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player is forbidden to login",
+                        code: constServerCode.PLAYER_IS_FORBIDDEN
+                    });
+                }
+
+                if (playerObj.isTestPlayer && isDemoPlayerExpire(playerObj, platformObj.demoPlayerValidDays)) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player is not enable",
+                        code: constServerCode.PLAYER_IS_FORBIDDEN
+                    });
+                }
+
+                newAgentArray = playerObj.userAgent || [];
+                uaObj = {
+                    browser: userAgent && userAgent.browser && userAgent.browser.name || '',
+                    device: userAgent && userAgent.device && userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
+                    os: userAgent && userAgent.os && userAgent.os.name || '',
+                };
+
+                let bExit = false;
+                if (newAgentArray && typeof newAgentArray.forEach == "function") {
+                    newAgentArray.forEach(
+                        agent => {
+                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                bExit = true;
+                            }
+                        }
+                    );
+                }
+                else {
+                    newAgentArray = [];
+                    bExit = true;
+                }
+
+                if (!bExit) {
+                    newAgentArray.push(uaObj);
+                }
+
+                if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp && playerData.lastLoginIp != "undefined") {
+                    bUpdateIp = true;
+                }
+
+                let updateData = {
+                    isLogin: true,
+                    lastLoginIp: playerData.lastLoginIp,
+                    userAgent: newAgentArray,
+                    lastAccessTime: new Date().getTime(),
+                    $inc: {loginTimes: 1}
+                };
+
+                if (playerData.deviceId) {
+                    updateData.deviceId = playerData.deviceId;
+                }
+
+                if (playerData.lastLoginIp && playerData.lastLoginIp != "undefined") {
+                    let ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
+                    if (ipData) {
+                        geoInfo.ipArea = ipData;
+                        geoInfo.country = ipData.country || null;
+                        geoInfo.city = ipData.city || null;
+                        geoInfo.province = ipData.province || null;
+                    } else {
+                        geoInfo.ipArea = {'province': '', 'city': ''};
+                        geoInfo.country = "";
+                        geoInfo.city = "";
+                        geoInfo.province = "";
+                    }
+                }
+
+                if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
+                    updateData.$push = {loginIps: playerData.lastLoginIp};
+                }
+
+                return dbconfig.collection_players.findOneAndUpdate({
+                    _id: playerObj._id,
+                    platform: playerObj.platform
+                }, updateData).populate({
+                    path: "playerLevel",
+                    model: dbconfig.collection_playerLevel
+                })
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Error in getting player data", error: error});
+            }
+        ).then(
+            data => {
+                // Geo and ip related update
+                if (bUpdateIp) {
+                    dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
+                    dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
+                }
+
+                //add player login record
+                let recordData = {
+                    player: data._id,
+                    platform: platformId,
+                    loginIP: playerData.lastLoginIp,
+                    clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
+                    userAgent: uaObj,
+                    isRealPlayer: playerObj.isRealPlayer,
+                    isTestPlayer: playerObj.isTestPlayer,
+                    partner: playerObj.partner ? playerObj.partner : null,
+                    deviceId: playerData.deviceId
+                };
+
+                if (platformObj.usePointSystem) {
+                    dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
+                }
+
+                if (recordData.userAgent) {
+                    recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                }
+                Object.assign(recordData, geoInfo);
+
+                let record = new dbconfig.collection_playerLoginRecord(recordData);
+
+                return record.save();
+            },
+            error => {
+                return Promise.reject({
+                    name: "DBError",
+                    message: "Error in updating player",
+                    error: error
+                });
+            }
+        ).then(
+            record => {
+                updateAutoFeedbackLoginCount(record).catch(errorUtils.reportError);
+                dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
+                    err => {
+                        if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                            // Ignore concurrent request for now
+                        } else {
+                            // Set BState back to false
+                            dbPlayerUtil.setPlayerBState(playerObj._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                        }
+                        console.log('playerRetentionRewardGroup error when login', playerObj.playerId, err);
+                    }
+                );
+
+                return dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                    path: "platform",
+                    model: dbconfig.collection_platform
+                }).populate({
+                    path: "playerLevel",
+                    model: dbconfig.collection_playerLevel
+                }).populate({
+                    path: "rewardPointsObjId",
+                    model: dbconfig.collection_rewardPoints
+                }).lean()
+            }
+        ).then(
+            res => {
+                res.name = res.name.replace(platformPrefix, "");
+                retObj = res;
+
+                if (retObj.rewardPointsObjId) {
+                    retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
+                    retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
+                }
+
+                let a = retObj.bankAccountProvince ?
+                    pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                let b = retObj.bankAccountCity ?
+                    pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                let c = retObj.bankAccountDistrict ?
+                    pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+
+                return Promise.all([a, b, c]);
+            }
+        ).then(
+            zoneData => {
+                retObj.bankAccountProvince = zoneData[0] && zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                retObj.bankAccountCity = zoneData[1] && zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
+
+                console.log('rt playerLogin end');
+                return retObj;
+            }
+        );
+
+        function updateAutoFeedbackLoginCount (record) {
+            console.log('updateAutoFeedbackLoginCount time log start', record.platform, record.player);
+            return dbconfig.collection_promoCode.aggregate([
+                {$match: {
+                        platformObjId: record.platform,
+                        playerObjId: record.player,
+                        promoCodeTemplateObjId: {$exists: true},
+                        autoFeedbackMissionObjId: {$exists: true},
+                        autoFeedbackMissionLogin: {$exists: false}
+                    }},
+                {$sort: {createTime: -1}},
+                {
+                    $group: {
+                        _id: "$autoFeedbackMissionObjId",
+                        autoFeedbackMissionScheduleNumber: {$first: "$autoFeedbackMissionScheduleNumber"},
+                        createTime: {$first: "$createTime"}
+                    }
+                }
+            ]).read("secondaryPreferred").exec().then(
+                promoCodes => {
+                    promoCodes.forEach(
+                        promoCode => {
+                            if(
+                                promoCode.autoFeedbackMissionScheduleNumber < 3
+                                || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()
+                            ) {
+                                dbconfig.collection_promoCode.findOneAndUpdate({
+                                    autoFeedbackMissionObjId: promoCode._id,
+                                    autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
+                                    createTime: promoCode.createTime
+                                }, {
+                                    autoFeedbackMissionLogin: true
+                                }).exec();
+                            }
+
+                            console.log('updateAutoFeedbackLoginCount time log end', record.platform, record.player);
+                        }
+                    )
+                }
+            );
+        }
+    },
+
     getBindBankCardList: function (playerId, platformId) {
         let platformObj;
         let returnData = {};

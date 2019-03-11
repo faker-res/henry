@@ -103,6 +103,7 @@
                 "callBackToUser",
                 "getOMCaptcha",
                 "getReceiveTransferList",
+                "phoneNumberLoginWithPassword",
                 "setPhoneNumber",
                 "playerLoginOrRegisterWithSMS",
                 "getBindBankCardList",
