@@ -666,6 +666,11 @@ const dbLargeWithdrawal = {
                 }
                 log = logData;
 
+                if (!bSuccess && !log.emailSentTimes) {
+                    // no email sending is necessary if its a reject without previous email sent
+                    return [{}];
+                }
+
                 let settingProm = settingModel.findOne({platform: log.platform}).lean();
                 let proposalProcessProm = dbconfig.collection_proposalProcess.findOne({_id: proposal.process}).populate({path: "steps", model: dbconfig.collection_proposalProcessStep}).lean();
 

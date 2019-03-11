@@ -214,7 +214,7 @@ define(['js/app'], function (myApp) {
             if (!$scope.targetPlayerObjId) {
                 // todo :: show player not found
             }
-            $scope.$socketPromise("getOnePlayerSimpleDetail", {platformObjId: $scope.selectedPlatform.id, playerObjId: $scope.targetPlayerObjId}).then(
+            return $scope.$socketPromise("getOnePlayerSimpleDetail", {platformObjId: $scope.selectedPlatform.id, playerObjId: $scope.targetPlayerObjId}).then(
                 data => {
                     console.log('getOnePlayerSimpleDetail', data);
                     vm.playerData = data.data;
