@@ -8,8 +8,7 @@ import socketService from '../services/socketService.js';
 import localStorageService from '../services/localStorageService.js';
 import SelectServer from './selectServer';
 
-console.log(process.env);
-const ENV = process.env.REACT_APP_ENV;
+console.log("process.env", process.env);
 const defaultPlatformId = process.env.REACT_APP_DEFAULT_PLATFORM_ID;
 
 class Login extends Component {
@@ -19,12 +18,10 @@ class Login extends Component {
         this.state = {
             fastestServer: '',
             fastestServerUrl: '',
-            lowestLatency: 9999,
             servers: WSCONFIG,
             selectedServer: 'Fastest Server',
             path: 'login'
         };
-        this.pingAllServers();
     }
 
     handleChange = (ev, key) => {
@@ -33,76 +30,16 @@ class Login extends Component {
         setObject[key] = ev.currentTarget.value;
         this.setState(setObject);
     }
-
-    pingAllServers = () =>{
-        console.log("pingAllServers");
-        let servers = this.state.servers;
-        for(let server in servers) {
-            if (server === 'Default') {
-                this.pingHTTPServer(servers[server][ENV].MANAGEMENT_SERVER_URL, server);
-                servers[server].socketURL = servers[server][ENV].MANAGEMENT_SERVER_URL;
-            } else {
-                this.pingHTTPServer(servers[server].socketURL, server);
-            }
-        }
+    handlePropsUpdate = (obj) => {
+        console.log("***handlePropsUpdate , triggered***");
+        this.setState(obj);
     }
     
-    pingHTTPServer= (serverURL, server) =>{
-        if(serverURL) {
-            let WSCONFIG = this.state.servers;
-            let sendTime, receiveTime, latency;
-            let self = this;
-
-            if (!serverURL.startsWith("http")) {
-                serverURL = "http://" + serverURL;
-            }
-
-            $.ajax({
-                type: "HEAD",
-                url: serverURL,
-                timeout: 30000,
-                beforeSend: () => {
-                    sendTime = (new Date()).getTime();
-                },
-                success: function () {
-                    receiveTime = (new Date()).getTime();
-                    latency = receiveTime - sendTime;
-                    WSCONFIG[server].latency = latency;
-                    if (server !== 'cstest' && (latency < self.state.lowestLatency)) {
-                        self.state.lowestLatency = latency;
-                        self.state.fastestServer = server;
-                        self.state.fastestServerUrl = serverURL;
-                    }
-                    WSCONFIG[server].isAvailable = true;
-                    console.log(server,": ",latency,"ms  -->   ", serverURL);
-                },
-                error: function (data) {
-                    WSCONFIG[server].isAvailable = false;
-                }
-            });
-        }
-    }
-
-    populateServerWithLatency = ()=>{
-        let servers = this.state.servers;
-        let list = []
-        for(let server in servers) {
-            if(servers.hasOwnProperty(server)) {
-                if(isNaN(parseInt(servers[server].latency))) {
-                    list.push(<option key={server} value={servers[server].socketURL} disabled> {`${server} : ms`}</option>)
-                } else {
-                    list.push(<option key={server} value={servers[server].socketURL}> {`${server}: ${servers[server].latency}ms`}</option>)
-                }
-            }
-        }
-        return list;
-    }
-
     getPlatformByAdminId = () => {
         return socketService.emit("getPlatformByAdminId", {adminObjId: authService.getAdminObjId()}).then(platforms => {
             console.log("getPlatformByAdminId ret", platforms);
             if(platforms && platforms.success && platforms.data.length > 0) {
-                localStorageService.setJson("platforms",platforms.data);
+                localStorageService.set("platforms",platforms.data);
             }
             return platforms.data;
         });
@@ -132,13 +69,13 @@ class Login extends Component {
                 authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
                 this.getPlatformByAdminId().then(platforms => {
                     if(platforms && platforms.length > 0) {
-                        let platformObjId;
+                        let selectedPlatform;
                         platforms.forEach(platform=>{
                             if(platform.platformId == defaultPlatformId) {
-                                platformObjId = platform._id;
+                                selectedPlatform = platform;
                             }
                         })
-                        localStorageService.set("platformObjId", platformObjId);
+                        localStorageService.set("selectedPlatform", selectedPlatform);
                     }
                     navService.goto('dashboard');
                 });
@@ -167,9 +104,7 @@ class Login extends Component {
                         <label htmlFor="pwd">Password</label>
                     </div>
 
-                    <SelectServer
-                     path={this.state.path}
-                    />
+                    <SelectServer path={this.state.path} selectedServer={this.state.selectedServer} updateProps={this.handlePropsUpdate} updatePropsWithEvent={this.handleChange} />
 
                     <div className="login-group">
                         <label className="login-check-label">
