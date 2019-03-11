@@ -1396,6 +1396,11 @@ let PlayerServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler)
             .done();
     };
+
+    this.getBindBankCardList.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && conn.playerId && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBindBankCardList, [conn.playerId, data.platformId], isValidData, false, false, true);
+    };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;
