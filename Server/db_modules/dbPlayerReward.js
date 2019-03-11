@@ -5623,6 +5623,7 @@ let dbPlayerReward = {
             // NOTE :: Use apply target date instead. There are old records that does not have applyTargetDate field,
             // so createTime is checked if applyTargetDate does not exist - Huat
         }
+        console.log("LH Check Player Free Trial Reward 1-----", topupMatchQuery);
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
         let dailyMaxRewardPointProm;
@@ -6342,6 +6343,7 @@ let dbPlayerReward = {
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm, dailyMaxRewardPointProm]).then(
             data => {
                 let topupInPeriodData = data[0];
+                console.log("LH Check Player Free Trial Reward 2-----", topupInPeriodData);
                 let eventInPeriodData = data[1];
                 let rewardSpecificData = data[2];
                 lastConsumptionRecord = data[3] && data[3][0] ? data[3][0] : {};
@@ -6370,12 +6372,15 @@ let dbPlayerReward = {
                     let value1 = eventData.condition.topUpCountType[1];
                     let value2 = eventData.condition.topUpCountType[2];
 
+                    console.log("LH Check Player Free Trial Reward 3-----", intervalType);
+                    console.log("LH Check Player Free Trial Reward 4-----", value1);
+                    console.log("LH Check Player Free Trial Reward 5-----", value2);
                     const hasMetTopupCondition =
                         intervalType == "1" && topupInPeriodCount >= value1
                         || intervalType == "2" && topupInPeriodCount <= value1
                         || intervalType == "3" && topupInPeriodCount == value1
                         || intervalType == "4" && topupInPeriodCount >= value1 && topupInPeriodCount < value2;
-
+                    console.log("LH Check Player Free Trial Reward 6-----", hasMetTopupCondition);
                     if (!hasMetTopupCondition) {
                         return Q.reject({
                             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,

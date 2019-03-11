@@ -103,6 +103,8 @@
                 "callBackToUser",
                 "getOMCaptcha",
                 "getReceiveTransferList",
+                "phoneNumberLoginWithPassword",
+                "setPhoneNumber",
                 "playerLoginOrRegisterWithSMS"
             ];
             addServiceFunctions(sinonet, this, functionNames);

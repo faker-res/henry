@@ -765,6 +765,13 @@
         this.playerService.playerLoginOrRegisterWithSMS.once(callback);
     };
 
+    proto.phoneNumberLoginWithPassword = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.phoneNumberLoginWithPassword.request(data);
+        this.playerService.phoneNumberLoginWithPassword.once(callback);
+    };
+
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

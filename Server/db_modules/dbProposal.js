@@ -3422,12 +3422,14 @@ var proposal = {
         }
 
         if (reqData.status) {
+            /*
             if (reqData.status == constProposalStatus.SUCCESS) {
                 isSuccess = true;
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
             }
+            */
             if (reqData.status == constProposalStatus.FAIL) {
                 reqData.status = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]
@@ -6317,7 +6319,7 @@ var proposal = {
             }
         ).then(
             finalResult => {
-                return {data: finalResult};
+                return {data: finalResult || []};
             }
         );
     },
@@ -6502,6 +6504,8 @@ var proposal = {
                             return Promise.all(filteredProposal);
                         }
                     );
+                }else{
+                    return [];
                 }
             }
         );
