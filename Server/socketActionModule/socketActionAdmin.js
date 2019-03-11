@@ -289,6 +289,12 @@ function socketActionAdmin(socketIO, socket) {
             socketUtil.emitter(self.socket, dbAdminInfo.getDepartmentRolesForAdmin, [data._id], actionName, isDataValid);
         },
 
+        getPaymentMonitorLockedAdmin: function getPaymentMonitorLockedAdmin(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbAdminInfo.getPaymentMonitorLockedAdmin, [data.platform], actionName, isDataValid);
+        }
+
     };
 
     socketActionAdmin.actions = this.actions;

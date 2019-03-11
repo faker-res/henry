@@ -3326,4 +3326,11 @@ hr {
 .widthto20 {
     width: 20%;
 }
+.merchantExceed .merchantCount {
+    background-color: #C7EA46;
+}
+
+.playerExceed .playerCount {
+    background-color: #FFFF66;
+}
 
