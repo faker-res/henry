@@ -140,10 +140,11 @@ var dbLogger = {
                     return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[1]}, {name: 1});
                 }else if(adminActionRecordData.action == 'applyRewardEvent' && adminActionRecordData.data[1] && adminActionRecordData.data[2]){
                     let returnedData = {};
-                    return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[1]}, {name: 1}).then(
+                    return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[1]}, {name: 1, platform: 1}).then(
                         playerName => {
                             if(playerName && playerName.name){
                                 returnedData.playerName = playerName.name;
+                                returnedData.platformObjId = playerName.platform;
                             }
 
                             return dbconfig.collection_rewardEvent.findOne({code: adminActionRecordData.data[2]}, {name: 1});
@@ -718,7 +719,7 @@ var dbLogger = {
                     adminActionRecordData.platforms = adminActionRecordData.data[7] ? adminActionRecordData.data[7] : adminActionRecordData.platforms;
                 }else if(logAction == 'applyRewardEvent'){
                     adminActionRecordData.error = '优惠: ' + data.rewardName+ ' 会员帐号： ' + data.playerName;
-                    adminActionRecordData.platforms = adminActionRecordData.data[6] ? adminActionRecordData.data[6] : adminActionRecordData.platforms;
+                    adminActionRecordData.platforms = data.platformObjId ? data.platformObjId : adminActionRecordData.platforms;
                 }else if(logAction == 'createPlayerRewardTask' && adminActionRecordData.data[0].playerName && adminActionRecordData.data[0].platformId){
                     adminActionRecordData.error = ' 会员帐号： ' + adminActionRecordData.data[0].playerName + "; 提案号： " + resultData.proposalId || "";
                     adminActionRecordData.platforms = adminActionRecordData.data[0].platformId ? adminActionRecordData.data[0].platformId : adminActionRecordData.platforms;
