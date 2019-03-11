@@ -2,10 +2,9 @@ import React, {Component} from 'react';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import WSCONFIG from "../wsconfig";
 import $ from "jquery";
-import authService from "../services/authService";
-import navService from "../services/navService";
 
-
+const ENV = process.env.REACT_APP_ENV;
+console.log("process.env.REACT_APP_ENV", ENV);
 
 class SelectServer extends Component{
     constructor(props){
@@ -13,11 +12,8 @@ class SelectServer extends Component{
 
         this.state = {
             isFocus: false,
-            fastestServer: '',
-            fastestServerUrl: '',
             lowestLatency: 9999,
             servers: WSCONFIG,
-            selectedServer: 'Fastest Server'
         };
         this.pingAllServers();
     }
@@ -25,30 +21,26 @@ class SelectServer extends Component{
     handleFocus = () => {
         this.setState({ isFocus: true});
     }
-
     handleBlur= () => {
         this.setState({ isFocus: false});
     }
 
-    handleChange = (ev, key) => {
-        console.log("***change happened , triggered***");
-        let setObject = {};
-        setObject[key] = ev.currentTarget.value;
-        this.setState(setObject);
+    isLoginPage = ()=>{
+        return this.props.path === 'login';
     }
 
-    pingAllServers = () =>{
+    pingAllServers = ()=>{
         console.log("pingAllServers");
         let servers = this.state.servers;
         for(let server in servers) {
             if (server === 'Default') {
-                this.pingHTTPServer(servers[server].MANAGEMENT_SERVER_URL, server);
+                this.pingHTTPServer(servers[server][ENV].MANAGEMENT_SERVER_URL, server);
+                servers[server].socketURL = servers[server][ENV].MANAGEMENT_SERVER_URL;
             } else {
                 this.pingHTTPServer(servers[server].socketURL, server);
             }
         }
     }
-
     pingHTTPServer= (serverURL, server) =>{
         if(serverURL) {
             let WSCONFIG = this.state.servers;
@@ -70,10 +62,10 @@ class SelectServer extends Component{
                     receiveTime = (new Date()).getTime();
                     latency = receiveTime - sendTime;
                     WSCONFIG[server].latency = latency;
-                    if (server !== 'cstest' && (latency < self.state.lowestLatency)) {
-                        self.state.lowestLatency = latency;
-                        self.state.fastestServer = server;
-                        self.state.fastestServerUrl = serverURL;
+                    if (self.isLoginPage && server !== 'cstest' && (latency < self.state.lowestLatency)) {
+                        self.setState({lowestLatency: latency});
+                        self.props.updateProps({fastestServer: server});
+                        self.props.updateProps({fastestServerUrl: serverURL});
                     }
                     WSCONFIG[server].isAvailable = true;
                     console.log(server,": ",latency,"ms  -->   ", serverURL);
@@ -85,6 +77,10 @@ class SelectServer extends Component{
         }
     }
 
+    addFastestServer = ()=>{
+        if(this.isLoginPage())
+        return <option key="Fastest Server" value="Fastest Server">Fastest Server</option>
+    }
     populateServerWithLatency = () => {
         let servers = this.state.servers;
         let list = []
@@ -99,64 +95,19 @@ class SelectServer extends Component{
         }
         return list;
     }
-
-    login() {
-        console.log("login...");
-        let url = this.state.selectedServer === "Fastest Server" ? this.state.fastestServerUrl : this.state.selectedServer;
-        let sendData = {
-            type: 'post',
-            data: {
-                username: this.state.username,
-                password: this.state.password
-            },
-            url: url + '/login',
-            timeout: 5000
-        }
-        console.log("Login --> Send Data", sendData);
-        $.ajax(sendData).done(data => {
-            console.log("login done!");
-            console.log(data);
-            if(data.success) {
-                let exp = new Date();
-                exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
-                authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
-                navService.goto('dashboard');
-            } else {
-                console.log(data.error.message);
-            }
-        })
-    }
-
-    render(){
-        return (
-
-                <div className={this.getGroupClasses()}>
-                    <select onFocus={this.handleFocus} onBlur={this.handleBlur} className={this.getControlClasses()} id="mgntServer" value={this.state.selectedServer} onChange={(e)=>{this.handleChange(e,'selectedServer')}}>
-                        <option key="Fastest Server" value="Fastest Server">Fastest Server</option>
-                        {this.populateServerWithLatency()}
-                    </select>
-                    <label className={this.getShowClasses()} htmlFor="mgntServer">Select Server</label><FontAwesomeIcon className={this.getfocusClasses()} icon="angle-down" />
-                </div>
-
-
-
-        )
-    }
-
+    
     getfocusClasses() {
         let classes = "icon ";
         classes += this.props.path === 'login' && this.state.isFocus === true ? "focusClass" : "";
         classes += this.props.path === 'navbar' ? "d-none" : "";
         return classes;
     }
-
     getGroupClasses() {
         let group = "";
         group += this.props.path === 'login' ? "login-group": "";
         group += this.props.path === 'navbar' ? "form-group": "";
         return group;
     }
-
     getControlClasses(){
         let control = "";
         control += this.props.path === 'login' ? "login-control": "";
@@ -169,6 +120,18 @@ class SelectServer extends Component{
         return show;
     }
 
+    render(){
+        console.log(this.props);
+        return (
+            <div className={this.getGroupClasses()}>
+                <select onFocus={this.handleFocus} onBlur={this.handleBlur} className={this.getControlClasses()} id="mgntServer" value={this.props.selectedServer} onChange={(e)=>{this.props.updatePropsWithEvent(e,'selectedServer')}}>
+                    {this.addFastestServer()}
+                    {this.populateServerWithLatency()}
+                </select>
+                <label className={this.getShowClasses()} htmlFor="mgntServer">Select Server</label><FontAwesomeIcon className={this.getfocusClasses()} icon="angle-down" />
+            </div>
+        )
+    }
 }
 
 export default SelectServer;
