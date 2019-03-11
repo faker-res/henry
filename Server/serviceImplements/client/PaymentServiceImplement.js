@@ -295,10 +295,7 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getBankTypeList, [], isValidData, false, false, true);
 
         function getBankTypeList() {
-            return pmsAPI.bankcard_getBankTypeList({bankTypeId: 169}).then(data => {
-                console.log("data===", data);
-                console.log("data.length===", data.length);
-                console.log("data.data.length===", data.data.length);
+            return pmsAPI.bankcard_getBankTypeList({}).then(data => {
                 // bankflag: 1   // 提款银行类型
                 // bankflag: 0   // 存款银行类型
                 // Hank requested to display bankflag 1 only
