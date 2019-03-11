@@ -103,7 +103,8 @@
                 "callBackToUser",
                 "getOMCaptcha",
                 "getReceiveTransferList",
-                "playerLoginOrRegisterWithSMS"
+                "playerLoginOrRegisterWithSMS",
+                "getBindBankCardList",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

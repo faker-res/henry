@@ -104,7 +104,8 @@
                 "getOMCaptcha",
                 "getReceiveTransferList",
                 "setPhoneNumber",
-                "playerLoginOrRegisterWithSMS"
+                "playerLoginOrRegisterWithSMS",
+                "getBindBankCardList",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
