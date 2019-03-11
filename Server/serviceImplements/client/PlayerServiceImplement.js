@@ -1397,7 +1397,6 @@ let PlayerServiceImplement = function () {
             .done();
     };
 
-
     this.phoneNumberLoginWithPassword.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.password && data.platformId);
         let uaString = conn.upgradeReq.headers['user-agent'];
@@ -1496,6 +1495,10 @@ let PlayerServiceImplement = function () {
             .done();
     };
 
+    this.getBindBankCardList.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && conn.playerId && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBindBankCardList, [conn.playerId, data.platformId], isValidData, false, false, true);
+    };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

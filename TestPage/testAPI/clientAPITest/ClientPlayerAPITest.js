@@ -771,6 +771,11 @@
         this.playerService.phoneNumberLoginWithPassword.once(callback);
     };
 
+    proto.getBindBankCardList = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.getBindBankCardList.request(data);
+        this.playerService.getBindBankCardList.once(callback);
+    };
 
     if (isNode) {
         module.exports = ClientPlayerAPITest;

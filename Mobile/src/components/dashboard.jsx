@@ -10,7 +10,7 @@ import localStorageService from '../services/localStorageService';
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const chartStartDate = new Date(new Date().setDate(new Date().getDate() - 6)).toDateString();
 const chartEndDate = new Date(new Date().setDate(new Date().getDate())).toDateString();
-const getPlatformObjId = () => {return localStorageService.get("platformObjId")};
+const getPlatformObjId = () => {return localStorageService.get("selectedPlatform")._id};
 
 class Dashboard extends Component {
     state = {
