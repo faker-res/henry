@@ -87,7 +87,7 @@ var PaymentServiceImplement = function () {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
         var isValidData = Boolean(conn.playerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [data.userAgent, conn.playerId, data.bonusId, data.amount, data.honoreeDetail], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [data.userAgent, conn.playerId, data.bonusId, data.amount, data.honoreeDetail, null, null, null, null, data.bankId], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
@@ -295,7 +295,10 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getBankTypeList, [], isValidData, false, false, true);
 
         function getBankTypeList() {
-            return pmsAPI.bankcard_getBankTypeList({}).then(data => {
+            return pmsAPI.bankcard_getBankTypeList({bankTypeId: 169}).then(data => {
+                console.log("data===", data);
+                console.log("data.length===", data.length);
+                console.log("data.data.length===", data.data.length);
                 // bankflag: 1   // 提款银行类型
                 // bankflag: 0   // 存款银行类型
                 // Hank requested to display bankflag 1 only

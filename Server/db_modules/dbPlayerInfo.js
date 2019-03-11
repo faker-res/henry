@@ -12045,7 +12045,7 @@ let dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank) {
+    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank, bankId) {
         let ximaWithdrawUsed = 0;
         if (amount < 100 && !adminInfo) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
@@ -12095,10 +12095,10 @@ let dbPlayerInfo = {
                         platform = playerData.platform;
 
                         // if no withdrawal bank was selected, use default first bank in player data
-                        if (!withdrawalBank) {
+                        if (!withdrawalBank && !bankId) {
                             withdrawalBank = {
                                 bankName: playerData.bankName || null,
-                                bankAccount: playerData.bankName || null,
+                                bankAccount: playerData.bankAccount || null,
                                 bankAccountName: playerData.bankAccountName || null,
                                 bankAccountType: playerData.bankAccountType || null,
                                 bankAccountProvince: playerData.bankAccountProvince || null,
@@ -12110,12 +12110,12 @@ let dbPlayerInfo = {
                         } else {
                             // if a withdrawal bank was selected, match the bank input and player existing bank data
                             // compare with first bank info
-                            if (withdrawalBank.bankName === playerData.bankName 
+                            if ((withdrawalBank && withdrawalBank.bankName === playerData.bankName
                                 && withdrawalBank.bankAccount === playerData.bankAccount 
-                                && withdrawalBank.bankAccountName === playerData.bankAccountName) {
+                                && withdrawalBank.bankAccountName === playerData.bankAccountName) || bankId === '1') {
                                 withdrawalBank = {
                                     bankName: playerData.bankName || null,
-                                    bankAccount: playerData.bankName || null,
+                                    bankAccount: playerData.bankAccount || null,
                                     bankAccountName: playerData.bankAccountName || null,
                                     bankAccountType: playerData.bankAccountType || null,
                                     bankAccountProvince: playerData.bankAccountProvince || null,
@@ -12126,12 +12126,12 @@ let dbPlayerInfo = {
                                 }
                             } else if (playerData.multipleBankDetailInfo) {
                                 // compare with second and third bank info
-                                if (withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName2
+                                if ((withdrawalBank && withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName2
                                     && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount2
-                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName2) {
+                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName2) || bankId === '2') {
                                     withdrawalBank = {
                                         bankName: playerData.multipleBankDetailInfo.bankName2 || null,
-                                        bankAccount: playerData.multipleBankDetailInfo.bankName2 || null,
+                                        bankAccount: playerData.multipleBankDetailInfo.bankAccount2 || null,
                                         bankAccountName: playerData.multipleBankDetailInfo.bankAccountName2 || null,
                                         bankAccountType: playerData.multipleBankDetailInfo.bankAccountType2 || null,
                                         bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince2 || null,
@@ -12141,12 +12141,12 @@ let dbPlayerInfo = {
                                         bankBranch: playerData.multipleBankDetailInfo.bankBranch2 || null,
                                     }
                                 }
-                                if (withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName3
+                                if ((withdrawalBank && withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName3
                                     && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount3
-                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName3) {
+                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName3) || bankId === '3') {
                                     withdrawalBank = {
                                         bankName: playerData.multipleBankDetailInfo.bankName3 || null,
-                                        bankAccount: playerData.multipleBankDetailInfo.bankName3 || null,
+                                        bankAccount: playerData.multipleBankDetailInfo.bankAccount3 || null,
                                         bankAccountName: playerData.multipleBankDetailInfo.bankAccountName3 || null,
                                         bankAccountType: playerData.multipleBankDetailInfo.bankAccountType3 || null,
                                         bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince3 || null,
