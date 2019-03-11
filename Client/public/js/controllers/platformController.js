@@ -16424,15 +16424,9 @@ define(['js/app'], function (myApp) {
                 vm.getCtiData();
             };
 
-            vm.drawSinglePlayerFeedback = function (data) {
-                let playerList = [], extendedResult = [];
-                vm.curFeedbackPlayer = data.data.data;
-                vm.feedbackPlayersPara.total = data.data.total || 0;
-                vm.feedbackPlayersPara.index = data.data.index + 1;
-
+            vm.handleExtendedFeedbackTable = () => {
+                let extendedResult = [];
                 if (vm.curFeedbackPlayer && !$.isEmptyObject(vm.curFeedbackPlayer)) {
-                    playerList.push(vm.curFeedbackPlayer);
-                    //process data for extended table
                     if (vm.curFeedbackPlayer.consumptionDetail && !$.isEmptyObject(vm.curFeedbackPlayer.consumptionDetail)) {
                         vm.playerFeedbackResultExtended = vm.curFeedbackPlayer.consumptionDetail;
                         vm.playerFeedbackResultExtended.manualTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.manualTopUpAmount).toFixed(2);
@@ -16501,11 +16495,113 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackResultExtended.bonusTimes = vm.curFeedbackPlayer.withdrawTimes || 0;
                         vm.playerFeedbackResultExtended.consumptionTimes = vm.curFeedbackPlayer.consumptionTimes || 0;
                         extendedResult.push(vm.playerFeedbackResultExtended);
-                    } //end processing for extended table
+                    }
+                    else {
+                        return $scope.$socketPromise("getOnePlayerSummaryRecord", {platformObjId: vm.selectedPlatform.id, playerObjId: vm.curFeedbackPlayer._id}).then(
+                            data => {
+                                if (data && data.data && data.data[0] && !$.isEmptyObject(data.data[0])) {
+                                    vm.curFeedbackPlayer.consumptionDetail = data.data[0];
+                                    return vm.handleExtendedFeedbackTable();
+                                }
+                            }
+                        )
+                    }
+
+                    if (vm.extendedPlayerTable) {
+                        setTableData(vm.extendedPlayerTable, extendedResult);
+                    } else {
+                        vm.drawExtendedFeedbackTable(extendedResult);
+                    }
+                }
+            };
+
+            vm.drawSinglePlayerFeedback = function (data) {
+                let playerList = [];
+                vm.curFeedbackPlayer = data.data.data;
+                vm.feedbackPlayersPara.total = data.data.total || 0;
+                vm.feedbackPlayersPara.index = (data.data.index || 0) + 1;
+
+                if (vm.curFeedbackPlayer && !$.isEmptyObject(vm.curFeedbackPlayer)) {
+                    playerList.push(vm.curFeedbackPlayer);
+                    vm.handleExtendedFeedbackTable();
+                    //process data for extended table
+                    // if (vm.curFeedbackPlayer.consumptionDetail && !$.isEmptyObject(vm.curFeedbackPlayer.consumptionDetail)) {
+                    //     vm.playerFeedbackResultExtended = vm.curFeedbackPlayer.consumptionDetail;
+                    //     vm.playerFeedbackResultExtended.manualTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.manualTopUpAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.onlineTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.onlineTopUpAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.weChatTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.weChatTopUpAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.aliPayTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.aliPayTopUpAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.topUpAmount$ = parseFloat(vm.curFeedbackPlayer.topUpSum).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.bonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.bonusAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.rewardAmount$ = parseFloat(vm.playerFeedbackResultExtended.rewardAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.consumptionReturnAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionReturnAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.consumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.validConsumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.validConsumptionAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.curFeedbackPlayer.bonusAmountSum).toFixed(2);
+                    //
+                    //     vm.playerFeedbackResultExtended.playerLevel$ = "";
+                    //     if (vm.playerLvlData && vm.playerFeedbackResultExtended.playerLevel && vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
+                    //         vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
+                    //     }
+                    //     else {
+                    //         vm.playerFeedbackResultExtended.playerLevel$ = "";
+                    //     }
+                    //
+                    //     vm.playerFeedbackResultExtended.credibility$ = "";
+                    //     if (vm.playerFeedbackResultExtended.credibilityRemarks) {
+                    //         for (let i = 0; i < vm.playerFeedbackResultExtended.credibilityRemarks.length; i++) {
+                    //             for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                    //                 if (vm.playerFeedbackResultExtended.credibilityRemarks[i] && vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                    //                     vm.playerFeedbackResultExtended.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    //
+                    //     vm.playerFeedbackResultExtended.providerArr = [];
+                    //     for (var key in vm.playerFeedbackResultExtended.providerDetail) {
+                    //         if (vm.playerFeedbackResultExtended.providerDetail.hasOwnProperty(key)) {
+                    //             vm.playerFeedbackResultExtended.providerDetail[key].providerId = key;
+                    //             vm.playerFeedbackResultExtended.providerArr.push(vm.playerFeedbackResultExtended.providerDetail[key]);
+                    //         }
+                    //     }
+                    //
+                    //     vm.playerFeedbackResultExtended.provider$ = "";
+                    //     if (vm.playerFeedbackResultExtended.providerDetail) {
+                    //         for (let i = 0; i < vm.playerFeedbackResultExtended.providerArr.length; i++) {
+                    //             vm.playerFeedbackResultExtended.providerArr[i].amount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].amount).toFixed(2);
+                    //             vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
+                    //             vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
+                    //             vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                    //             if (vm.allProviders && vm.allProviders.length) {
+                    //                 for (let j = 0; j < vm.allProviders.length; j++) {
+                    //                     if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                    //                         vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
+                    //                         vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                    //                     }
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    //
+                    //     vm.playerFeedbackResultExtended.profit$ = 0;
+                    //     if (vm.playerFeedbackResultExtended.consumptionBonusAmount != 0 && vm.playerFeedbackResultExtended.validConsumptionAmount != 0) {
+                    //         vm.playerFeedbackResultExtended.profit$ = parseFloat((vm.playerFeedbackResultExtended.consumptionBonusAmount / vm.playerFeedbackResultExtended.validConsumptionAmount) * -100).toFixed(2) + "%";
+                    //     }
+                    //
+                    //     vm.playerFeedbackResultExtended.topUpTimes = vm.curFeedbackPlayer.topUpTimes || 0;
+                    //     vm.playerFeedbackResultExtended.bonusTimes = vm.curFeedbackPlayer.withdrawTimes || 0;
+                    //     vm.playerFeedbackResultExtended.consumptionTimes = vm.curFeedbackPlayer.consumptionTimes || 0;
+                    //     extendedResult.push(vm.playerFeedbackResultExtended);
+                    // } //end processing for extended table
                 }
 
-                vm.drawPlayerTable(playerList);
-                vm.drawExtendedFeedbackTable(extendedResult);
+                if (vm.playerFeedbackTable) {
+                    setTableData(vm.playerFeedbackTable, playerList);
+                } else {
+                    vm.drawPlayerTable(playerList);
+                }
+                // vm.drawExtendedFeedbackTable(extendedResult);
 
                 $('#platformFeedbackSpin').hide();
                 if (!vm.curFeedbackPlayer) {
@@ -16513,10 +16609,14 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
-                vm.addFeedback = {
-                    playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-                    platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-                };
+                vm.addFeedback = vm.addFeedback || {};
+                if (vm.curFeedbackPlayer && (!vm.addFeedback.playerId || vm.addFeedback.playerId !== vm.curFeedbackPlayer._id))  {
+                    vm.addFeedback = {
+                        playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
+                        platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
+                    }
+                }
+
                 if (vm.curFeedbackPlayer._id) {
                     vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
                         vm.curPlayerFeedbackDetail = data;
@@ -16934,16 +17034,16 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
-                if (playerTbl) {
-                    playerTbl.clear();
+                if (vm.extendedPlayerTable) {
+                    vm.extendedPlayerTable.clear();
                 }
-                var playerTbl = $('#playerFeedbackDataTableExtended').DataTable(tableOptions);
+                vm.extendedPlayerTable = $('#playerFeedbackDataTableExtended').DataTable(tableOptions);
 
                 $('#playerFeedbackDataTableExtended').resize();
                 $('#playerFeedbackDataTableExtended tbody').off('click', 'td.expandLobby');
                 $('#playerFeedbackDataTableExtended tbody').on('click', 'td.expandLobby', function () {
                     var tr = $(this).closest('tr');
-                    var row = playerTbl.row(tr);
+                    var row = vm.extendedPlayerTable.row(tr);
 
                     if (row.child.isShown()) {
                         // This row is already open - close it
@@ -17349,12 +17449,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         if (vm.playerFeedbackSearchType == "one") {
-                            if (vm.playerFeedbackTable) {
-                                setTableData(vm.playerFeedbackTable, [vm.lastSelectedCallPlayer]);
-                            }
-                            else {
-                                vm.drawPlayerTable([vm.lastSelectedCallPlayer])
-                            }
+                            vm.drawSinglePlayerFeedback({data: {data: vm.lastSelectedCallPlayer}})
                         }
 
                     }
