@@ -49,7 +49,7 @@ var dbPlatformBankCardGroup = {
      */
     getPlatformBankCardGroup: function (platformId) {
         let topUpSystemConfig;
-        let platformName;
+        let curPlatformId;
 
         return dbconfig.collection_platform.findOne({_id:platformId}).lean().then(
             platformData => {
@@ -67,9 +67,9 @@ var dbPlatformBankCardGroup = {
                 }
 
                 topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
-                platformName = platformData && platformData.name ? platformData.name : null;
+                curPlatformId = platformData && platformData.platformId ? platformData.platformId : null;
 
-                return addDefaultBankCardGroup(topUpSystemConfig, platformId, platformName).then(
+                return addDefaultBankCardGroup(topUpSystemConfig, platformId, curPlatformId).then(
                     () => {
                         return dbPlatformBankCardGroup.syncBankCardGroupData(platformData)
                     }
@@ -95,12 +95,12 @@ var dbPlatformBankCardGroup = {
             }
         )
 
-        function addDefaultBankCardGroup(topUpSystemConfig, platformObjId, platformName) {
+        function addDefaultBankCardGroup(topUpSystemConfig, platformObjId, platformId) {
             if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                 return dbconfig.collection_platformBankCardGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
                     pms2BankCardGroupExists => {
-                        if (!pms2BankCardGroupExists && platformName) {
-                            let defaultStr = "PMS2DefaultGroup" + platformName;
+                        if (!pms2BankCardGroupExists && platformId) {
+                            let defaultStr = "PMS2DefaultGroup-" + platformId;
                             let groupData = {
                                 groupId: defaultStr,
                                 name: defaultStr,

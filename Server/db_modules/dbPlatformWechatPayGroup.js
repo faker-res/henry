@@ -56,15 +56,15 @@ let dbPlatformWechatPayGroup = {
      */
     getPlatformWechatPayGroup: function (platformId) {
         let topUpSystemConfig;
-        let platformName;
+        let curPlatformId;
 
         return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1, name: 1}).lean().then(
             platformData => {
                 if (platformData) {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
-                    platformName = platformData && platformData.name ? platformData.name : null;
+                    curPlatformId = platformData && platformData.platformId ? platformData.platformId : null;
 
-                    return addDefaultWechatPayGroup(topUpSystemConfig, platformId, platformName).then(
+                    return addDefaultWechatPayGroup(topUpSystemConfig, platformId, curPlatformId).then(
                         () => {
                             let matchQuery = {
                                 platform: platformId
@@ -564,12 +564,12 @@ let dbPlatformWechatPayGroup = {
     }
 };
 
-function addDefaultWechatPayGroup(topUpSystemConfig, platformObjId, platformName) {
+function addDefaultWechatPayGroup(topUpSystemConfig, platformObjId, platformId) {
     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
         return dbconfig.collection_platformWechatPayGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
             pms2WechatPayGroupExists => {
-                if (!pms2WechatPayGroupExists && platformName) {
-                    let defaultStr = "PMS2DefaultGroup" + platformName;
+                if (!pms2WechatPayGroupExists && platformId) {
+                    let defaultStr = "PMS2DefaultGroup-" + platformId;
                     let groupData = {
                         groupId: defaultStr,
                         name: defaultStr,
