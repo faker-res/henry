@@ -6259,10 +6259,12 @@ var proposal = {
             }
         ).then(
             proposalData => {
+                console.log("LH Check payment monitor total 0----------------------", proposalData.length);
                 return insertRepeatCount(proposalData, data.platformList);
             }
         ).then(
             proposals => {
+                console.log("LH Check payment monitor total 4----------------------", proposals.length);
                 return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
                     platformDetail => {
                         if(platformDetail){
@@ -6297,6 +6299,7 @@ var proposal = {
                             )
                         }
 
+                        console.log("LH Check payment monitor total 5----------------------", filteredProposal);
                         return filteredProposal;
                     }
                 );
@@ -6314,11 +6317,13 @@ var proposal = {
                         }
                     );
 
+                    console.log("LH Check payment monitor total 6----------------------", checkFollowUpProm.length);
                     return Promise.all(checkFollowUpProm);
                 }
             }
         ).then(
             finalResult => {
+                console.log("LH Check payment monitor total 7----------------------", finalResult);
                 return {data: finalResult || []};
             }
         );
