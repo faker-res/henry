@@ -1391,6 +1391,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerObjId);
             socketUtil.emitter(self.socket, dbPlayerInfo.clearPlayerState, [data.playerObjId], actionName, isValidData);
+        },
+
+        getBankZoneData: function getBankZoneData(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getBankZoneData, [data], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

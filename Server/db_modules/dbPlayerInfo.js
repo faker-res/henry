@@ -6557,6 +6557,58 @@ let dbPlayerInfo = {
         }
     },
 
+    getBankZoneData: function (query) {
+        let province1 = null;
+        let province2 = null;
+        let province3 = null;
+        let city1 = null;
+        let city2 = null;
+        let city3 = null;
+        let district1 = null;
+        let district2 = null;
+        let district3 = null;
+
+        let provinceProm1 = query.province1 ? pmsAPI.foundation_getProvince({provinceId: query.province1}) : true;
+        let cityProm1 = query.city1 ? pmsAPI.foundation_getCity({cityId: query.city1}) : true;
+        let districtProm1 = query.district1 ? pmsAPI.foundation_getDistrict({districtId: query.district1}) : true;
+
+        let provinceProm2 = query.province2 ? pmsAPI.foundation_getProvince({provinceId: query.province2}) : true;
+        let cityProm2 = query.city2 ? pmsAPI.foundation_getCity({cityId: query.city2}) : true;
+        let districtProm2 = query.district2 ? pmsAPI.foundation_getDistrict({districtId: query.district2}) : true;
+
+        let provinceProm3 = query.province3 ? pmsAPI.foundation_getProvince({provinceId: query.province3}) : true;
+        let cityProm3 = query.city3 ? pmsAPI.foundation_getCity({cityId: query.city3}) : true;
+        let districtProm3 = query.district3 ? pmsAPI.foundation_getDistrict({districtId: query.district3}) : true;
+
+        return Promise.all([provinceProm1, cityProm1, districtProm1, provinceProm2, cityProm2, districtProm2, provinceProm3, cityProm3, districtProm3]).then(
+            zoneData => {
+                province1 = zoneData[0].province ? zoneData[0].province.name : null;
+                city1 = zoneData[1].city ? zoneData[1].city.name : null;
+                district1 = zoneData[2].district ? zoneData[2].district.name : null;
+
+                province2 = zoneData[3].province ? zoneData[3].province.name : null;
+                city2 = zoneData[4].city ? zoneData[4].city.name : null;
+                district2 = zoneData[5].district ? zoneData[5].district.name : null;
+
+                province3 = zoneData[6].province ? zoneData[6].province.name : null;
+                city3 = zoneData[7].city ? zoneData[7].city.name : null;
+                district3 = zoneData[8].district ? zoneData[8].district.name : null;
+
+                return {
+                    province1: province1,
+                    province2: province2,
+                    province3: province3,
+                    city1: city1,
+                    city2: city2,
+                    city3: city3,
+                    district1: district1,
+                    district2: district2,
+                    district3: district3,
+                }
+            },
+        )
+    },
+    
     getBindBankCardList: function (playerId, platformId) {
         let platformObj;
         let returnData = {};

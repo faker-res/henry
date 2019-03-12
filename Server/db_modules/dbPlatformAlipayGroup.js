@@ -50,13 +50,15 @@ var dbPlatformAlipayGroup = {
      */
     getPlatformAlipayGroup: function (platformId) {
         let topUpSystemConfig;
+        let curPlatformId;
 
-        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1}).lean().then(
+        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1, name: 1}).lean().then(
             platformData => {
                 if (platformData) {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+                    curPlatformId = platformData && platformData.platformId ? platformData.platformId : null;
 
-                    return addDefaultAlipayGroup(topUpSystemConfig, platformId).then(
+                    return addDefaultAlipayGroup(topUpSystemConfig, platformId, curPlatformId).then(
                         () => {
                             let matchQuery = {
                                 platform: platformId
@@ -544,12 +546,12 @@ var dbPlatformAlipayGroup = {
 
 };
 
-function addDefaultAlipayGroup(topUpSystemConfig, platformObjId) {
+function addDefaultAlipayGroup(topUpSystemConfig, platformObjId, platformId) {
     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
         return dbconfig.collection_platformAlipayGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
             pms2AlipayGroupExists => {
-                if (!pms2AlipayGroupExists) {
-                    let defaultStr = "PMS2DefaultGroup";
+                if (!pms2AlipayGroupExists && platformId) {
+                    let defaultStr = "PMS2DefaultGroup-" + platformId;
                     let groupData = {
                         groupId: defaultStr,
                         name: defaultStr,
