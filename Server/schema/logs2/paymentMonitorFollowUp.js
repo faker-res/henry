@@ -28,7 +28,7 @@ var paymentMonitorFollowUpSchema = new Schema({
     amount: {type: Number, required: true, default: 0},
     proposalCreateTime: {type: Date, default: Date.now, index: true},
     createTime: {type: Date, default: Date.now, index: true},
-    lockedAdminId: {type: Schema.Types.ObjectId, ref: 'admin'},
+    lockedAdminId: {type: Schema.Types.ObjectId, ref: 'admin', index: true},
     lockedAdminName: {type: String},
     followUpCompletedTime: {type: Date, default: Date.now},
     followUpContent: {type: String},

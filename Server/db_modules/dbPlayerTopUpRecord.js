@@ -3571,7 +3571,8 @@ var dbPlayerTopUpRecord = {
                                     player.alipayGroup
                                     && player.alipayGroup.alipays
                                     && player.alipayGroup.alipays.length > 0
-                                )
+                                ) ||
+                                (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')
                             )
                         ) {
                             let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
