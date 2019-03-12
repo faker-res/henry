@@ -1972,10 +1972,6 @@ define(['js/app'], function (myApp) {
                 });
         };
 
-        $scope.getAllProvinceList(function () {
-            vm.allProvinceList = $scope.provinceList ? $scope.provinceList : null;
-        });
-
         vm.initSendMultiMessage = function () {
             //vm.getSMSTemplate();
             vm.sendMultiMessage = {
