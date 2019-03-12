@@ -321,6 +321,7 @@ var dbPlatformMerchantGroup = {
 
     syncMerchantGroupData: function (platformObjId) {
         let platformId = null;
+        let platformName;
         let merchantList = [];
         let newMerchants = [];
         let newMerchantNames = [];
@@ -329,6 +330,7 @@ var dbPlatformMerchantGroup = {
             platform => {
                 if (platform) {
                     platformId = platform.platformId;
+                    platformName = platform.name;
 
                     topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
 
@@ -462,8 +464,8 @@ var dbPlatformMerchantGroup = {
                 if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                     return dbconfig.collection_platformMerchantGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
                         pms2MerchantGroupExists => {
-                            if (!pms2MerchantGroupExists) {
-                                let defaultStr = "PMS2DefaultGroup";
+                            if (!pms2MerchantGroupExists && platformName) {
+                                let defaultStr = "PMS2DefaultGroup" + platformName;
                                 let groupData = {
                                     groupId: defaultStr,
                                     name: defaultStr,
