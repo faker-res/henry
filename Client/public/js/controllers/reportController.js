@@ -568,14 +568,16 @@ define(['js/app'], function (myApp) {
                 }
             })
         }
-        vm.filterMerchant = function () {
+        vm.filterMerchant = function (isPaymentMonitorReport) {
+            let tempModal = isPaymentMonitorReport ? vm.paymentMonitorQuery : vm.queryTopup;
+
             vm.merchantCloneList = angular.copy(vm.merchantNoList);
             vm.merchantGroupCloneList = vm.merchantGroupObj;
-            let agent = vm.queryTopup.userAgent;
-            let thirdParty = vm.queryTopup.merchantGroup;
-            let mainTopupType = vm.queryTopup.mainTopupType;
-            let topupType = vm.queryTopup.topupType;
-            let bankTypeId = vm.queryTopup.bankTypeId;
+            let agent = tempModal.userAgent;
+            let thirdParty = tempModal.merchantGroup;
+            let mainTopupType = tempModal.mainTopupType;
+            let topupType = tempModal.topupType;
+            let bankTypeId = tempModal.bankTypeId;
             if (agent && agent.length > 0 && vm.merchantCloneList) {
                 vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     let targetDevices = String(item.targetDevices);
@@ -610,7 +612,7 @@ define(['js/app'], function (myApp) {
             if (thirdParty && thirdParty.length > 0) {
                 let tpGroup = [];
                 thirdParty.forEach(item => {
-                    if (item.list.length > 0) {
+                    if (item && item.list && item.list.length > 0) {
                         item.list.forEach(i => {
                             tpGroup.push(i);
                         })
@@ -3054,7 +3056,7 @@ define(['js/app'], function (myApp) {
 
                 $('#providerConsumptionReportTable').off('order.dt');
                 $('#providerConsumptionReportTable').on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'providerConsumptionQuery', vm.searchWechatControlSession);
+                    vm.commonSortChangeHandler(a, 'providerConsumptionQuery', vm.searchProviderConsumptionReport);
                 });
                 $('#providerConsumptionReportTable').resize();
             }
@@ -9979,6 +9981,274 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.getPlatformByAdminId = function() {
+                if(authService && authService.adminId){
+                    socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
+                        $scope.$evalAsync(() => {
+                            vm.platformByAdminId = data.data;
+                        })
+                    }, function (error){
+                        console.error(error);
+                    });
+                }
+            };
+
+            vm.getPaymentMonitorLockedAdmin = function() {
+                socketService.$socket($scope.AppSocket, 'getPaymentMonitorLockedAdmin', {platform: vm.selectedPlatform._id}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.paymentMonitorLockedAdmin = data.data;
+                    })
+                }, function (error){
+                    console.error(error);
+                });
+            };
+
+            vm.getPaymentMonitorReport = function(newSearch) {
+                $('#paymentMonitorReportTableSpin').show();
+
+                if (vm.paymentMonitorQuery.mainTopupType === '0' || vm.paymentMonitorQuery.mainTopupType === '1' || vm.paymentMonitorQuery.mainTopupType === '3' || vm.paymentMonitorQuery.mainTopupType === '4' || vm.paymentMonitorQuery.mainTopupType === '5') {
+                    vm.paymentMonitorTotalQuery.topupType = '';
+                    vm.paymentMonitorTotalQuery.merchantGroup = '';
+                    vm.paymentMonitorTotalQuery.merchantNo = '';
+                }
+
+                let sendObj = {
+                    playerName: vm.paymentMonitorQuery.playerName,
+                    proposalNo: vm.paymentMonitorQuery.proposalID,
+                    mainTopupType: vm.paymentMonitorQuery.mainTopupType,
+                    userAgent: vm.paymentMonitorQuery.userAgent,
+                    topupType: vm.paymentMonitorQuery.topupType,
+                    merchantGroup: angular.fromJson(angular.toJson(vm.paymentMonitorQuery.merchantGroup)),
+                    depositMethod: vm.paymentMonitorQuery.depositMethod,
+                    bankTypeId: vm.paymentMonitorQuery.bankTypeId,
+                    merchantNo: vm.paymentMonitorQuery.merchantNo,
+                    startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
+                    platformList: vm.paymentMonitorQuery.platformList,
+                    currentPlatformId: vm.selectedPlatform._id,
+                    index: newSearch ? 0 : (vm.paymentMonitorQuery.index || 0),
+                    limit: vm.paymentMonitorQuery.limit || 10,
+                    sortCol: vm.paymentMonitorQuery.sortCol || {createTime: -1}
+                };
+
+                vm.paymentMonitorQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo : null;
+                if(vm.paymentMonitorQuery.merchantNo && vm.paymentMonitorQuery.merchantNo.length == 1 && vm.paymentMonitorQuery.merchantNo.indexOf('MMM4-line2') != -1){
+                    sendObj.line = '2';
+                    vm.paymentMonitorQuery.line = '2';
+                    sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo.filter(merchantData=>{
+                        return merchantData != 'MMM4-line2';
+                    })
+                }else{
+                    vm.paymentMonitorQuery.line = null;
+                }
+
+                console.log('sendObj', sendObj);
+
+                vm.reportSearchTimeStart = new Date().getTime();
+                socketService.$socket($scope.AppSocket, 'getPaymentMonitorReport', sendObj, function (data) {
+                    $('#paymentMonitorReportTableSpin').hide();
+                    findReportSearchTime();
+                    console.log('getPaymentMonitorReport', data);
+                    vm.paymentMonitorQuery.totalCount = data.data.size || 0;
+                    vm.drawPaymentMonitorReport(data.data.data.filter(item => {
+                        if(item){
+                            if (item.type.name === 'PlayerTopUp') {
+                                //show detail topup type info for online topup.
+                                let typeID = item.topUpType || item.topupType;
+                                item.topupTypeStr = typeID
+                                    ? $translate(vm.topUpTypeList[typeID])
+                                    : $translate("Unknown");
+                                let merchantNo = '';
+                                if(item.merchantNo){
+                                    merchantNo = item.merchantNo;
+                                }
+                                item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                            } else {
+                                //show topup type for other types
+                                item.topupTypeStr = $translate(item.type.name);
+                            }
+
+                            item.merchantCount$ = item.merchantCurrentCount + "/" + item.merchantTotalCount + " (" + item.merchantGapTime + ")";
+                            item.playerCount$ = item.playerCurrentCount + "/" + item.playerTotalCount + " (" + item.playerGapTime + ")";
+                            item.status$ = $translate(item.status);
+                            item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.proposalCreateTime));
+                            return item;
+                        }
+                    }), {}, newSearch);
+
+                    $scope.$evalAsync();
+                }, function (err) {
+                    $('#paymentMonitorReportTableSpin').hide();
+                    console.log(err);
+                }, true);
+            };
+
+            vm.drawPaymentMonitorReport = function (data, summary, newSearch) {
+                console.log('data', data);
+                let tableOptions = {
+                    data: data,
+                    "order": vm.paymentMonitorQuery.aaSorting || [[14, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            "title": $translate('Website'),
+                            data: "website",
+                        },
+                        {
+                            "title": $translate('proposalId'),
+                            data: "proposalId",
+                            render: function (data, type, row) {
+                                return '<a ng-click="vm.showProposalModal2(\'' + data + '\')">' + data + '</a>';
+                            }
+                        },
+                        {
+                            "title": $translate('topupType'), "data": "type",
+                            render: function (data, type, row) {
+                                var text = $translate(row.type ? row.type.name : "");
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            title: $translate('DEVICE'), data: "userAgent",
+                            render: function (data, type, row) {
+                                var text = $translate(data ? $scope.userAgentType[data] : "");
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            "title": $translate('Online Topup Type'), "data": 'topupType',
+                            render: function (data, type, row) {
+                                var text = $translate(data ? $scope.merchantTopupTypeJson[data] : "");
+                                return "<div>" + text + "</div>";
+                            },
+                            sClass: 'merchantCount'
+                        },
+                        {title: $translate('3rd Party Platform'), data: "merchantName", sClass: 'merchantCount'},
+                        {
+                            "title": $translate('DEPOSIT_METHOD'), "data": 'depositMethod',
+                            render: function (data, type, row) {
+                                var text = $translate(data ? vm.getDepositMethodbyId[data] : "");
+                                return "<div>" + text + "</div>";
+                            },
+                            sClass: 'merchantCount'
+                        },
+                        {
+                            title: $translate('From Bank Type'), data: "bankTypeId",
+                            render: function (data, type, row) {
+                                if (data) {
+                                    var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data] : "");
+                                    return "<div>" + text + "</div>";
+                                } else {
+                                    return "<div>" + '' + "</div>";
+                                }
+                            },
+                            sClass: 'merchantCount'
+                        },
+                        {
+                            title: $translate('Business Acc/ Bank Acc'),
+                            data: "merchantNo$",
+                            render: function (data, type, row) {
+                                var text = data;
+                                let additional = '';
+                                if( row.line && row.line == '2'){
+                                    additional = '(MMM)';
+                                }
+                                return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + additional + '</div>'
+                            },
+                            sClass: 'merchantCount',
+                            "width": "90px"},
+                        {title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
+                        {title: $translate('STATUS'), data: "status$"},
+                        {title: $translate('PLAYER_NAME'), data: "playerObjId.name", sClass: "playerCount"},
+                        {title: $translate('Real Name'), data: "playerObjId.realName", sClass: "sumText playerCount"},
+                        {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount"},
+                        {title: $translate('TopUp Amount'), data: "amount", sClass: "sumFloat alignRight playerCount"},
+
+                        {title: $translate('START_TIME'), data: "startTime$"},
+                        {
+                            title: $translate('Admin_Locked'),
+                            data: "lockedButtonDisplay",
+                            render: function (data, type, row) {
+                                if(row.lockedAdminId && row.followUpContent && row.followUpCompletedTime){
+                                    let completedDate = utilService.$getTimeFromStdTimeFormat(new Date(row.followUpCompletedTime));
+                                    return row.lockedAdminName + " " + $translate("follow up completed") + "<br> (" + completedDate + ")";
+                                }else{
+                                    return "";
+                                }
+                            }
+                        },
+                        {
+                            title: $translate('Followup_Content'),
+                            data: "remark$",
+                            "width": "200px",
+                            render: function(data, type, row){
+                                if(row.lockedAdminId && row.followUpContent){
+                                    return row.followUpContent;
+                                }else{
+                                    return '-';
+                                }
+                            }
+                        },
+                        {title: $translate('Total Success Topup'), data: "totalSuccess"},
+                    ],
+                    "autoWidth": true,
+                    "paging": false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        if (aData.merchantTotalCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
+                            $(nRow).addClass('merchantExceed');
+                            if (vm.selectedPlatform.monitorMerchantUseSound) {
+                                checkMerchantNotificationAlert(aData);
+                            }
+                            if (!vm.lastMerchantExceedId || vm.lastMerchantExceedId < aData._id) {
+                                vm.lastMerchantExceedId = aData._id;
+                            }
+                        }
+
+                        if (aData.playerTotalCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
+                            $(nRow).addClass('playerExceed');
+                            if (vm.selectedPlatform.monitorPlayerUseSound) {
+                                checkPlayerNotificationAlert(aData);
+                            }
+                            if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
+                                vm.lastPlayerExceedId = aData._id;
+                            }
+                        }
+                    },
+                    createdRow: function (row, data, dataIndex) {
+                        $compile(angular.element(row).contents())($scope)
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                utilService.createDatatableWithFooter('#paymentMonitorReportTable', tableOptions, {});
+                vm.paymentMonitorQuery.pageObj.init({maxCount: size}, newSearch);
+                $('#paymentMonitorReportTable').off('order.dt');
+                $('#paymentMonitorReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'paymentMonitorQuery', vm.getPaymentMonitorReport);
+                });
+                $('#paymentMonitorReportTable').resize();
+            };
+
+            function checkPlayerNotificationAlert(aData) {
+                if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
+                    let soundUrl = "sound/notification/" + vm.selectedPlatform.monitorPlayerSoundChoice;
+                    let sound = new Audio(soundUrl);
+                    sound.play();
+                }
+            };
+
+            function checkMerchantNotificationAlert(aData) {
+                if (!vm.lastMerchantExceedId || vm.lastMerchantExceedId < aData._id) {
+                    let soundUrl = "sound/notification/" + vm.selectedPlatform.monitorMerchantSoundChoice;
+                    let sound = new Audio(soundUrl);
+                    sound.play();
+                }
+            }
+
             function createMerGroupList(nameObj, listObj) {
                 if (!nameObj || !listObj) return [];
                 let obj = [];
@@ -10261,6 +10531,19 @@ define(['js/app'], function (myApp) {
                     vm.commonInitTime(vm.providerConsumptionQuery, '#providerConsumptionQuery');
                     vm.providerConsumptionQuery.pageObj = utilService.createPageForPagingTable("#providerConsumptionReportTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "providerConsumptionQuery", vm.searchProviderConsumptionReport)
+                    });
+                });
+                $scope.$evalAsync();
+            } else if (choice == "PAYMENT_MONITOR_REPORT") {
+                vm.paymentMonitorQuery = {};
+                vm.reportSearchTime = 0;
+                vm.getPlatformByAdminId();
+                vm.getPaymentMonitorLockedAdmin();
+
+                utilService.actionAfterLoaded("#paymentMonitorReportTablePage", function () {
+                    vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
+                    vm.paymentMonitorQuery.pageObj = utilService.createPageForPagingTable("#paymentMonitorReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorQuery", vm.getPaymentMonitorReport)
                     });
                 });
                 $scope.$evalAsync();
