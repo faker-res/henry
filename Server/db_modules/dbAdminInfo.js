@@ -643,6 +643,22 @@ var dbAdminInfo = {
             }
         });
         return deferred.promise;
+    },
+
+    getPaymentMonitorLockedAdmin: function(platformObjId) {
+        return dbconfig.collection_paymentMonitorFollowUp.distinct('lockedAdminId', {
+            platformObjId: platformObjId
+        }).lean().then(
+            data => {
+                if (data && data.length > 0) {
+                    let adminIds = data.map(id => ObjectId(id));
+
+                    return dbconfig.collection_admin.find({_id: {$in: adminIds}}, {_id:1, adminName: 1}).lean();
+                }
+
+                return data;
+            }
+        )
     }
 
 };

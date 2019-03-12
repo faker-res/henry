@@ -1779,5 +1779,8 @@
   "SUBMIT_TO_APPROVED": "（SUBMIT ～ APPROVED）",
   "APPROVED_TO_SUCCESS": "（APPROVED ～ SUCCESS）",
   "SUBMIT_TO_SUCCESS": "（SUBMIT ～ SUCCESS）",
-  "topUpSystemName": "Financial（Settlement）System"
+  "topUpSystemName": "Financial（Settlement）System",
+  "PAYMENT_MONITOR_REPORT": "Payment Monitor Report",
+  "LOCKED_ADMIN": "Locked Admin",
+  "WEBSITE_MULTI_SELECTION": "Website（Multiple Selection）"
 }
