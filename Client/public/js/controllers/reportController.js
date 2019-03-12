@@ -4750,6 +4750,64 @@ define(['js/app'], function (myApp) {
 
         };
 
+        vm.exportProposalReportToCSV = function (reportData, reportTitle, showLabel){
+            let reportDataToExport = [];
+            if(reportData && reportData.length){
+                reportData.forEach(
+                    data => {
+                        let reportObj = {};
+
+                        if(data){
+                            let inputDevice;
+                            let proposalSubType;
+                            let involvedAcc = "";
+
+                            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
+                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data.inputDevice) {
+                                    inputDevice = $translate(Object.keys(vm.inputDevice)[i]);
+                                }
+                            }
+
+                            if (data && data.data && data.data.PROMO_CODE_TYPE) {
+                                proposalSubType = data.data.PROMO_CODE_TYPE;
+                            } else if (data && data.data && data.data.eventName) {
+                                proposalSubType = data.data.eventName;
+                            } else {
+                                proposalSubType = data.typeName;
+                            }
+
+
+                            if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                involvedAcc = data.creator.name;
+                            }
+                            if (data && data.data && data.data.playerName) {
+                                involvedAcc = data.data.playerName;
+                            }
+                            else if (data && data.data && data.data.partnerName) {
+                                involvedAcc = data.data.partnerName;
+                            }
+
+                            reportObj[$translate("PROPOSAL ID")] = data.proposalId;
+                            reportObj[$translate("CREATOR")] = data.creator && data.creator.name || "";
+                            reportObj[$translate("INPUT_DEVICE")] = inputDevice;
+                            reportObj[$translate("PROPOSAL TYPE")] = data.mainType$;
+                            reportObj[$translate("PROPOSAL_SUB_TYPE")] = proposalSubType;
+                            reportObj[$translate("Proposal Status")] = data.status$;
+                            reportObj[$translate("INVOLVED_ACC")] = involvedAcc;
+                            reportObj[$translate("Amount Involved")] = data.involveAmount$;
+                            reportObj[$translate("START_TIME")] = data.createTime$;
+                            reportObj[$translate("Player Level")] = data.data.proposalPlayerLevel;
+                            reportObj[$translate("REMARKS")] = data.remark$ || "";
+
+                            reportDataToExport.push(reportObj);
+                        }
+                    }
+                )
+            }
+
+            vm.exportJsonToCSV(reportDataToExport, reportTitle, true);
+        };
+
         ///////////////// START player deposit analysis report /////////////////////////////
         vm.searchPlayerDepositAnalysisReport = function (newSearch) {
             vm.reportSearchTimeStart = new Date().getTime();
@@ -6476,7 +6534,8 @@ define(['js/app'], function (myApp) {
             if(isExport){
                 var proposalTbl = utilService.createDatatableWithFooter('#proposalExcelTable', tableOptions, {7: summary.amount});
                 $('#proposalExcelTable_wrapper').hide();
-                vm.exportToExcel("proposalExcelTable", "PROPOSAL_REPORT");
+                //vm.exportToExcel("proposalExcelTable", "PROPOSAL_REPORT");
+                vm.exportProposalReportToCSV(data, 'PROPOSAL_REPORT',true)
             }else{
                 var proposalTbl = utilService.createDatatableWithFooter('#proposalTable', tableOptions, {7: summary.amount});
 
@@ -9049,6 +9108,60 @@ define(['js/app'], function (myApp) {
             function sortByDepositId (a, b) {
                 return a.depositId - b.depositId
             }
+
+            vm.exportJsonToCSV = function(JSONData, FileTitle, ShowLabel){
+                //If JSONData is not an object then JSON.parse will parse the JSON string in an Object
+                var arrData = typeof JSONData != 'object' ? JSON.parse(JSONData) : JSONData;
+                var CSV = '';
+                //This condition will generate the Label/Header
+                if (ShowLabel) {
+                    var row = "";
+                    //This loop will extract the label from 1st index of on array
+                    for (var index in arrData[0]) {
+                        //Now convert each value to string and comma-seprated
+                        row += index + ',';
+                    }
+                    row = row.slice(0, -1);
+                    //append Label row with line break
+                    CSV += row + '\r\n';
+                }
+                //1st loop is to extract each row
+                for (var i = 0; i < arrData.length; i++) {
+                    var row = "";
+                    //2nd loop will extract each column and convert it in string comma-seprated
+                    for (var index in arrData[i]) {
+                        row += '"' + arrData[i][index] + '",';
+                    }
+                    row.slice(0, row.length - 1);
+                    //add a line break after each row
+                    CSV += row + '\r\n';
+                }
+                if (CSV == '') {
+                    alert("Invalid data");
+                    return;
+                }
+                //Generate a file name
+                var filename = FileTitle + (new Date());
+                var blob = new Blob([CSV], {
+                    type: 'text/csv;charset=utf-8;'
+                });
+                if (navigator.msSaveBlob) { // IE 10+
+                    navigator.msSaveBlob(blob, filename);
+                } else {
+                    var link = document.createElement("a");
+                    if (link.download !== undefined) { // feature detection
+                        // Browsers that support HTML5 download attribute
+                        var url = URL.createObjectURL(blob);
+                        link.setAttribute("href", url);
+                        link.style = "visibility:hidden";
+                        link.download = FileTitle ? $translate(FileTitle) + ".csv" : "FPMS_Report.csv";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                }
+            };
+
             // generate a download for xls
             vm.exportToExcel = function(tableId, reportName) {
                 let tab = "";
