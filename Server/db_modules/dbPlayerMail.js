@@ -831,12 +831,6 @@ const dbPlayerMail = {
 
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
                         isSpam = true;
-                        if (purpose === constSMSPurpose.NEW_PHONE_NUMBER) {
-                            return Promise.reject({
-                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                message: "New phone number is already used. Please insert other phone number."
-                            });
-                        }
 
                         return Promise.reject({
                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,

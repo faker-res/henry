@@ -8886,7 +8886,7 @@ let dbPlayerInfo = {
     },
 
     isExceedPhoneNumberValidToRegister: function (query, count) {
-        return dbconfig.collection_players.findOne(query).count().then(
+        return dbconfig.collection_players.find(query).count().then(
             playerDataCount => {
                 if (playerDataCount >= count) {
                     return {isPhoneNumberValid: false};
@@ -23871,7 +23871,7 @@ let dbPlayerInfo = {
     },
 
     setPhoneNumber: (playerId, phoneNumber, smsCode) => {
-        let player, platform;
+        let player, platform, encryptedPhoneNumber;
         return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
             playerData => {
                 player = playerData;
@@ -23890,7 +23890,29 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                let encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+                encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+
+                let query = {
+                    phoneNumber: {$in: [encryptedPhoneNumber, rsaCrypto.oldEncrypt(phoneNumber.toString())]},
+                    platform: platform._id,
+                    isRealPlayer: true,
+                    'permission.forbidPlayerFromLogin': false
+                };
+
+                if (platform.allowSamePhoneNumberToRegister) {
+                    return dbPlayerInfo.isExceedPhoneNumberValidToRegister(query, platform.samePhoneNumberRegisterCount);
+                } else {
+                    return dbPlayerInfo.isPhoneNumberValidToRegister(query);
+                }
+            }
+        ).then(
+            ({isPhoneNumberValid}) => {
+                if (!isPhoneNumberValid) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        message: "This phone number is already used. Please insert other phone number."
+                    });
+                }
 
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: player._id}, {phoneNumber: encryptedPhoneNumber}, constShardKeys.collection_players);
             }
