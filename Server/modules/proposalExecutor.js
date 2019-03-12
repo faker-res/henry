@@ -523,7 +523,7 @@ var proposalExecutor = {
                     ).then(
                         newPlayer => {
                             //make sure credit can not be negative number
-                            if (newPlayer.validCredit < 0) {
+                            if (newPlayer.validCredit < 0 || newPlayer.validCredit < Number.EPSILON) {
                                 newPlayer.validCredit = 0;
                                 return newPlayer.save();
                             }
@@ -532,9 +532,6 @@ var proposalExecutor = {
                         }
                     ).then(
                         player => {
-                            // DEBUG EXECUTED HALF WAY
-                            console.log('executeUpdatePlayerCredit2 player', player, proposalData);
-
                             if (!player) {
                                 return Promise.reject({
                                     name: "DataError",
