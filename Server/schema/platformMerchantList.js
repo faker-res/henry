@@ -4,7 +4,7 @@ var Schema = mongoose.Schema;
 var platformMerchantListSchema = new Schema({
     merchantNo: {type: String, required: true, index: true},
     name: {type: String, required: true},
-    topupType: {type: String},
+    topupType: {type: String, index: true},
     targetDevices: {type: String},
     merchantUse: {type: String},
     merchantTypeId: {type: String},
@@ -15,7 +15,7 @@ var platformMerchantListSchema = new Schema({
     permerchantminLimits: {type: Number},
     status: {type: String},
     rate: {type: Number},
-    customizeRate: {type: Number},
+    customizeRate: {type: Number, index: true},
     //if it is pms2
     isPMS2: {type: Boolean, index: true}
 });
