@@ -5349,5 +5349,8 @@
   "Contact Customer": "联系客户",
   "setPhoneNumber": "绑定手机号",
   "Fail Counter": "失败计数",
-  "Total Success Topup": "成功存款笔数"
+  "Total Success Topup": "成功存款笔数",
+  "PAYMENT_MONITOR_REPORT": "支付监控报表",
+  "LOCKED_ADMIN": "锁定客服",
+  "WEBSITE_MULTI_SELECTION": "网站（复选）"
 }

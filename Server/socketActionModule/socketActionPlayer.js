@@ -849,7 +849,7 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.code && data.data);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerInfo.applyRewardEvent, [userAgent, data.playerId, data.code, data.data, getAdminId(), getAdminName(), data.platform], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.applyRewardEvent, [userAgent, data.playerId, data.code, data.data, getAdminId(), getAdminName()], actionName, isValidData);
         },
 
         getPlayerTransferErrorLogs: function getPlayerTransferErrorLogs(data) {
@@ -1391,6 +1391,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerObjId);
             socketUtil.emitter(self.socket, dbPlayerInfo.clearPlayerState, [data.playerObjId], actionName, isValidData);
+        },
+
+        getBankZoneData: function getBankZoneData(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getBankZoneData, [data], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

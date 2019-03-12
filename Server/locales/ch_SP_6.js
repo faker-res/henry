@@ -503,6 +503,7 @@ var simplifiedChinese = {
     "Insufficient amount to transfer out": "无可用额度，请充值后进入游戏",
     "Invalid proposal status": "提案状态无效",
     "Player need to have phone number to apply this reward": "玩家需要有电话号码才能申请此优惠",
+    "Phone number already set": "电话号码已设置",
 
     //todo::add missing messages here
 

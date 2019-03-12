@@ -37462,8 +37462,23 @@ define(['js/app'], function (myApp) {
                     }
                 });
                 return auctionItems;
-            }
+            };
             /***** Auction System - end *****/
+
+            vm.getQueryCreditTimeOutRecords = (platformId, providerId, startTime, endTime) => {
+                let sendQuery = {
+                    startTime: startTime,
+                    endTime: endTime,
+                    platformId: platformId,
+                    providerId: providerId,
+                };
+                console.log("getQueryCreditTimeOutRecords sendQuery", sendQuery);
+                socketService.$socket($scope.AppSocket, 'getQueryCreditTimeOutRecords', sendQuery, function (data) {
+                    console.log("getQueryCreditTimeOutRecords ret", data);
+                }, function (err) {
+                    console.log("getQueryCreditTimeOutRecords err", err);
+                });
+            };
 
             vm.changeFrameHeight = function() {
                 let ifm = document.getElementById("configIframe");

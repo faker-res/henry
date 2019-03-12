@@ -49,6 +49,7 @@ var dbPlatformBankCardGroup = {
      */
     getPlatformBankCardGroup: function (platformId) {
         let topUpSystemConfig;
+        let curPlatformId;
 
         return dbconfig.collection_platform.findOne({_id:platformId}).lean().then(
             platformData => {
@@ -66,8 +67,9 @@ var dbPlatformBankCardGroup = {
                 }
 
                 topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+                curPlatformId = platformData && platformData.platformId ? platformData.platformId : null;
 
-                return addDefaultBankCardGroup(topUpSystemConfig, platformId).then(
+                return addDefaultBankCardGroup(topUpSystemConfig, platformId, curPlatformId).then(
                     () => {
                         return dbPlatformBankCardGroup.syncBankCardGroupData(platformData)
                     }
@@ -93,12 +95,12 @@ var dbPlatformBankCardGroup = {
             }
         )
 
-        function addDefaultBankCardGroup(topUpSystemConfig, platformObjId) {
+        function addDefaultBankCardGroup(topUpSystemConfig, platformObjId, platformId) {
             if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                 return dbconfig.collection_platformBankCardGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
                     pms2BankCardGroupExists => {
-                        if (!pms2BankCardGroupExists) {
-                            let defaultStr = "PMS2DefaultGroup";
+                        if (!pms2BankCardGroupExists && platformId) {
+                            let defaultStr = "PMS2DefaultGroup-" + platformId;
                             let groupData = {
                                 groupId: defaultStr,
                                 name: defaultStr,

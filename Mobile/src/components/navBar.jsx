@@ -12,7 +12,10 @@ class NavBar extends Component{
     state = {
         path: 'navbar',
         isOpen: false,
-        logoutNav: false
+        logoutNav: false,
+        selectedServer: localStorageService.get("socketUrl"),
+        platforms: localStorageService.get("platforms"),
+        selectedPlatform: localStorageService.get("selectedPlatform"),
     }
 
     openNav () {
@@ -38,7 +41,6 @@ class NavBar extends Component{
         console.log('logoutNav', this.state.logoutNav);
 
     }
-
     handleOutsideClick = (e) => {
         if (this.node && this.node.contains(e.target)) {
             return;
@@ -47,10 +49,34 @@ class NavBar extends Component{
         this.handleClick();
     }
 
-    // toggleNav () {
-    //     const b = document.getElementById("Nav");
-    //     b.classList.toggle("show");
-    // }
+    handleChange = (ev, key) => {
+        console.log("***change happened , triggered***");
+        let setObject = {};
+        setObject[key] = ev.currentTarget.value;
+        this.setState(setObject);
+    }
+    handlePropsUpdate = (obj) => {
+        console.log("***handlePropsUpdate , triggered***");
+        this.setState(obj);
+    }
+
+    populatePlatforms = ()=>{
+        let platforms = this.state.platforms;
+        let list = []
+        platforms.sort((current, next)=>{
+            let curId = parseInt(current.platformId);
+            let nextId = parseInt(next.platformId);
+            if(!isNaN(curId) && !isNaN(nextId)) {
+                return curId - nextId;
+            } else {
+                return 1;
+            }
+        })
+        platforms.forEach(platform => {
+            list.push(<option key={platform.name} value={platform._id}> {`${platform.platformId}.  ${platform.name}`}</option>)
+        })
+        return list;
+    }
     
     logout() {
         authService.logout();
@@ -59,21 +85,10 @@ class NavBar extends Component{
     }
 
     render(){
-        // window.onclick = function(event) {
-        //     if (!event.target.matches('.dropbtn') && !event.target.matches('.dropbtn path')) {
-        //         var dropdowns = document.getElementsByClassName("dropdown");
-        //         for (var i = 0; i < dropdowns.length; i++) {
-        //             if (dropdowns[i].classList.contains('show')) {
-        //                 dropdowns[i].classList.remove('show');
-        //             }
-        //         }
-        //     }
-        // }
         return (
             <div>
                 <nav className="nav-bar" ref={node => { this.node = node; }} >
                     <FontAwesomeIcon icon="bars" size="2x" onClick={this.openNav}/>
-                    {/*<FontAwesomeIcon className="dropbtn float-right" icon="user-circle" size="2x" onClick={this.toggleNav} />*/}
                     <FontAwesomeIcon className="float-right" icon="user-circle" size="2x" onClick={this.handleClick}/>
 
                     {this.state.logoutNav && (
@@ -92,14 +107,11 @@ class NavBar extends Component{
 
                     <div className="overlay-header">
                         <div className="form-group">
-                            <select className="form-control">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
+                            <select className="form-control" value={this.state.selectedPlatform._id} >
+                                {this.populatePlatforms()}
                             </select>
                         </div>
-                        <SelectServer path={this.state.path} />
+                        <SelectServer path={this.state.path} selectedServer={this.state.selectedServer} updateProps={this.handlePropsUpdate} updatePropsWithEvent={this.handleChange} />
                     </div>
 
                     <div className="overlay-content">

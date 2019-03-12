@@ -6259,10 +6259,12 @@ var proposal = {
             }
         ).then(
             proposalData => {
+                console.log("LH Check payment monitor total 0----------------------", proposalData.length);
                 return insertRepeatCount(proposalData, data.platformList);
             }
         ).then(
             proposals => {
+                console.log("LH Check payment monitor total 4----------------------", proposals.length);
                 return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
                     platformDetail => {
                         if(platformDetail){
@@ -6297,6 +6299,7 @@ var proposal = {
                             )
                         }
 
+                        console.log("LH Check payment monitor total 5----------------------", filteredProposal);
                         return filteredProposal;
                     }
                 );
@@ -6314,11 +6317,13 @@ var proposal = {
                         }
                     );
 
+                    console.log("LH Check payment monitor total 6----------------------", checkFollowUpProm.length);
                     return Promise.all(checkFollowUpProm);
                 }
             }
         ).then(
             finalResult => {
+                console.log("LH Check payment monitor total 7----------------------", finalResult);
                 return {data: finalResult || []};
             }
         );
@@ -8418,8 +8423,12 @@ function insertRepeatCount(proposals, platformList) {
             let bankCardNoRegExp;
 
             if (proposal.data.bankCardNo) {
+                console.log("LH Check payment monitor total 1----------------------", proposal.data.bankCardNo);
                 let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
                 let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+
+                console.log("LH Check payment monitor total 2----------------------", bankCardNoRegExpA);
+                console.log("LH Check payment monitor total 3----------------------", bankCardNoRegExpB);
                 bankCardNoRegExp = [
                     {"data.bankCardNo": bankCardNoRegExpA},
                     {"data.bankCardNo": bankCardNoRegExpB}

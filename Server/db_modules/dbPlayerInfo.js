@@ -6557,6 +6557,191 @@ let dbPlayerInfo = {
         }
     },
 
+    getBankZoneData: function (query) {
+        let province1 = null;
+        let province2 = null;
+        let province3 = null;
+        let city1 = null;
+        let city2 = null;
+        let city3 = null;
+        let district1 = null;
+        let district2 = null;
+        let district3 = null;
+
+        let provinceProm1 = query.province1 ? pmsAPI.foundation_getProvince({provinceId: query.province1}) : true;
+        let cityProm1 = query.city1 ? pmsAPI.foundation_getCity({cityId: query.city1}) : true;
+        let districtProm1 = query.district1 ? pmsAPI.foundation_getDistrict({districtId: query.district1}) : true;
+
+        let provinceProm2 = query.province2 ? pmsAPI.foundation_getProvince({provinceId: query.province2}) : true;
+        let cityProm2 = query.city2 ? pmsAPI.foundation_getCity({cityId: query.city2}) : true;
+        let districtProm2 = query.district2 ? pmsAPI.foundation_getDistrict({districtId: query.district2}) : true;
+
+        let provinceProm3 = query.province3 ? pmsAPI.foundation_getProvince({provinceId: query.province3}) : true;
+        let cityProm3 = query.city3 ? pmsAPI.foundation_getCity({cityId: query.city3}) : true;
+        let districtProm3 = query.district3 ? pmsAPI.foundation_getDistrict({districtId: query.district3}) : true;
+
+        return Promise.all([provinceProm1, cityProm1, districtProm1, provinceProm2, cityProm2, districtProm2, provinceProm3, cityProm3, districtProm3]).then(
+            zoneData => {
+                province1 = zoneData[0].province ? zoneData[0].province.name : null;
+                city1 = zoneData[1].city ? zoneData[1].city.name : null;
+                district1 = zoneData[2].district ? zoneData[2].district.name : null;
+
+                province2 = zoneData[3].province ? zoneData[3].province.name : null;
+                city2 = zoneData[4].city ? zoneData[4].city.name : null;
+                district2 = zoneData[5].district ? zoneData[5].district.name : null;
+
+                province3 = zoneData[6].province ? zoneData[6].province.name : null;
+                city3 = zoneData[7].city ? zoneData[7].city.name : null;
+                district3 = zoneData[8].district ? zoneData[8].district.name : null;
+
+                return {
+                    province1: province1,
+                    province2: province2,
+                    province3: province3,
+                    city1: city1,
+                    city2: city2,
+                    city3: city3,
+                    district1: district1,
+                    district2: district2,
+                    district3: district3,
+                }
+            },
+        )
+    },
+    
+    getBindBankCardList: function (playerId, platformId) {
+        let platformObj;
+        let returnData = {};
+        let listData = [];
+        let bank1 = {};
+        let bank2 = {};
+        let bank3 = {};
+        let allBankTypeList = {};
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                platformObj = platformData;
+
+                return dbconfig.collection_players.findOne({
+                    platform: platformObj._id,
+                    playerId: playerId
+                }).populate({
+                    path: "multipleBankDetailInfo",
+                    model: dbconfig.collection_playerMultipleBankDetailInfo
+                }).lean();
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DBError", message: "Cannot find player"})
+                }
+                if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccount) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                        name: "DataError",
+                        errorMessage: "Player does not have valid payment information"
+                    });
+                }
+                bank1.id = '1';
+                bank1.isDefault = true;
+                bank1.bankName = playerData.bankName || null;
+                bank1.bankAccount = playerData.bankAccount || null;
+                bank1.bankAccountName = playerData.bankAccountName || null;
+                bank1.bankAccountProvince = playerData.bankAccountProvince || null;
+                bank1.bankAccountCity = playerData.bankAccountCity || null;
+                bank1.bankAccountDistrict = playerData.bankAccountDistrict || null;
+                bank1.bankAddress = playerData.bankAddress || null;
+
+                if (playerData.multipleBankDetailInfo) {
+                    bank2.id = '2';
+                    bank2.isDefault = false;
+                    bank2.bankName = playerData.multipleBankDetailInfo.bankName2 || null;
+                    bank2.bankAccount = playerData.multipleBankDetailInfo.bankAccount2 || null;
+                    bank2.bankAccountName = playerData.multipleBankDetailInfo.bankAccountName2 || null;
+                    bank2.bankAccountProvince = playerData.multipleBankDetailInfo.bankAccountProvince2 || null;
+                    bank2.bankAccountCity = playerData.multipleBankDetailInfo.bankAccountCity2 || null;
+                    bank2.bankAccountDistrict = playerData.multipleBankDetailInfo.bankAccountDistrict2 || null;
+                    bank2.bankAddress = playerData.multipleBankDetailInfo.bankAddress2 || null;
+
+                    bank3.id = '3';
+                    bank3.isDefault = false;
+                    bank3.bankName = playerData.multipleBankDetailInfo.bankName3 || null;
+                    bank3.bankAccount = playerData.multipleBankDetailInfo.bankAccount3 || null;
+                    bank3.bankAccountName = playerData.multipleBankDetailInfo.bankAccountName3 || null;
+                    bank3.bankAccountProvince = playerData.multipleBankDetailInfo.bankAccountProvince3 || null;
+                    bank3.bankAccountCity = playerData.multipleBankDetailInfo.bankAccountCity3 || null;
+                    bank3.bankAccountDistrict = playerData.multipleBankDetailInfo.bankAccountDistrict3 || null;
+                    bank3.bankAddress = playerData.multipleBankDetailInfo.bankAddress3 || null;
+                }
+
+                let provinceProm1 = bank1.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank1.bankAccountProvince}) : true;
+                let cityProm1 = bank1.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank1.bankAccountCity}) : true;
+                let districtProm1 = bank1.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank1.bankAccountDistrict}) : true;
+
+                let provinceProm2 = bank2.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank2.bankAccountProvince}) : true;
+                let cityProm2 = bank2.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank2.bankAccountCity}) : true;
+                let districtProm2 = bank2.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank2.bankAccountDistrict}) : true;
+
+                let provinceProm3 = bank3.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank3.bankAccountProvince}) : true;
+                let cityProm3 = bank3.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank3.bankAccountCity}) : true;
+                let districtProm3 = bank3.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank3.bankAccountDistrict}) : true;
+
+                return Promise.all([provinceProm1, cityProm1, districtProm1, provinceProm2, cityProm2, districtProm2, provinceProm3, cityProm3, districtProm3])
+            }
+        ).then(
+            zoneData => {
+                bank1.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : bank1.bankAccountProvince;
+                bank1.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : bank1.bankAccountCity;
+                bank1.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : bank1.bankAccountDistrict;
+
+                bank2.bankAccountProvince = zoneData[3].province ? zoneData[3].province.name : bank2.bankAccountProvince;
+                bank2.bankAccountCity = zoneData[4].city ? zoneData[4].city.name : bank2.bankAccountCity;
+                bank2.bankAccountDistrict = zoneData[5].district ? zoneData[5].district.name : bank2.bankAccountDistrict;
+
+                bank3.bankAccountProvince = zoneData[6].province ? zoneData[6].province.name : bank3.bankAccountProvince;
+                bank3.bankAccountCity = zoneData[7].city ? zoneData[7].city.name : bank3.bankAccountCity;
+                bank3.bankAccountDistrict = zoneData[8].district ? zoneData[8].district.name : bank3.bankAccountDistrict;
+
+                if (bank1.bankName || bank1.bankAccountName || bank1.bankAccount) {
+                    listData.push(bank1);
+                }
+                if (bank2.bankName || bank2.bankAccountName || bank2.bankAccount) {
+                    listData.push(bank2);
+                }
+                if (bank3.bankName || bank3.bankAccountName || bank3.bankAccount) {
+                    listData.push(bank3);
+                }
+                return pmsAPI.bankcard_getBankTypeList({});
+            },
+        ).then(
+            bankTypeList => {
+                allBankTypeList = bankTypeList && bankTypeList.data && bankTypeList.data.length ? bankTypeList.data : null;
+
+                listData.map(bank => {
+                    bank.bankAccount =
+                        bank.bankAccount ?
+                            bank.bankAccount.slice(0, 6) + "**********" + bank.bankAccount.slice(-4)
+                            : null;
+
+                    if (allBankTypeList && allBankTypeList.length && bank.bankName) {
+                        allBankTypeList.forEach(type => {
+                            if (bank.bankName.toString() === type.id.toString()) {
+                                bank.bankName = type.name;
+                            }
+                        });
+                    }
+                });
+
+                return returnData = {
+                    list: listData
+                };
+            }
+        )
+    },
+
     playerLoginWithSMS: function (loginData, userAgent, isSMSVerified) {
         let newAgentArray = [];
         let platformId = null;
@@ -8753,7 +8938,7 @@ let dbPlayerInfo = {
     },
 
     isExceedPhoneNumberValidToRegister: function (query, count) {
-        return dbconfig.collection_players.findOne(query).count().then(
+        return dbconfig.collection_players.find(query).count().then(
             playerDataCount => {
                 if (playerDataCount >= count) {
                     return {isPhoneNumberValid: false};
@@ -11912,7 +12097,7 @@ let dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank) {
+    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank, bankId) {
         let ximaWithdrawUsed = 0;
         if (amount < 100 && !adminInfo) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
@@ -11962,10 +12147,10 @@ let dbPlayerInfo = {
                         platform = playerData.platform;
 
                         // if no withdrawal bank was selected, use default first bank in player data
-                        if (!withdrawalBank) {
+                        if (!withdrawalBank && !bankId) {
                             withdrawalBank = {
                                 bankName: playerData.bankName || null,
-                                bankAccount: playerData.bankName || null,
+                                bankAccount: playerData.bankAccount || null,
                                 bankAccountName: playerData.bankAccountName || null,
                                 bankAccountType: playerData.bankAccountType || null,
                                 bankAccountProvince: playerData.bankAccountProvince || null,
@@ -11977,12 +12162,12 @@ let dbPlayerInfo = {
                         } else {
                             // if a withdrawal bank was selected, match the bank input and player existing bank data
                             // compare with first bank info
-                            if (withdrawalBank.bankName === playerData.bankName 
+                            if ((withdrawalBank && withdrawalBank.bankName === playerData.bankName
                                 && withdrawalBank.bankAccount === playerData.bankAccount 
-                                && withdrawalBank.bankAccountName === playerData.bankAccountName) {
+                                && withdrawalBank.bankAccountName === playerData.bankAccountName) || bankId === '1') {
                                 withdrawalBank = {
                                     bankName: playerData.bankName || null,
-                                    bankAccount: playerData.bankName || null,
+                                    bankAccount: playerData.bankAccount || null,
                                     bankAccountName: playerData.bankAccountName || null,
                                     bankAccountType: playerData.bankAccountType || null,
                                     bankAccountProvince: playerData.bankAccountProvince || null,
@@ -11993,12 +12178,12 @@ let dbPlayerInfo = {
                                 }
                             } else if (playerData.multipleBankDetailInfo) {
                                 // compare with second and third bank info
-                                if (withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName2
+                                if ((withdrawalBank && withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName2
                                     && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount2
-                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName2) {
+                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName2) || bankId === '2') {
                                     withdrawalBank = {
                                         bankName: playerData.multipleBankDetailInfo.bankName2 || null,
-                                        bankAccount: playerData.multipleBankDetailInfo.bankName2 || null,
+                                        bankAccount: playerData.multipleBankDetailInfo.bankAccount2 || null,
                                         bankAccountName: playerData.multipleBankDetailInfo.bankAccountName2 || null,
                                         bankAccountType: playerData.multipleBankDetailInfo.bankAccountType2 || null,
                                         bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince2 || null,
@@ -12008,12 +12193,12 @@ let dbPlayerInfo = {
                                         bankBranch: playerData.multipleBankDetailInfo.bankBranch2 || null,
                                     }
                                 }
-                                if (withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName3
+                                if ((withdrawalBank && withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName3
                                     && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount3
-                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName3) {
+                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName3) || bankId === '3') {
                                     withdrawalBank = {
                                         bankName: playerData.multipleBankDetailInfo.bankName3 || null,
-                                        bankAccount: playerData.multipleBankDetailInfo.bankName3 || null,
+                                        bankAccount: playerData.multipleBankDetailInfo.bankAccount3 || null,
                                         bankAccountName: playerData.multipleBankDetailInfo.bankAccountName3 || null,
                                         bankAccountType: playerData.multipleBankDetailInfo.bankAccountType3 || null,
                                         bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince3 || null,
@@ -23738,7 +23923,7 @@ let dbPlayerInfo = {
     },
 
     setPhoneNumber: (playerId, phoneNumber, smsCode) => {
-        let player, platform;
+        let player, platform, encryptedPhoneNumber;
         return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
             playerData => {
                 player = playerData;
@@ -23757,7 +23942,29 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                let encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+                encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+
+                let query = {
+                    phoneNumber: {$in: [encryptedPhoneNumber, rsaCrypto.oldEncrypt(phoneNumber.toString())]},
+                    platform: platform._id,
+                    isRealPlayer: true,
+                    'permission.forbidPlayerFromLogin': false
+                };
+
+                if (platform.allowSamePhoneNumberToRegister) {
+                    return dbPlayerInfo.isExceedPhoneNumberValidToRegister(query, platform.samePhoneNumberRegisterCount);
+                } else {
+                    return dbPlayerInfo.isPhoneNumberValidToRegister(query);
+                }
+            }
+        ).then(
+            ({isPhoneNumberValid}) => {
+                if (!isPhoneNumberValid) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        message: "This phone number is already used. Please insert other phone number."
+                    });
+                }
 
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: player._id}, {phoneNumber: encryptedPhoneNumber}, constShardKeys.collection_players);
             }
