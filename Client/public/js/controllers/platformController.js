@@ -37,6 +37,14 @@ define(['js/app'], function (myApp) {
                 OPTIONAL_REGISTRATION: 6
             };
 
+            vm.constXBETAdvertisementType = {
+                MAIN_PAGE_AD: 1,
+                FIRST_TIME_AD: 2,
+                LOGIN_AD: 3,
+                REWARD_POINTS_AD: 4
+            };
+
+
             vm.constPartnerCommisionTypeOption = {
                 DAILY_BONUS_AMOUNT: 1,
                 WEEKLY_BONUS_AMOUNT: 2,
@@ -36565,6 +36573,239 @@ define(['js/app'], function (myApp) {
                     vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
                 }
             };
+
+            // region XBET advertisement
+            vm.initMainPageAdvertisement = () => {
+                vm.mainPageAdvertisementList = [];
+                vm.getMainPageAdvertisement();
+
+                vm.addNewMainPageAdvertisement = false;
+                vm.editXBETAdvertisement = false;
+            }
+
+            vm.addNewMainPageAd = () => {
+                if (vm.mainPageAdvertisementList && vm.mainPageAdvertisementList.length >= 6) { //XBET requirement
+                    return;
+                }
+                vm.addNewMainPageAdvertisement = true;
+                vm.newMainPageAd = {
+                    status: 1,
+                    // orderNo: vm.getNextXBETOrderNo(vm.mainPageAdvertisementList),
+                    orderNo: vm.mainPageAdvertisementList && vm.mainPageAdvertisementList.length && vm.mainPageAdvertisementList.length + 1 || 1,
+                    advertisementType: "0",
+                    type: vm.constXBETAdvertisementType.MAIN_PAGE_AD,
+                    css: "position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
+                }
+            }
+
+            vm.isEBETAdDuplicateOrderNo = (objArr) => {
+                let isDuplicate = false;
+                if (objArr && objArr.length) {
+                    let tempArr = [];
+                    for (let i = 0; i < objArr.length; i++) {
+                        if (objArr[i].hasOwnProperty("orderNo") && objArr[i].orderNo != null) {
+                            if (tempArr.includes(objArr[i].orderNo)) {
+                                isDuplicate = true;
+                                break;
+                            }
+                            if (!isNaN(objArr[i].orderNo)) {
+                                tempArr.push(objArr[i].orderNo);
+                            }
+
+                        } else {
+                            // check if orderNo exists
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+                }
+                return isDuplicate;
+            }
+
+            vm.saveNewMainPageAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.mainPageAdvertisementList) || !(vm.newMainPageAd && vm.newMainPageAd.orderNo)) {
+                    return;
+                }
+                if (vm.mainPageAdvertisementList && vm.mainPageAdvertisementList.length) {
+                    let allOrderNo = vm.mainPageAdvertisementList.map(item => item.orderNo)
+                    if (allOrderNo.includes(vm.newMainPageAd.orderNo)) {
+                        return;
+                    }
+                }
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    orderNo: vm.newMainPageAd.orderNo,
+                    type: vm.newMainPageAd.type,
+                    advertisementType: vm.newMainPageAd.advertisementType,
+                    title: vm.newMainPageAd.title,
+                    url: vm.newMainPageAd.url,
+                    hyperLink:vm.newMainPageAd.hyperLink,
+                    matchId: vm.newMainPageAd.matchId,
+                    status: vm.newMainPageAd.status,
+                    showInFrontEnd: vm.newMainPageAd.showInFrontEnd,
+                    css: vm.newMainPageAd.css,
+                    hoverCss: vm.newMainPageAd.hoverCss,
+                }
+
+                socketService.$socket($scope.AppSocket, 'createNewMainPageAd', sendData, function (data) {
+                    if (data) {
+                        vm.addNewMainPageAdvertisement = false;
+                        vm.getMainPageAdvertisement();
+                    }
+                });
+
+            }
+
+            vm.updateMainPageAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.mainPageAdvertisementList)) {
+                    return;
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateMainPageAdvertisement', vm.mainPageAdvertisementList, function (data) {
+                    if (data) {
+                        vm.editXBETAdvertisement = false
+                        vm.getMainPageAdvertisement();
+                    }
+                });
+            }
+
+            vm.getMainPageAdvertisement = () => {
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    type: vm.constXBETAdvertisementType.MAIN_PAGE_AD
+                }
+                socketService.$socket($scope.AppSocket, 'getMainPageAdvertisement', sendData, function (data) {
+                    if (data && data.data) {
+                        vm.mainPageAdvertisementList = data.data;
+                    } else {
+                        vm.mainPageAdvertisementList = [];
+                    }
+                    $scope.$evalAsync();
+                });
+
+            }
+
+            vm.deleteMainPageAdvertisementRecord = function (advertisementId, index) {
+                if (advertisementId) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                    };
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deleteMainPageAdvertisementRecord', sendData, function (data) {
+                            if (data) {
+                                if (typeof index !== "undefined") {
+                                    vm.mainPageAdvertisementList.splice(index, 1);
+                                    $scope.$evalAsync();
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+
+            vm.changeXBETAdvertisementStatus = function (advertisementId, advertisementStatus) {
+                if (advertisementId) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        status: advertisementStatus ? advertisementStatus : 0
+                    }
+
+                    let statusChangeConfirmText = "";
+
+                    if (advertisementStatus == vm.playerAdvertisementStatus["CLOSE"]) {
+                        statusChangeConfirmText = "Confirm to turn advertisement on ?";
+                    } else {
+                        statusChangeConfirmText = "Confirm to turn advertisement off ?";
+                    }
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate(statusChangeConfirmText)
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'changeXBETAdvertisementStatus', sendData, function (data) {
+                            if (data) {
+                                vm.getMainPageAdvertisement();
+                            }
+                        });
+                    });
+                }
+            }
+
+            vm.getNextXBETOrderNo = (objArr) => {
+                let biggestOrderNo = 0;
+                if (objArr && objArr.length) {
+                    objArr.forEach(
+                        item => {
+                            if (item.hasOwnProperty("orderNo") && !isNaN(item.orderNo)) {
+                                let currentOrderNo = Number(item.orderNo);
+                                biggestOrderNo = biggestOrderNo <= currentOrderNo? ++currentOrderNo: biggestOrderNo;
+                            }
+                        }
+                    )
+                }
+                return biggestOrderNo;
+            }
+
+            vm.XBETAdvertisementPreview = function (objData) {
+
+                vm.CSSContentEdit = false;
+                if (objData) {
+                    vm.selectedAdvertisement = objData;
+                    vm.drawXBETAdPreviewCSS(vm.selectedAdvertisement);
+                }
+
+            };
+
+            vm.drawXBETAdPreviewCSS = function (elem) {
+                if (vm.hoverStyle) {
+                    vm.clearStyle();
+                }
+
+                // generate the css
+                setTimeout(function () {
+                    vm.hoverStyle = document.createElement('style');
+                    if (vm.hoverStyle.styleSheet) {
+                        vm.hoverStyle.styleSheet.cssText = '';
+                    }
+                    else {
+                        vm.hoverStyle.appendChild(document.createTextNode(''));
+                    }
+
+                    let temp = '';
+                    let css = '#' + "imagePreviewXBET" + "{" + elem.css + "}";
+                    temp += css;
+                    let hoverCss = '#' + "imagePreviewXBET" + elem.hoverCss;
+                    temp += hoverCss;
+
+                    vm.hoverStyle.appendChild(document.createTextNode(temp));
+                    document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
+                    // $scope.safeApply();
+                }, 0);
+            };
+
+            vm.XBETAdvCssUpdate = function (elem) {
+                if (elem) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: elem._id,
+                        css: elem.css,
+                        hoverCss: elem.hoverCss,
+                    };
+                    socketService.$socket($scope.AppSocket, 'updateXBETAdvCss', sendData, function (data) {
+                    });
+                }
+            };
+
+
+            // endregion
 
             /***** Auction System - start *****/
             vm.initAuctionSystem = function() {
