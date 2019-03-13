@@ -425,7 +425,21 @@ let dbPlayerInfo = {
                 }
                 platform = platformData;
 
-                return dbconfig.collection_players.findOne({platform: platform._id, guestDeviceId: String(inputData.guestDeviceId)}).populate({
+                let playerQuery = {
+                    platform: platform._id,
+                    guestDeviceId: String(inputData.guestDeviceId),
+                }
+                if (inputData.phoneNumber) {
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber)
+                    playerQuery.$or = [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+
+                }
+
+                return dbconfig.collection_players.findOne(playerQuery).populate({
                     path: "playerLevel",
                     model: dbconfig.collection_playerLevel
                 }).lean().then(
@@ -463,6 +477,10 @@ let dbPlayerInfo = {
                                         isRealPlayer: true,
                                         guestDeviceId: inputData.guestDeviceId
                                     };
+
+                                    if (inputData.phoneNumber) {
+                                        guestPlayerData.phoneNumber = inputData.phoneNumber
+                                    }
 
                                 }
                             ).then(
