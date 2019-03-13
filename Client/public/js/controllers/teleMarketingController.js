@@ -6560,6 +6560,18 @@ define(['js/app'], function (myApp) {
                         vm.tsAssigneesOriginal = $.extend(true, [], data.data);
                         vm.updateTsAssigneesDisplay();
                         vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
+                        if (vm.adminList && vm.adminList.length && vm.tsAssignees && vm.tsAssignees.length) {
+                            vm.tsAssignees.forEach(
+                                tsAssignee => {
+                                   if (tsAssignee.admin) {
+                                       let admin = vm.adminList.find(admin => String(admin._id) == String(tsAssignee.admin))
+                                       if (admin && admin.departmentName) {
+                                           tsAssignee.departmentName = admin.departmentName;
+                                       }
+                                   }
+                                }
+                            )
+                        }
                         setTimeout(()=>{
                             $('.spicker').selectpicker('refresh');
                         },1);
