@@ -1635,7 +1635,7 @@ define(['js/app'], function (myApp) {
                 "bProcessing": true,
                 bDeferRender: true,
                 // filterProposalType: true,
-                "aaSorting": vm.queryAuditProposal.aaSorting || [[18, 'asc']],
+                "aaSorting": vm.queryAuditProposal.aaSorting || [[19, 'asc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [2]},
                     {'sortCol': 'priority', bSortable: true, 'aTargets': [6]},
