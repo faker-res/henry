@@ -7087,6 +7087,44 @@ define(['js/app'], function (myApp) {
             })
             return result;
         };
+
+        $('body').on('click', '#permissionRecordButton', function () {
+            vm.getPlayerPermissionChange("new")
+        });
+
+        vm.getPlayerPermissionChange = function (flag) {
+            $('.playerPermissionPopover').popover('hide');
+            vm.playerPermissionQuery = vm.playerPermissionQuery || {};
+            vm.playerPermissionQuery.searching = true;
+            vm.playerPermissionHistory = [];
+            $scope.$evalAsync();
+            if (flag == 'new') {
+                utilService.actionAfterLoaded('#modalPlayerPermissionChangeLog .searchDiv .startTime', function () {
+                    vm.playerPermissionQuery.startTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .startTime');
+                    vm.playerPermissionQuery.endTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .endTime');
+                    vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
+                    vm.playerPermissionQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                });
+            }
+            let tempPlayerId = vm.popOverPlayerPermission && vm.popOverPlayerPermission._id ? vm.popOverPlayerPermission._id :
+                vm.selectedSinglePlayer && vm.selectedSinglePlayer._id ? vm.selectedSinglePlayer._id : null;
+            var sendData = {
+                playerId: tempPlayerId,
+                platform: vm.selectedPlatform.id,
+                createTime: {
+                    $gte: new Date(vm.playerPermissionQuery.startTime.data('datetimepicker').getLocalDate()),
+                    $lt: new Date(vm.playerPermissionQuery.endTime.data('datetimepicker').getLocalDate())
+                }
+            }
+            socketService.$socket($scope.AppSocket, 'getPlayerPermissionLog', sendData, function (data) {
+                data.data.forEach(row => {
+                    row.admin = row.isSystem ? {adminName: "System"} : row.admin;
+                });
+                vm.playerPermissionHistory = data.data || [];
+                vm.playerPermissionQuery.searching = false;
+                $scope.$evalAsync();
+            });
+        };
         // endregion - popup function related
 
         // region - interface util

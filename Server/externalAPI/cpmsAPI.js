@@ -131,12 +131,18 @@ function callCPMSAPIWithAutoMaintenance(service, functionName, data, fileData) {
                     bOpen = true;
                     return wsClient.callAPIOnce(service, functionName, data).then(
                         res => {
+                            if ( functionName && functionName == 'transferOut') {
+                                console.log('MT --checking Websocket Success', res);
+                            }
                             if (wsClient && typeof wsClient.disconnect == "function") {
                                 wsClient.disconnect();
                             }
                             return res;
                         },
                         error => {
+                            if ( functionName && functionName == 'transferOut') {
+                                console.log('MT --checking Websocket Error', error);
+                            }
                             if (wsClient && typeof wsClient.disconnect == "function") {
                                 wsClient.disconnect();
                             }

@@ -237,4 +237,63 @@ router.post('/notifyWithdrawal', function(req, res, next) {
     });
 });
 
+router.get('/getProposalStatusList', (req, res, next) => {
+    res.end('Success');
+});
+
+router.post('/getProposalStatusList', function(req, res, next) {
+    let inputData = [];
+
+    req.on('data', data => {
+        inputData.push(data);
+    }).on('end', () => {
+        let buffer = Buffer.concat(inputData);
+        let stringBuffer = buffer.toString();
+        let decoded = decodeURIComponent(stringBuffer);
+        let parsedData = JSON.parse(decoded.substring(decoded.indexOf('{')));
+
+        let msgBody = parsedData.content;
+        let isValidData = msgBody && msgBody.proposalIds;
+
+        // TEMP LOG
+        console.log('parsedData getProposalStatusList', parsedData);
+
+        if (isValidData) {
+            dbProposal.getProposalStatusList(msgBody.proposalIds).then(
+                data => {
+                    console.log('getProposalStatusList data', data);
+                    let returnMsg = {
+                        code: constServerCode.SUCCESS,
+                        msg: "succ",
+                        data: data
+                    };
+
+                    console.log('getProposalStatusList success', msgBody.proposalIds, returnMsg);
+
+                    res.send(returnMsg);
+                    res.end();
+                },
+                err => {
+                    console.log('getProposalStatusList error', msgBody.proposalIds, err);
+                    let returnMsg = encodeURIComponent(JSON.stringify({
+                        code: constServerCode.INVALID_DATA,
+                        msg: err.message
+                    }));
+
+                    res.send(returnMsg);
+                    res.end();
+                }
+            )
+
+        } else {
+            let returnMsg = encodeURIComponent(JSON.stringify({
+                code: constServerCode.INVALID_DATA,
+                msg: "Invalid data"
+            }));
+            res.send(returnMsg);
+            res.end();
+        }
+    });
+});
+
 module.exports = router;
