@@ -868,7 +868,7 @@ let dbDXMission = {
 
     sendSMSToPlayer: function (adminObjId, adminName, data) {
         let phoneData = {};
-        let prom = [];
+        let proms = [];
         if (data && data.msgDetail && data.msgDetail.length > 0){
             data.msgDetail.forEach( msg => {
 
@@ -885,8 +885,11 @@ let dbDXMission = {
                         _id: msg.dxMissionId
                     };
                 }
+                else {
+                    return;
+                }
 
-                prom.push( dbconfig.collection_dxPhone.findOne(findQuery).populate({
+                let prom = dbconfig.collection_dxPhone.findOne(findQuery).populate({
                     path: "dxMission", model: dbconfig.collection_dxMission
                 }).populate({
                     path: "platform", model: dbconfig.collection_platform
@@ -895,8 +898,21 @@ let dbDXMission = {
                         if (dxPhoneRes) {
                             phoneData = dxPhoneRes;
 
-                            return replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData);
+                            return dbconfig.collection_players.findOne({
+                                phoneNumber: {$in: [rsaCrypto.encrypt(phoneData.phoneNumber), rsaCrypto.oldEncrypt(phoneData.phoneNumber)]},
+                                platform: phoneData.platform,
+                                isRealPlayer: true
+                            }, {_id: 1}).lean();
                         }
+                        return Promise.reject({message: `dxPhone does not exist msg.dxMissionId`});
+                    }
+                ).then(
+                    playerExist => {
+                        if (playerExist) {
+                            return Promise.reject({message: `dxPhone ${phoneData.phoneNumber} already a player, so sms not sent`})
+                        }
+
+                        return replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData);
                     }
                 ).then(
                     message => {
@@ -932,10 +948,16 @@ let dbDXMission = {
                         //     return {name:"lol"};
                         // // // }
                     }
-                ))
-            })
+                ).catch(
+                    err => {
+                        console.error(err)
+                        return {message: err, data: msg, failure: true}
+                    }
+                );
+                proms.push(prom);
+            });
 
-            return Q.all(prom)
+            return Q.all(proms);
         }
 
     },
