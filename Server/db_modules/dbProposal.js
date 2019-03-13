@@ -718,6 +718,7 @@ var proposal = {
             .populate({path: "type", model: dbconfig.collection_proposalType})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
+            .populate({path: 'data.platformId', model: dbconfig.collection_platform})
             .then(
                 proposalData => {
                     let allProm = [];
@@ -1676,6 +1677,8 @@ var proposal = {
                         proposalTypesId.push(types[i]._id);
                     }
                     return dbconfig.collection_proposal.find({type: {$in: proposalTypesId}}).populate({
+                        path: 'data.platformId', model: dbconfig.collection_platform
+                    }).populate({
                         path: 'type',
                         model: dbconfig.collection_proposalType
                     }).populate({
@@ -2259,6 +2262,7 @@ var proposal = {
                                 .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                                 .populate({path: 'isLocked', model: dbconfig.collection_admin})
                                 .populate({path: 'data.playerObjId', model: dbconfig.collection_players})
+                                .populate({path: 'data.platformId', model: dbconfig.collection_platform})
                                 //.populate({path: 'data.playerObjId.csOfficer', model: dbconfig.collection_csOfficerUrl})
                                 .sort(sortCol).skip(index).limit(size).lean()
                                 .then(
@@ -2330,6 +2334,7 @@ var proposal = {
                                             // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
                                             .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                                             .populate({path: 'isLocked', model: dbconfig.collection_admin})
+                                            .populate({path: 'data.platformId', model: dbconfig.collection_platform})
                                     }
 
                                     for (var index in aggr) {

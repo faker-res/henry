@@ -1193,12 +1193,16 @@ define(['js/app'], function (myApp) {
                 // filterProposalType: true,
                 "aaSorting": vm.queryProposal.aaSorting || [],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [9]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {
+                        "title": $translate('PRODUCT_NAME'),
+                        "data": "data.platformId.name"
+                    },
                     {
                         "title": $translate('PROPOSAL_NO'),
                         "data": "proposalId",
@@ -1633,11 +1637,11 @@ define(['js/app'], function (myApp) {
                 // filterProposalType: true,
                 "aaSorting": vm.queryAuditProposal.aaSorting || [[18, 'asc']],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'priority', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [11]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [16]},
-                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [18]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'priority', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [12]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [17]},
+                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [19]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -1656,6 +1660,10 @@ define(['js/app'], function (myApp) {
                             } else return null;
                         },
                         visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                    {
+                        "title": $translate('PRODUCT_NAME'),
+                        "data": "data.platformId.name"
                     },
                     {
                         "title": $translate('PROPOSAL_NO'),
