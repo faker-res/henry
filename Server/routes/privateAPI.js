@@ -262,11 +262,11 @@ router.post('/getProposalStatusList', function(req, res, next) {
             dbProposal.getProposalStatusList(msgBody.proposalIds).then(
                 data => {
                     console.log('getProposalStatusList data', data);
-                    let returnMsg = encodeURIComponent(JSON.stringify({
+                    let returnMsg = {
                         code: constServerCode.SUCCESS,
                         msg: "succ",
                         data: data
-                    }));
+                    };
 
                     console.log('getProposalStatusList success', msgBody.proposalIds, returnMsg);
 
