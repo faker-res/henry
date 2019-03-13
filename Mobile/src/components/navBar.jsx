@@ -84,6 +84,20 @@ class NavBar extends Component{
         navService.goto('');
     }
 
+    handlePlatformChange(ev) {
+        console.log("handlePlatformChange");
+        let platformObjId = ev.currentTarget.value;
+        let platforms = this.state.platforms;
+        platforms.forEach(platform => {
+            if(platform._id == platformObjId) {
+                this.setState({selectedPlatform: platform});
+            }
+        })
+    }
+    handleServerChange() {
+        console.log("handleServerChange");        
+    }
+
     render(){
         return (
             <div>
@@ -107,7 +121,7 @@ class NavBar extends Component{
 
                     <div className="overlay-header">
                         <div className="form-group">
-                            <select className="form-control" value={this.state.selectedPlatform._id} >
+                            <select className="form-control" value={this.state.selectedPlatform._id} onChange={(e)=>{this.handlePlatformChange(e)}} >
                                 {this.populatePlatforms()}
                             </select>
                         </div>
