@@ -8275,6 +8275,19 @@ var proposal = {
         );
     },
 
+    getProposalStatusList: function (proposalIds) {
+        return dbconfig.collection_proposal.find({proposalId: {$in: proposalIds}}, {proposalId: 1, status: 1, amount: 1, actualAmountReceived: 1, rate: 1, type: 1})
+            .populate({path: 'type', model: dbconfig.collection_proposalType}, {name: 1}).lean().then(
+            proposalData => {
+                if (proposalData && proposalData.length > 0) {
+                    return proposalData;
+                } else {
+                    return [];
+                }
+            }
+        )
+    }
+
 };
 
 /*
