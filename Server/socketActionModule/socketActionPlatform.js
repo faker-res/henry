@@ -920,7 +920,44 @@ function socketActionPlatform(socketIO, socket) {
         getPaymentSystemName: function getPaymentSystemName(data) {
             let actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, dbPlatform.getPaymentSystemName, [data.systemTypeId], actionName, true);
-        }
+        },
+
+        createNewMainPageAd: function createNewMainPageAd(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.orderNo && data.platformId && data.type);
+            socketUtil.emitter(self.socket, dbPlatform.createNewMainPageAd, [data], actionName, isValidData);
+        },
+
+        getMainPageAdvertisement: function getMainPageAdvertisement(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.type);
+            socketUtil.emitter(self.socket, dbPlatform.getMainPageAdvertisement, [data.platformId, data.type], actionName, isValidData);
+        },
+
+        updateMainPageAdvertisement: function updateMainPageAdvertisement(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.length);
+            socketUtil.emitter(self.socket, dbPlatform.updateMainPageAdvertisement, [data], actionName, isValidData);
+        },
+
+        deleteMainPageAdvertisementRecord: function deleteMainPageAdvertisementRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatform.deleteMainPageAdvertisementRecord, [data._id, data.platformId], actionName, isValidData);
+        },
+
+        changeXBETAdvertisementStatus: function changeXBETAdvertisementStatus(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.platformId && data.hasOwnProperty("status"));
+            socketUtil.emitter(self.socket, dbPlatform.changeXBETAdvertisementStatus, [data._id, data.platformId, data.status], actionName, isValidData);
+        },
+
+        updateXBETAdvCss: function updateXBETAdvCss(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data._id && data.css && data.hoverCss);
+            socketUtil.emitter(self.socket, dbPlatform.updateXBETAdvCss, [data.platformId, data._id, data.css, data.hoverCss], actionName, isValidData);
+        },
+
     };
     socketActionPlatform.actions = this.actions;
 }
