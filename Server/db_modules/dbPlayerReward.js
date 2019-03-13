@@ -6145,6 +6145,7 @@ let dbPlayerReward = {
             if (playerData && playerData._id) {
                 console.log('checkMatchQuery===', playerData._id, checkMatchQuery);
                 console.log('checkMatchQuery.$or===', playerData._id, checkMatchQuery.$or);
+                console.log('eventData', eventData);
             }
 
             // check reward apply limit in period
