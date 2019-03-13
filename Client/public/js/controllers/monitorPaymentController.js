@@ -4055,7 +4055,7 @@ define(['js/app'], function (myApp) {
 
         vm.showProposalModal = function (proposalId) {
             let platformList = vm.platformByAdminId && vm.platformByAdminId.length ?  vm.platformByAdminId.map(p => p._id) : [vm.selectedPlatform._id];
-            
+
             socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
                 platformId: platformList,
                 proposalId: proposalId
