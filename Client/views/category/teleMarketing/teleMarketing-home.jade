@@ -506,7 +506,7 @@
                                         td
                                             i.fa.fa-plus(ng-click="vm.addAssignee();vm.checkUpdateTsAssignee()")
                                         td
-                                            select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.adminList' ng-model='vm.selectedAssignees' multiple data-actions-box='true')
+                                            select.spicker.form-control(ng-options='admin.adminName as admin.adminName group by admin.departmentName for admin in vm.adminList' ng-model='vm.selectedAssignees' multiple data-actions-box='true')
                                         td
                                             input(id="new-execute-distribute-on" type="radio", name="new-execute-distribution", value="1" ng-model="vm.newAssigneesExecuteStatus")
                                             label.radio-space(for="new-execute-distribute-on" style="font-weight: normal;") {{"Open" | translate}}
@@ -521,7 +521,7 @@
                             span(style="font-weight:bold;font-size:20px;line-height:2em;") {{"B."}}{{"Distribution Name List Details" | translate}}
                             .col-md-12.search-filters-container.well
                                 div(style="width:80%;display:inline-block;margin-right:10px;")
-                                    select.spicker.form-control(ng-options='admin.adminName as admin.adminName group by admin.departmentName for admin in vm.tsAssignees' ng-model='vm.distributionDetailsQuery.adminNames' multiple data-actions-box='true')
+                                    select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.tsAssignees' ng-model='vm.distributionDetailsQuery.adminNames' multiple data-actions-box='true')
                                 button#searchDistributionDetails.btn.btn-primary.common-button(style="margin:0;" ng-click="vm.searchDistributionDetails();") {{"SEARCH" | translate}}
                             table.simple-table.display(style='min-width: 100%; width: 100%')
                                 thead
