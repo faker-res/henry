@@ -3501,8 +3501,8 @@ var proposal = {
                     }else if(isSuccess){
                         delete queryData.status;
                         queryData["$and"] = [];
-                        orQuery.push({type: proposalTypeList, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }})
-                        orQuery.push({type: approveProposalTypeList, status: constProposalStatus.SUCCESS})
+                        orQuery.push({type: proposalTypeList, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
+                        orQuery.push({type: approveProposalTypeList, status: constProposalStatus.SUCCESS});
 
                         queryData["$and"].push({$or: orQuery});
                     }else{
@@ -3602,8 +3602,8 @@ var proposal = {
             ).then(
                 () => {
                     delete reqData.platformId;
-                    let approvedList = [];
-                    let successList = [];
+                    let approvedTypeList = []; // proposalType list which Approved status = 已审核
+                    let successTypeList = []; // proposalType list which Approved status = 成功
                     let orQuery = [];
 
                     reqData.type["$in"].forEach(
@@ -3612,22 +3612,24 @@ var proposal = {
                                 let indexNo = approveProposalTypeList.findIndex(a => a.toString() == type.toString());
 
                                 if(indexNo != -1){
-                                    approvedList.push(type);
+                                    approvedTypeList.push(type);
                                 }else{
-                                    successList.push(type);
+                                    successTypeList.push(type);
                                 }
                             }
                         }
                     );
 
                     if(isApprove){
-                        reqData.type = {$in: approvedList};
+                        //if filter status is 已审核，find from proposalType list which Approved status = 已审核
+                        reqData.type = {$in: approvedTypeList};
                     }else if(isSuccess){
+                        //if filter status is 陈宫，find from proposalType list which Approved status = 成功
                         delete reqData.status;
                         delete reqData.type;
                         reqData["$and"] = [];
-                        orQuery.push({type: {$in: successList}, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }})
-                        orQuery.push({type: {$in: approvedList}, status: constProposalStatus.SUCCESS});
+                        orQuery.push({type: {$in: successTypeList}, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }})
+                        orQuery.push({type: {$in: approvedTypeList}, status: constProposalStatus.SUCCESS});
 
                         reqData["$and"].push({$or: orQuery});
                     }
