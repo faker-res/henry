@@ -8437,15 +8437,33 @@ function insertRepeatCount(proposals, platformList) {
 
             if (proposal.data.bankCardNo) {
                 console.log("LH Check payment monitor total 1----------------------", proposal.data.bankCardNo);
-                let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
-                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+                let bankCardNoPrefix = proposal.data.bankCardNo.substring(0, 6);
+                let bankCardNoRegExpA;
+                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));;
+                if(bankCardNoPrefix.indexOf('*') == -1){
 
-                console.log("LH Check payment monitor total 2----------------------", bankCardNoRegExpA);
-                console.log("LH Check payment monitor total 3----------------------", bankCardNoRegExpB);
-                bankCardNoRegExp = [
-                    {"data.bankCardNo": bankCardNoRegExpA},
-                    {"data.bankCardNo": bankCardNoRegExpB}
-                ];
+                    console.log("LH Check payment monitor total 2----------------------", bankCardNoRegExpA);
+                    console.log("LH Check payment monitor total 3----------------------", bankCardNoRegExpB);
+
+                    bankCardNoRegExpA = new RegExp(bankCardNoPrefix + ".*");
+                    bankCardNoRegExp = [
+                        {"data.bankCardNo": bankCardNoRegExpA},
+                        {"data.bankCardNo": bankCardNoRegExpB}
+                    ];
+                }else{
+                    bankCardNoRegExp = [
+                        {"data.bankCardNo": bankCardNoRegExpB}
+                    ];
+                }
+
+                // let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                // let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+
+
+                // bankCardNoRegExp = [
+                //     {"data.bankCardNo": bankCardNoRegExpA},
+                //     {"data.bankCardNo": bankCardNoRegExpB}
+                // ];
             }
 
             let prevSuccessQuery = {
