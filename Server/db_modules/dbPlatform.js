@@ -6110,7 +6110,79 @@ var dbPlatform = {
 
             return paymentSystemName;
         }
-    }
+    },
+
+    createNewMainPageAd: function (saveData) {
+        return dbconfig.collection_advertisementPageXBET(saveData).save()
+    },
+
+    getMainPageAdvertisement: function (platformId, type) {
+        return dbconfig.collection_advertisementPageXBET.find(
+            {
+                platformId: platformId,
+                type: type
+            }
+        ).lean();
+    },
+
+    updateMainPageAdvertisement: function (updateDataArr) {
+        let promArr = []
+        for (let i = 0; i < updateDataArr.length; i++) {
+            if (updateDataArr[i].platformId && updateDataArr[i].type && updateDataArr[i].orderNo) {
+
+                let updateProm = dbconfig.collection_advertisementPageXBET.update(
+                    {
+                        _id: updateDataArr[i]._id,
+                        platformId: updateDataArr[i].platformId,
+                    },
+                    {
+                        orderNo: updateDataArr[i].orderNo,
+                        advertisementType: updateDataArr[i].advertisementType,
+                        title: updateDataArr[i].title || "",
+                        url: updateDataArr[i].url || "",
+                        hyperLink: updateDataArr[i].hyperLink || "",
+                        matchId: updateDataArr[i].matchId || "",
+                        showInFrontEnd: updateDataArr[i].showInFrontEnd,
+
+                    });
+                promArr.push(updateProm);
+            } else {
+                return Promise.reject({name: "DataError", message: "Invalid data"});
+            }
+        }
+
+        return Promise.all(promArr);
+    },
+
+    deleteMainPageAdvertisementRecord: function (advertisementObjId, platformId) {
+        return dbconfig.collection_advertisementPageXBET.remove({_id:advertisementObjId, platformId: platformId});
+    },
+
+    changeXBETAdvertisementStatus: function (advertisementObjId, platformId, status) {
+        status = status? 1: 0;
+        return dbconfig.collection_advertisementPageXBET.findOneAndUpdate(
+            {
+                platformId: platformId,
+                _id: advertisementObjId
+            },
+            {
+                status: status
+            }
+        ).lean();
+    },
+
+    updateXBETAdvCss: function (platformId, advertisementObjId, css, hoverCss) {
+        return dbconfig.collection_advertisementPageXBET.findOneAndUpdate(
+            {
+                platformId: platformId,
+                _id: advertisementObjId
+            },
+            {
+                css: css,
+                hoverCss: hoverCss
+            }
+        ).lean();
+    },
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

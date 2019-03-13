@@ -8275,6 +8275,42 @@ var proposal = {
         );
     },
 
+    getProposalStatusList: function (proposalIds) {
+        let result = [];
+
+        return dbconfig.collection_proposal.find({proposalId: {$in: proposalIds}}, {proposalId: 1, status: 1, 'data.amount': 1, 'data.actualAmountReceived': 1, 'data.rate': 1, type: 1})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
+            proposalData => {
+                if (proposalData && proposalData.length > 0) {
+                    proposalData.forEach(data => {
+                        if (data) {
+                            let elements = {
+                                proposalId: data.proposalId,
+                                status: data.status,
+                                amount: data.data.amount,
+                                type: data.type && data.type.name ? data.type.name : ""
+                            };
+
+                            if (data.data.actualAmountReceived) {
+                                elements.actualAmountReceived = data.actualAmountReceived;
+                            }
+
+                            if (data.data.rate) {
+                                elements.rate = data.rate;
+                            }
+
+                            result.push(elements);
+                        }
+                    })
+
+                    return result;
+                } else {
+                    return result;
+                }
+            }
+        )
+    }
+
 };
 
 /*
@@ -8424,15 +8460,33 @@ function insertRepeatCount(proposals, platformList) {
 
             if (proposal.data.bankCardNo) {
                 console.log("LH Check payment monitor total 1----------------------", proposal.data.bankCardNo);
-                let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
-                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+                let bankCardNoPrefix = proposal.data.bankCardNo.substring(0, 6);
+                let bankCardNoRegExpA;
+                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));;
+                if(bankCardNoPrefix.indexOf('*') == -1){
 
-                console.log("LH Check payment monitor total 2----------------------", bankCardNoRegExpA);
-                console.log("LH Check payment monitor total 3----------------------", bankCardNoRegExpB);
-                bankCardNoRegExp = [
-                    {"data.bankCardNo": bankCardNoRegExpA},
-                    {"data.bankCardNo": bankCardNoRegExpB}
-                ];
+                    console.log("LH Check payment monitor total 2----------------------", bankCardNoRegExpA);
+                    console.log("LH Check payment monitor total 3----------------------", bankCardNoRegExpB);
+
+                    bankCardNoRegExpA = new RegExp(bankCardNoPrefix + ".*");
+                    bankCardNoRegExp = [
+                        {"data.bankCardNo": bankCardNoRegExpA},
+                        {"data.bankCardNo": bankCardNoRegExpB}
+                    ];
+                }else{
+                    bankCardNoRegExp = [
+                        {"data.bankCardNo": bankCardNoRegExpB}
+                    ];
+                }
+
+                // let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                // let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+
+
+                // bankCardNoRegExp = [
+                //     {"data.bankCardNo": bankCardNoRegExpA},
+                //     {"data.bankCardNo": bankCardNoRegExpB}
+                // ];
             }
 
             let prevSuccessQuery = {

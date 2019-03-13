@@ -6130,6 +6130,24 @@ let dbPlayerReward = {
                 });
             }
 
+            let checkMatchQuery = {
+                "createTime": freeTrialQuery.createTime,
+                "data.eventId": eventData._id,
+                "status": constProposalStatus.APPROVED,
+                // "data.playerObjId": playerData._id,
+                $or: [
+                    {'data.playerObjId': playerData._id},
+                    {'data.lastLoginIp': playerData.lastLoginIp},
+                    {'data.phoneNumber': playerData.phoneNumber},
+                    {'data.deviceId': playerData.deviceId},
+                ]
+            };
+            if (playerData && playerData._id) {
+                console.log('checkMatchQuery===', playerData._id, checkMatchQuery);
+                console.log('checkMatchQuery.$or===', playerData._id, checkMatchQuery.$or);
+                console.log('eventData', eventData);
+            }
+
             // check reward apply limit in period
             let countInRewardInterval = dbConfig.collection_proposal.aggregate(
                 {

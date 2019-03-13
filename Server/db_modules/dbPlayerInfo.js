@@ -425,7 +425,21 @@ let dbPlayerInfo = {
                 }
                 platform = platformData;
 
-                return dbconfig.collection_players.findOne({platform: platform._id, guestDeviceId: String(inputData.guestDeviceId)}).populate({
+                let playerQuery = {
+                    platform: platform._id,
+                    guestDeviceId: String(inputData.guestDeviceId),
+                }
+                if (inputData.phoneNumber) {
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber)
+                    playerQuery.$or = [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+
+                }
+
+                return dbconfig.collection_players.findOne(playerQuery).populate({
                     path: "playerLevel",
                     model: dbconfig.collection_playerLevel
                 }).lean().then(
@@ -463,6 +477,10 @@ let dbPlayerInfo = {
                                         isRealPlayer: true,
                                         guestDeviceId: inputData.guestDeviceId
                                     };
+
+                                    if (inputData.phoneNumber) {
+                                        guestPlayerData.phoneNumber = inputData.phoneNumber
+                                    }
 
                                 }
                             ).then(
@@ -1771,7 +1789,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerPasswordValid) {
-                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent || playerdata.guestDeviceId) {
+                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent || (playerdata.guestDeviceId && !playerdata.phoneNumber)) {
                         return {isPhoneNumberValid: true};
                     }
 
@@ -6617,6 +6635,7 @@ let dbPlayerInfo = {
         let bank2 = {};
         let bank3 = {};
         let allBankTypeList = {};
+        let isFirstBankBinded = true;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -6639,11 +6658,12 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
                 if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccount) {
-                    return Promise.reject({
-                        status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                        name: "DataError",
-                        errorMessage: "Player does not have valid payment information"
-                    });
+                    // return Promise.reject({
+                    //     status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                    //     name: "DataError",
+                    //     errorMessage: "Player does not have valid payment information"
+                    // });
+                    isFirstBankBinded = false;
                 }
                 bank1.id = '1';
                 bank1.isDefault = true;
@@ -6734,6 +6754,13 @@ let dbPlayerInfo = {
                         });
                     }
                 });
+
+                if (!isFirstBankBinded) {
+                    listData = [];
+                    return returnData = {
+                        list: listData
+                    };
+                }
 
                 return returnData = {
                     list: listData
