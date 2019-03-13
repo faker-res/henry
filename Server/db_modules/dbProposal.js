@@ -8275,6 +8275,42 @@ var proposal = {
         );
     },
 
+    getProposalStatusList: function (proposalIds) {
+        let result = [];
+
+        return dbconfig.collection_proposal.find({proposalId: {$in: proposalIds}}, {proposalId: 1, status: 1, 'data.amount': 1, 'data.actualAmountReceived': 1, 'data.rate': 1, type: 1})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
+            proposalData => {
+                if (proposalData && proposalData.length > 0) {
+                    proposalData.forEach(data => {
+                        if (data) {
+                            let elements = {
+                                proposalId: data.proposalId,
+                                status: data.status,
+                                amount: data.data.amount,
+                                type: data.type && data.type.name ? data.type.name : ""
+                            };
+
+                            if (data.data.actualAmountReceived) {
+                                elements.actualAmountReceived = data.actualAmountReceived;
+                            }
+
+                            if (data.data.rate) {
+                                elements.rate = data.rate;
+                            }
+
+                            result.push(elements);
+                        }
+                    })
+
+                    return result;
+                } else {
+                    return result;
+                }
+            }
+        )
+    }
+
 };
 
 /*
