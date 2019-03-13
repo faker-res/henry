@@ -1563,7 +1563,19 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
     let dxMission = dxPhone.dxMission;
     let platformPrefix = platform.prefix || "";
 
-    return generateDXPlayerName(dxMission.lastXDigit, platformPrefix, dxMission.playerPrefix, dxPhone).then(
+    return dbconfig.collection_players.findOne({
+        phoneNumber: {$in: [rsaCrypto.encrypt(dxPhone.phoneNumber), rsaCrypto.oldEncrypt(dxPhone.phoneNumber)]},
+        platform: platform._id,
+        isRealPlayer: true
+    }, {_id: 1}).lean().then(
+        playerExist=> {
+            if (playerExist) {
+                return Promise.reject({isPlayerExist: true, message: "Your phone number is registered, please verify and login."});
+            }
+
+            return generateDXPlayerName(dxMission.lastXDigit, platformPrefix, dxMission.playerPrefix, dxPhone)
+        }
+    ).then(
         playerName => {
             console.log('DX created player: ', playerName);
             isNew = true;
@@ -1728,6 +1740,9 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
         }
     ).catch(
         err => {
+            if (err.isPlayerExist) {
+                return Promise.reject(err);
+            }
             errorUtils.reportError(err);
             return {redirect: dxMission.loginUrl};
         }
