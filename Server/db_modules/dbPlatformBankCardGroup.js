@@ -638,10 +638,13 @@ var dbPlatformBankCardGroup = {
         if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
             let options = {
                 method: 'POST',
-                uri: topUpSystemConfig.paymentGroupAPIAddr,
+                uri: topUpSystemConfig.paymentGroupByPlayerAPIAddr,
                 body: {
                     platformId: platformId,
                     userName: playerName
+                },
+                headers: {
+                    "Content-Type": "application/json"
                 },
                 json: true
             };

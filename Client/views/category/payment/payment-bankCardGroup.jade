@@ -11,7 +11,7 @@ style.
             .panel-heading.panel-heading-sm
                 label {{"Bankcard Group" | translate}}
             .panel-body
-                div(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
+                div(ng-show="vm.paymentSystemName === 'PMS' || vm.paymentSystemName === ''")
                     input#FPMSPaymentGroup(type='radio' value='FPMS' ng-model="vm.groupUsed" ng-change="vm.getAllBankCard();vm.loadBankCardGroup()")
                     label.radio-space(for='FPMSPaymentGroup') {{"FPMS Group" | translate}}
                     input#PMSPaymentGroup(type='radio' value='PMS' ng-model="vm.groupUsed" ng-change="vm.loadBankCardGroup()")
@@ -23,7 +23,7 @@ style.
                     li.list-group-item(ng-repeat='(i,bankCardGroup) in vm.platformBankCardGroupList', ng-click='vm.bankCardGroupClicked(i,bankCardGroup)', ng-class='{active: vm.SelectedBankCardGroupNode === bankCardGroup}')
                         text {{bankCardGroup.name}}
                         i.fa.fa-star.pull-right.margin-right-5(ng-show='bankCardGroup.bDefault')
-                div.paymentCard(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
+                div.paymentCard(ng-show="vm.paymentSystemName === 'PMS' || vm.paymentSystemName === ''")
                         label {{"PAYMENT_CARD_MODE" | translate}}
                         br
                         input#bankCardFPMSGroupSetting(type='radio' value='false' ng-model="vm.bankCardGroupPMS" ng-disabled="!checkViewPermission('Payment', 'BankCardGroup', 'UpdateCardGroupType')")
@@ -33,7 +33,7 @@ style.
                         br
                         button.btn.btn-primary(ng-click="vm.updateIsPMSGroup(vm.bankCardGroupPMS, 'bankCardGroupIsPMS')" ng-if="checkViewPermission('Payment', 'BankCardGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
                 br
-                .btn-group.text-center(role="group" ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
+                .btn-group.text-center(role="group" ng-show="vm.paymentSystemName === 'PMS' || vm.paymentSystemName === ''")
                     button.btn.btn-primary.vertical-button-group(ng-if="((vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) || vm.selectedPlatform.data.isFPMSPaymentSystem) && checkViewPermission('Payment', 'BankCardGroup', 'CreateBankCard')", data-toggle="modal", ng-click='vm.newBankCardAcc={};', data-target='#modalAddNewBankCard')
                         img.img-create.
                         text {{"CreateBankCard" | translate}}
