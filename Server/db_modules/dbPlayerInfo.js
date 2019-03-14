@@ -1789,7 +1789,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerPasswordValid) {
-                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent || playerdata.guestDeviceId) {
+                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent || (playerdata.guestDeviceId && !playerdata.phoneNumber)) {
                         return {isPhoneNumberValid: true};
                     }
 
@@ -2441,10 +2441,12 @@ let dbPlayerInfo = {
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
             .populate({path: "csOfficer", model: dbconfig.collection_admin})
-            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo})
+            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean()
             .then(data => {
                 if (data) {
                     playerData = data;
+                    console.log('playerData===', playerData);
+                    console.log('playerData.multipleBankDetailInfo===', playerData.multipleBankDetailInfo);
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     });
@@ -6635,6 +6637,7 @@ let dbPlayerInfo = {
         let bank2 = {};
         let bank3 = {};
         let allBankTypeList = {};
+        let isFirstBankBinded = true;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -6657,11 +6660,12 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
                 if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccount) {
-                    return Promise.reject({
-                        status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                        name: "DataError",
-                        errorMessage: "Player does not have valid payment information"
-                    });
+                    // return Promise.reject({
+                    //     status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                    //     name: "DataError",
+                    //     errorMessage: "Player does not have valid payment information"
+                    // });
+                    isFirstBankBinded = false;
                 }
                 bank1.id = '1';
                 bank1.isDefault = true;
@@ -6752,6 +6756,13 @@ let dbPlayerInfo = {
                         });
                     }
                 });
+
+                if (!isFirstBankBinded) {
+                    listData = [];
+                    return returnData = {
+                        list: listData
+                    };
+                }
 
                 return returnData = {
                     list: listData
