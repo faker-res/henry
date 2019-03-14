@@ -17435,18 +17435,11 @@ define(['js/app'], function (myApp) {
                             vm.ctiData.callee.map(callee => {
                                 if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
                                     if (vm.playerFeedbackSearchType=="many") {
-                                        if (vm.showPlayerDetailInNewTab) {
-                                            let playerObjId = callee && callee.player && callee.player._id;
-                                            if (playerObjId) {
-                                                let url = window.location.origin + "/playerDetail/" + playerObjId;
-                                                utilService.openInNewTab(url);
-                                            }
+                                        let playerObjId = callee && callee.player && callee.player._id;
+                                        if (playerObjId) {
+                                            let url = window.location.origin + "/playerDetail/" + playerObjId;
+                                            utilService.openInNewTab(url);
                                         }
-                                        else {
-                                            vm.initFeedbackModal(callee.player);
-                                            $('#modalAddPlayerFeedback').modal().show();
-                                        }
-
                                     }
                                     else {
                                         vm.lastSelectedCallPlayer = callee.player || vm.lastSelectedCallPlayer;
