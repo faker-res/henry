@@ -22010,6 +22010,7 @@ define(['js/app'], function (myApp) {
                     creditOperator: ">=",
                     playerType: 'Real Player (all)'
                 };
+                $scope.$evalAsync();
                 vm.getPlayersByAdvanceQueryDebounced(function () {
                 });
                 vm.advancedQueryObj = {
