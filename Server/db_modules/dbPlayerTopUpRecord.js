@@ -854,6 +854,7 @@ var dbPlayerTopUpRecord = {
                 if(query.line){
                     queryObj['data.line'] = {$in: query.line};
                 }
+                console.log('str===', str);
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str}).lean();
             }
         ).then(
@@ -862,6 +863,9 @@ var dbPlayerTopUpRecord = {
                     return type._id;
                 });
                 queryObj.type = {$in: typeIds};
+                console.log('proposalType===', proposalType);
+                console.log('typeIds===', typeIds);
+                console.log('queryObj===', queryObj);
 
                 let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
                 let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
