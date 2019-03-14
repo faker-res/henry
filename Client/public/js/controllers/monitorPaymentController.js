@@ -4264,7 +4264,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {
-                        "title": $translate('Website'),
+                        "title": $translate('PRODUCT_NAME'),
                         data: "website",
                     },
                     {
@@ -4445,7 +4445,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {
-                        "title": $translate('Website'),
+                        "title": $translate('PRODUCT_NAME'),
                         data: "website",
                     },
                     {
