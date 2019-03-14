@@ -913,6 +913,10 @@ var dbPlayerTopUpRecord = {
                 let totalCount = data[0];
                 let totalAmountResult = data[1][0];
                 let totalPlayerResult = data[3] && data[3].length || 0;
+                console.log('totalCount===', totalCount);
+                console.log('totalAmountResult===', totalAmountResult);
+                console.log('totalPlayerResult===', totalPlayerResult);
+
 
                 return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
             }
