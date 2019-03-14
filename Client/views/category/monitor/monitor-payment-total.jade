@@ -55,7 +55,7 @@ div
             label.control-label {{'End date' | translate}}
             .endTime
         .search-filters-item
-            label 网站（复选）
+            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
             select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.platformList', ng-options='v._id as v.name for v in vm.platformByAdminId', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'Fail Counter' | translate}}
