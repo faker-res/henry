@@ -607,7 +607,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.playerPMSBankCardGroupSearch = () => {
-            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType}).then(data => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType, accountType: "1"}).then(data => {
                 console.log('getPMSUserPaymentGroup bankCard', data)
 
                 vm.platformBankCardGroupList = [];
@@ -1750,7 +1750,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.playerPMSMerchantGroupSearch = () => {
-            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType}).then(data => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType, accountType: "4"}).then(data => {
                 console.log('getPMSUserPaymentGroup merchant', data);
 
                 let merchantGroupData;
@@ -2339,7 +2339,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.playerPMSAlipayGroupSearch = () => {
-            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType}).then(data => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType, accountType: "2"}).then(data => {
                 console.log('getPMSUserPaymentGroup', data)
 
                 let alipayGroupData;
@@ -3073,7 +3073,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.playerPMSWechatGroupSearch = () => {
-            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType}).then(data => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType, accountType: "3"}).then(data => {
                 console.log('getPMSUserPaymentGroup', data)
 
                 let wechatGroupData;
