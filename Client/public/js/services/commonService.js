@@ -720,7 +720,12 @@ define([], () => {
         };
 
         this.setFixedPropDetail = ($scope, $translate, $noRoundTwoDecimalPlaces, vm, $fixTwoDecimalStr) => {
-            let proposalDetail = vm.selectedProposal.data || {};
+            let proposalDetail = {};
+            if(vm && vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.platformId && vm.selectedProposal.data.platformId.name
+                && proposalDetail && !proposalDetail.PRODUCT_NAME) {
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+            }
+            proposalDetail = Object.assign(proposalDetail, vm.selectedProposal.data);
 
             // region Manual top up proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
