@@ -58,25 +58,21 @@ var dbPlatformAlipayGroup = {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
                     curPlatformId = platformData && platformData.platformId ? platformData.platformId : null;
 
-                    return addDefaultAlipayGroup(topUpSystemConfig, platformId, curPlatformId).then(
-                        () => {
-                            let matchQuery = {
-                                platform: platformId
-                            };
+                    let matchQuery = {
+                        platform: platformId
+                    };
 
-                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                                matchQuery.isPMS2 = {$exists: true};
-                            } else {
-                                matchQuery.isPMS2 = {$exists: false};
-                            }
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        matchQuery.isPMS2 = {$exists: true};
+                    } else {
+                        matchQuery.isPMS2 = {$exists: false};
+                    }
 
-                            return dbconfig.collection_platformAlipayGroup.aggregate(
-                                {
-                                    $match: matchQuery
-                                }
-                            ).exec();
+                    return dbconfig.collection_platformAlipayGroup.aggregate(
+                        {
+                            $match: matchQuery
                         }
-                    );
+                    ).exec();
                 }
             }
         )
@@ -542,36 +538,38 @@ var dbPlatformAlipayGroup = {
 
     deleteAlipayAcc: function (AlipayObjId) {
         return dbconfig.collection_platformAlipayList.remove({_id: AlipayObjId}).exec();
+    },
+
+    getPMSAlipayGroup: function (platformId, topUpSystemType) {
+        let topUpSystemConfig;
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            let type = constAccountType.ALIPAY;
+
+            let options = {
+                method: 'POST',
+                uri: topUpSystemConfig.paymentGroupAPIAddr,
+                body: {
+                    platformId: platformId,
+                    accountType: type
+                },
+                json: true
+            };
+
+            console.log('getPMSAlipayGroup req: ', platformId, type);
+
+            return rp(options).then(function (data) {
+                console.log('getPMSAlipayGroup success',platformId, type, data);
+                return data;
+            }, error => {
+                console.log('getPMSAlipayGroup failed',platformId, type, error);
+                throw error;
+            });
+        }
     }
 
 };
-
-function addDefaultAlipayGroup(topUpSystemConfig, platformObjId, platformId) {
-    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-        return dbconfig.collection_platformAlipayGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
-            pms2AlipayGroupExists => {
-                if (!pms2AlipayGroupExists && platformId) {
-                    let defaultStr = "PMS2DefaultGroup-" + platformId;
-                    let groupData = {
-                        groupId: defaultStr,
-                        name: defaultStr,
-                        code: defaultStr,
-                        displayName: defaultStr,
-                        platform: platformObjId,
-                        isPMS2: true
-                    };
-
-                    let aliGroup = new dbconfig.collection_platformAlipayGroup(groupData);
-
-                    return aliGroup.save();
-                } else {
-                    return Promise.resolve(true);
-                }
-            }
-        );
-    } else {
-        return Promise.resolve(true);
-    }
-}
 
 module.exports = dbPlatformAlipayGroup;
