@@ -67,7 +67,7 @@ style.
             .panel-body
                 .text-center(ng-if='!vm.SelectedMerchantGroupNode')
                     label.text-danger {{"NO_MERCHANT_GROUP_MESSAGE" | translate}}
-                .col-sm-12(ng-class="{'col-sm-6':(vm.merchantGroupUsed == 'PMS')}")
+                .col-sm-12(ng-class="{'col-sm-6':(vm.merchantGroupUsed == 'PMS' || vm.paymentSystemName == 'PMS2')}")
                     .well
                         .search-filters-item
                             .control-label {{"Backstage Merchant ID" | translate}}
@@ -80,7 +80,7 @@ style.
                                 option(value='no') {{'NOT_IN_GROUP' | translate}}
                         .text-right.widthto100
                             button.btn.btn-primary(data-dismiss='modal', ng-click="vm.merchantPayFilter()") {{"FILTER" | translate}}
-                .col-sm-6(ng-if="vm.merchantGroupUsed == 'PMS'")
+                .col-sm-6(ng-if="vm.merchantGroupUsed == 'PMS' || vm.paymentSystemName == 'PMS2'")
                     .well
                         .search-filters-item
                             .control-label {{"Player's Name (PMS Group Search)" | translate}}

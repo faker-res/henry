@@ -168,6 +168,12 @@ function socketActionAlipayGroup(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._id);
             socketUtil.emitter(self.socket, dbPlatformAlipayGroup.deleteAlipayAcc, [data._id], actionName, isValidData);
+        },
+
+        getPMSAlipayGroup: function getPMSAlipayGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.getPMSAlipayGroup, [data.platformId, data.topUpSystemType], actionName, isValidData);
         }
 
     };

@@ -74,10 +74,10 @@
                             option(value='all') {{'any' | translate}}
                             option(value='false') {{'noInGroup' | translate}}
                             option(value='true') {{'inGroup' | translate}}
-                    .search-filters-item(ng-if="vm.alipayGroupUsed == 'PMS'")
+                    .search-filters-item(ng-if="vm.alipayGroupUsed == 'PMS' || vm.paymentSystemName === 'PMS2'")
                         .control-label {{"Player's Name (PMS Group Search)" | translate}}
                         input.form-control(type='text', ng-model='vm.pmsGroupPlayerName')
-                    .text-right.widthto100(ng-if="vm.alipayGroupUsed == 'PMS'")
+                    .text-right.widthto100(ng-if="vm.alipayGroupUsed == 'PMS' || vm.paymentSystemName === 'PMS2'")
                         button.btn.btn-primary(data-dismiss='modal', ng-click="vm.playerPMSAlipayGroupSearch()") {{"SEARCH" | translate}}
                 text.blink.margin-left-5.text-danger(ng-if='vm.SelectedAlipayGroupNode && !vm.allAlipayList') {{'loading alipays' | translate}}...
                 text.margin-left-5(ng-if='vm.SelectedAlipayGroupNode && vm.allAlipayList') {{'Total' | translate}}: {{filteredAlipayList.length}}

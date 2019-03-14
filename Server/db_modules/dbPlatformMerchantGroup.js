@@ -459,51 +459,6 @@ var dbPlatformMerchantGroup = {
             }
         ).then(
             () => {
-                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    return dbconfig.collection_platformMerchantGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
-                        pms2MerchantGroupExists => {
-                            if (!pms2MerchantGroupExists && platformId) {
-                                let defaultStr = "PMS2DefaultGroup-" + platformId;
-                                let groupData = {
-                                    groupId: defaultStr,
-                                    name: defaultStr,
-                                    code: defaultStr,
-                                    displayName: defaultStr,
-                                    platform: platformObjId,
-                                    isPMS2: true
-                                };
-
-                                if(newMerchants && newMerchants.length > 0 || newMerchantNames && newMerchantNames.length > 0) {
-                                    groupData.merchants = newMerchants;
-                                    groupData.merchantNames = newMerchantNames;
-                                } else if (merchantList && merchantList.length > 0) {
-                                    let merchants = merchantList.map(merchant => merchant.merchantNo);
-                                    let merchantNames = merchantList.map(merchant => merchant.name || merchant.Name);
-
-                                    groupData.merchants = merchants;
-                                    groupData.merchantNames = merchantNames;
-                                }
-
-                                let merchantGroup = new dbconfig.collection_platformMerchantGroup(groupData);
-
-                                return merchantGroup.save().catch(function (err) {
-                                    let message = '';
-                                    if (err) {
-                                        if (err.code == '11000') {
-                                            message = "This Key is Exist，Please Choose Another Name";
-                                        } else {
-                                            message = err.errmsg ? err.errmsg : "";
-                                        }
-                                        return Q.reject({name: "DataError", message: message});
-                                    }
-                                })
-                            }
-                        }
-                    );
-                }
-            }
-        ).then(
-            () => {
                 if(newMerchants && newMerchants.length > 0 || newMerchantNames && newMerchantNames.length > 0) {
                     let groupQuery;
 
@@ -599,35 +554,35 @@ var dbPlatformMerchantGroup = {
                             json: true
                         };
 
-                        merchantsList = rp(merchantListOptions).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        merchantsList = rp(merchantListOptions).then(function (data) {
+                            console.log('merchantListAPIAddr success', data);
+                            return data;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('merchantListAPIAddr failed', error);
                             throw error;
                         });
 
-                        bankCardList = rp(bankcardListOptions).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        bankCardList = rp(bankcardListOptions).then(function (data) {
+                            console.log('bankCardList success', data);
+                            return data;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('bankCardList failed', error);
                             throw error;
                         });
 
-                        aliPayList = rp(alipayListOptions).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        aliPayList = rp(alipayListOptions).then(function (data) {
+                            console.log('aliPayList success', data);
+                            return data;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('aliPayList failed', error);
                             throw error;
                         });
 
-                        weChatList = rp(wechatpayListOptions).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
+                        weChatList = rp(wechatpayListOptions).then(function (data) {
+                            console.log('weChatList success', data);
+                            return data;
                         }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
+                            console.log('weChatList failed', error);
                             throw error;
                         });
                     } else {
@@ -780,14 +735,27 @@ var dbPlatformMerchantGroup = {
         })
     },
     updateCustomizeRatePlatformMerchantList: function (platformId, name, merchantNo, customizeRate) {
-        return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
+        let topUpSystemConfig;
+
+        return dbconfig.collection_platform.findOne({_id: platformId}, {platformId: 1, topUpSystemType: 1}).lean().then(
             platformData => {
                 if (platformData && platformData.platformId) {
-                    return dbconfig.collection_platformMerchantList.findOneAndUpdate({
-                            merchantNo: merchantNo,
-                            name: name,
-                            platformId: platformData.platformId
-                        },
+
+                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+                    let updateQuery = {
+                        merchantNo: merchantNo,
+                        name: name,
+                        platformId: platformData.platformId
+                    };
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        updateQuery.isPMS2 = {$exists: true};
+                    } else {
+                        updateQuery.isPMS2 = {$exists: false};
+                    }
+
+                    return dbconfig.collection_platformMerchantList.findOneAndUpdate(updateQuery,
                         {
                             customizeRate: customizeRate
                         },
@@ -800,10 +768,24 @@ var dbPlatformMerchantGroup = {
         );
     },
     getPlatformMerchantList: function (platformId) {
-        return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
+        let topUpSystemConfig;
+
+        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1}).lean().then(
             platformData => {
                 if (platformData && platformData.platformId) {
-                    return dbconfig.collection_platformMerchantList.find({platformId: platformData.platformId, isPMS2: {$exists: false}}).lean();
+                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+                    let query = {
+                        platformId: platformData.platformId
+                    }
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        query.isPMS2 = {$exists: true};
+                    } else {
+                        query.isPMS2 = {$exists: false};
+                    }
+
+                    return dbconfig.collection_platformMerchantList.find(query).lean();
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
@@ -844,6 +826,36 @@ var dbPlatformMerchantGroup = {
                 }
             }
         );
+    },
+
+    getPMSMerchantGroup: function (platformId, topUpSystemType) {
+        let topUpSystemConfig;
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            let type = constAccountType.ONLINE
+
+            let options = {
+                method: 'POST',
+                uri: topUpSystemConfig.paymentGroupAPIAddr,
+                body: {
+                    platformId: platformId,
+                    accountType: type
+                },
+                json: true
+            };
+
+            console.log('getPMSMerchantGroup req: ', platformId, type);
+
+            return rp(options).then(function (data) {
+                console.log('getPMSMerchantGroup success',platformId, type, data);
+                return data;
+            }, error => {
+                console.log('getPMSMerchantGroup failed',platformId, type, error);
+                throw error;
+            });
+        }
     }
 };
 

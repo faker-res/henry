@@ -131,6 +131,10 @@ var roleChecker = {
         "getPlatformProviderGroup": true,
         "getPMSPaymentGroup": true,
         "getPMSUserPaymentGroup": true,
+        "getPMSAlipayGroup": true,
+        "getPMSMerchantGroup": true,
+        "getPMSBankCardGroup": true,
+        "getPMSWechatPayGroup": true,
 
         // API Actions - can be ignored
         'createApiUser': true,
