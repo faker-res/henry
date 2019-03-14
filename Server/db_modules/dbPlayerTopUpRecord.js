@@ -1040,12 +1040,32 @@ var dbPlayerTopUpRecord = {
                 let bankCardNoRegExp;
 
                 if (proposal.data.bankCardNo) {
-                    let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                    console.log("proposal.data.bankCardNo----------------------", proposal.data.bankCardNo);
+                    let bankCardNoPrefix = proposal.data.bankCardNo.substring(0, 6);
+                    let bankCardNoRegExpA;
                     let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
-                    bankCardNoRegExp = [
-                        {"data.bankCardNo": bankCardNoRegExpA},
-                        {"data.bankCardNo": bankCardNoRegExpB}
-                    ];
+                    if (bankCardNoPrefix.indexOf('*') == -1) {
+
+                        console.log("bankCardNoRegExpA----------------------", bankCardNoRegExpA);
+                        console.log("bankCardNoRegExpB----------------------", bankCardNoRegExpB);
+
+                        bankCardNoRegExpA = new RegExp(bankCardNoPrefix + ".*");
+                        bankCardNoRegExp = [
+                            {"data.bankCardNo": bankCardNoRegExpA},
+                            {"data.bankCardNo": bankCardNoRegExpB}
+                        ];
+                    } else {
+                        bankCardNoRegExp = [
+                            {"data.bankCardNo": bankCardNoRegExpB}
+                        ];
+                    }
+
+                    // let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                    // let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+                    // bankCardNoRegExp = [
+                    //     {"data.bankCardNo": bankCardNoRegExpA},
+                    //     {"data.bankCardNo": bankCardNoRegExpB}
+                    // ];
                 }
 
                 let prevSuccessQuery = {
