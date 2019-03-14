@@ -759,6 +759,12 @@
         this.playerService.getReceiveTransferList.once(callback);
     };
 
+    proto.updateDeviceId = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updateDeviceId.request(data);
+        this.playerService.updateDeviceId.once(callback);
+    };
+
     proto.playerLoginOrRegisterWithSMS = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.playerLoginOrRegisterWithSMS.request(data);
