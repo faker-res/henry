@@ -22833,6 +22833,32 @@ let dbPlayerInfo = {
 
     },
 
+    updateDeviceId: function (playerId, deviceId) {
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"})
+                }
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {
+                        _id: playerData._id,
+                        deviceId: {$ne: deviceId}
+                    },
+                    {
+                        deviceId: deviceId
+                    }).lean()
+            }
+        ).then(
+            updatedPlayer => {
+                if (!updatedPlayer) {
+                    return Promise.resolve(false); // deviceId same with db, no update
+                } else {
+                    return Promise.resolve(true)
+                }
+            }
+        );
+    },
+
     getClientData: function (playerId) {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
