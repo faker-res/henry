@@ -18,6 +18,7 @@ var simplifiedChinese = {
     "Player is not found": "播放器没有找到",
     "Incomplete input data": "不完整的输入数据",
     "Token is not authenticated": "令牌未经过身份验证",
+    "Invalid token": "令牌无效",
     "Player ip doesn't match!": "玩家IP不匹配",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "transfer credit fail, please try again later": "转账失败，请稍后重试",

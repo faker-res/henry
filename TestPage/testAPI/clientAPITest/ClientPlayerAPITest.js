@@ -765,6 +765,18 @@
         this.playerService.updateDeviceId.once(callback);
     };
 
+    proto.generateUpdatePasswordToken = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.generateUpdatePasswordToken.request(data);
+        this.playerService.generateUpdatePasswordToken.once(callback);
+    };
+
+    proto.updatePasswordWithToken = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePasswordWithToken.request(data);
+        this.playerService.updatePasswordWithToken.once(callback);
+    };
+
     proto.playerLoginOrRegisterWithSMS = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.playerLoginOrRegisterWithSMS.request(data);
