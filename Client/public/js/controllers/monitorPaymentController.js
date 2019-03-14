@@ -3827,7 +3827,7 @@ define(['js/app'], function (myApp) {
                 merchantNo: vm.paymentMonitorTotalQuery.merchantNo,
                 startTime: vm.paymentMonitorTotalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorTotalQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformList: vm.paymentMonitorTotalQuery.platformList || vm.platformByAdminId && vm.platformByAdminId.length ?  vm.platformByAdminId.map(p => p._id) : "",
+                platformList: vm.paymentMonitorTotalQuery.platformList,
                 sortCol: vm.paymentMonitorTotalQuery.sortCol,
                 currentPlatformId: vm.selectedPlatform._id,
                 failCount: vm.paymentMonitorTotalQuery.failCount
@@ -4054,8 +4054,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.showProposalModal = function (proposalId) {
+            let platformList = vm.platformByAdminId && vm.platformByAdminId.length ?  vm.platformByAdminId.map(p => p._id) : [vm.selectedPlatform._id];
+
             socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
-                platformId: vm.selectedPlatform._id,
+                platformId: platformList,
                 proposalId: proposalId
             }, function (data) {
                 $scope.$evalAsync(() => {

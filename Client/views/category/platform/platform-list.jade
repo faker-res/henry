@@ -622,3 +622,36 @@
                     button.btn.btn-primary.common-button(ng-if='!vm.CSSContentEdit', ng-click='vm.CSSContentEdit=!vm.CSSContentEdit;')
                         text {{'EDIT' | translate}}
                         img.img-edit
+
+#modalXBETAdvPreview.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true', style= 'overflow: auto;')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button',ng-click='vm.clearStyle()', data-dismiss='modal')
+                h4.modal-title(ng-show="true") {{"ADV SETTING" | translate}}
+            .modal-body(style='overflow:auto;')
+                div(style='position: relative; display: inline-block;')
+                    img#imagePreviewXBET(async=on ng-src="{{vm.selectedAdvertisement && vm.selectedAdvertisement.url || ''}}", style='height: auto; width: auto;')
+            .modal-footer
+                table.common-table.playerLvlTable
+                    tbody
+                        tr
+                            th.align-left 图中按钮位置与效果 (CSS)
+                        tr
+                            td(ng-if="!vm.CSSContentEdit", align="left")
+                                div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{vm.selectedAdvertisement.css}}
+                            td(ng-if='vm.CSSContentEdit', align="left")
+                                input.form-control(type='text', value='{{vm.selectedAdvertisement.css}}', ng-model='vm.selectedAdvertisement.css')
+                        tr
+                            td(ng-if="!vm.CSSContentEdit", align="left")
+                                div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{vm.selectedAdvertisement.hoverCss}}
+                            td(ng-if='vm.CSSContentEdit', align="left")
+                                input.form-control(type='text', value='{{vm.selectedAdvertisement.hoverCss}}', ng-model='vm.selectedAdvertisement.hoverCss')
+                br
+                .pull-right
+                    button.btn.btn-primary.common-button(ng-show='vm.CSSContentEdit', ng-click='vm.CSSContentEdit=!vm.CSSContentEdit; vm.XBETAdvCssUpdate(vm.selectedAdvertisement); vm.clearStyle()', data-dismiss="modal" ) {{"SAVE" | translate}}
+                    //button.btn.btn-primary.common-button(ng-click='vm.CSSContentEdit=!vm.CSSContentEdit', data-dismiss="modal" ) {{"SAVE" | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.drawXBETAdPreviewCSS(vm.selectedAdvertisement);') {{"PREVIEW" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='!vm.CSSContentEdit', ng-click='vm.CSSContentEdit=!vm.CSSContentEdit;')
+                        text {{'EDIT' | translate}}
+                        img.img-edit

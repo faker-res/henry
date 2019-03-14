@@ -1264,7 +1264,7 @@ var proposal = {
                 select: "bankAccount bankName",
                 model: dbconfig.collection_players
             }
-        ).then(
+        ).lean().then(
             function (data) {
                 console.log("updateProposalProcessStep data", data);
                 //todo::add proposal or process status check here
@@ -1313,7 +1313,7 @@ var proposal = {
                         proposalData = data;
                         return dbconfig.collection_proposalProcess.findOne({_id: data.process})
                             .populate({path: "currentStep", model: dbconfig.collection_proposalProcessStep})
-                            .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).exec();
+                            .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).lean().exec();
                     }
                 }
                 else {
@@ -1356,7 +1356,7 @@ var proposal = {
                         return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
                             {_id: proposalProcessData.currentStep._id, createTime: proposalProcessData.currentStep.createTime},
                             stepData
-                        ).exec();
+                        ).lean().exec();
                     }
                     else {
                         deferred.reject({name: "DBError", message: "Can't find proposal process"});
@@ -1381,7 +1381,7 @@ var proposal = {
                     return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
                         {_id: proposalProcessData.currentStep._id, createTime: proposalProcessData.currentStep.createTime},
                         stepData
-                    ).exec();
+                    ).lean().exec();
                 }
                 else {
                     deferred.reject({name: "DBError", message: "Can't find proposal process"});
@@ -3408,6 +3408,7 @@ var proposal = {
     getProposalsByAdvancedQuery: function (reqData, index, count, sortObj) {
         sortObj = sortObj || {};
         let proposalTypeList = [];
+        let approveProposalTypeList = [];
         let queryData = reqData;
         let resultArray = null;
         let totalSize = 0;
@@ -3422,14 +3423,12 @@ var proposal = {
         }
 
         if (reqData.status) {
-            /*
             if (reqData.status == constProposalStatus.SUCCESS) {
                 isSuccess = true;
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
             }
-            */
             if (reqData.status == constProposalStatus.FAIL) {
                 reqData.status = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]
@@ -3444,12 +3443,9 @@ var proposal = {
         }
         if (!reqData.type && reqData.platformId) {
             let searchQuery = {
-                platformId: ObjectId(reqData.platformId)
-            }
-
-            if(isApprove){
-                searchQuery.name = {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]} ;
-            }
+                platformId: ObjectId(reqData.platformId),
+                name: {$nin:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
+            };
 
             prom = dbconfig.collection_proposalType.find(searchQuery).lean().then(
                 function (data) {
@@ -3474,25 +3470,54 @@ var proposal = {
                     })
                 }
             ).then(
+                () => {
+                    let approvedProposalTypeQuery = {
+                        platformId: ObjectId(reqData.platformId),
+                        name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
+                    };
+
+                    return dbconfig.collection_proposalType.find(approvedProposalTypeQuery).lean().then(
+                        approvedProposalType => {
+                            if(approvedProposalType && approvedProposalType.length){
+                                for (var i = 0; i < approvedProposalType.length; i++) {
+                                    (approveProposalTypeList.push(ObjectId(approvedProposalType[i]._id)));
+                                }
+                            }
+
+                            return proposalTypeList;
+                        },
+                        error => {
+                        }
+                    )
+                }
+            ).then(
                 function (proposalTypeIdList) { // all proposal type ids of this platform
                     delete queryData.platformId;
-                    let a = dbconfig.collection_proposal.find({
-                        type: {$in: proposalTypeIdList},
-                        $and: [queryData]
-                    }).read("secondaryPreferred").count();
-                    let b = dbconfig.collection_proposal.find({
-                        type: {$in: proposalTypeIdList},
-                        $and: [queryData]
-                    }).sort(sortObj).skip(index).limit(count).populate({
+
+                    let orQuery = [];
+
+                    if(isApprove){
+                        queryData.type = {$in: approveProposalTypeList};
+                    }else if(isSuccess){
+                        delete queryData.status;
+                        queryData["$and"] = [];
+                        orQuery.push({type: proposalTypeList, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
+                        orQuery.push({type: approveProposalTypeList, status: constProposalStatus.SUCCESS});
+
+                        queryData["$and"].push({$or: orQuery});
+                    }else{
+                        let allTypeList = proposalTypeList.concat(approveProposalTypeList);
+                        queryData.type = {$in: allTypeList};
+                    }
+
+                    let a = dbconfig.collection_proposal.find(queryData).read("secondaryPreferred").count();
+                    let b = dbconfig.collection_proposal.find(queryData).sort(sortObj).skip(index).limit(count).populate({
                         path: "process",
                         model: dbconfig.collection_proposalProcess
                     }).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
                     let c = dbconfig.collection_proposal.aggregate([
                         {
-                            $match: {
-                                type: {$in: proposalTypeIdList},
-                                $and: [queryData]
-                            }
+                            $match: queryData
                         },
                         {
                             $group: {
@@ -3515,10 +3540,7 @@ var proposal = {
                             }
                         }
                     ]).read("secondaryPreferred");
-                    let d = dbconfig.collection_proposal.distinct('data.playerName', {
-                        type: {$in: proposalTypeIdList},
-                        $and: [queryData]
-                    });
+                    let d = dbconfig.collection_proposal.distinct('data.playerName', queryData);
                     return Promise.all([a, b, c, d]);
                 },
                 function (error) {
@@ -3561,250 +3583,140 @@ var proposal = {
             }
 
             let a, b, c, d;
-            if(isApprove){
-                let searchQuery = {
-                    platformId: ObjectId(reqData.platformId),
-                    name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
-                };
 
-                a = dbconfig.collection_proposalType.find(searchQuery).lean().then(
-                    proposalType => {
-                        delete reqData.platformId;
-                        if(proposalType && proposalType.length > 0){
-                            let proposalTypeIdList = [];
-                            proposalType.forEach(p => {
-                                if(p && p._id){
-                                    let indexNo = reqData.type.$in.findIndex(r => r == p.id);
+            let searchQuery = {
+                platformId: ObjectId(reqData.platformId),
+                name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
+            };
 
-                                    if(indexNo != -1){
-                                        proposalTypeIdList.push(p._id);
-                                    }
-                                }
-                            });
-
-                            reqData.type = {$in: proposalTypeIdList};
+            prom = dbconfig.collection_proposalType.find(searchQuery, {_id: 1}).lean().then(
+                approvedProposalType => {
+                    if(approvedProposalType && approvedProposalType.length){
+                        for (var i = 0; i < approvedProposalType.length; i++) {
+                            approveProposalTypeList.push(ObjectId(approvedProposalType[i]._id));
                         }
-
-                        return dbconfig.collection_proposal.find(reqData).lean().count();
                     }
-                );
 
-                b = dbconfig.collection_proposalType.find(searchQuery).lean().then(
-                    proposalType => {
-                        delete reqData.platformId;
-                        if(proposalType && proposalType.length > 0){
-                            let proposalTypeIdList = [];
-                            proposalType.forEach(p => {
-                                if(p && p._id){
-                                    let indexNo = reqData.type.$in.findIndex(r => r == p.id);
+                    return approveProposalTypeList;
+                }
+            ).then(
+                () => {
+                    delete reqData.platformId;
+                    let approvedTypeList = []; // proposalType list which Approved status = 已审核
+                    let successTypeList = []; // proposalType list which Approved status = 成功
+                    let orQuery = [];
 
-                                    if(indexNo != -1){
-                                        proposalTypeIdList.push(p._id);
-                                    }
-                                }
-                            });
+                    reqData.type["$in"].forEach(
+                        type => {
+                            if(type){
+                                let indexNo = approveProposalTypeList.findIndex(a => a.toString() == type.toString());
 
-                            reqData.type = {$in: proposalTypeIdList};
-                        }
-
-                        return dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
-                            .populate({path: "type", model: dbconfig.collection_proposalType})
-                            .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
-                    }
-                );
-
-                c = dbconfig.collection_proposalType.find(searchQuery).lean().then(
-                    proposalType => {
-                        delete reqData.platformId;
-                        if(proposalType && proposalType.length > 0){
-                            let proposalTypeIdList = [];
-                            proposalType.forEach(p => {
-                                if(p && p._id){
-                                    let indexNo = reqData.type.$in.findIndex(r => r == p.id);
-
-                                    if(indexNo != -1){
-                                        proposalTypeIdList.push(p._id);
-                                    }
-                                }
-                            });
-
-                            reqData.type = {$in: proposalTypeIdList};
-                        }
-                        return dbconfig.collection_proposal.aggregate([
-                            {
-                                $match: reqData
-                            },
-                            {
-                                $group: {
-                                    _id: null,
-                                    totalAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.amount", NaN]},
-                                                0,
-                                                "$data.amount"
-                                            ]
-                                        }
-                                    },
-                                    totalRewardAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.rewardAmount", NaN]},
-                                                0,
-                                                "$data.rewardAmount"
-                                            ]
-                                        }
-                                    },
-                                    totalTopUpAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.topUpAmount", NaN]},
-                                                0,
-                                                "$data.topUpAmount"
-                                            ]
-                                        }
-                                    },
-                                    totalUpdateAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.updateAmount", NaN]},
-                                                0,
-                                                "$data.updateAmount"
-                                            ]
-                                        }
-                                    },
-                                    totalNegativeProfitAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.negativeProfitAmount", NaN]},
-                                                0,
-                                                "$data.negativeProfitAmount"
-                                            ]
-                                        }
-                                    },
-                                    totalCommissionAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.commissionAmount", NaN]},
-                                                0,
-                                                "$data.commissionAmount"
-                                            ]
-                                        }
-                                    },
+                                if(indexNo != -1){
+                                    approvedTypeList.push(type);
+                                }else{
+                                    successTypeList.push(type);
                                 }
                             }
-                        ]).read("secondaryPreferred");
-
-                        d = dbconfig.collection_proposalType.find(searchQuery).lean().then(
-                            proposalType => {
-                                delete reqData.platformId;
-                                if(proposalType && proposalType.length > 0){
-                                    let proposalTypeIdList = [];
-                                    proposalType.forEach(p => {
-                                        if(p && p._id){
-                                            let indexNo = reqData.type.$in.findIndex(r => r == p.id);
-
-                                            if(indexNo != -1){
-                                                proposalTypeIdList.push(p._id);
-                                            }
-                                        }
-                                    });
-
-                                    reqData.type = {$in: proposalTypeIdList};
-                                }
-
-                                return dbconfig.collection_proposal.distinct('data.playerName', reqData);
-                            }
-                        );
-                    }
-                );
-            }else{
-                delete reqData.platformId;
-                a = dbconfig.collection_proposal.find(reqData).lean().count();
-                b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
-                    .populate({path: "type", model: dbconfig.collection_proposalType})
-                    .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
-                c = dbconfig.collection_proposal.aggregate([
-                    {
-                        $match: reqData
-                    },
-                    {
-                        $group: {
-                            _id: null,
-                            totalAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$eq: ["$data.amount", NaN]},
-                                        0,
-                                        "$data.amount"
-                                    ]
-                                }
-                            },
-                            totalRewardAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$eq: ["$data.rewardAmount", NaN]},
-                                        0,
-                                        "$data.rewardAmount"
-                                    ]
-                                }
-                            },
-                            totalTopUpAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$or: [{$eq: ["$data.topUpAmount", NaN]}, {$gt: ["$data.rewardAmount", 0]}]},
-                                        0,
-                                        "$data.topUpAmount"
-                                    ]
-                                }
-                            },
-                            totalUpdateAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$eq: ["$data.updateAmount", NaN]},
-                                        0,
-                                        "$data.updateAmount"
-                                    ]
-                                }
-                            },
-                            totalNegativeProfitAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$eq: ["$data.negativeProfitAmount", NaN]},
-                                        0,
-                                        "$data.negativeProfitAmount"
-                                    ]
-                                }
-                            },
-                            totalCommissionAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$eq: ["$data.commissionAmount", NaN]},
-                                        0,
-                                        "$data.commissionAmount"
-                                    ]
-                                }
-                            },
                         }
-                    }
-                ]).read("secondaryPreferred");
-                d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
-            }
+                    );
 
-            prom = Promise.all([a, b, c, d]).then(
-                function (data) {
+                    if(isApprove){
+                        //if filter status is 已审核，find from proposalType list which Approved status = 已审核
+                        reqData.type = {$in: approvedTypeList};
+                    }else if(isSuccess){
+                        //if filter status is 陈宫，find from proposalType list which Approved status = 成功
+                        delete reqData.status;
+                        delete reqData.type;
+                        reqData["$and"] = [];
+                        orQuery.push({type: {$in: successTypeList}, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }})
+                        orQuery.push({type: {$in: approvedTypeList}, status: constProposalStatus.SUCCESS});
+
+                        reqData["$and"].push({$or: orQuery});
+                    }
+
+                    a = dbconfig.collection_proposal.find(reqData).lean().count();
+                    b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
+                        .populate({path: "type", model: dbconfig.collection_proposalType})
+                        .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+                    c = dbconfig.collection_proposal.aggregate([
+                        {
+                            $match: reqData
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                totalAmount: {
+                                    $sum: {
+                                        $cond: [
+                                            {$eq: ["$data.amount", NaN]},
+                                            0,
+                                            "$data.amount"
+                                        ]
+                                    }
+                                },
+                                totalRewardAmount: {
+                                    $sum: {
+                                        $cond: [
+                                            {$eq: ["$data.rewardAmount", NaN]},
+                                            0,
+                                            "$data.rewardAmount"
+                                        ]
+                                    }
+                                },
+                                totalTopUpAmount: {
+                                    $sum: {
+                                        $cond: [
+                                            {$eq: ["$data.topUpAmount", NaN]},
+                                            0,
+                                            "$data.topUpAmount"
+                                        ]
+                                    }
+                                },
+                                totalUpdateAmount: {
+                                    $sum: {
+                                        $cond: [
+                                            {$eq: ["$data.updateAmount", NaN]},
+                                            0,
+                                            "$data.updateAmount"
+                                        ]
+                                    }
+                                },
+                                totalNegativeProfitAmount: {
+                                    $sum: {
+                                        $cond: [
+                                            {$eq: ["$data.negativeProfitAmount", NaN]},
+                                            0,
+                                            "$data.negativeProfitAmount"
+                                        ]
+                                    }
+                                },
+                                totalCommissionAmount: {
+                                    $sum: {
+                                        $cond: [
+                                            {$eq: ["$data.commissionAmount", NaN]},
+                                            0,
+                                            "$data.commissionAmount"
+                                        ]
+                                    }
+                                },
+                            }
+                        }
+                    ]).read("secondaryPreferred");
+
+                    d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
+
+                    return Promise.all([a, b, c, d])
+                }
+            ).then(
+                data => {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
                     totalPlayer = data[3] && data[3].length || 0;
 
-                    if(resultArray && resultArray.length > 0 && isSuccess){
-                        resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
-                    }
-
                     return resultArray;
                 },
-                function (err) {
+                err => {
                     return Promise.reject({
                         name: "DataError",
                         message: "Error in getting proposals type in the selected platform.",
@@ -8275,6 +8187,42 @@ var proposal = {
         );
     },
 
+    getProposalStatusList: function (proposalIds) {
+        let result = [];
+
+        return dbconfig.collection_proposal.find({proposalId: {$in: proposalIds}}, {proposalId: 1, status: 1, 'data.amount': 1, 'data.actualAmountReceived': 1, 'data.rate': 1, type: 1})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
+            proposalData => {
+                if (proposalData && proposalData.length > 0) {
+                    proposalData.forEach(data => {
+                        if (data) {
+                            let elements = {
+                                proposalId: data.proposalId,
+                                status: data.status,
+                                amount: data.data.amount,
+                                type: data.type && data.type.name ? data.type.name : ""
+                            };
+
+                            if (data.data.actualAmountReceived) {
+                                elements.actualAmountReceived = data.actualAmountReceived;
+                            }
+
+                            if (data.data.rate) {
+                                elements.rate = data.rate;
+                            }
+
+                            result.push(elements);
+                        }
+                    })
+
+                    return result;
+                } else {
+                    return result;
+                }
+            }
+        )
+    }
+
 };
 
 /*
@@ -8424,15 +8372,33 @@ function insertRepeatCount(proposals, platformList) {
 
             if (proposal.data.bankCardNo) {
                 console.log("LH Check payment monitor total 1----------------------", proposal.data.bankCardNo);
-                let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
-                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+                let bankCardNoPrefix = proposal.data.bankCardNo.substring(0, 6);
+                let bankCardNoRegExpA;
+                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));;
+                if(bankCardNoPrefix.indexOf('*') == -1){
 
-                console.log("LH Check payment monitor total 2----------------------", bankCardNoRegExpA);
-                console.log("LH Check payment monitor total 3----------------------", bankCardNoRegExpB);
-                bankCardNoRegExp = [
-                    {"data.bankCardNo": bankCardNoRegExpA},
-                    {"data.bankCardNo": bankCardNoRegExpB}
-                ];
+                    console.log("LH Check payment monitor total 2----------------------", bankCardNoRegExpA);
+                    console.log("LH Check payment monitor total 3----------------------", bankCardNoRegExpB);
+
+                    bankCardNoRegExpA = new RegExp(bankCardNoPrefix + ".*");
+                    bankCardNoRegExp = [
+                        {"data.bankCardNo": bankCardNoRegExpA},
+                        {"data.bankCardNo": bankCardNoRegExpB}
+                    ];
+                }else{
+                    bankCardNoRegExp = [
+                        {"data.bankCardNo": bankCardNoRegExpB}
+                    ];
+                }
+
+                // let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                // let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+
+
+                // bankCardNoRegExp = [
+                //     {"data.bankCardNo": bankCardNoRegExpA},
+                //     {"data.bankCardNo": bankCardNoRegExpB}
+                // ];
             }
 
             let prevSuccessQuery = {
