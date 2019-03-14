@@ -1264,7 +1264,7 @@ var proposal = {
                 select: "bankAccount bankName",
                 model: dbconfig.collection_players
             }
-        ).then(
+        ).lean().then(
             function (data) {
                 console.log("updateProposalProcessStep data", data);
                 //todo::add proposal or process status check here
@@ -1313,7 +1313,7 @@ var proposal = {
                         proposalData = data;
                         return dbconfig.collection_proposalProcess.findOne({_id: data.process})
                             .populate({path: "currentStep", model: dbconfig.collection_proposalProcessStep})
-                            .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).exec();
+                            .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).lean().exec();
                     }
                 }
                 else {
@@ -1356,7 +1356,7 @@ var proposal = {
                         return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
                             {_id: proposalProcessData.currentStep._id, createTime: proposalProcessData.currentStep.createTime},
                             stepData
-                        ).exec();
+                        ).lean().exec();
                     }
                     else {
                         deferred.reject({name: "DBError", message: "Can't find proposal process"});
@@ -1381,7 +1381,7 @@ var proposal = {
                     return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
                         {_id: proposalProcessData.currentStep._id, createTime: proposalProcessData.currentStep.createTime},
                         stepData
-                    ).exec();
+                    ).lean().exec();
                 }
                 else {
                     deferred.reject({name: "DBError", message: "Can't find proposal process"});
