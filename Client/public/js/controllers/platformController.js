@@ -36587,7 +36587,7 @@ define(['js/app'], function (myApp) {
                     orderNo: vm.mainPageAdvertisementList && vm.mainPageAdvertisementList.length && vm.mainPageAdvertisementList.length + 1 || 1,
                     advertisementType: "0",
                     type: vm.constXBETAdvertisementType.MAIN_PAGE_AD,
-                    css: "position:absolute; width: auto; height: auto; top:87%; left: 20%",
+                    css: "width: auto; height: auto; top:87%; left: 20%",
                     hoverCss: ":hover{filter: contrast(200%);}"
                 }
             }
@@ -36642,7 +36642,7 @@ define(['js/app'], function (myApp) {
                     hoverCss: vm.newMainPageAd.hoverCss,
                 }
 
-                socketService.$socket($scope.AppSocket, 'createNewMainPageAd', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'createNewXBETAdvertisement', sendData, function (data) {
                     if (data) {
                         vm.addNewMainPageAdvertisement = false;
                         vm.getMainPageAdvertisement();
@@ -36656,7 +36656,7 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
-                socketService.$socket($scope.AppSocket, 'updateMainPageAdvertisement', vm.mainPageAdvertisementList, function (data) {
+                socketService.$socket($scope.AppSocket, 'updateXBETAdvertisement', vm.mainPageAdvertisementList, function (data) {
                     if (data) {
                         vm.editXBETAdvertisement = false
                         vm.getMainPageAdvertisement();
@@ -36669,7 +36669,7 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id,
                     type: vm.constXBETAdvertisementType.MAIN_PAGE_AD
                 }
-                socketService.$socket($scope.AppSocket, 'getMainPageAdvertisement', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
                     if (data && data.data) {
                         vm.mainPageAdvertisementList = data.data;
                     } else {
@@ -36691,7 +36691,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('DELETE_ADVERTISEMENT'),
                         text: $translate('Confirm to delete advertisement ?')
                     }).then(function () {
-                        socketService.$socket($scope.AppSocket, 'deleteMainPageAdvertisementRecord', sendData, function (data) {
+                        socketService.$socket($scope.AppSocket, 'deleteXBETAdvertisementRecord', sendData, function (data) {
                             if (data) {
                                 if (typeof index !== "undefined") {
                                     vm.mainPageAdvertisementList.splice(index, 1);
