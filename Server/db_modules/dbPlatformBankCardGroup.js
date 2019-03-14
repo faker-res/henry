@@ -666,7 +666,7 @@ var dbPlatformBankCardGroup = {
                 json: true
             };
 
-            console.log('paymentGroupByPlayerAPIAddr req: ', platformId, playerName);
+            console.log('paymentGroupByPlayerAPIAddr req: ', platformId, playerName, type);
 
             return rp(options).then(function (data) {
                 console.log('paymentGroupByPlayerAPIAddr success', data);
