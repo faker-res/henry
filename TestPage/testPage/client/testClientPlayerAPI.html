@@ -1976,6 +1976,19 @@
     </div>
 </div>
 
+<h3>Update Device ID (更新设备号)</h3>
+<div class="test-container">
+    <div>
+        <label>Device ID
+            <input type=text name="deviceId">
+        </label>
+    </div>
+    <div>
+        <button id="updateDeviceId" data-api-name="updateDeviceId">Update</button>
+    </div>
+</div>
+
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {
