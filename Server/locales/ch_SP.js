@@ -488,7 +488,6 @@ var simplifiedChinese = {
     "Invalid line ID": "线路ID不存在",
     "Cannot find reward event for platform and type name": "优惠不存在",
     "DX code invalid": "电销代码不存在",
-    "Domain is Incorrect": "无效网址",
     "Password changed": "密码已更换",
     "Username must be alphanumeric": "用户名只能为数字和字母",
     "Username must be at least": "用户名必须是至少",
