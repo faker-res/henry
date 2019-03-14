@@ -858,24 +858,27 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    let checktsPhoneFeedback = Promise.resolve();
-                    if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
-                        checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
-                    }
-                    return checktsPhoneFeedback.then(
-                        tsPhoneFeedbackData => {
-                            if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
-                                inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
-                                inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
-                                if (tsPhoneFeedbackData.tsPhone) {
-                                    inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
-                                    inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
-                                    inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
-                                }
-                            }
-                            return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
-                        }
-                    )
+                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+
+                    // /* new reqeust from Yuki: the csOfficer is only binded by domain */
+                    // let checktsPhoneFeedback = Promise.resolve();
+                    // if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
+                    //     checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
+                    // }
+                    // return checktsPhoneFeedback.then(
+                    //     tsPhoneFeedbackData => {
+                    //         if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
+                    //             inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
+                    //             inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
+                    //             if (tsPhoneFeedbackData.tsPhone) {
+                    //                 inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
+                    //                 inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
+                    //                 inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
+                    //             }
+                    //         }
+                    //         return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                    //     }
+                    // )
                 }
             ).then(
                 data => {
