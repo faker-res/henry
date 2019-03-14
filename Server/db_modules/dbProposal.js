@@ -6165,7 +6165,7 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                return dbconfig.collection_proposal.find(query).lean().sort(sort)
+                return dbconfig.collection_proposal.find(query).lean().sort(sort).limit(1000)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players});
             }
@@ -6383,7 +6383,7 @@ var proposal = {
 
                     query.type = {$in: typeIds};
 
-                    return dbconfig.collection_paymentMonitorFollowUp.find(query)
+                    return dbconfig.collection_paymentMonitorFollowUp.find(query).limit(1000)
                         .populate({path: "type", model: dbconfig.collection_proposalType})
                         .populate({path: "playerObjId", model: dbconfig.collection_players}).lean();
                 }

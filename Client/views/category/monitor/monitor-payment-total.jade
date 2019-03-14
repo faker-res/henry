@@ -70,6 +70,8 @@ div
     .clearfix
     .penal.panel-info
         .panel-heading {{'A: Pending To Collect' | translate}}
+            span#paymentMonitorTableASpin.collapse
+                i.fa.fa-spinner.fa-spin
         .penal_body
             .proposalMessage
                 text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastTopUpRefresh}}
@@ -90,6 +92,8 @@ div
         br
         br
         .panel-heading {{'B: Follow Up Completed' | translate}}
+            span#paymentMonitorTableBSpin.collapse
+                i.fa.fa-spinner.fa-spin
         .penal_body
             label {{"Total" | translate}} {{vm.paymentMonitorTotalQuery.totalCompletedCount}} {{"records" | translate}}
             table#paymentMonitorTotalCompletedTable.common-table.display(style="min-width:100% ;overflow: scroll")
