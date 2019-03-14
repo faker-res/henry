@@ -6631,7 +6631,7 @@ let dbPlayerInfo = {
             },
         )
     },
-
+    
     getBindBankCardList: function (playerId, platformId) {
         let platformObj;
         let returnData = {};
@@ -12195,7 +12195,7 @@ let dbPlayerInfo = {
                             // if a withdrawal bank was selected, match the bank input and player existing bank data
                             // compare with first bank info
                             if ((withdrawalBank && withdrawalBank.bankName === playerData.bankName
-                                && withdrawalBank.bankAccount === playerData.bankAccount
+                                && withdrawalBank.bankAccount === playerData.bankAccount 
                                 && withdrawalBank.bankAccountName === playerData.bankAccountName) || bankId === '1') {
                                 withdrawalBank = {
                                     bankName: playerData.bankName || null,
@@ -20774,17 +20774,13 @@ let dbPlayerInfo = {
                 message: "Generate dian xiao code failure."
             })
         }
-        let randomString = Math.random().toString(36).substring(4, 8); // generate random String
+        let randomString = Math.random().toString(36).substring(4, 9); // generate random String
         let index = 0;
         // prevent infinite loop
         // prevent randomString all numbers
         while (!isNaN(randomString) && index < 5) {
-            randomString = Math.random().toString(36).substring(4, 8);
-            index++;
-        }
-        if (tries >= 3 && tries < 5) {
-            // if it over 3 times, which means 4 digits very easy to duplicate, so we give it five.
             randomString = Math.random().toString(36).substring(4, 9);
+            index++;
         }
         if (randomString && randomString.charAt(0) == "p") {
             let text = "";
@@ -20805,13 +20801,13 @@ let dbPlayerInfo = {
         return platformProm.then(
             function (missionProm) {
                 platformId = missionProm.platform.platformId;
-                dxCode = randomString;
+                dxCode = missionProm.platform.platformId + randomString;
                 return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
             }
         ).then(
             function (dxPhoneExist) {
                 if (dxPhoneExist) {
-                    return dbPlayerInfo.generateDXCode(dxMission, platformId, tries);
+                    return dbPlayerInfo.generateDXCode(dxMission, platformId);
                 }
                 else {
                     return dxCode;

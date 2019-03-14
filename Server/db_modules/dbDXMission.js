@@ -572,22 +572,10 @@ let dbDXMission = {
             });
         }
 
-        return dbconfig.collection_dxMission.find({domain: domain})
-        .then(
-            data => {
-                if ( !data || data.length == 0 ) {
-                    return Promise.reject({
-                        code: constServerCode.DATA_INVALID,
-                        message: "Domain is Incorrect"
-                    });
-                }
-
-                return dbconfig.collection_dxPhone.findOne({code: code})
-                    .populate({path: "dxMission", model: dbconfig.collection_dxMission})
-                    .populate({path: "platform", model: dbconfig.collection_platform}).lean()
-            })
-       .then(
-            dxPhone =>{
+        return dbconfig.collection_dxPhone.findOne({code: code})
+            .populate({path: "dxMission", model: dbconfig.collection_dxMission})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+            function (dxPhone) {
                 if (!dxPhone) {
                     return Promise.reject({
                         code: constServerCode.DATA_INVALID,
@@ -601,8 +589,8 @@ let dbDXMission = {
                 else {
                     return createPlayer(dxPhone, deviceData, domain, loginDetails, conn, wsFunc);
                 }
-          }
-      )
+            }
+        )
     },
 
     applyDxMissionReward: function (dxMission, playerData) {
@@ -1774,7 +1762,7 @@ function loginDefaultPasswordPlayer (dxPhone) {
             if (!player) {
                 return Promise.reject({message: "Player not found"}); // will go to catch and handle it anyway
             }
-
+            
             return new Promise((resolve, reject) => {
                 bcrypt.compare(String(dxMission.password), String(player.password), function (err, isMatch) {
                     if (err || !isMatch) {
