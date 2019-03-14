@@ -105,6 +105,9 @@
                 "getReceiveTransferList",
                 "phoneNumberLoginWithPassword",
                 "setPhoneNumber",
+                "updateDeviceId",
+                "generateUpdatePasswordToken",
+                "updatePasswordWithToken",
                 "playerLoginOrRegisterWithSMS",
                 "getBindBankCardList",
             ];

@@ -3324,8 +3324,8 @@ define(['js/app'], function (myApp) {
                     vm.getMerchantTypeName();
                     vm.merchantGroups = getMerchantGroups(vm.merchants, vm.merchantTypes);
                     vm.merchantNumbers = getMerchantNumbers(vm.merchants);
-                    vm.getPaymentMonitorTotalRecord();
-                    vm.getPaymentMonitorTotalCompletedRecord();
+                    // vm.getPaymentMonitorTotalRecord();
+                    // vm.getPaymentMonitorTotalCompletedRecord();
                     vm.merchantGroupCloneList = vm.merchantGroups;
                     vm.getPlatformByAdminId();
                 }
@@ -3805,6 +3805,7 @@ define(['js/app'], function (myApp) {
             }
             vm.paymentMonitorTotalQuery.platformId = vm.curPlatformId;
             $('#paymentMonitorTableSpin').show();
+            $('#paymentMonitorTableASpin').show();
 
             if (vm.paymentMonitorTotalQuery.mainTopupType === '0' || vm.paymentMonitorTotalQuery.mainTopupType === '1' || vm.paymentMonitorTotalQuery.mainTopupType === '3' || vm.paymentMonitorTotalQuery.mainTopupType === '4' || vm.paymentMonitorTotalQuery.mainTopupType === '5') {
                 vm.paymentMonitorTotalQuery.topupType = '';
@@ -3847,6 +3848,7 @@ define(['js/app'], function (myApp) {
 
             return $scope.$socketPromise('getPaymentMonitorTotalResult', sendObj).then(
                 data => {
+                    $('#paymentMonitorTableASpin').hide();
                     $scope.$evalAsync(() => {
                         console.log('Payment Monitor Total Result', data);
                         vm.paymentMonitorTotalData = data.data.data;
@@ -3932,6 +3934,7 @@ define(['js/app'], function (myApp) {
             }
             vm.paymentMonitorTotalQuery.platformId = vm.curPlatformId;
             $('#paymentMonitorTableSpin').show();
+            $('#paymentMonitorTableBSpin').show();
 
             if (vm.paymentMonitorTotalQuery.mainTopupType === '0' || vm.paymentMonitorTotalQuery.mainTopupType === '1' || vm.paymentMonitorTotalQuery.mainTopupType === '3' || vm.paymentMonitorTotalQuery.mainTopupType === '4' || vm.paymentMonitorTotalQuery.mainTopupType === '5') {
                 vm.paymentMonitorTotalQuery.topupType = '';
@@ -3979,6 +3982,7 @@ define(['js/app'], function (myApp) {
                 data => {
                     $scope.$evalAsync(() => {
                         $('#paymentMonitorTableSpin').hide();
+                        $('#paymentMonitorTableBSpin').hide();
                         console.log('Payment Monitor Total  Completed Result', data);
 
                         vm.drawPaymentRecordTotalCompletedTable(
@@ -4260,7 +4264,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {
-                        "title": $translate('Website'),
+                        "title": $translate('PRODUCT_NAME'),
                         data: "website",
                     },
                     {
@@ -4441,7 +4445,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {
-                        "title": $translate('Website'),
+                        "title": $translate('PRODUCT_NAME'),
                         data: "website",
                     },
                     {

@@ -55,7 +55,7 @@ div
             label.control-label {{'End date' | translate}}
             .endTime
         .search-filters-item
-            label 网站（复选）
+            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
             select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.platformList', ng-options='v._id as v.name for v in vm.platformByAdminId', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'Fail Counter' | translate}}
@@ -70,6 +70,8 @@ div
     .clearfix
     .penal.panel-info
         .panel-heading {{'A: Pending To Collect' | translate}}
+            span#paymentMonitorTableASpin.collapse
+                i.fa.fa-spinner.fa-spin
         .penal_body
             .proposalMessage
                 text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastTopUpRefresh}}
@@ -90,6 +92,8 @@ div
         br
         br
         .panel-heading {{'B: Follow Up Completed' | translate}}
+            span#paymentMonitorTableBSpin.collapse
+                i.fa.fa-spinner.fa-spin
         .penal_body
             label {{"Total" | translate}} {{vm.paymentMonitorTotalQuery.totalCompletedCount}} {{"records" | translate}}
             table#paymentMonitorTotalCompletedTable.common-table.display(style="min-width:100% ;overflow: scroll")

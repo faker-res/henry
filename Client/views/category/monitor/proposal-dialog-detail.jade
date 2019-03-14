@@ -64,6 +64,9 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
             thead
             tbody(ng-if='vm.selectedProposal')
                 tr
+                    td {{'PRODUCT_NAME' | translate}}
+                    td {{ vm.selectedProposal.data.platformId.name}}
+                tr
                     td {{'PLAYER_NAME' | translate}}
                     td {{ vm.selectedProposal.data.playerName}}
                 tr

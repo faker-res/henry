@@ -879,7 +879,8 @@ var dbPlayerTopUpRecord = {
 
                 let prom = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
-                    .populate({path: "data.playerObjId", model: dbconfig.collection_players}).lean();
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players})
+                    .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
 
                 let stream = prom.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();

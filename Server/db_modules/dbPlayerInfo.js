@@ -876,24 +876,27 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    let checktsPhoneFeedback = Promise.resolve();
-                    if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
-                        checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
-                    }
-                    return checktsPhoneFeedback.then(
-                        tsPhoneFeedbackData => {
-                            if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
-                                inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
-                                inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
-                                if (tsPhoneFeedbackData.tsPhone) {
-                                    inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
-                                    inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
-                                    inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
-                                }
-                            }
-                            return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
-                        }
-                    )
+                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+
+                    // /* new reqeust from Yuki: the csOfficer is only binded by domain */
+                    // let checktsPhoneFeedback = Promise.resolve();
+                    // if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
+                    //     checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
+                    // }
+                    // return checktsPhoneFeedback.then(
+                    //     tsPhoneFeedbackData => {
+                    //         if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
+                    //             inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
+                    //             inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
+                    //             if (tsPhoneFeedbackData.tsPhone) {
+                    //                 inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
+                    //                 inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
+                    //                 inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
+                    //             }
+                    //         }
+                    //         return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                    //     }
+                    // )
                 }
             ).then(
                 data => {
@@ -22842,6 +22845,116 @@ let dbPlayerInfo = {
             }
         )
 
+    },
+
+    updateDeviceId: function (playerId, deviceId) {
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"})
+                }
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {
+                        _id: playerData._id,
+                        deviceId: {$ne: deviceId}
+                    },
+                    {
+                        deviceId: deviceId
+                    }).lean()
+            }
+        ).then(
+            updatedPlayer => {
+                if (!updatedPlayer) {
+                    return Promise.resolve(false); // deviceId same with db, no update
+                } else {
+                    return Promise.resolve(true)
+                }
+            }
+        );
+    },
+
+    generateUpdatePasswordToken: function (platformId, playerName, phoneNumber, smsCode) {
+        let platformObj;
+        let playerObj;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+                platformObj = platformData;
+
+                let playerQuery = {
+                    platform: platformData._id,
+                    name: playerName,
+                    $or: [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+                };
+
+                return dbconfig.collection_players.findOne(playerQuery).lean()
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+                playerObj = playerData;
+                return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformObj, smsCode, playerData.name);
+            }
+        ).then(
+            () => {
+                let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(playerObj.phoneNumber)};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 5});
+                return token;
+            }
+        )
+
+
+    },
+
+    updatePasswordWithToken: function (token, newPassword) {
+        var deferred = Q.defer();
+        jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
+            if (err || !decoded) {
+                // Jwt token error
+                return deferred.reject({name: "DataError", message: "Token is not authenticated"});
+            }
+
+            let isValidToken = Boolean(decoded && decoded.platform && decoded.name && decoded.password && decoded.phoneNumber);
+            if (!isValidToken) {
+                return deferred.reject({name: "DataError", message: "Invalid token"});
+            }
+
+            let decryptedPhoneNumber = rsaCrypto.decrypt(decoded.phoneNumber)
+            let encryptedPhoneNumber = rsaCrypto.encrypt(decryptedPhoneNumber);
+            let enOldPhoneNumber = rsaCrypto.oldEncrypt(decryptedPhoneNumber);
+
+            return dbconfig.collection_players.findOne(
+                {
+                    platform: decoded.platform,
+                    name: decoded.name,
+                    password: decoded.password,
+                    $or: [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+                }
+            ).lean().then(
+                playerData => {
+                    if (!playerData) {
+                        return deferred.reject({name: "DataError", message: "Cannot find player"});
+                    }
+
+                    dbPlayerInfo.resetPlayerPassword(playerData._id, newPassword, playerData.platform, false, null).catch(errorUtils.reportError);
+                    deferred.resolve(true);
+                }
+            )
+        })
+        return deferred.promise;
     },
 
     getClientData: function (playerId) {

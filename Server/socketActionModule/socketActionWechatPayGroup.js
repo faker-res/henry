@@ -160,6 +160,12 @@ function socketActionWechatPayGroup(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._id);
             socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.deleteWechatPayAcc, [data._id], actionName, isValidData);
+        },
+
+        getPMSWechatPayGroup: function getPMSWechatPayGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.getPMSWechatPayGroup, [data.platformId, data.topUpSystemType], actionName, isValidData);
         }
 
     };

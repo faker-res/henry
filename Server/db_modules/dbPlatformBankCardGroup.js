@@ -69,11 +69,7 @@ var dbPlatformBankCardGroup = {
                 topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
                 curPlatformId = platformData && platformData.platformId ? platformData.platformId : null;
 
-                return addDefaultBankCardGroup(topUpSystemConfig, platformId, curPlatformId).then(
-                    () => {
-                        return dbPlatformBankCardGroup.syncBankCardGroupData(platformData)
-                    }
-                ).then(
+                return dbPlatformBankCardGroup.syncBankCardGroupData(platformData).then(
                     data => {
                         let matchQuery = {
                             platform: platformId
@@ -94,34 +90,6 @@ var dbPlatformBankCardGroup = {
                 )
             }
         )
-
-        function addDefaultBankCardGroup(topUpSystemConfig, platformObjId, platformId) {
-            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                return dbconfig.collection_platformBankCardGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
-                    pms2BankCardGroupExists => {
-                        if (!pms2BankCardGroupExists && platformId) {
-                            let defaultStr = "PMS2DefaultGroup-" + platformId;
-                            let groupData = {
-                                groupId: defaultStr,
-                                name: defaultStr,
-                                code: defaultStr,
-                                displayName: defaultStr,
-                                platform: platformObjId,
-                                isPMS2: true
-                            };
-
-                            let bankCardGroup = new dbconfig.collection_platformBankCardGroup(groupData);
-
-                            return bankCardGroup.save();
-                        } else {
-                            return Promise.resolve(true);
-                        }
-                    }
-                );
-            } else {
-                return Promise.resolve(true);
-            }
-        }
 
     },
 
@@ -211,8 +179,6 @@ var dbPlatformBankCardGroup = {
     },
     getAllBankCard: function(platformId){
         let topUpSystemConfig;
-        let groupName = 'default';
-        let bankCardData;
 
         return dbconfig.collection_platform.findOne({platformId:platformId}).lean().then(
             platformData => {
@@ -661,15 +627,91 @@ var dbPlatformBankCardGroup = {
         );
     },
 
-    getUserPaymentGroup: function (platformId, playerName) {
+    getUserPaymentGroup: function (platformId, playerName, topUpSystemType, accountType) {
         // debug param, todo :: remove later
         // platformId = "100";
         // playerName = "111";
-        return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
-            data => {
+        let topUpSystemConfig;
+        let type;
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        switch (accountType) {
+            case "1":
+                type = constAccountType.BANK_CARD;
+                break;
+            case "2":
+                type = constAccountType.ALIPAY;
+                break;
+            case "3":
+                type = constAccountType.WECHAT;
+                break;
+            case "4":
+                type = constAccountType.ONLINE;
+                break;
+        }
+
+        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            let options = {
+                method: 'POST',
+                uri: topUpSystemConfig.paymentGroupByPlayerAPIAddr,
+                body: {
+                    platformId: platformId,
+                    userName: playerName,
+                    accountType: type
+                },
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                json: true
+            };
+
+            console.log('paymentGroupByPlayerAPIAddr req: ', platformId, playerName);
+
+            return rp(options).then(function (data) {
+                console.log('paymentGroupByPlayerAPIAddr success', data);
                 return data;
-            }
-        );
+            }, error => {
+                console.log('paymentGroupByPlayerAPIAddr failed', error);
+                throw error;
+            });
+        } else {
+            return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
+                data => {
+                    return data;
+                }
+            );
+        }
+    },
+
+    getPMSBankCardGroup: function (platformId, topUpSystemType) {
+        let topUpSystemConfig;
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            let type = constAccountType.BANK_CARD;
+
+            let options = {
+                method: 'POST',
+                uri: topUpSystemConfig.paymentGroupAPIAddr,
+                body: {
+                    platformId: platformId,
+                    accountType: type
+                },
+                json: true
+            };
+
+            console.log('getPMSBankCardGroup req: ', platformId, type);
+
+            return rp(options).then(function (data) {
+                console.log('getPMSBankCardGroup  success',platformId, type, data);
+                return data;
+            }, error => {
+                console.log('getPMSBankCardGroup failed',platformId, type, error);
+                throw error;
+            });
+        }
     },
 
 };

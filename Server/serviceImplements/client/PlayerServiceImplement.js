@@ -1499,6 +1499,22 @@ let PlayerServiceImplement = function () {
         let isValidData = Boolean(data && conn.playerId && data.platformId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBindBankCardList, [conn.playerId, data.platformId], isValidData, false, false, true);
     };
+
+    this.updateDeviceId.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.deviceId && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updateDeviceId, [conn.playerId, data.deviceId], isValidData)
+    };
+
+    this.generateUpdatePasswordToken.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.name && data.platformId && data.phoneNumber && data.smsCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.generateUpdatePasswordToken, [data.platformId, data.name, data.phoneNumber, data.smsCode], isValidData, false, false, true);
+    };
+
+    this.updatePasswordWithToken.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.token && data.password);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordWithToken, [data.token, data.password], isValidData, false, false, true);
+    };
+
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

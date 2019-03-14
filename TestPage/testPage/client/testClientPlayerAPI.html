@@ -1976,6 +1976,65 @@
     </div>
 </div>
 
+<h3>Update Device ID (更新设备号)</h3>
+<div class="test-container">
+    <div>
+        <label>Device ID
+            <input type=text name="deviceId">
+        </label>
+    </div>
+    <div>
+        <button id="updateDeviceId" data-api-name="updateDeviceId">Update</button>
+    </div>
+</div>
+
+<h3>Generate Update Password Token (获取更新密码令牌)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Username
+            <input type=text name="name">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>SMS Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get SMS Code</button>
+    <div>
+        <button id="generateUpdatePasswordToken" data-api-name="generateUpdatePasswordToken">Get</button>
+    </div>
+</div>
+
+<h3>Update Password With Token (令牌更新密码)</h3>
+<div class="test-container">
+    <div>
+        <label>Token
+            <input type=text name="token">
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input type=text name="password">
+        </label>
+    </div>
+    <div>
+        <button id="updatePasswordWithToken" data-api-name="updatePasswordWithToken">Update</button>
+    </div>
+</div>
+
+
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {
