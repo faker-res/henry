@@ -63,7 +63,7 @@ form(name="form_new_platform" ,novalidate)
                         a.common-tab(data-toggle="tab",ng-click='vm.playerDisplayDataTab = \'advertisementPanel\';vm.playerAdvertisementWebDevice=true;vm.playerAdvertisementH5Device=false; vm.playerAdvertisementList();vm.editAdvertisementRecord=false; vm.showAdvertisementRecord=true;vm.addNewPlayerAdvertisement=false;')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"ADVERTISEMENT" | translate}}
-                    li(id = 'mainPageAdvertisementTab')
+                    li(id = 'mainPageAdvertisementTab', ng-show="checkViewPermission('Platform', 'PlayerDisplayData','MAIN_PAGE_ADVERTISEMENT')")
                         a.common-tab(data-toggle="tab", ng-click='vm.playerDisplayDataTab="mainPageAdvertisementPanel"; vm.initMainPageAdvertisement()')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"MAIN_PAGE_ADVERTISEMENT" | translate}}
