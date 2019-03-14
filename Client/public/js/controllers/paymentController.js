@@ -260,6 +260,10 @@ define(['js/app'], function (myApp) {
         vm.bankCardFilterOptions = {};
 
         vm.bankCardGroupTabClicked = function () {
+            if (vm.paymentSystemName === 'PMS2') {
+                vm.loadBankCardGroupData();
+            }
+
             vm.bankCardGroupPMS = "false";
             if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.bankCardGroupIsPMS) {
                 vm.bankCardGroupPMS = "true";
@@ -607,10 +611,13 @@ define(['js/app'], function (myApp) {
                 console.log('getPMSUserPaymentGroup bankCard', data)
 
                 vm.platformBankCardGroupList = [];
-                if (!(vm.paymentSystemName === 'PMS' && data && data.data && data.data.map && data.data.map["银行卡"])) {
-                    return;
-                } else if (!(vm.paymentSystemName === 'PMS2' && data && data.data && data.data.data)) {
-                    return;
+
+                if (vm.paymentSystemName === 'PMS2') {
+                    if (!(data && data.data && data.data.data))
+                        return;
+                } else {
+                    if (!(data && data.data && data.data.map && data.data.map["银行卡"]))
+                        return;
                 }
 
                 let bankCardGroups = {};
@@ -1514,6 +1521,10 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// Merchant Group start  /////////////////////////////////////////////////
 
         vm.merchantGroupTabClicked = function () {
+            if (vm.paymentSystemName === 'PMS2') {
+                vm.loadMerchantGroupData();
+            }
+
             vm.merchantGroupPMS = "false";
             if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.merchantGroupIsPMS) {
                 vm.merchantGroupPMS = "true";
@@ -2138,6 +2149,10 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// Alipay Group start  /////////////////////////////////////////////////
 
         vm.alipayGroupTabClicked = function () {
+            if (vm.paymentSystemName === 'PMS2') {
+                vm.loadAlipayGroupData();
+            }
+
             vm.alipayGroupUsed = "FPMS";
 
             vm.aliPayGroupPMS = "false";
@@ -2829,6 +2844,10 @@ define(['js/app'], function (myApp) {
 
         /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
         vm.wechatPayGroupTabClicked = function () {
+            if (vm.paymentSystemName === 'PMS2') {
+                vm.loadWechatPayGroupData();
+            }
+
             vm.wechatPayGroupPMS = "false";
             if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.wechatPayGroupIsPMS) {
                 vm.wechatPayGroupPMS = "true";
