@@ -726,6 +726,7 @@ define([], () => {
                 proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
             }
             proposalDetail = Object.assign(proposalDetail, vm.selectedProposal.data);
+            proposalDetail.platformId = proposalDetail.platformId._id;
 
             // region Manual top up proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
