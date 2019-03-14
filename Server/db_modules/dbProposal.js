@@ -3491,7 +3491,9 @@ var proposal = {
                     }).sort(sortObj).skip(index).limit(count).populate({
                         path: "process",
                         model: dbconfig.collection_proposalProcess
-                    }).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
+                    }).populate({
+                        path: "type", model: dbconfig.collection_proposalType
+                    }).populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
                     let c = dbconfig.collection_proposal.aggregate([
                         {
                             $match: {
@@ -3614,7 +3616,8 @@ var proposal = {
 
                         return dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                             .populate({path: "type", model: dbconfig.collection_proposalType})
-                            .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+                            .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean()
+                            .populate({path: 'data.platformId', model: dbconfig.collection_platform});
                     }
                 );
 
@@ -3728,7 +3731,8 @@ var proposal = {
                 a = dbconfig.collection_proposal.find(reqData).lean().count();
                 b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                     .populate({path: "type", model: dbconfig.collection_proposalType})
-                    .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+                    .populate({path: "process", model: dbconfig.collection_proposalProcess})
+                    .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
                 c = dbconfig.collection_proposal.aggregate([
                     {
                         $match: reqData
