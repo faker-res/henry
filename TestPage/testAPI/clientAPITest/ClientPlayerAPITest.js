@@ -759,6 +759,12 @@
         this.playerService.getReceiveTransferList.once(callback);
     };
 
+    proto.updateDeviceId = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updateDeviceId.request(data);
+        this.playerService.updateDeviceId.once(callback);
+    };
+
     proto.playerLoginOrRegisterWithSMS = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.playerLoginOrRegisterWithSMS.request(data);
@@ -775,12 +781,6 @@
         var data = requestData || {};
         this.playerService.getBindBankCardList.request(data);
         this.playerService.getBindBankCardList.once(callback);
-    };
-
-    proto.setPhoneNumber = function (callback, requestData) {
-        var data = requestData || {};
-        this.playerService.setPhoneNumber.request(data);
-        this.playerService.setPhoneNumber.once(callback);
     };
 
     if (isNode) {
