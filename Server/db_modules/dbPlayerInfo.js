@@ -22907,7 +22907,7 @@ let dbPlayerInfo = {
             () => {
                 let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(playerObj.phoneNumber)};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 5});
-                return token;
+                return {token: token};
             }
         )
 
