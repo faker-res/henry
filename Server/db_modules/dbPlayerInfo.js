@@ -20814,7 +20814,7 @@ let dbPlayerInfo = {
                     // if different domain , is fine,
                     if ( dxPhoneExist && dxPhoneExist.length > 0 ) {
                         dxPhoneExist.forEach( item => {
-                            if ( item.dxMission && item.dxMission.domain == dxMissionDetail.domain ) {
+                            if ( item.dxMission && item.dxMission.domain && item.dxMission.domain == dxMissionDetail.domain ) {
                                 countSameDomain += 1;
                             }
                         })
