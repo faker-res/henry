@@ -36658,7 +36658,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updateXBETAdvertisement', vm.mainPageAdvertisementList, function (data) {
                     if (data) {
-                        vm.editXBETAdvertisement = false
+                        vm.editXBETAdvertisement = false;
                         vm.getMainPageAdvertisement();
                     }
                 });
@@ -36780,7 +36780,7 @@ define(['js/app'], function (myApp) {
 
                     vm.hoverStyle.appendChild(document.createTextNode(temp));
                     document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
-                    // $scope.safeApply();
+                    $scope.$evalAsync();
                 }, 0);
             };
 
@@ -36797,6 +36797,86 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.initFirstEntryAdvertisement = () => {
+                vm.firstEntryAdvertisementList = [];
+                vm.getFirstEntryAdvertisement();
+
+                vm.addNewFirstEntryAdvertisement = false;
+                vm.editXBETAdvertisement = false;
+            }
+
+            vm.getFirstEntryAdvertisement = () => {
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    type: vm.constXBETAdvertisementType.FIRST_TIME_AD
+                }
+                socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
+                    if (data && data.data) {
+                        vm.firstEntryAdvertisementList = data.data;
+                    } else {
+                        vm.firstEntryAdvertisementList = [];
+                    }
+                    $scope.$evalAsync();
+                });
+
+            }
+
+            vm.addNewFirstEntryAd = () => {
+                vm.addNewFirstEntryAdvertisement = true;
+                vm.newFirstEntryAd = {
+                    status: 1,
+                    orderNo: vm.firstEntryAdvertisementList && vm.firstEntryAdvertisementList.length && vm.firstEntryAdvertisementList.length + 1 || 1,
+                    type: vm.constXBETAdvertisementType.FIRST_TIME_AD,
+                    css: "width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
+                }
+            }
+
+            vm.saveNewFirstEntryAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.firstEntryAdvertisementList) || !(vm.newFirstEntryAd && vm.newFirstEntryAd.orderNo)) {
+                    return;
+                }
+                if (vm.firstEntryAdvertisementList && vm.firstEntryAdvertisementList.length) {
+                    let allOrderNo = vm.firstEntryAdvertisementList.map(item => item.orderNo)
+                    if (allOrderNo.includes(vm.newFirstEntryAd.orderNo)) {
+                        return;
+                    }
+                }
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    orderNo: vm.newFirstEntryAd.orderNo,
+                    type: vm.newFirstEntryAd.type,
+                    title: vm.newFirstEntryAd.title,
+                    url: vm.newFirstEntryAd.url,
+                    hyperLink:vm.newFirstEntryAd.hyperLink,
+                    status: vm.newFirstEntryAd.status,
+                    showInFrontEnd: vm.newFirstEntryAd.showInFrontEnd,
+                    css: vm.newFirstEntryAd.css,
+                    hoverCss: vm.newFirstEntryAd.hoverCss,
+                }
+
+                socketService.$socket($scope.AppSocket, 'createNewXBETAdvertisement', sendData, function (data) {
+                    if (data) {
+                        vm.addNewFirstEntryAdvertisement = false;
+                        vm.getFirstEntryAdvertisement();
+                    }
+                });
+
+            }
+
+            vm.updateFirstEntryAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.firstEntryAdvertisementList)) {
+                    return;
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateXBETAdvertisement', vm.firstEntryAdvertisementList, function (data) {
+                    if (data) {
+                        vm.editXBETAdvertisement = false;
+                        vm.getMainPageAdvertisement();
+                    }
+                });
+            }
 
             // endregion
 
