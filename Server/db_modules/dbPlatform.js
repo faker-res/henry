@@ -632,6 +632,7 @@ var dbPlatform = {
                                         var obj = {
                                             platformId: platformArr[i].platformId,
                                             name: platformArr[i].name,
+                                            code: platformArr[i].code
                                         }
                                         sendObj.push(obj)
                                     }
