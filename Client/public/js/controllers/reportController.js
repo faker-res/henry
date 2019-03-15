@@ -49,7 +49,7 @@ define(['js/app'], function (myApp) {
             UNDETERMINED: "Undetermined",
             CSPENDING: "CsPending",
             NOVERIFY: "NoVerify",
-            APPROVED: "Approved",
+            APPROVED: "approved",
             MANUAL: "Manual"
         };
         vm.topUpTypeList = {
@@ -1772,14 +1772,18 @@ define(['js/app'], function (myApp) {
             console.log('data', data);
             var tableOptions = {
                 data: data,
-                "order": vm.queryTopup.aaSorting || [[0, 'desc']],
+                "order": vm.queryTopup.aaSorting || [[1, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [14]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [15]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {
+                        "title": $translate('PRODUCT_NAME'),
+                        data: "data.platformId.name"
+                    },
                     {
                         "title": $translate('proposalId'),
                         data: "proposalId",
@@ -6391,10 +6395,14 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.proposalQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', 'aTargets': [0]},
-                    {'sortCol': 'createTime', 'aTargets': [8]}
+                    {'sortCol': 'proposalId', 'aTargets': [1]},
+                    {'sortCol': 'createTime', 'aTargets': [9]}
                 ],
                 columns: [
+                    {
+                        "title": $translate('PRODUCT_NAME'),
+                        data: "data.platformId.name"
+                    },
                     {
                         title: $translate('PROPOSAL ID'), data: "proposalId",
                         render: function (data, type, row) {

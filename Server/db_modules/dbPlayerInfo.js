@@ -876,24 +876,27 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    let checktsPhoneFeedback = Promise.resolve();
-                    if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
-                        checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
-                    }
-                    return checktsPhoneFeedback.then(
-                        tsPhoneFeedbackData => {
-                            if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
-                                inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
-                                inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
-                                if (tsPhoneFeedbackData.tsPhone) {
-                                    inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
-                                    inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
-                                    inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
-                                }
-                            }
-                            return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
-                        }
-                    )
+                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+
+                    // /* new reqeust from Yuki: the csOfficer is only binded by domain */
+                    // let checktsPhoneFeedback = Promise.resolve();
+                    // if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
+                    //     checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
+                    // }
+                    // return checktsPhoneFeedback.then(
+                    //     tsPhoneFeedbackData => {
+                    //         if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
+                    //             inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
+                    //             inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
+                    //             if (tsPhoneFeedbackData.tsPhone) {
+                    //                 inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
+                    //                 inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
+                    //                 inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
+                    //             }
+                    //         }
+                    //         return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                    //     }
+                    // )
                 }
             ).then(
                 data => {
@@ -2441,7 +2444,7 @@ let dbPlayerInfo = {
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
             .populate({path: "csOfficer", model: dbconfig.collection_admin})
-            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo})
+            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean()
             .then(data => {
                 if (data) {
                     playerData = data;
@@ -6635,6 +6638,7 @@ let dbPlayerInfo = {
         let bank2 = {};
         let bank3 = {};
         let allBankTypeList = {};
+        let isFirstBankBinded = true;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -6657,11 +6661,12 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
                 if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccount) {
-                    return Promise.reject({
-                        status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                        name: "DataError",
-                        errorMessage: "Player does not have valid payment information"
-                    });
+                    // return Promise.reject({
+                    //     status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                    //     name: "DataError",
+                    //     errorMessage: "Player does not have valid payment information"
+                    // });
+                    isFirstBankBinded = false;
                 }
                 bank1.id = '1';
                 bank1.isDefault = true;
@@ -6752,6 +6757,13 @@ let dbPlayerInfo = {
                         });
                     }
                 });
+
+                if (!isFirstBankBinded) {
+                    listData = [];
+                    return returnData = {
+                        list: listData
+                    };
+                }
 
                 return returnData = {
                     list: listData

@@ -959,14 +959,14 @@ var proposalExecutor = {
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
                                                     {upsert: true, new: true}
-                                                );
+                                                ).lean();
                                             }
                                             if (updateMultipleBankInfo) {
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
                                                     {upsert: true, new: true}
-                                                ).then(
+                                                ).lean().then(
                                                     bankData => {
                                                         if (bankData && bankData._id) {
                                                             return dbconfig.collection_players.findOneAndUpdate(
@@ -976,7 +976,7 @@ var proposalExecutor = {
                                                             ).populate({
                                                                 path: "multipleBankDetailInfo",
                                                                 model: dbconfig.collection_playerMultipleBankDetailInfo
-                                                            })
+                                                            }).lean();
                                                         }
                                                     }
                                                 );
@@ -985,7 +985,7 @@ var proposalExecutor = {
                                                     {_id: data._id, platform: data.platform},
                                                     playerUpdate,
                                                     {returnNewDocument: true}
-                                                );
+                                                ).lean();
                                             }
                                         } else {
                                             if (playerUpdate.bankAccountName) {
@@ -996,7 +996,7 @@ var proposalExecutor = {
                                                 {_id: data._id, platform: data.platform},
                                                 playerUpdate,
                                                 {returnNewDocument: true}
-                                            );
+                                            ).lean();
                                         }
                                     }
                                 );

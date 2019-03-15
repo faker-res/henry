@@ -120,11 +120,17 @@ class SelectServer extends Component{
         return show;
     }
 
+    handleServerChange(e){
+        this.props.updatePropsWithEvent(e,'selectedServer');
+        //reconnect server
+    }
+
     render(){
         console.log(this.props);
         return (
             <div className={this.getGroupClasses()}>
-                <select onFocus={this.handleFocus} onBlur={this.handleBlur} className={this.getControlClasses()} id="mgntServer" value={this.props.selectedServer} onChange={(e)=>{this.props.updatePropsWithEvent(e,'selectedServer')}}>
+                <select onFocus={this.handleFocus} onBlur={this.handleBlur} className={this.getControlClasses()}
+                id="mgntServer" value={this.props.selectedServer} onChange={(e)=>{this.handleServerChange(e)}}>
                     {this.addFastestServer()}
                     {this.populateServerWithLatency()}
                 </select>
