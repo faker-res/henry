@@ -431,7 +431,7 @@ let dbPlayerInfo = {
                 }
                 if (inputData.phoneNumber) {
                     let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
-                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber)
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
                     playerQuery.$or = [
                         {phoneNumber: encryptedPhoneNumber},
                         {phoneNumber: enOldPhoneNumber}
@@ -2448,8 +2448,6 @@ let dbPlayerInfo = {
             .then(data => {
                 if (data) {
                     playerData = data;
-                    console.log('playerData===', playerData);
-                    console.log('playerData.multipleBankDetailInfo===', playerData.multipleBankDetailInfo);
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     });
@@ -20774,17 +20772,13 @@ let dbPlayerInfo = {
                 message: "Generate dian xiao code failure."
             })
         }
-        let randomString = Math.random().toString(36).substring(4, 8); // generate random String
+        let randomString = Math.random().toString(36).substring(4, 9); // generate random String
         let index = 0;
         // prevent infinite loop
         // prevent randomString all numbers
         while (!isNaN(randomString) && index < 5) {
-            randomString = Math.random().toString(36).substring(4, 8);
-            index++;
-        }
-        if (tries >= 3 && tries < 5) {
-            // if it over 3 times, which means 4 digits very easy to duplicate, so we give it five.
             randomString = Math.random().toString(36).substring(4, 9);
+            index++;
         }
         if (randomString && randomString.charAt(0) == "p") {
             let text = "";
@@ -22875,10 +22869,10 @@ let dbPlayerInfo = {
                 return dbconfig.collection_players.findOneAndUpdate(
                     {
                         _id: playerData._id,
-                        deviceId: {$ne: deviceId}
+                        guestDeviceId: {$ne: deviceId}
                     },
                     {
-                        deviceId: deviceId
+                        guestDeviceId: deviceId
                     }).lean()
             }
         ).then(

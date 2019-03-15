@@ -627,26 +627,46 @@ var dbPlatformBankCardGroup = {
         );
     },
 
-    getUserPaymentGroup: function (platformId, playerName, topUpSystemType) {
+    getUserPaymentGroup: function (platformId, playerName, topUpSystemType, accountType) {
         // debug param, todo :: remove later
         // platformId = "100";
         // playerName = "111";
         let topUpSystemConfig;
+        let type;
 
         topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        switch (accountType) {
+            case "1":
+                type = constAccountType.BANK_CARD;
+                break;
+            case "2":
+                type = constAccountType.ALIPAY;
+                break;
+            case "3":
+                type = constAccountType.WECHAT;
+                break;
+            case "4":
+                type = constAccountType.ONLINE;
+                break;
+        }
 
         if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
             let options = {
                 method: 'POST',
-                uri: topUpSystemConfig.paymentGroupAPIAddr,
+                uri: topUpSystemConfig.paymentGroupByPlayerAPIAddr,
                 body: {
                     platformId: platformId,
-                    userName: playerName
+                    userName: playerName,
+                    accountType: type
+                },
+                headers: {
+                    "Content-Type": "application/json"
                 },
                 json: true
             };
 
-            console.log('paymentGroupByPlayerAPIAddr req: ', platformId, playerName);
+            console.log('paymentGroupByPlayerAPIAddr req: ', platformId, playerName, type);
 
             return rp(options).then(function (data) {
                 console.log('paymentGroupByPlayerAPIAddr success', data);

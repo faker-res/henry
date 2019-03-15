@@ -7,7 +7,7 @@
             .panel-heading.panel-heading-sm
                 label {{"WechatPay Group" | translate}}
             .panel-body
-                div(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
+                div(ng-show="vm.paymentSystemName === 'PMS' || vm.paymentSystemName === ''")
                     input#FPMSWechatPaymentGroup(type='radio' value='FPMS' ng-model="vm.wechatGroupUsed" ng-change="vm.loadWechatPayGroupData();")
                     label.radio-space(for='FPMSWechatPaymentGroup') {{"FPMS Group" | translate}}
                     input#PMSWechatPaymentGroup(type='radio' value='PMS' ng-model="vm.wechatGroupUsed" ng-change="vm.loadWechatPayGroupData()")
@@ -18,7 +18,7 @@
                     li.list-group-item(ng-repeat='(i,wechatPayGroup) in vm.platformWechatPayGroupList', ng-click='vm.wechatPayGroupClicked(i,wechatPayGroup)', ng-class='{active: vm.SelectedWechatPayGroupNode === wechatPayGroup}')
                         text {{wechatPayGroup.name}}
                         i.fa.fa-star.pull-right.margin-right-5(ng-show='wechatPayGroup.bDefault')
-                div.paymentCard(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
+                div.paymentCard(ng-show="vm.paymentSystemName === 'PMS' || vm.paymentSystemName === ''")
                         label {{"PAYMENT_CARD_MODE" | translate}}
                         br
                         input#wechatPayFPMSGroupSetting(type='radio' value='false' ng-model="vm.wechatPayGroupPMS" ng-disabled="!checkViewPermission('Payment', 'WechatPayGroup', 'UpdateCardGroupType')")
@@ -28,7 +28,7 @@
                         br
                         button.btn.btn-primary(ng-click="vm.updateIsPMSGroup(vm.wechatPayGroupPMS, 'wechatPayGroupIsPMS')" ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
                 br
-                .btn-group.text-center(role="group" ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
+                .btn-group.text-center(role="group" ng-show="vm.paymentSystemName === 'PMS' || vm.paymentSystemName === ''")
                     button.btn.btn-primary.vertical-button-group(ng-if="((vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) || vm.selectedPlatform.data.isFPMSPaymentSystem) && checkViewPermission('Payment', 'WechatPayGroup', 'CreateWechatPay')", data-toggle="modal", ng-click='vm.newWechatpayAcc={};', data-target='#modalAddNewWechatpay')
                         img.img-create
                         text {{"CreateWechatPay" | translate}}
@@ -226,7 +226,7 @@
                             td {{ val.singleLimit | translate}}
                             td {{ val.dailyLimit | translate}}
                 br
-                .text-right.widthto100(ng-if="!vm.paymentSystemName || vm.paymentSystemName !== 'PMS2'")
+                .text-right.widthto100(ng-show="vm.paymentSystemName === 'PMS' || vm.paymentSystemName === ''")
                     button.btn.btn-info.btn-space(ng-click="vm.selectWechatGroup(true)" ng-if="vm.wechatGroupUsed != 'PMS'") {{"Select All" | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.selectWechatGroup(false)" ng-if="vm.wechatGroupUsed != 'PMS'") {{"Clear All" | translate}}
                     button.btn.btn-primary.btn-space(ng-if="((vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) || vm.selectedPlatform.data.isFPMSPaymentSystem) && vm.allWechatList.length > 0 && checkViewPermission('Payment', 'WechatPayGroup', 'EditWechatPay') && vm.wechatGroupUsed != 'PMS'" ng-click="vm.showEditWechatPayInfo()" ng-disabled="vm.disableEditWechatPay()", data-toggle="modal", data-target='#modalEditWechatPay')

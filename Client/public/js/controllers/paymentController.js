@@ -260,6 +260,10 @@ define(['js/app'], function (myApp) {
         vm.bankCardFilterOptions = {};
 
         vm.bankCardGroupTabClicked = function () {
+            if (vm.paymentSystemName === 'PMS2') {
+                vm.loadBankCardGroupData();
+            }
+
             vm.bankCardGroupPMS = "false";
             if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.bankCardGroupIsPMS) {
                 vm.bankCardGroupPMS = "true";
@@ -603,14 +607,15 @@ define(['js/app'], function (myApp) {
         };
 
         vm.playerPMSBankCardGroupSearch = () => {
-            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType}).then(data => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType, accountType: "1"}).then(data => {
                 console.log('getPMSUserPaymentGroup bankCard', data)
 
-                vm.platformBankCardGroupList = [];
-                if (!(vm.paymentSystemName === 'PMS' && data && data.data && data.data.map && data.data.map["银行卡"])) {
-                    return;
-                } else if (!(vm.paymentSystemName === 'PMS2' && data && data.data && data.data.data)) {
-                    return;
+                if (vm.paymentSystemName === 'PMS2') {
+                    if (!(data && data.data && data.data.data))
+                        return;
+                } else {
+                    if (!(data && data.data && data.data.map && data.data.map["银行卡"]))
+                        return;
                 }
 
                 let bankCardGroups = {};
@@ -618,8 +623,12 @@ define(['js/app'], function (myApp) {
 
                 if (vm.paymentSystemName === 'PMS2') {
                     bankCardGroups = data.data.data || {};
+                    if (data && data.data && data.data.data && Object.keys(data.data.data).length > 0) {
+                        vm.platformBankCardGroupList = [];
+                    }
                 } else {
                     bankCardGroups = data.data.map["银行卡"] || {};
+                    vm.platformBankCardGroupList = [];
                 }
 
                 Object.keys(bankCardGroups).forEach(
@@ -1514,6 +1523,10 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// Merchant Group start  /////////////////////////////////////////////////
 
         vm.merchantGroupTabClicked = function () {
+            if (vm.paymentSystemName === 'PMS2') {
+                vm.loadMerchantGroupData();
+            }
+
             vm.merchantGroupPMS = "false";
             if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.merchantGroupIsPMS) {
                 vm.merchantGroupPMS = "true";
@@ -1739,7 +1752,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.playerPMSMerchantGroupSearch = () => {
-            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType}).then(data => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType, accountType: "4"}).then(data => {
                 console.log('getPMSUserPaymentGroup merchant', data);
 
                 let merchantGroupData;
@@ -2138,6 +2151,10 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// Alipay Group start  /////////////////////////////////////////////////
 
         vm.alipayGroupTabClicked = function () {
+            if (vm.paymentSystemName === 'PMS2') {
+                vm.loadAlipayGroupData();
+            }
+
             vm.alipayGroupUsed = "FPMS";
 
             vm.aliPayGroupPMS = "false";
@@ -2324,7 +2341,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.playerPMSAlipayGroupSearch = () => {
-            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType}).then(data => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType, accountType: "2"}).then(data => {
                 console.log('getPMSUserPaymentGroup', data)
 
                 let alipayGroupData;
@@ -2829,6 +2846,10 @@ define(['js/app'], function (myApp) {
 
         /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
         vm.wechatPayGroupTabClicked = function () {
+            if (vm.paymentSystemName === 'PMS2') {
+                vm.loadWechatPayGroupData();
+            }
+
             vm.wechatPayGroupPMS = "false";
             if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.wechatPayGroupIsPMS) {
                 vm.wechatPayGroupPMS = "true";
@@ -3054,7 +3075,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.playerPMSWechatGroupSearch = () => {
-            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType}).then(data => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType, accountType: "3"}).then(data => {
                 console.log('getPMSUserPaymentGroup', data)
 
                 let wechatGroupData;

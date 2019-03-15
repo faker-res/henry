@@ -34,6 +34,7 @@ var simplifiedChinese = {
     "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",
     "CLOSED_COMMISSION": "关闭",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
+    "Please bind phone number first": "请先绑定手机号码",
     "WEEKLY_BONUS_AMOUNT": "7天-输赢值",
     "BIWEEKLY_BONUS_AMOUNT": "半月-输赢值",
     "MONTHLY_BONUS_AMOUNT": "1月-输赢值",

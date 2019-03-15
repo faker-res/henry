@@ -326,7 +326,8 @@ var roleChecker = {
                 //ThemeSelect: [],
             },
             "PlayerDisplayData": {
-                Read: []
+                Read: [],
+                MAIN_PAGE_ADVERTISEMENT: ['createNewXBETAdvertisement', 'getXBETAdvertisement', 'updateXBETAdvertisement', 'deleteXBETAdvertisementRecord', 'changeXBETAdvertisementStatus'],
             },
             "PartnerDisplayData": {
                 Read: []
