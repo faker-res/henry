@@ -2448,8 +2448,6 @@ let dbPlayerInfo = {
             .then(data => {
                 if (data) {
                     playerData = data;
-                    console.log('playerData===', playerData);
-                    console.log('playerData.multipleBankDetailInfo===', playerData.multipleBankDetailInfo);
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     });
