@@ -5080,6 +5080,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
             console.log(type, data);
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+                vm.smstpl = "";
                 vm.smsPlayer = {
                     playerId: playerObjId.playerId,
                     name: playerObjId.name,

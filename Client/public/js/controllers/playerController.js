@@ -7293,6 +7293,7 @@ define(['js/app'], function (myApp) {
             //vm.getSMSTemplate();
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+                vm.smstpl = "";
                 vm.smsPlayer = {
                     playerId: playerObjId.playerId,
                     name: playerObjId.name,
@@ -9336,7 +9337,7 @@ define(['js/app'], function (myApp) {
             vm.playerSmsSetting = {smsGroup: {}};
             vm.getPlatformSmsGroups();
             vm.getAllMessageTypes();
-            $scope.safeApply();
+            $scope.$evalAsync();
         };
 
         vm.isAllNoSmsGroupChecked = () => {
