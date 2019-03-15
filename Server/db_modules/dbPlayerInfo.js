@@ -20795,23 +20795,38 @@ let dbPlayerInfo = {
 
         let dxCode = "";
 
-        let platformProm = Promise.resolve({platform: {platformId: platformId}});
-        if (!platformId) {
-            platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
+        let dxMissionDetail;
+        let platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
                 path: "platform", model: dbconfig.collection_platform
             }).lean();
-        }
 
         return platformProm.then(
             function (missionProm) {
-                platformId = missionProm.platform.platformId;
+                dxMissionDetail = missionProm;
                 dxCode = randomString;
-                return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
+                return dbconfig.collection_dxPhone.find({code: dxCode}).populate({path: "dxMission", model: dbconfig.collection_dxMission}).lean();
             }
         ).then(
             function (dxPhoneExist) {
                 if (dxPhoneExist) {
-                    return dbPlayerInfo.generateDXCode(dxMission, platformId, tries);
+                    let countSameDomain = 0;
+                    // calculate if "code" exist in same domain , we treat it as duplicate, then we generate new "code" , purpose: avoid 4 digits easy duplicate
+                    // if different domain , is fine,
+                    if ( dxPhoneExist && dxPhoneExist.length > 0 ) {
+                        dxPhoneExist.forEach( item => {
+                            if ( item.dxMission && item.dxMission.domain == dxMissionDetail.domain ) {
+                                countSameDomain += 1;
+                            }
+                        })
+                    }
+
+                    if (countSameDomain > 0 ) {
+                        console.log('MT --checking generateDXCode', tries, countSameDomain)
+                        return dbPlayerInfo.generateDXCode(dxMission, platformId, tries);
+                    } else {
+                        return dxCode;
+                    }
+
                 }
                 else {
                     return dxCode;

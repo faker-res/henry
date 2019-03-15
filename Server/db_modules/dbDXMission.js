@@ -572,22 +572,20 @@ let dbDXMission = {
             });
         }
 
-        return dbconfig.collection_dxMission.find({domain: domain})
-        .then(
-            data => {
-                if ( !data || data.length == 0 ) {
-                    return Promise.reject({
-                        code: constServerCode.DATA_INVALID,
-                        message: "Domain is Incorrect"
+        return dbconfig.collection_dxPhone.find({code: code})
+            .populate({path: "dxMission", model: dbconfig.collection_dxMission})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+            function (dxPhones) {
+                let dxPhone;
+
+                if (dxPhones && dxPhones.length > 0 ) {
+                    // find the only one result -  code & domain are equally
+                    dxPhone = dxPhones.filter( phone =>{
+                        return (phone.dxMission) && (phone.dxMission.domain) && phone.dxMission.domain == domain;
                     });
                 }
+                dxPhone = ( dxPhone && dxPhone[0] ) ? dxPhone[0] : null;
 
-                return dbconfig.collection_dxPhone.findOne({code: code})
-                    .populate({path: "dxMission", model: dbconfig.collection_dxMission})
-                    .populate({path: "platform", model: dbconfig.collection_platform}).lean()
-            })
-       .then(
-            dxPhone =>{
                 if (!dxPhone) {
                     return Promise.reject({
                         code: constServerCode.DATA_INVALID,
@@ -601,8 +599,8 @@ let dbDXMission = {
                 else {
                     return createPlayer(dxPhone, deviceData, domain, loginDetails, conn, wsFunc);
                 }
-          }
-      )
+            }
+        )
     },
 
     applyDxMissionReward: function (dxMission, playerData) {
