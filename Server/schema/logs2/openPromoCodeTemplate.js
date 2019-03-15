@@ -23,7 +23,7 @@ let openPromoCodeTemplateSchema = new Schema({
     // Is platform using provider group
     isProviderGroup: {type: Boolean},
     // Promo Code
-    code: {type: Number, required: true},
+    code: {type: Number, required: true, index: true},
     // the time when the template is created
     createTime: {type: Date, default: Date.now, index: true},
     // Promo Code Accept Time
