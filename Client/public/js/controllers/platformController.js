@@ -17244,7 +17244,9 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
                     vm.addFeedback.content = "";
                     vm.addFeedback.result = "";
-                    // vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
+                    if (!vm.ctiData || !vm.ctiData.hasOnGoingMission) {
+                        return vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
+                    }
                     if (vm.playerFeedbackSearchType = 'one') {
                         vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
                             vm.curPlayerFeedbackDetail = data;

@@ -431,7 +431,7 @@ let dbPlayerInfo = {
                 }
                 if (inputData.phoneNumber) {
                     let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
-                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber)
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
                     playerQuery.$or = [
                         {phoneNumber: encryptedPhoneNumber},
                         {phoneNumber: enOldPhoneNumber}
@@ -22854,10 +22854,10 @@ let dbPlayerInfo = {
                 return dbconfig.collection_players.findOneAndUpdate(
                     {
                         _id: playerData._id,
-                        deviceId: {$ne: deviceId}
+                        guestDeviceId: {$ne: deviceId}
                     },
                     {
-                        deviceId: deviceId
+                        guestDeviceId: deviceId
                     }).lean()
             }
         ).then(
