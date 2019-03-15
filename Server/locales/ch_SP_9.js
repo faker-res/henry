@@ -33,6 +33,7 @@ var simplifiedChinese = {
     "Exceeded available application quantity": "超过申请次数",
     "No available consumption list for the reward": "沒有符合申请的投注单",
     "Editing bank information is successful": "银行资料绑定成功",
+    "Please bind phone number first": "请先绑定手机号码",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
     "WEEKLY_BONUS_AMOUNT": "7天-输赢值",
     "BIWEEKLY_BONUS_AMOUNT": "半月-输赢值",
