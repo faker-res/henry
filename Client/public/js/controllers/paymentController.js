@@ -610,8 +610,6 @@ define(['js/app'], function (myApp) {
             return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName, topUpSystemType: vm.selectedPlatform.data.topUpSystemType, accountType: "1"}).then(data => {
                 console.log('getPMSUserPaymentGroup bankCard', data)
 
-                vm.platformBankCardGroupList = [];
-
                 if (vm.paymentSystemName === 'PMS2') {
                     if (!(data && data.data && data.data.data))
                         return;
@@ -625,8 +623,12 @@ define(['js/app'], function (myApp) {
 
                 if (vm.paymentSystemName === 'PMS2') {
                     bankCardGroups = data.data.data || {};
+                    if (data && data.data && data.data.data && Object.keys(data.data.data).length > 0) {
+                        vm.platformBankCardGroupList = [];
+                    }
                 } else {
                     bankCardGroups = data.data.map["银行卡"] || {};
+                    vm.platformBankCardGroupList = [];
                 }
 
                 Object.keys(bankCardGroups).forEach(
