@@ -31,6 +31,7 @@ var simplifiedChinese = {
     "Authentification Failed": "身份验证失败",
     "Editing name (Auto)": "修改姓名 （自动）",
     "Edit bank card (Auto)": "修改银行卡 （自动）",
+    "Please bind phone number first": "请先绑定手机号码",
     "Authentification Passed": "身份验证通过",
     "CLOSED_COMMISSION": "关闭",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
