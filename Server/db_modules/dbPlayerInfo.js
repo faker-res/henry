@@ -5717,7 +5717,6 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
-                    console.log("walaoplayer",playerObj.phoneNumber)
 
                     if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
                         return Promise.reject({
