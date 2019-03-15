@@ -940,8 +940,6 @@ var proposalExecutor = {
                                 // if(playerUpdate.bankAccountName){
                                 //     playerUpdate.realName = playerUpdate.bankAccountName;
                                 // }
-                                console.log('playerUpdate.bankName2---------------11', playerUpdate.bankName2);
-                                console.log('playerUpdate.bankName3---------------11', playerUpdate.bankName3);
                                 if (playerUpdate.bankName2 || playerUpdate.bankName3) {
                                     updateMultipleBankInfo = true;
                                 }
@@ -952,16 +950,11 @@ var proposalExecutor = {
                                     'data.playerName': proposalData.data.playerName,
                                     'data.playerId': proposalData.data.playerId,
                                 };
-                                console.log('proposalData===', proposalData);
-                                console.log('playerUpdate===', playerUpdate);
 
                                 return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
                                     proposal => {
-                                        // console.log('RETURN PROPOSAL---------', proposal);
                                         if (proposal && proposal.length > 1) {
-                                            console.log('HERE---------------------------------11');
                                             if (playerUpdate.isDeleteBank2 || playerUpdate.isDeleteBank3) {
-                                                console.log('DELETE---------------------------------11');
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
@@ -969,15 +962,12 @@ var proposalExecutor = {
                                                 ).lean();
                                             }
                                             if (updateMultipleBankInfo) {
-                                                console.log('HERE---------------------------------1111');
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
                                                     {upsert: true, new: true}
                                                 ).lean().then(
                                                     bankData => {
-                                                        console.log('HERE---------------------------------111111', bankData);
-                                                        console.log('HERE ID---------------------------------111111', bankData._id);
                                                         if (bankData && bankData._id) {
                                                             return dbconfig.collection_players.findOneAndUpdate(
                                                                 {_id: data._id, platform: data.platform},
@@ -991,7 +981,6 @@ var proposalExecutor = {
                                                     }
                                                 );
                                             } else {
-                                                console.log('HERE---------------------------------2222');
                                                 return dbconfig.collection_players.findOneAndUpdate(
                                                     {_id: data._id, platform: data.platform},
                                                     playerUpdate,
@@ -999,7 +988,6 @@ var proposalExecutor = {
                                                 ).lean();
                                             }
                                         } else {
-                                            console.log('HERE---------------------------------22');
                                             if (playerUpdate.bankAccountName) {
                                                 playerUpdate.realName = playerUpdate.bankAccountName;
                                             }
@@ -1022,12 +1010,6 @@ var proposalExecutor = {
                         }
                     ).then(
                         function (data) {
-                            // console.log('RETURN NEW DATA---------', data);
-                            console.log('RETURN NEW DATA ID---------', data._id);
-                            console.log('multipleBankDetailInfo---------', data.multipleBankDetailInfo);
-                            console.log('proposalData.data.bankName---------', proposalData.data.bankName);
-                            console.log('proposalData.data.bankName2---------', proposalData.data.bankName2);
-                            console.log('proposalData.data.bankName3---------', proposalData.data.bankName3);
                             let loggerInfo = {};
                             if (proposalData.data.bankName) {
                                 loggerInfo = {
@@ -1073,7 +1055,6 @@ var proposalExecutor = {
                             loggerInfo.creatorType = constProposalUserType.SYSTEM_USERS;
                             loggerInfo.creatorObjId = proposalData.creator ? proposalData.creator.id : null;
 
-                            console.log('loggerInfo===', loggerInfo);
                             // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'bankAccount', proposalData.data.bankAccount).then();
                             dbLogger.createBankInfoLog(loggerInfo);
                             //SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
