@@ -12540,8 +12540,9 @@ let dbPlayerInfo = {
                                                 ximaWithdrawUsed: ximaWithdrawUsed,
                                                 isAutoApproval: player.platform.enableAutoApplyBonus,
                                                 bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
-                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : ""
+                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : "",
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
+                                                changeCredit: changeCredit
                                             };
                                             if (!player.permission.applyBonus) {
                                                 proposalData.remark = "禁用提款: " + lastBonusRemark;
