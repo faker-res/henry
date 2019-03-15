@@ -3335,18 +3335,55 @@ let dbPlayerReward = {
 
     generateOpenPromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
 
-        newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(100, 999);
-        if (!newPromoCodeEntry.status){
-            newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
-        }
-        newPromoCodeEntry.adminId = adminObjId;
-        newPromoCodeEntry.adminName = adminName;
+        let minValue = 100;
+        let maxValue = 999;
+        let isValid = false;
+        newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
 
-        return dbConfig.collection_promoCodeActiveTime.findOne({
-            platform: platformObjId,
-            startTime: {$lt: new Date()},
-            endTime: {$gt: new Date()}
-        }).lean().then(activeTimeRes => {
+        // get the exsiting openPromoCodeList
+        return dbConfig.collection_openPromoCodeTemplate.find({
+            status: {$ne: constPromoCodeStatus.EXPIRED}
+        }, {code: 1}).lean().then(
+            list => {
+                if (list && list.length){
+                    for (let counter = 0; counter < maxValue + 1; counter ++){
+                        let index = list.findIndex(record => record.code == newPromoCodeEntry.code);
+
+                        if (index == -1){
+                            isValid = true;
+                            break;
+                        }
+                        else{
+                            newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
+                        }
+                    }
+                }
+
+                return isValid
+            }
+        ).then(
+            state => {
+                // after testing all the possibilities, return error
+                if (!state){
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Failed to generate openPromoCode; all the codes have been used up"
+                    })
+                }
+
+                if (!newPromoCodeEntry.status){
+                    newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+                }
+                newPromoCodeEntry.adminId = adminObjId;
+                newPromoCodeEntry.adminName = adminName;
+
+                return dbConfig.collection_promoCodeActiveTime.findOne({
+                    platform: platformObjId,
+                    startTime: {$lt: new Date()},
+                    endTime: {$gt: new Date()}
+                }).lean();
+            }
+        ).then(activeTimeRes => {
 
             if (activeTimeRes) {
                 newPromoCodeEntry.isActive = true;
