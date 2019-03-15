@@ -222,19 +222,25 @@ define(['js/app'], function (myApp) {
             // let platformId = vm.selectedPlatform === "_allPlatform" ? "_allPlatform" : vm.selectedPlatform._id;
             // vm.selectPlatform(platformId);
 
-            vm.setUpRewardMultiSelect();
-            vm.setUpPromoCodeMultiSelect();
             vm.allTopUpIntentionString = null;
             vm.allNewAccountString = null;
             vm.allProposalString = null;
-            vm.renderMultipleSelectDropDownList('select#selectProposalType');
-            vm.renderMultipleSelectDropDownList('select#selectProposalAuditType');
-            vm.proposalTypeClicked(vm.rightPanelTitle == "APPROVAL_PROPOSAL" ? "approval" : "total");
-
             vm.initQueryPara();
             vm.dateRange = "";
 
-            $scope.$evalAsync();
+            Promise.resolve()
+                .then(vm.setUpRewardMultiSelect)
+                .then(vm.setUpPromoCodeMultiSelect)
+                .then(
+                    () => {
+                        if (vm.rightPanelTitle == "APPROVAL_PROPOSAL") {
+                            vm.renderMultipleSelectDropDownList('select#selectProposalAuditType');
+                        } else{
+                            vm.renderMultipleSelectDropDownList('select#selectProposalType');
+                        }
+                    }
+                )
+                .then(vm.proposalTypeClicked(vm.rightPanelTitle == "APPROVAL_PROPOSAL" ? "approval" : "total"));
         };
 
         vm.proposalTypeClicked = function (i, v) {
