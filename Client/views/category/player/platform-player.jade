@@ -197,10 +197,10 @@ include modalGameCreditLog
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPlayerPayment();")
                                             text.span {{"WITHDRAW_INFO" | translate}}
                                     li(ng-show="editMultipleWithdrawPermission",ng-class="selectedTab=='withdrawInfo2'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo2';prepareEditPlayerPayment();")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo2';prepareEditPlayerPayment2();")
                                             text.span {{"WITHDRAW_INFO_2" | translate}}
                                     li(ng-show="editMultipleWithdrawPermission",ng-class="selectedTab=='withdrawInfo3'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo3';prepareEditPlayerPayment();")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo3';prepareEditPlayerPayment3();")
                                             text.span {{"WITHDRAW_INFO_3" | translate}}
                                     li(ng-show="editPlayerPermission",ng-class="selectedTab=='topUpInfo'?'active':''")
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='topUpInfo';initTopUpGroupChangeLog()")
