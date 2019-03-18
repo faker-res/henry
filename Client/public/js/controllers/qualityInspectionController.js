@@ -391,10 +391,17 @@ define(['js/app'], function (myApp) {
                         batchEdit.push(item);
                     };
                 });
-                socketService.$socket($scope.AppSocket, 'rateBatchConversation', {batchData:batchEdit}, function(data){
-                    // console.log(data);
-                    vm.searchLive800();
-                });
+
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'rateBatchConversation', {batchData:batchEdit}, function(data){
+                        vm.searchLive800();
+                    });
+                }
+                else{
+                    socketService.$socket($scope.AppSocket, 'rateBatchConversationByDailyRecord', {batchData:batchEdit}, function(data){
+                        vm.searchLive800();
+                    });
+                }
 
             };
             vm.nextPG = function(){
@@ -460,32 +467,110 @@ define(['js/app'], function (myApp) {
                 if(vm.inspection800.qiUser && vm.inspection800.qiUser.length > 0){
                     query['qualityAssessor'] = vm.inspection800.qiUser;
                 }
-                socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
+
+                // which is using the live stream data
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
+
+                    socketService.$socket($scope.AppSocket, 'countLive800', query, successFunc);
+
+                }
+                else{
+                    // which is using the scheduler-saving data
+                    socketService.$socket($scope.AppSocket, 'searchLive800ByScheduledRecord', query, successRecord);
+                }
+
+                function successRecord (data){
+                    if (data && data.data && data.data.record && data.data.record.length){
+
+                        data.data.record.forEach(
+                            item => {
+                                item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]) : null;
+                                item.conversation.forEach(function (cv, i) {
+                                    cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+                                    cv.needRate = vm.avoidMultiRateCS(cv, i, item.conversation);
+                                    // load each platform overtimeSetting
+                                    let overtimeSetting = vm.getPlatformOvertimeSetting(item);
+                                    let otsLength = overtimeSetting.length - 1;
+                                    let colors = '';
+
+                                    // render with different color
+                                    overtimeSetting.forEach((ots, i) => {
+                                        if (cv.roles == 1 && cv.needRate) {
+                                            if (cv.timeoutRate == ots.presetMark) {
+                                                colors = ots.color;
+                                            }
+                                        }
+                                    });
+                                    cv.colors = colors;
+                                    return cv;
+                                });
+                                item.displayWay = vm.inspection800.displayWay == 'true' ? true : false;
+                                item.editable = false;
+                                item.createTime = utilService.getFormatTime(item.createTime);
+                                item.closeName$ = item.closeReason && item.closeReason == "operatorClosed" ? "客服 " + item.closeName : "访客";
+
+                                return item;
+                            }
+                        );
+
+                        vm.conversationForm = data.data.record;
+                        $("#selectAll").removeAttr('checked');
+                        $('.searchingQualityInspection').hide();
+                        vm.batchSaveInProgress = false;
+
+
+                    }
+                    else{
+                        // no record
+                        $('.searchingQualityInspection').hide();
+                        vm.conversationForm= [];
+                    }
+
+                    // pagination
+                    if (data && data.data && data.data.size) {
+                        let itemTotal = data.data.size || 0;
+                        let totalPage = itemTotal / vm.pgn.limit;
+                        vm.pgn.totalPage = Math.ceil(totalPage);
+                        vm.pgn.count = itemTotal;
+                    } else {
+                        vm.pgn.totalPage = 1;
+                        vm.pgn.count = 0;
+                    }
+                    vm.pgnPages = [];
+                    for (let a = 0; a < vm.pgn.totalPage; a++) {
+                        vm.pgnPages.push(a);
+                    }
+                    $scope.$evalAsync();
+
+                };
+
                 function success(data) {
-                    data.data.forEach(item=>{
-                        if(query.status == 7){
+                    data.data.forEach(item => {
+                        if (query.status == 7) {
                             item.status = 7;
                         }
-                        item.statusName = item.conversation && item.conversation.length > 0 ? item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]) : $translate(vm.constQualityInspectionStatus[7]);
-                        item.conversation.forEach(function(cv,i){
+                        item.statusName = item.conversation && item.conversation.length > 0 ? item.status ? $translate(vm.constQualityInspectionStatus[item.status]) : $translate(vm.constQualityInspectionStatus[1]) : $translate(vm.constQualityInspectionStatus[7]);
+                        item.conversation.forEach(function (cv, i) {
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-                            cv.needRate = vm.avoidMultiRateCS(cv,i,item.conversation);
+                            cv.needRate = vm.avoidMultiRateCS(cv, i, item.conversation);
                             // load each platform overtimeSetting
                             let overtimeSetting = vm.getPlatformOvertimeSetting(item);
-                            let otsLength = overtimeSetting.length -1;
+                            let otsLength = overtimeSetting.length - 1;
                             let colors = '';
 
                             // render with different color
-                            overtimeSetting.forEach((ots,i) => {
-                               if(cv.roles == 1 && cv.needRate){
-                                   if(cv.timeoutRate == ots.presetMark){
-                                       colors = ots.color;
-                                   }
-                               }
+                            overtimeSetting.forEach((ots, i) => {
+                                if (cv.roles == 1 && cv.needRate) {
+                                    if (cv.timeoutRate == ots.presetMark) {
+                                        colors = ots.color;
+                                    }
+                                }
                             });
                             cv.colors = colors;
                             return cv;
                         });
+                        item.displayWay = vm.inspection800.displayWay == 'true' ? true : false;
                         item.editable = false;
                         item.createTime = utilService.getFormatTime(item.createTime);
                         item.closeName$ = item.closeReason && item.closeReason == "operatorClosed" ? "客服 " + item.closeName : "访客";
@@ -496,26 +581,25 @@ define(['js/app'], function (myApp) {
                     $("#selectAll").removeAttr('checked');
                     $('.searchingQualityInspection').hide();
                     vm.batchSaveInProgress = false;
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }
 
-                socketService.$socket($scope.AppSocket, 'countLive800', query, successFunc);
                 function successFunc(data) {
-                    if(data.data){
+                    if (data.data) {
                         let itemTotal = data.data && data.data ? data.data : 0;
                         let totalPage = itemTotal / vm.pgn.limit
                         vm.pgn.totalPage = Math.ceil(totalPage);
                         vm.pgn.count = data.data;
-                    }else{
+                    } else {
                         vm.pgn.totalPage = 1;
                         vm.pgn.count = 0;
                     }
                     vm.pgnPages = [];
-                    for(let a = 0; a < vm.pgn.totalPage;a++){
+                    for (let a = 0; a < vm.pgn.totalPage; a++) {
                         vm.pgnPages.push(a);
                     }
 
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }
 
                 vm.getTotalNumberOfAppealingRecord();
@@ -531,17 +615,19 @@ define(['js/app'], function (myApp) {
                 vm.workingCSName = "";
                 socketService.$socket($scope.AppSocket, 'getWorkingCSName', query, function(data){
                     console.log(data);
-                    if(data && data.data && data.data[0].length > 0){
-                        data.data[0].forEach(csName => {
-                            if(csName && csName.operator_name){
-                                vm.workingCSName += csName.operator_name + ", ";
-                            }
-                        })
+                    $scope.$evalAsync( () => {
+                        if (data && data.data && data.data[0].length > 0) {
+                            data.data[0].forEach(csName => {
+                                if (csName && csName.operator_name) {
+                                    vm.workingCSName += csName.operator_name + ", ";
+                                }
+                            })
 
-                        if(vm.workingCSName.length > 0){
-                            vm.workingCSName = vm.workingCSName.substring(0,vm.workingCSName.length - 2);
+                            if (vm.workingCSName.length > 0) {
+                                vm.workingCSName = vm.workingCSName.substring(0, vm.workingCSName.length - 2);
+                            }
                         }
-                    }
+                    })
                 });
             }
             vm.getPlatformOvertimeSetting = function(item){
@@ -579,18 +665,27 @@ define(['js/app'], function (myApp) {
             vm.confirmRate = function(rate){
                 console.log(rate);
                 rate.editable = false;
-                socketService.$socket($scope.AppSocket, 'rateCSConversation', rate, function(data){
-                    console.log(data);
-                    vm.searchLive800();
-                });
-            }
+
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'rateCSConversation', rate, function (data) {
+                        vm.searchLive800();
+                    });
+                }
+                else{
+                    socketService.$socket($scope.AppSocket, 'rateCSConversationByDailyRecord', rate, function (data) {
+                        vm.searchLive800();
+                    });
+                }
+            };
+
             vm.showLive800 = function(){
                 vm.initLive800Start();
                 vm.batchEditList = [];
                 if (!vm.inspection800) {
                     vm.inspection800 = {
                         status: '1',
-                        qiUser: 'all'
+                        qiUser: 'all',
+                        displayWay: 'true'
                     }
                 }
                 vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:100, count:0};
@@ -599,7 +694,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 },0)
 
-            }
+            };
 
             vm.rateIt = function(conversation){
                 // if the complain is closed(6) , or this conversation no need to rate(7)

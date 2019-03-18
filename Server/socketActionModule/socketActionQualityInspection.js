@@ -76,6 +76,11 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.countLive800, [data], actionName, isDataValid);
         },
+        searchLive800ByScheduledRecord: function searchLive800ByScheduledRecord(data) {
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.searchLive800ByScheduledRecord, [data], actionName, isDataValid);
+        },
         getTotalNumberOfAppealingRecord: function getTotalNumberOfAppealingRecord(data){
             var actionName = arguments.callee.name;
             var isDataValid = true;
@@ -108,10 +113,20 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.rateCSConversation, [data, getAdminId()], actionName, isDataValid);
         },
+        rateCSConversationByDailyRecord: function rateCSConversationByDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.rateCSConversationByDailyRecord, [data, getAdminId()], actionName, isDataValid);
+        },
         rateBatchConversation: function rateBatchConversation(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.rateBatchConversation, [data, getAdminId()], actionName, isDataValid);
+        },
+        rateBatchConversationByDailyRecord: function rateBatchConversationByDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.rateBatchConversationByDailyRecord, [data, getAdminId()], actionName, isDataValid);
         },
         getEvaluationRecordYearMonth: function getEvaluationRecordYearMonth(data){
             var actionName = arguments.callee.name;
