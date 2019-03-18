@@ -431,7 +431,7 @@ let dbPlayerInfo = {
                 }
                 if (inputData.phoneNumber) {
                     let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
-                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber)
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
                     playerQuery.$or = [
                         {phoneNumber: encryptedPhoneNumber},
                         {phoneNumber: enOldPhoneNumber}
@@ -2448,8 +2448,6 @@ let dbPlayerInfo = {
             .then(data => {
                 if (data) {
                     playerData = data;
-                    console.log('playerData===', playerData);
-                    console.log('playerData.multipleBankDetailInfo===', playerData.multipleBankDetailInfo);
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     });
@@ -6631,7 +6629,7 @@ let dbPlayerInfo = {
             },
         )
     },
-    
+
     getBindBankCardList: function (playerId, platformId) {
         let platformObj;
         let returnData = {};
@@ -12195,7 +12193,7 @@ let dbPlayerInfo = {
                             // if a withdrawal bank was selected, match the bank input and player existing bank data
                             // compare with first bank info
                             if ((withdrawalBank && withdrawalBank.bankName === playerData.bankName
-                                && withdrawalBank.bankAccount === playerData.bankAccount 
+                                && withdrawalBank.bankAccount === playerData.bankAccount
                                 && withdrawalBank.bankAccountName === playerData.bankAccountName) || bankId === '1') {
                                 withdrawalBank = {
                                     bankName: playerData.bankName || null,
@@ -12542,8 +12540,9 @@ let dbPlayerInfo = {
                                                 ximaWithdrawUsed: ximaWithdrawUsed,
                                                 isAutoApproval: player.platform.enableAutoApplyBonus,
                                                 bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
-                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : ""
+                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : "",
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
+                                                changeCredit: changeCredit
                                             };
                                             if (!player.permission.applyBonus) {
                                                 proposalData.remark = "禁用提款: " + lastBonusRemark;
@@ -20774,13 +20773,17 @@ let dbPlayerInfo = {
                 message: "Generate dian xiao code failure."
             })
         }
-        let randomString = Math.random().toString(36).substring(4, 9); // generate random String
+        let randomString = Math.random().toString(36).substring(4, 8); // generate random String
         let index = 0;
         // prevent infinite loop
         // prevent randomString all numbers
         while (!isNaN(randomString) && index < 5) {
-            randomString = Math.random().toString(36).substring(4, 9);
+            randomString = Math.random().toString(36).substring(4, 8);
             index++;
+        }
+        if (tries >= 3 && tries <= 5) {
+            // if it over 3 times, which means 4 digits very easy to duplicate, so we give it five.
+            randomString = Math.random().toString(36).substring(4, 9);
         }
         if (randomString && randomString.charAt(0) == "p") {
             let text = "";
@@ -20791,23 +20794,38 @@ let dbPlayerInfo = {
 
         let dxCode = "";
 
-        let platformProm = Promise.resolve({platform: {platformId: platformId}});
-        if (!platformId) {
-            platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
+        let dxMissionDetail;
+        let platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
                 path: "platform", model: dbconfig.collection_platform
             }).lean();
-        }
 
         return platformProm.then(
             function (missionProm) {
-                platformId = missionProm.platform.platformId;
-                dxCode = missionProm.platform.platformId + randomString;
-                return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
+                dxMissionDetail = missionProm;
+                dxCode = randomString;
+                return dbconfig.collection_dxPhone.find({code: dxCode}).populate({path: "dxMission", model: dbconfig.collection_dxMission}).lean();
             }
         ).then(
             function (dxPhoneExist) {
                 if (dxPhoneExist) {
-                    return dbPlayerInfo.generateDXCode(dxMission, platformId);
+                    let countSameDomain = 0;
+                    // calculate if "code" exist in same domain , we treat it as duplicate, then we generate new "code" , purpose: avoid 4 digits easy duplicate
+                    // if different domain , is fine,
+                    if ( dxPhoneExist && dxPhoneExist.length > 0 ) {
+                        dxPhoneExist.forEach( item => {
+                            if ( item.dxMission && item.dxMission.domain && item.dxMission.domain == dxMissionDetail.domain ) {
+                                countSameDomain += 1;
+                            }
+                        })
+                    }
+
+                    if (countSameDomain > 0 ) {
+                        console.log('MT --checking generateDXCode', tries, countSameDomain)
+                        return dbPlayerInfo.generateDXCode(dxMission, platformId, tries);
+                    } else {
+                        return dxCode;
+                    }
+
                 }
                 else {
                     return dxCode;
@@ -22856,10 +22874,10 @@ let dbPlayerInfo = {
                 return dbconfig.collection_players.findOneAndUpdate(
                     {
                         _id: playerData._id,
-                        deviceId: {$ne: deviceId}
+                        guestDeviceId: {$ne: deviceId}
                     },
                     {
-                        deviceId: deviceId
+                        guestDeviceId: deviceId
                     }).lean()
             }
         ).then(
@@ -22871,6 +22889,90 @@ let dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    generateUpdatePasswordToken: function (platformId, playerName, phoneNumber, smsCode) {
+        let platformObj;
+        let playerObj;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+                platformObj = platformData;
+
+                let playerQuery = {
+                    platform: platformData._id,
+                    name: playerName,
+                    $or: [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+                };
+
+                return dbconfig.collection_players.findOne(playerQuery).lean()
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+                playerObj = playerData;
+                return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformObj, smsCode, playerData.name);
+            }
+        ).then(
+            () => {
+                let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(playerObj.phoneNumber)};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 5});
+                return {token: token};
+            }
+        )
+
+
+    },
+
+    updatePasswordWithToken: function (token, newPassword) {
+        var deferred = Q.defer();
+        jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
+            if (err || !decoded) {
+                // Jwt token error
+                return deferred.reject({name: "DataError", message: "Token is not authenticated"});
+            }
+
+            let isValidToken = Boolean(decoded && decoded.platform && decoded.name && decoded.password && decoded.phoneNumber);
+            if (!isValidToken) {
+                return deferred.reject({name: "DataError", message: "Invalid token"});
+            }
+
+            let decryptedPhoneNumber = rsaCrypto.decrypt(decoded.phoneNumber)
+            let encryptedPhoneNumber = rsaCrypto.encrypt(decryptedPhoneNumber);
+            let enOldPhoneNumber = rsaCrypto.oldEncrypt(decryptedPhoneNumber);
+
+            return dbconfig.collection_players.findOne(
+                {
+                    platform: decoded.platform,
+                    name: decoded.name,
+                    password: decoded.password,
+                    $or: [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+                }
+            ).lean().then(
+                playerData => {
+                    if (!playerData) {
+                        return deferred.reject({name: "DataError", message: "Cannot find player"});
+                    }
+
+                    dbPlayerInfo.resetPlayerPassword(playerData._id, newPassword, playerData.platform, false, null).catch(errorUtils.reportError);
+                    deferred.resolve(true);
+                }
+            )
+        })
+        return deferred.promise;
     },
 
     getClientData: function (playerId) {

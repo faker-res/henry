@@ -162,6 +162,12 @@ function socketActionMerchantGroup(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getPlatformMerchantList, [data.platformId], actionName, isValidData);
+        },
+
+        getPMSMerchantGroup: function getPMSMerchantGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getPMSMerchantGroup, [data.platformId, data.topUpSystemType], actionName, isValidData);
         }
     };
     socketActionMerchantGroup.actions = this.actions;

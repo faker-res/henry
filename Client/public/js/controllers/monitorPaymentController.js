@@ -3324,8 +3324,8 @@ define(['js/app'], function (myApp) {
                     vm.getMerchantTypeName();
                     vm.merchantGroups = getMerchantGroups(vm.merchants, vm.merchantTypes);
                     vm.merchantNumbers = getMerchantNumbers(vm.merchants);
-                    vm.getPaymentMonitorTotalRecord();
-                    vm.getPaymentMonitorTotalCompletedRecord();
+                    // vm.getPaymentMonitorTotalRecord();
+                    // vm.getPaymentMonitorTotalCompletedRecord();
                     vm.merchantGroupCloneList = vm.merchantGroups;
                     vm.getPlatformByAdminId();
                 }

@@ -630,7 +630,7 @@
                 a.fa.fa-times.close(type='button',ng-click='vm.clearStyle()', data-dismiss='modal')
                 h4.modal-title(ng-show="true") {{"ADV SETTING" | translate}}
             .modal-body(style='overflow:auto;')
-                div(style='position: relative; display: inline-block;')
+                div(style='height: 500px; position: relative; display: inline-block;')
                     img#imagePreviewXBET(async=on ng-src="{{vm.selectedAdvertisement && vm.selectedAdvertisement.url || ''}}", style='height: auto; width: auto;')
             .modal-footer
                 table.common-table.playerLvlTable

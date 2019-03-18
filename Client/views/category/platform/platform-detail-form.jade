@@ -63,10 +63,18 @@ form(name="form_new_platform" ,novalidate)
                         a.common-tab(data-toggle="tab",ng-click='vm.playerDisplayDataTab = \'advertisementPanel\';vm.playerAdvertisementWebDevice=true;vm.playerAdvertisementH5Device=false; vm.playerAdvertisementList();vm.editAdvertisementRecord=false; vm.showAdvertisementRecord=true;vm.addNewPlayerAdvertisement=false;')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"ADVERTISEMENT" | translate}}
-                    li(id = 'mainPageAdvertisementTab')
+                    li(id = 'mainPageAdvertisementTab', ng-show="checkViewPermission('Platform', 'PlayerDisplayData','MAIN_PAGE_ADVERTISEMENT')")
                         a.common-tab(data-toggle="tab", ng-click='vm.playerDisplayDataTab="mainPageAdvertisementPanel"; vm.initMainPageAdvertisement()')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"MAIN_PAGE_ADVERTISEMENT" | translate}}
+                    li(id = 'firstEntryAdvertisementTab', ng-show="checkViewPermission('Platform', 'PlayerDisplayData','FIRST_TIME_ENTRY_ADVERTISEMENT')")
+                        a.common-tab(data-toggle="tab", ng-click='vm.playerDisplayDataTab="firstEntryAdvertisementPanel"; vm.initFirstEntryAdvertisement()')
+                            .fa.fa-file-text.margin-right-5
+                            text.span {{"FIRST_TIME_ENTRY_ADVERTISEMENT" | translate}}
+                    li(id = 'firstLoginAdvertisementTab', ng-show="checkViewPermission('Platform', 'PlayerDisplayData','FIRST_TIME_LOGIN_ADVERTISEMENT')")
+                        a.common-tab(data-toggle="tab", ng-click='vm.playerDisplayDataTab="firstLoginAdvertisementPanel"; vm.initFirstLoginAdvertisement()')
+                            .fa.fa-file-text.margin-right-5
+                            text.span {{"FIRST_TIME_LOGIN_ADVERTISEMENT" | translate}}
 
                 #customerServicePanel.panel-body(ng-if="vm.playerDisplayDataTab === 'customerServicePanel'", style="background-color: white;")
                     div.col-md-12
@@ -760,7 +768,7 @@ form(name="form_new_platform" ,novalidate)
                             tbody
                                 tr(ng-repeat-start="a in vm.mainPageAdvertisementList" ng-class='{grayRow: a.status==0}')
                                     td(rowspan="2")
-                                        input(type='number', min=1, max='{{vm.mainPageAdvertisementList.length || 1}}', ng-model='a.orderNo', style="width: 50px;", ng-disabled='!vm.editXBETAdvertisement' )
+                                        input(type='number', min=1, max='{{vm.mainPageAdvertisementList.length || 1}}', ng-model='a.orderNo', style="width: 50px;", ng-disabled='!vm.editXBETAdvertisement', required)
                                     td(rowspan="2")
                                         select.form-control(ng-model='a.advertisementType', style='max-width:300px', ng-disabled='!vm.editXBETAdvertisement')
                                             option(value='0') {{'EVENT' | translate}}
@@ -781,11 +789,11 @@ form(name="form_new_platform" ,novalidate)
                                             button.common-button.btn.btn-info(ng-click="vm.updateMainPageAd();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
                                             button.common-button.btn.btn-info(ng-click="vm.getMainPageAdvertisement();vm.editXBETAdvertisement=false;" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
                                         div(style="display: inline-grid;font-size: 10px;" ng-if='!vm.editXBETAdvertisement')
-                                            button.common-button.btn.btn-info(ng-click="vm.XBETAdvertisementPreview(a);vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false);" data-toggle="modal", data-target="#modalXBETAdvPreview" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.XBETAdvertisementPreview(a);" data-toggle="modal", data-target="#modalXBETAdvPreview" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
                                             button.common-button.btn.btn-info(ng-click="vm.editXBETAdvertisement=true" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
                                             button.common-button.btn.btn-info(ng-click="vm.deleteMainPageAdvertisementRecord(a._id,$index);" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
-                                            button.common-button.btn.btn-info(ng-click="vm.changeXBETAdvertisementStatus(a._id,1)" ng-if="a.status == 0; " style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
-                                            button.common-button.btn.btn-info(ng-click="vm.changeXBETAdvertisementStatus(a._id,0)" ng-if="a.status == 1; " style="width: auto; background-color: #5bc0de") {{'CLOSE' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.changeXBETAdvertisementStatus(a._id,1, vm.getMainPageAdvertisement)" ng-if="a.status == 0; " style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.changeXBETAdvertisementStatus(a._id,0, vm.getMainPageAdvertisement)" ng-if="a.status == 1; " style="width: auto; background-color: #5bc0de") {{'CLOSE' | translate}}
                                 tr(ng-repeat-end ng-class='{grayRow: a.status==0}')
                                     td
                                         label {{'MATCH' | translate}}{{"ID"}} &nbsp
@@ -834,6 +842,150 @@ form(name="form_new_platform" ,novalidate)
                                         td
                                             label {{'MATCH' | translate}}{{"ID"}} &nbsp
                                             input(type="text" style="width: 150px;" ng-model="vm.newMainPageAd.matchId")
+
+                #firstEntryAdvertisementPanel.panel-body(ng-if="vm.playerDisplayDataTab === 'firstEntryAdvertisementPanel'", style="background-color: white;")
+                    .adminLogQueryDiv
+                        label {{"ADVERTISING_CAROUSEL" | translate}}
+                    .row(style="overflow:scroll; max-height: 250px;padding-left:2px;padding-right:2px;")
+                        table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white;')
+                            thead
+                                tr
+                                    th {{'Display Order' | translate}}
+                                    th {{'BANNER TITLE' | translate}}
+                                    th {{'ADVERTISEMENT_SOURCE' | translate}}
+                                    th {{'ADDRESS' | translate}}
+                                    th {{'IS_DISPLAY_ON_FRONTEND' | translate}}
+                                    th {{'ACTION_BUTTON' | translate}}
+                            tbody
+                                tr(ng-repeat="a in vm.firstEntryAdvertisementList" ng-class='{grayRow: a.status==0}')
+                                    td
+                                        input(type='number', min=1, max='{{vm.firstEntryAdvertisementList.length || 1}}', ng-model='a.orderNo', style="width: 50px;", ng-disabled='!vm.editXBETAdvertisement', required)
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="a.title" ng-disabled='!vm.editXBETAdvertisement')
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="a.url" ng-disabled='!vm.editXBETAdvertisement')
+
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="a.hyperLink" ng-disabled='!vm.editXBETAdvertisement')
+
+                                    td
+                                        input(type="checkbox" ng-model="a.showInFrontEnd" ng-disabled='!vm.editXBETAdvertisement')
+                                    td
+                                        div(style="display: inline-grid;font-size: 10px;" ng-if='vm.editXBETAdvertisement')
+                                            button.common-button.btn.btn-info(ng-click="vm.updateFirstEntryAd();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.getFirstEntryAdvertisement();vm.editXBETAdvertisement=false;" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
+                                        div(style="display: inline-grid;font-size: 10px;" ng-if='!vm.editXBETAdvertisement')
+                                            button.common-button.btn.btn-info(ng-click="vm.XBETAdvertisementPreview(a);" data-toggle="modal", data-target="#modalXBETAdvPreview" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.editXBETAdvertisement=true" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.deleteFirstEntryAdvertisementRecord(a._id,$index);" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.changeXBETAdvertisementStatus(a._id,1, vm.getFirstEntryAdvertisement)" ng-if="a.status == 0; " style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.changeXBETAdvertisementStatus(a._id,0, vm.getFirstEntryAdvertisement)" ng-if="a.status == 1; " style="width: auto; background-color: #5bc0de") {{'CLOSE' | translate}}
+
+                    .well(style="margin-top: 50px; background-color: white;" )
+                        .row(style="text-align: right; margin-bottom: 10px;" ng-if="!vm.addNewFirstEntryAdvertisement")
+                            button.common-button.btn.btn-info(ng-click="vm.addNewFirstEntryAd();" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
+                        .row(style="text-align: center; margin-bottom: 10px;" ng-if="vm.addNewFirstEntryAdvertisement")
+                            label {{"Add new advertisement" | translate}}
+                        .row(style="overflow-x: scroll; max-height: 250px;" ng-if="vm.addNewFirstEntryAdvertisement")
+                            table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white' )
+                                thead
+                                    tr
+                                        th {{'Display Order' | translate}}
+                                        th {{'BANNER TITLE' | translate}}
+                                        th {{'ADVERTISEMENT_SOURCE' | translate}}
+                                        th {{'ADDRESS' | translate}}
+                                        th {{'IS_DISPLAY_ON_FRONTEND' | translate}}
+                                        th {{'ACTION_BUTTON' | translate}}
+                                tbody
+                                    tr
+                                        td
+                                            input(type='number', min=1, max='{{vm.firstEntryAdvertisementList.length && vm.firstEntryAdvertisementList.length + 1 || 1}}', ng-model='vm.newFirstEntryAd.orderNo', style="width: 50px;")
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="vm.newFirstEntryAd.title")
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="vm.newFirstEntryAd.url")
+
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="vm.newFirstEntryAd.hyperLink")
+
+                                        td
+                                            input(type="checkbox" ng-model="vm.newFirstEntryAd.showInFrontEnd")
+                                        td
+                                            div(style="display: inline-grid; font-size: 10px;")
+                                                button.common-button.btn.btn-info(ng-click="vm.saveNewFirstEntryAd()" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                                                button.common-button.btn.btn-info(ng-click="vm.addNewFirstEntryAdvertisement=false" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
+
+                #firstLoginAdvertisementPanel.panel-body(ng-if="vm.playerDisplayDataTab === 'firstLoginAdvertisementPanel'", style="background-color: white;")
+                    .adminLogQueryDiv
+                        label {{"ADVERTISING_CAROUSEL" | translate}}
+                    .row(style="overflow:scroll; max-height: 250px;padding-left:2px;padding-right:2px;")
+                        table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white;')
+                            thead
+                                tr
+                                    th {{'Display Order' | translate}}
+                                    th {{'BANNER TITLE' | translate}}
+                                    th {{'ADVERTISEMENT_SOURCE' | translate}}
+                                    th {{'ADDRESS' | translate}}
+                                    th {{'IS_DISPLAY_ON_FRONTEND' | translate}}
+                                    th {{'ACTION_BUTTON' | translate}}
+                            tbody
+                                tr(ng-repeat="a in vm.firstLoginAdvertisementList" ng-class='{grayRow: a.status==0}')
+                                    td
+                                        input(type='number', min=1, max='{{vm.firstLoginAdvertisementList.length || 1}}', ng-model='a.orderNo', style="width: 50px;", ng-disabled='!vm.editXBETAdvertisement', required)
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="a.title" ng-disabled='!vm.editXBETAdvertisement')
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="a.url" ng-disabled='!vm.editXBETAdvertisement')
+
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="a.hyperLink" ng-disabled='!vm.editXBETAdvertisement')
+
+                                    td
+                                        input(type="checkbox" ng-model="a.showInFrontEnd" ng-disabled='!vm.editXBETAdvertisement')
+                                    td
+                                        div(style="display: inline-grid;font-size: 10px;" ng-if='vm.editXBETAdvertisement')
+                                            button.common-button.btn.btn-info(ng-click="vm.updateFirstLoginAd();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.getFirstLoginAdvertisement();vm.editXBETAdvertisement=false;" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
+                                        div(style="display: inline-grid;font-size: 10px;" ng-if='!vm.editXBETAdvertisement')
+                                            button.common-button.btn.btn-info(ng-click="vm.XBETAdvertisementPreview(a);" data-toggle="modal", data-target="#modalXBETAdvPreview" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.editXBETAdvertisement=true" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.deleteFirstLoginAdvertisementRecord(a._id,$index);" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.changeXBETAdvertisementStatus(a._id,1, vm.getFirstLoginAdvertisement)" ng-if="a.status == 0; " style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.changeXBETAdvertisementStatus(a._id,0, vm.getFirstLoginAdvertisement)" ng-if="a.status == 1; " style="width: auto; background-color: #5bc0de") {{'CLOSE' | translate}}
+
+                    .well(style="margin-top: 50px; background-color: white;" )
+                        .row(style="text-align: right; margin-bottom: 10px;" ng-if="!vm.addNewFirstLoginAdvertisement")
+                            button.common-button.btn.btn-info(ng-click="vm.addNewFirstLoginAd();" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
+                        .row(style="text-align: center; margin-bottom: 10px;" ng-if="vm.addNewFirstLoginAdvertisement")
+                            label {{"Add new advertisement" | translate}}
+                        .row(style="overflow-x: scroll; max-height: 250px;" ng-if="vm.addNewFirstLoginAdvertisement")
+                            table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white' )
+                                thead
+                                    tr
+                                        th {{'Display Order' | translate}}
+                                        th {{'BANNER TITLE' | translate}}
+                                        th {{'ADVERTISEMENT_SOURCE' | translate}}
+                                        th {{'ADDRESS' | translate}}
+                                        th {{'IS_DISPLAY_ON_FRONTEND' | translate}}
+                                        th {{'ACTION_BUTTON' | translate}}
+                                tbody
+                                    tr
+                                        td
+                                            input(type='number', min=1, max='{{vm.firstLoginAdvertisementList.length && vm.firstLoginAdvertisementList.length + 1 || 1}}', ng-model='vm.newFirstLoginAd.orderNo', style="width: 50px;")
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="vm.newFirstLoginAd.title")
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="vm.newFirstLoginAd.url")
+
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="vm.newFirstLoginAd.hyperLink")
+
+                                        td
+                                            input(type="checkbox" ng-model="vm.newFirstLoginAd.showInFrontEnd")
+                                        td
+                                            div(style="display: inline-grid; font-size: 10px;")
+                                                button.common-button.btn.btn-info(ng-click="vm.saveNewFirstLoginAd()" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                                                button.common-button.btn.btn-info(ng-click="vm.addNewFirstLoginAdvertisement=false" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
 
             div(name="partner-display-data", ng-if="vm.selectedPlatformDetailTab == 'partner-display-data'", ng-show="checkViewPermission('Platform', 'PartnerDisplayData','Read')")
                 ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')

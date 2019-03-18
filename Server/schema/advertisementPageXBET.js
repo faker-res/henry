@@ -9,7 +9,7 @@ var advertisementPageXBETSchema = new Schema({
     // type of advertisement
     type: {type: Number, required: true, index: true},
     // advertisement type - for type 1(首页广告) only
-    advertisementType: {type: String, required: true, index: true},
+    advertisementType: {type: String, index: true},
     // title(s) to display in the advertisement
     title: {type: String},
     // address of the image

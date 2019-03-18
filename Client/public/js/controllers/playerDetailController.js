@@ -4896,6 +4896,10 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync();
         };
 
+        vm.changeSMSTemplate = function () {
+            vm.smsPlayer.message = vm.smstpl ? vm.smstpl.content : '';
+        };
+
         vm.showSmsTab = function (tabName) {
             if (!tabName && (vm.selectedSinglePlayer && vm.selectedSinglePlayer.permission && vm.selectedSinglePlayer.permission.SMSFeedBack === false)) {
                 vm.smsModalTab = "smsLogPanel";
@@ -4904,6 +4908,37 @@ define(['js/app'], function (myApp) {
             else {
                 vm.smsModalTab = tabName ? tabName : "smsToPlayerPanel";
             }
+        };
+
+        vm.initSMSLog = function (type) {
+            vm.smsLog = vm.smsLog || {index: 0, limit: 10};
+            vm.smsLog.type = type;
+            vm.smsLog.query = {};
+            vm.smsLog.searchResults = [{}];
+            vm.smsLog.query.status = "all";
+            vm.smsLog.query.isAdmin = true;
+            vm.smsLog.query.isSystem = false;
+            let endTimeElementPath = '.modal.in #smsLogPanel #smsLogQuery .endTime';
+            let tablePageId = "smsLogTablePage";
+            if (type == "multi") {
+                endTimeElementPath = '#groupSmsLogQuery .endTime';
+                tablePageId = "#groupSmsLogTablePage";
+            }
+            utilService.actionAfterLoaded(endTimeElementPath, function () {
+                vm.smsLog.query.startTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .startTime');
+                vm.smsLog.query.endTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .endTime');
+                if (type == "multi") {
+                    vm.smsLog.query.startTime = utilService.createDatePicker('#groupSmsLogQuery .startTime');
+                    vm.smsLog.query.endTime = utilService.createDatePicker('#groupSmsLogQuery .endTime');
+                }
+                vm.smsLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.smsLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.smsLog.pageObj = utilService.createPageForPagingTable(tablePageId, {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLog);
+                });
+                // Be user friendly: Fetch some results immediately!
+                vm.searchSMSLog(true);
+            });
         };
 
         vm.sendSMSToPlayer = function () {
@@ -5045,6 +5080,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
             console.log(type, data);
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+                vm.smstpl = "";
                 vm.smsPlayer = {
                     playerId: playerObjId.playerId,
                     name: playerObjId.name,

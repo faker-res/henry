@@ -922,28 +922,28 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getPaymentSystemName, [data.systemTypeId], actionName, true);
         },
 
-        createNewMainPageAd: function createNewMainPageAd(data) {
+        createNewXBETAdvertisement: function createNewXBETAdvertisement(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.orderNo && data.platformId && data.type);
-            socketUtil.emitter(self.socket, dbPlatform.createNewMainPageAd, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.createNewXBETAdvertisement, [data], actionName, isValidData);
         },
 
-        getMainPageAdvertisement: function getMainPageAdvertisement(data) {
+        getXBETAdvertisement: function getXBETAdvertisement(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.type);
-            socketUtil.emitter(self.socket, dbPlatform.getMainPageAdvertisement, [data.platformId, data.type], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getXBETAdvertisement, [data.platformId, data.type], actionName, isValidData);
         },
 
-        updateMainPageAdvertisement: function updateMainPageAdvertisement(data) {
+        updateXBETAdvertisement: function updateXBETAdvertisement(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.length);
-            socketUtil.emitter(self.socket, dbPlatform.updateMainPageAdvertisement, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.updateXBETAdvertisement, [data], actionName, isValidData);
         },
 
-        deleteMainPageAdvertisementRecord: function deleteMainPageAdvertisementRecord(data) {
+        deleteXBETAdvertisementRecord: function deleteXBETAdvertisementRecord(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data._id && data.platformId);
-            socketUtil.emitter(self.socket, dbPlatform.deleteMainPageAdvertisementRecord, [data._id, data.platformId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.deleteXBETAdvertisementRecord, [data._id, data.platformId], actionName, isValidData);
         },
 
         changeXBETAdvertisementStatus: function changeXBETAdvertisementStatus(data) {
