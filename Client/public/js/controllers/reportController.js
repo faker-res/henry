@@ -1624,12 +1624,13 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.type = 'all';
             vm.queryTopup.playerName = '';
             vm.queryTopup.paymentChannel = 'all';
+            vm.queryTopup.platformList = [];
         }
         vm.searchTopupRecord = function (newSearch, isExport = false) {
             vm.reportSearchTimeStart = new Date().getTime();
 
             console.log('vm.queryTopup', vm.queryTopup);
-            vm.queryTopup.platformId = vm.curPlatformId;
+            // vm.queryTopup.platformId = vm.curPlatformId;
             $('#topupTableSpin').show();
 
             var staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
@@ -1658,11 +1659,12 @@ define(['js/app'], function (myApp) {
                 bankTypeId: vm.queryTopup.bankTypeId,
                 //new
                 merchantNo: vm.queryTopup.merchantNo,
+                platformList: vm.queryTopup.platformList,
                 status: staArr,
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
 
-                platformId: vm.curPlatformId,
+                // platformId: vm.curPlatformId,
                 index: isExport ? 0 : (newSearch ? 0 : (vm.queryTopup.index || 0)),
                 limit: isExport ? 5000 : (vm.queryTopup.limit || 10),
                 sortCol: vm.queryTopup.sortCol || {proposalId: -1}
@@ -1880,11 +1882,11 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
             if(isExport){
-                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {13: summary.amount});
+                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {14: summary.amount});
                 $('#topupExcelTable_wrapper').hide();
                 vm.exportToExcel("topupExcelTable", "TOPUP_REPORT");
             }else{
-                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {13: summary.amount});
+                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {14: summary.amount});
                 vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
                 $('#topupTable').off('order.dt');
@@ -6295,7 +6297,7 @@ define(['js/app'], function (myApp) {
             if (vm.allProposalType.length != proposalNames.length) {
                 vm.allProposalType.filter(item => {
                     if (proposalNames.indexOf(item.name) > -1) {
-                        newproposalQuery.proposalTypeId.push(item._id);
+                        newproposalQuery.proposalTypeId.push(item.name);
                     }
                 });
             }
@@ -6329,7 +6331,7 @@ define(['js/app'], function (myApp) {
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
-                platformId: vm.curPlatformId,
+                // platformId: vm.curPlatformId,
                 proposalId: newproposalQuery.proposalId,
                 index: 0,
                 limit: isExport ? 5000 : 1,
@@ -6340,7 +6342,8 @@ define(['js/app'], function (myApp) {
                 inputDevice: newproposalQuery.inputDevice,
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
-                platformId: vm.curPlatformId,
+                // platformId: vm.curPlatformId,
+                platformList: newproposalQuery.platformList,
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
@@ -6540,12 +6543,12 @@ define(['js/app'], function (myApp) {
             });
 
             if(isExport){
-                var proposalTbl = utilService.createDatatableWithFooter('#proposalExcelTable', tableOptions, {7: summary.amount});
+                var proposalTbl = utilService.createDatatableWithFooter('#proposalExcelTable', tableOptions, {8: summary.amount});
                 $('#proposalExcelTable_wrapper').hide();
                 //vm.exportToExcel("proposalExcelTable", "PROPOSAL_REPORT");
                 vm.exportProposalReportToCSV(data, 'PROPOSAL_REPORT',true)
             }else{
-                var proposalTbl = utilService.createDatatableWithFooter('#proposalTable', tableOptions, {7: summary.amount});
+                var proposalTbl = utilService.createDatatableWithFooter('#proposalTable', tableOptions, {8: summary.amount});
 
                 vm.proposalQuery.pageObj.init({maxCount: size}, newSearch);
 
