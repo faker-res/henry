@@ -32,11 +32,8 @@ var dbQualityInspection = {
             let queryObj = "SELECT * FROM chat_content WHERE store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
 
             console.log("checking queryObj", queryObj)
-            let sqlProm = sqlExecution(connection, queryObj);
-
-
+            let sqlProm = dbQualityInspection.sqlExecution(connection, queryObj);
             let platformProm = dbconfig.collection_platform.find({}, {overtimeSetting: 1, conversationDefinition: 1, live800CompanyId: 1}).lean();
-
 
             return Promise.all([sqlProm, platformProm]).then(
                 data => {
@@ -57,39 +54,36 @@ var dbQualityInspection = {
                                 sqlArray.push(sqlData.slice(i*lengthPerChunk, (i+1)*lengthPerChunk));
                             }
 
-
                             let partialProcessProm = Promise.resolve();
                             sqlArray.forEach(arr=>{
                                 partialProcessProm = partialProcessProm.then(()=>{return dbQualityInspection.insertSqlDataToDB(arr, platformDetails)});
                             });
                             return partialProcessProm;
                         }
-
                     }
                 }
             )
         }
+    },
 
-        function sqlExecution(connection, queryObj) {
-            let returnData;
-            connection.connect();
+    sqlExecution: function (connection, queryObj) {
+        let returnData;
+        connection.connect();
 
-            return new Promise((resolve,reject)=>{
-                connection.query(queryObj, function (error, results, fields) {
-                    if (error) {
-                        console.log(error);
-                    }
+        return new Promise((resolve,reject)=>{
+            connection.query(queryObj, function (error, results, fields) {
+                if (error) {
+                    console.log(error);
+                }
 
-                    returnData = results;
-                    connection.end();
-                    resolve(results);
+                returnData = results;
+                connection.end();
+                resolve(results);
 
-                })
-            }).then(results=>{
-                return returnData;
-            });
-        }
-
+            })
+        }).then(results=>{
+            return returnData;
+        });
     },
 
     insertSqlDataToDB: function (arr, platformDetails) {
@@ -169,12 +163,9 @@ var dbQualityInspection = {
         let  queryObj = {};
         let limit = query.limit || 10;
         let index = query.index || 0;
-
-
         let checkCurrentDateRecordProm = Promise.resolve();
         // check if the end date is > today date; if yes, save the current records into db before query execution
         let currentStartDate = new Date(new Date().setHours(0, 0, 0, 0));
-        // currentStartDate = currentStartDate.setDate(currentStartDate.getDate());
 
         console.log("checking currentStartDate ----", currentStartDate)
         if (new Date(query.endTime) > currentStartDate){
@@ -272,7 +263,7 @@ var dbQualityInspection = {
                 mySqlQuery = "SELECT * FROM chat_content WHERE store_time BETWEEN CAST('" + startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
             }
 
-            let sqlProm = sqlExecution(connection, mySqlQuery);
+            let sqlProm = dbQualityInspection.sqlExecution(connection, mySqlQuery);
             let platformProm = dbconfig.collection_platform.find({}, {overtimeSetting: 1, conversationDefinition: 1, live800CompanyId: 1}).lean();
 
             return Promise.all([sqlProm, platformProm]).then(
@@ -304,26 +295,6 @@ var dbQualityInspection = {
                     }
                 }
             )
-        }
-
-        function sqlExecution(connection, queryObj) {
-            let returnData;
-            connection.connect();
-
-            return new Promise((resolve,reject)=>{
-                connection.query(queryObj, function (error, results, fields) {
-                    if (error) {
-                        console.log(error);
-                    }
-
-                    returnData = results;
-                    connection.end();
-                    resolve(results);
-
-                })
-            }).then(results=>{
-                return returnData;
-            });
         }
     },
 

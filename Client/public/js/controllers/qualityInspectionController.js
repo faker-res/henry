@@ -473,7 +473,6 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
 
                     socketService.$socket($scope.AppSocket, 'countLive800', query, successFunc);
-
                 }
                 else{
                     // which is using the scheduler-saving data
@@ -518,8 +517,6 @@ define(['js/app'], function (myApp) {
                         $("#selectAll").removeAttr('checked');
                         $('.searchingQualityInspection').hide();
                         vm.batchSaveInProgress = false;
-
-
                     }
                     else{
                         // no record
