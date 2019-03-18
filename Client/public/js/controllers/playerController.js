@@ -12643,7 +12643,9 @@ define(['js/app'], function (myApp) {
                 objectId: vm.isOneSelectedPlayer()._id,
                 type: "PLAYERS"
             }, function (data) {
-                var drawData = data.data.map(item => {
+                var drawData = data.data.filter(item => {
+                    return item.bankName || item.bankAccount || item.bankAccountName;
+                }).map(item => {
                     item.province = item.provinceData || item.bankAccountProvince;
                     item.city = item.cityData || item.bankAccountCity;
                     item.district = item.districtData || item.bankAccountDistrict;
@@ -12652,8 +12654,46 @@ define(['js/app'], function (myApp) {
                     item.createTime$ = vm.dateReformat(item.changeTime);
                     return item;
                 });
-                vm.paymetHistoryCount = data.data.length;
+                vm.paymetHistoryCount = drawData.length;
                 vm.drawPaymentHistory(drawData);
+                let drawData2 = [];
+                let drawData3 = [];
+                if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                    drawData2 = data.data.filter(item => {
+                        return item.bankName2 || item.bankAccount2 || item.bankAccountName2;
+                    }).map(item => {
+                        item.bankName = item.bankName2 || $translate('Unknown');
+                        item.bankAccount = item.bankAccount2 || $translate('Unknown');
+                        item.bankAccountName = item.bankAccountName2 || $translate('Unknown');
+                        item.bankAddress = item.bankAddress2 || $translate('Unknown');
+                        item.province = item.provinceData || item.bankAccountProvince2;
+                        item.city = item.cityData || item.bankAccountCity2;
+                        item.district = item.districtData || item.bankAccountDistrict2;
+                        item.creatorName = item.creatorInfo.adminName || item.creatorInfo.name;
+                        item.bankStr = vm.allBankTypeList[item.bankName2] || item.bankName2 || $translate('Unknown');
+                        item.createTime$ = vm.dateReformat(item.changeTime);
+                        return item;
+                    });
+                    drawData3 = data.data.filter(item => {
+                        return item.bankName3 || item.bankAccount3 || item.bankAccountName3;
+                    }).map(item => {
+                        item.bankName = item.bankName3 || $translate('Unknown');
+                        item.bankAccount = item.bankAccount3 || $translate('Unknown');
+                        item.bankAccountName = item.bankAccountName3 || $translate('Unknown');
+                        item.bankAddress = item.bankAddress3 || $translate('Unknown');
+                        item.province = item.provinceData || item.bankAccountProvince3;
+                        item.city = item.cityData || item.bankAccountCity3;
+                        item.district = item.districtData || item.bankAccountDistrict3;
+                        item.creatorName = item.creatorInfo.adminName || item.creatorInfo.name;
+                        item.bankStr = vm.allBankTypeList[item.bankName3] || item.bankName3 || $translate('Unknown');
+                        item.createTime$ = vm.dateReformat(item.changeTime);
+                        return item;
+                    });
+                    vm.paymetHistoryCount2 = drawData2.length;
+                    vm.paymetHistoryCount3 = drawData3.length;
+                    vm.drawPaymentHistory2(drawData2);
+                    vm.drawPaymentHistory3(drawData3);
+                }
 
             }, null, true);
             $('#modalPlayerPaymentHistory').modal();
@@ -12683,6 +12723,58 @@ define(['js/app'], function (myApp) {
             var aTable = $('#playerPaymentHistoryTbl').DataTable(tableOptions);
             aTable.columns.adjust().draw();
             $('#playerPaymentHistoryTbl').resize();
+            $scope.safeApply();
+        };
+        vm.drawPaymentHistory2 = function (tblData) {
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('CREATETIME'), data: "createTime$"},
+                    {title: $translate('bankAccountName'), data: "bankAccountName", sClass: "wordWrap"},
+                    {title: $translate('bankName'), data: "bankStr"},
+                    {title: $translate('BANK_BRANCH'), data: "bankBranch", sClass: "wordWrap"},
+                    {title: $translate('bankAddress'), data: "bankAddress", sClass: "wordWrap"},
+                    {title: $translate('PROVINCE'), data: "province"},
+                    {title: $translate('CITY'), data: "city"},
+                    {title: $translate('DISTRICT'), data: "district"},
+                    {title: $translate('creator'), data: "creatorName"},
+                    {title: $translate('source'), data: "sourceStr"},
+                ],
+                "paging": true,
+            });
+
+            var aTable = $('#playerPaymentHistoryTbl2').DataTable(tableOptions);
+            aTable.columns.adjust().draw();
+            $('#playerPaymentHistoryTbl2').resize();
+            $scope.safeApply();
+        };
+        vm.drawPaymentHistory3 = function (tblData) {
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('CREATETIME'), data: "createTime$"},
+                    {title: $translate('bankAccountName'), data: "bankAccountName", sClass: "wordWrap"},
+                    {title: $translate('bankName'), data: "bankStr"},
+                    {title: $translate('BANK_BRANCH'), data: "bankBranch", sClass: "wordWrap"},
+                    {title: $translate('bankAddress'), data: "bankAddress", sClass: "wordWrap"},
+                    {title: $translate('PROVINCE'), data: "province"},
+                    {title: $translate('CITY'), data: "city"},
+                    {title: $translate('DISTRICT'), data: "district"},
+                    {title: $translate('creator'), data: "creatorName"},
+                    {title: $translate('source'), data: "sourceStr"},
+                ],
+                "paging": true,
+            });
+
+            var aTable = $('#playerPaymentHistoryTbl3').DataTable(tableOptions);
+            aTable.columns.adjust().draw();
+            $('#playerPaymentHistoryTbl3').resize();
             $scope.safeApply();
         };
 
