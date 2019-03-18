@@ -9221,11 +9221,12 @@ function isBankInfoMatched(proposalData, playerId){
 
                     return proposal.updateProposalData({_id: proposalData._id}, dataToUpdate).then(
                         () => {
+                            console.log("player withdrawal checking 1", playerId);
                             return proposalList;
                         }
                     ).catch(errorUtils.reportError);
                 }
-
+                console.log("player withdrawal checking 2", playerId);
                 return proposalList;
             }
         ).then(
@@ -9239,33 +9240,39 @@ function isBankInfoMatched(proposalData, playerId){
                                 if (proposal.data) {
                                     if (proposal.data.bankAccount) {
                                         if (!playerData.bankAccount) {
+                                            console.log("player withdrawal checking bankAccount 1_2", playerId);
                                             return false;
                                         } else if (proposal.data.bankAccount != playerData.bankAccount) {
+                                            console.log("player withdrawal checking bankAccount 2_2", playerId);
                                             return false;
                                         }
                                     }
                                     if (proposal.data.bankAccount2) {
                                         if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount2) {
+                                            console.log("player withdrawal checking bankAccount 2_2", playerId);
                                             return false;
                                         } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount2 != playerData.multipleBankDetailInfo.bankAccount2) {
+                                            console.log("player withdrawal checking bankAccount 2_2", playerId);
                                             return false;
                                         }
                                     }
                                     if (proposal.data.bankAccount3) {
                                         if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount3) {
+                                            console.log("player withdrawal checking bankAccount 3_1", playerId);
                                             return false;
                                         } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount3 != playerData.multipleBankDetailInfo.bankAccount3) {
+                                            console.log("player withdrawal checking bankAccount 3_2", playerId);
                                             return false;
                                         }
                                     }
                                 }
-
+                                console.log("player withdrawal checking 3", playerId);
                                 return true;
                             }
                         }
                     }
                 }
-
+                console.log("player withdrawal checking 4", playerId);
                 return true;
             }
         );
