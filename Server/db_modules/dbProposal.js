@@ -3422,6 +3422,7 @@ var proposal = {
         let isApprove = false;
         let isSuccess = false;
         let prom = Promise.resolve([]);
+        let platformListQuery = [];
 
         if (reqData.inputDevice) {
             reqData.inputDevice = Number(reqData.inputDevice);
@@ -3446,11 +3447,19 @@ var proposal = {
                 };
             }
         }
-        if (!reqData.type && reqData.platformId) {
+
+        if(reqData.platformList && reqData.platformList.length > 0) {
+            platformListQuery = {$in: reqData.platformList.map(item=>{return ObjectId(item)})};
+        }
+
+        if (!reqData.type) {
             let searchQuery = {
-                platformId: ObjectId(reqData.platformId),
                 name: {$nin:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
             };
+
+            if(reqData.platformList && reqData.platformList.length > 0) {
+                searchQuery.platformId = platformListQuery;
+            }
 
             prom = dbconfig.collection_proposalType.find(searchQuery).lean().then(
                 function (data) {
@@ -3477,9 +3486,12 @@ var proposal = {
             ).then(
                 () => {
                     let approvedProposalTypeQuery = {
-                        platformId: ObjectId(reqData.platformId),
                         name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
                     };
+
+                    if(reqData.platformList && reqData.platformList.length > 0) {
+                        approvedProposalTypeQuery.platformId = platformListQuery;
+                    }
 
                     return dbconfig.collection_proposalType.find(approvedProposalTypeQuery).lean().then(
                         approvedProposalType => {
@@ -3497,7 +3509,7 @@ var proposal = {
                 }
             ).then(
                 function (proposalTypeIdList) { // all proposal type ids of this platform
-                    delete queryData.platformId;
+                    delete queryData.platformList;
 
                     let orQuery = [];
 
@@ -3592,9 +3604,11 @@ var proposal = {
             let a, b, c, d;
 
             let searchQuery = {
-                platformId: ObjectId(reqData.platformId),
                 name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
             };
+            if(reqData.platformList && reqData.platformList.length > 0) {
+                searchQuery.platformId = platformListQuery;
+            }
 
             prom = dbconfig.collection_proposalType.find(searchQuery, {_id: 1}).lean().then(
                 approvedProposalType => {
@@ -3606,13 +3620,21 @@ var proposal = {
 
                     return approveProposalTypeList;
                 }
-            ).then(
-                () => {
-                    delete reqData.platformId;
+            ).then(()=> {
+                let query = {
+                    name: reqData.type
+                };
+                if(reqData.platformList && reqData.platformList.length > 0) {
+                    query.platformId = platformListQuery;
+                }
+                return dbconfig.collection_proposalType.find(query, {_id: 1}).lean();
+            }).then(
+                (selectedProposalTypeList) => {
+                    delete reqData.platformList;
                     let approvedTypeList = []; // proposalType list which Approved status = 已审核
                     let successTypeList = []; // proposalType list which Approved status = 成功
                     let orQuery = [];
-
+                    reqData.type = {$in: selectedProposalTypeList.map(proposal=>{return ObjectId(proposal._id)})};
                     reqData.type["$in"].forEach(
                         type => {
                             if(type){
@@ -3631,7 +3653,7 @@ var proposal = {
                         //if filter status is 已审核，find from proposalType list which Approved status = 已审核
                         reqData.type = {$in: approvedTypeList};
                     }else if(isSuccess){
-                        //if filter status is 陈宫，find from proposalType list which Approved status = 成功
+                        //if filter status is 成功，find from proposalType list which Approved status = 成功
                         delete reqData.status;
                         delete reqData.type;
                         reqData["$and"] = [];

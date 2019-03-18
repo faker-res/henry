@@ -877,11 +877,10 @@ let dbDXMission = {
     },
 
     sendSMSToPlayer: function (adminObjId, adminName, data) {
-        let phoneData = {};
         let proms = [];
         if (data && data.msgDetail && data.msgDetail.length > 0){
             data.msgDetail.forEach( msg => {
-
+                let phoneData = {};
                 let findQuery = {};
                 if (msg && msg.dbDXMissionId && msg.phoneNumber && msg.platformId){
                     findQuery = {

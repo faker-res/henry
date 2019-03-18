@@ -328,6 +328,9 @@ var roleChecker = {
             "PlayerDisplayData": {
                 Read: [],
                 MAIN_PAGE_ADVERTISEMENT: ['createNewXBETAdvertisement', 'getXBETAdvertisement', 'updateXBETAdvertisement', 'deleteXBETAdvertisementRecord', 'changeXBETAdvertisementStatus'],
+                FIRST_TIME_ENTRY_ADVERTISEMENT: ['createNewXBETAdvertisement', 'getXBETAdvertisement', 'updateXBETAdvertisement', 'deleteXBETAdvertisementRecord', 'changeXBETAdvertisementStatus'],
+                FIRST_TIME_LOGIN_ADVERTISEMENT: ['createNewXBETAdvertisement', 'getXBETAdvertisement', 'updateXBETAdvertisement', 'deleteXBETAdvertisementRecord', 'changeXBETAdvertisementStatus'],
+                REWARD_POINTS_SHOP_ADVERTISEMENT: ['createNewXBETAdvertisement', 'getXBETAdvertisement', 'updateXBETAdvertisement', 'deleteXBETAdvertisementRecord', 'changeXBETAdvertisementStatus'],
             },
             "PartnerDisplayData": {
                 Read: []

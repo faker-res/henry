@@ -419,9 +419,9 @@ include ../common-widget/telephone-popover
                                     li(ng-show="editPlayerPermission",ng-class="selectedTab=='topUpInfo'?'active':''")
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='topUpInfo';initTopUpGroupChangeLog()")
                                             text.span {{"Topup Group" | translate}}
-                                    li(ng-show="editPlayerPermission",ng-class="selectedTab=='adminNameAdjunction'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='adminNameAdjunction';")
-                                            text.span {{"AdminNameAdjunction" | translate}}
+                                    //li(ng-show="editPlayerPermission",ng-class="selectedTab=='adminNameAdjunction'?'active':''")
+                                    //    a.common-tab(data-toggle="tab", ng-click="selectedTab ='adminNameAdjunction';")
+                                    //        text.span {{"AdminNameAdjunction" | translate}}
                                             //button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditCritical("player")', data-target='#modalEditCritical') {{"EDIT" | translate}}
 
                             .panel-body.common-right-panel-body

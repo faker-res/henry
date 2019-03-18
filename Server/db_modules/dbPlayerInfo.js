@@ -12540,8 +12540,9 @@ let dbPlayerInfo = {
                                                 ximaWithdrawUsed: ximaWithdrawUsed,
                                                 isAutoApproval: player.platform.enableAutoApplyBonus,
                                                 bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
-                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : ""
+                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : "",
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
+                                                changeCredit: changeCredit
                                             };
                                             if (!player.permission.applyBonus) {
                                                 proposalData.remark = "禁用提款: " + lastBonusRemark;
@@ -20772,13 +20773,17 @@ let dbPlayerInfo = {
                 message: "Generate dian xiao code failure."
             })
         }
-        let randomString = Math.random().toString(36).substring(4, 9); // generate random String
+        let randomString = Math.random().toString(36).substring(4, 8); // generate random String
         let index = 0;
         // prevent infinite loop
         // prevent randomString all numbers
         while (!isNaN(randomString) && index < 5) {
-            randomString = Math.random().toString(36).substring(4, 9);
+            randomString = Math.random().toString(36).substring(4, 8);
             index++;
+        }
+        if (tries >= 3 && tries <= 5) {
+            // if it over 3 times, which means 4 digits very easy to duplicate, so we give it five.
+            randomString = Math.random().toString(36).substring(4, 9);
         }
         if (randomString && randomString.charAt(0) == "p") {
             let text = "";

@@ -217,6 +217,11 @@ var dbPlayerRegistrationIntentRecord = {
                     if(playerData && playerData.playerLevel){
                         updateQuery.data.playerLevelName = playerData.playerLevel.name;
                     }
+
+                    if (updateQuery && updateQuery.data && updateQuery.data.platformId && typeof updateQuery.data.platformId != 'object' && query && query.platform) {
+                        updateQuery.data.platformId = ObjectId(query.platform);
+                    }
+
                     if (query && query._id && query.createTime) {
                         proposalProm = dbconfig.collection_proposal.findOneAndUpdate(queryObj, updateQuery, {new: true});
                         if(updateData && updateData != "Fail"){
