@@ -84,7 +84,7 @@ function socketActionReport(socketIO, socket) {
         topupReport: function topupReport(query) {
             var actionName = arguments.callee.name;
             query.limit = query.limit || 10;
-            var isValidData = Boolean(query && query.platformId);
+            var isValidData = Boolean(query);
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.topupReport, [query, query.index, query.limit, query.sortCol], actionName, isValidData);
         },
 
@@ -645,6 +645,17 @@ function socketActionReport(socketIO, socket) {
             let isValidData = Boolean(data && data.query);
 
             socketUtil.emitter(self.socket, dbProposal.getProviderConsumptionReport, [data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        getPaymentMonitorReport: function getPaymentMonitorReport(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            let time = dbUtil.getYesterdaySGTime();
+            data.startTime = data.startTime ? new Date(data.startTime) : time.startTime;
+            data.endTime = data.endTime ? new Date(data.endTime) : time.endTime;
+            data.limit = data.limit || 10;
+            data.index = data.index || 0;
+            socketUtil.emitter(self.socket, dbReport.getPaymentMonitorReport, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
         }
     };
     socketActionReport.actions = this.actions;

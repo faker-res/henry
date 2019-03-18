@@ -506,7 +506,7 @@
                                         td
                                             i.fa.fa-plus(ng-click="vm.addAssignee();vm.checkUpdateTsAssignee()")
                                         td
-                                            select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.adminList' ng-model='vm.selectedAssignees' multiple data-actions-box='true')
+                                            select.spicker.form-control(ng-options='admin.adminName as admin.adminName group by admin.departmentName for admin in vm.adminList' ng-model='vm.selectedAssignees' multiple data-actions-box='true')
                                         td
                                             input(id="new-execute-distribute-on" type="radio", name="new-execute-distribution", value="1" ng-model="vm.newAssigneesExecuteStatus")
                                             label.radio-space(for="new-execute-distribute-on" style="font-weight: normal;") {{"Open" | translate}}

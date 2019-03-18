@@ -760,6 +760,7 @@
   "TeleMarketing": "电销",
   "teleMarketing": "电销",
   "DX_NEWACCOUNT_REPORT": "电销开户报表",
+  "Please bind phone number first": "请先绑定手机号码",
   "PLAYERNAME": "会员帐号",
   "PLAYERS": "玩家",
   "PARTNERS": "代理",
@@ -1621,6 +1622,17 @@
   "IMPORT_FAIL": "导入失败",
   "Manual Export to New Phone List": "手动转出至新的电话池（可指定其他部门）",
   "Name List (Decomposed / Last 10)": "名单名称（已分解/近10笔）",
+  "MAIN_PAGE_ADVERTISEMENT": "首页广告",
+  "FIRST_TIME_ENTRY_ADVERTISEMENT": "首次进入广告",
+  "FIRST_TIME_LOGIN_ADVERTISEMENT": "首次登入广告",
+  "REWARD_POINTS_SHOP_ADVERTISEMENT": "积分商城广告",
+  "ADVERTISING_CAROUSEL": "广告轮播图",
+  "ADVERTISEMENT_TYPE": "广告类型",
+  "ADVERTISEMENT_SOURCE": "图片来源",
+  "ADDRESS": "地址",
+  "IS_DISPLAY_ON_FRONTEND": "前端是否显示",
+  "EVENT": "活动",
+  "MATCH": "赛事",
 
   "PlayerRetentionRewardGroup": "提升留存（组）",
   "Check if this IP address has received the reward": "（领优惠前）检查该IP是否曾经领过",
@@ -3268,6 +3280,7 @@
   "Referral does not have enough topup amount": "被推荐人充值额度不够",
   "Player does not have enough return amount": "您的洗码额度不足100元，无法提前结算洗码，谢谢",
   "Player has applied for max reward times": "您已经达到了该优惠今日的申请上限",
+  "Player has applied for max daily reward amount": "您已经达到了该优惠今日的最高优惠金额上限",
   "Player do not have permission for reward": "您好， 您目前暂无申请优惠的权限，请联系客服。",
   "Reward not applicable": "不符合领取条件",
   "Username should be alphanumeric": "用户名只能包含数字和字母",
@@ -5345,5 +5358,8 @@
   "Contact Customer": "联系客户",
   "setPhoneNumber": "绑定手机号",
   "Fail Counter": "失败计数",
-  "Total Success Topup": "成功存款笔数"
+  "Total Success Topup": "成功存款笔数",
+  "PAYMENT_MONITOR_REPORT": "支付监控报表",
+  "LOCKED_ADMIN": "锁定客服",
+  "WEBSITE_MULTI_SELECTION": "网站（复选）"
 }

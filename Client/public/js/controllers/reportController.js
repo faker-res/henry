@@ -49,7 +49,7 @@ define(['js/app'], function (myApp) {
             UNDETERMINED: "Undetermined",
             CSPENDING: "CsPending",
             NOVERIFY: "NoVerify",
-            APPROVED: "Approved",
+            APPROVED: "approved",
             MANUAL: "Manual"
         };
         vm.topUpTypeList = {
@@ -568,14 +568,16 @@ define(['js/app'], function (myApp) {
                 }
             })
         }
-        vm.filterMerchant = function () {
+        vm.filterMerchant = function (isPaymentMonitorReport) {
+            let tempModal = isPaymentMonitorReport ? vm.paymentMonitorQuery : vm.queryTopup;
+
             vm.merchantCloneList = angular.copy(vm.merchantNoList);
             vm.merchantGroupCloneList = vm.merchantGroupObj;
-            let agent = vm.queryTopup.userAgent;
-            let thirdParty = vm.queryTopup.merchantGroup;
-            let mainTopupType = vm.queryTopup.mainTopupType;
-            let topupType = vm.queryTopup.topupType;
-            let bankTypeId = vm.queryTopup.bankTypeId;
+            let agent = tempModal.userAgent;
+            let thirdParty = tempModal.merchantGroup;
+            let mainTopupType = tempModal.mainTopupType;
+            let topupType = tempModal.topupType;
+            let bankTypeId = tempModal.bankTypeId;
             if (agent && agent.length > 0 && vm.merchantCloneList) {
                 vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     let targetDevices = String(item.targetDevices);
@@ -610,7 +612,7 @@ define(['js/app'], function (myApp) {
             if (thirdParty && thirdParty.length > 0) {
                 let tpGroup = [];
                 thirdParty.forEach(item => {
-                    if (item.list.length > 0) {
+                    if (item && item.list && item.list.length > 0) {
                         item.list.forEach(i => {
                             tpGroup.push(i);
                         })
@@ -1622,12 +1624,13 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.type = 'all';
             vm.queryTopup.playerName = '';
             vm.queryTopup.paymentChannel = 'all';
+            vm.queryTopup.platformList = [];
         }
         vm.searchTopupRecord = function (newSearch, isExport = false) {
             vm.reportSearchTimeStart = new Date().getTime();
 
             console.log('vm.queryTopup', vm.queryTopup);
-            vm.queryTopup.platformId = vm.curPlatformId;
+            // vm.queryTopup.platformId = vm.curPlatformId;
             $('#topupTableSpin').show();
 
             var staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
@@ -1656,11 +1659,12 @@ define(['js/app'], function (myApp) {
                 bankTypeId: vm.queryTopup.bankTypeId,
                 //new
                 merchantNo: vm.queryTopup.merchantNo,
+                platformList: vm.queryTopup.platformList,
                 status: staArr,
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
 
-                platformId: vm.curPlatformId,
+                // platformId: vm.curPlatformId,
                 index: isExport ? 0 : (newSearch ? 0 : (vm.queryTopup.index || 0)),
                 limit: isExport ? 5000 : (vm.queryTopup.limit || 10),
                 sortCol: vm.queryTopup.sortCol || {proposalId: -1}
@@ -1770,14 +1774,18 @@ define(['js/app'], function (myApp) {
             console.log('data', data);
             var tableOptions = {
                 data: data,
-                "order": vm.queryTopup.aaSorting || [[0, 'desc']],
+                "order": vm.queryTopup.aaSorting || [[1, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [14]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [15]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {
+                        "title": $translate('PRODUCT_NAME'),
+                        data: "data.platformId.name"
+                    },
                     {
                         "title": $translate('proposalId'),
                         data: "proposalId",
@@ -1874,11 +1882,11 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
             if(isExport){
-                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {13: summary.amount});
+                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {14: summary.amount});
                 $('#topupExcelTable_wrapper').hide();
                 vm.exportToExcel("topupExcelTable", "TOPUP_REPORT");
             }else{
-                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {13: summary.amount});
+                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {14: summary.amount});
                 vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
                 $('#topupTable').off('order.dt');
@@ -3054,7 +3062,7 @@ define(['js/app'], function (myApp) {
 
                 $('#providerConsumptionReportTable').off('order.dt');
                 $('#providerConsumptionReportTable').on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'providerConsumptionQuery', vm.searchWechatControlSession);
+                    vm.commonSortChangeHandler(a, 'providerConsumptionQuery', vm.searchProviderConsumptionReport);
                 });
                 $('#providerConsumptionReportTable').resize();
             }
@@ -4748,6 +4756,64 @@ define(['js/app'], function (myApp) {
 
         };
 
+        vm.exportProposalReportToCSV = function (reportData, reportTitle, showLabel){
+            let reportDataToExport = [];
+            if(reportData && reportData.length){
+                reportData.forEach(
+                    data => {
+                        let reportObj = {};
+
+                        if(data){
+                            let inputDevice;
+                            let proposalSubType;
+                            let involvedAcc = "";
+
+                            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
+                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data.inputDevice) {
+                                    inputDevice = $translate(Object.keys(vm.inputDevice)[i]);
+                                }
+                            }
+
+                            if (data && data.data && data.data.PROMO_CODE_TYPE) {
+                                proposalSubType = data.data.PROMO_CODE_TYPE;
+                            } else if (data && data.data && data.data.eventName) {
+                                proposalSubType = data.data.eventName;
+                            } else {
+                                proposalSubType = data.typeName;
+                            }
+
+
+                            if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                involvedAcc = data.creator.name;
+                            }
+                            if (data && data.data && data.data.playerName) {
+                                involvedAcc = data.data.playerName;
+                            }
+                            else if (data && data.data && data.data.partnerName) {
+                                involvedAcc = data.data.partnerName;
+                            }
+
+                            reportObj[$translate("PROPOSAL ID")] = data.proposalId;
+                            reportObj[$translate("CREATOR")] = data.creator && data.creator.name || "";
+                            reportObj[$translate("INPUT_DEVICE")] = inputDevice;
+                            reportObj[$translate("PROPOSAL TYPE")] = data.mainType$;
+                            reportObj[$translate("PROPOSAL_SUB_TYPE")] = proposalSubType;
+                            reportObj[$translate("Proposal Status")] = data.status$;
+                            reportObj[$translate("INVOLVED_ACC")] = involvedAcc;
+                            reportObj[$translate("Amount Involved")] = data.involveAmount$;
+                            reportObj[$translate("START_TIME")] = data.createTime$;
+                            reportObj[$translate("Player Level")] = data.data.proposalPlayerLevel;
+                            reportObj[$translate("REMARKS")] = data.remark$ || "";
+
+                            reportDataToExport.push(reportObj);
+                        }
+                    }
+                )
+            }
+
+            vm.exportJsonToCSV(reportDataToExport, reportTitle, true);
+        };
+
         ///////////////// START player deposit analysis report /////////////////////////////
         vm.searchPlayerDepositAnalysisReport = function (newSearch) {
             vm.reportSearchTimeStart = new Date().getTime();
@@ -6231,7 +6297,7 @@ define(['js/app'], function (myApp) {
             if (vm.allProposalType.length != proposalNames.length) {
                 vm.allProposalType.filter(item => {
                     if (proposalNames.indexOf(item.name) > -1) {
-                        newproposalQuery.proposalTypeId.push(item._id);
+                        newproposalQuery.proposalTypeId.push(item.name);
                     }
                 });
             }
@@ -6265,7 +6331,7 @@ define(['js/app'], function (myApp) {
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
-                platformId: vm.curPlatformId,
+                // platformId: vm.curPlatformId,
                 proposalId: newproposalQuery.proposalId,
                 index: 0,
                 limit: isExport ? 5000 : 1,
@@ -6276,7 +6342,8 @@ define(['js/app'], function (myApp) {
                 inputDevice: newproposalQuery.inputDevice,
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
-                platformId: vm.curPlatformId,
+                // platformId: vm.curPlatformId,
+                platformList: newproposalQuery.platformList,
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
@@ -6331,10 +6398,14 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.proposalQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', 'aTargets': [0]},
-                    {'sortCol': 'createTime', 'aTargets': [8]}
+                    {'sortCol': 'proposalId', 'aTargets': [1]},
+                    {'sortCol': 'createTime', 'aTargets': [9]}
                 ],
                 columns: [
+                    {
+                        "title": $translate('PRODUCT_NAME'),
+                        data: "data.platformId.name"
+                    },
                     {
                         title: $translate('PROPOSAL ID'), data: "proposalId",
                         render: function (data, type, row) {
@@ -6472,11 +6543,12 @@ define(['js/app'], function (myApp) {
             });
 
             if(isExport){
-                var proposalTbl = utilService.createDatatableWithFooter('#proposalExcelTable', tableOptions, {7: summary.amount});
+                var proposalTbl = utilService.createDatatableWithFooter('#proposalExcelTable', tableOptions, {8: summary.amount});
                 $('#proposalExcelTable_wrapper').hide();
-                vm.exportToExcel("proposalExcelTable", "PROPOSAL_REPORT");
+                //vm.exportToExcel("proposalExcelTable", "PROPOSAL_REPORT");
+                vm.exportProposalReportToCSV(data, 'PROPOSAL_REPORT',true)
             }else{
-                var proposalTbl = utilService.createDatatableWithFooter('#proposalTable', tableOptions, {7: summary.amount});
+                var proposalTbl = utilService.createDatatableWithFooter('#proposalTable', tableOptions, {8: summary.amount});
 
                 vm.proposalQuery.pageObj.init({maxCount: size}, newSearch);
 
@@ -9047,6 +9119,60 @@ define(['js/app'], function (myApp) {
             function sortByDepositId (a, b) {
                 return a.depositId - b.depositId
             }
+
+            vm.exportJsonToCSV = function(JSONData, FileTitle, ShowLabel){
+                //If JSONData is not an object then JSON.parse will parse the JSON string in an Object
+                var arrData = typeof JSONData != 'object' ? JSON.parse(JSONData) : JSONData;
+                var CSV = '';
+                //This condition will generate the Label/Header
+                if (ShowLabel) {
+                    var row = "";
+                    //This loop will extract the label from 1st index of on array
+                    for (var index in arrData[0]) {
+                        //Now convert each value to string and comma-seprated
+                        row += index + ',';
+                    }
+                    row = row.slice(0, -1);
+                    //append Label row with line break
+                    CSV += row + '\r\n';
+                }
+                //1st loop is to extract each row
+                for (var i = 0; i < arrData.length; i++) {
+                    var row = "";
+                    //2nd loop will extract each column and convert it in string comma-seprated
+                    for (var index in arrData[i]) {
+                        row += '"' + arrData[i][index] + '",';
+                    }
+                    row.slice(0, row.length - 1);
+                    //add a line break after each row
+                    CSV += row + '\r\n';
+                }
+                if (CSV == '') {
+                    alert("Invalid data");
+                    return;
+                }
+                //Generate a file name
+                var filename = FileTitle + (new Date());
+                var blob = new Blob([CSV], {
+                    type: 'text/csv;charset=utf-8;'
+                });
+                if (navigator.msSaveBlob) { // IE 10+
+                    navigator.msSaveBlob(blob, filename);
+                } else {
+                    var link = document.createElement("a");
+                    if (link.download !== undefined) { // feature detection
+                        // Browsers that support HTML5 download attribute
+                        var url = URL.createObjectURL(blob);
+                        link.setAttribute("href", url);
+                        link.style = "visibility:hidden";
+                        link.download = FileTitle ? $translate(FileTitle) + ".csv" : "FPMS_Report.csv";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                }
+            };
+
             // generate a download for xls
             vm.exportToExcel = function(tableId, reportName) {
                 let tab = "";
@@ -9979,6 +10105,274 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.getPlatformByAdminId = function() {
+                if(authService && authService.adminId){
+                    socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
+                        $scope.$evalAsync(() => {
+                            vm.platformByAdminId = data.data;
+                        })
+                    }, function (error){
+                        console.error(error);
+                    });
+                }
+            };
+
+            vm.getPaymentMonitorLockedAdmin = function() {
+                socketService.$socket($scope.AppSocket, 'getPaymentMonitorLockedAdmin', {platform: vm.selectedPlatform._id}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.paymentMonitorLockedAdmin = data.data;
+                    })
+                }, function (error){
+                    console.error(error);
+                });
+            };
+
+            vm.getPaymentMonitorReport = function(newSearch) {
+                $('#paymentMonitorReportTableSpin').show();
+
+                if (vm.paymentMonitorQuery.mainTopupType === '0' || vm.paymentMonitorQuery.mainTopupType === '1' || vm.paymentMonitorQuery.mainTopupType === '3' || vm.paymentMonitorQuery.mainTopupType === '4' || vm.paymentMonitorQuery.mainTopupType === '5') {
+                    vm.paymentMonitorTotalQuery.topupType = '';
+                    vm.paymentMonitorTotalQuery.merchantGroup = '';
+                    vm.paymentMonitorTotalQuery.merchantNo = '';
+                }
+
+                let sendObj = {
+                    playerName: vm.paymentMonitorQuery.playerName,
+                    proposalNo: vm.paymentMonitorQuery.proposalID,
+                    mainTopupType: vm.paymentMonitorQuery.mainTopupType,
+                    userAgent: vm.paymentMonitorQuery.userAgent,
+                    topupType: vm.paymentMonitorQuery.topupType,
+                    merchantGroup: angular.fromJson(angular.toJson(vm.paymentMonitorQuery.merchantGroup)),
+                    depositMethod: vm.paymentMonitorQuery.depositMethod,
+                    bankTypeId: vm.paymentMonitorQuery.bankTypeId,
+                    merchantNo: vm.paymentMonitorQuery.merchantNo,
+                    startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
+                    platformList: vm.paymentMonitorQuery.platformList,
+                    currentPlatformId: vm.selectedPlatform._id,
+                    index: newSearch ? 0 : (vm.paymentMonitorQuery.index || 0),
+                    limit: vm.paymentMonitorQuery.limit || 10,
+                    sortCol: vm.paymentMonitorQuery.sortCol || {createTime: -1}
+                };
+
+                vm.paymentMonitorQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo : null;
+                if(vm.paymentMonitorQuery.merchantNo && vm.paymentMonitorQuery.merchantNo.length == 1 && vm.paymentMonitorQuery.merchantNo.indexOf('MMM4-line2') != -1){
+                    sendObj.line = '2';
+                    vm.paymentMonitorQuery.line = '2';
+                    sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo.filter(merchantData=>{
+                        return merchantData != 'MMM4-line2';
+                    })
+                }else{
+                    vm.paymentMonitorQuery.line = null;
+                }
+
+                console.log('sendObj', sendObj);
+
+                vm.reportSearchTimeStart = new Date().getTime();
+                socketService.$socket($scope.AppSocket, 'getPaymentMonitorReport', sendObj, function (data) {
+                    $('#paymentMonitorReportTableSpin').hide();
+                    findReportSearchTime();
+                    console.log('getPaymentMonitorReport', data);
+                    vm.paymentMonitorQuery.totalCount = data.data.size || 0;
+                    vm.drawPaymentMonitorReport(data.data.data.filter(item => {
+                        if(item){
+                            if (item.type.name === 'PlayerTopUp') {
+                                //show detail topup type info for online topup.
+                                let typeID = item.topUpType || item.topupType;
+                                item.topupTypeStr = typeID
+                                    ? $translate(vm.topUpTypeList[typeID])
+                                    : $translate("Unknown");
+                                let merchantNo = '';
+                                if(item.merchantNo){
+                                    merchantNo = item.merchantNo;
+                                }
+                                item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                            } else {
+                                //show topup type for other types
+                                item.topupTypeStr = $translate(item.type.name);
+                            }
+
+                            item.merchantCount$ = item.merchantCurrentCount + "/" + item.merchantTotalCount + " (" + item.merchantGapTime + ")";
+                            item.playerCount$ = item.playerCurrentCount + "/" + item.playerTotalCount + " (" + item.playerGapTime + ")";
+                            item.status$ = $translate(item.status);
+                            item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.proposalCreateTime));
+                            return item;
+                        }
+                    }), {}, newSearch);
+
+                    $scope.$evalAsync();
+                }, function (err) {
+                    $('#paymentMonitorReportTableSpin').hide();
+                    console.log(err);
+                }, true);
+            };
+
+            vm.drawPaymentMonitorReport = function (data, summary, newSearch) {
+                console.log('data', data);
+                let tableOptions = {
+                    data: data,
+                    "order": vm.paymentMonitorQuery.aaSorting || [[14, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            "title": $translate('Website'),
+                            data: "website",
+                        },
+                        {
+                            "title": $translate('proposalId'),
+                            data: "proposalId",
+                            render: function (data, type, row) {
+                                return '<a ng-click="vm.showProposalModal2(\'' + data + '\')">' + data + '</a>';
+                            }
+                        },
+                        {
+                            "title": $translate('topupType'), "data": "type",
+                            render: function (data, type, row) {
+                                var text = $translate(row.type ? row.type.name : "");
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            title: $translate('DEVICE'), data: "userAgent",
+                            render: function (data, type, row) {
+                                var text = $translate(data ? $scope.userAgentType[data] : "");
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            "title": $translate('Online Topup Type'), "data": 'topupType',
+                            render: function (data, type, row) {
+                                var text = $translate(data ? $scope.merchantTopupTypeJson[data] : "");
+                                return "<div>" + text + "</div>";
+                            },
+                            sClass: 'merchantCount'
+                        },
+                        {title: $translate('3rd Party Platform'), data: "merchantName", sClass: 'merchantCount'},
+                        {
+                            "title": $translate('DEPOSIT_METHOD'), "data": 'depositMethod',
+                            render: function (data, type, row) {
+                                var text = $translate(data ? vm.getDepositMethodbyId[data] : "");
+                                return "<div>" + text + "</div>";
+                            },
+                            sClass: 'merchantCount'
+                        },
+                        {
+                            title: $translate('From Bank Type'), data: "bankTypeId",
+                            render: function (data, type, row) {
+                                if (data) {
+                                    var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data] : "");
+                                    return "<div>" + text + "</div>";
+                                } else {
+                                    return "<div>" + '' + "</div>";
+                                }
+                            },
+                            sClass: 'merchantCount'
+                        },
+                        {
+                            title: $translate('Business Acc/ Bank Acc'),
+                            data: "merchantNo$",
+                            render: function (data, type, row) {
+                                var text = data;
+                                let additional = '';
+                                if( row.line && row.line == '2'){
+                                    additional = '(MMM)';
+                                }
+                                return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + additional + '</div>'
+                            },
+                            sClass: 'merchantCount',
+                            "width": "90px"},
+                        {title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
+                        {title: $translate('STATUS'), data: "status$"},
+                        {title: $translate('PLAYER_NAME'), data: "playerObjId.name", sClass: "playerCount"},
+                        {title: $translate('Real Name'), data: "playerObjId.realName", sClass: "sumText playerCount"},
+                        {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount"},
+                        {title: $translate('TopUp Amount'), data: "amount", sClass: "sumFloat alignRight playerCount"},
+
+                        {title: $translate('START_TIME'), data: "startTime$"},
+                        {
+                            title: $translate('Admin_Locked'),
+                            data: "lockedButtonDisplay",
+                            render: function (data, type, row) {
+                                if(row.lockedAdminId && row.followUpContent && row.followUpCompletedTime){
+                                    let completedDate = utilService.$getTimeFromStdTimeFormat(new Date(row.followUpCompletedTime));
+                                    return row.lockedAdminName + " " + $translate("follow up completed") + "<br> (" + completedDate + ")";
+                                }else{
+                                    return "";
+                                }
+                            }
+                        },
+                        {
+                            title: $translate('Followup_Content'),
+                            data: "remark$",
+                            "width": "200px",
+                            render: function(data, type, row){
+                                if(row.lockedAdminId && row.followUpContent){
+                                    return row.followUpContent;
+                                }else{
+                                    return '-';
+                                }
+                            }
+                        },
+                        {title: $translate('Total Success Topup'), data: "totalSuccess"},
+                    ],
+                    "autoWidth": true,
+                    "paging": false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        if (aData.merchantTotalCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
+                            $(nRow).addClass('merchantExceed');
+                            if (vm.selectedPlatform.monitorMerchantUseSound) {
+                                checkMerchantNotificationAlert(aData);
+                            }
+                            if (!vm.lastMerchantExceedId || vm.lastMerchantExceedId < aData._id) {
+                                vm.lastMerchantExceedId = aData._id;
+                            }
+                        }
+
+                        if (aData.playerTotalCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
+                            $(nRow).addClass('playerExceed');
+                            if (vm.selectedPlatform.monitorPlayerUseSound) {
+                                checkPlayerNotificationAlert(aData);
+                            }
+                            if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
+                                vm.lastPlayerExceedId = aData._id;
+                            }
+                        }
+                    },
+                    createdRow: function (row, data, dataIndex) {
+                        $compile(angular.element(row).contents())($scope)
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                utilService.createDatatableWithFooter('#paymentMonitorReportTable', tableOptions, {});
+                vm.paymentMonitorQuery.pageObj.init({maxCount: size}, newSearch);
+                $('#paymentMonitorReportTable').off('order.dt');
+                $('#paymentMonitorReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'paymentMonitorQuery', vm.getPaymentMonitorReport);
+                });
+                $('#paymentMonitorReportTable').resize();
+            };
+
+            function checkPlayerNotificationAlert(aData) {
+                if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
+                    let soundUrl = "sound/notification/" + vm.selectedPlatform.monitorPlayerSoundChoice;
+                    let sound = new Audio(soundUrl);
+                    sound.play();
+                }
+            };
+
+            function checkMerchantNotificationAlert(aData) {
+                if (!vm.lastMerchantExceedId || vm.lastMerchantExceedId < aData._id) {
+                    let soundUrl = "sound/notification/" + vm.selectedPlatform.monitorMerchantSoundChoice;
+                    let sound = new Audio(soundUrl);
+                    sound.play();
+                }
+            }
+
             function createMerGroupList(nameObj, listObj) {
                 if (!nameObj || !listObj) return [];
                 let obj = [];
@@ -10261,6 +10655,19 @@ define(['js/app'], function (myApp) {
                     vm.commonInitTime(vm.providerConsumptionQuery, '#providerConsumptionQuery');
                     vm.providerConsumptionQuery.pageObj = utilService.createPageForPagingTable("#providerConsumptionReportTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "providerConsumptionQuery", vm.searchProviderConsumptionReport)
+                    });
+                });
+                $scope.$evalAsync();
+            } else if (choice == "PAYMENT_MONITOR_REPORT") {
+                vm.paymentMonitorQuery = {};
+                vm.reportSearchTime = 0;
+                vm.getPlatformByAdminId();
+                vm.getPaymentMonitorLockedAdmin();
+
+                utilService.actionAfterLoaded("#paymentMonitorReportTablePage", function () {
+                    vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
+                    vm.paymentMonitorQuery.pageObj = utilService.createPageForPagingTable("#paymentMonitorReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorQuery", vm.getPaymentMonitorReport)
                     });
                 });
                 $scope.$evalAsync();

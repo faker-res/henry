@@ -119,6 +119,8 @@
                                 text {{'WECHAT_GROUP_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PROVIDER_CONSUMPTION_REPORT}}" ng-click='vm.loadPage("PROVIDER_CONSUMPTION_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'PROVIDER_CONSUMPTION_REPORT')")
                                 text {{'PROVIDER_CONSUMPTION_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR_REPORT}}" ng-click='vm.loadPage("PAYMENT_MONITOR_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'PAYMENT_MONITOR_REPORT')")
+                                text {{'PAYMENT_MONITOR_REPORT' | translate}}
 
 
 

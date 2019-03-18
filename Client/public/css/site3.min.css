@@ -4388,7 +4388,19 @@ hr {
     font-size: 12px;
     color:red;
 }
+.widthto80 {
+    width: 80%;
+}
+.widthto20 {
+    width: 20%;
+}
+.merchantExceed .merchantCount {
+    background-color: #C7EA46;
+}
 
+.playerExceed .playerCount {
+    background-color: #FFFF66;
+}
 
 
 .navbar-right {

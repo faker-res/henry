@@ -787,6 +787,10 @@ var dbPlayerTopUpRecord = {
                     queryObj['data.depositMethod'] = {'$in': convertStringNumber(query.depositMethod)};
                 }
 
+                if(query.platformList && query.platformList.length > 0) {
+                    queryObj['data.platformId'] = {$in: query.platformList.map(item=>{return ObjectId(item)})};
+                }
+
                 if (query.merchantNo && query.merchantNo.length > 0 && (!query.merchantGroup || query.merchantGroup.length == 0)) {
                     queryObj['$or'] = [
                         {'data.merchantNo': {$in: convertStringNumber(query.merchantNo)}},
@@ -854,7 +858,14 @@ var dbPlayerTopUpRecord = {
                 if(query.line){
                     queryObj['data.line'] = {$in: query.line};
                 }
-                return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str}).lean();
+                console.log('str===', str);
+                let proposalTypeQuery = {
+                    name: str
+                };
+                if(query.platformList && query.platformList.length > 0){
+                    proposalTypeQuery.platformId = {$in: query.platformList};
+                }
+                return dbconfig.collection_proposalType.find(proposalTypeQuery).lean();
             }
         ).then(
             proposalType => {
@@ -862,6 +873,9 @@ var dbPlayerTopUpRecord = {
                     return type._id;
                 });
                 queryObj.type = {$in: typeIds};
+                console.log('proposalType===', proposalType);
+                console.log('typeIds===', typeIds);
+                console.log('queryObj===', queryObj);
 
                 let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
                 let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
@@ -875,7 +889,8 @@ var dbPlayerTopUpRecord = {
 
                 let prom = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
-                    .populate({path: "data.playerObjId", model: dbconfig.collection_players}).lean();
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players})
+                    .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
 
                 let stream = prom.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
@@ -909,6 +924,10 @@ var dbPlayerTopUpRecord = {
                 let totalCount = data[0];
                 let totalAmountResult = data[1][0];
                 let totalPlayerResult = data[3] && data[3].length || 0;
+                console.log('totalCount===', totalCount);
+                console.log('totalAmountResult===', totalAmountResult);
+                console.log('totalPlayerResult===', totalPlayerResult);
+
 
                 return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
             }
@@ -1032,12 +1051,32 @@ var dbPlayerTopUpRecord = {
                 let bankCardNoRegExp;
 
                 if (proposal.data.bankCardNo) {
-                    let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                    console.log("proposal.data.bankCardNo----------------------", proposal.data.bankCardNo);
+                    let bankCardNoPrefix = proposal.data.bankCardNo.substring(0, 6);
+                    let bankCardNoRegExpA;
                     let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
-                    bankCardNoRegExp = [
-                        {"data.bankCardNo": bankCardNoRegExpA},
-                        {"data.bankCardNo": bankCardNoRegExpB}
-                    ];
+                    if (bankCardNoPrefix.indexOf('*') == -1) {
+
+                        console.log("bankCardNoRegExpA----------------------", bankCardNoRegExpA);
+                        console.log("bankCardNoRegExpB----------------------", bankCardNoRegExpB);
+
+                        bankCardNoRegExpA = new RegExp(bankCardNoPrefix + ".*");
+                        bankCardNoRegExp = [
+                            {"data.bankCardNo": bankCardNoRegExpA},
+                            {"data.bankCardNo": bankCardNoRegExpB}
+                        ];
+                    } else {
+                        bankCardNoRegExp = [
+                            {"data.bankCardNo": bankCardNoRegExpB}
+                        ];
+                    }
+
+                    // let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                    // let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+                    // bankCardNoRegExp = [
+                    //     {"data.bankCardNo": bankCardNoRegExpA},
+                    //     {"data.bankCardNo": bankCardNoRegExpB}
+                    // ];
                 }
 
                 let prevSuccessQuery = {
@@ -3571,7 +3610,8 @@ var dbPlayerTopUpRecord = {
                                     player.alipayGroup
                                     && player.alipayGroup.alipays
                                     && player.alipayGroup.alipays.length > 0
-                                )
+                                ) ||
+                                (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')
                             )
                         ) {
                             let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);

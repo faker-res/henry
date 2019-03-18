@@ -56,31 +56,29 @@ let dbPlatformWechatPayGroup = {
      */
     getPlatformWechatPayGroup: function (platformId) {
         let topUpSystemConfig;
+        let curPlatformId;
 
-        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1}).lean().then(
+        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1, name: 1}).lean().then(
             platformData => {
                 if (platformData) {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+                    curPlatformId = platformData && platformData.platformId ? platformData.platformId : null;
 
-                    return addDefaultWechatPayGroup(topUpSystemConfig, platformId).then(
-                        () => {
-                            let matchQuery = {
-                                platform: platformId
-                            };
+                    let matchQuery = {
+                        platform: platformId
+                    };
 
-                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                                matchQuery.isPMS2 = {$exists: true};
-                            } else {
-                                matchQuery.isPMS2 = {$exists: false};
-                            }
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        matchQuery.isPMS2 = {$exists: true};
+                    } else {
+                        matchQuery.isPMS2 = {$exists: false};
+                    }
 
-                            return dbconfig.collection_platformWechatPayGroup.aggregate(
-                                {
-                                    $match: matchQuery
-                                }
-                            ).exec();
+                    return dbconfig.collection_platformWechatPayGroup.aggregate(
+                        {
+                            $match: matchQuery
                         }
-                    );
+                    ).exec();
                 }
             }
         );
@@ -559,35 +557,37 @@ let dbPlatformWechatPayGroup = {
 
     deleteWechatPayAcc: function (WechatPayObjId) {
         return dbconfig.collection_platformWechatPayList.remove({_id: WechatPayObjId}).exec();
+    },
+
+    getPMSWechatPayGroup: function (platformId, topUpSystemType) {
+        let topUpSystemConfig;
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            let type = constAccountType.WECHAT;
+
+            let options = {
+                method: 'POST',
+                uri: topUpSystemConfig.paymentGroupAPIAddr,
+                body: {
+                    platformId: platformId,
+                    accountType: type
+                },
+                json: true
+            };
+
+            console.log('getPMSWechatPayGroup req: ', platformId, type);
+
+            return rp(options).then(function (data) {
+                console.log('getPMSWechatPayGroup success',platformId, type, data);
+                return data;
+            }, error => {
+                console.log('getPMSWechatPayGroup failed',platformId, type, error);
+                throw error;
+            });
+        }
     }
 };
-
-function addDefaultWechatPayGroup(topUpSystemConfig, platformObjId) {
-    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-        return dbconfig.collection_platformWechatPayGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
-            pms2WechatPayGroupExists => {
-                if (!pms2WechatPayGroupExists) {
-                    let defaultStr = "PMS2DefaultGroup";
-                    let groupData = {
-                        groupId: defaultStr,
-                        name: defaultStr,
-                        code: defaultStr,
-                        displayName: defaultStr,
-                        platform: platformObjId,
-                        isPMS2: true
-                    };
-
-                    let wechatPayGroup = new dbconfig.collection_platformWechatPayGroup(groupData);
-
-                    return wechatPayGroup.save();
-                } else {
-                    return Promise.resolve(true);
-                }
-            }
-        );
-    } else {
-        return Promise.resolve(true);
-    }
-}
 
 module.exports = dbPlatformWechatPayGroup;

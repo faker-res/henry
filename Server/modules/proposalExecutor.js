@@ -523,7 +523,7 @@ var proposalExecutor = {
                     ).then(
                         newPlayer => {
                             //make sure credit can not be negative number
-                            if (newPlayer.validCredit < 0) {
+                            if (newPlayer.validCredit < 0 || newPlayer.validCredit < Number.EPSILON) {
                                 newPlayer.validCredit = 0;
                                 return newPlayer.save();
                             }
@@ -532,9 +532,6 @@ var proposalExecutor = {
                         }
                     ).then(
                         player => {
-                            // DEBUG EXECUTED HALF WAY
-                            console.log('executeUpdatePlayerCredit2 player', player, proposalData);
-
                             if (!player) {
                                 return Promise.reject({
                                     name: "DataError",
@@ -962,14 +959,14 @@ var proposalExecutor = {
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
                                                     {upsert: true, new: true}
-                                                );
+                                                ).lean();
                                             }
                                             if (updateMultipleBankInfo) {
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
                                                     {upsert: true, new: true}
-                                                ).then(
+                                                ).lean().then(
                                                     bankData => {
                                                         if (bankData && bankData._id) {
                                                             return dbconfig.collection_players.findOneAndUpdate(
@@ -979,7 +976,7 @@ var proposalExecutor = {
                                                             ).populate({
                                                                 path: "multipleBankDetailInfo",
                                                                 model: dbconfig.collection_playerMultipleBankDetailInfo
-                                                            })
+                                                            }).lean();
                                                         }
                                                     }
                                                 );
@@ -988,7 +985,7 @@ var proposalExecutor = {
                                                     {_id: data._id, platform: data.platform},
                                                     playerUpdate,
                                                     {returnNewDocument: true}
-                                                );
+                                                ).lean();
                                             }
                                         } else {
                                             if (playerUpdate.bankAccountName) {
@@ -999,7 +996,7 @@ var proposalExecutor = {
                                                 {_id: data._id, platform: data.platform},
                                                 playerUpdate,
                                                 {returnNewDocument: true}
-                                            );
+                                            ).lean();
                                         }
                                     }
                                 );

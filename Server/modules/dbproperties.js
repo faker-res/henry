@@ -86,6 +86,8 @@ let rewardPointsTaskSchema = require('./../schema/rewardPointsTask');
 let playerPageAdvertisementInfoSchema = require('./../schema/playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoSchema = require('./../schema/partnerPageAdvertisementInfo');
 
+let advertisementPageXBETSchema = require('./../schema/advertisementPageXBET');
+
 let playerMultipleBankDetailInfoSchema = require('./../schema/playerMultipleBankDetailInfo');
 
 let smsGroupSchema = require('./../schema/smsGroup');
@@ -241,6 +243,8 @@ let partnerFeedbackTopicModel = db_admin.model('partnerFeedbackTopic', partnerFe
 
 let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementInfo', playerPageAdvertisementInfoSchema, 'playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
+
+let advertisementPageXBETModel = db_admin.model('advertisementPageXBET', advertisementPageXBETSchema, 'advertisementPageXBET');
 
 let playerMultipleBankDetailInfoModel = db_admin.model('playerMultipleBankDetailInfo', playerMultipleBankDetailInfoSchema, 'playerMultipleBankDetailInfo');
 
@@ -668,6 +672,8 @@ var dbProperties = {
 
     collection_playerPageAdvertisementInfo: playerPageAdvertisementInfoModel,
     collection_partnerPageAdvertisementInfo: partnerPageAdvertisementInfoModel,
+
+    collection_advertisementPageXBET: advertisementPageXBETModel,
 
     collection_playerMultipleBankDetailInfo: playerMultipleBankDetailInfoModel,
     

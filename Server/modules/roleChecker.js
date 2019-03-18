@@ -131,6 +131,10 @@ var roleChecker = {
         "getPlatformProviderGroup": true,
         "getPMSPaymentGroup": true,
         "getPMSUserPaymentGroup": true,
+        "getPMSAlipayGroup": true,
+        "getPMSMerchantGroup": true,
+        "getPMSBankCardGroup": true,
+        "getPMSWechatPayGroup": true,
 
         // API Actions - can be ignored
         'createApiUser': true,
@@ -322,7 +326,11 @@ var roleChecker = {
                 //ThemeSelect: [],
             },
             "PlayerDisplayData": {
-                Read: []
+                Read: [],
+                MAIN_PAGE_ADVERTISEMENT: ['createNewXBETAdvertisement', 'getXBETAdvertisement', 'updateXBETAdvertisement', 'deleteXBETAdvertisementRecord', 'changeXBETAdvertisementStatus'],
+                FIRST_TIME_ENTRY_ADVERTISEMENT: ['createNewXBETAdvertisement', 'getXBETAdvertisement', 'updateXBETAdvertisement', 'deleteXBETAdvertisementRecord', 'changeXBETAdvertisementStatus'],
+                FIRST_TIME_LOGIN_ADVERTISEMENT: ['createNewXBETAdvertisement', 'getXBETAdvertisement', 'updateXBETAdvertisement', 'deleteXBETAdvertisementRecord', 'changeXBETAdvertisementStatus'],
+                REWARD_POINTS_SHOP_ADVERTISEMENT: ['createNewXBETAdvertisement', 'getXBETAdvertisement', 'updateXBETAdvertisement', 'deleteXBETAdvertisementRecord', 'changeXBETAdvertisementStatus'],
             },
             "PartnerDisplayData": {
                 Read: []
@@ -656,7 +664,8 @@ var roleChecker = {
                 ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
                 LIMITED_OFFER_REPORT: ['getLimitedOfferReport'],
                 WECHAT_GROUP_REPORT:['getWechatControlSession'],
-                PROVIDER_CONSUMPTION_REPORT:['getProviderConsumptionReport']
+                PROVIDER_CONSUMPTION_REPORT:['getProviderConsumptionReport'],
+                PAYMENT_MONITOR_REPORT: ['getPaymentMonitorLockedAdmin', 'getPaymentMonitorReport']
             },
             Proposal: {
                 "Force Pairing": ['forcePairingWithReferenceNumber']

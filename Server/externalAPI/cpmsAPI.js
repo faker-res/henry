@@ -131,12 +131,18 @@ function callCPMSAPIWithAutoMaintenance(service, functionName, data, fileData) {
                     bOpen = true;
                     return wsClient.callAPIOnce(service, functionName, data).then(
                         res => {
+                            if ( functionName && functionName == 'transferOut') {
+                                console.log('MT --checking Websocket Success', res);
+                            }
                             if (wsClient && typeof wsClient.disconnect == "function") {
                                 wsClient.disconnect();
                             }
                             return res;
                         },
                         error => {
+                            if ( functionName && functionName == 'transferOut') {
+                                console.log('MT --checking Websocket Error', error);
+                            }
                             if (wsClient && typeof wsClient.disconnect == "function") {
                                 wsClient.disconnect();
                             }
@@ -230,6 +236,7 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
     const minute = 60*1000;
     let timeoutLimit = 0;
     let platformName = '';
+    let platformId = '';
     let searchTimeFrame = 3 * minute;
     let lastTimeoutDateTime;
 
@@ -238,6 +245,7 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
         timeoutLimit = platform.disableProviderAfterConsecutiveTimeoutCount;
         searchTimeFrame = platform.providerConsecutiveTimeoutSearchTimeFrame ? platform.providerConsecutiveTimeoutSearchTimeFrame * minute : searchTimeFrame;
         platformName = platform.name;
+        platformId = platform.platformId;
         let searchTimeStart = new Date(new Date().getTime() - searchTimeFrame);
         if(timeoutLimit && timeoutLimit > 0) {
             let searchTransferLogProm = dbconfig.collection_playerCreditTransferLog.find({
@@ -270,6 +278,7 @@ function gameProviderTimeoutAutoMaintenance(platformObjId, providerObjId, provid
                 //set provider to maintenance status
                 let isEnable = false;
                 return dbPlatform.updateProviderFromPlatformById(platformObjId, providerObjId, isEnable).then(() => {
+                    console.log("Auto Maintenance Setting Provider to Maintenance ", {platformId: platformId, providerId: providerId});
                     return dbconfig.collection_gameProvider.findOne({_id: providerObjId}).lean();
                 });
             }
@@ -333,6 +342,7 @@ function recordQueryCreditTimeout(data){
             playerName: data.username,
             providerId: data.providerId
         };
+        console.log("queryCredit Timeout Data ", {platformId: data.platformId, playerName: data.username, providerId: data.providerId});
         dbconfig.collection_queryCreditTimeout(queryCreditTimeoutData).save();
     })
 }

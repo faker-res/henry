@@ -3324,8 +3324,8 @@ define(['js/app'], function (myApp) {
                     vm.getMerchantTypeName();
                     vm.merchantGroups = getMerchantGroups(vm.merchants, vm.merchantTypes);
                     vm.merchantNumbers = getMerchantNumbers(vm.merchants);
-                    vm.getPaymentMonitorTotalRecord();
-                    vm.getPaymentMonitorTotalCompletedRecord();
+                    // vm.getPaymentMonitorTotalRecord();
+                    // vm.getPaymentMonitorTotalCompletedRecord();
                     vm.merchantGroupCloneList = vm.merchantGroups;
                     vm.getPlatformByAdminId();
                 }
@@ -3805,6 +3805,7 @@ define(['js/app'], function (myApp) {
             }
             vm.paymentMonitorTotalQuery.platformId = vm.curPlatformId;
             $('#paymentMonitorTableSpin').show();
+            $('#paymentMonitorTableASpin').show();
 
             if (vm.paymentMonitorTotalQuery.mainTopupType === '0' || vm.paymentMonitorTotalQuery.mainTopupType === '1' || vm.paymentMonitorTotalQuery.mainTopupType === '3' || vm.paymentMonitorTotalQuery.mainTopupType === '4' || vm.paymentMonitorTotalQuery.mainTopupType === '5') {
                 vm.paymentMonitorTotalQuery.topupType = '';
@@ -3827,7 +3828,7 @@ define(['js/app'], function (myApp) {
                 merchantNo: vm.paymentMonitorTotalQuery.merchantNo,
                 startTime: vm.paymentMonitorTotalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorTotalQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformList: vm.paymentMonitorTotalQuery.platformList || vm.platformByAdminId && vm.platformByAdminId.length ?  vm.platformByAdminId.map(p => p._id) : "",
+                platformList: vm.paymentMonitorTotalQuery.platformList,
                 sortCol: vm.paymentMonitorTotalQuery.sortCol,
                 currentPlatformId: vm.selectedPlatform._id,
                 failCount: vm.paymentMonitorTotalQuery.failCount
@@ -3847,6 +3848,7 @@ define(['js/app'], function (myApp) {
 
             return $scope.$socketPromise('getPaymentMonitorTotalResult', sendObj).then(
                 data => {
+                    $('#paymentMonitorTableASpin').hide();
                     $scope.$evalAsync(() => {
                         console.log('Payment Monitor Total Result', data);
                         vm.paymentMonitorTotalData = data.data.data;
@@ -3898,10 +3900,10 @@ define(['js/app'], function (myApp) {
                                         item.lockedButtonDisplay = "玩家";
                                     }
 
-                                    if(typeof item.data.userAgent == "number"){
-                                        item.userAgent$ = item.data.userAgent;
-                                    }else if(typeof item.data.userAgent == "object"){
+                                    if(typeof item.data.userAgent == "object") {
                                         item.userAgent$ = utilService.retrieveAgent(item.data.userAgent);
+                                    }else if(typeof item.data.userAgent != "undefined" && item.data.userAgent != ""){
+                                        item.userAgent$ = item.data.userAgent;
                                     }else{
                                         item.userAgent$ = 1;
                                     }
@@ -3932,6 +3934,7 @@ define(['js/app'], function (myApp) {
             }
             vm.paymentMonitorTotalQuery.platformId = vm.curPlatformId;
             $('#paymentMonitorTableSpin').show();
+            $('#paymentMonitorTableBSpin').show();
 
             if (vm.paymentMonitorTotalQuery.mainTopupType === '0' || vm.paymentMonitorTotalQuery.mainTopupType === '1' || vm.paymentMonitorTotalQuery.mainTopupType === '3' || vm.paymentMonitorTotalQuery.mainTopupType === '4' || vm.paymentMonitorTotalQuery.mainTopupType === '5') {
                 vm.paymentMonitorTotalQuery.topupType = '';
@@ -3979,6 +3982,7 @@ define(['js/app'], function (myApp) {
                 data => {
                     $scope.$evalAsync(() => {
                         $('#paymentMonitorTableSpin').hide();
+                        $('#paymentMonitorTableBSpin').hide();
                         console.log('Payment Monitor Total  Completed Result', data);
 
                         vm.drawPaymentRecordTotalCompletedTable(
@@ -4054,8 +4058,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.showProposalModal = function (proposalId) {
+            let platformList = vm.platformByAdminId && vm.platformByAdminId.length ?  vm.platformByAdminId.map(p => p._id) : [vm.selectedPlatform._id];
+
             socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
-                platformId: vm.selectedPlatform._id,
+                platformId: platformList,
                 proposalId: proposalId
             }, function (data) {
                 $scope.$evalAsync(() => {
@@ -4073,6 +4079,13 @@ define(['js/app'], function (myApp) {
                             vm.getCityName(vm.selectedProposal.data.inputData.cityId)
                         }
                     }
+
+                    if(typeof vm.selectedProposal.data.userAgent == "object"){
+                        vm.selectedProposal.data.userAgent = utilService.retrieveAgent(vm.selectedProposal.data.userAgent);
+                    }else if(typeof vm.selectedProposal.data.userAgent == "undefined" ||  vm.selectedProposal.data.userAgent == "") {
+                        vm.selectedProposal.data.userAgent = 1;
+                    }
+
                     vm.wechatNameConvert();
                     // vm.selectedProposal.data.cityId;
                     $('#modalProposal').modal('show');
@@ -4251,7 +4264,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {
-                        "title": $translate('Website'),
+                        "title": $translate('PRODUCT_NAME'),
                         data: "website",
                     },
                     {
@@ -4432,7 +4445,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {
-                        "title": $translate('Website'),
+                        "title": $translate('PRODUCT_NAME'),
                         data: "website",
                     },
                     {

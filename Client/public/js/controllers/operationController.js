@@ -102,7 +102,6 @@ define(['js/app'], function (myApp) {
         //get all operation data from server
         vm.selectPlatform = function (id) {
             vm.newProposalNum = 0;
-            vm.operSelPlatform = false;
             vm.allPlatformId = [];
 
             $.each(vm.platformList, function (i, v) {
@@ -133,6 +132,7 @@ define(['js/app'], function (myApp) {
             // vm.getNewAccountProposal().done();
             vm.getProposalTypeByPlatformId(vm.allPlatformId).then(() => {
                 vm.renderMultipleSelectDropDownList('select#selectProposalType');
+                vm.proposalTypeClicked("total");
                 vm.renderMultipleSelectDropDownList('select#selectProposalAuditType');
             });
             vm.getPlatformProviderGroup();
@@ -167,7 +167,6 @@ define(['js/app'], function (myApp) {
             });
             dropDownElement.multipleSelect("refresh");
             dropDownElement.multipleSelect("checkAll");
-            vm.proposalTypeClicked("total");
         };
 
         vm.setUpRewardMultiSelect = () => {
@@ -214,18 +213,34 @@ define(['js/app'], function (myApp) {
 
             vm.queryProposalIdUpdate();
 
+            vm.queryProposalAuditId = "";
             vm.queryProposalEntryType = "";
             vm.queryProposalMinCredit = "";
             vm.queryProposalMaxCredit = "";
             vm.queryProposalRelatedUser = "";
 
-            let platformId = vm.selectedPlatform === "_allPlatform" ? "_allPlatform" : vm.selectedPlatform._id;
-            vm.selectPlatform(platformId);
+            // let platformId = vm.selectedPlatform === "_allPlatform" ? "_allPlatform" : vm.selectedPlatform._id;
+            // vm.selectPlatform(platformId);
 
+            vm.allTopUpIntentionString = null;
+            vm.allNewAccountString = null;
+            vm.allProposalString = null;
             vm.initQueryPara();
             vm.dateRange = "";
 
-            $scope.safeApply();
+            Promise.resolve()
+                .then(vm.setUpRewardMultiSelect)
+                .then(vm.setUpPromoCodeMultiSelect)
+                .then(
+                    () => {
+                        if (vm.rightPanelTitle == "APPROVAL_PROPOSAL") {
+                            vm.renderMultipleSelectDropDownList('select#selectProposalAuditType');
+                        } else{
+                            vm.renderMultipleSelectDropDownList('select#selectProposalType');
+                        }
+                    }
+                )
+                .then(vm.proposalTypeClicked(vm.rightPanelTitle == "APPROVAL_PROPOSAL" ? "approval" : "total"));
         };
 
         vm.proposalTypeClicked = function (i, v) {
@@ -1193,12 +1208,16 @@ define(['js/app'], function (myApp) {
                 // filterProposalType: true,
                 "aaSorting": vm.queryProposal.aaSorting || [],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [9]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {
+                        "title": $translate('PRODUCT_NAME'),
+                        "data": "data.platformId.name"
+                    },
                     {
                         "title": $translate('PROPOSAL_NO'),
                         "data": "proposalId",
@@ -1631,13 +1650,13 @@ define(['js/app'], function (myApp) {
                 "bProcessing": true,
                 bDeferRender: true,
                 // filterProposalType: true,
-                "aaSorting": vm.queryAuditProposal.aaSorting || [[18, 'asc']],
+                "aaSorting": vm.queryAuditProposal.aaSorting || [[19, 'asc']],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'priority', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [11]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [16]},
-                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [18]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'priority', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [12]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [17]},
+                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [19]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -1656,6 +1675,10 @@ define(['js/app'], function (myApp) {
                             } else return null;
                         },
                         visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                    {
+                        "title": $translate('PRODUCT_NAME'),
+                        "data": "data.platformId.name"
                     },
                     {
                         "title": $translate('PROPOSAL_NO'),
@@ -2622,7 +2645,7 @@ define(['js/app'], function (myApp) {
                     content: function () {
                         var data = JSON.parse(this.dataset.player);
                         vm.activePlayerData = data;
-                        $scope.safeApply();
+                        $scope.$evalAsync();
                         return $('#activePlayerPopover').html();
                     },
                     onClick: undefined,

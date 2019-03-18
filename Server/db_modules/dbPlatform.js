@@ -13,6 +13,7 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 var dbconfig = require('./../modules/dbproperties');
 var constPartnerLevel = require('./../const/constPartnerLevel');
 var constPlayerLevel = require('./../const/constPlayerLevel');
+var constXBETAdvertisementType = require('./../const/constXBETAdvertisementType');
 const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 var constPlayerTrustLevel = require('./../const/constPlayerTrustLevel');
 var constProposalType = require('./../const/constProposalType');
@@ -631,6 +632,7 @@ var dbPlatform = {
                                         var obj = {
                                             platformId: platformArr[i].platformId,
                                             name: platformArr[i].name,
+                                            code: platformArr[i].code
                                         }
                                         sendObj.push(obj)
                                     }
@@ -6110,7 +6112,82 @@ var dbPlatform = {
 
             return paymentSystemName;
         }
-    }
+    },
+
+    createNewXBETAdvertisement: function (saveData) {
+        return dbconfig.collection_advertisementPageXBET(saveData).save()
+    },
+
+    getXBETAdvertisement: function (platformId, type) {
+        return dbconfig.collection_advertisementPageXBET.find(
+            {
+                platformId: platformId,
+                type: type
+            }
+        ).lean();
+    },
+
+    updateXBETAdvertisement: function (updateDataArr) {
+        let promArr = []
+        for (let i = 0; i < updateDataArr.length; i++) {
+            if (updateDataArr[i].platformId && updateDataArr[i].type && updateDataArr[i].orderNo) {
+                let updateObj = {
+                    orderNo: updateDataArr[i].orderNo,
+                    // advertisementType: updateDataArr[i].advertisementType,
+                    title: updateDataArr[i].title || "",
+                    url: updateDataArr[i].url || "",
+                    hyperLink: updateDataArr[i].hyperLink || "",
+                    matchId: updateDataArr[i].matchId || "",
+                    showInFrontEnd: updateDataArr[i].showInFrontEnd,
+                }
+
+                if (updateDataArr[i].type == constXBETAdvertisementType.MAIN_PAGE_AD) {
+                    updateObj.advertisementType = updateDataArr[i].advertisementType;
+                }
+
+                let updateProm = dbconfig.collection_advertisementPageXBET.update(
+                    {
+                        _id: updateDataArr[i]._id,
+                        platformId: updateDataArr[i].platformId,
+                    }, updateObj);
+                promArr.push(updateProm);
+            } else {
+                return Promise.reject({name: "DataError", message: "Invalid data"});
+            }
+        }
+
+        return Promise.all(promArr);
+    },
+
+    deleteXBETAdvertisementRecord: function (advertisementObjId, platformId) {
+        return dbconfig.collection_advertisementPageXBET.remove({_id:advertisementObjId, platformId: platformId});
+    },
+
+    changeXBETAdvertisementStatus: function (advertisementObjId, platformId, status) {
+        status = status? 1: 0;
+        return dbconfig.collection_advertisementPageXBET.findOneAndUpdate(
+            {
+                platformId: platformId,
+                _id: advertisementObjId
+            },
+            {
+                status: status
+            }
+        ).lean();
+    },
+
+    updateXBETAdvCss: function (platformId, advertisementObjId, css, hoverCss) {
+        return dbconfig.collection_advertisementPageXBET.findOneAndUpdate(
+            {
+                platformId: platformId,
+                _id: advertisementObjId
+            },
+            {
+                css: css,
+                hoverCss: hoverCss
+            }
+        ).lean();
+    },
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

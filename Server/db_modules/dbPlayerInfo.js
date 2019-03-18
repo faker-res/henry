@@ -425,7 +425,21 @@ let dbPlayerInfo = {
                 }
                 platform = platformData;
 
-                return dbconfig.collection_players.findOne({platform: platform._id, guestDeviceId: String(inputData.guestDeviceId)}).populate({
+                let playerQuery = {
+                    platform: platform._id,
+                    guestDeviceId: String(inputData.guestDeviceId),
+                }
+                if (inputData.phoneNumber) {
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
+                    playerQuery.$or = [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+
+                }
+
+                return dbconfig.collection_players.findOne(playerQuery).populate({
                     path: "playerLevel",
                     model: dbconfig.collection_playerLevel
                 }).lean().then(
@@ -463,6 +477,10 @@ let dbPlayerInfo = {
                                         isRealPlayer: true,
                                         guestDeviceId: inputData.guestDeviceId
                                     };
+
+                                    if (inputData.phoneNumber) {
+                                        guestPlayerData.phoneNumber = inputData.phoneNumber
+                                    }
 
                                 }
                             ).then(
@@ -858,24 +876,27 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    let checktsPhoneFeedback = Promise.resolve();
-                    if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
-                        checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
-                    }
-                    return checktsPhoneFeedback.then(
-                        tsPhoneFeedbackData => {
-                            if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
-                                inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
-                                inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
-                                if (tsPhoneFeedbackData.tsPhone) {
-                                    inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
-                                    inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
-                                    inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
-                                }
-                            }
-                            return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
-                        }
-                    )
+                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+
+                    // /* new reqeust from Yuki: the csOfficer is only binded by domain */
+                    // let checktsPhoneFeedback = Promise.resolve();
+                    // if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
+                    //     checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
+                    // }
+                    // return checktsPhoneFeedback.then(
+                    //     tsPhoneFeedbackData => {
+                    //         if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
+                    //             inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
+                    //             inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
+                    //             if (tsPhoneFeedbackData.tsPhone) {
+                    //                 inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
+                    //                 inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
+                    //                 inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
+                    //             }
+                    //         }
+                    //         return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                    //     }
+                    // )
                 }
             ).then(
                 data => {
@@ -1771,7 +1792,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerPasswordValid) {
-                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent || playerdata.guestDeviceId) {
+                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent || (playerdata.guestDeviceId && !playerdata.phoneNumber)) {
                         return {isPhoneNumberValid: true};
                     }
 
@@ -2423,7 +2444,7 @@ let dbPlayerInfo = {
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
             .populate({path: "csOfficer", model: dbconfig.collection_admin})
-            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo})
+            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean()
             .then(data => {
                 if (data) {
                     playerData = data;
@@ -6557,6 +6578,58 @@ let dbPlayerInfo = {
         }
     },
 
+    getBankZoneData: function (query) {
+        let province1 = null;
+        let province2 = null;
+        let province3 = null;
+        let city1 = null;
+        let city2 = null;
+        let city3 = null;
+        let district1 = null;
+        let district2 = null;
+        let district3 = null;
+
+        let provinceProm1 = query.province1 ? pmsAPI.foundation_getProvince({provinceId: query.province1}) : true;
+        let cityProm1 = query.city1 ? pmsAPI.foundation_getCity({cityId: query.city1}) : true;
+        let districtProm1 = query.district1 ? pmsAPI.foundation_getDistrict({districtId: query.district1}) : true;
+
+        let provinceProm2 = query.province2 ? pmsAPI.foundation_getProvince({provinceId: query.province2}) : true;
+        let cityProm2 = query.city2 ? pmsAPI.foundation_getCity({cityId: query.city2}) : true;
+        let districtProm2 = query.district2 ? pmsAPI.foundation_getDistrict({districtId: query.district2}) : true;
+
+        let provinceProm3 = query.province3 ? pmsAPI.foundation_getProvince({provinceId: query.province3}) : true;
+        let cityProm3 = query.city3 ? pmsAPI.foundation_getCity({cityId: query.city3}) : true;
+        let districtProm3 = query.district3 ? pmsAPI.foundation_getDistrict({districtId: query.district3}) : true;
+
+        return Promise.all([provinceProm1, cityProm1, districtProm1, provinceProm2, cityProm2, districtProm2, provinceProm3, cityProm3, districtProm3]).then(
+            zoneData => {
+                province1 = zoneData[0].province ? zoneData[0].province.name : null;
+                city1 = zoneData[1].city ? zoneData[1].city.name : null;
+                district1 = zoneData[2].district ? zoneData[2].district.name : null;
+
+                province2 = zoneData[3].province ? zoneData[3].province.name : null;
+                city2 = zoneData[4].city ? zoneData[4].city.name : null;
+                district2 = zoneData[5].district ? zoneData[5].district.name : null;
+
+                province3 = zoneData[6].province ? zoneData[6].province.name : null;
+                city3 = zoneData[7].city ? zoneData[7].city.name : null;
+                district3 = zoneData[8].district ? zoneData[8].district.name : null;
+
+                return {
+                    province1: province1,
+                    province2: province2,
+                    province3: province3,
+                    city1: city1,
+                    city2: city2,
+                    city3: city3,
+                    district1: district1,
+                    district2: district2,
+                    district3: district3,
+                }
+            },
+        )
+    },
+
     getBindBankCardList: function (playerId, platformId) {
         let platformObj;
         let returnData = {};
@@ -6565,6 +6638,7 @@ let dbPlayerInfo = {
         let bank2 = {};
         let bank3 = {};
         let allBankTypeList = {};
+        let isFirstBankBinded = true;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -6587,11 +6661,12 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
                 if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccount) {
-                    return Promise.reject({
-                        status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                        name: "DataError",
-                        errorMessage: "Player does not have valid payment information"
-                    });
+                    // return Promise.reject({
+                    //     status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                    //     name: "DataError",
+                    //     errorMessage: "Player does not have valid payment information"
+                    // });
+                    isFirstBankBinded = false;
                 }
                 bank1.id = '1';
                 bank1.isDefault = true;
@@ -6682,6 +6757,13 @@ let dbPlayerInfo = {
                         });
                     }
                 });
+
+                if (!isFirstBankBinded) {
+                    listData = [];
+                    return returnData = {
+                        list: listData
+                    };
+                }
 
                 return returnData = {
                     list: listData
@@ -8886,7 +8968,7 @@ let dbPlayerInfo = {
     },
 
     isExceedPhoneNumberValidToRegister: function (query, count) {
-        return dbconfig.collection_players.findOne(query).count().then(
+        return dbconfig.collection_players.find(query).count().then(
             playerDataCount => {
                 if (playerDataCount >= count) {
                     return {isPhoneNumberValid: false};
@@ -12111,7 +12193,7 @@ let dbPlayerInfo = {
                             // if a withdrawal bank was selected, match the bank input and player existing bank data
                             // compare with first bank info
                             if ((withdrawalBank && withdrawalBank.bankName === playerData.bankName
-                                && withdrawalBank.bankAccount === playerData.bankAccount 
+                                && withdrawalBank.bankAccount === playerData.bankAccount
                                 && withdrawalBank.bankAccountName === playerData.bankAccountName) || bankId === '1') {
                                 withdrawalBank = {
                                     bankName: playerData.bankName || null,
@@ -12458,8 +12540,9 @@ let dbPlayerInfo = {
                                                 ximaWithdrawUsed: ximaWithdrawUsed,
                                                 isAutoApproval: player.platform.enableAutoApplyBonus,
                                                 bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
-                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : ""
+                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : "",
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
+                                                changeCredit: changeCredit
                                             };
                                             if (!player.permission.applyBonus) {
                                                 proposalData.remark = "禁用提款: " + lastBonusRemark;
@@ -20690,13 +20773,17 @@ let dbPlayerInfo = {
                 message: "Generate dian xiao code failure."
             })
         }
-        let randomString = Math.random().toString(36).substring(4, 9); // generate random String
+        let randomString = Math.random().toString(36).substring(4, 8); // generate random String
         let index = 0;
         // prevent infinite loop
         // prevent randomString all numbers
         while (!isNaN(randomString) && index < 5) {
-            randomString = Math.random().toString(36).substring(4, 9);
+            randomString = Math.random().toString(36).substring(4, 8);
             index++;
+        }
+        if (tries >= 3 && tries <= 5) {
+            // if it over 3 times, which means 4 digits very easy to duplicate, so we give it five.
+            randomString = Math.random().toString(36).substring(4, 9);
         }
         if (randomString && randomString.charAt(0) == "p") {
             let text = "";
@@ -20707,23 +20794,38 @@ let dbPlayerInfo = {
 
         let dxCode = "";
 
-        let platformProm = Promise.resolve({platform: {platformId: platformId}});
-        if (!platformId) {
-            platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
+        let dxMissionDetail;
+        let platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
                 path: "platform", model: dbconfig.collection_platform
             }).lean();
-        }
 
         return platformProm.then(
             function (missionProm) {
-                platformId = missionProm.platform.platformId;
-                dxCode = missionProm.platform.platformId + randomString;
-                return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
+                dxMissionDetail = missionProm;
+                dxCode = randomString;
+                return dbconfig.collection_dxPhone.find({code: dxCode}).populate({path: "dxMission", model: dbconfig.collection_dxMission}).lean();
             }
         ).then(
             function (dxPhoneExist) {
                 if (dxPhoneExist) {
-                    return dbPlayerInfo.generateDXCode(dxMission, platformId);
+                    let countSameDomain = 0;
+                    // calculate if "code" exist in same domain , we treat it as duplicate, then we generate new "code" , purpose: avoid 4 digits easy duplicate
+                    // if different domain , is fine,
+                    if ( dxPhoneExist && dxPhoneExist.length > 0 ) {
+                        dxPhoneExist.forEach( item => {
+                            if ( item.dxMission && item.dxMission.domain && item.dxMission.domain == dxMissionDetail.domain ) {
+                                countSameDomain += 1;
+                            }
+                        })
+                    }
+
+                    if (countSameDomain > 0 ) {
+                        console.log('MT --checking generateDXCode', tries, countSameDomain)
+                        return dbPlayerInfo.generateDXCode(dxMission, platformId, tries);
+                    } else {
+                        return dxCode;
+                    }
+
                 }
                 else {
                     return dxCode;
@@ -22763,6 +22865,116 @@ let dbPlayerInfo = {
 
     },
 
+    updateDeviceId: function (playerId, deviceId) {
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"})
+                }
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {
+                        _id: playerData._id,
+                        guestDeviceId: {$ne: deviceId}
+                    },
+                    {
+                        guestDeviceId: deviceId
+                    }).lean()
+            }
+        ).then(
+            updatedPlayer => {
+                if (!updatedPlayer) {
+                    return Promise.resolve(false); // deviceId same with db, no update
+                } else {
+                    return Promise.resolve(true)
+                }
+            }
+        );
+    },
+
+    generateUpdatePasswordToken: function (platformId, playerName, phoneNumber, smsCode) {
+        let platformObj;
+        let playerObj;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+                platformObj = platformData;
+
+                let playerQuery = {
+                    platform: platformData._id,
+                    name: playerName,
+                    $or: [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+                };
+
+                return dbconfig.collection_players.findOne(playerQuery).lean()
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+                playerObj = playerData;
+                return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformObj, smsCode, playerData.name);
+            }
+        ).then(
+            () => {
+                let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(playerObj.phoneNumber)};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 5});
+                return {token: token};
+            }
+        )
+
+
+    },
+
+    updatePasswordWithToken: function (token, newPassword) {
+        var deferred = Q.defer();
+        jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
+            if (err || !decoded) {
+                // Jwt token error
+                return deferred.reject({name: "DataError", message: "Token is not authenticated"});
+            }
+
+            let isValidToken = Boolean(decoded && decoded.platform && decoded.name && decoded.password && decoded.phoneNumber);
+            if (!isValidToken) {
+                return deferred.reject({name: "DataError", message: "Invalid token"});
+            }
+
+            let decryptedPhoneNumber = rsaCrypto.decrypt(decoded.phoneNumber)
+            let encryptedPhoneNumber = rsaCrypto.encrypt(decryptedPhoneNumber);
+            let enOldPhoneNumber = rsaCrypto.oldEncrypt(decryptedPhoneNumber);
+
+            return dbconfig.collection_players.findOne(
+                {
+                    platform: decoded.platform,
+                    name: decoded.name,
+                    password: decoded.password,
+                    $or: [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+                }
+            ).lean().then(
+                playerData => {
+                    if (!playerData) {
+                        return deferred.reject({name: "DataError", message: "Cannot find player"});
+                    }
+
+                    dbPlayerInfo.resetPlayerPassword(playerData._id, newPassword, playerData.platform, false, null).catch(errorUtils.reportError);
+                    deferred.resolve(true);
+                }
+            )
+        })
+        return deferred.promise;
+    },
+
     getClientData: function (playerId) {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
@@ -23871,7 +24083,7 @@ let dbPlayerInfo = {
     },
 
     setPhoneNumber: (playerId, phoneNumber, smsCode) => {
-        let player, platform;
+        let player, platform, encryptedPhoneNumber;
         return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
             playerData => {
                 player = playerData;
@@ -23890,7 +24102,29 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                let encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+                encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+
+                let query = {
+                    phoneNumber: {$in: [encryptedPhoneNumber, rsaCrypto.oldEncrypt(phoneNumber.toString())]},
+                    platform: platform._id,
+                    isRealPlayer: true,
+                    'permission.forbidPlayerFromLogin': false
+                };
+
+                if (platform.allowSamePhoneNumberToRegister) {
+                    return dbPlayerInfo.isExceedPhoneNumberValidToRegister(query, platform.samePhoneNumberRegisterCount);
+                } else {
+                    return dbPlayerInfo.isPhoneNumberValidToRegister(query);
+                }
+            }
+        ).then(
+            ({isPhoneNumberValid}) => {
+                if (!isPhoneNumberValid) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        message: "This phone number is already used. Please insert other phone number."
+                    });
+                }
 
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: player._id}, {phoneNumber: encryptedPhoneNumber}, constShardKeys.collection_players);
             }

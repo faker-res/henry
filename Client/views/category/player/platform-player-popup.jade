@@ -471,8 +471,19 @@
             .modal-body
                 .row
                     .col-md-12
+                        h5 {{'WITHDRAW_INFO_1' | translate}}
                         label {{"Total" | translate}} {{vm.paymetHistoryCount}} {{"records" | translate}}
                         table#playerPaymentHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
+                .row
+                    .col-md-12
+                        h5 {{'WITHDRAW_INFO_2' | translate}}
+                        label {{"Total" | translate}} {{vm.paymetHistoryCount2}} {{"records" | translate}}
+                        table#playerPaymentHistoryTbl2.common-table.display(style='min-width:100%;width:inherit')
+                .row
+                    .col-md-12
+                        h5 {{'WITHDRAW_INFO_3' | translate}}
+                        label {{"Total" | translate}} {{vm.paymetHistoryCount3}} {{"records" | translate}}
+                        table#playerPaymentHistoryTbl3.common-table.display(style='min-width:100%;width:inherit')
 
 #playerIpHistory.collapse
     .panel.panel-info
