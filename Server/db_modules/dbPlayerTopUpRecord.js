@@ -787,6 +787,10 @@ var dbPlayerTopUpRecord = {
                     queryObj['data.depositMethod'] = {'$in': convertStringNumber(query.depositMethod)};
                 }
 
+                if(query.platformList && query.platformList.length > 0) {
+                    queryObj['data.platformId'] = {$in: query.platformList.map(item=>{return ObjectId(item)})};
+                }
+
                 if (query.merchantNo && query.merchantNo.length > 0 && (!query.merchantGroup || query.merchantGroup.length == 0)) {
                     queryObj['$or'] = [
                         {'data.merchantNo': {$in: convertStringNumber(query.merchantNo)}},
@@ -855,7 +859,13 @@ var dbPlayerTopUpRecord = {
                     queryObj['data.line'] = {$in: query.line};
                 }
                 console.log('str===', str);
-                return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str}).lean();
+                let proposalTypeQuery = {
+                    name: str
+                };
+                if(query.platformList && query.platformList.length > 0){
+                    proposalTypeQuery.platformId = {$in: query.platformList};
+                }
+                return dbconfig.collection_proposalType.find(proposalTypeQuery).lean();
             }
         ).then(
             proposalType => {
