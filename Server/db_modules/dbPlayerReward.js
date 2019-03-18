@@ -5692,12 +5692,12 @@ let dbPlayerReward = {
                     promArr.push(dbRewardUtil.checkApplyRetentionReward(playerData, eventData, applyAmount, null, selectedTopUp.topUpType, selectedTopUp));
                 }
                 if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
-                    // calculate the daily top up return reward
-                    intervalTime = dbUtility.getTodaySGTime();
-                    if ( intervalTime ) {
+                    // calculate the daily top up return reward; specifically for the daily max reward amount condition
+                    let dailyIntervalTime = dbUtility.getTodaySGTime();
+                    if (dailyIntervalTime) {
                         eventQuery["$or"] = [
-                            {"data.applyTargetDate": {$gte: intervalTime.startTime, $lt: intervalTime.endTime}},
-                            {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
+                            {"data.applyTargetDate": {$gte: dailyIntervalTime.startTime, $lt: dailyIntervalTime.endTime}},
+                            {"data.applyTargetDate": {$exists: false}, createTime: {$gte: dailyIntervalTime.startTime, $lt: dailyIntervalTime.endTime}}
                         ];
                     }
                     dailyMaxRewardPointProm = dbConfig.collection_proposal.find(eventQuery).lean();
@@ -6532,7 +6532,7 @@ let dbPlayerReward = {
                                         return Q.reject({
                                             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                             name: "DataError",
-                                            message: "Player has applied for max reward times"
+                                            message: "Player has applied for max daily reward amount"
                                         });
                                     } else if (rewardAmount + rewardAmountInPeriod > eventData.param.dailyMaxRewardAmount) {
                                         rewardAmount = eventData.param.dailyMaxRewardAmount - rewardAmountInPeriod;
