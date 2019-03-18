@@ -84,7 +84,7 @@ function socketActionReport(socketIO, socket) {
         topupReport: function topupReport(query) {
             var actionName = arguments.callee.name;
             query.limit = query.limit || 10;
-            var isValidData = Boolean(query && query.platformId);
+            var isValidData = Boolean(query);
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.topupReport, [query, query.index, query.limit, query.sortCol], actionName, isValidData);
         },
 
