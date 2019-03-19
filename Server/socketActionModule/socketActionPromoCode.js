@@ -107,6 +107,12 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.generateOpenPromoCode, [ObjectId(data.platformObjId), data.newPromoCodeEntry, data.adminId, data.adminName], actionName, isValidData);
         },
 
+        changeOpenPromoCode: function changeOpenPromoCode(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbPlayerReward.changeOpenPromoCode, [data._id], actionName, isValidData);
+        },
+
         savePromoCodeUserGroup: function savePromoCodeUserGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && (data.groupData || data.deleteData));
