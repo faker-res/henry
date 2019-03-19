@@ -1661,7 +1661,22 @@ define([], () => {
                     }
                 );
             }
-        }
+        };
+
+        this.sortAndAddPlatformDisplayName = (platforms) => {
+            platforms.sort((current, next)=>{
+                let curId = parseInt(current.platformId);
+                let nextId = parseInt(next.platformId);
+                if(!isNaN(curId) && !isNaN(nextId)) {
+                    return curId - nextId;
+                } else {
+                    return 1;
+                }
+            });
+            platforms.forEach(platform=>{
+                platform.name$ = `${platform.platformId}. ${platform.name}`;
+            });
+        };
     };
 
     let commonServiceApp = angular.module('commonService', []);
