@@ -1246,6 +1246,9 @@
                                     text(ng-if="promoCode.code") {{promoCode.code}}
                                     button.btn.btn-primary(ng-if="!promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate1, $index, promoCode, 1);')
                                         text {{'GENERATE' | translate}}
+                                    text(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit") &nbsp
+                                    button.btn.btn-primary(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit", ng-click= 'vm.changeOpenPromoCode(promoCode);')
+                                        text {{'GENERATE' | translate}}
                                 td
                                     input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
