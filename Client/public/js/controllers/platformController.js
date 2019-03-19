@@ -29658,15 +29658,33 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.changeOpenPromoCode = function (selectedPromoCode) {
+                if (!(selectedPromoCode && selectedPromoCode._id)) {
+                    return;
+                }
+
+                let sendData = {
+                    _id: selectedPromoCode._id
+                }
+
+                socketService.$socket($scope.AppSocket, 'changeOpenPromoCode', sendData, function (data) {
+                    if (data && data.data)
+                        $scope.$evalAsync(() => {
+                            selectedPromoCode.code = data.data.code;
+                        })
+                });
+
+            }
+
             vm.generateOpenPromoCode = function (col, index, data, type, template) {
                 if (template && data && vm.isPromoNameExist(data.name)) {
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
                 vm.promoCodeFieldCheckFlag = false;
                 let sendData = Object.assign({},data);
-                let returnedMsg = vm.checkPromoCodeField(data, type);
+                let returnedMsg = vm.checkPromoCodeField(data, type, "openPromoCode");
 
-                if (returnedMsg) {
+                if (returnedMsg === true) {
 
                     if (!sendData.hasOwnProperty("isProviderGroup")){
                         sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
@@ -29719,6 +29737,9 @@ define(['js/app'], function (myApp) {
                                 data.expirationTime = ret.data.expirationTime;
                                 data.createTime = ret.data.createTime;
                                 if (template){
+                                    if (ret && ret.data) {
+                                        data._id = ret.data._id;
+                                    }
                                     vm.updatePromoCodeTemplateInEdit("add", template, data, type, "openPromoCode");
                                     vm.initNewPromoCodeTemplate(type, 'openPromoCode')
                                 }
