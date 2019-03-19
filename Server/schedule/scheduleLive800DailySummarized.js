@@ -5,7 +5,7 @@ let dbUtility = require('../modules/dbutility');
 let errorUtils = require('../modules/errorUtils');
 
 let everyDayAtTwelveAMJob = new CronJob(
-    // Every 5 minutes from 12:00AM to 12:30AM every day
+    // run at 0015 every day
     '0 15 0 * * *', function () {
         let startDate = new Date();
         let endDate = new Date();
@@ -18,7 +18,8 @@ let everyDayAtTwelveAMJob = new CronJob(
 
         startDate = dbUtility.getLocalTimeString(startDate);
         endDate = dbUtility.getLocalTimeString(endDate);
-        return dbQualityInspection.getSummarizedLive800RecordCount(startDate, endDate).then(
+        // to get the summarized record of total record, effective record and non-effective record
+        dbQualityInspection.getSummarizedLive800RecordCount(startDate, endDate).then(
             summarizedRecordCount => {
                 let summarizedRecord = summarizedRecordCount && summarizedRecordCount[0] ? summarizedRecordCount[0] : null;
                 if(!summarizedRecord || !summarizedRecord.mysqlLive800Record || !summarizedRecord.mongoLive800Record
@@ -28,9 +29,13 @@ let everyDayAtTwelveAMJob = new CronJob(
             }
         )
 
+        // to record down the conversation record for speeding up the searching time
+        dbQualityInspection.getLive800Records(startDate, endDate).then().catch(errorUtils.reportError);
+
     }, function () {
         /* This function is executed when the job stops */
         console.log('Live 800 daily summarize schedule done');
+        console.log('Live 800 daily record schedule done');
     },
     true /* Start the job right now */
     //timeZone /* Time zone of this job. */
