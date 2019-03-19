@@ -2849,27 +2849,6 @@ define(['js/app'], function (myApp) {
                                         }
 
                                     }
-                                    // else{
-                                    //     // generate same empty record when the length of record is not same
-                                    //     let recordData = {
-                                    //         date: data.date,
-                                    //         companyId: data.companyId,
-                                    //         operatorId: data.operatorId,
-                                    //         totalCount: 0,
-                                    //         totalEffectiveCount: 0,
-                                    //         totalNonEffectiveCount: 0
-                                    //     };
-                                    //     if (data.data && data.data.length > 0){
-                                    //         data.data.forEach( inData => {
-                                    //             if (recordData.hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
-                                    //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
-                                    //             } else {
-                                    //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
-                                    //             }
-                                    //         })
-                                    //     }
-                                    //     vm.displayDetailData.push(recordData);
-                                    // }
                                 });
                             }
                             vm.displayDetailData.map(data => {
@@ -2888,26 +2867,6 @@ define(['js/app'], function (myApp) {
                                         vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
                                         vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
                                     }
-                                    // else{
-                                    //     // generate same empty record when the length of record is not same
-                                    //     let recordData = {
-                                    //         date: data.date,
-                                    //         companyId: data.companyId,
-                                    //         operatorId: data.operatorId,
-                                    //         totalCount: 0,
-                                    //         totalEffectiveCount: 0,
-                                    //         totalNonEffectiveCount: 0,
-                                    //         COMPLETED_UNREAD: 0,
-                                    //         COMPLETED_READ: 0,
-                                    //         COMPLETED: 0,
-                                    //         APPEALING: 0,
-                                    //         APPEAL_COMPLETED: 0,
-                                    //
-                                    //     };
-                                    //     recordData.totalInspectionRate = data.totalInspectionRate || 0;
-                                    //     recordData.totalOvertimeRate = data.totalOvertimeRate || 0;
-                                    //     vm.displayDetailData.push(recordData);
-                                    // }
                                 });
                             }
 
@@ -2946,7 +2905,6 @@ define(['js/app'], function (myApp) {
                 //$('#QIReportTable').on('order.dt', function (event, a, b) {
                     vm.commonSortChangeHandler(a, 'QIReportQuery', vm.searchQIRecord);
                 });
-                //
             };
 
             vm.drawInDetailQIReportTable = function (data, id, size, newSearch, qObj) {
