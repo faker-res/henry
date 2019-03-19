@@ -75,6 +75,10 @@ form(name="form_new_platform" ,novalidate)
                         a.common-tab(data-toggle="tab", ng-click='vm.playerDisplayDataTab="firstLoginAdvertisementPanel"; vm.initFirstLoginAdvertisement()')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"FIRST_TIME_LOGIN_ADVERTISEMENT" | translate}}
+                    li(id = 'rewardShopAdvertisementTab', ng-show="checkViewPermission('Platform', 'PlayerDisplayData','REWARD_POINTS_SHOP_ADVERTISEMENT')")
+                        a.common-tab(data-toggle="tab", ng-click='vm.playerDisplayDataTab="rewardShopAdvertisementPanel"; vm.initRewardShopAdvertisement()')
+                            .fa.fa-file-text.margin-right-5
+                            text.span {{"REWARD_POINTS_SHOP_ADVERTISEMENT" | translate}}
 
                 #customerServicePanel.panel-body(ng-if="vm.playerDisplayDataTab === 'customerServicePanel'", style="background-color: white;")
                     div.col-md-12
@@ -986,6 +990,78 @@ form(name="form_new_platform" ,novalidate)
                                             div(style="display: inline-grid; font-size: 10px;")
                                                 button.common-button.btn.btn-info(ng-click="vm.saveNewFirstLoginAd()" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.addNewFirstLoginAdvertisement=false" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
+
+                #rewardShopAdvertisementPanel.panel-body(ng-if="vm.playerDisplayDataTab === 'rewardShopAdvertisementPanel'", style="background-color: white;")
+                    .adminLogQueryDiv
+                        label {{"ADVERTISING_CAROUSEL" | translate}}
+                    .row(style="overflow:scroll; max-height: 250px;padding-left:2px;padding-right:2px;")
+                        table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white;')
+                            thead
+                                tr
+                                    th {{'Display Order' | translate}}
+                                    th {{'BANNER TITLE' | translate}}
+                                    th {{'ADVERTISEMENT_SOURCE' | translate}}
+                                    th {{'ADDRESS' | translate}}
+                                    th {{'IS_DISPLAY_ON_FRONTEND' | translate}}
+                                    th {{'ACTION_BUTTON' | translate}}
+                            tbody
+                                tr(ng-repeat="a in vm.rewardShopAdvertisementList" ng-class='{grayRow: a.status==0}')
+                                    td
+                                        input(type='number', min=1, max='{{vm.rewardShopAdvertisementList.length || 1}}', ng-model='a.orderNo', style="width: 50px;", ng-disabled='!vm.editXBETAdvertisement', required)
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="a.title" ng-disabled='!vm.editXBETAdvertisement')
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="a.url" ng-disabled='!vm.editXBETAdvertisement')
+
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="a.hyperLink" ng-disabled='!vm.editXBETAdvertisement')
+
+                                    td
+                                        input(type="checkbox" ng-model="a.showInFrontEnd" ng-disabled='!vm.editXBETAdvertisement')
+                                    td
+                                        div(style="display: inline-grid;font-size: 10px;" ng-if='vm.editXBETAdvertisement')
+                                            button.common-button.btn.btn-info(ng-click="vm.updateRewardShopAd();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.getRewardShopAdvertisement();vm.editXBETAdvertisement=false;" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
+                                        div(style="display: inline-grid;font-size: 10px;" ng-if='!vm.editXBETAdvertisement')
+                                            button.common-button.btn.btn-info(ng-click="vm.XBETAdvertisementPreview(a);" data-toggle="modal", data-target="#modalXBETAdvPreview" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.editXBETAdvertisement=true" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.deleteRewardShopAdvertisementRecord(a._id,$index);" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.changeXBETAdvertisementStatus(a._id,1, vm.getRewardShopAdvertisement)" ng-if="a.status == 0; " style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
+                                            button.common-button.btn.btn-info(ng-click="vm.changeXBETAdvertisementStatus(a._id,0, vm.getRewardShopAdvertisement)" ng-if="a.status == 1; " style="width: auto; background-color: #5bc0de") {{'CLOSE' | translate}}
+
+                    .well(style="margin-top: 50px; background-color: white;" )
+                        .row(style="text-align: right; margin-bottom: 10px;" ng-if="!vm.addNewRewardShopAdvertisement")
+                            button.common-button.btn.btn-info(ng-click="vm.addNewRewardShopAd();" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
+                        .row(style="text-align: center; margin-bottom: 10px;" ng-if="vm.addNewRewardShopAdvertisement")
+                            label {{"Add new advertisement" | translate}}
+                        .row(style="overflow-x: scroll; max-height: 250px;" ng-if="vm.addNewRewardShopAdvertisement")
+                            table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white' )
+                                thead
+                                    tr
+                                        th {{'Display Order' | translate}}
+                                        th {{'BANNER TITLE' | translate}}
+                                        th {{'ADVERTISEMENT_SOURCE' | translate}}
+                                        th {{'ADDRESS' | translate}}
+                                        th {{'IS_DISPLAY_ON_FRONTEND' | translate}}
+                                        th {{'ACTION_BUTTON' | translate}}
+                                tbody
+                                    tr
+                                        td
+                                            input(type='number', min=1, max='{{vm.rewardShopAdvertisementList.length && vm.rewardShopAdvertisementList.length + 1 || 1}}', ng-model='vm.newRewardShopAd.orderNo', style="width: 50px;")
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="vm.newRewardShopAd.title")
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="vm.newRewardShopAd.url")
+
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="vm.newRewardShopAd.hyperLink")
+
+                                        td
+                                            input(type="checkbox" ng-model="vm.newRewardShopAd.showInFrontEnd")
+                                        td
+                                            div(style="display: inline-grid; font-size: 10px;")
+                                                button.common-button.btn.btn-info(ng-click="vm.saveNewRewardShopAd()" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                                                button.common-button.btn.btn-info(ng-click="vm.addNewRewardShopAdvertisement=false" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
 
             div(name="partner-display-data", ng-if="vm.selectedPlatformDetailTab == 'partner-display-data'", ng-show="checkViewPermission('Platform', 'PartnerDisplayData','Read')")
                 ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
