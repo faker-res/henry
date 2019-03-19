@@ -29658,15 +29658,33 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.changeOpenPromoCode = function (selectedPromoCode) {
+                if (!(selectedPromoCode && selectedPromoCode._id)) {
+                    return;
+                }
+
+                let sendData = {
+                    _id: selectedPromoCode._id
+                }
+
+                socketService.$socket($scope.AppSocket, 'changeOpenPromoCode', sendData, function (data) {
+                    if (data && data.data)
+                        $scope.$evalAsync(() => {
+                            selectedPromoCode.code = data.data.code;
+                        })
+                });
+
+            }
+
             vm.generateOpenPromoCode = function (col, index, data, type, template) {
                 if (template && data && vm.isPromoNameExist(data.name)) {
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
                 vm.promoCodeFieldCheckFlag = false;
                 let sendData = Object.assign({},data);
-                let returnedMsg = vm.checkPromoCodeField(data, type);
+                let returnedMsg = vm.checkPromoCodeField(data, type, "openPromoCode");
 
-                if (returnedMsg) {
+                if (returnedMsg === true) {
 
                     if (!sendData.hasOwnProperty("isProviderGroup")){
                         sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
@@ -29719,6 +29737,9 @@ define(['js/app'], function (myApp) {
                                 data.expirationTime = ret.data.expirationTime;
                                 data.createTime = ret.data.createTime;
                                 if (template){
+                                    if (ret && ret.data) {
+                                        data._id = ret.data._id;
+                                    }
                                     vm.updatePromoCodeTemplateInEdit("add", template, data, type, "openPromoCode");
                                     vm.initNewPromoCodeTemplate(type, 'openPromoCode')
                                 }
@@ -37000,6 +37021,110 @@ define(['js/app'], function (myApp) {
                             if (data) {
                                 if (typeof index !== "undefined") {
                                     vm.firstLoginAdvertisementList.splice(index, 1);
+                                    $scope.$evalAsync();
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+
+            vm.initRewardShopAdvertisement = () => {
+                vm.rewardShopAdvertisementList = [];
+                vm.getRewardShopAdvertisement();
+
+                vm.addNewRewardShopAdvertisement = false;
+                vm.editXBETAdvertisement = false;
+            }
+
+            vm.getRewardShopAdvertisement = () => {
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    type: vm.constXBETAdvertisementType.REWARD_POINTS_AD
+                }
+                socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
+                    if (data && data.data) {
+                        vm.rewardShopAdvertisementList = data.data;
+                    } else {
+                        vm.rewardShopAdvertisementList = [];
+                    }
+                    $scope.$evalAsync();
+                });
+
+            }
+
+            vm.addNewRewardShopAd = () => {
+                vm.addNewRewardShopAdvertisement = true;
+                vm.newRewardShopAd = {
+                    status: 1,
+                    orderNo: vm.rewardShopAdvertisementList && vm.rewardShopAdvertisementList.length && vm.rewardShopAdvertisementList.length + 1 || 1,
+                    type: vm.constXBETAdvertisementType.REWARD_POINTS_AD,
+                    css: "width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
+                }
+            }
+
+            vm.saveNewRewardShopAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.rewardShopAdvertisementList) || !(vm.newRewardShopAd && vm.newRewardShopAd.orderNo)) {
+                    return;
+                }
+                if (vm.rewardShopAdvertisementList && vm.rewardShopAdvertisementList.length) {
+                    let allOrderNo = vm.rewardShopAdvertisementList.map(item => item.orderNo)
+                    if (allOrderNo.includes(vm.newRewardShopAd.orderNo)) {
+                        return;
+                    }
+                }
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    orderNo: vm.newRewardShopAd.orderNo,
+                    type: vm.newRewardShopAd.type,
+                    title: vm.newRewardShopAd.title,
+                    url: vm.newRewardShopAd.url,
+                    hyperLink:vm.newRewardShopAd.hyperLink,
+                    status: vm.newRewardShopAd.status,
+                    showInFrontEnd: vm.newRewardShopAd.showInFrontEnd,
+                    css: vm.newRewardShopAd.css,
+                    hoverCss: vm.newRewardShopAd.hoverCss,
+                }
+
+                socketService.$socket($scope.AppSocket, 'createNewXBETAdvertisement', sendData, function (data) {
+                    if (data) {
+                        vm.addNewRewardShopAdvertisement = false;
+                        vm.getRewardShopAdvertisement();
+                    }
+                });
+
+            }
+
+            vm.updateRewardShopAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.rewardShopAdvertisementList)) {
+                    return;
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateXBETAdvertisement', vm.rewardShopAdvertisementList, function (data) {
+                    if (data) {
+                        vm.editXBETAdvertisement = false;
+                        vm.getRewardShopAdvertisement();
+                    }
+                });
+            }
+
+            vm.deleteRewardShopAdvertisementRecord = function (advertisementId, index) {
+                if (advertisementId) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                    };
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deleteXBETAdvertisementRecord', sendData, function (data) {
+                            if (data) {
+                                if (typeof index !== "undefined") {
+                                    vm.rewardShopAdvertisementList.splice(index, 1);
                                     $scope.$evalAsync();
                                 }
                             }
