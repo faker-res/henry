@@ -3,6 +3,10 @@
         .well
             label {{'SEARCH' | translate}}
             div
+                label.control-label {{'Platform (Multiple Selection)' | translate}}&nbsp;
+                .inlineBlk
+                    select.form-control(ng-model='vm.csUrlSearchQuery.platforms', ng-options='a.id as a.text for a in vm.platformList', multiple, bsp, data-actions-box='true')
+            div
                 label.control-label {{'OFFICER_NAME' | translate}}&nbsp;
                 .inlineBlk
                     select.form-control(ng-model='vm.csUrlSearchQuery.admin', ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
@@ -56,12 +60,14 @@
     .col-md-12
         div(style="height:265px;overflow:auto;margin-bottom:5px")
             form(name="officerUrlForm")
-                table.simple-table(style='width:auto;min-width:99.9%')
+                table.common-table.dataTable(style='width:auto;min-width:99.9%')
                     thead
                         tr
-                            th(width="28%") {{'OFFICER_NAME' | translate}}
-                            th(width="20%") {{'PROMOTE_WAY' | translate}}
-                            th(width="47%") {{'URL' | translate}}
+                            th.sorting(width="28%", ng-click="vm.sortCS='';vm.searchCsUrl()") {{'OFFICER_NAME' | translate}}
+                            th.sorting(width="20%", ng-click="vm.sortCS='promoWay';vm.searchCsUrl()") {{'PROMOTE_WAY' | translate}}
+                            th.sorting(width="27%", ng-click="vm.sortCS='promoUrl';vm.searchCsUrl()") {{'URL' | translate}}
+                            th.sorting(width="5%", ng-click="vm.sortCS='promoUrl';vm.searchCsUrl()") {{'Last Editor' | translate}}
+                            th.sorting(width="20%", ng-click="vm.sortCS='promoUrl';vm.searchCsUrl()") {{'date' | translate}}
                             th(width="5%", ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
                     tbody
                         tr(ng-if="!vm.urlTableAdd && !vm.urlTableEdit", ng-repeat="(i,url) in vm.allUrl", sn-selectable-model="vm.selectedOfficerUrl", sn-selectable-value="url", ng-click="vm.currentUrlEditSelect = url")
@@ -71,6 +77,10 @@
                                 text {{url.way}}
                             td
                                 text {{url.domain}}
+                            td
+                                text {{url.lastEditor.adminName || ''}}
+                            td
+                                text {{url.lastUpdate | date : 'yyyy-MM-dd HH:mm:ss'}}
                             td(ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
                                 a {{'SELECT' | translate}}
                         tr(ng-if="vm.urlTableEdit")
@@ -91,6 +101,17 @@
                                     option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
                             td
                                 input.form-control(type="text", ng-model="vm.addOfficerUrl.url", required)
+
+                        tr(ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
+                            td
+                                text {{vm.countPromoWay.cs.length}}
+                            td
+                                text {{vm.countPromoWay.promoWay.length}}
+                            td
+                                text {{vm.countPromoWay.promoUrl.length}}
+                            td
+
+
 
         .pull-right
             button.btn.btn-primary.common-button(ng-if="!vm.urlTableEdit && !vm.urlTableAdd && checkViewPermission('Platform', 'RegistrationUrlConfig','Create')", ng-click="vm.initCreateUrl()")

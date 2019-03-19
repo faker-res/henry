@@ -30,12 +30,12 @@ let dbCsOfficer = {
         return dbconfig.collection_csPromoteWay.remove({_id: promoteWayId, platform: platformId});
     },
 
-    addUrl: (platformId, adminId, domain, way) => {
-
-        let urlExistProm = dbconfig.collection_csOfficerUrl.find({platform: platformId, domain: {$regex: "/^" + domain + "$/i"}}).count();
-
+    addUrl: (platformId, adminId, domain, way, creatorId) => {
+        let urlExistProm = dbconfig.collection_csOfficerUrl.find({platform: platformId, domain: { $regex: domain, $options: 'i' }}).count();
+        // domain: {$regex: "/" + domain + "/i"}}).count();
         return urlExistProm.then(
             urlIsExist => {
+                console.log('**urlIsExist', urlIsExist)
                 if (urlIsExist) {
                     return Promise.reject({
                         name: "DataError",
@@ -47,7 +47,9 @@ let dbCsOfficer = {
                     platform: platformId,
                     admin: adminId,
                     domain: domain,
-                    way: way
+                    way: way,
+                    lastEditor: ObjectId(creatorId),
+                    lastUpdate: new Date()
                 };
 
                 let newUrl = dbconfig.collection_csOfficerUrl(newUrlData);
@@ -57,15 +59,19 @@ let dbCsOfficer = {
     },
 
     getAllUrl: (platformId) => {
-        return dbconfig.collection_csOfficerUrl.find({platform: platformId}).lean();
+        return dbconfig.collection_csOfficerUrl.find({platform: platformId}).populate({path: "lastEditor", model: dbconfig.collection_admin}).lean();
     },
 
-    searchUrl: (platform, domain, admin, way) => {
-        let query = {platform: ObjectId(platform)};
+    searchUrl: (platforms, domain, admin, way) => {
+        let query = {};
+        if( platforms && platforms.length > 0 ) {
+            query.platform = { $in: platforms };
+        }
         domain ? query.domain = new RegExp('.*' + domain + '.*') : "";
         admin ? query.admin = admin : "";
         way ? query.way = way : "";
-        return dbconfig.collection_csOfficerUrl.find(query).lean();
+
+        return dbconfig.collection_csOfficerUrl.find(query).populate({path: "lastEditor", model: dbconfig.collection_admin}).lean();
     },
 
     domainValidityChecking: (urlId, platformId) => {
@@ -112,23 +118,54 @@ let dbCsOfficer = {
         }
     },
 
-    updateUrl: (urlId, domain, admin, way, platformId, ignoreChecking) => {
-
+    updateUrl: (urlId, domain, admin, way, platformId, ignoreChecking, lastEditor) => {
+        let lastUpdate;
         if (ignoreChecking){
-            return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way}).lean();
+            lastUpdate = new Date();
+            return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way, lastEditor, lastUpdate}).lean();
         }
         else{
-            return dbCsOfficer.domainValidityChecking(urlId, platformId).then( count => {
-                if (count && count > 0){
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "This domain is not allowed to delete nor edit as there is new registration within 90 days."
-                    })
-                }
-                else{
-                    return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way}).lean();
-                }
+            return dbconfig.collection_csOfficerUrl.find({ domain: domain }).lean()
+            .then(
+                csOfficer => {
+
+                    if ( csOfficer.length > 1) {
+                        console.log('***** more than 1')
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Duplicate Assign Domain Name"
+                        })
+                    } else if (csOfficer.length == 1) {
+                        console.log('***** just 1');
+                        let selectedCSOfficer = csOfficer.filter(item => {
+                            return item._id.equals(urlId);
+                        });
+                        selectedCSOfficer = (selectedCSOfficer && selectedCSOfficer[0]) ? selectedCSOfficer[0] : null;
+                        if (!selectedCSOfficer) {
+                            console.log('***** !selectedCSOfficer');
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Duplicate Assign Domain Name"
+                            })
+                        }else{
+                            console.log('***** selectedCSOfficer true');
+                        }
+                    }
+                    return dbCsOfficer.domainValidityChecking(urlId, platformId)
             })
+            .then(
+                count => {
+                    if (count && count > 0){
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "This domain is not allowed to delete nor edit as there is new registration within 90 days."
+                        })
+                    }
+                    else{
+                        lastUpdate = new Date();
+                        return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way, lastEditor, lastUpdate}).lean();
+                    }
+                })
         }
 
     },
