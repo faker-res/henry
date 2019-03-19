@@ -718,7 +718,7 @@ var proposal = {
             .populate({path: "type", model: dbconfig.collection_proposalType})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
-            .populate({path: 'data.platformId', model: dbconfig.collection_platform})
+            .then(populateProposalsWithPlatformData)
             .then(
                 proposalData => {
                     let allProm = [];
@@ -1677,14 +1677,13 @@ var proposal = {
                         proposalTypesId.push(types[i]._id);
                     }
                     return dbconfig.collection_proposal.find({type: {$in: proposalTypesId}}).populate({
-                        path: 'data.platformId', model: dbconfig.collection_platform
-                    }).populate({
                         path: 'type',
                         model: dbconfig.collection_proposalType
                     }).populate({
                         path: 'process',
                         model: dbconfig.collection_proposalProcess
                     }).sort({createTime: -1}).limit(constSystemParam.MAX_RECORD_NUM * 10).lean()
+                        .then(populateProposalsWithPlatformData)
                         .then(
                             data => {
                                 data.map(item => function (item) {
@@ -2262,9 +2261,9 @@ var proposal = {
                                 .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                                 .populate({path: 'isLocked', model: dbconfig.collection_admin})
                                 .populate({path: 'data.playerObjId', model: dbconfig.collection_players})
-                                .populate({path: 'data.platformId', model: dbconfig.collection_platform})
                                 //.populate({path: 'data.playerObjId.csOfficer', model: dbconfig.collection_csOfficerUrl})
                                 .sort(sortCol).skip(index).limit(size).lean()
+                                .then(populateProposalsWithPlatformData)
                                 .then(
                                     pdata => {
                                         pdata.map(item => {
@@ -2333,8 +2332,8 @@ var proposal = {
                                             .populate({path: 'process', model: dbconfig.collection_proposalProcess})
                                             // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
                                             .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
-                                            .populate({path: 'isLocked', model: dbconfig.collection_admin})
-                                            .populate({path: 'data.platformId', model: dbconfig.collection_platform})
+                                            .populate({path: 'isLocked', model: dbconfig.collection_admin}).lean()
+                                            .then(populateProposalsWithPlatformData)
                                     }
 
                                     for (var index in aggr) {
@@ -3533,7 +3532,7 @@ var proposal = {
                         model: dbconfig.collection_proposalProcess
                     }).populate({
                         path: "type", model: dbconfig.collection_proposalType
-                    }).populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
+                    }).lean().then(populateProposalsWithPlatformData);
                     let c = dbconfig.collection_proposal.aggregate([
                         {
                             $match: queryData
@@ -3666,8 +3665,8 @@ var proposal = {
                     a = dbconfig.collection_proposal.find(reqData).lean().count();
                     b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                         .populate({path: "type", model: dbconfig.collection_proposalType})
-                        .populate({path: "process", model: dbconfig.collection_proposalProcess})
-                        .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
+                        .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean()
+                        .then(populateProposalsWithPlatformData);
                     c = dbconfig.collection_proposal.aggregate([
                         {
                             $match: reqData
@@ -10353,6 +10352,30 @@ function getRemark (lineNo, callbackRemark) {
         remark = (remarkMsg[lineNo] && remarkMsg[lineNo][1] && lineNo!= "1") ? remarkMsg[lineNo][1] : '';
     }
     return remark;
+}
+
+function populateProposalsWithPlatformData (proposals) {
+    let allPlatforms = {};
+    function populate(proposal) {
+        if(proposal.data && proposal.data.platformId) {
+            proposal.data.platformId = allPlatforms[proposal.data.platformId.toString()];
+        }
+    }
+    return dbconfig.collection_platform.find().lean().then(platforms=>{
+        platforms.forEach(platform=>{
+            allPlatforms[platform._id] = platform;
+            allPlatforms[platform.platformId] = platform;
+        });
+        if(proposals instanceof Array) {
+            proposals.forEach(proposal=>{
+                populate(proposal);
+            });
+        } else {
+            populate(proposals);
+        }
+
+        return proposals;
+    });
 }
 
 var proto = proposalFunc.prototype;
