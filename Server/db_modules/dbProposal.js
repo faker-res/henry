@@ -8229,7 +8229,8 @@ var proposal = {
                                 proposalId: data.proposalId,
                                 status: data.status,
                                 amount: data.data.amount,
-                                type: data.type && data.type.name ? data.type.name : ""
+                                type: data.type && data.type.name ? data.type.name : "",
+                                createTime: data.createTime
                             };
 
                             if (data.data.actualAmountReceived) {

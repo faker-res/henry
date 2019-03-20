@@ -15135,7 +15135,9 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
                 $scope.$evalAsync(() => {
-                    vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                    if (data && data.data && data.data.data) {
+                        vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                    }
                 })
             })
 
