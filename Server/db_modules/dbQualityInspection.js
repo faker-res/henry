@@ -3075,7 +3075,9 @@ var dbQualityInspection = {
             return new Date(newDate.setDate(newDate.getDate() + 1));
         }
 
-        while (dayStartTime.getTime() < new Date(endTime).getTime()) {
+        let totalDays = dbUtility.getNumberOfDays(startTime, endTime);
+
+        for(let x = 0; x < totalDays; x++){
             var dayEndTime = getNextDate.call(this, dayStartTime);
 
             let matchObj = {
@@ -3205,7 +3207,9 @@ var dbQualityInspection = {
             return new Date(newDate.setDate(newDate.getDate() + 1));
         }
 
-        while (dayStartTime.getTime() < new Date(endTime).getTime()) {
+        let totalDays = dbUtility.getNumberOfDays(startTime, endTime);
+
+        for(let x = 0; x < totalDays; x++){
             var dayEndTime = getNextDate.call(this, dayStartTime);
 
             let matchObj = {
