@@ -407,6 +407,9 @@ let resetPasswordVerificationModel = dbLogs2.model('resetPasswordVerification', 
 let paymentMonitorFollowUpSchema = require('./../schema/logs2/paymentMonitorFollowUp');
 let paymentMonitorFollowUpModel = dbLogs2.model('paymentMonitorFollowUp', paymentMonitorFollowUpSchema, 'paymentMonitorFollowUp');
 
+let playerConsumptionHourSummarySchema = require('./../schema/logs2/playerConsumptionHourSummary');
+let playerConsumptionHourSummaryModel = dbLogs2.model('playerConsumptionHourSummary', playerConsumptionHourSummarySchema, 'playerConsumptionHourSummary');
+
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
@@ -700,6 +703,7 @@ var dbProperties = {
     collection_playerTopUpWeekSummary: playerTopUpWeekSummaryModel,
     collection_playerConsumptionRecord: playerConsumptionRecordModel,
     collection_playerConsumptionSummary: playerConsumptionSummaryModel,
+    collection_playerConsumptionHourSummary: playerConsumptionHourSummaryModel,
     collection_playerConsumptionDaySummary: playerConsumptionDaySummaryModel,
     collection_playerConsumptionWeekSummary: playerConsumptionWeekSummaryModel,
     collection_playerGameTypeConsumptionDaySummary: playerGameTypeConsumptionDaySummaryModel,

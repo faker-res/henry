@@ -30,6 +30,7 @@ let dbGameProvider = require('../db_modules/dbGameProvider');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 let dbPlatform = require("../db_modules/dbPlatform.js");
+const dbPlayerConsumptionHourSummary = require("../db_modules/dbPlayerConsumptionHourSummary");
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -410,6 +411,9 @@ var dbPlayerConsumptionRecord = {
                 record = data;
                 if (record) {
                     //update player consumption sum
+                    dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1).catch(err => {
+                        console.error('update hour summary failed', err);
+                    });
                     var playerProm = dbconfig.collection_players.findOneAndUpdate(
                         {_id: record.playerId, platform: record.platformId},
                         {
@@ -584,6 +588,9 @@ var dbPlayerConsumptionRecord = {
 
                 if (record) {
                     // Update player consumption sum
+                    dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1).catch(err => {
+                        console.error('update hour summary failed', err);
+                    });
                     return dbconfig.collection_players.findOneAndUpdate(
                         {_id: record.playerId, platform: record.platformId},
                         {
@@ -867,7 +874,10 @@ var dbPlayerConsumptionRecord = {
 
     updateExternalPlayerConsumptionRecordData: function (oldData, updateData, resolveError) {
         let providerName;
-        var recordData = Object.assign({}, updateData);
+        let recordData = Object.assign({}, updateData);
+        let amount = updateData.amount - oldData.amount;
+        let validAmount = updateData.validAmount - oldData.validAmount;
+        let bonusAmount = updateData.bonusAmount - oldData.bonusAmount;
         return dbconfig.collection_platform.findOne({platformId: recordData.platformId}).then(
             platformData => {
                 if (platformData) {
@@ -925,6 +935,9 @@ var dbPlayerConsumptionRecord = {
                                 createBaccaratConsumption(providerObjId, providerName, newRecord, oldData._id);
                                 // update RTG only if consumption record is updated
                                 findRTGToUpdate(oldData, recordData);
+                                dbPlayerConsumptionHourSummary.updateSummary(newRecord.platformId, newRecord.playerId, newRecord.createTime, amount, validAmount, bonusAmount, 0).catch(err => {
+                                    console.error('update hour summary failed', err);
+                                });
                             }else{
                                 let code = constServerCode.CONSUMPTION_UPDATE_NOT_SUCCESS;
                                 return resolveError ? Q.resolve(false) : Q.reject({
