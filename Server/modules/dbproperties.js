@@ -490,6 +490,9 @@ let auctionSystemModel = dbLogs2.model('auctionSystem', auctionSystemSchema, 'au
 let playerReportDataDaySummarySchema = require('../schema/playerReportDataDaySummary');
 let playerReportDataDaySummaryModel = dbLogs2.model('playerReportDataDaySummary', playerReportDataDaySummarySchema, 'playerReportDataDaySummary');
 
+let winRateReportDataDaySummarySchema = require('../schema/winRateReportDataDaySummary');
+let winRateReportDataDaySummaryModel = dbLogs2.model('winRateReportDataDaySummary', winRateReportDataDaySummarySchema, 'winRateReportDataDaySummary');
+
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
 
@@ -684,6 +687,7 @@ var dbProperties = {
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,
+    collection_winRateReportDataDaySummary: winRateReportDataDaySummaryModel,
 
     //logs
     collection_playerMail: playerMailModel,
