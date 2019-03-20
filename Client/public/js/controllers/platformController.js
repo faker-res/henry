@@ -28248,6 +28248,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
                 vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
+                vm.platformBasic.requireSMSCodeForBankRegistrationAtFirstTime = vm.selectedPlatform.data.requireSMSCodeForBankRegistrationAtFirstTime;
                 vm.platformBasic.demoPlayerValidDays = vm.selectedPlatform.data.demoPlayerValidDays;
                 vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
                 vm.platformBasic.requireLogInCaptcha = vm.selectedPlatform.data.requireLogInCaptcha;
@@ -30102,6 +30103,7 @@ define(['js/app'], function (myApp) {
                         minTopUpAmount: srcData.showMinTopupAmount,
                         allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                        requireSMSCodeForBankRegistrationAtFirstTime: srcData.requireSMSCodeForBankRegistrationAtFirstTime,
                         demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
                         sameBankAccountCount: srcData.sameBankAccountCount,

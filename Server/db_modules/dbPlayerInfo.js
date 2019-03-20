@@ -3321,6 +3321,7 @@ let dbPlayerInfo = {
         let smsLogData;
         let duplicatedRealNameCount = 0;
         let sameBankAccountCount = 0;
+        let isfirstTimeRegistration = false;
 
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
@@ -3396,6 +3397,7 @@ let dbPlayerInfo = {
                 sameBankAccountCount = data[1] || 0;
 
                 if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
+                    isfirstTimeRegistration = true;
                     if (updateData && updateData.bankAccountName) {
                         updateData.realName = updateData.bankAccountName;
                     }
@@ -3461,6 +3463,16 @@ let dbPlayerInfo = {
                             code: constServerCode.INVALID_DATA,
                             message: "The name has been registered, please change a new bank card or contact our cs."
                         });
+                    }
+
+                    // check require sms code if bank card registration at first time
+                    if (isfirstTimeRegistration){
+                        if(platformData.requireSMSCodeForBankRegistrationAtFirstTime){
+                            platformData.requireSMSVerificationForPaymentUpdate = true;
+                        }
+                        else{
+                            platformData.requireSMSVerificationForPaymentUpdate = false;
+                        }
                     }
 
                     // Check if platform sms verification is required
