@@ -16,6 +16,9 @@ style.
                 .tab-pane.fade.in.active
                     #search.well
                         .search-filters-item
+                            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                            select.form-control.spicker(ng-model="vm.queryProposalSelectedPlatform" ng-options='v._id as v.name$ for v in vm.platformList' multiple bsp data-actions-box='true')
+                        .search-filters-item
                             label {{"REGISTRATION_AGENT"|translate}}
                             select.form-control(ng-model="vm.proposalInputDevice")
                                 option(value='') {{'all'|translate}}
@@ -104,6 +107,9 @@ style.
             div(ng-show="vm.rightPanelTitle == 'APPROVAL_PROPOSAL'")
                 .tab-pane.fade.in.active
                     #searchAudit.well
+                        .search-filters-item
+                            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                            select.form-control.spicker(ng-model="vm.queryProposalAuditSelectedPlatform" ng-options='v._id as v.name$ for v in vm.platformList' multiple bsp data-actions-box='true')
                         .search-filters-item(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalId')")
                             label {{"Proposal No" | translate}}
                             input.form-control(ng-model='vm.queryProposalAuditId', ng-change='vm.queryProposalAuditIdUpdate()')

@@ -5448,7 +5448,7 @@ let dbPlayerInfo = {
             let tempEmail = data.email;
             delete data.email;
             advancedQuery = {
-                platform: platformId,
+                platform: {$in: platformId},
                 $and: [
                     data,
                     {$or: [{email: tempEmail}, {qq: tempEmail}]}
@@ -5456,13 +5456,13 @@ let dbPlayerInfo = {
             }
         } else {
             advancedQuery = {
-                platform: platformId,
+                platform: {$in: platformId},
                 $and: [data]
             }
         }
 
         return dbconfig.collection_platform.findOne({
-            _id: platformId
+            _id: {$in: platformId}
         }).lean().then(
             platform => {
                 isProviderGroup = Boolean(platform.useProviderGroup);

@@ -1732,7 +1732,8 @@
                                     td.col-md-4.oblique {{'CHANGE_AMOUNT' | translate}}
                                     td.col-md-4.oblique {{'updateData' | translate}}
                                 tr
-                                    td {{vm.selectedSinglePlayer.validCredit | number:2}}
+                                    td {{vm.creditChange.validCredit}}
+                                    //td {{vm.selectedSinglePlayer.validCredit | number:2}}
                                     td
                                         input.text-success(type='number', ng-model='vm.creditChange.updateAmount', ng-change="vm.getFinalValidAmount();")
                                     td
