@@ -35,6 +35,24 @@ var dbPlayerConsumptionDaySummary = {
         );
     },
 
+    upsertWinRateReportDataDaySummary: function(data){
+        var upsertData = JSON.parse(JSON.stringify(data));
+        delete upsertData.playerId;
+        delete upsertData.platformId;
+        delete upsertData.date;
+
+        return dbutility.upsertForShard(
+            dbconfig.collection_winRateReportDataDaySummary,
+            {
+                playerId: data.playerId,
+                platformId: data.platformId,
+                date: data.date,
+            },
+            upsertData,
+            constShardKeys.collection_winRateReportDataDaySummary
+        );
+    },
+
     createPlayerConsumptionDaySummary: (platformId, playerId, startTime, endTime, amount, validAmount, bonusAmount, times) => {
         let log = {
             platformId: platformId,
@@ -306,6 +324,85 @@ var dbPlayerConsumptionDaySummary = {
         return dbconfig.collection_playerConsumptionSummary.find({
             playerId: playerObjId
         }).sort({createTime: -1}).limit(10).lean();
+    },
+
+
+    calculateWinRateReportDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
+        let balancer = new SettlementBalancer();
+        return balancer.initConns().then(function () {
+            platformId = ObjectId(platformId);
+            return dbPlayerConsumptionRecord.streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId).then(
+                playerObjIds => {
+                    let stream = dbconfig.collection_players.aggregate(
+                        [
+                            {
+                                $match: {
+                                    "_id": {$in: playerObjIds}
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: '$_id'
+                                }
+                            }
+                        ]
+                    ).cursor({batchSize: 1000}).allowDiskUse(true).exec();
+
+                    return Q(
+                        balancer.processStream({
+                            stream: stream,
+                            batchSize: constSystemParam.BATCH_SIZE,
+                            makeRequest: function (playerIdObjs, request) {
+                                request("player", "winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers", {
+                                    startTime: startTime,
+                                    endTime: endTime,
+                                    platformId: platformId,
+                                    playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj._id)
+                                });
+                            }
+                        })
+                    );
+                }
+            )
+        });
+    },
+
+    winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers: function (startTime, endTime, platformId, playerObjIds) {
+        return dbPlayerTopUpRecord.getWinRateReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
+            function (data) {
+                if (data && data.length > 0) {
+                    return data;
+                } else {
+                    return Promise.reject({name: "DBError", message: "Get win rate report day summary failed!", error: error});
+                }
+            },
+            function (error) {
+                return Promise.reject({name: "DBError", message: "Get win rate report day summary failed!", error: error});
+            }
+        ).then(
+            function (data) {
+                if (data) {
+                    let proms = data.map(
+                        sum => {
+                            sum.date = startTime;
+                            sum.createTime = new Date();
+                            return dbPlayerConsumptionDaySummary.upsertWinRateReportDataDaySummary(sum);
+                        }
+                    );
+                    return Q.all(proms);
+                }
+            },
+            function (error) {
+                return Promise.reject({name: "DBError", message: "Update win rate report data day summary failed!", error: error});
+            }
+        ).then(
+            function (data) {
+                return data;
+            },
+            function (error) {
+                return Promise.reject({name: "DBError", message: "Update win rate report data day summary failed!", error: error});
+            }
+        );
     },
 };
 

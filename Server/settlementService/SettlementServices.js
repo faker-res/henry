@@ -24,6 +24,7 @@
                 "playerConsumption_calculatePlatformWeekSummaryForPlayers",
                 "playerTopUpDaySummary_calculatePlatformDaySummaryForPlayers",
                 "playerReportDaySummary_calculatePlatformDaySummaryForPlayers",
+                "winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers",
                 "playerTopUpDaySummary_calculatePlatformDaySummaryForActiveValidPlayer",
                 "playerTopUpWeekSummary_calculatePlatformWeekSummaryForPlayers",
                 "checkPlatformFullAttendanceForPlayers",
