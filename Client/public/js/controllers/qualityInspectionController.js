@@ -425,23 +425,37 @@ define(['js/app'], function (myApp) {
                 vm.searchLive800();
             };
             vm.getTotalNumberOfAppealingRecord = function(){
-                socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecord', "", function (data) {
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecord', "", success);
+                }
+                else{
+                    socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecordByDailyRecord', "", success);
+                }
+
+                function success(data) {
                     $scope.$evalAsync(() => {
                         if (data && data.hasOwnProperty("data")) {
                             vm.appealingTotalRecord = data.data;
                         }
                     });
-                });
+                }
 
             };
             vm.getTotalNumberOfAppealingRecordByCS = function(){
-                socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecordByCS', "", function (data) {
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecordByCS', "", success);
+                }
+                else{
+                    socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecordByCSInDailyRecord', "", success);
+                }
+
+                function success (data) {
                     $scope.$evalAsync(() => {
                         if (data && data.data) {
                             vm.appealingTotalRecordByCS = data.data;
                         }
                     });
-                });
+                }
 
             };
             vm.searchLive800 = function(){
@@ -682,7 +696,8 @@ define(['js/app'], function (myApp) {
                     vm.inspection800 = {
                         status: '1',
                         qiUser: 'all',
-                        displayWay: 'true'
+                        displayWay: 'true',
+                        searchBySummaryData: false
                     }
                 }
                 vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:100, count:0};
@@ -964,10 +979,16 @@ define(['js/app'], function (myApp) {
                     endTime: endTime,
                     index: vm.unreadEvaluationRecord.index ? vm.unreadEvaluationRecord.index : 0,
                     limit: vm.unreadEvaluationRecord.limit ? vm.unreadEvaluationRecord.limit : 10,
+                };
+
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, success);
+                }
+                else {
+                    socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecordByDailyRecord', sendData, success);
                 }
 
-                socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
-
+                function success(data) {
                     if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
@@ -1047,9 +1068,9 @@ define(['js/app'], function (myApp) {
                     }
 
                     vm.loadingUnreadEvaluationTable = false;
-                    $scope.safeApply();
-                });
-            }
+                    $scope.$evalAsync();
+                }
+            };
 
             vm.getReadEvaluationRecord = function(page) {
                 vm.loadingReadEvaluationTable = true;
@@ -1067,7 +1088,14 @@ define(['js/app'], function (myApp) {
                     limit: vm.unreadEvaluationRecord.limit ? vm.unreadEvaluationRecord.limit : 1,
                 }
 
-                socketService.$socket($scope.AppSocket, 'getReadEvaluationRecord', sendData, function (data) {
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'getReadEvaluationRecord', sendData, success);
+                }
+                else {
+                    socketService.$socket($scope.AppSocket, 'getReadEvaluationRecordByDailyRecord', sendData, success);
+                }
+
+                function success (data) {
                     if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
@@ -1130,7 +1158,7 @@ define(['js/app'], function (myApp) {
                                 pageList.children[a - 1].className = pageList.children[a - 1].className.replace(/active/g, "");
                             }
                         }
-                        $scope.safeApply();
+                        $scope.$evalAsync();
                         pageList = document.querySelector("#readEvaluationPagination");
                         if(pageList && page && pageList.children[page - 1] && pageList.children[page - 1].className){
                             pageList.children[page - 1].className += " active";
@@ -1140,8 +1168,8 @@ define(['js/app'], function (myApp) {
                     }
 
                     vm.loadingReadEvaluationTable = false;
-                    $scope.safeApply();
-                });
+                    $scope.$evalAsync();
+                }
             }
 
             vm.getAppealEvaluationRecordByConversationDate = function(page){
@@ -1161,7 +1189,14 @@ define(['js/app'], function (myApp) {
                     limit: vm.appealEvaluationRecord.limit ? vm.appealEvaluationRecord.limit : 10,
                 }
 
-                socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByConversationDate', sendData, function (data) {
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByConversationDate', sendData, success);
+                }
+                else {
+                    socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByConversationDateInDailyRecord', sendData, success);
+                }
+
+                function success (data) {
                     if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
@@ -1224,7 +1259,7 @@ define(['js/app'], function (myApp) {
                                 pageList.children[a - 1].className = pageList.children[a - 1].className.replace(/active/g, "");
                             }
                         }
-                        $scope.safeApply();
+                        $scope.$evalAsync();
                         pageList = document.querySelector("#appealEvaluationPagination");
                         if(pageList && page && pageList.children[page - 1] && pageList.children[page - 1].className){
                             pageList.children[page - 1].className += " active";
@@ -1234,8 +1269,8 @@ define(['js/app'], function (myApp) {
                     }
 
                     vm.loadingAppealEvaluationTable = false;
-                    $scope.safeApply();
-                });
+                    $scope.$evalAsync();
+                }
             }
 
             vm.getAppealEvaluationRecordByAppealDate = function(page){
@@ -1255,7 +1290,14 @@ define(['js/app'], function (myApp) {
                     limit: vm.appealEvaluationRecord.limit ? vm.appealEvaluationRecord.limit : 10,
                 }
 
-                socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByAppealDate', sendData, function (data) {
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByAppealDate', sendData, success);
+                }
+                else {
+                    socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByAppealDateInDailyRecord', sendData, success);
+                }
+
+                function success (data) {
                     if(data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
@@ -1329,8 +1371,8 @@ define(['js/app'], function (myApp) {
                     }
 
                     vm.loadingAppealEvaluationTable = false;
-                    $scope.safeApply();
-                });
+                    $scope.$evalAsync();
+                }
             }
 
             vm.gatherCheckedRecord = function(isChecked, messageId, appealReason){
@@ -1364,11 +1406,20 @@ define(['js/app'], function (myApp) {
                         status: vm.constQualityInspectionStatus[2]
                     }
 
-                    socketService.$socket($scope.AppSocket, 'markEvaluationRecordAsRead', sendData, function (data) {
-                        if(data){
-                            vm.getUnreadEvaluationRecord();
-                        }
-                    });
+                    if (!vm.inspection800.searchBySummaryData) {
+                        socketService.$socket($scope.AppSocket, 'markEvaluationRecordAsRead', sendData, function (data) {
+                            if(data){
+                                vm.getUnreadEvaluationRecord();
+                            }
+                        });
+                    }
+                    else{
+                        socketService.$socket($scope.AppSocket, 'markEvaluationRecordAsReadByDailyRecord', sendData, function (data) {
+                            if(data){
+                                vm.getUnreadEvaluationRecord();
+                            }
+                        });
+                    }
 
                 }
             }
@@ -1379,11 +1430,21 @@ define(['js/app'], function (myApp) {
                         appealDetailArr: vm.unreadEvaluationSelectedRecord
                     }
 
-                    socketService.$socket($scope.AppSocket, 'appealEvaluation', sendData, function (data) {
-                        if(data){
-                            vm.getUnreadEvaluationRecord();
-                        }
-                    });
+                    if (!vm.inspection800.searchBySummaryData) {
+                        socketService.$socket($scope.AppSocket, 'appealEvaluation', sendData, function (data) {
+                            if(data){
+                                vm.getUnreadEvaluationRecord();
+                            }
+                        });
+                    }
+                    else{
+                        socketService.$socket($scope.AppSocket, 'appealEvaluationByDailyRecord', sendData, function (data) {
+                            if(data){
+                                vm.getUnreadEvaluationRecord();
+                            }
+                        });
+                    }
+
                 }
             }
             //////////////////////////////////////////////////////////End of Evaluation Tab///////////////////////////////////////////////////////////////////
@@ -1418,7 +1479,14 @@ define(['js/app'], function (myApp) {
 
                 let resultArr = [];
 
-                socketService.$socket($scope.AppSocket, 'getWorkloadReport', sendData, function (data) {
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'getWorkloadReport', sendData, successFunc, errorFunc);
+                }
+                else {
+                    socketService.$socket($scope.AppSocket, 'getWorkloadReportByDailyRecord', sendData, successFunc, errorFunc);
+                }
+
+                function successFunc (data) {
                     $scope.$evalAsync(() => {
                         if(data && data.data && data.data.length > 0) {
                             data.data.map(data => {
@@ -1493,11 +1561,13 @@ define(['js/app'], function (myApp) {
 
                         vm.loadingWorkloadReportTable = false;
                     })
-                },function (error) {
-                        console.log("error", error);
-                    }
-                );
-            }
+                };
+
+                function errorFunc (error) {
+                    console.log("error", error);
+                };
+            };
+
             vm.drawQAReportTable = function(resultArr, total, size, newSearch) {
                 let tableData = resultArr;
 
@@ -1567,65 +1637,74 @@ define(['js/app'], function (myApp) {
                             endTime: $('#reportConversationEndDatetimePicker').data('datetimepicker').getLocalDate(),
                         };
 
-                        socketService.$socket($scope.AppSocket, 'getWorkloadReportByDate', params, function (data) {
-                            if (data && data.data && data.data.length > 0) {
-                                vm.displayDetailData = [];
+                        if (!vm.inspection800.searchBySummaryData) {
+                            socketService.$socket($scope.AppSocket, 'getWorkloadReportByDate', params, success, error);
+                        }
+                        else{
+                            socketService.$socket($scope.AppSocket, 'getWorkloadReportByDateInDailyRecord', params, success, error);
 
-                                data.data.forEach(detail => {
-
-                                    let detailData = {};
-
-                                    detailData.date = utilService.getFormatTime(new Date(detail.date)).split(" ")[0];
-                                    if (detail.data.length > 0) {
-
-                                        detail.data.forEach(inDetail => {
-                                            if (inDetail) {
-                                                let status = vm.constQualityInspectionStatus[inDetail._id.status];
-                                                if (status == "COMPLETED_UNREAD") {
-                                                    detailData.COMPLETED_UNREAD = inDetail.count;
-                                                }
-
-                                                if (status == "COMPLETED_READ") {
-                                                    detailData.COMPLETED_READ = inDetail.count;
-                                                }
-
-                                                if (status == "COMPLETED") {
-                                                    detailData.COMPLETED = inDetail.count;
-                                                }
-
-                                                if (status == "APPEALING") {
-                                                    detailData.APPEALING = inDetail.count;
-                                                }
-
-                                                if (data.status == "APPEAL_COMPLETED") {
-                                                    detailData.APPEAL_COMPLETED = inDetail.count;
-                                                }
-                                            }
-
-                                        })
-
-                                    }
-                                    vm.displayDetailData.push(detailData);
-                                });
-                            }
-
-                            vm.displayDetailData.map(data => {
-                                for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
-                                    if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
-                                        data[vm.constQualityInspectionStatus[i]] = 0;
-                                    }
-                                }
-                                return data;
-                            });
-
-                            $scope.safeApply();
-                            vm.drawDetailQAReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
-                        }, function (error) {
-                            console.log("error", error);
-                        });
-
+                        }
                         tr.addClass('shown');
                     }
+
+                    function success (data) {
+                        if (data && data.data && data.data.length > 0) {
+                            vm.displayDetailData = [];
+
+                            data.data.forEach(detail => {
+
+                                let detailData = {};
+
+                                detailData.date = utilService.getFormatTime(new Date(detail.date)).split(" ")[0];
+                                if (detail.data.length > 0) {
+
+                                    detail.data.forEach(inDetail => {
+                                        if (inDetail) {
+                                            let status = vm.constQualityInspectionStatus[inDetail._id.status];
+                                            if (status == "COMPLETED_UNREAD") {
+                                                detailData.COMPLETED_UNREAD = inDetail.count;
+                                            }
+
+                                            if (status == "COMPLETED_READ") {
+                                                detailData.COMPLETED_READ = inDetail.count;
+                                            }
+
+                                            if (status == "COMPLETED") {
+                                                detailData.COMPLETED = inDetail.count;
+                                            }
+
+                                            if (status == "APPEALING") {
+                                                detailData.APPEALING = inDetail.count;
+                                            }
+
+                                            if (status == "APPEAL_COMPLETED") {
+                                                detailData.APPEAL_COMPLETED = inDetail.count;
+                                            }
+                                        }
+
+                                    })
+
+                                }
+                                vm.displayDetailData.push(detailData);
+                            });
+                        }
+
+                        vm.displayDetailData.map(data => {
+                            for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
+                                if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
+                                    data[vm.constQualityInspectionStatus[i]] = 0;
+                                }
+                            }
+                            return data;
+                        });
+
+                        $scope.safeApply();
+                        vm.drawDetailQAReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
+                    };
+
+                    function error (error) {
+                        console.log("error", error);
+                    };
                 });
                 $('#workloadReportTable').off('order.dt');
                 $('#workloadReportTable').on('order.dt', function (event, a, b) {
@@ -1681,112 +1760,122 @@ define(['js/app'], function (myApp) {
                             sendData.platformObjId = platformArr;
                         }
                     }
-                    let resultArr = [];
 
-                    let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-                    let rowMaxLength = 7;
-                    socketService.$socket($scope.AppSocket, 'getEvaluationProgressRecord', sendData, function (data) {
-                        if(data && data.data && data.data.length > 0){
-                            //let result = data.data.sort(function(a,b) {return (a.platformName > b.platformName) ? 1 : ((b.platformName > a.platformName) ? -1 : 0);} );
-                            let counter = 1;
-                            let firstRow = [];
-                            let secondRow = [];
-                            let thirdRow = [];
-                            let fouthRow = [];
-                            let fifthRow = [];
-                            let sixthRow = [];
-                            let lastDateOfMonth = new Date(endDate);
-                            lastDateOfMonth.setDate(endDate.getDate() - 1);
-
-                            for(let day = 1; day <= lastDateOfMonth.getDate(); day ++){
-                                if(day == 1){
-                                    for(let i = 0; i < startDate.getDay(); i++){
-                                        firstRow.push({day: "-", isCompleted: false});
-                                    }
-                                    firstRow.push({day: day});
-
-                                    if(firstRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }else if(counter == 1){
-                                    firstRow.push({day: day});
-                                    if(firstRow.length == 7){
-                                        counter += 1;
-                                    }
-
-                                }else if(counter == 2){
-                                    secondRow.push({day: day});
-                                    if(secondRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }else if(counter == 3){
-                                    thirdRow.push({day: day});
-                                    if(thirdRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }else if(counter == 4){
-                                    fouthRow.push({day: day});
-                                    if(fouthRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }else if(counter == 5){
-                                    fifthRow.push({day: day});
-                                    if(fifthRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }else if(counter == 6){
-                                    sixthRow.push({day: day});
-                                    if(sixthRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }
-                            }
-
-                            let calendarData = [];
-
-                            calendarData.push(firstRow);
-                            calendarData.push(secondRow);
-                            calendarData.push(thirdRow);
-                            calendarData.push(fouthRow);
-                            calendarData.push(fifthRow);
-                            if(sixthRow.length > 0){
-                                calendarData.push(sixthRow);
-                            }
-                            let resultObj = {calendarData: calendarData, calendarTitle: weekDay};
-
-                            data.data.map(result => {
-                                if(result && result.length > 0){
-                                    let calendarDataObj = jQuery.extend(true, {}, resultObj);
-                                    result.forEach(resultByPlatform => {
-                                        if(resultByPlatform){
-                                            resultByPlatform.date = new Date(resultByPlatform.date);
-                                            calendarDataObj.calendarData.map(calendarData => {
-                                                let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
-                                                if(arrIndex != -1){
-                                                    calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
-                                                }
-                                            })
-                                        }
-                                    })
-
-                                    resultArr.push({platformName: result[0].platformName, calendarData: calendarDataObj.calendarData, calendarTitle: calendarDataObj.calendarTitle});
-                                }
-                            })
-                            vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
-                            vm.evaluationProgressTable = resultArr;
-                            vm.loadingEvaluationProgressTable = false
-                            $scope.safeApply();
-                        }
-
-                    });
+                    if (!vm.inspection800.searchBySummaryData) {
+                        socketService.$socket($scope.AppSocket, 'getEvaluationProgressRecord', sendData, successFunc);
+                    }
+                    else {
+                        socketService.$socket($scope.AppSocket, 'getEvaluationProgressRecordByDailyRecord', sendData, successFunc);
+                    }
                 }
                 else{
                     socketService.showErrorMessage($translate('Please select Year - Month'));
                     vm.loadingEvaluationProgressTable = false
                     $scope.safeApply();
                 }
-            }
+
+                function successFunc (data) {
+                    if(data && data.data && data.data.length > 0){
+                        //let result = data.data.sort(function(a,b) {return (a.platformName > b.platformName) ? 1 : ((b.platformName > a.platformName) ? -1 : 0);} );
+                        let counter = 1;
+                        let firstRow = [];
+                        let secondRow = [];
+                        let thirdRow = [];
+                        let fouthRow = [];
+                        let fifthRow = [];
+                        let sixthRow = [];
+                        let yearMonthObj = JSON.parse(vm.yearMonth)
+                        let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
+                        let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1);
+                        let lastDateOfMonth = new Date(endDate);
+                        let resultArr = [];
+                        let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+                        let rowMaxLength = 7;
+
+                        lastDateOfMonth.setDate(endDate.getDate() - 1);
+
+                        for(let day = 1; day <= lastDateOfMonth.getDate(); day ++){
+                            if(day == 1){
+                                for(let i = 0; i < startDate.getDay(); i++){
+                                    firstRow.push({day: "-", isCompleted: false});
+                                }
+                                firstRow.push({day: day});
+
+                                if(firstRow.length == 7){
+                                    counter += 1;
+                                }
+                            }else if(counter == 1){
+                                firstRow.push({day: day});
+                                if(firstRow.length == 7){
+                                    counter += 1;
+                                }
+
+                            }else if(counter == 2){
+                                secondRow.push({day: day});
+                                if(secondRow.length == 7){
+                                    counter += 1;
+                                }
+                            }else if(counter == 3){
+                                thirdRow.push({day: day});
+                                if(thirdRow.length == 7){
+                                    counter += 1;
+                                }
+                            }else if(counter == 4){
+                                fouthRow.push({day: day});
+                                if(fouthRow.length == 7){
+                                    counter += 1;
+                                }
+                            }else if(counter == 5){
+                                fifthRow.push({day: day});
+                                if(fifthRow.length == 7){
+                                    counter += 1;
+                                }
+                            }else if(counter == 6){
+                                sixthRow.push({day: day});
+                                if(sixthRow.length == 7){
+                                    counter += 1;
+                                }
+                            }
+                        }
+
+                        let calendarData = [];
+
+                        calendarData.push(firstRow);
+                        calendarData.push(secondRow);
+                        calendarData.push(thirdRow);
+                        calendarData.push(fouthRow);
+                        calendarData.push(fifthRow);
+                        if(sixthRow.length > 0){
+                            calendarData.push(sixthRow);
+                        }
+                        let resultObj = {calendarData: calendarData, calendarTitle: weekDay};
+
+                        data.data.map(result => {
+                            if(result && result.length > 0){
+                                let calendarDataObj = jQuery.extend(true, {}, resultObj);
+                                result.forEach(resultByPlatform => {
+                                    if(resultByPlatform){
+                                        resultByPlatform.date = new Date(resultByPlatform.date);
+                                        calendarDataObj.calendarData.map(calendarData => {
+                                            let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
+                                            if(arrIndex != -1){
+                                                calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
+                                            }
+                                        })
+                                    }
+                                })
+
+                                resultArr.push({platformName: result[0].platformName, calendarData: calendarDataObj.calendarData, calendarTitle: calendarDataObj.calendarTitle});
+                            }
+                        })
+                        vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
+                        vm.evaluationProgressTable = resultArr;
+                        vm.loadingEvaluationProgressTable = false
+                        $scope.$evalAsync();
+                    }
+
+                };
+            };
 
             $scope.$on(eventName, function (e, d) {
                 vm.loadPlatformData();
@@ -2243,7 +2332,13 @@ define(['js/app'], function (myApp) {
                     'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate(),
                 };
 
-                socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecord', query, success, error);
+                if (!vm.inspection800.searchBySummaryData) {
+                    socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecord', query, success, error);
+                }
+                else{
+                    socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecordByDailyRecord', query, success, error);
+                }
+
                 function success(data) {
                     console.log("searchLive800Record", data);
                     vm.displayData = [];
@@ -2527,7 +2622,14 @@ define(['js/app'], function (myApp) {
                                     'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
                                 };
 
-                                socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecord', params, success, error);
+                                if (!vm.inspection800.searchBySummaryData){
+                                    socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecord', params, success, error);
+
+                                }
+                                else{
+                                    socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecordByDailyRecord', params, success, error);
+
+                                }
 
                                 function success(data) {
 
@@ -2717,119 +2819,85 @@ define(['js/app'], function (myApp) {
                             'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
                         };
 
-                        socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecordByDate', params, function (data){
-                            if (data.data[0] && data.data[0].length > 0) {
-
-                                vm.displayDetailData = $.extend(true, [], data.data[0]);
-
-                                if (data.data[1] && data.data[1].length > 0) {
-                                    data.data[1].forEach(data => {
-                                        let index = vm.displayDetailData.findIndex(p => p.date == data.date);
-                                        if (index != -1) {
-                                            if (data.data && data.data.length > 0){
-                                                data.data.forEach( inData => {
-                                                    if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
-                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
-                                                    } else {
-                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
-                                                    }
-                                                })
-                                            }
-
-                                        }
-                                        // else{
-                                        //     // generate same empty record when the length of record is not same
-                                        //     let recordData = {
-                                        //         date: data.date,
-                                        //         companyId: data.companyId,
-                                        //         operatorId: data.operatorId,
-                                        //         totalCount: 0,
-                                        //         totalEffectiveCount: 0,
-                                        //         totalNonEffectiveCount: 0
-                                        //     };
-                                        //     if (data.data && data.data.length > 0){
-                                        //         data.data.forEach( inData => {
-                                        //             if (recordData.hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
-                                        //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
-                                        //             } else {
-                                        //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
-                                        //             }
-                                        //         })
-                                        //     }
-                                        //     vm.displayDetailData.push(recordData);
-                                        // }
-                                    });
-                                }
-                                vm.displayDetailData.map(data => {
-                                    for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
-                                        if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
-                                            data[vm.constQualityInspectionStatus[i]] = 0;
-                                        }
-                                    }
-                                    return data;
-                                });
-
-                                if (data.data[2] && data.data[2].length > 0) {
-                                    data.data[2].forEach(data => {
-                                        let index = vm.displayDetailData.findIndex(p => p.date == data.date);
-                                        if (index != -1) {
-                                            vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
-                                            vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
-                                        }
-                                        // else{
-                                        //     // generate same empty record when the length of record is not same
-                                        //     let recordData = {
-                                        //         date: data.date,
-                                        //         companyId: data.companyId,
-                                        //         operatorId: data.operatorId,
-                                        //         totalCount: 0,
-                                        //         totalEffectiveCount: 0,
-                                        //         totalNonEffectiveCount: 0,
-                                        //         COMPLETED_UNREAD: 0,
-                                        //         COMPLETED_READ: 0,
-                                        //         COMPLETED: 0,
-                                        //         APPEALING: 0,
-                                        //         APPEAL_COMPLETED: 0,
-                                        //
-                                        //     };
-                                        //     recordData.totalInspectionRate = data.totalInspectionRate || 0;
-                                        //     recordData.totalOvertimeRate = data.totalOvertimeRate || 0;
-                                        //     vm.displayDetailData.push(recordData);
-                                        // }
-                                    });
-                                }
-
-                                vm.displayDetailData.map(data => {
-
-                                    data.date = utilService.getFormatTime(new Date(data.date)).split(" ")[0];
-
-                                    if (!data.totalOvertimeRate){
-                                        data.totalOvertimeRate = 0;
-                                    }
-                                    if (!data.totalInspectionRate){
-                                        data.totalInspectionRate = 0;
-                                    }
-                                    data.pendingCount = data.totalEffectiveCount - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED;
-                                    data.avgMark = ((data.totalOvertimeRate || 0 + data.totalInspectionRate || 0) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
-
-                                    // check NaN
-                                    if (data.pendingCount == "NaN") {
-                                        data.pendingCount = Number(0).toFixed(2);
-                                    }
-                                    if (data.avgMark == "NaN" || data.avgMark == "Infinity") {
-                                        data.avgMark = Number(0).toFixed(2);
-                                    }
-
-                                    return data;
-                                });
-
-                                $scope.safeApply();
-                                vm.drawInDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
-                            }
-
-                        });
+                        if (!vm.inspection800.searchBySummaryData) {
+                            socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecordByDate', params, onSuccess);
+                        }
+                        else {
+                            socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecordByDateInDailyRecord', params, onSuccess);
+                        }
 
                         tr.addClass('shown');
+                    }
+
+                    function onSuccess (data){
+                        if (data.data[0] && data.data[0].length > 0) {
+
+                            vm.displayDetailData = $.extend(true, [], data.data[0]);
+
+                            if (data.data[1] && data.data[1].length > 0) {
+                                data.data[1].forEach(data => {
+                                    let index = vm.displayDetailData.findIndex(p => p.date == data.date);
+                                    if (index != -1) {
+                                        if (data.data && data.data.length > 0){
+                                            data.data.forEach( inData => {
+                                                if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
+                                                    vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
+                                                } else {
+                                                    vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
+                                                }
+                                            })
+                                        }
+
+                                    }
+                                });
+                            }
+                            vm.displayDetailData.map(data => {
+                                for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
+                                    if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
+                                        data[vm.constQualityInspectionStatus[i]] = 0;
+                                    }
+                                }
+                                return data;
+                            });
+
+                            if (data.data[2] && data.data[2].length > 0) {
+                                data.data[2].forEach(data => {
+                                    let index = vm.displayDetailData.findIndex(p => p.date == data.date);
+                                    if (index != -1) {
+                                        vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
+                                        vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
+                                    }
+                                });
+                            }
+
+                            vm.displayDetailData.map(data => {
+
+                                data.date = utilService.getFormatTime(new Date(data.date)).split(" ")[0];
+
+                                if (!data.totalOvertimeRate){
+                                    data.totalOvertimeRate = 0;
+                                }
+                                if (!data.totalInspectionRate){
+                                    data.totalInspectionRate = 0;
+                                }
+                                data.pendingCount = data.totalEffectiveCount - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED;
+                                data.avgMark = ((data.totalOvertimeRate || 0 + data.totalInspectionRate || 0) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
+
+                                // check NaN
+                                if (data.pendingCount == "NaN") {
+                                    data.pendingCount = Number(0).toFixed(2);
+                                }
+                                if (data.avgMark == "NaN" || data.avgMark == "Infinity") {
+                                    data.avgMark = Number(0).toFixed(2);
+                                }
+
+                                return data;
+                            });
+
+                            $scope.safeApply();
+                            vm.drawInDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
+                        }
+
                     }
                 });
                 $('#' + id).off('order.dt');
@@ -2837,7 +2905,6 @@ define(['js/app'], function (myApp) {
                 //$('#QIReportTable').on('order.dt', function (event, a, b) {
                     vm.commonSortChangeHandler(a, 'QIReportQuery', vm.searchQIRecord);
                 });
-                //
             };
 
             vm.drawInDetailQIReportTable = function (data, id, size, newSearch, qObj) {
