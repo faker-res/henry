@@ -512,6 +512,8 @@ var platformSchema = new Schema({
     disableProviderAfterConsecutiveTimeoutCount: {type: Number},
     // provider consecutively timed out search time frame (last N minutes)
     providerConsecutiveTimeoutSearchTimeFrame: {type: Number},
+    // disable auto player level up reward switch
+    disableAutoPlayerLevelUpReward: {type: Boolean, default: false},
 });
 
 //add platform id before save

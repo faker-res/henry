@@ -503,6 +503,7 @@ var roleChecker = {
                 Read: ['getPlayerLevelByPlatformId', 'getPlayerTrustLevelByPlatformId', 'getPartnerLevelConfig', 'getPlatformAnnouncements'],
                 PlayerLevelRead: ['getPlayerLevelByPlatformId'],
                 PlayerLevelUpdate: ['updatePlayerLevel'],
+                XBET_PLAYER_LEVEL_CONFIG: ['updatePlayerLevel'],
                 PlayerLevelCreate: ['createPlayerLevel'],
                 PartnerLevelCreate: ['createPartnerLevel'],
                 PartnerLevelUpdate: ['partnerLevel/update'],

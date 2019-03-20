@@ -94,6 +94,11 @@
                                     text(ng-if='!vm.configTableEdit') {{ vm.playerLevelPeriod.levelDownPeriodName | translate }}
                                     select.form-control(style='width:30%;margin:auto' ng-change='vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod); vm.changeLevelPeriodAllField()'
                                     ng-if='vm.configTableEdit', ng-model='vm.playerLevelPeriod.playerLevelDownPeriod', ng-options='v as i | translate for (i,v) in vm.allPlayerLevelUpPeriod', required)
+                            tr
+                                td {{'DISABLE_AUTO_LEVEL_UP_REWARD' | translate}} {{'(XBET)'}}
+                                td
+                                    text(ng-show='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.disableAutoPlayerLevelUpReward', ng-disabled='!vm.configTableEdit')
 
                     br
                     br
@@ -386,11 +391,45 @@
                                         select.form-control(ng-model="val.playerLevel" ng-disabled='!vm.configTableEdit' style="width: 150px;")
                                             option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
 
-                    .pull-right
+                    .pull-right(style='margin-bottom:1em')
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI(); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
                             text {{'ADD_LEVEL' | translate}}
                             img.img-create
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player");')
+                            text {{"CANCEL" | translate}}
+                            .fa.fa-ban
+                        button.btn.btn-primary.common-button(ng-if="vm.configTableAdd", ng-disabled='formPlatformConfigPlayerLevel.$invalid || !vm.configAddPlayerLevelValid()', ng-click='vm.configTableAdd=false; vm.submitAddPlayerLvl()')
+                            text {{"SUBMIT" | translate}}
+                            .fa.fa-check
+                        button.btn.btn-primary.common-button(ng-if="vm.configTableEdit", ng-disabled='formPlatformConfigPlayerLevel.$invalid || !vm.configPlayerLevelTableIsValid()', ng-click='vm.configTableEdit=false; vm.configSubmitUpdate("player")')
+                            text {{"CONFIRM" | translate}}
+                            .fa.fa-check
+
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%', ng-if="checkViewPermission('Platform', 'Config', 'XBET_PLAYER_LEVEL_CONFIG')")
+                        thead
+                            tr
+                                th {{"LEVEL" | translate}}
+                                th {{'GLORY_PACKAGE' | translate}}
+                                th {{'VIDEO_CALL_CS' | translate}}
+                                th {{'LIVE_COMMENTING_COLOR' | translate}}
+                        tbody
+                            tr(ng-repeat='(i,level) in vm.allPlayerLvl')
+                                td
+                                    text {{level.name}}
+                                td
+                                    input(type='checkbox', ng-model='level.gloryPackage', ng-disabled='!vm.configTableEdit')
+                                td
+                                    input(type='checkbox', ng-model='level.videoCallCS', ng-disabled='!vm.configTableEdit')
+                                //td(style="background-color:{{level.liveCommentColor}}") {{level.liveCommentColor}}
+                                td
+                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", colorpicker="rgb", type="text", ng-model="level.liveCommentColor")
+                                    //input(type='text', ng-model='level.liveCommentColor', ng-disabled='!vm.configTableEdit')
+
+                    .pull-right(style='margin-top:1em')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'XBET_PLAYER_LEVEL_CONFIG')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player");')
