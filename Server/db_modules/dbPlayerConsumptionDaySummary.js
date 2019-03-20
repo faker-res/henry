@@ -368,7 +368,7 @@ var dbPlayerConsumptionDaySummary = {
     },
 
     winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers: function (startTime, endTime, platformId, playerObjIds) {
-        return dbPlayerTopUpRecord.getWinRateReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
+        return dbPlayerConsumptionRecord.getWinRateReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
             function (data) {
                 if (data && data.length > 0) {
                     return data;
