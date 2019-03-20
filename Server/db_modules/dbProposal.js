@@ -8219,7 +8219,7 @@ var proposal = {
     getProposalStatusList: function (proposalIds) {
         let result = [];
 
-        return dbconfig.collection_proposal.find({proposalId: {$in: proposalIds}}, {proposalId: 1, status: 1, 'data.amount': 1, 'data.actualAmountReceived': 1, 'data.rate': 1, type: 1})
+        return dbconfig.collection_proposal.find({proposalId: {$in: proposalIds}}, {proposalId: 1, status: 1, 'data.amount': 1, 'data.actualAmountReceived': 1, 'data.rate': 1, type: 1, createTime: 1})
             .populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
             proposalData => {
                 if (proposalData && proposalData.length > 0) {
