@@ -9803,7 +9803,7 @@ let dbPlayerInfo = {
                                                                     tempProposal.levelName = levelUpObjArr[i].name;
                                                                     tempProposal.levelObjId = levelUpObjId[i];
                                                                     let proposalProm = function () {
-                                                                        return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i);
+                                                                        return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i, platformData.disableAutoPlayerLevelUpReward);
                                                                     };
                                                                     promResolve = promResolve.then(proposalProm);
                                                                 }
@@ -10187,7 +10187,7 @@ let dbPlayerInfo = {
                                                             tempProposal.levelName = levelUpObjArr[i].name;
                                                             tempProposal.levelObjId = levelUpObjId[i];
                                                             let proposalProm = function () {
-                                                                return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i);
+                                                                return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i, platformData.disableAutoPlayerLevelUpReward);
                                                             };
                                                             promResolve = promResolve.then(proposalProm);
                                                         }
@@ -24790,7 +24790,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
     return recordSum;
 }
 
-function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, proposal, inputDevice, index) {
+function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, proposal, inputDevice, index, isDisableAutoLevelUpReward) {
     let isSkipAudit = false;
     let isRewardAssign = false;
     return dbconfig.collection_players.findOne({_id: ObjectId(playerObj._id)}).lean().then(
@@ -24847,7 +24847,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
         }
     ).then(
         proposalTypeData => {
-            if (!checkLevelUp) {
+            if (!checkLevelUp || isDisableAutoLevelUpReward) {
                 return Promise.resolve();
             }
             // check if player has level up to this level previously
@@ -24861,7 +24861,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
         }
     ).then(
         rewardProp => {
-            if (!checkLevelUp) {
+            if (!checkLevelUp || isDisableAutoLevelUpReward) {
                 return Promise.resolve();
             }
             if (!rewardProp) {
@@ -24896,7 +24896,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
     ).then(
         proposalResult => {
 
-            if (!checkLevelUp) {
+            if (!checkLevelUp || isDisableAutoLevelUpReward) {
                 return Promise.resolve();
             }
 

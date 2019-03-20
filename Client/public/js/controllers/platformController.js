@@ -26760,6 +26760,7 @@ define(['js/app'], function (myApp) {
                             vm.allPlayerLvl = data.data;
                             vm.platformBatchLevelUp = true;
                             vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+                            vm.disableAutoPlayerLevelUpReward = vm.selectedPlatform.data.disableAutoPlayerLevelUpReward;
                             vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
                             vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
                             vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod ? vm.selectedPlatform.data.playerLevelDownPeriod : vm.allPlayerLevelUpPeriod.MONTH;
@@ -29078,6 +29079,7 @@ define(['js/app'], function (myApp) {
                             vm.allPlayerLvl = vm.allPlayerLvlBeforeEdit;
                         }
                         vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+                        vm.disableAutoPlayerLevelUpReward = vm.selectedPlatform.data.disableAutoPlayerLevelUpReward;
 
                         if (vm.playerLevelDisplayListBeforeEdit && vm.playerLevelDisplayListBeforeEdit.length > 0) {
                             vm.playerLevelDisplayList = vm.playerLevelDisplayListBeforeEdit;
@@ -29135,6 +29137,7 @@ define(['js/app'], function (myApp) {
                             playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
                             playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
                             platformBatchLevelUp: vm.platformBatchLevelUp,
+                            disableAutoPlayerLevelUpReward: vm.disableAutoPlayerLevelUpReward,
                             display: vm.playerLevelDisplayList
                         });
                         if (vm.allPlayerLvlReordered) {
@@ -30109,6 +30112,7 @@ define(['js/app'], function (myApp) {
                         sameBankAccountCount: srcData.sameBankAccountCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
+                        disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
                         platformBatchLevelUp: srcData.platformBatchLevelUp,
                         playerLevelUpPeriod: srcData.playerLevelUpPeriod,
