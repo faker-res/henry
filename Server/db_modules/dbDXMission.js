@@ -580,8 +580,12 @@ let dbDXMission = {
 
                 if (dxPhones && dxPhones.length > 0 ) {
                     // find the only one result -  code & domain are equally
-                    dxPhone = dxPhones.filter( phone =>{
-                        return (phone.dxMission) && (phone.dxMission.domain) && phone.dxMission.domain == domain;
+                    dxPhone = dxPhones.filter( phone => {
+                        if (phone.dxMission && phone.dxMission.domain) {
+                            let phoneDomain = phone.dxMission.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
+                            return phoneDomain == domain
+                        }
+                        return false;
                     });
                 }
                 dxPhone = ( dxPhone && dxPhone[0] ) ? dxPhone[0] : null;

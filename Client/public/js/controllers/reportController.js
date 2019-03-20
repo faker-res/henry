@@ -1115,6 +1115,7 @@ define(['js/app'], function (myApp) {
             vm.generalRewardProposalQuery = {};
             vm.generalRewardReportTableProp = {};
             vm.operationReportLoadingStatus = '';
+            vm.refreshSPicker();
 
             drawReportQuery(choice, isReset);
 
@@ -9048,6 +9049,7 @@ define(['js/app'], function (myApp) {
                     vm.platformList = data.data;
                     //console.log("platformList", vm.platformList);
                     if (vm.platformList.length == 0)return;
+                    commonService.sortAndAddPlatformDisplayName(vm.platformList);
                     var storedPlatform = $cookies.get("platform");
                     var tPlat = {};
                     if (storedPlatform) {
@@ -9486,7 +9488,7 @@ define(['js/app'], function (myApp) {
                     });
                     break;
                 case "PROPOSAL_REPORT":
-                    vm.proposalQuery = {aaSorting: [[8, "desc"]], sortCol: {createTime: -1}};
+                    vm.proposalQuery = {aaSorting: [[9, "desc"]], sortCol: {createTime: -1}};
                     vm.proposalQuery.status = 'all';
                     vm.proposalQuery.promoType = '';
                     vm.proposalQuery.totalCount = 0;

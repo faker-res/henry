@@ -3409,6 +3409,46 @@ let dbPlayerReward = {
         )
     },
 
+    changeOpenPromoCode: function (promoCodeObjId) {
+        let minValue = 100;
+        let maxValue = 999;
+        let isValid = false;
+        let promoCode = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
+        // get the exsiting openPromoCodeList
+        return dbConfig.collection_openPromoCodeTemplate.find({
+            status: {$ne: constPromoCodeStatus.EXPIRED}
+        }, {code: 1}).lean().then(
+            list => {
+                if (list && list.length){
+                    for (let counter = 0; counter < maxValue + 1; counter ++){
+                        let index = list.findIndex(record => record.code == promoCode);
+
+                        if (index == -1){
+                            isValid = true;
+                            break;
+                        }
+                        else{
+                            promoCode = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
+                        }
+                    }
+                }
+
+                return isValid
+            }
+        ).then(
+            isPromoCodeValid => {
+                if (!isPromoCodeValid){
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Failed to generate openPromoCode; all the codes have been used up"
+                    })
+                }
+
+                return dbConfig.collection_openPromoCodeTemplate.findOneAndUpdate({_id: promoCodeObjId}, {code: promoCode}, {new: true}).lean();
+            }
+        )
+    },
+
     modifyPlayerPermissionByPromoCode: (adminId, platformObjId, addedPlayerNameArr, deletedPlayerNameArr) => {
         let promArr = [];
         if (addedPlayerNameArr && addedPlayerNameArr.length) {
