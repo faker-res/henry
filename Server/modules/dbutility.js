@@ -1127,6 +1127,13 @@ var dbUtility = {
         return filteredDomain;
     },
 
+    encryptMessage: (msg) => {
+        return new Promise((resolve, reject) => {
+            let encrypted = rsaCrypto.encrypt(msg);
+            resolve(encrypted);
+        })
+    },
+
     encodeEmail: function(email) {
         email = email || '';
         let emailChars = email.split('');

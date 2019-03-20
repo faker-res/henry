@@ -5531,6 +5531,10 @@ let dbPartner = {
     },
 
     getPartnerDomainReport : function (platform, para, index, limit, sortCol) {
+        if(typeof platform == "string"){
+            platform = [platform];
+        }
+
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
@@ -5575,7 +5579,7 @@ let dbPartner = {
             }
         }
 
-        let query = {platform: platform};
+        let query = {platform: {$in: platform}};
         para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;
         (para.endTime && !query.registrationTime) ? (query.registrationTime = {$lt: new Date(para.endTime)}) : null;
         (para.endTime && query.registrationTime) ? (query.registrationTime['$lt'] = new Date(para.endTime)) : null;

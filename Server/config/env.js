@@ -6,10 +6,10 @@ var localConfig = {
     mode: "local",
     socketServerUrl : 'localhost',
     db: {
-        adminDBUrl: 'adminsinonet:passwordsinonet@localhost:27017/admindb/',
-        playerDBUrl: 'playersinonet:passwordsinonet@localhost:27017/playerdb/',
-        logsDBUrl: 'localhost:27017/logsdb',
-        logs2DBUrl: 'localhost:27017/logs2db'
+        adminDBUrl: 'diFyB/6xlKq9UHCW4dAPOfTh8Um4w8I8bCKTm9kt/rg+5TvTEI7Wsgp47VYI28VRQ4HMkgu83DMBEzASRU8uJKOLrz2NF05TvtacVSBi3xAEoan1TYjUCdtwS2IxEXp+AojGtduJss5PdAizVtOzP7aLbWpcmhhUgnjFyxzUhvY=',
+        playerDBUrl: 'YdslALiZmRWDf1nm0Ze9nhCmnO0yMzoIYAl0STBaJMrErHiqRiGRLy1r7lRv8zkBTWx66ahxqXYH1iusq95wS5jgfBIZkftVIK5dxsFjmQVoWk5dCUZuvPzdZcFJ/R7SerHgTphhA6UbCoKevRMUbipVu2us+TwG7B63IGPT/PA=',
+        logsDBUrl: 'hqu+G0VPZ1d7NnFEU2WfoQ8MBPndUtwbIfImkw8F9jfh2oxAFIU9PYJksK2UHqUhJYPuq2Wgp4nAtkU6RGpO+viUNGT7JAVMVJAY07mKsAQeHDBiEXs+QCRY2m1LaPqx/2EoPiszCxitLpSO4pyZOosyhVx9LrJgGA/Ok0v46u0=',
+        logs2DBUrl: 'Z2R+aljpWDOYZR3TfRjRPjuH3wbpWRPsX6jPy3uOlkwOLfPPf30RkhKNL0E95ECfglDQLxq3ExKlO7FnZzyUIYIAbQ4ju+iU5TAIgAa3wA0oHPzlHRF6GgHUvQYoRZbtkfRlWrERR0TGcfbvQNil3NTbLcLV0u2wClD9G9lpGc8='
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',

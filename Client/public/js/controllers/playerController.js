@@ -4941,8 +4941,15 @@ define(['js/app'], function (myApp) {
             if (vm.advancedQueryObj.credibilityRemarks && (vm.advancedQueryObj.credibilityRemarks.constructor !== Array || vm.advancedQueryObj.credibilityRemarks.length === 0)) {
                 delete vm.advancedQueryObj.credibilityRemarks;
             }
+            let platformIdList;
+            if(vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.platformList && vm.playerAdvanceSearchQuery.platformList.length){
+                platformIdList = vm.playerAdvanceSearchQuery.platformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
             var apiQuery = {
-                platformId: vm.selectedPlatform.id,
+                platformId: platformIdList,
                 query: vm.advancedQueryObj,
                 index: newSearch ? 0 : (vm.playerTableQuery.index || 0),
                 limit: vm.playerTableQuery.limit,
@@ -5039,6 +5046,12 @@ define(['js/app'], function (myApp) {
                         if (rowData.lastAccessTime) {
                             rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
                         }
+                        if(rowData.platform){
+                            let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() == rowData.platform.toString());
+                            if(matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name){
+                                rowData.platform$ = matchedPlatformData[0].name;
+                            }
+                        }
                         if (table) {
                             table.row.add(rowData);
                         }
@@ -5073,8 +5086,12 @@ define(['js/app'], function (myApp) {
                 columnDefs: [
                     {targets: '_all', defaultContent: ' '}
                 ],
-                "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
+                "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
                 columns: [
+                    {
+                        title: $translate('PRODUCT_NAME'),
+                        data: 'platform$'
+                    },
                     {
                         title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                         render: function (data, type, row) {
@@ -5405,7 +5422,7 @@ define(['js/app'], function (myApp) {
                                 if ($scope.checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-plus-circle',
-                                        'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
+                                        'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);vm.loadBankCard()',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerTopUp',
@@ -23323,6 +23340,21 @@ define(['js/app'], function (myApp) {
         vm.forcePairingWithReferenceNumber = function() {
             commonService.forcePairingWithReferenceNumber($scope, $translate, socketService, vm.selectedPlatform.data.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
             vm.forcePairingReferenceNumber = '';
+        };
+
+        vm.loadBankCard = function(){
+            // 1st dependencies variable
+            return Promise.all([
+                commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])),
+            ]).then(
+                result => {
+                    $scope.$evalAsync(() => {
+                        if(result && result.length){
+                            vm.bankCards = result[0];
+                        }
+                    });
+                }
+            );
         };
 
         $('body').on('click', '#permissionRecordButtonByPlayerTab', function () {

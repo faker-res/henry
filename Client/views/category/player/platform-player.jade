@@ -67,6 +67,9 @@
         .search-filters-item
             label {{'CREDIBILITY_REMARK' | translate}}
             select.form-control#selectCredibilityRemark(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filters-item
+            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+            select.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
         .search-filters-threeBoxes
             label.control-label {{'LOCAL_AMOUNT' | translate}}
             div
