@@ -6,6 +6,8 @@ const playerConsumptionHourSummary = new Schema({
     platform: {type: Schema.ObjectId, required: true, index: true},
     // playerId
     player: {type: Schema.ObjectId, required: true, index: true},
+    // provider ID
+    provider: {type: Schema.ObjectId, required: true, index: true},
     // start time (always start from 00:00.000 to 59:59.999)
     startTime: {type: Date, index: true},
     // consumption related
@@ -19,5 +21,5 @@ const playerConsumptionHourSummary = new Schema({
 
 module.exports = playerConsumptionHourSummary;
 
-playerConsumptionHourSummary.index({platform: 1, player: 1, startTime: 1});
-playerConsumptionHourSummary.index({platform: 1, startTime: 1});
+playerConsumptionHourSummary.index({platform: 1, player: 1, provider: 1, startTime: 1});
+playerConsumptionHourSummary.index({platform: 1, provider: 1, startTime: 1});
