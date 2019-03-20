@@ -3,6 +3,9 @@
         .well
             label {{'SEARCH' | translate}}
             div
+                label.control-label &nbsp;
+                .inlineBlk
+            div
                 label.control-label {{'Platform (Multiple Selection)' | translate}}&nbsp;
                 .inlineBlk
                     select.form-control(ng-model='vm.csUrlSearchQuery.platforms', ng-options='a.id as a.text for a in vm.platformList', multiple, bsp, data-actions-box='true')
@@ -63,7 +66,8 @@
                 table.common-table.dataTable(style='width:auto;min-width:99.9%')
                     thead
                         tr
-                            th.sorting(width="28%", ng-click="vm.sortCS='';vm.searchCsUrl()") {{'OFFICER_NAME' | translate}}
+                            th.sorting(width="5%")
+                            th.sorting(width="23%", ng-click="vm.sortCS='';vm.searchCsUrl()") {{'OFFICER_NAME' | translate}}
                             th.sorting(width="20%", ng-click="vm.sortCS='promoWay';vm.searchCsUrl()") {{'PROMOTE_WAY' | translate}}
                             th.sorting(width="27%", ng-click="vm.sortCS='promoUrl';vm.searchCsUrl()") {{'URL' | translate}}
                             th.sorting(width="5%", ng-click="vm.sortCS='promoUrl';vm.searchCsUrl()") {{'Last Editor' | translate}}
@@ -72,11 +76,14 @@
                     tbody
                         tr(ng-if="!vm.urlTableAdd && !vm.urlTableEdit", ng-repeat="(i,url) in vm.allUrl", sn-selectable-model="vm.selectedOfficerUrl", sn-selectable-value="url", ng-click="vm.currentUrlEditSelect = url")
                             td
+                            td
                                 text {{url.adminName$}}
                             td
                                 text {{url.way}}
                             td
                                 text {{url.domain}}
+                            td
+                                div(ng-click="vm.showPromoUrlModal(null, 4, url)") {{'DETAILS' | translate}}
                             td
                                 text {{url.lastEditor.adminName || ''}}
                             td
@@ -85,6 +92,7 @@
                                 a {{'SELECT' | translate}}
                         tr(ng-if="vm.urlTableEdit")
                             td
+                            td
                                 select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
                             td
                                 select.form-control#officerPromoteOption(ng-model='vm.currentUrlEditSelect.way', ng-disabled="!vm.urlTableEdit", required)
@@ -92,6 +100,7 @@
                             td
                                 input.form-control(type="text", ng-model="vm.currentUrlEditSelect.domain", ng-disabled="!vm.urlTableEdit", required)
                         tr(ng-if="vm.urlTableAdd")
+                            td
                             td
                                 select.form-control#officerOption(ng-model='vm.addOfficerUrl.officer', required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
                                     option(value='') {{'CHOOSE_OFFICER' | translate}}
@@ -104,7 +113,9 @@
 
                         tr(ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
                             td
-                                text {{vm.countPromoWay.cs.length}}
+                                text {{'All Pages' | translate}}
+                            td
+                                {{vm.countPromoWay.cs.length}}
                             td
                                 text {{vm.countPromoWay.promoWay.length}}
                             td

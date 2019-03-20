@@ -62,8 +62,8 @@ function socketActionCsOfficer(socketIO, socket) {
 
         getAllUrl: function getAllUrl(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, dbCsOfficer.getAllUrl, [data.platformId], actionName, isValidData);
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbCsOfficer.getAllUrl, [], actionName, isValidData);
         },
 
         deleteUrl: function deleteUrl(data) {

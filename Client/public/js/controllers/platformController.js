@@ -547,7 +547,8 @@ define(['js/app'], function (myApp) {
             vm.proposalTemplate = {
                 1: '#modalProposal',
                 2: '#newPlayerModal',
-                3: '#auctionItemModal'
+                3: '#auctionItemModal',
+                4: '#promoUrlItemModal'
             };
 
             vm.createInnerTable = function (id) {
@@ -25208,6 +25209,22 @@ define(['js/app'], function (myApp) {
                 })
 
             }
+
+            vm.showPromoUrlModal = function(id, templateNo, data){
+                templateNo = 4;
+                vm.selectedPromoUrl = data;
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.$evalAsync();
+                })
+            }
+
+
 
             vm.showProposalModal = function (proposalId, templateNo) {
                 socketService.$socket($scope.AppSocket, 'getPlatformProposal', {

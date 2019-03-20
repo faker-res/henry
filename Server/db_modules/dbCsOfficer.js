@@ -58,8 +58,8 @@ let dbCsOfficer = {
         );
     },
 
-    getAllUrl: (platformId) => {
-        return dbconfig.collection_csOfficerUrl.find({platform: platformId}).populate({path: "lastEditor", model: dbconfig.collection_admin}).lean();
+    getAllUrl: () => {
+        return dbconfig.collection_csOfficerUrl.find().populate({path: "lastEditor", model: dbconfig.collection_admin}).lean();
     },
 
     searchUrl: (platforms, domain, admin, way) => {
