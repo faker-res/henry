@@ -63,15 +63,14 @@
     .col-md-12
         div(style="height:265px;overflow:auto;margin-bottom:5px")
             form(name="officerUrlForm")
-                table.common-table.dataTable(style='width:auto;min-width:99.9%')
+                table.simple-table(style='width:auto;min-width:99.9%')
                     thead
                         tr
                             th.sorting(width="5%")
                             th.sorting(width="23%", ng-click="vm.sortCS='';vm.searchCsUrl()") {{'OFFICER_NAME' | translate}}
                             th.sorting(width="20%", ng-click="vm.sortCS='promoWay';vm.searchCsUrl()") {{'PROMOTE_WAY' | translate}}
                             th.sorting(width="27%", ng-click="vm.sortCS='promoUrl';vm.searchCsUrl()") {{'URL' | translate}}
-                            th.sorting(width="5%", ng-click="vm.sortCS='promoUrl';vm.searchCsUrl()") {{'Last Editor' | translate}}
-                            th.sorting(width="20%", ng-click="vm.sortCS='promoUrl';vm.searchCsUrl()") {{'date' | translate}}
+                            th.sorting(width="10%")
                             th(width="5%", ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
                     tbody
                         tr(ng-if="!vm.urlTableAdd && !vm.urlTableEdit", ng-repeat="(i,url) in vm.allUrl", sn-selectable-model="vm.selectedOfficerUrl", sn-selectable-value="url", ng-click="vm.currentUrlEditSelect = url")
@@ -83,11 +82,7 @@
                             td
                                 text {{url.domain}}
                             td
-                                div(ng-click="vm.showPromoUrlModal(null, 4, url)") {{'DETAILS' | translate}}
-                            td
-                                text {{url.lastEditor.adminName || ''}}
-                            td
-                                text {{url.lastUpdate | date : 'yyyy-MM-dd HH:mm:ss'}}
+                                a(ng-click="vm.showPromoUrlModal(null, 4, url)") {{'DETAILS' | translate}}
                             td(ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
                                 a {{'SELECT' | translate}}
                         tr(ng-if="vm.urlTableEdit")

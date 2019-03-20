@@ -35,7 +35,6 @@ let dbCsOfficer = {
         // domain: {$regex: "/" + domain + "/i"}}).count();
         return urlExistProm.then(
             urlIsExist => {
-                console.log('**urlIsExist', urlIsExist)
                 if (urlIsExist) {
                     return Promise.reject({
                         name: "DataError",
@@ -130,25 +129,20 @@ let dbCsOfficer = {
                 csOfficer => {
 
                     if ( csOfficer.length > 1) {
-                        console.log('***** more than 1')
                         return Promise.reject({
                             name: "DataError",
                             message: "Duplicate Assign Domain Name"
                         })
                     } else if (csOfficer.length == 1) {
-                        console.log('***** just 1');
                         let selectedCSOfficer = csOfficer.filter(item => {
                             return item._id.equals(urlId);
                         });
                         selectedCSOfficer = (selectedCSOfficer && selectedCSOfficer[0]) ? selectedCSOfficer[0] : null;
                         if (!selectedCSOfficer) {
-                            console.log('***** !selectedCSOfficer');
                             return Promise.reject({
                                 name: "DataError",
                                 message: "Duplicate Assign Domain Name"
                             })
-                        }else{
-                            console.log('***** selectedCSOfficer true');
                         }
                     }
                     return dbCsOfficer.domainValidityChecking(urlId, platformId)
