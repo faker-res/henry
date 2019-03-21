@@ -3798,7 +3798,10 @@ let dbPlayerInfo = {
     },
 
     getPlayersCountByPlatform: function (platformObjId) {
-        return dbconfig.collection_players.find({"platform": platformObjId}).count();
+        if(typeof platformObjId == "string"){
+            platformObjId = [platformObjId];
+        }
+        return dbconfig.collection_players.find({"platform": {$in: platformObjId}}).count();
     },
 
     /**

@@ -4922,12 +4922,7 @@ define(['js/app'], function (myApp) {
 
         //get all platform players data from server
         vm.getPlatformPlayersData = function (newSearch, initPage) {
-
-            // $('#loadingPlayerTableSpin').show();
-            socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: vm.selectedPlatform.id}, function (playerCount) {
-                vm.platformPlayerCount = playerCount.data;
-                console.log('playerCount', playerCount);
-            });
+            vm.getTotalPlayerCountByPlatformList();
             vm.advancedQueryObj = vm.advancedQueryObj || {};
             vm.drawPlayerTable([]);
 
@@ -4937,6 +4932,21 @@ define(['js/app'], function (myApp) {
 
         };
 
+        vm.getTotalPlayerCountByPlatformList = function(){
+            let platformIdList;
+            if(vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.platformList && vm.playerAdvanceSearchQuery.platformList.length){
+                platformIdList = vm.playerAdvanceSearchQuery.platformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
+            socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: platformIdList}, function (playerCount) {
+                $scope.$evalAsync(() => {
+                    vm.platformPlayerCount = playerCount.data;
+                    console.log('playerCount', playerCount);
+                });
+            });
+        };
 
         vm.advancedPlayerQuery = function (newSearch) {
             if (vm.advancedQueryObj.credibilityRemarks && (vm.advancedQueryObj.credibilityRemarks.constructor !== Array || vm.advancedQueryObj.credibilityRemarks.length === 0)) {
@@ -5018,6 +5028,7 @@ define(['js/app'], function (myApp) {
         });
 
         var setPlayerTableData = function (data) {
+            vm.getTotalPlayerCountByPlatformList();
             return setTableData(vm.playerTable, data);
         };
 
@@ -22285,27 +22296,27 @@ define(['js/app'], function (myApp) {
             }
 
             if (playerQuery.playerId) {
-                var te = $("#playerTable-search-filter > div").not(":nth-child(1)").find(".form-control");
+                var te = $("#playerTable-search-filter > div").not(":nth-child(2)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.name) {
-                var te = $("#playerTable-search-filter > div").not(":nth-child(3)").find(".form-control");
+                var te = $("#playerTable-search-filter > div").not(":nth-child(4)").not(":nth-child(1)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.phoneNumber) {
-                var te = $("#playerTable-search-filter > div").not(":nth-child(10)").find(".form-control");
+                var te = $("#playerTable-search-filter > div").not(":nth-child(11)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.bankAccount) {
-                let te = $("#playerTable-search-filter > div").not(":nth-child(11)").find(".form-control");
+                let te = $("#playerTable-search-filter > div").not(":nth-child(12)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.email) {
-                let te = $("#playerTable-search-filter > div").not(":nth-child(12)").find(".form-control");
+                let te = $("#playerTable-search-filter > div").not(":nth-child(13)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
@@ -22315,8 +22326,16 @@ define(['js/app'], function (myApp) {
                 $("select#selectCredibilityRemark").multipleSelect("enable");
             }
             if (playerQuery.playerId || playerQuery.name || playerQuery.phoneNumber || playerQuery.bankAccount || playerQuery.email) {
+                let platformIdList;
+
+                if(vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.platformList && vm.playerAdvanceSearchQuery.platformList.length){
+                    platformIdList = vm.playerAdvanceSearchQuery.platformList;
+                }else{
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: platformIdList,
                     query: playerQuery,
                     index: 0,
                     limit: 100
