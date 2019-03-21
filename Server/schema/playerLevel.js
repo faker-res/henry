@@ -48,7 +48,23 @@ var playerLevelSchema = new Schema({
     playerValueScore: {type: Number, default: 2},
 
     //if player of this level can apply for consumption return
-    canApplyConsumptionReturn: {type: Boolean}
+    canApplyConsumptionReturn: {type: Boolean},
+    // region XBET sport - no default value (currently only for XBET)
+    // withdrawal consumption
+    withdrawalConsumption: {type: Number},
+    //commission pool switch
+    // disableCommissionPool: {type: Boolean},
+    // daily commission withdrawal limit
+    // dailyCommissionWithdrawLimit: {type: Number},
+    // daily member fund
+    // dailyMemberFund: {type: Number},
+    // glory package switch (level up reward)
+    gloryPackage: {type: Boolean},
+    // customer service video chat switch
+    videoCallCS: {type: Boolean},
+    // live commenting switch (弹幕颜色)
+    liveCommentColor: {type: String},
+    // endregion
 });
 
 //record is unique by platform, name and platform, value

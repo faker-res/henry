@@ -6,10 +6,10 @@ var localConfig = {
     mode: "local",
     socketServerUrl : 'localhost',
     db: {
-        adminDBUrl: 'adminsinonet:passwordsinonet@localhost:27017/admindb/',
-        playerDBUrl: 'playersinonet:passwordsinonet@localhost:27017/playerdb/',
-        logsDBUrl: 'localhost:27017/logsdb',
-        logs2DBUrl: 'localhost:27017/logs2db'
+        adminDBUrl: 'diFyB/6xlKq9UHCW4dAPOfTh8Um4w8I8bCKTm9kt/rg+5TvTEI7Wsgp47VYI28VRQ4HMkgu83DMBEzASRU8uJKOLrz2NF05TvtacVSBi3xAEoan1TYjUCdtwS2IxEXp+AojGtduJss5PdAizVtOzP7aLbWpcmhhUgnjFyxzUhvY=',
+        playerDBUrl: 'YdslALiZmRWDf1nm0Ze9nhCmnO0yMzoIYAl0STBaJMrErHiqRiGRLy1r7lRv8zkBTWx66ahxqXYH1iusq95wS5jgfBIZkftVIK5dxsFjmQVoWk5dCUZuvPzdZcFJ/R7SerHgTphhA6UbCoKevRMUbipVu2us+TwG7B63IGPT/PA=',
+        logsDBUrl: 'hqu+G0VPZ1d7NnFEU2WfoQ8MBPndUtwbIfImkw8F9jfh2oxAFIU9PYJksK2UHqUhJYPuq2Wgp4nAtkU6RGpO+viUNGT7JAVMVJAY07mKsAQeHDBiEXs+QCRY2m1LaPqx/2EoPiszCxitLpSO4pyZOosyhVx9LrJgGA/Ok0v46u0=',
+        logs2DBUrl: 'Z2R+aljpWDOYZR3TfRjRPjuH3wbpWRPsX6jPy3uOlkwOLfPPf30RkhKNL0E95ECfglDQLxq3ExKlO7FnZzyUIYIAbQ4ju+iU5TAIgAa3wA0oHPzlHRF6GgHUvQYoRZbtkfRlWrERR0TGcfbvQNil3NTbLcLV0u2wClD9G9lpGc8='
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',
@@ -215,10 +215,10 @@ var prodConfig = {
     mode: "production",
     socketServerUrl : '10.167.11.109',
     db: {
-       adminDBUrl: 'adminsinonet:passwordsinonet@10.167.11.108:27018/admindb/',
-       playerDBUrl: 'playersinonet:passwordsinonet@10.167.11.108:27019/playerdb',
-       logsDBUrl: 'logsinonet:passwordsinonet@10.167.11.108:27017/logsdb',
-	logs2DBUrl: 'logs2dbsinonet:passwordsinonet@10.167.11.108:27020/logs2db'
+        adminDBUrl: 'Pd5cUveLELFUyR9Xwq1H8Y/pveYm+gMz5cs8QzQ8YqQe+aJeDeptG5x3xkCfUf9ZUVJ4Ow7EXM4RHVcNJwxftoa0sh5UI5LRcJ1yPaRO9aodhJQoQWetAFBVDxlHLtwGxqevnz+xJRdf2gyxcTU0gevofNJoY8Vwn1Orprk4ZtM=',
+        playerDBUrl: 'T7P5G3ibfyQyCqM8tNJu7oeouGa8S2o5z3fLeJnJvuzPOiuQWXNmO9E2e0NrWvVuf+LIal+vmMdAOKdW5vXmGLsWLx8+f8RCs9TRTfFUrETDCs6RzsBwxv29CAktr9hlRmUlwEHAReXhthTmkpefHbhItx8rz459fJpQBsW1f6M=',
+        logsDBUrl: 'MTF0rMRYQSjy1fkL9GGUXNWyeTUGzEZnEM3bJAIDmPgjIr+K/MvkOKpNr1X12cHXYYhBQmX9dCHIqIifB2ou0W26ydCz1Vd9tlElZtSTW30e0nmJqi0cZXtsybgzYcaYKEARN+EA3yKqtpu3HisHPtM4GA81AwRYmurR8IH9MDk=',
+	    logs2DBUrl: 'TZXworYj1JKgQva2YnDE5iwBVDy5vbCoDfn8ovuo2g0F+oMn5xQ0ztI3XbPWTbhmv4IDY6H9fdJYxId+YDO8dQqSSBE432BdaN/79ef+7mJZ6TrSQ/4JT+DBgSkp4B2zEfLEKHfS4m3AQSD0pqjWo2fRXlI/Vil7XDypRw76oig='
     },
 
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
@@ -244,7 +244,7 @@ var prodConfig = {
     },
     // cpAPIUrl : "ws://timeout.com:9020/websocketapi",
     cpAPIUrlForGame : "ws://gameapi-server.neweb.me/game",
-    paymentAPIUrl: "ws://10.168.11.128:8330/acc",
+    paymentAPIUrl: "ws://10.167.11.140:8330/acc",
     //smsAPIUrl: "ws://203.192.151.12:8560/sms"
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     paymentHTTPAPIUrl: "http://pms-pay-dev.neweb.me/",

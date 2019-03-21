@@ -3307,7 +3307,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getFinalValidAmount = function () {
-            vm.creditChange.finalValidAmount= Number(parseFloat(vm.selectedSinglePlayer.validCredit).toFixed(2)) + vm.creditChange.updateAmount;
+            vm.creditChange.finalValidAmount= Number($noRoundTwoDecimalToFix(vm.selectedSinglePlayer.validCredit)) + vm.creditChange.updateAmount;
+            // vm.creditChange.finalValidAmount= Number(parseFloat(vm.selectedSinglePlayer.validCredit).toFixed(2)) + vm.creditChange.updateAmount;
         };
 
         vm.newPlayerList = function () {
@@ -10066,7 +10067,9 @@ define(['js/app'], function (myApp) {
             //     updateAmount: 0
             // };
 
-            vm.creditChange.finalValidAmount = vm.isOneSelectedPlayer().validCredit;
+            vm.creditChange.validCredit = parseFloat($noRoundTwoDecimalToFix(vm.isOneSelectedPlayer().validCredit));
+            vm.creditChange.finalValidAmount = parseFloat($noRoundTwoDecimalToFix(vm.isOneSelectedPlayer().validCredit));
+            // vm.creditChange.finalValidAmount = vm.isOneSelectedPlayer().validCredit;
             vm.creditChange.finalLockedAmount = null;
             vm.creditChange.remark = '';
             vm.creditChange.updateAmount = 0;
@@ -15132,7 +15135,9 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
                 $scope.$evalAsync(() => {
-                    vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                    if (data && data.data && data.data.data) {
+                        vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                    }
                 })
             })
 

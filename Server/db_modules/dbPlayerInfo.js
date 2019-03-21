@@ -3321,6 +3321,7 @@ let dbPlayerInfo = {
         let smsLogData;
         let duplicatedRealNameCount = 0;
         let sameBankAccountCount = 0;
+        let isfirstTimeRegistration = false;
 
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
@@ -3396,6 +3397,7 @@ let dbPlayerInfo = {
                 sameBankAccountCount = data[1] || 0;
 
                 if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
+                    isfirstTimeRegistration = true;
                     if (updateData && updateData.bankAccountName) {
                         updateData.realName = updateData.bankAccountName;
                     }
@@ -3461,6 +3463,16 @@ let dbPlayerInfo = {
                             code: constServerCode.INVALID_DATA,
                             message: "The name has been registered, please change a new bank card or contact our cs."
                         });
+                    }
+
+                    // check require sms code if bank card registration at first time
+                    if (isfirstTimeRegistration){
+                        if(platformData.requireSMSCodeForBankRegistrationAtFirstTime){
+                            platformData.requireSMSVerificationForPaymentUpdate = true;
+                        }
+                        else{
+                            platformData.requireSMSVerificationForPaymentUpdate = false;
+                        }
                     }
 
                     // Check if platform sms verification is required
@@ -9791,7 +9803,7 @@ let dbPlayerInfo = {
                                                                     tempProposal.levelName = levelUpObjArr[i].name;
                                                                     tempProposal.levelObjId = levelUpObjId[i];
                                                                     let proposalProm = function () {
-                                                                        return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i);
+                                                                        return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i, platformData.disableAutoPlayerLevelUpReward);
                                                                     };
                                                                     promResolve = promResolve.then(proposalProm);
                                                                 }
@@ -10175,7 +10187,7 @@ let dbPlayerInfo = {
                                                             tempProposal.levelName = levelUpObjArr[i].name;
                                                             tempProposal.levelObjId = levelUpObjId[i];
                                                             let proposalProm = function () {
-                                                                return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i);
+                                                                return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i, platformData.disableAutoPlayerLevelUpReward);
                                                             };
                                                             promResolve = promResolve.then(proposalProm);
                                                         }
@@ -24778,7 +24790,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
     return recordSum;
 }
 
-function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, proposal, inputDevice, index) {
+function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, proposal, inputDevice, index, isDisableAutoLevelUpReward) {
     let isSkipAudit = false;
     let isRewardAssign = false;
     return dbconfig.collection_players.findOne({_id: ObjectId(playerObj._id)}).lean().then(
@@ -24835,7 +24847,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
         }
     ).then(
         proposalTypeData => {
-            if (!checkLevelUp) {
+            if (!checkLevelUp || isDisableAutoLevelUpReward) {
                 return Promise.resolve();
             }
             // check if player has level up to this level previously
@@ -24849,7 +24861,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
         }
     ).then(
         rewardProp => {
-            if (!checkLevelUp) {
+            if (!checkLevelUp || isDisableAutoLevelUpReward) {
                 return Promise.resolve();
             }
             if (!rewardProp) {
@@ -24884,7 +24896,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
     ).then(
         proposalResult => {
 
-            if (!checkLevelUp) {
+            if (!checkLevelUp || isDisableAutoLevelUpReward) {
                 return Promise.resolve();
             }
 

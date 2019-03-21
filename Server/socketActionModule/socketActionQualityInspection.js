@@ -30,6 +30,13 @@ function socketActionQualityInspection(socketIO, socket) {
             var size = data.limit || 1;
             socketUtil.emitter(self.socket, dbQualityInspection.getUnreadEvaluationRecord, [data.startTime, data.endTime, index, size, getAdminId()], actionName, isDataValid);
         },
+        getUnreadEvaluationRecordByDailyRecord: function getUnreadEvaluationRecordByDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data.hasOwnProperty('startTime') && data.hasOwnProperty('endTime'));
+            var index = data.index || 0;
+            var size = data.limit || 1;
+            socketUtil.emitter(self.socket, dbQualityInspection.getUnreadEvaluationRecordByDailyRecord, [data.startTime, data.endTime, index, size, getAdminId()], actionName, isDataValid);
+        },
         getReadEvaluationRecord: function getReadEvaluationRecord(data){
             var actionName = arguments.callee.name;
             //data = true;
@@ -37,6 +44,13 @@ function socketActionQualityInspection(socketIO, socket) {
             var index = data.index || 0;
             var size = data.limit || 1;
             socketUtil.emitter(self.socket, dbQualityInspection.getReadEvaluationRecord, [data.startTime, data.endTime, index, size, getAdminId()], actionName, isDataValid);
+        },
+        getReadEvaluationRecordByDailyRecord: function getReadEvaluationRecordByDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data.hasOwnProperty('startTime') && data.hasOwnProperty('endTime'));
+            var index = data.index || 0;
+            var size = data.limit || 1;
+            socketUtil.emitter(self.socket, dbQualityInspection.getReadEvaluationRecordByDailyRecord, [data.startTime, data.endTime, index, size, getAdminId()], actionName, isDataValid);
         },
         getAppealEvaluationRecordByConversationDate: function getAppealEvaluationRecordByConversationDate(data){
             var actionName = arguments.callee.name;
@@ -46,6 +60,13 @@ function socketActionQualityInspection(socketIO, socket) {
             var size = data.limit || 1;
             socketUtil.emitter(self.socket, dbQualityInspection.getAppealEvaluationRecordByConversationDate, [data.startTime, data.endTime, data.status, index, size, getAdminId()], actionName, isDataValid);
         },
+        getAppealEvaluationRecordByConversationDateInDailyRecord: function getAppealEvaluationRecordByConversationDateInDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data.hasOwnProperty('startTime') &&  data.hasOwnProperty('endTime') && data.hasOwnProperty('status'));
+            var index = data.index || 0;
+            var size = data.limit || 1;
+            socketUtil.emitter(self.socket, dbQualityInspection.getAppealEvaluationRecordByConversationDateInDailyRecord, [data.startTime, data.endTime, data.status, index, size, getAdminId()], actionName, isDataValid);
+        },
         getAppealEvaluationRecordByAppealDate: function getAppealEvaluationRecordByAppealDate(data){
             var actionName = arguments.callee.name;
             //data = true;
@@ -54,17 +75,34 @@ function socketActionQualityInspection(socketIO, socket) {
             var size = data.limit || 1;
             socketUtil.emitter(self.socket, dbQualityInspection.getAppealEvaluationRecordByAppealDate, [data.startTime, data.endTime, data.status, index, size, getAdminId()], actionName, isDataValid);
         },
+        getAppealEvaluationRecordByAppealDateInDailyRecord: function getAppealEvaluationRecordByAppealDateInDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data.hasOwnProperty('startTime') &&  data.hasOwnProperty('endTime') && data.hasOwnProperty('status'));
+            var index = data.index || 0;
+            var size = data.limit || 1;
+            socketUtil.emitter(self.socket, dbQualityInspection.getAppealEvaluationRecordByAppealDateInDailyRecord, [data.startTime, data.endTime, data.status, index, size, getAdminId()], actionName, isDataValid);
+        },
         getWorkloadReport: function getWorkloadReport(data){
             var actionName = arguments.callee.name;
             //data = true;
             var isDataValid = Boolean(data.startTime, data.endTime, data.qualityAssessor);
             socketUtil.emitter(self.socket, dbQualityInspection.getWorkloadReport, [data.startTime, data.endTime, data.qualityAssessor], actionName, isDataValid);
         },
+        getWorkloadReportByDailyRecord: function getWorkloadReportByDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data.hasOwnProperty('startTime') &&  data.hasOwnProperty('endTime') && data.hasOwnProperty('qualityAssessor'));
+            socketUtil.emitter(self.socket, dbQualityInspection.getWorkloadReportByDailyRecord, [data.startTime, data.endTime, data.qualityAssessor], actionName, isDataValid);
+        },
         getWorkloadReportByDate: function getWorkloadReportByDate(data){
             var actionName = arguments.callee.name;
             //data = true;
             var isDataValid = Boolean(data.startTime, data.endTime, data.qualityAssessor);
             socketUtil.emitter(self.socket, dbQualityInspection.getWorkloadReportByDate, [data.startTime, data.endTime, data.qualityAssessor], actionName, isDataValid);
+        },
+        getWorkloadReportByDateInDailyRecord: function getWorkloadReportByDateInDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data.hasOwnProperty('startTime') &&  data.hasOwnProperty('endTime') && data.hasOwnProperty('qualityAssessor'));
+            socketUtil.emitter(self.socket, dbQualityInspection.getWorkloadReportByDateInDailyRecord, [data.startTime, data.endTime, data.qualityAssessor], actionName, isDataValid);
         },
         searchLive800: function searchLive800(data){
             var actionName = arguments.callee.name;
@@ -86,10 +124,20 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = true;
             socketUtil.emitter(self.socket, dbQualityInspection.getTotalNumberOfAppealingRecord, [data], actionName, isDataValid);
         },
+        getTotalNumberOfAppealingRecordByDailyRecord: function getTotalNumberOfAppealingRecordByDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = true;
+            socketUtil.emitter(self.socket, dbQualityInspection.getTotalNumberOfAppealingRecordByDailyRecord, [data], actionName, isDataValid);
+        },
         getTotalNumberOfAppealingRecordByCS: function getTotalNumberOfAppealingRecordByCS(data){
             var actionName = arguments.callee.name;
             var isDataValid = true;
             socketUtil.emitter(self.socket, dbQualityInspection.getTotalNumberOfAppealingRecordByCS, [getAdminId()], actionName, isDataValid);
+        },
+        getTotalNumberOfAppealingRecordByCSInDailyRecord: function getTotalNumberOfAppealingRecordByCSInDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = true;
+            socketUtil.emitter(self.socket, dbQualityInspection.getTotalNumberOfAppealingRecordByCSInDailyRecord, [getAdminId()], actionName, isDataValid);
         },
         getProgressReportByOperator: function getProgressReportByOperator(data){
             var actionName = arguments.callee.name;
@@ -102,11 +150,21 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data.messageId, data.status);
             socketUtil.emitter(self.socket, dbQualityInspection.markEvaluationRecordAsRead, [data.messageId, data.status], actionName, isDataValid);
         },
+        markEvaluationRecordAsReadByDailyRecord: function markEvaluationRecordAsReadByDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data.messageId, data.status);
+            socketUtil.emitter(self.socket, dbQualityInspection.markEvaluationRecordAsReadByDailyRecord, [data.messageId, data.status], actionName, isDataValid);
+        },
         appealEvaluation: function appealEvaluation(data){
             var actionName = arguments.callee.name;
             //data = true;
             var isDataValid = Boolean(data.appealDetailArr);
             socketUtil.emitter(self.socket, dbQualityInspection.appealEvaluation, [data.appealDetailArr], actionName, isDataValid);
+        },
+        appealEvaluationByDailyRecord: function appealEvaluationByDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data.appealDetailArr);
+            socketUtil.emitter(self.socket, dbQualityInspection.appealEvaluationByDailyRecord, [data.appealDetailArr], actionName, isDataValid);
         },
         rateCSConversation: function rateCSConversation(data){
             var actionName = arguments.callee.name;
@@ -138,6 +196,11 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data && data.startDate && data.endDate);
             socketUtil.emitter(self.socket, dbQualityInspection.getEvaluationProgressRecord, [data.platformObjId, data.startDate, data.endDate], actionName, isDataValid);
         },
+        getEvaluationProgressRecordByDailyRecord: function getEvaluationProgressRecordByDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.startDate && data.endDate);
+            socketUtil.emitter(self.socket, dbQualityInspection.getEvaluationProgressRecordByDailyRecord, [data.platformObjId, data.startDate, data.endDate], actionName, isDataValid);
+        },
         summarizeLive800Record: function summarizeLive800Record(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.startTime && data.endTime);
@@ -153,10 +216,20 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.searchLive800SettlementRecord, [data], actionName, isDataValid);
         },
+        searchLive800SettlementRecordByDailyRecord: function searchLive800SettlementRecordByDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.searchLive800SettlementRecordByDailyRecord, [data], actionName, isDataValid);
+        },
         searchLive800SettlementRecordByDate: function searchLive800SettlementRecordByDate(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.searchLive800SettlementRecordByDate, [data], actionName, isDataValid);
+        },
+        searchLive800SettlementRecordByDateInDailyRecord: function searchLive800SettlementRecordByDateInDailyRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.searchLive800SettlementRecordByDateInDailyRecord, [data], actionName, isDataValid);
         },
         getSummarizedLive800RecordCount: function getSummarizedLive800RecordCount(data){
             var actionName = arguments.callee.name;
