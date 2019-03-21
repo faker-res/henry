@@ -686,6 +686,58 @@ const dbRewardUtility = {
         );
     },
 
+    checkRewardApplyType: (eventData, userAgent, adminInfo) => {
+        if (dbUtil.getInputDevice(userAgent, false, adminInfo) != 0 && eventData.condition && eventData.condition.applyType && eventData.condition.applyType == 3) {
+            return Promise.reject({
+                name: "DataError",
+                message: "The way of applying this reward is not correct."
+            })
+        }
+    },
+
+    checkRewardApplyRegistrationInterface: (eventData, rewardData) => {
+        if (dbRewardUtility.checkInterfaceRewardPermission(eventData, rewardData)) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This interface is not allowed for reward"
+            });
+        }
+    },
+
+    checkTopupRecordIsDirtyForReward: (eventData, rewardData) => {
+        let isUsed = false;
+
+        if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.usedEvent && rewardData.selectedTopup.usedEvent.length > 0) {
+            if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
+                rewardData.selectedTopup.usedEvent.map(eventId => {
+                    let isOneMatch = false;
+                    eventData.condition.ignoreTopUpDirtyCheckForReward.map(eventIgnoreId => {
+                        if (String(eventId) == String(eventIgnoreId)) {
+                            isOneMatch = true;
+                        }
+                    });
+                    // If one of the reward matched in ignore list, dirty check for this reward is ignored
+                    isUsed = isOneMatch ? isUsed : true;
+                })
+            } else {
+                isUsed = true;
+            }
+        }
+
+        return isUsed;
+    },
+
+    checkRewardApplyTopupRecordIsDirty: (eventData, rewardData) => {
+        if (dbRewardUtility.checkTopupRecordIsDirtyForReward(eventData, rewardData)) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This top up record has been used"
+            });
+        }
+    },
+
     // endregion
 
     // region Reward permission
