@@ -14788,8 +14788,15 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
+            let platformIdList;
+            if(vm.actionLogPlatformList && vm.actionLogPlatformList.length){
+                platformIdList = vm.actionLogPlatformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
             let sendQuery = {
-                platform: vm.selectedPlatform.id,
+                platform: platformIdList,
                 playerObjId: vm.selectedSinglePlayer && vm.selectedSinglePlayer._id || "",
                 playerName: vm.playerApiLog.playerName || "",
                 startDate: vm.playerApiLog.startDate.data('datetimepicker').getLocalDate(),
@@ -14821,6 +14828,7 @@ define(['js/app'], function (myApp) {
                     item.os = item.userAgent[0] && item.userAgent[0].os ? item.userAgent[0].os : "";
                     item.browser = item.userAgent[0] && item.userAgent[0].browser ? item.userAgent[0].browser : "";
                     item.ipArea$ = item.ipArea && item.ipArea.province && item.ipArea.city ? item.ipArea.province + "," + item.ipArea.city : "";
+                    item.platform$ = item.platform && item.platform.name ? item.platform.name : "";
                     if (item.domain) {
                         var filteredDomain = item.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
                         let indexNo = filteredDomain.indexOf("/");
@@ -14844,6 +14852,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('Incident'), data: "action$"},
                     {title: $translate('PLAYER_NAME'), data: "playerName"},
                     {title: $translate('Operation Time'), data: "operationTime$"},

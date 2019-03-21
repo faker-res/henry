@@ -6,6 +6,7 @@ const constSystemParam = require("../const/constSystemParam.js");
 const uaParser = require('ua-parser-js');
 const dbUtility = require('./../modules/dbutility');
 const mobileDetect = require('mobile-detect');
+const ObjectId = mongoose.Types.ObjectId;
 
 let dbApiLog = {
     createApiLog: function (conn, wsFunc, actionResult, reqData, playerData) {
@@ -188,12 +189,18 @@ let dbApiLog = {
         sortCol = sortCol || {operationTime: -1};
 
         let query = {
-            platform: platform,
             operationTime: {
                 $gte: new Date(startDate),
                 $lt: new Date(endDate)
             }
         };
+
+        if(typeof platform == "string"){
+            query.platform = {$in: [platform]};
+        }else if(platform && platform.length){
+            query.platform = {$in: platform.map(p => ObjectId(p))};
+        }
+
         let playerProm = Promise.resolve();
 
         if(playerObjId){
@@ -213,13 +220,24 @@ let dbApiLog = {
         }
 
         if(playerName){
-            playerProm = dbConfig.collection_players.findOne({name: playerName});
+            playerProm = dbConfig.collection_players.find({name: playerName}).lean();
         }
 
         return Promise.all([playerProm]).then(
             playerDetail => {
-                if(playerDetail[0] && playerDetail[0]._id){
-                    query.player = playerDetail[0]._id;
+                if(playerDetail[0] && playerDetail[0].length){
+                    let playerIdList = [];
+                    playerDetail[0].map(
+                        player => {
+                            if(player && player._id){
+                                playerIdList.push(player._id);
+                            }
+                        }
+                    );
+
+                    if(playerIdList.length){
+                        query.player = {$in: playerIdList};
+                    }
                 }
 
                 let a = dbConfig.collection_actionLog.find(query).count();
@@ -229,6 +247,9 @@ let dbApiLog = {
                 }).populate({
                     path: "providerId",
                     model: dbConfig.collection_gameProvider
+                }).populate({
+                    path: "platform",
+                    model: dbConfig.collection_platform
                 }).sort(sortCol).skip(index).limit(count).lean();
                 return Promise.all([a, b]).then(data => {
                     return({total: data[0], data: data[1]});
