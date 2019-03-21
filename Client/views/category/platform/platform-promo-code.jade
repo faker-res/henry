@@ -1368,6 +1368,9 @@
                                     text(ng-if="promoCode.code") {{promoCode.code}}
                                     button.btn.btn-primary(ng-if="!promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate2, $index, promoCode, 2);')
                                         text {{'GENERATE' | translate}}
+                                    text(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit") &nbsp
+                                    button.btn.btn-primary(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit", ng-click= 'vm.changeOpenPromoCode(promoCode);')
+                                        text {{'GENERATE' | translate}}
                                 td
                                     input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
@@ -1488,6 +1491,9 @@
                                 td
                                     text(ng-if="promoCode.code") {{promoCode.code}}
                                     button.btn.btn-primary(ng-if="!promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate3, $index, promoCode, 3);')
+                                        text {{'GENERATE' | translate}}
+                                    text(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit") &nbsp
+                                    button.btn.btn-primary(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit", ng-click= 'vm.changeOpenPromoCode(promoCode);')
                                         text {{'GENERATE' | translate}}
                                 td
                                     input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")

@@ -261,7 +261,7 @@ let dbPlayerReward = {
             let lastConsumptionRecord = data[3][0];
             let lastWithdrawalProposal = data[4][0];
             // check is last top up used
-            let isTopUpUsed = checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp});
+            let isTopUpUsed = dbRewardUtil.checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp});
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -356,7 +356,7 @@ let dbPlayerReward = {
                 let nextRewardParamIndex = Math.min(list.length, paramOfLevel.length - 1);
                 let nextRewardParam = paramOfLevel[nextRewardParamIndex];
 
-                if (isApplicableRewardCondition && lastTopUp && lastTopUp.amount >= nextRewardParam.minTopUpAmount && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp})) {
+                if (isApplicableRewardCondition && lastTopUp && lastTopUp.amount >= nextRewardParam.minTopUpAmount && !dbRewardUtil.checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp})) {
                     canApply = true;
                     addParamToList(nextRewardParam, 1); // applicable
                 }
@@ -3337,7 +3337,7 @@ let dbPlayerReward = {
 
         let minValue = 100;
         let maxValue = 999;
-        let isValid = false;
+        let isValid = true;
         newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
 
         // get the exsiting openPromoCodeList
@@ -3354,6 +3354,7 @@ let dbPlayerReward = {
                             break;
                         }
                         else{
+                            isValid = false;
                             newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
                         }
                     }
@@ -3412,7 +3413,7 @@ let dbPlayerReward = {
     changeOpenPromoCode: function (promoCodeObjId) {
         let minValue = 100;
         let maxValue = 999;
-        let isValid = false;
+        let isValid = true;
         let promoCode = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
         // get the exsiting openPromoCodeList
         return dbConfig.collection_openPromoCodeTemplate.find({
@@ -3428,6 +3429,7 @@ let dbPlayerReward = {
                             break;
                         }
                         else{
+                            isValid = false;
                             promoCode = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
                         }
                     }
@@ -5577,7 +5579,7 @@ let dbPlayerReward = {
      * @param isBulkApply - if it is settlement apply from backstage, is bulk apply
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData, isPreview, isBulkApply) => {
+    applyGroupReward: async (userAgent, playerData, eventData, adminInfo, rewardData, isPreview, isBulkApply) => {
         rewardData = rewardData || {};
 
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate).startTime : dbUtility.getTodaySGTime();
@@ -5585,8 +5587,6 @@ let dbPlayerReward = {
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0, actualAmount = 0;
         let promArr = [];
-        let selectedRewardParam = {};
-        let intervalTime;
         let isUpdateTopupRecord = false;
         let isUpdateMultiTopupRecord = false;
         let isUpdateMultiConsumptionRecord = false;
@@ -5611,95 +5611,20 @@ let dbPlayerReward = {
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
         // reject the reward application if it is applied from front-end but the setting is settlement (back-end)
-        if (dbUtility.getInputDevice(userAgent, false, adminInfo) != 0 && eventData.condition && eventData.condition.applyType && eventData.condition.applyType == 3){
-            return Promise.reject({
-                name: "DataError",
-                message: "The way of applying this reward is not correct."
-            })
-        }
+        await dbRewardUtil.checkRewardApplyType(eventData, userAgent, adminInfo);
+        // Check registration interface condition
+        await dbRewardUtil.checkRewardApplyRegistrationInterface(eventData, rewardData);
+        // Check whether top up record is dirty
+        await dbRewardUtil.checkRewardApplyTopupRecordIsDirty(eventData, rewardData);
 
         // Set reward param for player level to use
-        if (eventData.condition.isPlayerLevelDiff) {
-            selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
-        } else {
-            selectedRewardParam = eventData.param.rewardParam[0].value;
-        }
-
+        let selectedRewardParam = setSelectedRewardParam(eventData, playerData);
         // Get interval time
-        if (eventData.condition.interval) {
-            intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData);
-            if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
-                intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData, true);
-            }
-        }
-
-        let topupMatchQuery = {
-            playerId: playerData._id,
-            platformId: playerData.platform._id
-        };
-
+        let intervalTime = getIntervalTime(eventData, rewardData);
+        let topupMatchQuery = setupTopupMatchQuery(eventData, playerData, intervalTime);
         let eventQueryPeriodTime = dbRewardUtil.getRewardEventIntervalTime({applyTargetDate: new Date()}, eventData);
-        let eventQuery = {
-            "data.platformObjId": playerData.platform._id,
-            "data.playerObjId": playerData._id,
-            "data.eventId": eventData._id,
-            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-        };
+        let eventQuery = setupEventQuery(eventData, rewardData, playerData, intervalTime, eventQueryPeriodTime);
 
-        if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {
-            topupMatchQuery.topUpType = {$in: eventData.condition.topupType}
-        }
-
-        if (eventData.condition.onlineTopUpType && eventData.condition.onlineTopUpType.length > 0) {
-            if (!topupMatchQuery.$and) {
-                topupMatchQuery.$and = [];
-            }
-
-            topupMatchQuery.$and.push({$or: [{merchantTopUpType: {$in: eventData.condition.onlineTopUpType}}, {merchantTopUpType: {$exists: false}}]});
-        }
-
-        if (eventData.condition.bankCardType && eventData.condition.bankCardType.length > 0) {
-            if (!topupMatchQuery.$and) {
-                topupMatchQuery.$and = [];
-            }
-
-            topupMatchQuery.$and.push({$or: [{bankTypeId: {$in: eventData.condition.bankCardType}}, {bankTypeId: {$exists: false}}]});
-        }
-
-        // Check registration interface condition
-        if (dbRewardUtil.checkInterfaceRewardPermission(eventData, rewardData)) {
-            return Q.reject({
-                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                name: "DataError",
-                message: "This interface is not allowed for reward"
-            });
-        }
-
-        // Check whether top up record is dirty
-        if (checkTopupRecordIsDirtyForReward(eventData, rewardData)) {
-            return Q.reject({
-                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                name: "DataError",
-                message: "This top up record has been used"
-            });
-        }
-
-        if (intervalTime) {
-            topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-            if (rewardData.applyTargetDate) {
-                eventQuery["$or"] = [
-                    {"data.applyTargetDate": {$gte: eventQueryPeriodTime.startTime, $lt: eventQueryPeriodTime.endTime}},
-                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: eventQueryPeriodTime.startTime, $lt: eventQueryPeriodTime.endTime}}
-                ];
-            } else {
-                eventQuery["$or"] = [
-                    {"data.applyTargetDate": {$gte: intervalTime.startTime, $lt: intervalTime.endTime}},
-                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
-                ];
-            }
-            // NOTE :: Use apply target date instead. There are old records that does not have applyTargetDate field,
-            // so createTime is checked if applyTargetDate does not exist - Huat
-        }
         console.log("LH Check Player Free Trial Reward 1-----", topupMatchQuery);
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
@@ -7758,6 +7683,89 @@ let dbPlayerReward = {
                 }
             }
         );
+
+        function setSelectedRewardParam (eventData, playerData) {
+            let retObj = {};
+
+            if (eventData.condition.isPlayerLevelDiff) {
+                retObj = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+            } else {
+                retObj = eventData.param.rewardParam[0].value;
+            }
+
+            return retObj;
+        }
+
+        function getIntervalTime (eventData, rewardData) {
+            let retObj = {};
+
+            if (eventData.condition.interval) {
+                retObj = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData);
+                if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+                    retObj = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData, true);
+                }
+            }
+
+            return retObj;
+        }
+
+        function setupTopupMatchQuery(eventData, playerData, intervalTime) {
+            let retObj = {
+                playerId: playerData._id,
+                platformId: playerData.platform._id
+            };
+
+            if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {
+                retObj.topUpType = {$in: eventData.condition.topupType}
+            }
+
+            if (eventData.condition.onlineTopUpType && eventData.condition.onlineTopUpType.length > 0) {
+                if (!retObj.$and) {
+                    retObj.$and = [];
+                }
+
+                retObj.$and.push({$or: [{merchantTopUpType: {$in: eventData.condition.onlineTopUpType}}, {merchantTopUpType: {$exists: false}}]});
+            }
+
+            if (eventData.condition.bankCardType && eventData.condition.bankCardType.length > 0) {
+                if (!retObj.$and) {
+                    retObj.$and = [];
+                }
+
+                retObj.$and.push({$or: [{bankTypeId: {$in: eventData.condition.bankCardType}}, {bankTypeId: {$exists: false}}]});
+            }
+
+            if (intervalTime) {
+                retObj.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            }
+
+            return retObj;
+        }
+
+        function setupEventQuery (eventData, rewardData, playerData, intervalTime, eventQueryPeriodTime) {
+            let retObj = {
+                "data.platformObjId": playerData.platform._id,
+                "data.playerObjId": playerData._id,
+                "data.eventId": eventData._id,
+                status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+            };
+
+            if (intervalTime) {
+                if (rewardData.applyTargetDate) {
+                    retObj["$or"] = [
+                        {"data.applyTargetDate": {$gte: eventQueryPeriodTime.startTime, $lt: eventQueryPeriodTime.endTime}},
+                        {"data.applyTargetDate": {$exists: false}, createTime: {$gte: eventQueryPeriodTime.startTime, $lt: eventQueryPeriodTime.endTime}}
+                    ];
+                } else {
+                    retObj["$or"] = [
+                        {"data.applyTargetDate": {$gte: intervalTime.startTime, $lt: intervalTime.endTime}},
+                        {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
+                    ];
+                }
+            }
+
+            return retObj;
+        }
     },
 
     checkRewardParamLevel: function (value, eventData, intervalMode){
@@ -8885,29 +8893,6 @@ let dbPlayerReward = {
         }
     },
 };
-
-function checkTopupRecordIsDirtyForReward(eventData, rewardData) {
-    let isUsed = false;
-
-    if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.usedEvent && rewardData.selectedTopup.usedEvent.length > 0) {
-        if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
-            rewardData.selectedTopup.usedEvent.map(eventId => {
-                let isOneMatch = false;
-                eventData.condition.ignoreTopUpDirtyCheckForReward.map(eventIgnoreId => {
-                    if (String(eventId) == String(eventIgnoreId)) {
-                        isOneMatch = true;
-                    }
-                });
-                // If one of the reward matched in ignore list, dirty check for this reward is ignored
-                isUsed = isOneMatch ? isUsed : true;
-            })
-        } else {
-            isUsed = true;
-        }
-    }
-
-    return isUsed;
-}
 
 function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {
     let todayTopUpAmount = 0, todayBonusAmount = 0;

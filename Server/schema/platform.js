@@ -218,6 +218,8 @@ var platformSchema = new Schema({
     samePhoneNumberRegisterCount: {type: Number, default: 1},
     // the limit of the same bank account number used
     sameBankAccountCount: {type: Number, default: 1},
+    // check if require sms code when update bankcard for the first time
+    requireSMSCodeForBankRegistrationAtFirstTime: {type: Boolean, default: false},
     // white listing phone number
     whiteListingPhoneNumbers: [{type:String}],
     // black listing phone number
