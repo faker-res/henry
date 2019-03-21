@@ -1331,6 +1331,7 @@ define(['js/app'], function (myApp) {
                     vm.allPlatformData = data.data;
                     if (data.data) {
                         buildPlatformList(data.data);
+                        commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                     }
                     $('#platformRefresh').removeClass('fa-spin');
 
@@ -16660,8 +16661,13 @@ define(['js/app'], function (myApp) {
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
-                let sendQuery = {platform: vm.selectedPlatform.id};
+                // let sendQuery = {platform: vm.selectedPlatform.id};
+                let sendQuery = {};
                 let sendQueryOr = [];
+
+                if(vm.playerFeedbackQuery.selectedPlatform && vm.playerFeedbackQuery.selectedPlatform.length > 0) {
+                    sendQuery.platform = vm.playerFeedbackQuery.selectedPlatform;
+                }
 
                 if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
                     sendQuery.playerType = vm.playerFeedbackQuery.playerType;
