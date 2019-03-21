@@ -1073,6 +1073,10 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
                                     input(type='number', ng-show='vm.configTableEdit && vm.platformBasic.showAllowSamePhoneNumberToRegister', min=1, ng-model='vm.platformBasic.samePhoneNumberRegisterCount')
                             tr
+                                td {{'bankRegistrationAtFirstTimeNeedSMSCode' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSCodeForBankRegistrationAtFirstTime', ng-disabled='!vm.configTableEdit')
+                            tr
                                 td {{'sameBankAccountCount' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.sameBankAccountCount}}
