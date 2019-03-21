@@ -6212,6 +6212,9 @@ let dbPlayerInfo = {
                                 if (player) {
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
                                 } else {
+                                    if (loginData.platformId == 4) {
+                                        platformPrefix = 'e';
+                                    }
                                     let newPlayerData = {
                                         platformId: loginData.platformId,
                                         name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
