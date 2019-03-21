@@ -3798,7 +3798,10 @@ let dbPlayerInfo = {
     },
 
     getPlayersCountByPlatform: function (platformObjId) {
-        return dbconfig.collection_players.find({"platform": platformObjId}).count();
+        if(typeof platformObjId == "string"){
+            platformObjId = [platformObjId];
+        }
+        return dbconfig.collection_players.find({"platform": {$in: platformObjId}}).count();
     },
 
     /**
@@ -6209,6 +6212,9 @@ let dbPlayerInfo = {
                                 if (player) {
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
                                 } else {
+                                    if (loginData.platformId == 4) {
+                                        platformPrefix = 'e';
+                                    }
                                     let newPlayerData = {
                                         platformId: loginData.platformId,
                                         name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
