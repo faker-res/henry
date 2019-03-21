@@ -12,8 +12,7 @@
             div
                 label.control-label {{'OFFICER_NAME' | translate}}&nbsp;
                 .inlineBlk
-                    select.form-control(ng-model='vm.csUrlSearchQuery.admin', ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
-                        option(value='') {{'CHOOSE_OFFICER' | translate}}
+                    input.form-control(type="text", ng-model="vm.csUrlSearchQuery.adminName")
             div
                 label.control-label {{'PROMOTE_WAY' | translate}}&nbsp;
                 .inlineBlk
@@ -76,7 +75,7 @@
                         tr(ng-if="!vm.urlTableAdd && !vm.urlTableEdit", ng-repeat="(i,url) in vm.allUrl", sn-selectable-model="vm.selectedOfficerUrl", sn-selectable-value="url", ng-click="vm.currentUrlEditSelect = url")
                             td
                             td
-                                text {{url.adminName$}}
+                                text {{url.admin.adminName}}
                             td
                                 text {{url.way}}
                             td
@@ -116,8 +115,9 @@
                             td
                                 text {{vm.countPromoWay.promoUrl.length}}
                             td
-
-
+                                text
+                            td
+                                text
 
         .pull-right
             button.btn.btn-primary.common-button(ng-if="!vm.urlTableEdit && !vm.urlTableAdd && checkViewPermission('Platform', 'RegistrationUrlConfig','Create')", ng-click="vm.initCreateUrl()")
