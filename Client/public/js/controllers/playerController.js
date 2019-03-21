@@ -4748,10 +4748,17 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getProviderExpense = function (newSearch) {
+            let platformIdList;
+            if(vm.consumptionRecordPlatformList && vm.consumptionRecordPlatformList.length){
+                platformIdList = vm.consumptionRecordPlatformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
             var queryData = {
                 startTime: vm.expenseQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.expenseQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformId: vm.selectedPlatform.id,
+                platformId: platformIdList,
                 providerObjId: vm.selectedProviderID,
                 playerName: vm.playerName || null,
                 index: newSearch ? 0 : vm.expenseQuery.index,
@@ -4784,6 +4791,7 @@ define(['js/app'], function (myApp) {
                     item.gameType$ = item.cpGameType || item.gameId.name || "";
                     item.betType$ = item.betType || "";
                     item.remark$ = item.playDetail || "";
+                    item.platform$ = item.platformId && item.platformId.name ? item.platformId.name : "";
 
                     return item;
                 }) : [];
@@ -4796,16 +4804,18 @@ define(['js/app'], function (myApp) {
 
                 vm.commonProviderGameTableOptions = {
                     columnDefs: [
-                        {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [7]},
-                        {'sortCol': 'providerId', bSortable: true, 'aTargets': [1]},
-                        {'sortCol': 'gameId', bSortable: true, 'aTargets': [5]},
-                        {'sortCol': 'validAmount', bSortable: true, 'aTargets': [8]},
-                        {'sortCol': 'amount', bSortable: true, 'aTargets': [10]},
-                        {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [9]},
+                        {'sortCol': 'platform$', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'orderNo', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                        {'sortCol': 'providerId', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'gameId', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'validAmount', bSortable: true, 'aTargets': [9]},
+                        {'sortCol': 'amount', bSortable: true, 'aTargets': [11]},
+                        {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [10]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {title: $translate('PRODUCT_NAME'), data: 'platform$'},
                         {title: $translate('orderId'), data: "orderNo"},
                         {title: $translate('PLAYERID'), data: "playerId.name"},
                         {title: $translate('providerId'), data: "providerId.name"},
@@ -4864,9 +4874,9 @@ define(['js/app'], function (myApp) {
                 tableOptions = $.extend(true, {}, vm.providerExpenseDataTableOptions, vm.commonProviderGameTableOptions, tableOptions);
                 vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
                 utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
-                    9: summary.validAmount,
-                    10: summary.bonusAmount,
-                    11: summary.amount,
+                    10: summary.validAmount,
+                    11: summary.bonusAmount,
+                    12: summary.amount,
                     // 8: summary.commissionAmountAll
                 });
                 $('#providerExpenseTable').off('order.dt');
@@ -14778,8 +14788,15 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
+            let platformIdList;
+            if(vm.actionLogPlatformList && vm.actionLogPlatformList.length){
+                platformIdList = vm.actionLogPlatformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
             let sendQuery = {
-                platform: vm.selectedPlatform.id,
+                platform: platformIdList,
                 playerObjId: vm.selectedSinglePlayer && vm.selectedSinglePlayer._id || "",
                 playerName: vm.playerApiLog.playerName || "",
                 startDate: vm.playerApiLog.startDate.data('datetimepicker').getLocalDate(),
@@ -14811,6 +14828,7 @@ define(['js/app'], function (myApp) {
                     item.os = item.userAgent[0] && item.userAgent[0].os ? item.userAgent[0].os : "";
                     item.browser = item.userAgent[0] && item.userAgent[0].browser ? item.userAgent[0].browser : "";
                     item.ipArea$ = item.ipArea && item.ipArea.province && item.ipArea.city ? item.ipArea.province + "," + item.ipArea.city : "";
+                    item.platform$ = item.platform && item.platform.name ? item.platform.name : "";
                     if (item.domain) {
                         var filteredDomain = item.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
                         let indexNo = filteredDomain.indexOf("/");
@@ -14834,6 +14852,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('Incident'), data: "action$"},
                     {title: $translate('PLAYER_NAME'), data: "playerName"},
                     {title: $translate('Operation Time'), data: "operationTime$"},
