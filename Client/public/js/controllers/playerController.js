@@ -983,7 +983,7 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                 vm.allPlatformData = data.data;
-
+                commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                 //select platform from cookies data
                 let storedPlatform = $cookies.get("platform");
                 if (storedPlatform) {
