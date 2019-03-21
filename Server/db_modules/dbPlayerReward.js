@@ -3337,7 +3337,7 @@ let dbPlayerReward = {
 
         let minValue = 100;
         let maxValue = 999;
-        let isValid = false;
+        let isValid = true;
         newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
 
         // get the exsiting openPromoCodeList
@@ -3354,6 +3354,7 @@ let dbPlayerReward = {
                             break;
                         }
                         else{
+                            isValid = false;
                             newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
                         }
                     }
@@ -3412,7 +3413,7 @@ let dbPlayerReward = {
     changeOpenPromoCode: function (promoCodeObjId) {
         let minValue = 100;
         let maxValue = 999;
-        let isValid = false;
+        let isValid = true;
         let promoCode = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
         // get the exsiting openPromoCodeList
         return dbConfig.collection_openPromoCodeTemplate.find({
@@ -3428,6 +3429,7 @@ let dbPlayerReward = {
                             break;
                         }
                         else{
+                            isValid = false;
                             promoCode = dbUtility.generateRandomPositiveNumber(minValue, maxValue);
                         }
                     }
