@@ -2826,15 +2826,6 @@ var dbPlayerConsumptionRecord = {
                         $lt: new Date(endTime)
                     },
                     playerId: {$in: playerIds},
-                    $or: [
-                        {isDuplicate: {$exists: false}},
-                        {
-                            $and: [
-                                {isDuplicate: {$exists: true}},
-                                {isDuplicate: false}
-                            ]
-                        }
-                    ]
                 }
             },
             {
