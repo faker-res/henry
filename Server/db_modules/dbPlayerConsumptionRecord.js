@@ -2294,9 +2294,6 @@ var dbPlayerConsumptionRecord = {
                 $lt: endTime
             },
             platformId: ObjectId(platformId),
-            isDuplicate: {
-                $ne: true
-            }
         };
 
         if (providerId && providerId !== 'all') {
