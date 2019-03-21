@@ -2472,6 +2472,8 @@
   "Game Provider": "游戏提供商",
   "ENABLED": "启用",
   "DISABLED": "关闭",
+  "TOBEUSED": "待使用",
+  "UNAVAILABLE": "不可用",
   "Consumption amount times": "投注额倍数",
   "Minimal top up amount": "最小充值额",
   "Reward parameter for each level": "玩家等级对应优惠参数",
