@@ -310,10 +310,10 @@ define(['js/app'], function (myApp) {
             vm.showPageName = '';
             vm.setPlatform(JSON.stringify(platObj));
         }
-        vm.showProposalModal2 = function (proposalId) {
+        vm.showProposalModal2 = function (proposalId, platformObjId) {
             vm.proposalDialog = 'proposalTopUp';
             socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
-                platformId: vm.selectedPlatform._id,
+                platformId: platformObjId || vm.selectedPlatform._id,
                 proposalId: proposalId
             }, function (data) {
                 vm.selectedProposal = data.data;
@@ -1792,7 +1792,7 @@ define(['js/app'], function (myApp) {
                         data: "proposalId",
                         render: function (data, type, row) {
                             data = String(data);
-                            return '<a ng-click="vm.showProposalModal2(\'' + data + '\')">' + data + '</a>';
+                            return '<a ng-click="vm.showProposalModal2(\'' + data + '\', \'' + row.data.platformId._id + '\')">' + data + '</a>';
                         }
                     },
                     {
@@ -6411,7 +6411,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('PROPOSAL ID'), data: "proposalId",
                         render: function (data, type, row) {
                             data = String(data);
-                            return '<a ng-click="vm.showProposalModalNew(\'' + data + '\')">' + data + '</a>';
+                            return '<a ng-click="vm.showProposalModalNew(\'' + data + '\', \'' + row.data.platformId._id + '\')">' + data + '</a>';
                         }
                     },
                     {
@@ -8912,11 +8912,11 @@ define(['js/app'], function (myApp) {
             });
         }
 
-        vm.showProposalModalNew = function (proposalId) {
+        vm.showProposalModalNew = function (proposalId, platformObjId) {
             vm.proposalDetailStyle = {};
             vm.proposalDialog = 'proposal';
             socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
-                platformId: vm.selectedPlatform._id,
+                platformId: platformObjId || vm.selectedPlatform._id,
                 proposalId: proposalId
             }, function (data) {
                 vm.selectedProposal = data.data;
