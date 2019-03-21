@@ -87,7 +87,7 @@
                         tr(ng-if="vm.urlTableEdit")
                             td
                             td
-                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
+                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin._id', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
                             td
                                 select.form-control#officerPromoteOption(ng-model='vm.currentUrlEditSelect.way', ng-disabled="!vm.urlTableEdit", required)
                                     option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
