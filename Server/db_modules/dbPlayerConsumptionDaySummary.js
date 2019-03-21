@@ -41,7 +41,7 @@ var dbPlayerConsumptionDaySummary = {
         delete upsertData.platformId;
         delete upsertData.date;
 
-        return dbutility.upsertForShard(
+        return dbUtil.upsertForShard(
             dbconfig.collection_winRateReportDataDaySummary,
             {
                 playerId: data.playerId,
@@ -330,7 +330,6 @@ var dbPlayerConsumptionDaySummary = {
     calculateWinRateReportDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
-            platformId = ObjectId(platformId);
             return dbPlayerConsumptionRecord.streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId).then(
                 playerObjIds => {
                     let stream = dbconfig.collection_players.aggregate(
