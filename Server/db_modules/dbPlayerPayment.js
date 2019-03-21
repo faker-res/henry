@@ -709,7 +709,7 @@ const dbPlayerPayment = {
                         ) {
                             paymentUrl = extConfig[player.platform.topUpSystemType].topUpAPIAddr;
                         }
-                        console.log('topupRequest.clientType JY::', topupRequest.clientType);
+
                         return {
                             url: generatePMSHTTPUrl(player, proposal, paymentUrl, topupRequest.clientType, ipAddress, topupRequest.amount),
                             proposalId: proposal.proposalId,
@@ -789,8 +789,6 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
     ) {
         paymentCallbackUrl = extConfig[playerData.platform.topUpSystemType].topUpAPICallback;
     }
-
-    console.log('clientType JY::', clientType);
 
     url += "?";
     url += playerData.platform.platformId + delimiter;
