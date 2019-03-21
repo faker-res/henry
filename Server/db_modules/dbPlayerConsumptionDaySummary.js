@@ -36,7 +36,7 @@ var dbPlayerConsumptionDaySummary = {
     },
 
     upsertWinRateReportDataDaySummary: function(data){
-        var upsertData = JSON.parse(JSON.stringify(data));
+        let upsertData = JSON.parse(JSON.stringify(data));
         delete upsertData.playerId;
         delete upsertData.platformId;
         delete upsertData.date;
@@ -46,6 +46,8 @@ var dbPlayerConsumptionDaySummary = {
             {
                 playerId: data.playerId,
                 platformId: data.platformId,
+                providerId: data.providerId,
+                cpGameType: data.cpGameType,
                 date: data.date,
             },
             upsertData,
