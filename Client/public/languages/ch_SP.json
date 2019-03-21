@@ -3633,6 +3633,7 @@
   "SET": "设置",
   "PROMO_CODE_MODIFIED": "优惠代码被更改",
   "samePhoneNumberRegisterCount": "相同电话号码开户次数",
+  "bankRegistrationAtFirstTimeNeedSMSCode": "玩家首绑银行卡需短信验证",
   "unknown": "未知",
   "registration": "注册",
   "oldPhoneNumber": "电话号码（旧）",
