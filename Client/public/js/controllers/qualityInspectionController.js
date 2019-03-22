@@ -3069,6 +3069,15 @@ define(['js/app'], function (myApp) {
                         vm.summarizedDataDetail = "";
                         vm.loadingSummarizeLive800Record = false;
                     })
+                }, function (error){
+                    vm.loadingSummarizeLive800Record = false;
+                    console.log("Error when gather summarized Live 800 Record Data:", error)
+                });
+
+                socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
+                   console.log("Live800 records has gathered completely")
+                }, function (error){
+                    console.log("Error when gather Live800 records: ", error)
                 });
             }
 
@@ -3087,6 +3096,15 @@ define(['js/app'], function (myApp) {
                         vm.summarizedDataDetail = "";
                         vm.loadingSummarizeLive800Record = false;
                     })
+                }, function (error){
+                    vm.loadingSummarizeLive800Record = false;
+                    console.log("Error when gather summarized Live 800 Record Data:", error)
+                });
+
+                socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
+                    console.log("Live800 records has gathered completely")
+                }, function (error){
+                    console.log("Error when gather Live800 records: ", error)
                 });
             }
 
