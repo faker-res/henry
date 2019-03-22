@@ -398,45 +398,7 @@ define(['js/app'], function (myApp) {
                     vm.allPMSBankCardGroup = [];
 
                     if (data && data.data && data.data.data) {
-                        Object.entries(data.data.data).forEach(([groupName, value]) => {
-                            let groupData = {
-                                code: groupName,
-                                displayName: groupName,
-                                groupId: groupName,
-                                name: groupName,
-                                cards: []
-                            };
-
-                            if (value && value.length) {
-                                value.map(bankCard => {
-                                    let data = {};
-                                    data.accountNumber = bankCard.bankCard;
-                                    if (vm.cloneAllBankTypeList && vm.cloneAllBankTypeList.length) {
-                                        for(let i = 0; i < vm.cloneAllBankTypeList.length; i++) {
-                                            if (vm.cloneAllBankTypeList[i].name && vm.cloneAllBankTypeList[i].name.match(bankCard.bankName)) {
-                                                data.bankTypeId = vm.cloneAllBankTypeList[i].bankTypeId;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    data.bankTypeId = data.bankTypeId || bankCard.bankName;
-
-                                    data.cityName = bankCard.cityName;
-                                    data.name = bankCard.cardName;
-                                    data.provinceName = bankCard.provinceName;
-                                    data.dailyLimit = bankCard.dailyLimit;
-                                    data.singleLimit = bankCard.singleLimit;
-                                    data.openingPoint = bankCard.bankAddress;
-                                    data.show$ = true;
-                                    data.included = true;
-                                    data.status = bankCard.status ? bankCard.status : "DISABLED";
-
-                                    groupData.cards.push(data);
-                                });
-                            }
-                            vm.platformBankCardGroupList.push(groupData);
-                            vm.allPMSBankCardGroup.push(groupData);
-                        });
+                        vm.mapBankCardList(data.data.data);
                     }
                     $scope.$evalAsync();
                 });
@@ -625,27 +587,81 @@ define(['js/app'], function (myApp) {
                     bankCardGroups = data.data.data || {};
                     if (data && data.data && data.data.data && Object.keys(data.data.data).length > 0) {
                         vm.platformBankCardGroupList = [];
+
+                        vm.mapBankCardList(bankCardGroups);
+
+                        firstGroupData = firstGroupData || vm.platformBankCardGroupList && vm.platformBankCardGroupList.length > 0 ? vm.platformBankCardGroupList[0] : [];
                     }
                 } else {
                     bankCardGroups = data.data.map["银行卡"] || {};
                     vm.platformBankCardGroupList = [];
-                }
 
-                Object.keys(bankCardGroups).forEach(
-                    groupName => {
-                        for (let i = 0; i < vm.allPMSBankCardGroup.length; i++) {
-                            if (vm.allPMSBankCardGroup[i].code == groupName) {
-                                vm.platformBankCardGroupList.push(vm.allPMSBankCardGroup[i]);
-                                firstGroupData = firstGroupData || vm.allPMSBankCardGroup[i];
+                    Object.keys(bankCardGroups).forEach(
+                        groupName => {
+                            for (let i = 0; i < vm.allPMSBankCardGroup.length; i++) {
+                                if (vm.allPMSBankCardGroup[i].code == groupName) {
+                                    vm.platformBankCardGroupList.push(vm.allPMSBankCardGroup[i]);
+                                    firstGroupData = firstGroupData || vm.allPMSBankCardGroup[i];
+                                }
                             }
                         }
-                    }
-                );
+                    );
+                }
 
                 if (firstGroupData) {
                     vm.bankCardGroupClicked(0, firstGroupData);
                 }
             });
+        };
+
+        vm.mapBankCardList = (bankCardGroups) => {
+            Object.entries(bankCardGroups).forEach(([groupName, value]) => {
+
+                let groupData = {
+                    code: groupName,
+                    displayName: groupName,
+                    groupId: groupName,
+                    name: groupName,
+                    cards: []
+                };
+
+                if (value && value.length) {
+                    value.map(bankCard => {
+                        let data = {};
+                        data.accountNumber = bankCard.bankCard;
+                        if (vm.cloneAllBankTypeList && vm.cloneAllBankTypeList.length) {
+                            for(let i = 0; i < vm.cloneAllBankTypeList.length; i++) {
+                                if (vm.cloneAllBankTypeList[i].name && vm.cloneAllBankTypeList[i].name.match(bankCard.bankName)) {
+                                    data.bankTypeId = vm.cloneAllBankTypeList[i].bankTypeId;
+                                    break;
+                                }
+                            }
+                        }
+                        data.bankTypeId = data.bankTypeId || bankCard.bankName;
+
+                        data.cityName = bankCard.cityName;
+                        data.name = bankCard.cardName;
+                        data.provinceName = bankCard.provinceName;
+                        data.dailyLimit = bankCard.dailyLimit;
+                        data.singleLimit = bankCard.singleLimit;
+                        data.openingPoint = bankCard.bankAddress;
+                        data.show$ = true;
+                        data.included = true;
+                        data.status = bankCard.status ? bankCard.status : "DISABLED";
+
+                        groupData.cards.push(data);
+                    });
+                }
+                vm.platformBankCardGroupList.push(groupData);
+                vm.allPMSBankCardGroup.push(groupData);
+            });
+        };
+
+        vm.searchPMSBankCardGroup = () => {
+            if (vm.pmsGroupPlayerName == '' || !vm.pmsGroupPlayerName) {
+                vm.allBankCards = [];
+                vm.loadBankCardGroupData();
+            }
         };
 
         vm.checkIncludedBankCards = () => {
@@ -1524,6 +1540,7 @@ define(['js/app'], function (myApp) {
 
         vm.merchantGroupTabClicked = function () {
             if (vm.paymentSystemName === 'PMS2') {
+                vm.allMerchantList = [];
                 vm.loadMerchantGroupData();
             }
 
@@ -1583,57 +1600,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     if (merchantGroupData) {
-                        Object.entries(merchantGroupData).forEach(([groupName, value]) => {
-                            let groupData = {
-                                code: groupName,
-                                displayName: groupName,
-                                groupId: groupName,
-                                name: groupName,
-                                merchants: []
-                            };
-
-                            if (value && value.length) {
-                                value.map(merchant => {
-                                    let data = {};
-                                    data.isIncluded = true;
-                                    data.show$ = true;
-                                    data.merchantNo = merchant.merchantNo;
-                                    data.merchantTypeId = merchant.merchantTypeId;
-                                    data.name = merchant.name;
-                                    data.permerchantLimits = merchant.permerchantLimits;
-                                    data.permerchantminLimits = merchant.permerchantminLimits;
-                                    data.status = merchant.status;
-                                    data.targetDevices = merchant.targetDevices;
-                                    data.topupType = merchant.topupType;
-                                    data.transactionForPlayerOneDay = merchant.transactionForPlayerOneDay;
-
-                                    groupData.merchants.push(data);
-                                });
-                            }
-
-                            vm.platformMerchantGroupList.push(groupData);
-                        });
-
-                        if (vm.platformMerchantGroupList && vm.platformMerchantGroupList.length > 0 && vm.platformMerchantList && vm.platformMerchantList.length > 0) {
-                            vm.platformMerchantGroupList.forEach(merchantGroup => {
-                                if (merchantGroup && merchantGroup.merchants && merchantGroup.merchants.length > 0) {
-                                    merchantGroup.merchants.map(merchant => {
-                                        let index = vm.platformMerchantList.findIndex(x => x && x.name && x.merchantNo && x.name == merchant.name && x.merchantNo == merchant.merchantNo);
-
-                                        if(index != -1 && vm.platformMerchantList[index]) {
-                                            if (vm.platformMerchantList[index] && vm.platformMerchantList[index].rate) {
-                                                merchant.rate = vm.platformMerchantList[index].rate;
-                                            }
-
-                                            if (vm.platformMerchantList[index] && vm.platformMerchantList[index].customizeRate) {
-                                                merchant.customizeRate = vm.platformMerchantList[index].customizeRate;
-                                            }
-                                        }
-                                        return merchant;
-                                    });
-                                }
-                            });
-                        }
+                        vm.mapMerchantGroupList(merchantGroupData);
                     }
                     $scope.$evalAsync();
 
@@ -1666,6 +1633,68 @@ define(['js/app'], function (myApp) {
                 }
                 $scope.$evalAsync()
             })
+        };
+
+        vm.mapMerchantGroupList = (merchantGroupData) => {
+            Object.entries(merchantGroupData).forEach(([groupName, value]) => {
+                let groupData = {
+                    code: groupName,
+                    displayName: groupName,
+                    groupId: groupName,
+                    name: groupName,
+                    merchants: []
+                };
+
+                if (value && value.length) {
+                    value.map(merchant => {
+                        let data = {};
+                        data.isIncluded = true;
+                        data.show$ = true;
+                        data.merchantNo = merchant.merchantNo;
+                        data.merchantTypeId = merchant.merchantTypeId;
+                        data.name = merchant.name;
+                        data.permerchantLimits = merchant.permerchantLimits;
+                        data.permerchantminLimits = merchant.permerchantminLimits;
+                        data.status = merchant.status;
+                        data.targetDevices = merchant.targetDevices;
+                        data.topupType = merchant.topupType;
+                        data.transactionForPlayerOneDay = merchant.transactionForPlayerOneDay;
+
+                        groupData.merchants.push(data);
+                    });
+                }
+
+                vm.platformMerchantGroupList.push(groupData);
+            });
+
+            if (vm.platformMerchantGroupList && vm.platformMerchantGroupList.length > 0 && vm.platformMerchantList && vm.platformMerchantList.length > 0) {
+                vm.platformMerchantGroupList.forEach(merchantGroup => {
+                    if (merchantGroup && merchantGroup.merchants && merchantGroup.merchants.length > 0) {
+                        merchantGroup.merchants.map(merchant => {
+                            let index = vm.platformMerchantList.findIndex(x => x && x.name && x.merchantNo && x.name == merchant.name && x.merchantNo == merchant.merchantNo);
+
+                            if(index != -1 && vm.platformMerchantList[index]) {
+                                if (vm.platformMerchantList[index] && vm.platformMerchantList[index].rate) {
+                                    merchant.rate = vm.platformMerchantList[index].rate;
+                                }
+
+                                if (vm.platformMerchantList[index] && vm.platformMerchantList[index].customizeRate) {
+                                    merchant.customizeRate = vm.platformMerchantList[index].customizeRate;
+                                }
+                            }
+                            return merchant;
+                        });
+                    }
+                });
+            }
+        };
+
+        vm.searchPMSMerchantGroup = () => {
+            if (vm.pmsGroupPlayerName == '' || !vm.pmsGroupPlayerName) {
+                vm.SelectedMerchantGroupNode = null;
+                vm.allMerchantList = [];
+                vm.loadMerchantGroupData();
+            }
         };
 
         vm.selectedMerchantGroup = function(selectedMerchantGroupId, selectedMerchantGroupName) {
@@ -1763,19 +1792,26 @@ define(['js/app'], function (myApp) {
                     merchantGroupData = data && data.data && data.data.map && data.data.map["在线"] ? data.data.map["在线"] : null;
                 }
 
-                if (merchantGroupData) {
-                    let groupName = Object.entries(merchantGroupData)[0][0];
-                    if (vm.platformMerchantGroupList && vm.platformMerchantGroupList.length) {
-                        for (let i = 0; i < vm.platformMerchantGroupList.length; i++) {
-                            if (vm.platformMerchantGroupList[i].code == groupName) {
-                                vm.merchantGroupClicked(i, vm.platformMerchantGroupList[i]);
+                if (vm.paymentSystemName === 'PMS2') {
+                    if (merchantGroupData && Object.keys(merchantGroupData).length > 0) {
+                        vm.platformMerchantGroupList = [];
+
+                        vm.mapMerchantGroupList(merchantGroupData);
+                        vm.merchantGroupClicked(0, vm.platformMerchantGroupList[0]);
+                    }
+                } else {
+                    if (merchantGroupData) {
+                        let groupName = Object.entries(merchantGroupData)[0][0];
+                        if (vm.platformMerchantGroupList && vm.platformMerchantGroupList.length) {
+                            for (let i = 0; i < vm.platformMerchantGroupList.length; i++) {
+                                if (vm.platformMerchantGroupList[i].code == groupName) {
+                                    vm.merchantGroupClicked(i, vm.platformMerchantGroupList[i]);
+                                }
                             }
                         }
                     }
                 }
-                else {
 
-                }
             });
         }
 
@@ -2152,6 +2188,7 @@ define(['js/app'], function (myApp) {
 
         vm.alipayGroupTabClicked = function () {
             if (vm.paymentSystemName === 'PMS2') {
+                vm.allAlipayList = [];
                 vm.loadAlipayGroupData();
             }
 
@@ -2198,33 +2235,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     if (alipayGroupData) {
-                        Object.entries(alipayGroupData).forEach(([groupName, value]) => {
-                            let groupData = {
-                                code: groupName,
-                                displayName: groupName,
-                                groupId: groupName,
-                                name: groupName,
-                                alipays: []
-                            };
-
-                            if (value && value.length) {
-                                value.map(alipay => {
-                                    let data = {};
-                                    data.isInGroup = true;
-                                    data.show$ = true;
-                                    data.accountNumber = alipay.bankCard;
-                                    data.name = alipay.cardName;
-                                    data.singleLimit = alipay.singleLimit;
-                                    data.quota = alipay.dailyLimit;
-                                    data.minDepositAmount = alipay.minDepositAmount;
-                                    data.state = vm.paymentSystemName && vm.paymentSystemName === 'PMS2' && alipay.status ? alipay.status : alipay.flag ? alipay.flag.split(" ")[0] : "DISABLED";
-                                    data.line = alipay.line;
-                                    groupData.alipays.push(data);
-                                });
-                            }
-
-                            vm.platformAlipayGroupList.push(groupData);
-                        });
+                        vm.mapAlipayGroupList(alipayGroupData);
                     }
                     $scope.$evalAsync();
                 });
@@ -2252,6 +2263,44 @@ define(['js/app'], function (myApp) {
             //     $scope.safeApply();
             // });
         }
+
+        vm.mapAlipayGroupList = (alipayGroupData) => {
+            Object.entries(alipayGroupData).forEach(([groupName, value]) => {
+                let groupData = {
+                    code: groupName,
+                    displayName: groupName,
+                    groupId: groupName,
+                    name: groupName,
+                    alipays: []
+                };
+
+                if (value && value.length) {
+                    value.map(alipay => {
+                        let data = {};
+                        data.isInGroup = true;
+                        data.show$ = true;
+                        data.accountNumber = alipay.bankCard;
+                        data.name = alipay.cardName;
+                        data.singleLimit = alipay.singleLimit;
+                        data.quota = alipay.dailyLimit;
+                        data.minDepositAmount = alipay.minDepositAmount;
+                        data.state = vm.paymentSystemName && vm.paymentSystemName === 'PMS2' && alipay.status ? alipay.status : alipay.flag ? alipay.flag.split(" ")[0] : "DISABLED";
+                        data.line = alipay.line;
+                        groupData.alipays.push(data);
+                    });
+                }
+
+                vm.platformAlipayGroupList.push(groupData);
+            });
+        };
+
+        vm.searchPMSAlipayGroup = () => {
+            if (vm.pmsGroupPlayerName == '' || !vm.pmsGroupPlayerName) {
+                vm.SelectedAlipayGroupNode = null;
+                vm.allAlipayList = [];
+                vm.loadAlipayGroupData();
+            }
+        };
 
         vm.AlipayAccChanged = function(){
             vm.filterAlipayName = vm.filterAlipayAccount;
@@ -2352,19 +2401,26 @@ define(['js/app'], function (myApp) {
                     alipayGroupData = data && data.data && data.data.map && data.data.map["支付宝"] ? data.data.map["支付宝"] : null;
                 }
 
-                if (alipayGroupData) {
-                    let groupName = Object.entries(alipayGroupData)[0][0];
-                    if (vm.platformAlipayGroupList && vm.platformAlipayGroupList.length) {
-                        for (let i = 0; i < vm.platformAlipayGroupList.length; i++) {
-                            if (vm.platformAlipayGroupList[i].code == groupName) {
-                                vm.alipayGroupClicked(i, vm.platformAlipayGroupList[i]);
+                if (vm.paymentSystemName === 'PMS2') {
+                    if (alipayGroupData && Object.keys(alipayGroupData).length > 0) {
+                        vm.platformAlipayGroupList = [];
+
+                        vm.mapAlipayGroupList(alipayGroupData);
+                        vm.merchantGroupClicked(0, vm.platformAlipayGroupList[0]);
+                    }
+                } else {
+                    if (alipayGroupData) {
+                        let groupName = Object.entries(alipayGroupData)[0][0];
+                        if (vm.platformAlipayGroupList && vm.platformAlipayGroupList.length) {
+                            for (let i = 0; i < vm.platformAlipayGroupList.length; i++) {
+                                if (vm.platformAlipayGroupList[i].code == groupName) {
+                                    vm.alipayGroupClicked(i, vm.platformAlipayGroupList[i]);
+                                }
                             }
                         }
                     }
                 }
-                else {
 
-                }
             });
         };
 
@@ -2847,6 +2903,7 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
         vm.wechatPayGroupTabClicked = function () {
             if (vm.paymentSystemName === 'PMS2') {
+                vm.allWechatList = [];
                 vm.loadWechatPayGroupData();
             }
 
@@ -2892,33 +2949,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     if (wechatGroupData) {
-                        Object.entries(wechatGroupData).forEach(([groupName, value]) => {
-                            let groupData = {
-                                code: groupName,
-                                displayName: groupName,
-                                groupId: groupName,
-                                name: groupName,
-                                wechats: []
-                            };
-
-                            if (value && value.length) {
-                                value.map(wechat => {
-                                    let data = {};
-                                    data.isInGroup = true;
-                                    data.show$ = true;
-                                    data.accountNumber = wechat.bankCard;
-                                    data.name = wechat.cardName;
-                                    data.singleLimit = wechat.singleLimit;
-                                    data.dailyLimit = wechat.dailyLimit;
-                                    data.state = vm.paymentSystemName && vm.paymentSystemName === 'PMS2' && wechat.status ? wechat.status : wechat.flag ? wechat.flag.split(" ")[0] : "DISABLED";
-                                    data.nickName = wechat.nickName;
-
-                                    groupData.wechats.push(data);
-                                });
-                            }
-
-                            vm.platformWechatPayGroupList.push(groupData);
-                        });
+                        vm.mapWechatGroupList(wechatGroupData);
                     }
                     $scope.$evalAsync();
                 });
@@ -2934,6 +2965,44 @@ define(['js/app'], function (myApp) {
                     });
                 });
             })
+        };
+
+        vm.mapWechatGroupList = (wechatGroupData) => {
+            Object.entries(wechatGroupData).forEach(([groupName, value]) => {
+                let groupData = {
+                    code: groupName,
+                    displayName: groupName,
+                    groupId: groupName,
+                    name: groupName,
+                    wechats: []
+                };
+
+                if (value && value.length) {
+                    value.map(wechat => {
+                        let data = {};
+                        data.isInGroup = true;
+                        data.show$ = true;
+                        data.accountNumber = wechat.bankCard;
+                        data.name = wechat.cardName;
+                        data.singleLimit = wechat.singleLimit;
+                        data.dailyLimit = wechat.dailyLimit;
+                        data.state = vm.paymentSystemName && vm.paymentSystemName === 'PMS2' && wechat.status ? wechat.status : wechat.flag ? wechat.flag.split(" ")[0] : "DISABLED";
+                        data.nickName = wechat.nickName;
+
+                        groupData.wechats.push(data);
+                    });
+                }
+
+                vm.platformWechatPayGroupList.push(groupData);
+            });
+        };
+
+        vm.searchPMSWechatGroup = () => {
+            if (vm.pmsGroupPlayerName == '' || !vm.pmsGroupPlayerName) {
+                vm.SelectedWechatPayGroupNode = null;
+                vm.allWechatList = [];
+                vm.loadWechatPayGroupData();
+            }
         };
 
         vm.WechatPayAccChanged = function(){
@@ -3086,19 +3155,26 @@ define(['js/app'], function (myApp) {
                     wechatGroupData = data && data.data && data.data.map && data.data.map["微信"] ? data.data.map["微信"] : null;
                 }
 
-                if (wechatGroupData) {
-                    let groupName = Object.entries(wechatGroupData)[0][0];
-                    if (vm.platformWechatPayGroupList && vm.platformWechatPayGroupList.length) {
-                        for (let i = 0; i < vm.platformWechatPayGroupList.length; i++) {
-                            if (vm.platformWechatPayGroupList[i].code == groupName) {
-                                vm.wechatPayGroupClicked(i, vm.platformWechatPayGroupList[i]);
+                if (vm.paymentSystemName === 'PMS2') {
+                    if (wechatGroupData && Object.keys(wechatGroupData).length > 0) {
+                        vm.platformWechatPayGroupList = [];
+
+                        vm.mapWechatGroupList(wechatGroupData);
+                        vm.wechatPayGroupClicked(0, vm.platformWechatPayGroupList[0]);
+                    }
+                } else {
+                    if (wechatGroupData) {
+                        let groupName = Object.entries(wechatGroupData)[0][0];
+                        if (vm.platformWechatPayGroupList && vm.platformWechatPayGroupList.length) {
+                            for (let i = 0; i < vm.platformWechatPayGroupList.length; i++) {
+                                if (vm.platformWechatPayGroupList[i].code == groupName) {
+                                    vm.wechatPayGroupClicked(i, vm.platformWechatPayGroupList[i]);
+                                }
                             }
                         }
                     }
                 }
-                else {
 
-                }
             });
         };
 
