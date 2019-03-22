@@ -95,14 +95,22 @@ form(name='form_800Record')
                         table(style="width: 100%; table-layout: fixed;")
                             tbody
                                 tr(style="text-align:center;")
-                                    td(colspan=6, ng-click="conversationform.displayWay = !conversationform.displayWay") {{'Start date' | translate}}: {{conversationform.conversation && conversationform.conversation[0] && conversationform.conversation[0].displayTime ? conversationform.conversation[0].displayTime : null | date:"yyyy-MM-dd hh:mm:ss"}} ~ {{'End date' | translate}}: {{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}} ({{"Click To Extend/Collapse" | translate}})
-                                tr(style="text-align:center;color:red", ng-if="conversationform.displayWay")
                                     td(style="width: 40px;")
                                     td(style="width: 77.27px;")
-                                    td(style="width: 350px;") **** 新的对话开始 ****
+                                    td(style="width: 350px;")
                                     td(style="width: 50.27px;")
                                     td(style="width: 50.27px;")
                                     td(style="width: 300px;")
+                                tr(style="text-align:center;")
+                                    td(colspan=6, ng-click="conversationform.displayWay = !conversationform.displayWay") {{'Start date' | translate}}: {{conversationform.conversation && conversationform.conversation[0] && conversationform.conversation[0].displayTime ? conversationform.conversation[0].displayTime : null | date:"yyyy-MM-dd hh:mm:ss"}} ~ {{'End date' | translate}}: {{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}} ({{"Click To Extend/Collapse" | translate}})
+                                tr(style="text-align:center;color:red", ng-if="conversationform.displayWay")
+                                    td(colspan=6) **** 新的对话开始 ****
+                                    //td(style="width: 40px;")
+                                    //td(style="width: 77.27px;")
+                                    //td(style="width: 350px;") **** 新的对话开始 ****
+                                    //td(style="width: 50.27px;")
+                                    //td(style="width: 50.27px;")
+                                    //td(style="width: 300px;")
                                 tr(ng-repeat="convert in conversationform.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{convert.colors}};", ng-if="conversationform.displayWay")
                                     td(style="width: 40px; border: 1px solid black;") {{convert.roleName}}
                                     td(style="width: 77.27px; border: 1px solid black;") {{convert.displayTime}}
@@ -122,12 +130,13 @@ form(name='form_800Record')
                                         div(ng-if='!conversationform.editable')
                                             div(style='text-align:center') {{convert.review}}
                                 tr(style="text-align:center;color:red", ng-if="conversationform.displayWay")
-                                    td(style="width: 40px;")
-                                    td(style="width: 77.27px;")
-                                    td(style="width: 350px;") 結束對話:{{ conversationform.closeName$ }}关闭对话 ({{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
-                                    td(style="width: 50.27px;")
-                                    td(style="width: 50.27px;")
-                                    td(style="width: 300px;")
+                                    td(colspan=6) 結束對話:{{ conversationform.closeName$ }}关闭对话 ({{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                    //td(style="width: 40px;")
+                                    //td(style="width: 77.27px;")
+                                    //td(style="width: 350px;") 結束對話:{{ conversationform.closeName$ }}关闭对话 ({{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                    //td(style="width: 50.27px;")
+                                    //td(style="width: 50.27px;")
+                                    //td(style="width: 300px;")
                     td(style="border: 1px solid black; width: 78.18px;") {{conversationform.qualityAssessor.adminName}}
                     td(style="border: 1px solid black; width: 77.27px;") {{conversationform.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
                     td(style="border: 1px solid black; width: 90px;") {{conversationform.appealReason}}

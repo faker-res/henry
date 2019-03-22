@@ -502,6 +502,9 @@ define(['js/app'], function (myApp) {
                                 item.conversation.forEach(function (cv, i) {
                                     cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
                                     cv.needRate = vm.avoidMultiRateCS(cv, i, item.conversation);
+                                    if(cv.roles){
+                                        cv.roleName = vm.roleType[cv.roles];
+                                    };
                                     // load each platform overtimeSetting
                                     let overtimeSetting = vm.getPlatformOvertimeSetting(item);
                                     let otsLength = overtimeSetting.length - 1;
