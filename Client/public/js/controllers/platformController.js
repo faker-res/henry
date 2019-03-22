@@ -32705,40 +32705,41 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id
                 };
                 socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                    vm.countPromoWay = {
-                        cs:[],
-                        promoWay:[],
-                        promoUrl:[]
-                    };
-                    vm.allUrl = data.data;
-                    vm.allUrl = vm.allUrl.map(url => {
+                    $scope.$evalAsync(()=>{
+                        vm.countPromoWay = {
+                            cs:[],
+                            promoWay:[],
+                            promoUrl:[]
+                        };
+                        vm.allUrl = data.data;
+                        vm.allUrl = vm.allUrl.map(url => {
 
-                        vm.countPromoWay.promoWay.push(url.way);
-                        vm.countPromoWay.promoUrl.push(url.domain);
-                        if (url.admin && url.admin._id) {
-                            vm.countPromoWay.cs.push(url.admin._id);
-                        }
-                        for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                            let admin = vm.adminList[i];
-                            if (url.admin.toString() === admin._id.toString()) {
-                                url.adminName$ = admin.adminName;
-                                break;
+                            vm.countPromoWay.promoWay.push(url.way);
+                            vm.countPromoWay.promoUrl.push(url.domain);
+                            if (url.admin && url.admin._id) {
+                                vm.countPromoWay.cs.push(url.admin._id);
                             }
-                        }
-                        return url;
+                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                                let admin = vm.adminList[i];
+                                if (url.admin.toString() === admin._id.toString()) {
+                                    url.adminName$ = admin.adminName;
+                                    break;
+                                }
+                            }
+                            return url;
+                        });
+
+                        vm.countPromoWay.cs = [...(new Set(vm.countPromoWay.cs))];
+                        vm.countPromoWay.promoWay = [...(new Set(vm.countPromoWay.promoWay))];
+                        vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
+
+                        vm.allUrl.sort((a, b) => {
+                             if (a.admin.adminName < b.admin.adminName) return -1;
+                             else if (a.admin.adminName > b.admin.adminName) return 1;
+                             return 0;
+                         });
+                        console.log("vm.allUrl", vm.allUrl);
                     });
-
-                    vm.countPromoWay.cs = [...(new Set(vm.countPromoWay.cs))];
-                    vm.countPromoWay.promoWay = [...(new Set(vm.countPromoWay.promoWay))];
-                    vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
-
-                    vm.allUrl.sort((a, b) => {
-                         if (a.admin.adminName < b.admin.adminName) return -1;
-                         else if (a.admin.adminName > b.admin.adminName) return 1;
-                         return 0;
-                     });
-                    console.log("vm.allUrl", vm.allUrl);
-                    $scope.$evalAsync();
                 },
                 function (err) {
                     console.log(err);
