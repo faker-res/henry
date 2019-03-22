@@ -1820,7 +1820,15 @@ define(['js/app'], function (myApp) {
                         "title": $translate('3rd Party Platform'), "data": 'data.merchantUseName',
                         render: function(data, type, row){
                             let merchantName =  row.merchantName ? row.merchantName : '';
-                            var text = data ? data : merchantName;
+                            let text;
+
+                            if (data && merchantName) {
+                                text = data === merchantName ? data : merchantName;
+                            } else if (merchantName && !data) {
+                                text = merchantName;
+                            } else {
+                                text = data ? data : '';
+                            }
                             return "<div>" + text + "</div>";
                         }
                     },
