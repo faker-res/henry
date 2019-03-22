@@ -51,6 +51,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionLargeWithdrawal'),
     require('./../socketActionModule/socketActionWCGroupControl'),
     require('./../socketActionModule/socketActionAuction'),
+    require('./../socketActionModule/socketActionWinnerMonitor'),
 ];
 
 var socketActions = [

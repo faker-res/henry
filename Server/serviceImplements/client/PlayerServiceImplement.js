@@ -1322,17 +1322,11 @@ let PlayerServiceImplement = function () {
 
     this.playerLoginOrRegisterWithSMS.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.smsCode && data.platformId);
-
-        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                data.lastLoginIp = forwardedIp[0].trim();
-            }
-        }
-
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
+
+        data.lastLoginIp = dbUtility.getIpAddress(conn);
+
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua], isValidData, true, true, true).then(
             player => {
                 let playerData = player[0] || player;

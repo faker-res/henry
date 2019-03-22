@@ -22,6 +22,50 @@ const dbPlayerConsumptionHourSummary = {
             }
         );
     },
+
+    setWinnerMonitorConfig: (platformObjId, winnerMonitorData) => {
+        if (!(winnerMonitorData instanceof Array)) {
+            return [];
+        }
+        let proms = [];
+        for (let i = 0; i < winnerMonitorData.length; i++) {
+            let providerConfig = winnerMonitorData[i];
+            if (!providerConfig || !providerConfig.providerObjId) {
+                continue;
+            }
+
+            providerConfig.companyWinRatio = providerConfig.companyWinRatio || 0;
+            providerConfig.playerWonAmount = providerConfig.playerWonAmount || 0;
+            providerConfig.consumptionTimes = providerConfig.consumptionTimes || 0;
+
+            let prom = dbconfig.collection_winnerMonitorConfig.findOneAndUpdate(
+                {
+                    platform: platformObjId,
+                    provider: providerConfig.providerObjId
+                },
+                {
+                    companyWinRatio: providerConfig.companyWinRatio,
+                    playerWonAmount: providerConfig.playerWonAmount,
+                    consumptionTimes: providerConfig.consumptionTimes,
+                },
+                {
+                    upsert: true,
+                    new: true
+                }
+            ).lean();
+            proms.push(prom);
+        }
+
+        return Promise.all(proms);
+    },
+
+    getWinnerMonitorConfig: (platformObjId) => {
+        return dbconfig.collection_winnerMonitorConfig.find({platform: platformObjId}).lean();
+    },
+
+    // getWinnerMonitorData: (platformObjId, startTime, endTime, providerObjId, playerName) => {
+    //
+    // },
 };
 
 let proto = dbPlayerConsumptionHourSummaryFunc.prototype;

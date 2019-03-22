@@ -82,7 +82,7 @@ style.
                     .well
                         .search-filters-item
                             .control-label {{"Player's Name (PMS Group Search)" | translate}}
-                            input.form-control(type='text', ng-model='vm.pmsGroupPlayerName')
+                            input.form-control(type='text', ng-model='vm.pmsGroupPlayerName', ng-change='vm.searchPMSBankCardGroup()')
                         .text-right.widthto100
                             button.btn.btn-primary(data-dismiss='modal', ng-click="vm.playerPMSBankCardGroupSearch()") {{"SEARCH" | translate}}
 

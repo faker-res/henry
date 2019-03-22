@@ -5,6 +5,7 @@ var dbutility = require('./../modules/dbutility');
 var dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
+var dbPlayerConsumptionDaySummary = require('../db_modules/dbPlayerConsumptionDaySummary');
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var constSystemParam = require('../const/constSystemParam');
 var constRewardTaskStatus = require("./../const/constRewardTaskStatus");
@@ -158,7 +159,7 @@ var dbPlayerTopUpDaySummary = {
                             stream: stream,
                             batchSize: constSystemParam.BATCH_SIZE,
                             makeRequest: function (playerIdObjs, request) {
-                                request("player", "playerReportDaySummary_calculatePlatformDaySummaryForPlayers", {
+                                request("player", "calculateDaySummary", {
                                     startTime: startTime,
                                     endTime: endTime,
                                     platformId: platformId,
@@ -170,6 +171,14 @@ var dbPlayerTopUpDaySummary = {
                 }
             )
         });
+    },
+
+    calculateDaySummary: function(startTime, endTime, platformId, playerObjIds) {
+        return dbPlayerTopUpDaySummary.playerReportDaySummary_calculatePlatformDaySummaryForPlayers(startTime, endTime, platformId, playerObjIds).then(
+            () => {
+                return dbPlayerConsumptionDaySummary.winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers(startTime, endTime, platformId, playerObjIds);
+            }
+        )
     },
 
     playerReportDaySummary_calculatePlatformDaySummaryForPlayers: function (startTime, endTime, platformId, playerObjIds) {

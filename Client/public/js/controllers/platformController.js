@@ -25,6 +25,7 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsConvert = {};
             vm.platformPageName = 'Feedback';
             vm.platformToReplicate = "";
+            vm.winnerMonitorConfig = [];
 
             // constants declaration
             vm.constPartnerCommisionType = {
@@ -23053,6 +23054,10 @@ define(['js/app'], function (myApp) {
                         vm.newWechatGroupControlSetting = {};
                         vm.deleteWechatGroupControl = [];
                         vm.getWechatGroupControlSetting();
+                        break;
+                    case 'winnerMonitorSetting':
+                        vm.getWinnerMonitorConfig();
+                        break;
                 }
             };
 
@@ -29235,6 +29240,9 @@ define(['js/app'], function (myApp) {
                     case 'platformFeeEstimateSetting':
                         updatePlatformFeeEstimateSetting(vm.platformFeeEstimate);
                         break;
+                    case 'winnerMonitorSetting':
+                        updateWinnerMonitorSetting();
+                        break
 
                 }
             };
@@ -29400,6 +29408,39 @@ define(['js/app'], function (myApp) {
             }
 
             // end of wechat group setting
+
+            // region winner monitor setting
+            vm.getWinnerMonitorConfig = function () {
+                return $scope.$socketPromise('getWinnerMonitorConfig', {platformObjId: vm.selectedPlatform.id}).then(data => {
+                    console.log('getWinnerMonitorConfig', data);
+                    vm.winnerMonitorConfig = [];
+                    for (let i = 0; i < vm.allGameProviders.length; i++) {
+                        let provider = vm.allGameProviders[i];
+
+                        let relevantConfig;
+                        if (data && data.data && data.data.length) {
+                            relevantConfig = data.data.find(config => config.provider == provider._id);
+                        }
+
+                        let companyWinRatio = 0, playerWonAmount = 0, consumptionTimes = 0;
+                        if (relevantConfig) {
+                            companyWinRatio = relevantConfig.companyWinRatio;
+                            playerWonAmount = relevantConfig.playerWonAmount;
+                            consumptionTimes = relevantConfig.consumptionTimes;
+                        }
+
+                        vm.winnerMonitorConfig.push({
+                            providerObjId: provider._id,
+                            providerName: provider.name,
+                            companyWinRatio,
+                            playerWonAmount,
+                            consumptionTimes,
+                        });
+                    }
+                    $scope.$evalAsync()
+                });
+            };
+            // endregion winner monitor setting
 
             vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
@@ -30264,6 +30305,27 @@ define(['js/app'], function (myApp) {
                     vm.getBlackWhiteListingConfig();
                     loadPlatformData({loadAll: false});
                 });
+            }
+
+            function updateWinnerMonitorSetting() {
+                let winnerMonitorData = [];
+                for (let i = 0; i < vm.winnerMonitorConfig.length; i++) {
+                    let config = vm.winnerMonitorConfig[i];
+                    winnerMonitorData.push({
+                        providerObjId: config.providerObjId,
+                        companyWinRatio: config.companyWinRatio,
+                        playerWonAmount: config.playerWonAmount,
+                        consumptionTimes: config.consumptionTimes,
+                    });
+                }
+
+                return $scope.$socketPromise("setWinnerMonitorConfig", {platformObjId: vm.selectedPlatform.id, winnerMonitorData: winnerMonitorData}).then(
+                    data => {
+                        console.log('setWinnerMonitorConfig', data);
+                        vm.configTabClicked("winnerMonitorSetting");
+                    }
+                )
+
             }
 
             function updatePlatformFeeEstimateSetting(srcData) {
@@ -32732,38 +32794,41 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id
                 };
                 socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                    vm.countPromoWay = {
-                        cs:[],
-                        promoWay:[],
-                        promoUrl:[]
-                    };
-                    vm.allUrl = data.data;
-                    vm.allUrl = vm.allUrl.map(url => {
+                    $scope.$evalAsync(()=>{
+                        vm.countPromoWay = {
+                            cs:[],
+                            promoWay:[],
+                            promoUrl:[]
+                        };
+                        vm.allUrl = data.data;
+                        vm.allUrl = vm.allUrl.map(url => {
 
-                        vm.countPromoWay.promoWay.push(url.way);
-                        vm.countPromoWay.promoUrl.push(url.domain);
-                        vm.countPromoWay.cs.push(url.admin.adminName);
-                        for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                            let admin = vm.adminList[i];
-                            if (url.admin.toString() === admin._id.toString()) {
-                                url.adminName$ = admin.adminName;
-                                break;
+                            vm.countPromoWay.promoWay.push(url.way);
+                            vm.countPromoWay.promoUrl.push(url.domain);
+                            if (url.admin && url.admin._id) {
+                                vm.countPromoWay.cs.push(url.admin._id);
                             }
-                        }
-                        return url;
+                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                                let admin = vm.adminList[i];
+                                if (url.admin.toString() === admin._id.toString()) {
+                                    url.adminName$ = admin.adminName;
+                                    break;
+                                }
+                            }
+                            return url;
+                        });
+
+                        vm.countPromoWay.cs = [...(new Set(vm.countPromoWay.cs))];
+                        vm.countPromoWay.promoWay = [...(new Set(vm.countPromoWay.promoWay))];
+                        vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
+
+                        vm.allUrl.sort((a, b) => {
+                             if (a.admin.adminName < b.admin.adminName) return -1;
+                             else if (a.admin.adminName > b.admin.adminName) return 1;
+                             return 0;
+                         });
+                        console.log("vm.allUrl", vm.allUrl);
                     });
-
-                    vm.countPromoWay.cs = [...(new Set(vm.countPromoWay.cs))];
-                    vm.countPromoWay.promoWay = [...(new Set(vm.countPromoWay.promoWay))];
-                    vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
-
-                    vm.allUrl.sort((a, b) => {
-                         if (a.admin.adminName < b.admin.adminName) return -1;
-                         else if (a.admin.adminName > b.admin.adminName) return 1;
-                         return 0;
-                     });
-                    console.log("vm.allUrl", vm.allUrl);
-                    $scope.$evalAsync();
                 },
                 function (err) {
                     console.log(err);
@@ -32790,7 +32855,9 @@ define(['js/app'], function (myApp) {
                             vm.allUrl = vm.allUrl.map(url => {
                                 vm.countPromoWay.promoWay.push(url.way);
                                 vm.countPromoWay.promoUrl.push(url.domain);
-                                vm.countPromoWay.cs.push(url.admin.adminName);
+                                if (url.admin && url.admin._id) {
+                                    vm.countPromoWay.cs.push(url.admin._id);
+                                }
                                 for (let i = 0, len = vm.adminList.length; i < len; i++) {
                                     let admin = vm.adminList[i];
                                     if (url.admin.toString() === admin._id.toString()) {

@@ -2472,6 +2472,8 @@
   "Game Provider": "游戏提供商",
   "ENABLED": "启用",
   "DISABLED": "关闭",
+  "TOBEUSED": "待使用",
+  "UNAVAILABLE": "不可用",
   "Consumption amount times": "投注额倍数",
   "Minimal top up amount": "最小充值额",
   "Reward parameter for each level": "玩家等级对应优惠参数",
@@ -5038,6 +5040,11 @@
   "RemoveCtiUrl": "删除CTI线路",
   "Fail on sending message,Because The phone number is not in the right format": "电话格式错误。请检查电话格式是否正确 或 电话头三个号码是否为可播电号码（可跟OM Bubble确认）",
   "Fail to get CTI data twice, click search to try again": "连续两次获取CTI数据失败，点击搜索以再度尝试",
+
+  "WinnerMonitor": "盈利监控",
+  "winnerMonitor": "盈利监控",
+  "Winner Monitor Setting": "盈利监控设置",
+  "WINNING_AMOUNT": "盈利金额",
 
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",
