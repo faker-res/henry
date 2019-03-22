@@ -1256,12 +1256,14 @@ var dbPlayerConsumptionRecord = {
         var prom2 = dbconfig.collection_players.findOne({playerId: playerId});
         var prom3 = dbconfig.collection_platform.find({}, { _id: 1, platformId: 1, name: 1}).lean();
         let platformList;
+        let provider;
         Q.all([prom0, prom1, prom2, prom3]).then(
             function (id) {
                 var pid = id[0] ? id[0]._id : null;
                 var gid = id[1] ? id[1]._id : null;
                 var playerObjId = id[2] ? id[2]._id : null;
                 platformList = id[3] ? id[3] : null;
+                provider = id[0] ? id[0] : null;
                 return dbPlayerConsumptionRecord.search(startTime, endTime, playerObjId, pid, gid, startIndex, count);
             }
         ).then(
@@ -1275,23 +1277,36 @@ var dbPlayerConsumptionRecord = {
                         delete record.gameId;
                         records.push(record);
                     }
-                    var stats = data[1].length > 0 ?
-                        {
+                    let option1 = {};
+
+                    if (data[1].length > 0) {
+                        option1 = {
                             totalCount: data[1][0].totalCount,
                             totalAmount: data[1][0].totalAmount,
                             totalValidAmount: data[1][0].totalValidAmount,
                             totalBonusAmount: data[1][0].totalBonusAmount,
                             startIndex: startIndex,
                             requestCount: count
-                        } :
-                        {
-                            totalCount: 0,
-                            totalAmount: 0,
-                            totalValidAmount: 0,
-                            totalBonusAmount: 0,
-                            startIndex: startIndex,
-                            requestCount: count
                         };
+                    }
+
+                    let option2 = {
+                        totalCount: 0,
+                        totalAmount: 0,
+                        totalValidAmount: 0,
+                        totalBonusAmount: 0,
+                        startIndex: startIndex,
+                        requestCount: count
+                    };
+
+                    if (providerId) {
+                        option1.name = ( provider && provider.name ) ? provider.name : '';
+                        option1.chName = ( provider && provider.chName ) ? provider.chName : '';
+                        option2.name = ( provider && provider.name ) ? provider.name : '';
+                        option2.chName = ( provider && provider.chName ) ? provider.chName : '';
+                    }
+                    var stats = data[1].length > 0 ? option1 : option2;
+
                     deferred.resolve(
                         {
                             stats: stats,
