@@ -190,8 +190,10 @@ var dbPlayerConsumptionRecord = {
         if (providerObjId) {
             matchObj.providerId = providerObjId;
         }
-        if (platformId && platformId.length) {
+        if(platformId instanceof Array){
             matchObj.platformId = {$in: platformId.map(p => ObjectId(p))};
+        }else {
+            matchObj.platformId = platformId;
         }
 
         if (data.cpGameType) {
