@@ -32715,7 +32715,9 @@ define(['js/app'], function (myApp) {
 
                         vm.countPromoWay.promoWay.push(url.way);
                         vm.countPromoWay.promoUrl.push(url.domain);
-                        vm.countPromoWay.cs.push(url.admin.adminName);
+                        if (url.admin && url.admin._id) {
+                            vm.countPromoWay.cs.push(url.admin._id);
+                        }
                         for (let i = 0, len = vm.adminList.length; i < len; i++) {
                             let admin = vm.adminList[i];
                             if (url.admin.toString() === admin._id.toString()) {
@@ -32763,7 +32765,9 @@ define(['js/app'], function (myApp) {
                             vm.allUrl = vm.allUrl.map(url => {
                                 vm.countPromoWay.promoWay.push(url.way);
                                 vm.countPromoWay.promoUrl.push(url.domain);
-                                vm.countPromoWay.cs.push(url.admin.adminName);
+                                if (url.admin && url.admin._id) {
+                                    vm.countPromoWay.cs.push(url.admin._id);
+                                }
                                 for (let i = 0, len = vm.adminList.length; i < len; i++) {
                                     let admin = vm.adminList[i];
                                     if (url.admin.toString() === admin._id.toString()) {
