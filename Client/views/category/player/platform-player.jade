@@ -9,7 +9,7 @@
     .col-md-12.search-filters-container#playerTable-search-filter.well
         .search-filters-item
             label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-            select.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+            select.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'PLAYER_ID' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
@@ -1124,6 +1124,9 @@ include modalGameCreditLog
                 .panel.panel-primary
                     .panel-body
                         #providerExpenseQuery.well
+                            .search-filters-item
+                                label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                                select.form-control(ng-model='vm.consumptionRecordPlatformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
                             .search-filters-item
                                 .control-label {{"Provider" | translate}}
                                 select.form-control(ng-model='vm.selectedProviderID', ng-init='vm.selectedProviderID="all"')

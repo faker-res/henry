@@ -190,10 +190,9 @@ var dbPlayerConsumptionRecord = {
         if (providerObjId) {
             matchObj.providerId = providerObjId;
         }
-        if (platformId) {
-            matchObj.platformId = platformId;
+        if (platformId && platformId.length) {
+            matchObj.platformId = {$in: platformId.map(p => ObjectId(p))};
         }
-
 
         if (data.cpGameType) {
             gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + data.cpGameType + '.*', 'i')}, {_id:1}).lean();
@@ -204,7 +203,14 @@ var dbPlayerConsumptionRecord = {
         let playerProm;
 
         if (playerName) {
-            playerProm = dbconfig.collection_players.findOne({name: playerName}, {_id: 1}).lean();
+            let playerQuery = {
+                name: playerName
+            };
+
+            if (platformId && platformId.length) {
+                playerQuery.platform = {$in: platformId};
+            }
+            playerProm = dbconfig.collection_players.find(playerQuery, {_id: 1}).lean();
         }
         else {
             playerProm = Promise.resolve('noData');
@@ -219,8 +225,8 @@ var dbPlayerConsumptionRecord = {
                     let gameDataId = resData[1];
 
                     if (playerData !== 'noData') {
-                        if (playerData) {
-                            matchObj.playerId = playerData._id;
+                        if (playerData && playerData.length) {
+                            matchObj.playerId = {$in: playerData.map(p => p._id)};
                         }
                         else {
                             return Promise.all([[], 0, []]);

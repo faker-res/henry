@@ -32,6 +32,8 @@ let promoCodeTemplateSchema = new Schema({
     type: {type: Number},
     // Reward amount shared with XIMA
     isSharedWithXIMA: {type: Boolean, default: true},
+    // forbid withdraw if there is certain amount of balance after unlock
+    forbidWithdrawIfBalanceAfterUnlock: {type: Number},
     // created time
     createTime: {type: Date, default: Date.now, index: true},
     // Promo Code Accept Time

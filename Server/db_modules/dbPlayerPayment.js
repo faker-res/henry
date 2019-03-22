@@ -25,6 +25,7 @@ const dbRewardUtil = require("../db_common/dbRewardUtility")
 
 const dbPromoCode = require('../db_modules/dbPromoCode');
 const dbProposal = require('../db_modules/dbProposal');
+const constPlayerRegistrationInterface = require("./../const/constPlayerRegistrationInterface");
 
 const dbPlayerPayment = {
 
@@ -668,7 +669,18 @@ const dbPlayerPayment = {
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
 
-                newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
+                if (Number(topupRequest.clientType) == 1) {
+                    newProposal.inputDevice = constPlayerRegistrationInterface.WEB_PLAYER;
+                }
+                else if (Number(topupRequest.clientType) == 2) {
+                    newProposal.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+                }
+                else if (Number(topupRequest.clientType) == 4) {
+                    newProposal.inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+                } else {
+                    newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
+                }
+
                 return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(

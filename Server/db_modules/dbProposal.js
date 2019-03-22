@@ -2048,7 +2048,9 @@ var proposal = {
                         // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
                         .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                         .populate({path: 'isLocked', model: dbconfig.collection_admin})
-                        .sort(sortCol).skip(index).limit(size).then(data => {
+                        .sort(sortCol).skip(index).limit(size)
+                        .then(populateProposalsWithPlatformData)
+                        .then(data => {
                             function getPlayerLevel(info) {
                                 var playerObjId = info && info.data ? info.data.playerObjId : null;
                                 if (!playerObjId) return info;

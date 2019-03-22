@@ -75,7 +75,7 @@
                             option(value='true') {{'inGroup' | translate}}
                     .search-filters-item(ng-if="vm.wechatGroupUsed == 'PMS' || vm.paymentSystemName === 'PMS2'")
                         .control-label {{"Player's Name (PMS Group Search)" | translate}}
-                        input.form-control(type='text', ng-model='vm.pmsGroupPlayerName')
+                        input.form-control(type='text', ng-model='vm.pmsGroupPlayerName', ng-change='vm.searchPMSWechatGroup()')
                     .text-right.widthto100(ng-if="vm.wechatGroupUsed == 'PMS' || vm.paymentSystemName === 'PMS2'")
                         button.btn.btn-primary(data-dismiss='modal', ng-click="vm.playerPMSWechatGroupSearch()") {{"SEARCH" | translate}}
                 //    .inlineBlk.margin-right-5

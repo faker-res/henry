@@ -158,6 +158,7 @@ style.
                                 th {{'DEPOSIT_METHOD' | translate}}
                                 th {{'ToBankTypeId' | translate}}
                                 th {{'dailyTopupAmount' | translate}}
+                                th {{'singleTopupAmount' | translate}}
                                 th {{'consecutiveTopupCount' | translate}}
                                 th {{'rewardPoints' | translate}}
                                 th {{'rewardTitle' | translate}}
@@ -192,6 +193,8 @@ style.
                                         option(value='') {{'EMPTY'|translate}}
                                 td(style="min-width:80px;")
                                     input.form-control(type='number' ng-model='val.target.dailyTopupAmount' ng-disabled='!val.isEditing')
+                                td(style="min-width:80px;")
+                                    input.form-control(type='number' ng-model='val.target.singleTopupAmount' ng-disabled='!val.isEditing')
                                 td(style="min-width:80px;")
                                     input.form-control(type='number' ng-model='val.consecutiveCount' ng-disabled='!val.isEditing')
                                 td(style="min-width:80px;")
