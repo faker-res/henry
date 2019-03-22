@@ -3770,7 +3770,7 @@ define(['js/app'], function (myApp) {
                                 if(item.data.merchantNo){
                                     merchantNo = item.data.merchantNo;
                                 }
-                                item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                                item.merchantNo$ = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                             } else {
                                 //show topup type for other types
                                 item.topupTypeStr = $translate(item.type.name);
@@ -3886,7 +3886,7 @@ define(['js/app'], function (myApp) {
                                         if(item.data.merchantNo){
                                             merchantNo = item.data.merchantNo;
                                         }
-                                        item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                                        item.merchantNo$ = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                                     } else {
                                         //show topup type for other types
                                         item.topupTypeStr = $translate(item.type.name);
@@ -3998,7 +3998,7 @@ define(['js/app'], function (myApp) {
                                         if(item.merchantNo){
                                             merchantNo = item.merchantNo;
                                         }
-                                        item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                                        item.merchantNo$ = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                                     } else {
                                         //show topup type for other types
                                         item.topupTypeStr = $translate(item.type.name);
@@ -4070,6 +4070,7 @@ define(['js/app'], function (myApp) {
                     let typeId = vm.selectedProposal.type._id;
                     let typeName = [vm.selectedProposal.type.name];
                     let playerId = vm.selectedProposal.data.playerId;
+                    let inputDevice = vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.clientType ? commonService.convertClientTypeToInputDevice(vm.selectedProposal.data.clientType) : null;
 
                     if (vm.selectedProposal.data.inputData) {
                         if (vm.selectedProposal.data.inputData.provinceId) {
@@ -4084,6 +4085,12 @@ define(['js/app'], function (myApp) {
                         vm.selectedProposal.data.userAgent = utilService.retrieveAgent(vm.selectedProposal.data.userAgent);
                     }else if(typeof vm.selectedProposal.data.userAgent == "undefined" ||  vm.selectedProposal.data.userAgent == "") {
                         vm.selectedProposal.data.userAgent = 1;
+                    }
+
+                    if (inputDevice) {
+                        vm.selectedProposal.data.$inputDevice = $scope.constPlayerRegistrationInterface[inputDevice] || $scope.constPlayerRegistrationInterface[0];
+                    } else {
+                        vm.selectedProposal.data.$inputDevice = $scope.constPlayerRegistrationInterface[vm.selectedProposal.data.userAgent] || $scope.constPlayerRegistrationInterface[0];
                     }
 
                     vm.wechatNameConvert();
@@ -4130,7 +4137,8 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            var text = $translate(data ? vm.playerInputDevice[data] : vm.playerInputDevice[0]);
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -4291,9 +4299,10 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('DEVICE'), data: "userAgent$",
+                        title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            var text = $translate(data ? $scope.userAgentType[data] : "");
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -4471,9 +4480,10 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('DEVICE'), data: "userAgent",
+                        title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            var text = $translate(data ? $scope.userAgentType[data] : "");
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         }
                     },
