@@ -25,6 +25,7 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsConvert = {};
             vm.platformPageName = 'Feedback';
             vm.platformToReplicate = "";
+            vm.winnerMonitorConfig = [];
 
             // constants declaration
             vm.constPartnerCommisionType = {
@@ -23052,6 +23053,10 @@ define(['js/app'], function (myApp) {
                         vm.newWechatGroupControlSetting = {};
                         vm.deleteWechatGroupControl = [];
                         vm.getWechatGroupControlSetting();
+                        break;
+                    case 'winnerMonitorSetting':
+                        vm.getWinnerMonitorConfig();
+                        break;
                 }
             };
 
@@ -29218,6 +29223,9 @@ define(['js/app'], function (myApp) {
                     case 'platformFeeEstimateSetting':
                         updatePlatformFeeEstimateSetting(vm.platformFeeEstimate);
                         break;
+                    case 'winnerMonitorSetting':
+                        updateWinnerMonitorSetting();
+                        break
 
                 }
             };
@@ -29383,6 +29391,39 @@ define(['js/app'], function (myApp) {
             }
 
             // end of wechat group setting
+
+            // region winner monitor setting
+            vm.getWinnerMonitorConfig = function () {
+                return $scope.$socketPromise('getWinnerMonitorConfig', {platformObjId: vm.selectedPlatform.id}).then(data => {
+                    console.log('getWinnerMonitorConfig', data);
+                    vm.winnerMonitorConfig = [];
+                    for (let i = 0; i < vm.allGameProviders.length; i++) {
+                        let provider = vm.allGameProviders[i];
+
+                        let relevantConfig;
+                        if (data && data.data && data.data.length) {
+                            relevantConfig = data.data.find(config => config.provider == provider._id);
+                        }
+
+                        let companyWinRatio = 0, playerWonAmount = 0, consumptionTimes = 0;
+                        if (relevantConfig) {
+                            companyWinRatio = relevantConfig.companyWinRatio;
+                            playerWonAmount = relevantConfig.playerWonAmount;
+                            consumptionTimes = relevantConfig.consumptionTimes;
+                        }
+
+                        vm.winnerMonitorConfig.push({
+                            providerObjId: provider._id,
+                            providerName: provider.name,
+                            companyWinRatio,
+                            playerWonAmount,
+                            consumptionTimes,
+                        });
+                    }
+                    $scope.$evalAsync()
+                });
+            };
+            // endregion winner monitor setting
 
             vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
@@ -30247,6 +30288,27 @@ define(['js/app'], function (myApp) {
                     vm.getBlackWhiteListingConfig();
                     loadPlatformData({loadAll: false});
                 });
+            }
+
+            function updateWinnerMonitorSetting() {
+                let winnerMonitorData = [];
+                for (let i = 0; i < vm.winnerMonitorConfig.length; i++) {
+                    let config = vm.winnerMonitorConfig[i];
+                    winnerMonitorData.push({
+                        providerObjId: config.providerObjId,
+                        companyWinRatio: config.companyWinRatio,
+                        playerWonAmount: config.playerWonAmount,
+                        consumptionTimes: config.consumptionTimes,
+                    });
+                }
+
+                return $scope.$socketPromise("setWinnerMonitorConfig", {platformObjId: vm.selectedPlatform.id, winnerMonitorData: winnerMonitorData}).then(
+                    data => {
+                        console.log('setWinnerMonitorConfig', data);
+                        vm.configTabClicked("winnerMonitorSetting");
+                    }
+                )
+
             }
 
             function updatePlatformFeeEstimateSetting(srcData) {
