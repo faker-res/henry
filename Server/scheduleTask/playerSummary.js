@@ -75,33 +75,6 @@ var playerSummary = {
         );
     },
 
-    calculatePreviousTwoDaysWinRateReportDaySummary: function (platformId) {
-        return dbconfig.collection_platform.findOne({_id: platformId}).then(
-            function (platformData) {
-                if (platformData) {
-                    let startTime = dbutility.getNDaysAgoSGTime(new Date(), 2);
-                    let endTime = dbutility.getNDaysAgoSGTime(new Date(), 1);
-                    console.log("check win rate report scheduler start time - ", startTime);
-                    console.log("check win rate report scheduler end time - ", endTime);
-                    return dbPlayerConsumptionDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startTime, endTime, platformId);
-                }
-                else {
-                    return Promise.reject("NoPlatform")
-                }
-            },
-            function (error) {
-                return Promise.reject({name: "DBError", message: "Error finding platform!", error: error});
-            }
-        ).then(
-            function (data) {
-                return data;
-            },
-            function (error) {
-                return Promise.reject({name: "DBError", message: "Error calculating win rate report day summary", error: error});
-            }
-        );
-    },
-
     // getTopUp and consumption summary and calculate for valid and active
     calculateYesterdayActiveValidPlayerSummary: function (platformId) {
         var deferred = Q.defer();

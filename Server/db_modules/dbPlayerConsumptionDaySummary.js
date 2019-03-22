@@ -328,46 +328,6 @@ var dbPlayerConsumptionDaySummary = {
         }).sort({createTime: -1}).limit(10).lean();
     },
 
-
-    calculateWinRateReportDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
-        let balancer = new SettlementBalancer();
-        return balancer.initConns().then(function () {
-            return dbPlayerConsumptionRecord.streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId).then(
-                playerObjIds => {
-                    let stream = dbconfig.collection_players.aggregate(
-                        [
-                            {
-                                $match: {
-                                    "_id": {$in: playerObjIds}
-                                }
-                            },
-                            {
-                                $group: {
-                                    _id: '$_id'
-                                }
-                            }
-                        ]
-                    ).cursor({batchSize: 1000}).allowDiskUse(true).exec();
-
-                    return Q(
-                        balancer.processStream({
-                            stream: stream,
-                            batchSize: constSystemParam.BATCH_SIZE,
-                            makeRequest: function (playerIdObjs, request) {
-                                request("player", "winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers", {
-                                    startTime: startTime,
-                                    endTime: endTime,
-                                    platformId: platformId,
-                                    playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj._id)
-                                });
-                            }
-                        })
-                    );
-                }
-            )
-        });
-    },
-
     winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers: function (startTime, endTime, platformId, playerObjIds) {
         return dbPlayerConsumptionRecord.getWinRateReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
             function (data) {
