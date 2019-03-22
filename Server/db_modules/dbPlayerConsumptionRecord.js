@@ -1258,12 +1258,14 @@ var dbPlayerConsumptionRecord = {
         var prom2 = dbconfig.collection_players.findOne({playerId: playerId});
         var prom3 = dbconfig.collection_platform.find({}, { _id: 1, platformId: 1, name: 1}).lean();
         let platformList;
+        let provider;
         Q.all([prom0, prom1, prom2, prom3]).then(
             function (id) {
                 var pid = id[0] ? id[0]._id : null;
                 var gid = id[1] ? id[1]._id : null;
                 var playerObjId = id[2] ? id[2]._id : null;
                 platformList = id[3] ? id[3] : null;
+                provider = id[0] ? id[0] : null;
                 return dbPlayerConsumptionRecord.search(startTime, endTime, playerObjId, pid, gid, startIndex, count);
             }
         ).then(
@@ -1277,23 +1279,36 @@ var dbPlayerConsumptionRecord = {
                         delete record.gameId;
                         records.push(record);
                     }
-                    var stats = data[1].length > 0 ?
-                        {
+                    let option1 = {};
+
+                    if (data[1].length > 0) {
+                        option1 = {
                             totalCount: data[1][0].totalCount,
                             totalAmount: data[1][0].totalAmount,
                             totalValidAmount: data[1][0].totalValidAmount,
                             totalBonusAmount: data[1][0].totalBonusAmount,
                             startIndex: startIndex,
                             requestCount: count
-                        } :
-                        {
-                            totalCount: 0,
-                            totalAmount: 0,
-                            totalValidAmount: 0,
-                            totalBonusAmount: 0,
-                            startIndex: startIndex,
-                            requestCount: count
                         };
+                    }
+
+                    let option2 = {
+                        totalCount: 0,
+                        totalAmount: 0,
+                        totalValidAmount: 0,
+                        totalBonusAmount: 0,
+                        startIndex: startIndex,
+                        requestCount: count
+                    };
+
+                    if (providerId) {
+                        option1.name = ( provider && provider.name ) ? provider.name : '';
+                        option1.chName = ( provider && provider.chName ) ? provider.chName : '';
+                        option2.name = ( provider && provider.name ) ? provider.name : '';
+                        option2.chName = ( provider && provider.chName ) ? provider.chName : '';
+                    }
+                    var stats = data[1].length > 0 ? option1 : option2;
+
                     deferred.resolve(
                         {
                             stats: stats,
@@ -2292,6 +2307,89 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
+    winRateReportFromSummary: function (startTime, endTime, providerId, platformId, listAll) {
+        let participantsProm;
+        let groupById = null;
+
+        const matchObj = {
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+            platformId: ObjectId(platformId),
+        };
+
+        if (providerId && providerId !== 'all') {
+            matchObj.providerId = ObjectId(providerId);
+        }
+
+        if (listAll) {
+            //find the number of player consumption (non-repeat), with different provider
+            groupById = "$providerId";
+            participantsProm = dbconfig.collection_winRateReportDataDaySummary.aggregate([
+                {
+                    $match: matchObj
+                },
+                {
+                    $group: {
+                        _id: groupById,
+                        playerId: { $addToSet: "$playerId" }
+                    }
+                }
+            ]).read("secondaryPreferred");
+        } else {
+            //find the number of player consumption (non-repeat), include all providers
+            participantsProm = dbconfig.collection_winRateReportDataDaySummary.distinct('playerId', matchObj).read("secondaryPreferred");
+        }
+
+        let totalAmountProm = dbconfig.collection_winRateReportDataDaySummary.aggregate([
+            {
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: listAll ? "$providerId" : null,
+                    total_amount: { $sum: "$consumptionAmount"},
+                    validAmount: { $sum: "$consumptionValidAmount"},
+                    consumptionTimes: { $sum: "$consumptionTimes"},
+                    bonusAmount: { $sum: "$consumptionBonusAmount" }
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let gameProviderProm = dbPlatform.getPlatform({ _id: platformId }).then(data => {
+            return (data && data.gameProviders) ? data.gameProviders : [];
+        });
+
+        return Promise.all([participantsProm, totalAmountProm, gameProviderProm]).then(
+            data => {
+                let participantNumber = 0;
+                let consumptionTimes = 0;
+                let totalAmount = 0;
+                let validAmount = 0;
+                let bonusAmount = 0;
+                let returnData = [];
+                let totalSumData = data[1] ? data[1] : [];
+                let gameProviders = data[2];
+                let participantData = data[0] ? data[0] : [];
+
+                if (!listAll && data && data[0] && data[1] && data[1][0]) {
+                    participantNumber = data[0].length;
+                    consumptionTimes = data[1][0].consumptionTimes;
+                    totalAmount = data[1][0].total_amount;
+                    validAmount = data[1][0].validAmount;
+                    bonusAmount = data[1][0].bonusAmount;
+                    // return sum of "all" provider winrate data
+                    returnData = dbPlayerConsumptionRecord.getAllSumWinRate(providerId, gameProviders, participantNumber, consumptionTimes, totalAmount, validAmount, bonusAmount);
+                } else if (listAll && data && data[0] && data[1] && data[1][0]) {
+                    // return  detail of each provider's winrate data
+                    returnData = dbPlayerConsumptionRecord.getProvidersWinRate(gameProviders, participantData, totalSumData);
+                }
+                return returnData;
+            }
+        );
+    },
+
     winRateReport: function (startTime, endTime, providerId, platformId, listAll) {
         let participantsProm;
         const matchObj = {
@@ -2496,6 +2594,59 @@ var dbPlayerConsumptionRecord = {
         )
     },
 
+    getWinRateByGameTypeFromSummary: function (startTime, endTime, providerId, platformId, providerName) {
+        // display winrate data by specific gametype (in a provider)
+        const matchObj = {
+            createTime: {$gte: startTime, $lt: endTime},
+            platformId: ObjectId(platformId),
+            isDuplicate: {$ne: true}
+        };
+
+        if (providerId && providerId !== 'all') {
+            matchObj.providerId = ObjectId(providerId);
+        }
+
+        // the player are non-repeatable
+        let participantsProm = dbconfig.collection_winRateReportDataDaySummary.aggregate([{
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: {"providerId": "$providerId", "cpGameType": "$cpGameType"},
+                    playerId: {
+                        $addToSet: "$playerId"
+                    }
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let totalAmountProm = dbconfig.collection_winRateReportDataDaySummary.aggregate([
+            {
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: '$cpGameType',
+                    total_amount: { $sum: "$consumptionAmount"},
+                    validAmount: { $sum: "$consumptionValidAmount"},
+                    consumptionTimes: { $sum: "$consumptionTimes"},
+                    bonusAmount: { $sum: "$consumptionBonusAmount" }
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        return Promise.all([participantsProm, totalAmountProm]).then(
+            data => {
+                let participantNumber = 0;
+                let result = [];
+                let participantData = data[0] ? data[0] : [];
+                let totalSumData = data[1] ? data[1] : [];
+                result = dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
+                return result;
+            }
+        )
+    },
+
     getGameTypeWinRateData: function (providerId, providerName, participantNumber, totalSumData, participantData) {
         let participantArr = [];
         let summaryData = {
@@ -2619,6 +2770,174 @@ var dbPlayerConsumptionRecord = {
                 })
             }
         )
+    },
+
+    getWinRateByPlayersFromSummary: function (startTime, endTime, providerId, platformId, cpGameType) {
+        const matchObj = {
+            createTime: {$gte: startTime, $lt: endTime},
+            platformId: ObjectId(platformId),
+            isDuplicate: {$ne: true}
+        };
+
+        matchObj.providerId = ObjectId(providerId);
+        matchObj.cpGameType = cpGameType;
+        if(!cpGameType || cpGameType == 'null'){
+            matchObj.cpGameType = { $exists: false }
+        }
+        let participantsProm = dbconfig.collection_winRateReportDataDaySummary.distinct('playerId', matchObj).read("secondaryPreferred");
+        let totalAmountProm = dbconfig.collection_winRateReportDataDaySummary.aggregate([
+            {
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: '$playerId',
+                    total_amount: { $sum: "$consumptionAmount"},
+                    validAmount: { $sum: "$consumptionValidAmount"},
+                    consumptionTimes: { $sum: "$consumptionTimes"},
+                    bonusAmount: { $sum: "$consumptionBonusAmount" }
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        return Promise.all([participantsProm, totalAmountProm]).then(
+            data => {
+                let totalSumData = data[1] ? data[1] : [];
+                let playersProm = [];
+                let summaryData = {
+                    consumptionTimes : 0,
+                    totalAmount: 0,
+                    validAmount: 0,
+                    bonusAmount: 0,
+                    profit:0
+                };
+
+                totalSumData.forEach((item) => {
+                    let playerProm = dbconfig.collection_players.findOne({_id : Object(item._id)}, {_id : 1, name : 1}).then(player =>{
+                        item.playerName = player.name;
+                        item.totalAmount = item.total_amount;
+                        item.profit = (-item.bonusAmount/item.validAmount*100) || 0;
+                        item.profit = Math.round(item.profit * 100) / 100;
+
+                        summaryData.consumptionTimes += item.consumptionTimes;
+                        summaryData.totalAmount += item.total_amount;
+                        summaryData.validAmount += item.validAmount;
+                        summaryData.bonusAmount += item.bonusAmount;
+                        return item;
+                    });
+                    playersProm.push(playerProm);
+                });
+
+                return Promise.all(playersProm).then(players => {
+                    summaryData.profit = (-summaryData.bonusAmount/summaryData.validAmount*100)|| 0;
+                    return { data: players, summaryData:summaryData }
+                })
+            }
+        )
+    },
+
+    getWinRateReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
+        let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: {
+                    platformId: platformId,
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    playerId: {$in: playerIds},
+                }
+            },
+            {
+                $group: {
+                    _id: {gameId: "$gameId", playerId: "$playerId", platformId: "$platformId", providerId: "$providerId", cpGameType: "$cpGameType"},
+                    gameId: {"$first": "$gameId"},
+                    providerId: {"$first": "$providerId"},
+                    count: {$sum: {$cond: ["$count", "$count", 1]}},
+                    amount: {$sum: "$amount"},
+                    validAmount: {$sum: "$validAmount"},
+                    bonusAmount: {$sum: "$bonusAmount"},
+                    cpGameType: {"$first": "$cpGameType"}
+                }
+            }
+        ]).read("secondaryPreferred").allowDiskUse(true);
+
+        return Promise.all([consumptionProm]).then(
+            result => {
+                let consumptionDetails = result[0];
+                let playerReportDaySummary = [];
+
+                if (consumptionDetails && consumptionDetails.length > 0) {
+                    consumptionDetails.forEach(
+                        consumption => {
+                            if (consumption && consumption._id && consumption._id.playerId) {
+                                let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() == consumption._id.playerId.toString()
+                                    && p.providerId.toString() == consumption._id.providerId.toString()
+                                    && p.cpGameType.toString() == consumption._id.cpGameType.toString());
+                                let providerId = consumption.providerId.toString();
+                                consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
+
+                                if (indexNo == -1) {
+                                    playerReportDaySummary.push({
+                                        playerId: consumption._id.playerId,
+                                        platformId: consumption._id.platformId,
+                                        consumptionTimes: consumption.count,
+                                        consumptionAmount: consumption.amount,
+                                        consumptionValidAmount: consumption.validAmount,
+                                        consumptionBonusAmount: consumption.bonusAmount,
+                                        cpGameType: consumption.cpGameType,
+                                        providerId: consumption.providerId
+                                    });
+                                } else {
+                                    if (typeof playerReportDaySummary[indexNo].consumptionTimes != "undefined") {
+                                        playerReportDaySummary[indexNo].consumptionTimes += consumption.count;
+                                    } else {
+                                        playerReportDaySummary[indexNo].consumptionTimes = consumption.count;
+                                    }
+
+                                    if (typeof playerReportDaySummary[indexNo].consumptionAmount != "undefined") {
+                                        playerReportDaySummary[indexNo].consumptionAmount += consumption.amount;
+                                    } else {
+                                        playerReportDaySummary[indexNo].consumptionAmount = consumption.amount;
+                                    }
+
+                                    if (typeof playerReportDaySummary[indexNo].consumptionValidAmount != "undefined") {
+                                        playerReportDaySummary[indexNo].consumptionValidAmount += consumption.validAmount;
+                                    } else {
+                                        playerReportDaySummary[indexNo].consumptionValidAmount = consumption.validAmount;
+                                    }
+
+                                    if (typeof playerReportDaySummary[indexNo].consumptionBonusAmount != "undefined") {
+                                        playerReportDaySummary[indexNo].consumptionBonusAmount += consumption.bonusAmount;
+                                    } else {
+                                        playerReportDaySummary[indexNo].consumptionBonusAmount = consumption.bonusAmount;
+                                    }
+
+                                    if (typeof playerReportDaySummary[indexNo].cpGameType != "undefined") {
+                                        playerReportDaySummary[indexNo].cpGameType = null;
+                                    } else {
+                                        playerReportDaySummary[indexNo].cpGameType = consumption.cpGameType;
+                                    }
+
+                                    if (typeof playerReportDaySummary[indexNo].providerId != "undefined") {
+                                        playerReportDaySummary[indexNo].providerId = null;
+                                    } else {
+                                        playerReportDaySummary[indexNo].providerId = consumption.providerId;
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+
+                return playerReportDaySummary;
+            }
+        ).catch(
+            error => {
+                console.log("win rate report data summary error - ", error);
+                return error;
+            }
+        );
     },
 
     markDuplicatedConsumptionRecords: dupsSummaries => {

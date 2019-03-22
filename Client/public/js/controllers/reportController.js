@@ -1820,7 +1820,15 @@ define(['js/app'], function (myApp) {
                         "title": $translate('3rd Party Platform'), "data": 'data.merchantUseName',
                         render: function(data, type, row){
                             let merchantName =  row.merchantName ? row.merchantName : '';
-                            var text = data ? data : merchantName;
+                            let text;
+
+                            if (data && merchantName) {
+                                text = data === merchantName ? data : merchantName;
+                            } else if (merchantName && !data) {
+                                text = merchantName;
+                            } else {
+                                text = data ? data : '';
+                            }
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -2519,7 +2527,12 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
-            socketService.$socket($scope.AppSocket, 'winRateReport', vm.curWinRateQuery, function(data) {
+            let socketName = 'winRateReport';
+            if (vm.curWinRateQuery.searchBySummaryData) {
+                socketName = 'winRateReportFromSummary';
+            }
+
+            socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function (data) {
                 findReportSearchTime();
                 vm.winRateReportLoadingStatus = "";
                 $('#winRateTableSpin').hide();
@@ -2564,7 +2577,13 @@ define(['js/app'], function (myApp) {
             }
 
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
-            socketService.$socket($scope.AppSocket, 'winRateReport', vm.curWinRateQuery, function(data) {
+
+            let socketName = 'winRateReport';
+            if (vm.curWinRateQuery.searchBySummaryData) {
+                socketName = 'winRateReportFromSummary';
+            }
+
+            socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function(data) {
                 vm.drawWinRateLayer2Report(data, data.length, {}, true);
                 findReportSearchTime();
                 vm.winRateReportLoadingStatus = "";
@@ -2593,7 +2612,12 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
 
-            socketService.$socket($scope.AppSocket, 'getWinRateByGameType', vm.curWinRateQuery, function(data) {
+            let socketName = 'getWinRateByGameType';
+            if (vm.curWinRateQuery.searchBySummaryData) {
+                socketName = 'getWinRateByGameTypeFromSummary';
+            }
+
+            socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function(data) {
                 // hide 'loading' gif
                 $('#winRateTableSpin').hide();
                 // calculate the sum of non-repeat participant;
@@ -2625,7 +2649,12 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
 
-            socketService.$socket($scope.AppSocket, 'getWinRateByPlayers', vm.curWinRateQuery, function(data) {
+            let socketName = 'getWinRateByPlayers';
+            if (vm.curWinRateQuery.searchBySummaryData) {
+                socketName = 'getWinRateByPlayersFromSummary';
+            }
+
+            socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function(data) {
                 // hide 'loading' gif
                 $('#winRateTableSpin').hide();
                 vm.drawWinRateLayer4Report(data.data, data.length, data.data.summaryData, true);

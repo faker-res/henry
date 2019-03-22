@@ -502,6 +502,9 @@ define(['js/app'], function (myApp) {
                                 item.conversation.forEach(function (cv, i) {
                                     cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
                                     cv.needRate = vm.avoidMultiRateCS(cv, i, item.conversation);
+                                    if(cv.roles){
+                                        cv.roleName = vm.roleType[cv.roles];
+                                    };
                                     // load each platform overtimeSetting
                                     let overtimeSetting = vm.getPlatformOvertimeSetting(item);
                                     let otsLength = overtimeSetting.length - 1;
@@ -3069,6 +3072,15 @@ define(['js/app'], function (myApp) {
                         vm.summarizedDataDetail = "";
                         vm.loadingSummarizeLive800Record = false;
                     })
+                }, function (error){
+                    vm.loadingSummarizeLive800Record = false;
+                    console.log("Error when gather summarized Live 800 Record Data:", error)
+                });
+
+                socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
+                   console.log("Live800 records has gathered completely")
+                }, function (error){
+                    console.log("Error when gather Live800 records: ", error)
                 });
             }
 
@@ -3087,6 +3099,15 @@ define(['js/app'], function (myApp) {
                         vm.summarizedDataDetail = "";
                         vm.loadingSummarizeLive800Record = false;
                     })
+                }, function (error){
+                    vm.loadingSummarizeLive800Record = false;
+                    console.log("Error when gather summarized Live 800 Record Data:", error)
+                });
+
+                socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
+                    console.log("Live800 records has gathered completely")
+                }, function (error){
+                    console.log("Error when gather Live800 records: ", error)
                 });
             }
 
