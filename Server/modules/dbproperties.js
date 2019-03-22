@@ -235,6 +235,9 @@ let largeWithdrawalLogModel = dbLogs2.model('largeWithdrawalLog', largeWithdrawa
 let partnerLargeWithdrawalLogSchema = require('../schema/partnerLargeWithdrawalLog');
 let partnerLargeWithdrawalLogModel = dbLogs2.model('partnerLargeWithdrawalLog', partnerLargeWithdrawalLogSchema, 'partnerLargeWithdrawalLog');
 
+let winnerMonitorConfigSchema = require('../schema/winnerMonitorConfig');
+let winnerMonitorConfigModel = dbLogs2.model('winnerMonitorConfig', winnerMonitorConfigSchema, 'winnerMonitorConfig');
+
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
 
@@ -657,6 +660,8 @@ var dbProperties = {
     collection_largeWithdrawalPartnerSetting: largeWithdrawalPartnerSettingModel,
     collection_largeWithdrawalLog: largeWithdrawalLogModel,
     collection_partnerLargeWithdrawalLog: partnerLargeWithdrawalLogModel,
+
+    collection_winnerMonitorConfig: winnerMonitorConfigModel,
 
     collection_actionLog: actionLogModel,
     collection_callBackToUserLog: callBackToUserLogModel,
