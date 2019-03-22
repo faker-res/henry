@@ -48,6 +48,7 @@
                                 th(style="width:80px") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:200px") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:80px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:100px") {{"forbidWithdrawIfBalanceAfterUnlock" | translate}}
                                 th(style="width:150px") {{"ALLOWED_PROVIDER" | translate}}
                                 th(style="width:150px") {{"BANNER_TEXT" | translate}}
                                 th(style="width:100px") {{"PROMO_CODE" | translate}}
@@ -82,6 +83,8 @@
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text.radio-space {{'No' | translate}}
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -139,6 +142,7 @@
                                 th(style="width:80px") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:200px") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:80px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:100px") {{"forbidWithdrawIfBalanceAfterUnlock" | translate}}
                                 th(style="width:150px") {{"ALLOWED_PROVIDER" | translate}}
                                 th(style="width:150px") {{"BANNER_TEXT" | translate}}
                                 th(style="width:100px") {{"PROMO_CODE" | translate}}
@@ -171,6 +175,8 @@
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text.radio-space {{'No' | translate}}
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup",data-width="150px", ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -229,6 +235,7 @@
                                 th(style="width:80px") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:200px") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:80px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:100px") {{"forbidWithdrawIfBalanceAfterUnlock" | translate}}
                                 th(style="width:150px") {{"ALLOWED_PROVIDER" | translate}}
                                 th(style="width:150px") {{"BANNER_TEXT" | translate}}
                                 th(style="width:100px") {{"PROMO_CODE" | translate}}
@@ -265,6 +272,8 @@
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text.radio-space {{'No' | translate}}
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -870,9 +879,10 @@
                                th(style="width:6%") {{"PROMO_REWARD_AMOUNT_1" | translate}}
                                th(style="width:6%") {{"PROMO_minTopUpAmount" | translate}}
                                th(style="width:6%") {{"PROMO_CONSUMPTION_1" | translate}}
-                               th(style="width:6%") {{"SHARE_WITH_XIMA" | translate}}
+                               th(style="width:4%") {{"SHARE_WITH_XIMA" | translate}}
                                th(style="width:5%") {{"PROMO_DUE_DATE (IN DAY)" | translate}}
-                               th(style="width:8%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                               th(style="width:4%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                               th(style="width:6%") {{"forbidWithdrawIfBalanceAfterUnlock" | translate}}
                                th(style="width:10%") {{"ALLOWED_PROVIDER" | translate}}
                                th(style="width:10%") {{"BANNER_TEXT" | translate}}
                                th(style="width:10%") {{"INTERMAIL_TITLE" | translate}}
@@ -907,6 +917,8 @@
                                    br
                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.promoCodeTemplateEdit")
                                    text {{'No' | translate}}
+                               td
+                                   input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="!vm.promoCodeTemplateEdit")
                                td
                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled="!vm.promoCodeTemplateEdit")
                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -952,6 +964,8 @@
                                    input(type="radio", ng-model="vm.newPromoCodeTemplate1.disableWithdraw", ng-value = "false")
                                    text {{'No' | translate}}
                                td
+                                   input.form-control(type='number', ng-model="vm.newPromoCodeTemplate1.forbidWithdrawIfBalanceAfterUnlock")
+                               td
                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate1.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay() ") {{prov.name}}
@@ -973,9 +987,10 @@
                                 th(style="width:10%") {{"PROMO_CODE_TYPE_2" | translate}}
                                 th(style="width:6%") {{"PROMO_REWARD_AMOUNT_2" | translate}}
                                 th(style="width:6%") {{"PROMO_CONSUMPTION_2" | translate}}
-                                th(style="width:6%") {{"SHARE_WITH_XIMA" | translate}}
+                                th(style="width:4%") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:5%") {{"PROMO_DUE_DATE (IN DAY)" | translate}}
-                                th(style="width:8%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:4%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:6%") {{"forbidWithdrawIfBalanceAfterUnlock" | translate}}
                                 th(style="width:10%") {{"ALLOWED_PROVIDER" | translate}}
                                 th(style="width:10%") {{"BANNER_TEXT" | translate}}
                                 th(style="width:10%") {{"INTERMAIL_TITLE" | translate}}
@@ -1006,6 +1021,8 @@
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.promoCodeTemplateEdit")
                                     text {{'No' | translate}}
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="!vm.promoCodeTemplateEdit")
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled="!vm.promoCodeTemplateEdit")
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -1049,6 +1066,8 @@
                                     input(type="radio", ng-model="vm.newPromoCodeTemplate2.disableWithdraw", ng-value = "false")
                                     text {{'No' | translate}}
                                 td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate2.forbidWithdrawIfBalanceAfterUnlock")
+                                td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate2.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
@@ -1072,9 +1091,10 @@
                                 th(style="width:6%") {{"PROMO_minTopUpAmount" | translate}}
                                 th(style="width:6%") {{"PROMO_maxTopUpAmount" | translate}}
                                 th(style="width:6%") {{"PROMO_CONSUMPTION_3" | translate}}
-                                th(style="width:6%") {{"SHARE_WITH_XIMA" | translate}}
+                                th(style="width:4%") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:5%") {{"PROMO_DUE_DATE (IN DAY)" | translate}}
-                                th(style="width:8%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:4%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:6%") {{"forbidWithdrawIfBalanceAfterUnlock" | translate}}
                                 th(style="width:10%") {{"ALLOWED_PROVIDER" | translate}}
                                 th(style="width:10%") {{"BANNER_TEXT" | translate}}
                                 th(style="width:10%") {{"INTERMAIL_TITLE" | translate}}
@@ -1109,6 +1129,8 @@
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.promoCodeTemplateEdit")
                                     text {{'No' | translate}}
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="!vm.promoCodeTemplateEdit")
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled="!vm.promoCodeTemplateEdit")
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -1156,6 +1178,8 @@
                                     input(type="radio", ng-model="vm.newPromoCodeTemplate3.disableWithdraw", ng-value = "false")
                                     text {{'No' | translate}}
                                 td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate3.forbidWithdrawIfBalanceAfterUnlock")
+                                td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate3.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
@@ -1199,16 +1223,17 @@
                                 th(style="width:6%") {{"PROMO_REWARD_AMOUNT_1" | translate}}
                                 th(style="width:6%") {{"PROMO_minTopUpAmount" | translate}}
                                 th(style="width:6%") {{"PROMO_CONSUMPTION_1" | translate}}
-                                th(style="width:6%") {{"SHARE_WITH_XIMA" | translate}}
+                                th(style="width:4%") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:10%%") {{"PROMO_DUE_DATE" | translate}}
-                                th(style="width:6%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:4%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:6%") {{"forbidWithdrawIfBalanceAfterUnlock" | translate}}
                                 th(style="width:10%") {{"ALLOWED_PROVIDER" | translate}}
-                                th(style="width:8%") {{"PROMO_CODE" | translate}}
+                                th(style="width:6%") {{"PROMO_CODE" | translate}}
                                 th {{"REMARKS" | translate}}
-                                th(style="width:6%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
-                                th(style="width:6%") {{"TOTAL_SENDING_LIMIT" | translate}}
-                                th(style="width:6%") {{"LIMIT_FOR_THE_SAME_IP" | translate}}
-                                th(style="width:6%") {{"RECEIVED_QUANTITY" | translate}}
+                                th(style="width:5%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
+                                th(style="width:5%") {{"TOTAL_SENDING_LIMIT" | translate}}
+                                th(style="width:5%") {{"LIMIT_FOR_THE_SAME_IP" | translate}}
+                                th(style="width:5%") {{"RECEIVED_QUANTITY" | translate}}
                         tbody
                             tr(ng-repeat= 'promoCode in vm.openPromoCodeTemplate1 track by $index')
                                 td(ng-if="vm.openPromoCodeTemplateEdit")
@@ -1235,6 +1260,8 @@
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                     text {{'No' | translate}}
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled='!vm.openPromoCodeTemplateEdit')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -1289,6 +1316,8 @@
                                     input(type="radio", ng-model="vm.newPromoCodeTemplate1.disableWithdraw", ng-value = "false")
                                     text {{'No' | translate}}
                                 td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate1.forbidWithdrawIfBalanceAfterUnlock")
+                                td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate1.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
@@ -1323,16 +1352,17 @@
                                 th(style="width:10%") {{"PROMO_CODE_TYPE_2" | translate}}
                                 th(style="width:6%") {{"PROMO_REWARD_AMOUNT_2" | translate}}
                                 th(style="width:6%") {{"PROMO_CONSUMPTION_2" | translate}}
-                                th(style="width:6%") {{"SHARE_WITH_XIMA" | translate}}
+                                th(style="width:4%") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:10%%") {{"PROMO_DUE_DATE" | translate}}
-                                th(style="width:6%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:4%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:6%") {{"forbidWithdrawIfBalanceAfterUnlock" | translate}}
                                 th(style="width:10%") {{"ALLOWED_PROVIDER" | translate}}
-                                th(style="width:8%") {{"PROMO_CODE" | translate}}
+                                th(style="width:6%") {{"PROMO_CODE" | translate}}
                                 th {{"REMARKS" | translate}}
-                                th(style="width:6%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
-                                th(style="width:6%") {{"TOTAL_SENDING_LIMIT" | translate}}
-                                th(style="width:6%") {{"LIMIT_FOR_THE_SAME_IP" | translate}}
-                                th(style="width:6%") {{"RECEIVED_QUANTITY" | translate}}
+                                th(style="width:5%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
+                                th(style="width:5%") {{"TOTAL_SENDING_LIMIT" | translate}}
+                                th(style="width:5%") {{"LIMIT_FOR_THE_SAME_IP" | translate}}
+                                th(style="width:5%") {{"RECEIVED_QUANTITY" | translate}}
                         tbody
                             tr(ng-repeat= 'promoCode in vm.openPromoCodeTemplate2 track by $index')
                                 td(ng-if="vm.openPromoCodeTemplateEdit")
@@ -1357,6 +1387,8 @@
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                     text {{'No' | translate}}
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled='!vm.openPromoCodeTemplateEdit')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -1408,6 +1440,8 @@
                                     input(type="radio", ng-model="vm.newPromoCodeTemplate2.disableWithdraw", ng-value = "false")
                                     text {{'No' | translate}}
                                 td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate2.forbidWithdrawIfBalanceAfterUnlock")
+                                td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate2.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
@@ -1446,13 +1480,14 @@
                                 th(style="width:4%") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:10%%") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:4%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:6%") {{"forbidWithdrawIfBalanceAfterUnlock" | translate}}
                                 th(style="width:10%") {{"ALLOWED_PROVIDER" | translate}}
-                                th(style="width:8%") {{"PROMO_CODE" | translate}}
+                                th(style="width:6%") {{"PROMO_CODE" | translate}}
                                 th {{"REMARKS" | translate}}
-                                th(style="width:6%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
-                                th(style="width:6%") {{"TOTAL_SENDING_LIMIT" | translate}}
-                                th(style="width:6%") {{"LIMIT_FOR_THE_SAME_IP" | translate}}
-                                th(style="width:6%") {{"RECEIVED_QUANTITY" | translate}}
+                                th(style="width:5%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
+                                th(style="width:5%") {{"TOTAL_SENDING_LIMIT" | translate}}
+                                th(style="width:5%") {{"LIMIT_FOR_THE_SAME_IP" | translate}}
+                                th(style="width:5%") {{"RECEIVED_QUANTITY" | translate}}
                         tbody
                             tr(ng-repeat= 'promoCode in vm.openPromoCodeTemplate3 track by $index')
                                 td(ng-if="vm.openPromoCodeTemplateEdit")
@@ -1481,6 +1516,8 @@
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                     text {{'No' | translate}}
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled='!vm.openPromoCodeTemplateEdit')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -1535,6 +1572,8 @@
                                     br
                                     input(type="radio", ng-model="vm.newPromoCodeTemplate3.disableWithdraw", ng-value = "false")
                                     text {{'No' | translate}}
+                                td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate3.forbidWithdrawIfBalanceAfterUnlock")
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate3.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
