@@ -209,8 +209,10 @@ var dbPlayerConsumptionRecord = {
                 name: playerName
             };
 
-            if (platformId && platformId.length) {
+            if(platformId instanceof Array){
                 playerQuery.platform = {$in: platformId};
+            }else {
+                playerQuery.platform = platformId;
             }
             playerProm = dbconfig.collection_players.find(playerQuery, {_id: 1}).lean();
         }
