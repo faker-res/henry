@@ -19,6 +19,9 @@ var localConfig = {
     paymentAPIServerUrl : "ws://localhost:9480",
     messageServerUrl: "ws://localhost:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
+    cpAPIUrl2: "",
+    cpAPIUrlList : {},
+    cpAPIUrlList2 : {},
     cpAPIUrlForGame : "ws://gameapi-server.neweb.me/game",
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     // smsAPIUrl: "ws://203.192.151.12:8560/sms",
@@ -230,6 +233,7 @@ var prodConfig = {
     messageServerUrl: "ws://10.167.11.108:9580",
    
     cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
+    cpAPIUrl2: "",
     cpAPIUrlList : {
         4: "ws://10.167.11.153:8661/websocketapi",
         7: "ws://10.167.11.153:8662/websocketapi",
@@ -242,6 +246,7 @@ var prodConfig = {
         29: "ws://10.167.11.153:8669/websocketapi",
         28: "ws://10.167.11.153:8670/websocketapi"
     },
+    cpAPIUrlList2 : {},
     // cpAPIUrl : "ws://timeout.com:9020/websocketapi",
     cpAPIUrlForGame : "ws://gameapi-server.neweb.me/game",
     paymentAPIUrl: "ws://10.167.11.140:8330/acc",
