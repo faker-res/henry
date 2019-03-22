@@ -2699,7 +2699,7 @@
                                 td
                                     input.form-control(ng-disabled = "!vm.configTableEdit" ng-model='config.consumptionTimes')
 
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'providerGroup')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'WinnerMonitor')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("winnerMonitorSetting")') {{"CANCEL" | translate}}
