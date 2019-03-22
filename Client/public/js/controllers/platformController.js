@@ -547,7 +547,8 @@ define(['js/app'], function (myApp) {
             vm.proposalTemplate = {
                 1: '#modalProposal',
                 2: '#newPlayerModal',
-                3: '#auctionItemModal'
+                3: '#auctionItemModal',
+                4: '#promoUrlItemModal'
             };
 
             vm.createInnerTable = function (id) {
@@ -17569,7 +17570,7 @@ define(['js/app'], function (myApp) {
                         } else {
                             getQueryDepartments();
                         }
-                        
+
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
                     $('#registerStartTimePicker').datetimepicker({
@@ -25209,6 +25210,22 @@ define(['js/app'], function (myApp) {
 
             }
 
+            vm.showPromoUrlModal = function(id, templateNo, data){
+                templateNo = 4;
+                vm.selectedPromoUrl = data;
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.$evalAsync();
+                })
+            }
+
+
+
             vm.showProposalModal = function (proposalId, templateNo) {
                 socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
                     platformId: vm.selectedPlatform.id,
@@ -31438,6 +31455,7 @@ define(['js/app'], function (myApp) {
                     }
                 );
             };
+
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
@@ -32714,8 +32732,17 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id
                 };
                 socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
+                    vm.countPromoWay = {
+                        cs:[],
+                        promoWay:[],
+                        promoUrl:[]
+                    };
                     vm.allUrl = data.data;
                     vm.allUrl = vm.allUrl.map(url => {
+
+                        vm.countPromoWay.promoWay.push(url.way);
+                        vm.countPromoWay.promoUrl.push(url.domain);
+                        vm.countPromoWay.cs.push(url.admin.adminName);
                         for (let i = 0, len = vm.adminList.length; i < len; i++) {
                             let admin = vm.adminList[i];
                             if (url.admin.toString() === admin._id.toString()) {
@@ -32725,8 +32752,18 @@ define(['js/app'], function (myApp) {
                         }
                         return url;
                     });
+
+                    vm.countPromoWay.cs = [...(new Set(vm.countPromoWay.cs))];
+                    vm.countPromoWay.promoWay = [...(new Set(vm.countPromoWay.promoWay))];
+                    vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
+
+                    vm.allUrl.sort((a, b) => {
+                         if (a.admin.adminName < b.admin.adminName) return -1;
+                         else if (a.admin.adminName > b.admin.adminName) return 1;
+                         return 0;
+                     });
                     console.log("vm.allUrl", vm.allUrl);
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 },
                 function (err) {
                     console.log(err);
@@ -32736,27 +32773,63 @@ define(['js/app'], function (myApp) {
             vm.searchCsUrl = function () {
                 vm.allUrl = [];
                 let query = {
-                    platformId: vm.selectedPlatform.id,
-                    admin: vm.csUrlSearchQuery.admin || "",
+                    platformIds: vm.csUrlSearchQuery.platforms,
+                    admin: vm.csUrlSearchQuery.adminName || "",
                     domain: vm.csUrlSearchQuery.url || "",
                     way: vm.csUrlSearchQuery.promoteWay || ""
                 };
-
-
                 socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
-                        vm.allUrl = data.data;
-                        vm.allUrl = vm.allUrl.map(url => {
-                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                                let admin = vm.adminList[i];
-                                if (url.admin.toString() === admin._id.toString()) {
-                                    url.adminName$ = admin.adminName;
-                                    break;
+                    $scope.$evalAsync(() => {
+
+                            vm.countPromoWay = {
+                                cs:[],
+                                promoWay:[],
+                                promoUrl:[]
+                            };
+                            vm.allUrl = data.data;
+                            vm.allUrl = vm.allUrl.map(url => {
+                                vm.countPromoWay.promoWay.push(url.way);
+                                vm.countPromoWay.promoUrl.push(url.domain);
+                                vm.countPromoWay.cs.push(url.admin.adminName);
+                                for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                                    let admin = vm.adminList[i];
+                                    if (url.admin.toString() === admin._id.toString()) {
+                                        url.adminName$ = admin.adminName;
+                                        break;
+                                    }
                                 }
+                                return url;
+                            });
+
+                            // use es6 feature , filter to only unique element in array
+                            vm.countPromoWay.cs = [...(new Set(vm.countPromoWay.cs))];
+                            vm.countPromoWay.promoWay = [...(new Set(vm.countPromoWay.promoWay))];
+                            vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
+                            console.log("vm.allUrl", vm.allUrl);
+
+                            // sorting by alphabet
+                            if (vm.sortCS == 'promoUrl') {
+                                vm.allUrl.sort((a, b) => {
+                                    if (a.domain < b.domain) return -1;
+                                    else if (a.domain > b.domain) return 1;
+                                    return 0;
+                                });
+                            } else if (vm.sortCS == 'promoWay') {
+                                vm.allUrl.sort((a, b) => {
+                                    if (a.way < b.way) return -1;
+                                    else if (a.way > b.way) return 1;
+                                    return 0;
+                                });
+                            } else {
+                                vm.allUrl.sort((a, b) => {
+                                     if (a.admin.adminName < b.admin.adminName) return -1;
+                                     else if (a.admin.adminName > b.admin.adminName) return 1;
+                                     return 0;
+                                 });
                             }
-                            return url;
+
                         });
-                        console.log("vm.allUrl", vm.allUrl);
-                        $scope.safeApply();
+
                     },
                     function (err) {
                         console.log(err);

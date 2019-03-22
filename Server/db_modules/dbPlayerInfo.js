@@ -6212,8 +6212,8 @@ let dbPlayerInfo = {
                                 if (player) {
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
                                 } else {
-                                    if (loginData.platformId == 4) {
-                                        platformPrefix = 'e';
+                                    if (loginData.accountPrefix && loginData.accountPrefix instanceof String && loginData.accountPrefix) {
+                                        platformPrefix = loginData.accountPrefix;
                                     }
                                     let newPlayerData = {
                                         platformId: loginData.platformId,
