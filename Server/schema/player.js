@@ -67,6 +67,7 @@ var playerSchema = new Schema({
     //is real player
     isRealPlayer: {type: Boolean, default: true, index: true},
     //device ID - guest login/create (frontend app only)
+    // Bind on registration
     guestDeviceId: {type: String, index: true},
     //last feedback time
     lastFeedbackTime: {type: Date, default: "", index: true},
@@ -342,6 +343,7 @@ var playerSchema = new Schema({
     //client data
     clientData: {type: String},
     //device id
+    // Update every time when login
     deviceId: {type: String},
     // tsPhoneObjId
     tsPhone: {type: Schema.ObjectId, ref: 'tsPhone', index: true} ,
