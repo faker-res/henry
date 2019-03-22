@@ -5367,5 +5367,8 @@
   "Total Success Topup": "成功存款笔数",
   "PAYMENT_MONITOR_REPORT": "支付监控报表",
   "LOCKED_ADMIN": "锁定客服",
+  "Last Editor": "绑定人",
+  "Duplicate Assign Domain Name": "已重复",
+  "URL already existed": "已重复",
   "WEBSITE_MULTI_SELECTION": "网站（复选）"
 }
