@@ -6201,8 +6201,12 @@ let dbPlayerInfo = {
                                         platformId: loginData.platformId,
                                         name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
                                         password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
-                                        phoneNumber: loginData.phoneNumber,
+                                        phoneNumber: loginData.phoneNumber
                                     };
+
+                                    if (loginData.deviceId) {
+                                        newPlayerData.guestDeviceId = loginData.deviceId;
+                                    }
 
                                     return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
                                         .then(() => dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified));
@@ -6230,7 +6234,7 @@ let dbPlayerInfo = {
                     }
                 }
                 else {
-                    return Q.reject(rejectMsg);
+                    return Promise.reject(rejectMsg);
                 }
             }
         )
