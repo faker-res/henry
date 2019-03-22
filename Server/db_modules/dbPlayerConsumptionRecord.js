@@ -190,8 +190,10 @@ var dbPlayerConsumptionRecord = {
         if (providerObjId) {
             matchObj.providerId = providerObjId;
         }
-        if (platformId && platformId.length) {
+        if(platformId instanceof Array){
             matchObj.platformId = {$in: platformId.map(p => ObjectId(p))};
+        }else {
+            matchObj.platformId = platformId;
         }
 
         if (data.cpGameType) {
@@ -207,8 +209,10 @@ var dbPlayerConsumptionRecord = {
                 name: playerName
             };
 
-            if (platformId && platformId.length) {
+            if(platformId instanceof Array){
                 playerQuery.platform = {$in: platformId};
+            }else {
+                playerQuery.platform = platformId;
             }
             playerProm = dbconfig.collection_players.find(playerQuery, {_id: 1}).lean();
         }
