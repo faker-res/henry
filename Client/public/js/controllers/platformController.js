@@ -32838,7 +32838,7 @@ define(['js/app'], function (myApp) {
             vm.searchCsUrl = function () {
                 vm.allUrl = [];
                 let query = {
-                    platformIds: vm.csUrlSearchQuery.platforms,
+                    platformIds: vm.csUrlSearchQuery.platforms || [],
                     admin: vm.csUrlSearchQuery.adminName || "",
                     domain: vm.csUrlSearchQuery.url || "",
                     way: vm.csUrlSearchQuery.promoteWay || ""
