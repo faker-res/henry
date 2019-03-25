@@ -375,6 +375,31 @@ define([], () => {
             }
             return lineAcc;
         };
+
+        self.convertClientTypeToInputDevice = function (clientType) {
+            let inputDevice;
+
+            //clientType
+            //1 - Web
+            //2 - MOBILE
+            //4 - APP
+
+            if (clientType) {
+                switch (Number(clientType)) {
+                    case 1:
+                        inputDevice = 1;
+                        break;
+                    case 2:
+                        inputDevice = 3;
+                        break;
+                    case 4:
+                        inputDevice = 5;
+                        break;
+                }
+            }
+
+            return inputDevice;
+        };
         // endregion
 
 
@@ -728,6 +753,8 @@ define([], () => {
             proposalDetail = Object.assign(proposalDetail, vm.selectedProposal.data);
             proposalDetail.platformId = proposalDetail.platformId._id;
 
+            let inputDevice = proposalDetail  && proposalDetail.clientType ? this.convertClientTypeToInputDevice(proposalDetail.clientType) : null;
+
             // region Manual top up proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                 proposalDetail = {};
@@ -752,7 +779,11 @@ define([], () => {
                 proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositTime)) : " ";
                 proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
                 proposalDetail["bankCardGroup"] = vm.selectedProposal.data.bankCardGroupName || " ";
                 proposalDetail["REQUEST_BANK_TYPE"] = vm.allBankTypeList[vm.selectedProposal.data.bankCardType] || (vm.selectedProposal.data.bankCardType + " ! " + $translate("not in bank type list"));
                 proposalDetail["USE_PMS_CARD_GROUP"] = vm.selectedProposal.data.bPMSGroup || false;
@@ -801,7 +832,11 @@ define([], () => {
                     proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
                 }
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice]) || $translate("BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
                 proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -842,7 +877,11 @@ define([], () => {
                 proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
                 proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
                 proposalDetail["PERSONAL_ALIPAY_GROUP"] = vm.selectedProposal.data.aliPayGroupName || " ";
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -889,7 +928,11 @@ define([], () => {
                 proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
                 proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
                 proposalDetail["PERSONAL_WECHAT_GROUP"] = vm.selectedProposal.data.wechatPayGroupName || " ";
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";

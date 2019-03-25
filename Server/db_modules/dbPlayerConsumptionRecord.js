@@ -2312,6 +2312,7 @@ var dbPlayerConsumptionRecord = {
     winRateReportFromSummary: function (startTime, endTime, providerId, platformId, listAll) {
         let participantsProm;
         let groupById = null;
+        let returnedObj;
 
         const matchObj = {
             createTime: {
@@ -2388,6 +2389,47 @@ var dbPlayerConsumptionRecord = {
                     returnData = dbPlayerConsumptionRecord.getProvidersWinRate(gameProviders, participantData, totalSumData);
                 }
                 return returnData;
+            }
+        ).then(
+            returnedData => {
+                returnedObj = returnedData;
+                let twoDaysAgo = new Date();
+                twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+
+                if (new Date(endTime) > twoDaysAgo) {
+                    startTime = twoDaysAgo;
+                    return dbPlayerConsumptionRecord.winRateReport(startTime, endTime, providerId, platformId, listAll);
+                }
+            }
+        ).then(
+            twoDaysWinRateReportData => {
+                if (twoDaysWinRateReportData && twoDaysWinRateReportData.length > 0) {
+                    twoDaysWinRateReportData.forEach(
+                        twoDaysData => {
+                            let indexNo = returnedObj.findIndex(r => r && r.providerId && twoDaysData && twoDaysData.providerId
+                                                                       && r.providerId.toString() === twoDaysData.providerId.toString());
+
+                            if (indexNo === -1) {
+                                returnedObj[0].consumptionTimes += twoDaysData.consumptionTimes;
+                                returnedObj[0].totalAmount += twoDaysData.totalAmount;
+                                returnedObj[0].validAmount += twoDaysData.validAmount;
+                                returnedObj[0].bonusAmount += twoDaysData.bonusAmount;
+                                let profit = (-returnedObj[0].bonusAmount / returnedObj[0].validAmount * 100) || 0;
+                                profit = profit.toFixed(2);
+                                returnedObj[0].profit = Math.round(profit * 100) / 100;
+                            } else {
+                                returnedObj[indexNo].consumptionTimes += twoDaysData.consumptionTimes;
+                                returnedObj[indexNo].totalAmount += twoDaysData.totalAmount;
+                                returnedObj[indexNo].validAmount += twoDaysData.validAmount;
+                                returnedObj[indexNo].bonusAmount += twoDaysData.bonusAmount;
+                                let profit = (-returnedObj[indexNo].bonusAmount / returnedObj[indexNo].validAmount * 100) || 0;
+                                profit = profit.toFixed(2);
+                                returnedObj[indexNo].profit = Math.round(profit * 100) / 100;
+                            }
+                        }
+                    )
+                }
+                return returnedObj;
             }
         );
     },
@@ -2597,6 +2639,7 @@ var dbPlayerConsumptionRecord = {
     },
 
     getWinRateByGameTypeFromSummary: function (startTime, endTime, providerId, platformId, providerName) {
+        let returnedObj;
         // display winrate data by specific gametype (in a provider)
         const matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
@@ -2646,7 +2689,56 @@ var dbPlayerConsumptionRecord = {
                 result = dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
                 return result;
             }
-        )
+        ).then(
+            returnedData => {
+                returnedObj = returnedData;
+                let twoDaysAgo = new Date();
+                twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+
+                if (new Date(endTime) > twoDaysAgo) {
+                    startTime = twoDaysAgo;
+                    return dbPlayerConsumptionRecord.getWinRateByGameType(startTime, endTime, providerId, platformId, providerName);
+                }
+            }
+        ).then(
+            twoDaysWinRateReportData => {
+                if (twoDaysWinRateReportData && twoDaysWinRateReportData.data && twoDaysWinRateReportData.data.length > 0) {
+                    twoDaysWinRateReportData.data.forEach(
+                        twoDaysData => {
+                            let indexNo = returnedObj.data.findIndex(r => r && r.providerId && twoDaysData && twoDaysData.providerId && twoDaysData.cpGameType
+                                                                            && r.providerId.toString() === twoDaysData.providerId.toString()
+                                                                            && r.cpGameType.toString() === twoDaysData.cpGameType.toString());
+
+                            if (indexNo === -1) {
+                                returnedObj.data.push(twoDaysData);
+                            } else {
+                                returnedObj.data[indexNo].consumptionTimes += twoDaysData.consumptionTimes;
+                                returnedObj.data[indexNo].totalAmount += twoDaysData.totalAmount;
+                                returnedObj.data[indexNo].validAmount += twoDaysData.validAmount;
+                                returnedObj.data[indexNo].bonusAmount += twoDaysData.bonusAmount;
+                                let profit = (-returnedObj.data[indexNo].bonusAmount / returnedObj.data[indexNo].validAmount * 100) || 0;
+                                profit = profit.toFixed(2);
+                                returnedObj.data[indexNo].profit = Math.round(profit * 100) / 100;
+                            }
+                        }
+                    )
+                }
+                returnedObj.summaryData.consumptionTimes += twoDaysWinRateReportData.summaryData.consumptionTimes;
+                returnedObj.summaryData.totalAmount += twoDaysWinRateReportData.summaryData.totalAmount;
+                returnedObj.summaryData.validAmount += twoDaysWinRateReportData.summaryData.validAmount;
+                returnedObj.summaryData.bonusAmount += twoDaysWinRateReportData.summaryData.bonusAmount;
+                let profit = (-returnedObj.summaryData.bonusAmount / returnedObj.summaryData.validAmount * 100) || 0;
+                profit = profit.toFixed(2);
+                returnedObj.summaryData.profit = Math.round(profit * 100) / 100;
+                if (twoDaysWinRateReportData.summaryData.participantArr && twoDaysWinRateReportData.summaryData.participantArr.length > 0) {
+                    twoDaysWinRateReportData.summaryData.participantArr.forEach(player => {
+                        returnedObj.summaryData.participantArr.push(player);
+                    })
+                }
+
+                return returnedObj;
+            }
+        );
     },
 
     getGameTypeWinRateData: function (providerId, providerName, participantNumber, totalSumData, participantData) {
@@ -2775,6 +2867,7 @@ var dbPlayerConsumptionRecord = {
     },
 
     getWinRateByPlayersFromSummary: function (startTime, endTime, providerId, platformId, cpGameType) {
+        let returnedObj;
         const matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
             platformId: ObjectId(platformId),
@@ -2831,11 +2924,59 @@ var dbPlayerConsumptionRecord = {
                 });
 
                 return Promise.all(playersProm).then(players => {
-                    summaryData.profit = (-summaryData.bonusAmount/summaryData.validAmount*100)|| 0;
-                    return { data: players, summaryData:summaryData }
+                    summaryData.profit = (-summaryData.bonusAmount / summaryData.validAmount * 100) || 0;
+                    return {data: players, summaryData: summaryData}
                 })
             }
-        )
+        ).then(
+            returnedData => {
+                returnedObj = returnedData;
+                let twoDaysAgo = new Date();
+                twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+
+                if (new Date(endTime) > twoDaysAgo) {
+                    startTime = twoDaysAgo;
+                    return dbPlayerConsumptionRecord.getWinRateByPlayers(startTime, endTime, providerId, platformId, cpGameType);
+                }
+            }
+        ).then(
+            twoDaysWinRateReportData => {
+                if (twoDaysWinRateReportData && twoDaysWinRateReportData.data && twoDaysWinRateReportData.data.length > 0) {
+                    twoDaysWinRateReportData.data.forEach(
+                        twoDaysData => {
+                            let indexNo = returnedObj.data.findIndex(r => r && r._id && twoDaysData && twoDaysData._id
+                                                                            && r._id.toString() === twoDaysData._id.toString());
+
+                            if (indexNo === -1) {
+                                returnedObj.data.push(twoDaysData);
+                            } else {
+                                returnedObj.data[indexNo].consumptionTimes += twoDaysData.consumptionTimes;
+                                returnedObj.data[indexNo].totalAmount += twoDaysData.totalAmount;
+                                returnedObj.data[indexNo].validAmount += twoDaysData.validAmount;
+                                returnedObj.data[indexNo].bonusAmount += twoDaysData.bonusAmount;
+                                let profit = (-returnedObj.data[indexNo].bonusAmount / returnedObj.data[indexNo].validAmount * 100) || 0;
+                                profit = profit.toFixed(2);
+                                returnedObj.data[indexNo].profit = Math.round(profit * 100) / 100;
+                            }
+                        }
+                    )
+                }
+                returnedObj.summaryData.consumptionTimes += twoDaysWinRateReportData.summaryData.consumptionTimes;
+                returnedObj.summaryData.totalAmount += twoDaysWinRateReportData.summaryData.totalAmount;
+                returnedObj.summaryData.validAmount += twoDaysWinRateReportData.summaryData.validAmount;
+                returnedObj.summaryData.bonusAmount += twoDaysWinRateReportData.summaryData.bonusAmount;
+                let profit = (-returnedObj.summaryData.bonusAmount / returnedObj.summaryData.validAmount * 100) || 0;
+                profit = profit.toFixed(2);
+                returnedObj.summaryData.profit = Math.round(profit * 100) / 100;
+                if (twoDaysWinRateReportData.summaryData.participantArr && twoDaysWinRateReportData.summaryData.participantArr.length > 0) {
+                    twoDaysWinRateReportData.summaryData.participantArr.forEach(player => {
+                        returnedObj.summaryData.participantArr.push(player);
+                    })
+                }
+
+                return returnedObj;
+            }
+        );
     },
 
     getWinRateReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
@@ -2873,13 +3014,12 @@ var dbPlayerConsumptionRecord = {
                     consumptionDetails.forEach(
                         consumption => {
                             if (consumption && consumption._id && consumption._id.playerId) {
-                                let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() == consumption._id.playerId.toString()
-                                    && p.providerId.toString() == consumption._id.providerId.toString()
-                                    && p.cpGameType.toString() == consumption._id.cpGameType.toString());
-                                let providerId = consumption.providerId.toString();
+                                let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() === consumption._id.playerId.toString()
+                                    && p.providerId.toString() === consumption._id.providerId.toString()
+                                    && p.cpGameType.toString() === consumption._id.cpGameType.toString());
                                 consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
 
-                                if (indexNo == -1) {
+                                if (indexNo === -1) {
                                     playerReportDaySummary.push({
                                         playerId: consumption._id.playerId,
                                         platformId: consumption._id.platformId,
@@ -2891,37 +3031,37 @@ var dbPlayerConsumptionRecord = {
                                         providerId: consumption.providerId
                                     });
                                 } else {
-                                    if (typeof playerReportDaySummary[indexNo].consumptionTimes != "undefined") {
+                                    if (typeof playerReportDaySummary[indexNo].consumptionTimes !== "undefined") {
                                         playerReportDaySummary[indexNo].consumptionTimes += consumption.count;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionTimes = consumption.count;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionAmount != "undefined") {
+                                    if (typeof playerReportDaySummary[indexNo].consumptionAmount !== "undefined") {
                                         playerReportDaySummary[indexNo].consumptionAmount += consumption.amount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionAmount = consumption.amount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionValidAmount != "undefined") {
+                                    if (typeof playerReportDaySummary[indexNo].consumptionValidAmount !== "undefined") {
                                         playerReportDaySummary[indexNo].consumptionValidAmount += consumption.validAmount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionValidAmount = consumption.validAmount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionBonusAmount != "undefined") {
+                                    if (typeof playerReportDaySummary[indexNo].consumptionBonusAmount !== "undefined") {
                                         playerReportDaySummary[indexNo].consumptionBonusAmount += consumption.bonusAmount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionBonusAmount = consumption.bonusAmount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].cpGameType != "undefined") {
+                                    if (typeof playerReportDaySummary[indexNo].cpGameType !== "undefined") {
                                         playerReportDaySummary[indexNo].cpGameType = null;
                                     } else {
                                         playerReportDaySummary[indexNo].cpGameType = consumption.cpGameType;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].providerId != "undefined") {
+                                    if (typeof playerReportDaySummary[indexNo].providerId !== "undefined") {
                                         playerReportDaySummary[indexNo].providerId = null;
                                     } else {
                                         playerReportDaySummary[indexNo].providerId = consumption.providerId;
