@@ -5045,6 +5045,8 @@
   "winnerMonitor": "盈利监控",
   "Winner Monitor Setting": "盈利监控设置",
   "WINNING_AMOUNT": "盈利金额",
+  "Setting not set, please go config to set it": "需要相关设置，请到基础数据修改设置",
+  "player not found": "查无此玩家",
 
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",
