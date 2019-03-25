@@ -75,7 +75,7 @@ var dbPlayerFeedback = {
         return dbconfig.collection_playerFeedback.find(query).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
     },
 
-    getAllPlayerFeedbacks: function (query, admin, player, index, limit, sortCol, topUpTimesOperator, topUpTimesValue, topUpTimesValueTwo) {
+    getAllPlayerFeedbacks: function (query, admin, player, index, limit, sortCol, topUpTimesOperator, topUpTimesValue, topUpTimesValueTwo, platformList) {
         var adminArr = [];
         var playerArr = [];
         var returnedData = [];
@@ -149,8 +149,12 @@ var dbPlayerFeedback = {
                     return [];
                 }
 
-                if (query && query.platform && typeof query.platform === "string") {
-                    query.platform = new mongoose.mongo.ObjectId(query.platform);
+                // if (query && query.platform && typeof query.platform === "string") {
+                //     query.platform = new mongoose.mongo.ObjectId(query.platform);
+                // }
+
+                if (platformList && platformList.length > 0) {
+                    query.platform = {$in: platformList};
                 }
 
                 var a = dbconfig.collection_playerFeedback

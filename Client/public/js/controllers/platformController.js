@@ -1331,6 +1331,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                     vm.allPlatformData = data.data;
+                    commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                     if (data.data) {
                         buildPlatformList(data.data);
                     }
@@ -17884,7 +17885,7 @@ define(['js/app'], function (myApp) {
 
                 var sendQuery = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        // platform: vm.selectedPlatform.id,
                         startTime: startTime.getLocalDate(),
                         endTime: endTime.getLocalDate()
                     },
@@ -17917,6 +17918,9 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.feedbackAdminQuery.hasOwnProperty("topUpTimesValueTwo")) {
                     sendQuery.topUpTimesValueTwo = vm.feedbackAdminQuery.topUpTimesValueTwo;
+                }
+                if (vm.feedbackAdminQuery.hasOwnProperty("platformList")) {
+                    sendQuery.platformList = vm.feedbackAdminQuery.platformList;
                 }
                 console.log("feedbackQuery", sendQuery);
                 $('#loadPlayerFeedbackAdminIcon').show();
@@ -17957,11 +17961,18 @@ define(['js/app'], function (myApp) {
                         j.csOfficerName = "--";
                     }
 
+                    if (j.platform) {
+                        let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === j.platform.toString());
+                        if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                            j.platform$ = matchedPlatformData[0].name;
+                        }
+                    }
+
                     showData.push(j);
                 });
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: showData,
-                    order: vm.feedbackAdminQuery.aaSorting || [[4, 'desc']],
+                    order: vm.feedbackAdminQuery.aaSorting || [[5, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
                         {'sortCol': 'topupTimes', bSortable: true, 'aTargets': [8]},
@@ -17969,6 +17980,10 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {
                             title: $translate('Customer Service Name'),
                             //data: "result",
