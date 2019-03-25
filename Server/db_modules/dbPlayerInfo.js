@@ -6213,7 +6213,7 @@ let dbPlayerInfo = {
                                 if (player) {
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
                                 } else {
-                                    if (loginData.accountPrefix && typeof loginData.accountPrefix === "string" && loginData.accountPrefix) {
+                                    if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
                                         platformPrefix = loginData.accountPrefix;
                                     }
                                     let newPlayerData = {
