@@ -17883,9 +17883,16 @@ define(['js/app'], function (myApp) {
                 var startTime = $('#feedbackquerystarttime').data('datetimepicker');
                 var endTime = $('#feedbackqueryendtime').data('datetimepicker');
 
+                let platformIdList;
+                if (vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList && vm.feedbackAdminQuery.platformList.length) {
+                    platformIdList = vm.feedbackAdminQuery.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
                     query: {
-                        // platform: vm.selectedPlatform.id,
+                        platform: platformIdList,
                         startTime: startTime.getLocalDate(),
                         endTime: endTime.getLocalDate()
                     },
@@ -17918,9 +17925,6 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.feedbackAdminQuery.hasOwnProperty("topUpTimesValueTwo")) {
                     sendQuery.topUpTimesValueTwo = vm.feedbackAdminQuery.topUpTimesValueTwo;
-                }
-                if (vm.feedbackAdminQuery.hasOwnProperty("platformList")) {
-                    sendQuery.platformList = vm.feedbackAdminQuery.platformList;
                 }
                 console.log("feedbackQuery", sendQuery);
                 $('#loadPlayerFeedbackAdminIcon').show();
