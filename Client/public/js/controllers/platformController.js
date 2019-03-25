@@ -32810,7 +32810,7 @@ define(['js/app'], function (myApp) {
                             }
                             for (let i = 0, len = vm.adminList.length; i < len; i++) {
                                 let admin = vm.adminList[i];
-                                if (url.admin.toString() === admin._id.toString()) {
+                                if (url.admin && url.admin.toString() === admin._id.toString()) {
                                     url.adminName$ = admin.adminName;
                                     break;
                                 }
@@ -32860,7 +32860,7 @@ define(['js/app'], function (myApp) {
                                 }
                                 for (let i = 0, len = vm.adminList.length; i < len; i++) {
                                     let admin = vm.adminList[i];
-                                    if (url.admin.toString() === admin._id.toString()) {
+                                    if (url.admin && url.admin.toString() === admin._id.toString()) {
                                         url.adminName$ = admin.adminName;
                                         break;
                                     }
