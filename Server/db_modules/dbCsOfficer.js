@@ -76,7 +76,7 @@ let dbCsOfficer = {
                 result = data;
             } else {
                 data.forEach( item => {
-                    if (item.admin.adminName == admin) {
+                    if (item.admin && item.admin.adminName == admin) {
                         result.push(item);
                     }
                 })
