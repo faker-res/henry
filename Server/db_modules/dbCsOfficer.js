@@ -58,7 +58,7 @@ let dbCsOfficer = {
     },
 
     getAllUrl: () => {
-        return dbconfig.collection_csOfficerUrl.find().populate({path: "admin", model: dbconfig.collection_admin}).populate({path: "lastEditor", model: dbconfig.collection_admin}).lean();
+        return dbconfig.collection_csOfficerUrl.find().populate({path: "admin", model: dbconfig.collection_admin}).populate({path: "platform", model: dbconfig.collection_platform}).populate({path: "lastEditor", model: dbconfig.collection_admin}).lean();
     },
 
     searchUrl: (platforms, domain, admin, way) => {
@@ -69,7 +69,7 @@ let dbCsOfficer = {
         domain ? query.domain = new RegExp('.*' + domain + '.*') : "";
         way ? query.way = way : "";
 
-        return dbconfig.collection_csOfficerUrl.find(query).populate({path: "admin", model: dbconfig.collection_admin}).populate({path: "lastEditor", model: dbconfig.collection_admin}).lean()
+        return dbconfig.collection_csOfficerUrl.find(query).populate({path: "admin", model: dbconfig.collection_admin}).populate({path: "platform", model: dbconfig.collection_platform}).populate({path: "lastEditor", model: dbconfig.collection_admin}).lean()
         .then(data => {
             let result = [];
             if (!admin) {
