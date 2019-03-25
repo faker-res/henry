@@ -16,9 +16,7 @@
             div
                 label.control-label {{'PROMOTE_WAY' | translate}}&nbsp;
                 .inlineBlk
-                    select.form-control(ng-model='vm.csUrlSearchQuery.promoteWay')
-                        option(value='') {{'CHOOSE_PROMOTE_WAY' | translate}}
-                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
+                    input.form-control(type="text", ng-model="vm.csUrlSearchQuery.promoteWay")
             div
                 label.control-label {{'URL' | translate}}&nbsp;
                 .inlineBlk

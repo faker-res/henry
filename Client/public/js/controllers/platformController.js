@@ -32842,8 +32842,9 @@ define(['js/app'], function (myApp) {
                         vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
 
                         vm.allUrl.sort((a, b) => {
-                             if (a.admin.adminName < b.admin.adminName) return -1;
-                             else if (a.admin.adminName > b.admin.adminName) return 1;
+                             if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
+                             else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
+                             else if (!a.admin) return 1;
                              return 0;
                          });
                         console.log("vm.allUrl", vm.allUrl);
@@ -32908,8 +32909,9 @@ define(['js/app'], function (myApp) {
                                 });
                             } else {
                                 vm.allUrl.sort((a, b) => {
-                                     if (a.admin.adminName < b.admin.adminName) return -1;
-                                     else if (a.admin.adminName > b.admin.adminName) return 1;
+                                     if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
+                                     else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
+                                     else if (!a.admin) return 1;
                                      return 0;
                                  });
                             }
