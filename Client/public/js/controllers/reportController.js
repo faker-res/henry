@@ -1711,7 +1711,7 @@ define(['js/app'], function (myApp) {
                                 if(item.data.merchantNo){
                                     merchantNo = item.data.merchantNo;
                                 }
-                                item.merchantNoDisplay = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                                item.merchantNoDisplay = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                             } else {
                                 //show topup type for other types
                                 item.topupTypeStr = $translate(item.type.name)
@@ -1805,7 +1805,8 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            var text = $translate(data ? vm.playerInputDevice[data] : vm.playerInputDevice['0']);
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let text = $translate(inputDevice ? vm.playerInputDevice[inputDevice] : data ? vm.playerInputDevice[data] : vm.playerInputDevice['0']);
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -10217,7 +10218,7 @@ define(['js/app'], function (myApp) {
                                 if(item.merchantNo){
                                     merchantNo = item.merchantNo;
                                 }
-                                item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                                item.merchantNo$ = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                             } else {
                                 //show topup type for other types
                                 item.topupTypeStr = $translate(item.type.name);
@@ -10269,9 +10270,10 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('DEVICE'), data: "userAgent",
+                            title: $translate('DEVICE'), data: "inputDevice",
                             render: function (data, type, row) {
-                                var text = $translate(data ? $scope.userAgentType[data] : "");
+                                let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                                let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                                 return "<div>" + text + "</div>";
                             }
                         },

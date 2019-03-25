@@ -355,6 +355,7 @@ var dbGameProvider = {
                                     providerId: gameProvider.providerId,
                                     name: gameProvider.name,
                                     nickName: gameProvider.nickName,
+                                    chName: gameProvider.chName ? gameProvider.chName : '',
                                     prefix: gameProvider.prefix,
                                     status: gameProviderStatus
                                 };
