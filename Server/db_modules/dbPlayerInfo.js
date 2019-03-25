@@ -1746,7 +1746,8 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if (data.isPlayerPrefixValid) {
+                // if (data.isPlayerPrefixValid) {
+                if (true) { // player prefix is not enforce anymore, deprecated
                     if (playerdata.guestDeviceId) {
                         return {isPlayerPasswordValid: true};
                     }
@@ -6212,7 +6213,7 @@ let dbPlayerInfo = {
                                 if (player) {
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
                                 } else {
-                                    if (loginData.accountPrefix && loginData.accountPrefix instanceof String && loginData.accountPrefix) {
+                                    if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
                                         platformPrefix = loginData.accountPrefix;
                                     }
                                     let newPlayerData = {
