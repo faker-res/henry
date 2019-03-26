@@ -95,7 +95,6 @@ let PlayerServiceImplement = function () {
         let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
         conn.captchaCode = null;
         data.isOnline = true;
-
         console.log("yH checking---conn", conn)
         if (conn.partnerId){
             connPartnerId = conn.partnerId;
