@@ -6216,9 +6216,15 @@ let dbPlayerInfo = {
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
                                         platformPrefix = loginData.accountPrefix;
                                     }
+
+                                    let userNameProp = {
+                                        length: 8,
+                                        pool: 'abcdefghijklmnopqrstuvwxyz0123456789'
+                                    };
+
                                     let newPlayerData = {
                                         platformId: loginData.platformId,
-                                        name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
+                                        name: platformPrefix+(chance.string(userNameProp).replace(/\s+/g, '').toLowerCase()),
                                         password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
                                         phoneNumber: loginData.phoneNumber
                                     };
