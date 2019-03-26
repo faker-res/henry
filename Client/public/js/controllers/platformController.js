@@ -2914,6 +2914,13 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.submitSMSRecordQuery = function (newSearch) {
+                let platformIdList;
+                if (vm.smsRecordQuery && vm.smsRecordQuery.platformList && vm.smsRecordQuery.platformList.length) {
+                    platformIdList = vm.smsRecordQuery.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
@@ -2926,7 +2933,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
                     index: newSearch ? 0 : vm.smsRecordQuery.index,
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit,
-                    platformObjId: vm.selectedPlatform.data._id,
+                    platformObjId: platformIdList,
                     sortCol: vm.smsRecordQuery.sortCol
                 };
 
@@ -2953,6 +2960,12 @@ define(['js/app'], function (myApp) {
                             default:
                                 item.validationStatus$$ = "-";
                         }
+                        if (item.platform) {
+                            let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                            if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                item.platform$ = matchedPlatformData[0].name;
+                            }
+                        }
                         return item;
                     }), size, newSearch);
 
@@ -2965,12 +2978,16 @@ define(['js/app'], function (myApp) {
             vm.drawVertificationSMSTable = function (data, size, newSearch) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
-                    order: vm.smsRecordQuery.aaSorting || [[2, 'desc']],
+                    order: vm.smsRecordQuery.aaSorting || [[3, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [2]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {'title': $translate('ACCOUNT'), data: 'recipientName'},
                         {
                             'title': $translate('STATUS'),
