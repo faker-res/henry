@@ -25,6 +25,7 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsConvert = {};
             vm.platformPageName = 'Feedback';
             vm.platformToReplicate = "";
+            vm.winnerMonitorConfig = [];
 
             // constants declaration
             vm.constPartnerCommisionType = {
@@ -547,7 +548,8 @@ define(['js/app'], function (myApp) {
             vm.proposalTemplate = {
                 1: '#modalProposal',
                 2: '#newPlayerModal',
-                3: '#auctionItemModal'
+                3: '#auctionItemModal',
+                4: '#promoUrlItemModal'
             };
 
             vm.createInnerTable = function (id) {
@@ -1329,6 +1331,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                     vm.allPlatformData = data.data;
+                    commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                     if (data.data) {
                         buildPlatformList(data.data);
                         commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
@@ -17575,7 +17578,7 @@ define(['js/app'], function (myApp) {
                         } else {
                             getQueryDepartments();
                         }
-                        
+
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
                     $('#registerStartTimePicker').datetimepicker({
@@ -17886,9 +17889,16 @@ define(['js/app'], function (myApp) {
                 var startTime = $('#feedbackquerystarttime').data('datetimepicker');
                 var endTime = $('#feedbackqueryendtime').data('datetimepicker');
 
+                let platformIdList;
+                if (vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList && vm.feedbackAdminQuery.platformList.length) {
+                    platformIdList = vm.feedbackAdminQuery.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        platform: platformIdList,
                         startTime: startTime.getLocalDate(),
                         endTime: endTime.getLocalDate()
                     },
@@ -17961,11 +17971,18 @@ define(['js/app'], function (myApp) {
                         j.csOfficerName = "--";
                     }
 
+                    if (j.platform) {
+                        let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === j.platform.toString());
+                        if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                            j.platform$ = matchedPlatformData[0].name;
+                        }
+                    }
+
                     showData.push(j);
                 });
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: showData,
-                    order: vm.feedbackAdminQuery.aaSorting || [[4, 'desc']],
+                    order: vm.feedbackAdminQuery.aaSorting || [[5, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
                         {'sortCol': 'topupTimes', bSortable: true, 'aTargets': [8]},
@@ -17973,6 +17990,10 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {
                             title: $translate('Customer Service Name'),
                             //data: "result",
@@ -23058,6 +23079,10 @@ define(['js/app'], function (myApp) {
                         vm.newWechatGroupControlSetting = {};
                         vm.deleteWechatGroupControl = [];
                         vm.getWechatGroupControlSetting();
+                        break;
+                    case 'winnerMonitorSetting':
+                        vm.getWinnerMonitorConfig();
+                        break;
                 }
             };
 
@@ -25214,6 +25239,22 @@ define(['js/app'], function (myApp) {
                 })
 
             }
+
+            vm.showPromoUrlModal = function(id, templateNo, data){
+                templateNo = 4;
+                vm.selectedPromoUrl = data;
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.$evalAsync();
+                })
+            }
+
+
 
             vm.showProposalModal = function (proposalId, templateNo) {
                 socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
@@ -29224,6 +29265,9 @@ define(['js/app'], function (myApp) {
                     case 'platformFeeEstimateSetting':
                         updatePlatformFeeEstimateSetting(vm.platformFeeEstimate);
                         break;
+                    case 'winnerMonitorSetting':
+                        updateWinnerMonitorSetting();
+                        break
 
                 }
             };
@@ -29389,6 +29433,39 @@ define(['js/app'], function (myApp) {
             }
 
             // end of wechat group setting
+
+            // region winner monitor setting
+            vm.getWinnerMonitorConfig = function () {
+                return $scope.$socketPromise('getWinnerMonitorConfig', {platformObjId: vm.selectedPlatform.id}).then(data => {
+                    console.log('getWinnerMonitorConfig', data);
+                    vm.winnerMonitorConfig = [];
+                    for (let i = 0; i < vm.allGameProviders.length; i++) {
+                        let provider = vm.allGameProviders[i];
+
+                        let relevantConfig;
+                        if (data && data.data && data.data.length) {
+                            relevantConfig = data.data.find(config => config.provider == provider._id);
+                        }
+
+                        let companyWinRatio = 0, playerWonAmount = 0, consumptionTimes = 0;
+                        if (relevantConfig) {
+                            companyWinRatio = relevantConfig.companyWinRatio;
+                            playerWonAmount = relevantConfig.playerWonAmount;
+                            consumptionTimes = relevantConfig.consumptionTimes;
+                        }
+
+                        vm.winnerMonitorConfig.push({
+                            providerObjId: provider._id,
+                            providerName: provider.name,
+                            companyWinRatio,
+                            playerWonAmount,
+                            consumptionTimes,
+                        });
+                    }
+                    $scope.$evalAsync()
+                });
+            };
+            // endregion winner monitor setting
 
             vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
@@ -30253,6 +30330,27 @@ define(['js/app'], function (myApp) {
                     vm.getBlackWhiteListingConfig();
                     loadPlatformData({loadAll: false});
                 });
+            }
+
+            function updateWinnerMonitorSetting() {
+                let winnerMonitorData = [];
+                for (let i = 0; i < vm.winnerMonitorConfig.length; i++) {
+                    let config = vm.winnerMonitorConfig[i];
+                    winnerMonitorData.push({
+                        providerObjId: config.providerObjId,
+                        companyWinRatio: config.companyWinRatio,
+                        playerWonAmount: config.playerWonAmount,
+                        consumptionTimes: config.consumptionTimes,
+                    });
+                }
+
+                return $scope.$socketPromise("setWinnerMonitorConfig", {platformObjId: vm.selectedPlatform.id, winnerMonitorData: winnerMonitorData}).then(
+                    data => {
+                        console.log('setWinnerMonitorConfig', data);
+                        vm.configTabClicked("winnerMonitorSetting");
+                    }
+                )
+
             }
 
             function updatePlatformFeeEstimateSetting(srcData) {
@@ -31444,6 +31542,7 @@ define(['js/app'], function (myApp) {
                     }
                 );
             };
+
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
@@ -32720,19 +32819,42 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id
                 };
                 socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                    vm.allUrl = data.data;
-                    vm.allUrl = vm.allUrl.map(url => {
-                        for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                            let admin = vm.adminList[i];
-                            if (url.admin.toString() === admin._id.toString()) {
-                                url.adminName$ = admin.adminName;
-                                break;
+                    $scope.$evalAsync(()=>{
+                        vm.countPromoWay = {
+                            cs:[],
+                            promoWay:[],
+                            promoUrl:[]
+                        };
+                        vm.allUrl = data.data;
+                        vm.allUrl = vm.allUrl.map(url => {
+
+                            vm.countPromoWay.promoWay.push(url.way);
+                            vm.countPromoWay.promoUrl.push(url.domain);
+                            if (url.admin && url.admin._id) {
+                                vm.countPromoWay.cs.push(url.admin._id);
                             }
-                        }
-                        return url;
+                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                                let admin = vm.adminList[i];
+                                if (url.admin && url.admin.toString() === admin._id.toString()) {
+                                    url.adminName$ = admin.adminName;
+                                    break;
+                                }
+                            }
+                            return url;
+                        });
+
+                        vm.countPromoWay.cs = [...(new Set(vm.countPromoWay.cs))];
+                        vm.countPromoWay.promoWay = [...(new Set(vm.countPromoWay.promoWay))];
+                        vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
+
+                        vm.allUrl.sort((a, b) => {
+                             if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
+                             else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
+                             else if (!a.admin) return 1;
+                             return 0;
+                         });
+                        console.log("vm.allUrl", vm.allUrl);
                     });
-                    console.log("vm.allUrl", vm.allUrl);
-                    $scope.safeApply();
                 },
                 function (err) {
                     console.log(err);
@@ -32742,27 +32864,66 @@ define(['js/app'], function (myApp) {
             vm.searchCsUrl = function () {
                 vm.allUrl = [];
                 let query = {
-                    platformId: vm.selectedPlatform.id,
-                    admin: vm.csUrlSearchQuery.admin || "",
+                    platformIds: vm.csUrlSearchQuery.platforms || [],
+                    admin: vm.csUrlSearchQuery.adminName || "",
                     domain: vm.csUrlSearchQuery.url || "",
                     way: vm.csUrlSearchQuery.promoteWay || ""
                 };
-
-
                 socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
-                        vm.allUrl = data.data;
-                        vm.allUrl = vm.allUrl.map(url => {
-                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                                let admin = vm.adminList[i];
-                                if (url.admin.toString() === admin._id.toString()) {
-                                    url.adminName$ = admin.adminName;
-                                    break;
+                    $scope.$evalAsync(() => {
+
+                            vm.countPromoWay = {
+                                cs:[],
+                                promoWay:[],
+                                promoUrl:[]
+                            };
+                            vm.allUrl = data.data;
+                            vm.allUrl = vm.allUrl.map(url => {
+                                vm.countPromoWay.promoWay.push(url.way);
+                                vm.countPromoWay.promoUrl.push(url.domain);
+                                if (url.admin && url.admin._id) {
+                                    vm.countPromoWay.cs.push(url.admin._id);
                                 }
+                                for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                                    let admin = vm.adminList[i];
+                                    if (url.admin && url.admin.toString() === admin._id.toString()) {
+                                        url.adminName$ = admin.adminName;
+                                        break;
+                                    }
+                                }
+                                return url;
+                            });
+
+                            // use es6 feature , filter to only unique element in array
+                            vm.countPromoWay.cs = [...(new Set(vm.countPromoWay.cs))];
+                            vm.countPromoWay.promoWay = [...(new Set(vm.countPromoWay.promoWay))];
+                            vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
+                            console.log("vm.allUrl", vm.allUrl);
+
+                            // sorting by alphabet
+                            if (vm.sortCS == 'promoUrl') {
+                                vm.allUrl.sort((a, b) => {
+                                    if (a.domain < b.domain) return -1;
+                                    else if (a.domain > b.domain) return 1;
+                                    return 0;
+                                });
+                            } else if (vm.sortCS == 'promoWay') {
+                                vm.allUrl.sort((a, b) => {
+                                    if (a.way < b.way) return -1;
+                                    else if (a.way > b.way) return 1;
+                                    return 0;
+                                });
+                            } else {
+                                vm.allUrl.sort((a, b) => {
+                                     if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
+                                     else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
+                                     else if (!a.admin) return 1;
+                                     return 0;
+                                 });
                             }
-                            return url;
+
                         });
-                        console.log("vm.allUrl", vm.allUrl);
-                        $scope.safeApply();
+
                     },
                     function (err) {
                         console.log(err);

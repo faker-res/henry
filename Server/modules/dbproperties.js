@@ -235,6 +235,9 @@ let largeWithdrawalLogModel = dbLogs2.model('largeWithdrawalLog', largeWithdrawa
 let partnerLargeWithdrawalLogSchema = require('../schema/partnerLargeWithdrawalLog');
 let partnerLargeWithdrawalLogModel = dbLogs2.model('partnerLargeWithdrawalLog', partnerLargeWithdrawalLogSchema, 'partnerLargeWithdrawalLog');
 
+let winnerMonitorConfigSchema = require('../schema/winnerMonitorConfig');
+let winnerMonitorConfigModel = dbLogs2.model('winnerMonitorConfig', winnerMonitorConfigSchema, 'winnerMonitorConfig');
+
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
 
@@ -494,6 +497,9 @@ let auctionSystemModel = dbLogs2.model('auctionSystem', auctionSystemSchema, 'au
 let playerReportDataDaySummarySchema = require('../schema/playerReportDataDaySummary');
 let playerReportDataDaySummaryModel = dbLogs2.model('playerReportDataDaySummary', playerReportDataDaySummarySchema, 'playerReportDataDaySummary');
 
+let winRateReportDataDaySummarySchema = require('../schema/winRateReportDataDaySummary');
+let winRateReportDataDaySummaryModel = dbLogs2.model('winRateReportDataDaySummary', winRateReportDataDaySummarySchema, 'winRateReportDataDaySummary');
+
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
 
@@ -658,6 +664,8 @@ var dbProperties = {
     collection_largeWithdrawalLog: largeWithdrawalLogModel,
     collection_partnerLargeWithdrawalLog: partnerLargeWithdrawalLogModel,
 
+    collection_winnerMonitorConfig: winnerMonitorConfigModel,
+
     collection_actionLog: actionLogModel,
     collection_callBackToUserLog: callBackToUserLogModel,
 
@@ -690,6 +698,7 @@ var dbProperties = {
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,
+    collection_winRateReportDataDaySummary: winRateReportDataDaySummaryModel,
 
     //logs
     collection_playerMail: playerMailModel,

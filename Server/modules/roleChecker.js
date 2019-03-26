@@ -168,6 +168,7 @@ var roleChecker = {
         "getAllGameTypes": true,
         "getRewardEventsForPlatform": true,
 
+        "getWinnerMonitorConfig": true,
 
         //todo::to be added to permission list
         "getCredibilityRemarks": true,
@@ -535,7 +536,8 @@ var roleChecker = {
                 RemoveCtiUrl: ['removeCtiUrlSubDomain'],
                 DownloadTranslationCSV: ['downloadTranslationCSV'],
                 DecomposeAfterNDays: [],
-                AutoExportListOrMaxNumOfTxnEveryday: []
+                AutoExportListOrMaxNumOfTxnEveryday: [],
+                WinnerMonitor: ['setWinnerMonitorConfig'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],

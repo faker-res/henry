@@ -1746,7 +1746,8 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if (data.isPlayerPrefixValid) {
+                // if (data.isPlayerPrefixValid) {
+                if (true) { // player prefix is not enforce anymore, deprecated
                     if (playerdata.guestDeviceId) {
                         return {isPlayerPasswordValid: true};
                     }
@@ -6212,12 +6213,19 @@ let dbPlayerInfo = {
                                 if (player) {
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
                                 } else {
+                                    if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
+                                        platformPrefix = loginData.accountPrefix;
+                                    }
                                     let newPlayerData = {
                                         platformId: loginData.platformId,
                                         name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
                                         password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
-                                        phoneNumber: loginData.phoneNumber,
+                                        phoneNumber: loginData.phoneNumber
                                     };
+
+                                    if (loginData.deviceId) {
+                                        newPlayerData.guestDeviceId = loginData.deviceId;
+                                    }
 
                                     return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
                                         .then(() => dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified));
@@ -6245,7 +6253,7 @@ let dbPlayerInfo = {
                     }
                 }
                 else {
-                    return Q.reject(rejectMsg);
+                    return Promise.reject(rejectMsg);
                 }
             }
         )
@@ -21105,6 +21113,7 @@ let dbPlayerInfo = {
                             providerId: platformData.gameProviders[i].providerId,
                             // nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                             nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
+                            chName: platformData.gameProviders[i].chName ? platformData.gameProviders[i].chName : '',
                             status: status
                         };
                     }
@@ -21179,7 +21188,8 @@ let dbPlayerInfo = {
                                     providerObjId: providerList.gameCreditList[i].providerObjId,
                                     providerId: creditData.providerId,
                                     gameCredit: parseFloat(creditData.credit).toFixed(2) || 0,
-                                    nickName: providerList.gameCreditList[i].nickName ? providerList.gameCreditList[i].nickName : "",
+                                    nickName: providerList.gameCreditList[i].nickName ? providerList.gameCreditList[i].nickName : '',
+                                    chName: providerList.gameCreditList[i].chName ? providerList.gameCreditList[i].chName : '',
                                     status: providerList.gameCreditList[i].status
                                 };
                             },
@@ -21189,7 +21199,8 @@ let dbPlayerInfo = {
                                     providerObjId: providerList.gameCreditList[i].providerObjId,
                                     providerId: providerList.gameCreditList[i].providerId,
                                     gameCredit: 'unknown',
-                                    nickName: providerList.gameCreditList[i].nickName ? providerList.gameCreditList[i].nickName : "",
+                                    nickName: providerList.gameCreditList[i].nickName ? providerList.gameCreditList[i].nickName : '',
+                                    chName: providerList.gameCreditList[i].chName ? providerList.gameCreditList[i].chName : '',
                                     reason: err,
                                     status: providerList.gameCreditList[i].status
                                 };
@@ -21209,7 +21220,8 @@ let dbPlayerInfo = {
                             nickName: gameCreditList[i].nickName ? gameCreditList[i].nickName : "",
                             validCredit: gameCreditList[i].gameCredit ? gameCreditList[i].gameCredit : "",
                             status: gameCreditList[i].status,
-                            providerId: gameCreditList[i].providerId
+                            providerId: gameCreditList[i].providerId,
+                            chName: gameCreditList[i].chName ? gameCreditList[i].chName : ''
                         };
                         // check the game credit from the same platform
                     }
@@ -21280,7 +21292,8 @@ let dbPlayerInfo = {
                                         providerId: gameItem.providerId,
                                         nickName: gameItem.nickName,
                                         validCredit: gameItem.gameCredit,
-                                        status: gameItem.status
+                                        status: gameItem.status,
+                                        chName: allGroup.chName ? allGroup.chName : '',
                                     });
                                 }
                             })

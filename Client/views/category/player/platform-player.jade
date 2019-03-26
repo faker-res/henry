@@ -1125,6 +1125,9 @@ include modalGameCreditLog
                     .panel-body
                         #providerExpenseQuery.well
                             .search-filters-item
+                                label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                                select.form-control(ng-model='vm.consumptionRecordPlatformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                            .search-filters-item
                                 .control-label {{"Provider" | translate}}
                                 select.form-control(ng-model='vm.selectedProviderID', ng-init='vm.selectedProviderID="all"')
                                     option(value='all') {{'any' | translate}}

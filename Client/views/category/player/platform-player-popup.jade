@@ -880,6 +880,9 @@
             .modal-body
                 #playerApiLogQuery.well.col-xs-12
                     .search-filters-item
+                        label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                        select.form-control(ng-model='vm.actionLogPlatformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                    .search-filters-item
                         label {{"Start date" | translate}}
                         .startTime
                     .search-filters-item
