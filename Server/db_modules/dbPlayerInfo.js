@@ -74,7 +74,7 @@ const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus"
 
 // db_common
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
-const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+let dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const dbUtil = require('./../modules/dbutility');
 const constPlayerLevelUpPeriod = require('./../const/constPlayerLevelUpPeriod');
@@ -9611,7 +9611,7 @@ let dbPlayerInfo = {
                         // Perform the level up
                         return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
                             platformData => {
-                                console.log("player level up checkpoint 1")
+                                console.log("ZM, player level up checkpoint 1 ", playerObj.name);
                                 let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                                 let platformPeriodTime;
                                 if (platformPeriod) {
@@ -9663,7 +9663,7 @@ let dbPlayerInfo = {
 
                                 return Promise.all([topUpProm, consumptionProm]).then(
                                     recordData => {
-                                        console.log("player level up checkpoint 2")
+                                        console.log("ZM player level up checkpoint 2 ", playerObj.name);
                                         let topUpSummary = recordData[0];
                                         let consumptionSummary = recordData[1];
                                         let topUpSumPeriod = {};
@@ -9673,7 +9673,7 @@ let dbPlayerInfo = {
 
                                         if (checkLevelUp) {
                                             let checkLevelUpEnd = false;
-                                            console.log("player level up checkpoint 3", levelUpObjArr.length)
+                                            console.log("ZM player level up checkpoint 3 ", playerObj.name, levelUpObjArr.length);
                                             for (let a = 0; a < levelUpObjArr.length; a++) {
                                                 const conditionSets = levelUpObjArr[a].levelUpConfig;
 
@@ -9734,7 +9734,7 @@ let dbPlayerInfo = {
                                                     }
                                                 }
                                             }
-                                            console.log("player level up checkpoint 4", consumptionSumPeriod, topUpSumPeriod)
+                                            console.log("ZM player level up checkpoint 4", playerObj.name, consumptionSumPeriod, topUpSumPeriod);
                                         } else {
                                             const conditionSet = levelDownLevel.levelDownConfig[0];
                                             const topupPeriod = conditionSet.topupPeriod;
@@ -9769,7 +9769,7 @@ let dbPlayerInfo = {
                                                 playerId: playerObj.playerId,
                                                 platformObjId: playerObj.platform
                                             };
-                                            console.log("player level up checkpoint 5")
+                                            console.log("ZM player level up checkpoint 5", playerObj.name);
                                             let inputDevice = dbUtility.getInputDevice(userAgent, false);
                                             let promResolve = Promise.resolve();
 
@@ -9805,9 +9805,11 @@ let dbPlayerInfo = {
                                             //         }
                                             //     }
                                             // )
+
+                                            dbPlayerUtil = require("../db_common/dbPlayerUtility");
                                             return dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", true, "lastApplyLevelUp").then(
                                                 playerState => {
-                                                    console.log("player level up checkpoint 6")
+                                                    console.log("ZM player level up checkpoint 6", playerObj.name);
                                                     if (playerState) {
                                                         if (checkLevelUp) {
                                                             for (let i = 0; i < levelUpCounter; i++) {
@@ -9847,12 +9849,13 @@ let dbPlayerInfo = {
                                                 }
                                             ).then(
                                                 function (data) {
-                                                    console.log("player level up checkpoint 7")
+                                                    console.log("ZM player level up checkpoint 7", playerObj.name);
                                                     dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false, "lastApplyLevelUp").catch(errorUtils.reportError);
                                                     return data;
                                                 }
                                             ).catch(
                                                 err => {
+                                                    console.log("dbPlayerUtil.setPlayerBState not a function catch", dbPlayerUtil);
                                                     if (err.status === constServerCode.CONCURRENT_DETECTED) {
                                                         // Ignore concurrent request for now
                                                     } else {
