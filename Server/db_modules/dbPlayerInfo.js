@@ -13469,7 +13469,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent, tableCode) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent, tableCode, closeMusic) {
         let providerData = null;
         let playerData = null;
         let platform = null;
@@ -13720,9 +13720,9 @@ let dbPlayerInfo = {
                     clientDomainName: clientDomainName || "Can not find domain",
                     lang: lang || localization.lang.ch_SP,
                     ip: ip,
-                    clientType: clientType || 1
+                    clientType: clientType || 1,
+                    closeMusic: closeMusic || false
                 };
-
                 if (tableCode) {
                     sendData.tableCode = tableCode
                 }
