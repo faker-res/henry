@@ -3424,6 +3424,9 @@ var proposal = {
         let isSuccess = false;
         let prom = Promise.resolve([]);
         let platformListQuery = [];
+        let promoCodeProposalQuery = {
+            name: ["PlayerLimitedOfferReward","PlayerPromoCodeReward"]
+        };
 
         if (reqData.inputDevice) {
             reqData.inputDevice = Number(reqData.inputDevice);
@@ -3451,6 +3454,7 @@ var proposal = {
 
         if(reqData.platformList && reqData.platformList.length > 0) {
             platformListQuery = {$in: reqData.platformList.map(item=>{return ObjectId(item)})};
+            promoCodeProposalQuery.platformId = platformListQuery;
         }
 
         if (!reqData.type) {
@@ -3535,31 +3539,55 @@ var proposal = {
                     }).populate({
                         path: "type", model: dbconfig.collection_proposalType
                     }).lean().then(populateProposalsWithPlatformData);
-                    let c = dbconfig.collection_proposal.aggregate([
-                        {
-                            $match: queryData
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {$sum: "$data.amount"},
-                                totalRewardAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.rewardAmount", NaN]},
-                                            0,
-                                            "$data.rewardAmount"
-                                        ]
-                                    }
-                                },
-                                // totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                totalTopUpAmount: {$sum: "$data.topUpAmount"},
-                                totalUpdateAmount: {$sum: "$data.updateAmount"},
-                                totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
-                                totalCommissionAmount: {$sum: "$data.commissionAmount"}
+                    let c = dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(
+                        promoCodeProposalType => {
+                            let playerPromoCodeRewardObjId;
+                            if (promoCodeProposalType && promoCodeProposalType.length) {
+                                playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
                             }
+
+                            return dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: queryData
+                                },
+                                {
+                                    $group: {
+                                        _id: null,
+                                        totalAmount: {$sum: "$data.amount"},
+                                        totalRewardAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.rewardAmount", NaN]},
+                                                    0,
+                                                    "$data.rewardAmount"
+                                                ]
+                                            }
+                                        },
+                                        // totalRewardAmount: {$sum: "$data.rewardAmount"},
+                                        totalTopUpAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$or: [
+                                                            {$eq: ["$data.topUpAmount", NaN]},
+                                                            {$setIsSubset: [
+                                                                ["$type"],
+                                                                playerPromoCodeRewardObjId
+                                                            ]}
+                                                        ]},
+                                                    0,
+                                                    "$data.topUpAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalUpdateAmount: {$sum: "$data.updateAmount"},
+                                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
+                                    }
+                                }
+                            ]).read("secondaryPreferred");
                         }
-                    ]).read("secondaryPreferred");
+                    );
+
                     let d = dbconfig.collection_proposal.distinct('data.playerName', queryData);
                     return Promise.all([a, b, c, d]);
                 },
@@ -3664,14 +3692,6 @@ var proposal = {
                         reqData["$and"].push({$or: orQuery});
                     }
 
-                    let promoCodeProposalQuery = {
-                        name: ["PlayerLimitedOfferReward","PlayerPromoCodeReward"]
-                    };
-
-                    if(reqData.platformList && reqData.platformList.length > 0) {
-                        promoCodeProposalQuery.platformId = platformListQuery;
-                    }
-
                     a = dbconfig.collection_proposal.find(reqData).lean().count();
                     b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                         .populate({path: "type", model: dbconfig.collection_proposalType})
@@ -3709,13 +3729,15 @@ var proposal = {
                                                 ]
                                             }
                                         },
-
                                         totalTopUpAmount: {
                                             $sum: {
                                                 $cond: [
                                                     {$or: [
                                                         {$eq: ["$data.topUpAmount", NaN]},
-                                                        {$in: ["$type", playerPromoCodeRewardObjId]}
+                                                        {$setIsSubset: [
+                                                            ["$type"],
+                                                            playerPromoCodeRewardObjId
+                                                        ]}
                                                     ]},
                                                     0,
                                                     "$data.topUpAmount"
