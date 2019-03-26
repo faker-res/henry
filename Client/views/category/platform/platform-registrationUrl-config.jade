@@ -85,6 +85,7 @@
                                 a {{'SELECT' | translate}}
                         tr(ng-if="vm.urlTableEdit")
                             td
+
                             td
                                 select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin._id', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
                             td
@@ -94,6 +95,7 @@
                                 input.form-control(type="text", ng-model="vm.currentUrlEditSelect.domain", ng-disabled="!vm.urlTableEdit", required)
                         tr(ng-if="vm.urlTableAdd")
                             td
+                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin._id', required, ng-options='a.id as a.data.name for a in vm.platformList')
                             td
                                 select.form-control#officerOption(ng-model='vm.addOfficerUrl.officer', required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
                                     option(value='') {{'CHOOSE_OFFICER' | translate}}
