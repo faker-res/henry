@@ -8272,8 +8272,8 @@ define(['js/app'], function (myApp) {
                 // Row click
                 $(nRow).off('click');
                 $(nRow).on('click', function () {
-                    vm.selectedPlatform = vm.allPlatformData.filter(platform => platform._id == aData.platform)[0];
-                    vm.selectedPlatform.id = vm.selectedPlatform._id;
+                    // vm.selectedPlatform = vm.allPlatformData.filter(platform => platform._id == aData.platform)[0];
+                    // vm.selectedPlatform.id = vm.selectedPlatform._id;
                     $('#playerDataTable tbody tr').removeClass('selected');
                     $('#playerFeedbackDataTable tbody tr').removeClass('selected');
                     $(this).toggleClass('selected');
@@ -16665,13 +16665,13 @@ define(['js/app'], function (myApp) {
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
-                let sendQuery = {platform: vm.playerFeedbackQuery.selectedPlatform};
+                let sendQuery = {platform: vm.selectedPlatform.id};
                 // let sendQuery = {};
                 let sendQueryOr = [];
 
-                if(vm.playerFeedbackQuery.selectedPlatform && vm.playerFeedbackQuery.selectedPlatform.length > 0) {
-                    sendQuery.platform = vm.playerFeedbackQuery.selectedPlatform;
-                }
+                // if(vm.playerFeedbackQuery.selectedPlatform && vm.playerFeedbackQuery.selectedPlatform.length > 0) {
+                //     sendQuery.platform = vm.playerFeedbackQuery.selectedPlatform;
+                // }
 
                 if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
                     sendQuery.playerType = vm.playerFeedbackQuery.playerType;
