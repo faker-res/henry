@@ -32,7 +32,11 @@ function socketActionWinnerMonitor (socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerConsumptionHourSummary.getWinnerMonitorConfig, [data.platformObjId], actionName, isValidData);
         },
 
-
+        getWinnerMonitorData: function getWinnerMonitorData (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionHourSummary.getWinnerMonitorData, [data.platformObjId, data.startTime, data.endTime, data.providerObjId, data.playerName], actionName, isValidData);
+        },
 
 
 

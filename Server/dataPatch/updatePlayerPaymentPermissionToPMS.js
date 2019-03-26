@@ -5,6 +5,7 @@ let platformId = process.env.platformId;
 
 dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1, topUpSystemType: 1}).lean().then(
     platformData => {
+        console.log('platformData JY', platformData);
         if (platformData) {
             let playerArr = [];
             let cursor = dbconfig.collection_players.find({platform: platformData._id, isTestPlayer: {$ne: true}}, {_id: 1, name: 1, permission: 1}).cursor();
@@ -16,13 +17,15 @@ dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1, topUpSys
                 topUpSystemType = platformData.topUpSystemType;
             }
 
+            console.log('topUpSystemType JY', topUpSystemType);
+
             cursor.eachAsync(
                 playerData => {
                     playerArr.push(playerData);
                     i++;
 
                     if (i === 100) {
-                        dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformId, playerArr, topUpSystemType);
+                        dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformId, playerArr, topUpSystemType).catch(err=> console.log("updatePMSPlayerTopupChannelPermission 1", err));
                         done += i;
                         console.log('done', done);
                         i = 0;
@@ -30,13 +33,13 @@ dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1, topUpSys
                     }
                 }
             ).then(() => {
-                dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformId, playerArr, topUpSystemType);
+                dbPlayerInfo.updatePMSPlayerTopupChannelPermission(platformId, playerArr, topUpSystemType).catch(err=> console.log("updatePMSPlayerTopupChannelPermission 2", err));
                 done += i;
                 console.log('done 2', done);
                 i = 0;
                 playerArr = [];
-            });
+            }).catch(err=> console.log("updatePMSPlayerTopupChannelPermission", err));
         }
     }
-);
+).catch(err=> console.log("updatePMSPlayerTopupChannelPermission platform", err));
 

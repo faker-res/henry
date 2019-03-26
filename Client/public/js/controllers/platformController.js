@@ -1331,9 +1331,9 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                     vm.allPlatformData = data.data;
-                    commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                     if (data.data) {
                         buildPlatformList(data.data);
+                        commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                     }
                     $('#platformRefresh').removeClass('fa-spin');
 
@@ -8289,6 +8289,8 @@ define(['js/app'], function (myApp) {
                 // Row click
                 $(nRow).off('click');
                 $(nRow).on('click', function () {
+                    // vm.selectedPlatform = vm.allPlatformData.filter(platform => platform._id == aData.platform)[0];
+                    // vm.selectedPlatform.id = vm.selectedPlatform._id;
                     $('#playerDataTable tbody tr').removeClass('selected');
                     $('#playerFeedbackDataTable tbody tr').removeClass('selected');
                     $(this).toggleClass('selected');
@@ -16681,7 +16683,12 @@ define(['js/app'], function (myApp) {
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
                 let sendQuery = {platform: vm.selectedPlatform.id};
+                // let sendQuery = {};
                 let sendQueryOr = [];
+
+                // if(vm.playerFeedbackQuery.selectedPlatform && vm.playerFeedbackQuery.selectedPlatform.length > 0) {
+                //     sendQuery.platform = vm.playerFeedbackQuery.selectedPlatform;
+                // }
 
                 if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
                     sendQuery.playerType = vm.playerFeedbackQuery.playerType;
@@ -32836,11 +32843,16 @@ define(['js/app'], function (myApp) {
                             promoWay:[],
                             promoUrl:[]
                         };
+                        let noAdmin = { _id: 'noadmin001', adminName: $translate('noAdmin') };
                         vm.allUrl = data.data;
                         vm.allUrl = vm.allUrl.map(url => {
 
                             vm.countPromoWay.promoWay.push(url.way);
                             vm.countPromoWay.promoUrl.push(url.domain);
+
+                            if (!url.admin) {
+                                url.admin = noAdmin;
+                            }
                             if (url.admin && url.admin._id) {
                                 vm.countPromoWay.cs.push(url.admin._id);
                             }
@@ -32859,8 +32871,8 @@ define(['js/app'], function (myApp) {
                         vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
 
                         vm.allUrl.sort((a, b) => {
-                             if (a.admin.adminName < b.admin.adminName) return -1;
-                             else if (a.admin.adminName > b.admin.adminName) return 1;
+                             if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
+                             else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
                              return 0;
                          });
                         console.log("vm.allUrl", vm.allUrl);
@@ -32882,6 +32894,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
                     $scope.$evalAsync(() => {
 
+                            let noAdmin = { _id: 'noadmin001', adminName: $translate('noAdmin') };
                             vm.countPromoWay = {
                                 cs:[],
                                 promoWay:[],
@@ -32891,6 +32904,9 @@ define(['js/app'], function (myApp) {
                             vm.allUrl = vm.allUrl.map(url => {
                                 vm.countPromoWay.promoWay.push(url.way);
                                 vm.countPromoWay.promoUrl.push(url.domain);
+                                if (!url.admin) {
+                                    url.admin = noAdmin;
+                                }
                                 if (url.admin && url.admin._id) {
                                     vm.countPromoWay.cs.push(url.admin._id);
                                 }
@@ -32925,8 +32941,8 @@ define(['js/app'], function (myApp) {
                                 });
                             } else {
                                 vm.allUrl.sort((a, b) => {
-                                     if (a.admin.adminName < b.admin.adminName) return -1;
-                                     else if (a.admin.adminName > b.admin.adminName) return 1;
+                                     if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
+                                     else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
                                      return 0;
                                  });
                             }

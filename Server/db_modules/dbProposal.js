@@ -3664,75 +3664,96 @@ var proposal = {
                         reqData["$and"].push({$or: orQuery});
                     }
 
+                    let promoCodeProposalQuery = {
+                        name: ["PlayerLimitedOfferReward","PlayerPromoCodeReward"]
+                    };
+
+                    if(reqData.platformList && reqData.platformList.length > 0) {
+                        promoCodeProposalQuery.platformId = platformListQuery;
+                    }
+
                     a = dbconfig.collection_proposal.find(reqData).lean().count();
                     b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                         .populate({path: "type", model: dbconfig.collection_proposalType})
                         .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean()
                         .then(populateProposalsWithPlatformData);
-                    c = dbconfig.collection_proposal.aggregate([
-                        {
-                            $match: reqData
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.amount", NaN]},
-                                            0,
-                                            "$data.amount"
-                                        ]
-                                    }
-                                },
-                                totalRewardAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.rewardAmount", NaN]},
-                                            0,
-                                            "$data.rewardAmount"
-                                        ]
-                                    }
-                                },
-                                totalTopUpAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.topUpAmount", NaN]},
-                                            0,
-                                            "$data.topUpAmount"
-                                        ]
-                                    }
-                                },
-                                totalUpdateAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.updateAmount", NaN]},
-                                            0,
-                                            "$data.updateAmount"
-                                        ]
-                                    }
-                                },
-                                totalNegativeProfitAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.negativeProfitAmount", NaN]},
-                                            0,
-                                            "$data.negativeProfitAmount"
-                                        ]
-                                    }
-                                },
-                                totalCommissionAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.commissionAmount", NaN]},
-                                            0,
-                                            "$data.commissionAmount"
-                                        ]
-                                    }
-                                },
+                    c = dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(
+                        promoCodeProposalType => {
+                            let playerPromoCodeRewardObjId;
+                            if(promoCodeProposalType && promoCodeProposalType.length){
+                                playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
                             }
+
+                            return dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: reqData
+                                },
+                                {
+                                    $group: {
+                                        _id: null,
+                                        totalAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.amount", NaN]},
+                                                    0,
+                                                    "$data.amount"
+                                                ]
+                                            }
+                                        },
+                                        totalRewardAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.rewardAmount", NaN]},
+                                                    0,
+                                                    "$data.rewardAmount"
+                                                ]
+                                            }
+                                        },
+
+                                        totalTopUpAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$or: [
+                                                        {$eq: ["$data.topUpAmount", NaN]},
+                                                        {$in: ["$type", playerPromoCodeRewardObjId]}
+                                                    ]},
+                                                    0,
+                                                    "$data.topUpAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalUpdateAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.updateAmount", NaN]},
+                                                    0,
+                                                    "$data.updateAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalNegativeProfitAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.negativeProfitAmount", NaN]},
+                                                    0,
+                                                    "$data.negativeProfitAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalCommissionAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.commissionAmount", NaN]},
+                                                    0,
+                                                    "$data.commissionAmount"
+                                                ]
+                                            }
+                                        },
+                                    }
+                                }
+                            ]).read("secondaryPreferred");
                         }
-                    ]).read("secondaryPreferred");
+                    );
 
                     d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
 
