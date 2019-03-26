@@ -531,10 +531,6 @@ var dbPlayerFeedback = {
             }
         }
 
-        if(query.platform && query.platform.length > 0) {
-            query.platform = {$in: query.platform};
-        }
-
         let playerResult;
         let player = dbconfig.collection_players.find(query).skip(index).limit(1)
             .populate({path: "partner", model: dbconfig.collection_partner})

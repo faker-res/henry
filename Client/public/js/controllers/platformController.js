@@ -1331,7 +1331,6 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                     vm.allPlatformData = data.data;
-                    commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                     if (data.data) {
                         buildPlatformList(data.data);
                         commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
@@ -8273,6 +8272,8 @@ define(['js/app'], function (myApp) {
                 // Row click
                 $(nRow).off('click');
                 $(nRow).on('click', function () {
+                    vm.selectedPlatform = vm.allPlatformData.filter(platform => platform._id == aData.platform)[0];
+                    vm.selectedPlatform.id = vm.selectedPlatform._id;
                     $('#playerDataTable tbody tr').removeClass('selected');
                     $('#playerFeedbackDataTable tbody tr').removeClass('selected');
                     $(this).toggleClass('selected');
@@ -16664,8 +16665,8 @@ define(['js/app'], function (myApp) {
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
-                // let sendQuery = {platform: vm.selectedPlatform.id};
-                let sendQuery = {};
+                let sendQuery = {platform: vm.playerFeedbackQuery.selectedPlatform};
+                // let sendQuery = {};
                 let sendQueryOr = [];
 
                 if(vm.playerFeedbackQuery.selectedPlatform && vm.playerFeedbackQuery.selectedPlatform.length > 0) {
