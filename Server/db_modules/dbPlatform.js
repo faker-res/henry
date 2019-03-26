@@ -2080,7 +2080,7 @@ var dbPlatform = {
         let smsLogCount = 0;
         var a = dbconfig.collection_smsLog.find(query).sort(sortCol).skip(index).limit(limit);
         var b = dbconfig.collection_smsLog.find(query).count();
-        let platformProm = dbconfig.collection_platform.findOne({_id: data.platformObjId}, fieldOption).lean();
+        let platformProm = dbconfig.collection_platform.findOne({_id: {$in: data.platformObjId}}, fieldOption).lean();
         return Q.all([a, b, platformProm]).then(
             result => {
                 smsLogCount = result[1];
