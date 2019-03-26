@@ -5380,5 +5380,6 @@
   "Last Editor": "绑定人",
   "Duplicate Assign Domain Name": "已重复",
   "URL already existed": "已重复",
+  "noAdmin": "无此账号",
   "WEBSITE_MULTI_SELECTION": "网站（复选）"
 }
