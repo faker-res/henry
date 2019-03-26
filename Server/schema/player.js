@@ -424,6 +424,38 @@ playerSchema.pre('save', function (next) {
     next();
 });
 
+playerSchema.pre('save', function (next) {
+    var player = this;
+
+    if (!player.isModified('deviceId')) {
+        return next();
+    }
+    // override the cleartext password with the hashed one
+    try {
+        player.deviceId = rsaCrypto.encrypt(player.deviceId);
+    }
+    catch (error) {
+        console.log(error);
+    }
+    next();
+});
+
+playerSchema.pre('save', function (next) {
+    var player = this;
+
+    if (!player.isModified('guestDeviceId')) {
+        return next();
+    }
+    // override the cleartext password with the hashed one
+    try {
+        player.guestDeviceId = rsaCrypto.encrypt(player.guestDeviceId);
+    }
+    catch (error) {
+        console.log(error);
+    }
+    next();
+});
+
 playerSchema.methods.comparePassword = function (candidatePassword, cb) {
     bcrypt.compare(candidatePassword, this.password, function (err, isMatch) {
         if (err) {

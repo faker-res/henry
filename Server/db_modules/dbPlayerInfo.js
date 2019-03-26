@@ -427,16 +427,18 @@ let dbPlayerInfo = {
 
                 let playerQuery = {
                     platform: platform._id,
-                    guestDeviceId: String(inputData.guestDeviceId),
+                    $or: [
+                        {guestDeviceId: String(inputData.guestDeviceId)},
+                        {guestDeviceId: rsaCrypto.encrypt(String(inputData.guestDeviceId))},
+                        {guestDeviceId: rsaCrypto.oldEncrypt(String(inputData.guestDeviceId))}
+                    ]
                 }
+
                 if (inputData.phoneNumber) {
                     let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
-                    playerQuery.$or = [
-                        {phoneNumber: encryptedPhoneNumber},
-                        {phoneNumber: enOldPhoneNumber}
-                    ]
-
+                    playerQuery.$or.push({phoneNumber: encryptedPhoneNumber});
+                    playerQuery.$or.push({phoneNumber: enOldPhoneNumber});
                 }
 
                 return dbconfig.collection_players.findOne(playerQuery).populate({
@@ -444,7 +446,6 @@ let dbPlayerInfo = {
                     model: dbconfig.collection_playerLevel
                 }).lean().then(
                     guestPlayer => {
-
                         if (guestPlayer) {
                             guestPlayer.password = String(inputData.guestDeviceId);
                             guestPlayer.inputDevice = inputData.inputDevice ? inputData.inputDevice : (guestPlayer.inputDevice || "");
@@ -1864,6 +1865,11 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
+                    // Save deviceId as guestDeviceId as binding on registration
+                    if (playerdata.deviceId) {
+                        playerdata.guestDeviceId = playerdata.deviceId
+                    }
+
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -5851,7 +5857,7 @@ let dbPlayerInfo = {
                 };
 
                 if (playerData.deviceId) {
-                    updateData.deviceId = playerData.deviceId;
+                    updateData.deviceId = rsaCrypto.encrypt(playerData.deviceId);
                 }
 
                 if (playerData.lastLoginIp && playerData.lastLoginIp != "undefined") {
@@ -6433,7 +6439,7 @@ let dbPlayerInfo = {
                 };
 
                 if (playerData.deviceId) {
-                    updateData.deviceId = playerData.deviceId;
+                    updateData.deviceId = rsaCrypto.encrypt(playerData.deviceId);
                 }
 
                 if (playerData.lastLoginIp && playerData.lastLoginIp != "undefined") {
