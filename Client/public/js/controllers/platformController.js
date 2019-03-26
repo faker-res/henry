@@ -32711,11 +32711,16 @@ define(['js/app'], function (myApp) {
                             promoWay:[],
                             promoUrl:[]
                         };
+                        let noAdmin = { _id: 'noadmin001', adminName: $translate('noAdmin') };
                         vm.allUrl = data.data;
                         vm.allUrl = vm.allUrl.map(url => {
 
                             vm.countPromoWay.promoWay.push(url.way);
                             vm.countPromoWay.promoUrl.push(url.domain);
+
+                            if (!url.admin) {
+                                url.admin = noAdmin;
+                            }
                             if (url.admin && url.admin._id) {
                                 vm.countPromoWay.cs.push(url.admin._id);
                             }
@@ -32736,7 +32741,6 @@ define(['js/app'], function (myApp) {
                         vm.allUrl.sort((a, b) => {
                              if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
                              else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
-                             else if (!a.admin) return 1;
                              return 0;
                          });
                         console.log("vm.allUrl", vm.allUrl);
@@ -32758,6 +32762,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
                     $scope.$evalAsync(() => {
 
+                            let noAdmin = { _id: 'noadmin001', adminName: $translate('noAdmin') };
                             vm.countPromoWay = {
                                 cs:[],
                                 promoWay:[],
@@ -32767,6 +32772,9 @@ define(['js/app'], function (myApp) {
                             vm.allUrl = vm.allUrl.map(url => {
                                 vm.countPromoWay.promoWay.push(url.way);
                                 vm.countPromoWay.promoUrl.push(url.domain);
+                                if (!url.admin) {
+                                    url.admin = noAdmin;
+                                }
                                 if (url.admin && url.admin._id) {
                                     vm.countPromoWay.cs.push(url.admin._id);
                                 }
@@ -32803,7 +32811,6 @@ define(['js/app'], function (myApp) {
                                 vm.allUrl.sort((a, b) => {
                                      if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
                                      else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
-                                     else if (!a.admin) return 1;
                                      return 0;
                                  });
                             }
