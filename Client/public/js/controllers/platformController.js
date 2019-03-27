@@ -2786,8 +2786,15 @@ define(['js/app'], function (myApp) {
                     playerQuery.csOfficer = vm.sendMultiMessage.admins && vm.sendMultiMessage.admins.length > 0 ? vm.sendMultiMessage.admins : admins;
                 }
 
+                let platformIdList;
+                if (vm.sendMultiMessage && vm.sendMultiMessage.platformList && vm.sendMultiMessage.platformList.length) {
+                    platformIdList = vm.sendMultiMessage.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: platformIdList,
                     query: playerQuery,
                     index: vm.sendMultiMessage.index || 0,
                     limit: vm.sendMultiMessage.limit || 100,
@@ -2804,6 +2811,12 @@ define(['js/app'], function (myApp) {
                             }
                             item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
                             item.registrationTime$ = vm.dateReformat(item.registrationTime);
+                            if (item.platform) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
                             return item;
                         }), size, newSearch);
                         vm.sendMultiMessage.totalCount = size;
@@ -3088,7 +3101,7 @@ define(['js/app'], function (myApp) {
             vm.drawSendMessagesTable = function (data, size, newSearch) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
-                    order: vm.sendMultiMessage.aaSorting || [[5, 'desc']],
+                    order: vm.sendMultiMessage.aaSorting || [[6, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [5]},
                         {
@@ -3102,6 +3115,10 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {'title': $translate('PLAYER_NAME'), data: 'name'},
                         // {'title': $translate('PLAYERID'), data: 'playerId'},
                         {'title': $translate('realName'), sClass: "wordWrap realNameCell", data: 'realName'},
