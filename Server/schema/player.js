@@ -504,6 +504,40 @@ var playerPostFindUpdate = function (result, bOne) {
         // result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
         result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
     }
+    if (result && result.guestDeviceId) {
+        if (result.guestDeviceId.length > 20) {
+            let guestDeviceId = result.guestDeviceId;
+            try {
+                result.guestDeviceId = rsaCrypto.decrypt(result.guestDeviceId);
+            }
+            catch (err) {
+                console.log(err, guestDeviceId);
+                result.guestDeviceId = guestDeviceId;
+            }
+        }
+        // var startIndex = Math.max(Math.floor((result.bankAccount.length - 4) / 2), 0);
+        // result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
+        if (!bOne) {
+            result.guestDeviceId = dbUtil.encodePhoneNum(result.guestDeviceId);
+        }
+    }
+    if (result && result.deviceId) {
+        if (result.deviceId.length > 20) {
+            let deviceId = result.deviceId;
+            try {
+                result.deviceId = rsaCrypto.decrypt(result.deviceId);
+            }
+            catch (err) {
+                console.log(err, deviceId);
+                result.deviceId = deviceId;
+            }
+        }
+        // var startIndex = Math.max(Math.floor((result.bankAccount.length - 4) / 2), 0);
+        // result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
+        if (!bOne) {
+            result.deviceId = dbUtil.encodePhoneNum(result.deviceId);
+        }
+    }
     //hide last 4 digits for qq
     if (result && result.qq) {
         let qqIndex = Math.max(Math.floor((result.qq.length - 4) / 2), 0);

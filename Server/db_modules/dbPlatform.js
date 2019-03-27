@@ -1818,6 +1818,24 @@ var dbPlatform = {
         return dbconfig.collection_playerMail.find(query).sort({createTime: -1}).limit(100);
     },
 
+    getPushNotification: function (platformObjId) {
+        return dbPlatform.getOnePlatformSetting({_id: platformObjId}).then(
+            platformData => {
+                if (!platformData) {
+                    Promise.reject({
+                        name: "DataError",
+                        message: localization.localization.translate("Platform does not exist"),
+                    });
+                }
+
+                return {
+                    jiguangAppKey: platformData.jiguangAppKey || null,
+                    jiguangMasterKey: platformData.jiguangMasterKey || null,
+                };
+            }
+        )
+    },
+
     pushNotification: function (data) {
         var appKey = data.appKey;
         var masterKey = data.masterKey;

@@ -6868,6 +6868,8 @@ define(['js/app'], function (myApp) {
             return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''
         };
 
+        vm.encryptField = (field) => field.substring(0, 3) + "******" + field.slice(-4);
+
         /**** Similar Player ****/
         vm.showSimilarPlayerTab = function (tabName) {
             vm.selectedSimilarPlayerTab = tabName == null ? "similar-phone" : tabName;

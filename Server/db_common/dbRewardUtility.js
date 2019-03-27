@@ -56,6 +56,32 @@ const dbRewardUtility = {
         return intervalTime;
     },
 
+    getRewardEventIntervalTimeByApplicationDate: (applicationDate, eventData) => {
+        let todayTime = applicationDate ? dbUtil.getTargetSGTime(applicationDate) : dbUtil.getTodaySGTime();
+        let intervalTime;
+        let duration = null;
+
+        switch (eventData.condition.interval) {
+            // weekly
+            case '2':
+                duration = 7;
+                break;
+            // bi-weekly
+            case '3':
+                duration = 15;
+                break;
+            // monthly
+            case '4':
+                duration = 30;
+                break;
+        }
+
+        let endDate = dbUtil.getNdaylaterFromSpecificStartTime(duration, todayTime.startTime);
+        intervalTime = {startTime: todayTime.startTime, endTime: endDate};
+
+        return intervalTime;
+    },
+
     isRewardValidNow: (eventData) => {
         let isValid = true;
 

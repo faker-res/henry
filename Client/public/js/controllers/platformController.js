@@ -1259,8 +1259,8 @@ define(['js/app'], function (myApp) {
                         console.log("error getting all levels", error);
                     }
                 ).done();
-                vm.jiguang.appKey = vm.selectedPlatform.data.jiguangAppKey;
-                vm.jiguang.masterKey = vm.selectedPlatform.data.jiguangMasterKey;
+                // vm.jiguang.appKey = vm.selectedPlatform.data.jiguangAppKey;
+                // vm.jiguang.masterKey = vm.selectedPlatform.data.jiguangMasterKey;
             }
 
             //search and select platform node
@@ -1518,6 +1518,16 @@ define(['js/app'], function (myApp) {
             vm.jiguang.tittle = "";
             vm.jiguang.text = "";
 
+            vm.getPushNotification = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getPushNotification', {platformObjId: platformObjId}, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getPushNotification', data.data);
+                        vm.jiguang.appKey = data.data.jiguangAppKey;
+                        vm.jiguang.masterKey = data.data.jiguangMasterKey;
+                    })
+                });
+            };
+
             vm.pushNotification = function () {
                 if (vm.jiguang && !vm.jiguang.appKey) {
                     alert("请先到编辑平台里设置推送API用的App Key。");
@@ -1544,7 +1554,7 @@ define(['js/app'], function (myApp) {
                     masterKey: vm.jiguang.masterKey,
                     tittle: vm.jiguang.tittle,
                     text: vm.jiguang.text,
-                    platform: vm.selectedPlatform.id
+                    platform: vm.jiguang.platform
                 }, function (data) {
                     if (data && data.success) {
                         alert("发送成功！");
@@ -2786,8 +2796,15 @@ define(['js/app'], function (myApp) {
                     playerQuery.csOfficer = vm.sendMultiMessage.admins && vm.sendMultiMessage.admins.length > 0 ? vm.sendMultiMessage.admins : admins;
                 }
 
+                let platformIdList;
+                if (vm.sendMultiMessage && vm.sendMultiMessage.platformList && vm.sendMultiMessage.platformList.length) {
+                    platformIdList = vm.sendMultiMessage.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: platformIdList,
                     query: playerQuery,
                     index: vm.sendMultiMessage.index || 0,
                     limit: vm.sendMultiMessage.limit || 100,
@@ -2804,6 +2821,12 @@ define(['js/app'], function (myApp) {
                             }
                             item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
                             item.registrationTime$ = vm.dateReformat(item.registrationTime);
+                            if (item.platform) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
                             return item;
                         }), size, newSearch);
                         vm.sendMultiMessage.totalCount = size;
@@ -3088,7 +3111,7 @@ define(['js/app'], function (myApp) {
             vm.drawSendMessagesTable = function (data, size, newSearch) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
-                    order: vm.sendMultiMessage.aaSorting || [[5, 'desc']],
+                    order: vm.sendMultiMessage.aaSorting || [[6, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [5]},
                         {
@@ -3102,6 +3125,10 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {'title': $translate('PLAYER_NAME'), data: 'name'},
                         // {'title': $translate('PLAYERID'), data: 'playerId'},
                         {'title': $translate('realName'), sClass: "wordWrap realNameCell", data: 'realName'},
@@ -21141,6 +21168,10 @@ define(['js/app'], function (myApp) {
                                        v.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
                                        v.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
                                    }
+                                   else if (vm.rewardCondition.definePlayerLoginMode == 3) {
+                                       v.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
+                                       v.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
+                                   }
                                }
                             }
 
@@ -22000,6 +22031,10 @@ define(['js/app'], function (myApp) {
                         else if (model.value == 1) {
                             vm.showRewardTypeData.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
                             vm.showRewardTypeData.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
+                        }
+                        else if (model.value == 3) {
+                            vm.showRewardTypeData.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
+                            vm.showRewardTypeData.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
                         }
                     }
 
