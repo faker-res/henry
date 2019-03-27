@@ -30827,13 +30827,22 @@ define(['js/app'], function (myApp) {
                 return userIds;
             };
 
-            vm.getAdminNameByDepartment = function (departmentId) {
+            vm.getAdminNameByDepartment = function (departmentId, assignTarget) {
                 if (!departmentId) {
-                    vm.adminList = [];
+                    if(assignTarget){
+                        vm[assignTarget] = [];
+                    }else{
+                        vm.adminList = [];
+                    }
+
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
-                    vm.adminList = data.data;
+                    if (assignTarget) {
+                        vm[assignTarget] = data.data;
+                    } else {
+                        vm.adminList = data.data;
+                    }
                 });
             };
 
@@ -31400,13 +31409,44 @@ define(['js/app'], function (myApp) {
                 }
 
                 // getting admin's department might not get the required department by platform for some features
-                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+                vm.loadDepartmentByPlatformId(vm.selectedPlatform.id, vm.selectedPlatform.data.name, null, callback);
+                // socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+                //     data => {
+                //         vm.currentPlatformDepartment = data.data;
+                //
+                //         if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
+                //             vm.currentPlatformDepartment.map(department => {
+                //                 if (department.departmentName == vm.selectedPlatform.data.name) {
+                //                     vm.platformDepartmentObjId = department._id;
+                //                 }
+                //             });
+                //
+                //             if (!vm.platformDepartmentObjId) {
+                //                 vm.platformDepartmentObjId = "";
+                //             }
+                //
+                //             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')) {
+                //                 vm.getAdminNameByDepartment(vm.platformDepartmentObjId);
+                //             }
+                //         }
+                //
+                //         $scope.$evalAsync(() => {
+                //             if (typeof(callback) == 'function') {
+                //                 callback(data.data);
+                //             }
+                //         });
+                //     }
+                // );
+            };
+
+            vm.loadDepartmentByPlatformId = function (platformId, platformName, assignTarget, callback) {
+                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformId},
                     data => {
                         vm.currentPlatformDepartment = data.data;
 
                         if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
                             vm.currentPlatformDepartment.map(department => {
-                                if (department.departmentName == vm.selectedPlatform.data.name) {
+                                if (department.departmentName == platformName) {
                                     vm.platformDepartmentObjId = department._id;
                                 }
                             });
@@ -31416,7 +31456,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')) {
-                                vm.getAdminNameByDepartment(vm.platformDepartmentObjId);
+                                vm.getAdminNameByDepartment(vm.platformDepartmentObjId, assignTarget);
                             }
                         }
 
@@ -31427,7 +31467,7 @@ define(['js/app'], function (myApp) {
                         });
                     }
                 );
-            };
+            }
 
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
@@ -32815,6 +32855,10 @@ define(['js/app'], function (myApp) {
                         console.log(err);
                     });
             };
+
+            vm.pickCSbyPlatform = function (platformId, platformName) {
+                vm.loadDepartmentByPlatformId(platformId, platformName, 'promoUrlAdminList')
+            }
 
             vm.getPlayerCredibilityComment = function (playerObjId) {
                 playerObjId = playerObjId || vm.selectedSinglePlayer._id;
