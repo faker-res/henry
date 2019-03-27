@@ -1333,6 +1333,7 @@ define(['js/app'], function (myApp) {
                     vm.allPlatformData = data.data;
                     if (data.data) {
                         buildPlatformList(data.data);
+                        commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                     }
                     $('#platformRefresh').removeClass('fa-spin');
 
@@ -2913,6 +2914,13 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.submitSMSRecordQuery = function (newSearch) {
+                let platformIdList;
+                if (vm.smsRecordQuery && vm.smsRecordQuery.platformList && vm.smsRecordQuery.platformList.length) {
+                    platformIdList = vm.smsRecordQuery.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
@@ -2925,7 +2933,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
                     index: newSearch ? 0 : vm.smsRecordQuery.index,
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit,
-                    platformObjId: vm.selectedPlatform.data._id,
+                    platformObjId: platformIdList,
                     sortCol: vm.smsRecordQuery.sortCol
                 };
 
@@ -2952,6 +2960,12 @@ define(['js/app'], function (myApp) {
                             default:
                                 item.validationStatus$$ = "-";
                         }
+                        if (item.platform) {
+                            let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                            if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                item.platform$ = matchedPlatformData[0].name;
+                            }
+                        }
                         return item;
                     }), size, newSearch);
 
@@ -2964,12 +2978,16 @@ define(['js/app'], function (myApp) {
             vm.drawVertificationSMSTable = function (data, size, newSearch) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
-                    order: vm.smsRecordQuery.aaSorting || [[2, 'desc']],
+                    order: vm.smsRecordQuery.aaSorting || [[3, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [2]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {'title': $translate('ACCOUNT'), data: 'recipientName'},
                         {
                             'title': $translate('STATUS'),
@@ -8271,6 +8289,8 @@ define(['js/app'], function (myApp) {
                 // Row click
                 $(nRow).off('click');
                 $(nRow).on('click', function () {
+                    // vm.selectedPlatform = vm.allPlatformData.filter(platform => platform._id == aData.platform)[0];
+                    // vm.selectedPlatform.id = vm.selectedPlatform._id;
                     $('#playerDataTable tbody tr').removeClass('selected');
                     $('#playerFeedbackDataTable tbody tr').removeClass('selected');
                     $(this).toggleClass('selected');
@@ -16663,7 +16683,12 @@ define(['js/app'], function (myApp) {
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
                 let sendQuery = {platform: vm.selectedPlatform.id};
+                // let sendQuery = {};
                 let sendQueryOr = [];
+
+                // if(vm.playerFeedbackQuery.selectedPlatform && vm.playerFeedbackQuery.selectedPlatform.length > 0) {
+                //     sendQuery.platform = vm.playerFeedbackQuery.selectedPlatform;
+                // }
 
                 if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
                     sendQuery.playerType = vm.playerFeedbackQuery.playerType;
@@ -17882,9 +17907,16 @@ define(['js/app'], function (myApp) {
                 var startTime = $('#feedbackquerystarttime').data('datetimepicker');
                 var endTime = $('#feedbackqueryendtime').data('datetimepicker');
 
+                let platformIdList;
+                if (vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList && vm.feedbackAdminQuery.platformList.length) {
+                    platformIdList = vm.feedbackAdminQuery.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        platform: platformIdList,
                         startTime: startTime.getLocalDate(),
                         endTime: endTime.getLocalDate()
                     },
@@ -17957,11 +17989,18 @@ define(['js/app'], function (myApp) {
                         j.csOfficerName = "--";
                     }
 
+                    if (j.platform) {
+                        let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === j.platform.toString());
+                        if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                            j.platform$ = matchedPlatformData[0].name;
+                        }
+                    }
+
                     showData.push(j);
                 });
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: showData,
-                    order: vm.feedbackAdminQuery.aaSorting || [[4, 'desc']],
+                    order: vm.feedbackAdminQuery.aaSorting || [[5, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
                         {'sortCol': 'topupTimes', bSortable: true, 'aTargets': [8]},
@@ -17969,6 +18008,10 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {
                             title: $translate('Customer Service Name'),
                             //data: "result",
@@ -32808,11 +32851,16 @@ define(['js/app'], function (myApp) {
                             promoWay:[],
                             promoUrl:[]
                         };
+                        let noAdmin = { _id: 'noadmin001', adminName: $translate('noAdmin') };
                         vm.allUrl = data.data;
                         vm.allUrl = vm.allUrl.map(url => {
 
                             vm.countPromoWay.promoWay.push(url.way);
                             vm.countPromoWay.promoUrl.push(url.domain);
+
+                            if (!url.admin) {
+                                url.admin = noAdmin;
+                            }
                             if (url.admin && url.admin._id) {
                                 vm.countPromoWay.cs.push(url.admin._id);
                             }
@@ -32831,8 +32879,8 @@ define(['js/app'], function (myApp) {
                         vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
 
                         vm.allUrl.sort((a, b) => {
-                             if (a.admin.adminName < b.admin.adminName) return -1;
-                             else if (a.admin.adminName > b.admin.adminName) return 1;
+                             if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
+                             else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
                              return 0;
                          });
                         console.log("vm.allUrl", vm.allUrl);
@@ -32854,6 +32902,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
                     $scope.$evalAsync(() => {
 
+                            let noAdmin = { _id: 'noadmin001', adminName: $translate('noAdmin') };
                             vm.countPromoWay = {
                                 cs:[],
                                 promoWay:[],
@@ -32863,6 +32912,9 @@ define(['js/app'], function (myApp) {
                             vm.allUrl = vm.allUrl.map(url => {
                                 vm.countPromoWay.promoWay.push(url.way);
                                 vm.countPromoWay.promoUrl.push(url.domain);
+                                if (!url.admin) {
+                                    url.admin = noAdmin;
+                                }
                                 if (url.admin && url.admin._id) {
                                     vm.countPromoWay.cs.push(url.admin._id);
                                 }
@@ -32897,8 +32949,8 @@ define(['js/app'], function (myApp) {
                                 });
                             } else {
                                 vm.allUrl.sort((a, b) => {
-                                     if (a.admin.adminName < b.admin.adminName) return -1;
-                                     else if (a.admin.adminName > b.admin.adminName) return 1;
+                                     if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
+                                     else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
                                      return 0;
                                  });
                             }

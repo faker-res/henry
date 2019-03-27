@@ -53,8 +53,6 @@ function createConnection(dbURL, callback) {
     });
 
     db.once('open', function () {
-        console.log(new Date(), "Mongoose connected to " + dbURL);
-
         if (callback) {
             callback();
         }

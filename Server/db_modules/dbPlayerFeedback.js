@@ -150,7 +150,7 @@ var dbPlayerFeedback = {
                 }
 
                 if (query && query.platform && typeof query.platform === "string") {
-                    query.platform = new mongoose.mongo.ObjectId(query.platform);
+                    query.platform = {$in: [query.platform]};
                 }
 
                 var a = dbconfig.collection_playerFeedback
