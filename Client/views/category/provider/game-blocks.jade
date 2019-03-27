@@ -22,6 +22,9 @@
             span.text-primary {{ v.gameId }}
         label(title='{{v.code}}', class='{{vm.getGameStatusColorClass(v)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_CODE" | translate}} :&nbsp;
             span.text-primary {{ v.code }}
+        label(title='{{v.gameDisplay}}', class='{{vm.getGameStatusColorClass(v)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_STATUS" | translate}} :&nbsp;
+            span.text-primary {{ vm.gameDisplay[v.gameDisplay] || '' }}
+
 #modalConfirmChangeGameStatus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog.modal-medium
         .modal-content
