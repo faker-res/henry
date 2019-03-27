@@ -1259,8 +1259,8 @@ define(['js/app'], function (myApp) {
                         console.log("error getting all levels", error);
                     }
                 ).done();
-                vm.jiguang.appKey = vm.selectedPlatform.data.jiguangAppKey;
-                vm.jiguang.masterKey = vm.selectedPlatform.data.jiguangMasterKey;
+                // vm.jiguang.appKey = vm.selectedPlatform.data.jiguangAppKey;
+                // vm.jiguang.masterKey = vm.selectedPlatform.data.jiguangMasterKey;
             }
 
             //search and select platform node
@@ -1518,6 +1518,16 @@ define(['js/app'], function (myApp) {
             vm.jiguang.tittle = "";
             vm.jiguang.text = "";
 
+            vm.getPushNotification = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getPushNotification', {platformObjId: platformObjId}, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getPushNotification', data.data);
+                        vm.jiguang.appKey = data.data.jiguangAppKey;
+                        vm.jiguang.masterKey = data.data.jiguangMasterKey;
+                    })
+                });
+            };
+
             vm.pushNotification = function () {
                 if (vm.jiguang && !vm.jiguang.appKey) {
                     alert("请先到编辑平台里设置推送API用的App Key。");
@@ -1544,7 +1554,7 @@ define(['js/app'], function (myApp) {
                     masterKey: vm.jiguang.masterKey,
                     tittle: vm.jiguang.tittle,
                     text: vm.jiguang.text,
-                    platform: vm.selectedPlatform.id
+                    platform: vm.jiguang.platform
                 }, function (data) {
                     if (data && data.success) {
                         alert("发送成功！");
