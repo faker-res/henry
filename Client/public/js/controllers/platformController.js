@@ -21158,6 +21158,10 @@ define(['js/app'], function (myApp) {
                                        v.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
                                        v.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
                                    }
+                                   else if (vm.rewardCondition.definePlayerLoginMode == 3) {
+                                       v.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
+                                       v.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
+                                   }
                                }
                             }
 
@@ -22017,6 +22021,10 @@ define(['js/app'], function (myApp) {
                         else if (model.value == 1) {
                             vm.showRewardTypeData.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
                             vm.showRewardTypeData.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
+                        }
+                        else if (model.value == 3) {
+                            vm.showRewardTypeData.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
+                            vm.showRewardTypeData.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
                         }
                     }
 

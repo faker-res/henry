@@ -5656,7 +5656,7 @@ let dbPlayerReward = {
                     promArr.push(dbConfig.collection_playerConsumptionRecord.findOne(consumptionPropQuery).lean());
 
                     // check the requirement
-                    promArr.push(dbRewardUtil.checkApplyRetentionReward(playerData, eventData, applyAmount, null, selectedTopUp.topUpType, selectedTopUp));
+                    promArr.push(dbRewardUtil.checkApplyRetentionReward(playerData, eventData, applyAmount, null, selectedTopUp, selectedTopUp.topUpType));
                 }
                 if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
                     // calculate the daily top up return reward; specifically for the daily max reward amount condition
@@ -7493,10 +7493,6 @@ let dbPlayerReward = {
                             proposalData.data.applyAmount = applyAmount;
                         }
 
-                        if (consecutiveNumber) {
-                            proposalData.data.consecutiveNumber = consecutiveNumber;
-                        }
-
                         if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.proposalId &&
                             (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP || eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP)) {
                             proposalData.data.topUpProposalId = rewardData.selectedTopup.proposalId;
@@ -7530,6 +7526,13 @@ let dbPlayerReward = {
                         if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && eventData.condition
                             && eventData.condition.definePlayerLoginMode && typeof(eventData.condition.definePlayerLoginMode) != 'undefined'){
                             proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
+                            if (eventData.condition.definePlayerLoginMode == 3){
+                                proposalData.data.rewardPeriod = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(null, eventData);
+                            }
+                        }
+
+                        if (consecutiveNumber) {
+                            proposalData.data.consecutiveNumber = consecutiveNumber;
                         }
 
                         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
@@ -7806,9 +7809,14 @@ let dbPlayerReward = {
         return value;
     },
 
-    getRetentionRewardList: function (returnData, rewardData, eventData, selectedRewardParam, rewardProposals, targetedParamResult, todayHasApplied) {
+    getRetentionRewardList: function (returnData, rewardData, eventData, selectedRewardParam, rewardProposals, targetedParamResult, todayHasApplied, playerRetentionRecord) {
         let outputList = [];
         let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, eventData, true);
+
+        if (playerRetentionRecord && playerRetentionRecord.lastApplyDate && eventData.condition && eventData.condition.hasOwnProperty('definePlayerLoginMode') && eventData.condition.definePlayerLoginMode == 3){
+            intervalTime = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(playerRetentionRecord.lastApplyDate, eventData)
+        }
+
         let defineLoginMode = eventData.condition.definePlayerLoginMode || null;
         let intervalMode = eventData.condition.interval || null;
 
@@ -7825,9 +7833,14 @@ let dbPlayerReward = {
         }
 
         if (rewardProposals && rewardProposals.length) {
-            if (defineLoginMode == 1) {
+            if (defineLoginMode == 1 || defineLoginMode == 3) {
                 let latestRewardProposal = rewardProposals[0];
                 let accumulativeCount = latestRewardProposal.data && latestRewardProposal.data.consecutiveNumber ? latestRewardProposal.data.consecutiveNumber : 0 ;
+
+                // force to restart counting if the lastApplyDate is expired
+                if (eventData && eventData.condition && eventData.condition.hasOwnProperty('definePlayerLoginMode') && eventData.condition.definePlayerLoginMode == 3) {
+                    accumulativeCount = playerRetentionRecord && playerRetentionRecord.accumulativeDay ? playerRetentionRecord.accumulativeDay : 0;
+                }
 
                 for (let i = 0; i < accumulativeCount; i++) {
                     let rewardAmount = selectedRewardParam[i].rewardAmount || null;
@@ -7898,7 +7911,7 @@ let dbPlayerReward = {
                         rewardObject.rewardAmount = param.rewardAmount;
                     }
 
-                    if (defineLoginMode == 1) {
+                    if (defineLoginMode == 1 || defineLoginMode == 3) {
                         rewardObject.step = i + 1;
                     }
                     else if (defineLoginMode == 2) {
@@ -7925,7 +7938,7 @@ let dbPlayerReward = {
             }
 
             if (outputList && outputList.length && selectedIndex != null) {
-                if (loginMode && loginMode == 1){
+                if (loginMode && (loginMode == 1 || loginMode == 3)){
                     // accumulative day
                     let dayDiff = dbUtility.getTodaySGTime().startTime.getDate() - intervalTime.startTime.getDate();
                     let expiredLength = dayDiff - selectedIndex;
@@ -7954,7 +7967,8 @@ let dbPlayerReward = {
 
         if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode) {
             // 1 - accumulative day (the first application always start with level 1 regardless of the interval)
-            if (eventData.condition.definePlayerLoginMode == 1) {
+            // 3 - accumulative day by counting the applied date as the first day of the period (the first application always start with level 1 regardless of the interval)
+            if (eventData.condition.definePlayerLoginMode == 1 || eventData.condition.definePlayerLoginMode == 3) {
                 if (playerRetentionRewardRecord) {
                     selectedIndex = playerRetentionRewardRecord.accumulativeDay ? playerRetentionRewardRecord.accumulativeDay : 0;
                 }

@@ -1069,7 +1069,8 @@ db.rewardParam.update({
                     options: "playerLoginMode",
                     des: "Define player login mode",
                     detail1: "1. Accumulative login day: login at  day 1, 2 and 3, collect the reward for day 1, 2 and 3.",
-                    detail2: "2. Exact login date: login at 1st, 3rd and 5th, collect the reward for day 1, 3 and 5."
+                    detail2: "2. Exact login date: login at 1st, 3rd and 5th, collect the reward for day 1, 3 and 5.",
+                    detail3: "3. Accumulative login day: the period start counting from the day when player applies; login at  day 1, 2 and 3, collect the reward for day 1, 2 and 3."
                 },
             }
         },
