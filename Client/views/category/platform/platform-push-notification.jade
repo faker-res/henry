@@ -1,5 +1,5 @@
-.panel-body
-    .well
+.col-md-12
+    .well.col-xs-12
         .search-filters-item
             label {{'PRODUCT_NAME' | translate}}
             select.form-control(ng-model='vm.jiguang.platform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPushNotification(vm.jiguang.platform)')
