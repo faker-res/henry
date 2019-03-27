@@ -4,6 +4,10 @@ let dbPlayerConsumptionHourSummaryFunc = function () {
 module.exports = new dbPlayerConsumptionHourSummaryFunc();
 
 const dbconfig = require('./../modules/dbproperties');
+const constProposalType = require('./../const/constProposalType');
+const constProposalStatus = require('./../const/constProposalStatus');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 const dbPlayerConsumptionHourSummary = {
     updateSummary: (platformObjId, playerObjId, providerObjId, createTime, amount, validAmount, bonusAmount, times) => {
@@ -91,9 +95,9 @@ const dbPlayerConsumptionHourSummary = {
                     let config = configsData[i];
 
                     let firstMatchQuery = {
-                        platform: platformObjId,
-                        startTime: {$gte: startTime, $lt: endTime},
-                        provider: config.provider
+                        platform: ObjectId(platformObjId),
+                        startTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                        provider: ObjectId(config.provider)
                     };
 
                     if (playerData) {
@@ -107,6 +111,9 @@ const dbPlayerConsumptionHourSummary = {
                         {
                             $group: {
                                 _id: "$player",
+                                platform: {$first: "$platform"},
+                                player: {$first: "$player"},
+                                provider: {$first: "$provider"},
                                 consumptionAmount: {$sum: "$consumptionAmount"},
                                 consumptionValidAmount: {$sum: "$consumptionValidAmount"},
                                 consumptionBonusAmount: {$sum: "$consumptionBonusAmount"},
@@ -133,7 +140,12 @@ const dbPlayerConsumptionHourSummary = {
                                         {
                                             $multiply: [
                                                 100,
-                                                "$consumptionBonusAmount"
+                                                {
+                                                    $subtract: [
+                                                        "$consumptionBonusAmount",
+                                                        "$consumptionValidAmount"
+                                                    ]
+                                                }
                                             ]
                                         },
                                         "$consumptionValidAmount"
@@ -157,6 +169,7 @@ const dbPlayerConsumptionHourSummary = {
             }
         ).then(
             filteredResult => {
+                filteredResult = filteredResult.flat();
                 let proms = [];
 
                 for (let i = 0; i < filteredResult.length; i++) {
@@ -184,6 +197,27 @@ const dbPlayerConsumptionHourSummary = {
 
 
     },
+
+    getLastWithdrawalTime: (playerObjId) => {
+        return dbconfig.collection_proposal.findOne({
+            'data.playerObjId': ObjectId(playerObjId),
+            mainType: constProposalType.PLAYER_BONUS,
+            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+        }).sort({createTime: -1}).lean().then(
+            proposal => {
+                if (!proposal) {
+                    return {
+                        lastWithdrawalTime: "",
+                        proposalId: ""
+                    }
+                }
+                return {
+                    lastWithdrawalTime: proposal.createTime,
+                    proposalId: proposal.proposalId
+                }
+            }
+        );
+    }
 };
 
 let proto = dbPlayerConsumptionHourSummaryFunc.prototype;

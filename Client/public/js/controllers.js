@@ -928,6 +928,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         return isAllowed;
     };
 
+    $scope.getNumberArray = (number) => {
+        return new Array(number);
+    };
+
     //update current admin user password
     $scope.updateUserPassword = function () {
         if ($scope.userNewPassword) {

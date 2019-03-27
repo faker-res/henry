@@ -1,0 +1,175 @@
+div
+    #winnerMonitorQuery.col-md-12.well
+        .search-filters-item
+            label {{'PLAYER_NAME' | translate}}
+            input.form-control(type='text', ng-model='vm.winnerMonitorQuery.playerName')
+        .search-filters-item
+            label {{'PROVIDER' | translate}}
+            select.form-control(ng-model='vm.winnerMonitorQuery.provider')
+                option(value='')
+                option(ng-repeat='provider in vm.allProviders', value='{{provider.providerId}}') {{provider.name}}
+        .search-filters-item
+            label {{'WITHIN_N_HOURS' | translate}}
+            select.form-control(ng-model='vm.winnerMonitorQuery.hours' convert-to-number ng-change="vm.updateQueryTime()")
+                option(ng-repeat='i in getNumberArray(48) track by $index', ng-value='$index+1') {{$index+1}}
+        .symbol
+            label
+            text {{timeReformat(vm.winnerMonitorQuery.startTime)}} - {{timeReformat(vm.winnerMonitorQuery.endTime)}}
+        .text-right.widthto100.margin-top-10
+            button.btn.btn-warning.btn-space(ng-click='vm.resetWinnerMonitorQuery()') {{'Reset' | translate}}
+            button.btn.btn-success.btn-space(ng-click='vm.getWinnerMonitorRecord(true)') {{'SEARCH' | translate}}
+            span#winnerMonitorTableSpin.collapse
+                i.fa.fa-spinner.fa-spin
+    .clearfix
+        .proposalMessage
+            text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastTopUpRefresh}}
+            label.text-danger.newProposalAlert
+            a(ng-click='vm.getWinnerMonitorRecord()')
+                .fa.fa-refresh
+            .pull-right
+                label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
+                    input#autoRefreshProposalFlag.margin-left-5(type='checkbox', checked)
+                .inlineBlk.hidden
+                    text {{"Time left until next refresh" | translate}} :&nbsp;
+                    text#timeLeftRefreshOperation
+                    text s
+        label {{"Total" | translate}} {{vm.winnerMonitorQuery.totalCount}} {{"records" | translate}}
+        table#winnerMonitorTable.common-table.display(style="min-width:100% ;overflow: scroll")
+        #winnerMonitorTablePage
+
+#modalRecordDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                div {{"DETAIL" | translate}}
+            .modal-body(style="max-height: 71vh; overflow-y: auto;")
+                div(style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%") A. {{"PLAYER_INFORMATION_PORTION" | translate}}
+                div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"BASIC_INFORMATION" | translate}}
+                table.simple-table(style="margin-top: 12px;")
+                    tr
+                        td.col-md-3 {{"REAL_NAME" | translate}}
+                        td {{vm.selectedRecord.player.realName}}
+                    tr
+                        td {{"LEVEL" | translate}}
+                        td {{vm.selectedRecord.playerLevelName$}}
+                    tr
+                        td {{"BANK_CITY" | translate}}
+                        td
+                            div(ng-if="vm.recordCityReady") {{vm.selectedRecord.bankAccountCity$}}
+                            div(ng-if="!vm.recordCityReady")
+                                i.fa.fa-spinner.fa-spin
+                    tr
+                        td {{"REGISTRATION_TIME" | translate}}
+                        td {{vm.selectedRecord.registrationTime$ || " "}}
+                    tr
+                        td {{"LAST_WITHDRAWAL_TIME" | translate}}
+                        td
+                            div(ng-if="vm.recordLastWithdrawalTimeReady") {{vm.selectedRecord.lastWithdrawalTime$}}
+                            div(ng-if="!vm.recordLastWithdrawalTimeReady")
+                                i.fa.fa-spinner.fa-spin
+                    tr
+                        td {{"providerCreditAmount" | translate}}
+                        td
+                            div(ng-if="vm.recordCreditReady") {{vm.selectedRecord.playerCredit$}}
+                            div(ng-if="!vm.recordCreditReady")
+                                i.fa.fa-spinner.fa-spin
+                    tr
+                        td {{"withdrawalProposalId" | translate}}
+                        td
+                            div(ng-if="vm.recordLastWithdrawalTimeReady") {{vm.selectedRecord.withdrawalProposalId$}}
+                            div(ng-if="!vm.recordLastWithdrawalTimeReady")
+                                i.fa.fa-spinner.fa-spin
+
+
+                table.simple-table(style="margin-top: 12px;" ng-if="vm.largeWithdrawalSetting.showConsumptionSectionCount")
+                    tr.highlighted-cell
+                        td {{"CONSUMPTION_AMOUNT_SECTION" | translate}}
+                        td {{"0~100" | translate}}
+                        td {{"100~1000" | translate}}
+                        td {{"1000~10000" | translate}}
+                        td {{"10000~100000" | translate}}
+                        td {{"100000+" | translate}}
+                    tr
+                        td.highlighted-cell {{"COUNT" | translate}}
+                        td
+                            div(ng-if="vm.consumptionTimesReady") {{vm.selectedRecord.belowHundred$}}
+                            div(ng-if="!vm.consumptionTimesReady")
+                                i.fa.fa-spinner.fa-spin
+                        td
+                            div(ng-if="vm.consumptionTimesReady") {{vm.selectedRecord.belowThousand$}}
+                            div(ng-if="!vm.consumptionTimesReady")
+                                i.fa.fa-spinner.fa-spin
+                        td
+                            div(ng-if="vm.consumptionTimesReady") {{vm.selectedRecord.belowTenThousand$}}
+                            div(ng-if="!vm.consumptionTimesReady")
+                                i.fa.fa-spinner.fa-spin
+                        td
+                            div(ng-if="vm.consumptionTimesReady") {{vm.selectedRecord.belowHundredThousand$}}
+                            div(ng-if="!vm.consumptionTimesReady")
+                                i.fa.fa-spinner.fa-spin
+                        td
+                            div(ng-if="vm.consumptionTimesReady") {{vm.selectedRecord.aboveHundredThousand$}}
+                            div(ng-if="!vm.consumptionTimesReady")
+                                i.fa.fa-spinner.fa-spin
+
+                div(style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%; margin-top: 38px") B. {{"SITE_DATA_SECTION" | translate}}
+                div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"Within Period" | translate}}
+
+                table.simple-table(style="margin-top: 12px")
+                    tr
+                        td.col-md-3 {{"DAILY_TOPUP" | translate}}
+                        td {{$fixTwoDecimalStr(vm.selectedRecord.player.dailyTopUpSum)}}
+                    tr
+                        td {{"DAILY_WITHDRAWAL" | translate}}
+                        td {{$fixTwoDecimalStr(vm.selectedRecord.player.dailyWithdrawSum)}}
+                    tr
+                        td {{"Daily top up - daily withdrawal" | translate}}
+                        td {{$fixTwoDecimalStr(vm.selectedRecord.player.dailyTopUpSum - vm.selectedRecord.player.dailyWithdrawSum)}}
+
+                div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"REGISTRATION_TIME_TO_CURRENT_WITHDRAWAL" | translate}}
+
+                table.simple-table(style="margin-top: 12px")
+                    tr
+                        td.col-md-3 {{"TOTAL_TOP_UP" | translate}}
+                        td {{$fixTwoDecimalStr(vm.selectedRecord.player.topUpSum)}}
+                    tr
+                        td {{"Total_Bonus_Amount" | translate}}
+                        td {{$fixTwoDecimalStr(vm.selectedRecord.player.withdrawSum)}}
+                    tr
+                        td {{"Total top up - total withdrawal" | translate}}
+                        td {{$fixTwoDecimalStr(vm.selectedRecord.player.topUpSum - vm.selectedRecord.player.withdrawSum)}}
+
+                div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"Last 3 month player report(separated by month)" | translate}}
+
+                table.simple-table(style="margin-top: 12px")
+                    tr
+                        td.col-md-3 {{"DEPOSIT_TOPUP" | translate}}
+                        td
+                            div(ng-if="vm.threeMonthSummaryReady") ({{vm.selectedRecord.lastThreeMonthValue.secondLastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthTopUp.secondLastMonth)}}, {{vm.selectedRecord.lastThreeMonthValue.lastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthTopUp.lastMonth)}}, {{vm.selectedRecord.lastThreeMonthValue.currentMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthTopUp.currentMonth)}})
+                            div(ng-if="!vm.threeMonthSummaryReady")
+                                i.fa.fa-spinner.fa-spin
+                    tr
+                        td.col-md-3 {{"Bonus" | translate}}
+                        td
+                            div(ng-if="vm.threeMonthSummaryReady") ({{vm.selectedRecord.lastThreeMonthValue.secondLastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthWithdraw.secondLastMonth)}}, {{vm.selectedRecord.lastThreeMonthValue.lastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthWithdraw.lastMonth)}}, {{vm.selectedRecord.lastThreeMonthValue.currentMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthWithdraw.currentMonth)}})
+                            div(ng-if="!vm.threeMonthSummaryReady")
+                                i.fa.fa-spinner.fa-spin
+                    tr
+                        td.col-md-3 {{"Top Up - Withdrawal" | translate}}
+                        td
+                            div(ng-if="vm.threeMonthSummaryReady") ({{vm.selectedRecord.lastThreeMonthValue.secondLastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthTopUpWithdrawDifference.secondLastMonth)}}, {{vm.selectedRecord.lastThreeMonthValue.lastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthTopUpWithdrawDifference.lastMonth)}}, {{vm.selectedRecord.lastThreeMonthValue.currentMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthTopUpWithdrawDifference.currentMonth)}})
+                            div(ng-if="!vm.threeMonthSummaryReady")
+                                i.fa.fa-spinner.fa-spin
+                    tr
+                        td.col-md-3 {{"CONSUMPTION" | translate}}
+                        td
+                            div(ng-if="vm.threeMonthSummaryReady") ({{vm.selectedRecord.lastThreeMonthValue.secondLastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthConsumptionAmount.secondLastMonth)}}, {{vm.selectedRecord.lastThreeMonthValue.lastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthConsumptionAmount.lastMonth)}}, {{vm.selectedRecord.lastThreeMonthValue.currentMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.selectedRecord.lastThreeMonthConsumptionAmount.currentMonth)}})
+                            div(ng-if="!vm.threeMonthSummaryReady")
+                                i.fa.fa-spinner.fa-spin
+
+                div(ng-if="vm.largeWithdrawalSetting.allowAdminComment" style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%; margin-top: 38px") C. {{"CS Comment Area" | translate}}
+
+                textarea.form-control(ng-if="vm.largeWithdrawalSetting.allowAdminComment" style="margin-top: 12px;" ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
+            .modal-footer
+                button.btn.btn-danger.common-button(data-dismiss='modal') {{'CANCEL' | translate}}

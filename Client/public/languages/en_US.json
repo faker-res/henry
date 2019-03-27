@@ -1673,6 +1673,9 @@
   "DOMAIN_VISIT_AMOUNT": "Domain Visit Rate",
   "WINNING_AMOUNT": "Winning Amount",
 
+  "WINNER_MONITOR": "Winner Monitor",
+  "WITHIN_N_HOURS": "Within N Hours",
+
   "CALL_PERMISSION": "Call Permission",
   "SMS_CHANNEL": "SMS Channel",
   "CALLABLE": "Callable",
