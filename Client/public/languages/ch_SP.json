@@ -1005,6 +1005,7 @@
   "Location": "位置",
   "Login": "登录",
   "Device": "设备",
+  "bindedDeviceId": "绑定设备号",
   "PlayerDomain": "玩家域名",
   "NewPlayer": "新玩家",
   "ActivePlayer": "活跃玩家",
