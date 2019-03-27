@@ -44,10 +44,6 @@ const thirdPartyAPIConfig = {
         topUpAPIAddr: "http://52.221.143.107:8182/",
         topUpAPICallback: "http://devtest.wsweb.me:7100",
         withdrawAPICallback: "http://devtest.wsweb.me:7100",
-        merchantListAPIAddr: "http://52.221.143.107:9001/v1/getMerchantList", //POST,
-        merchantTypeListAPIAddr: "http://52.221.143.107:9001/v1/getMerchantTypeList", //POST,
-        paymentGroupAPIAddr: "http://52.221.143.107:9001/v1/getPlayerRankByType", //POST,
-        paymentGroupByPlayerAPIAddr: "http://52.221.143.107:9001/v1/getPlayerRankByPlayer", //POST,
 
         //financial settlement
         name: 'PMS2',

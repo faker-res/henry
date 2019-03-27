@@ -127,6 +127,22 @@ function postTopupForceMatch (reqData) {
     return postRequest(reqData, 'deposit-proposal/force-match', 'POST')
 }
 
+function postMerchantList (reqData) {
+    return postRequest(reqData, 'getMerchantList', 'POST')
+}
+
+function postMerchantTypeList (reqData) {
+    return postRequest(reqData, 'getMerchantTypeList', 'POST')
+}
+
+function postPaymentGroup (reqData) {
+    return postRequest(reqData, 'getPlayerRankByType', 'POST')
+}
+
+function postPaymentGroupByPlayer (reqData) {
+    return postRequest(reqData, 'getPlayerRankByPlayer', 'POST')
+}
+
 module.exports = {
     getMinMax: getMinMax,
     postWithdraw: postWithdraw,
@@ -140,5 +156,9 @@ module.exports = {
     postBankType: postBankType,
     postBankTypeList: postBankTypeList,
     postSyncPlatform: postSyncPlatform,
-    postTopupForceMatch: postTopupForceMatch
+    postTopupForceMatch: postTopupForceMatch,
+    postMerchantList: postMerchantList,
+    postMerchantTypeList: postMerchantTypeList,
+    postPaymentGroup: postPaymentGroup,
+    postPaymentGroupByPlayer: postPaymentGroupByPlayer
 };
