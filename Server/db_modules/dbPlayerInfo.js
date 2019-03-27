@@ -110,6 +110,9 @@ let dbDemoPlayer = require('../db_modules/dbDemoPlayer');
 let dbApiLog = require("../db_modules/dbApiLog");
 let dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 
+// modules
+const RESTUtils = require('../modules/RESTUtils');
+
 // Others
 const paymentChannelPermission = ['topupOnline', 'topupManual', 'alipayTransaction', 'disableWechatPay'];
 
@@ -24009,22 +24012,7 @@ let dbPlayerInfo = {
                     requests: sendObjArr
                 };
 
-                let options = {
-                    method: 'POST',
-                    uri: extConfig[topUpSystemType].batchTopUpStatusAPIAddr,
-                    body: data,
-                    json: true
-                };
-
-                console.log("batchTopUpStatusAPIAddr check request before sent - ", data);
-                return rp(options)
-                    .then(function (updateStatus) {
-                        console.log('batch playerDepositStatus success', updateStatus);
-                        return updateStatus;
-                    }, error => {
-                        console.log('batch playerDepositStatus failed', error);
-                        throw error;
-                    })
+                return RESTUtils.getPMS2Services("postBatchTopupStatus", data);
             }
         }
 
@@ -24058,22 +24046,7 @@ let dbPlayerInfo = {
                     } else if (topUpSystemName === 'PMS2') {
                         sendObj.timestamp = Date.now();
 
-                        let options = {
-                            method: 'PATCH',
-                            uri: extConfig[topUpSystemType].topUpStatusAPIAddr,
-                            body: sendObj,
-                            json: true
-                        };
-
-                        console.log("topUpStatusAPIAddr check request before sent - ", sendObj);
-                        return rp(options)
-                            .then(function (updateStatus) {
-                                console.log('playerDepositStatus success', updateStatus);
-                                return updateStatus;
-                            }, error => {
-                                console.log('playerDepositStatus failed', error);
-                                throw error;
-                            })
+                        return RESTUtils.getPMS2Services("patchTopupStatus", sendObj)
                     }
                 }
 

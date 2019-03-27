@@ -25,7 +25,10 @@ var constPlayerSMSSetting = require("../const/constPlayerSMSSetting");
 const serverInstance = require("./serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 var queryPhoneLocation = require('query-mobile-phone-area');
-var rsaCrypto = require("../modules/rsaCrypto");
+
+const rsaCrypto = require("../modules/rsaCrypto");
+const RESTUtils = require("../modules/RESTUtils");
+
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
 const constClientQnA = require("../const/constClientQnA");
 var dbRewardType = require("../db_modules/dbRewardType.js");
@@ -2172,16 +2175,9 @@ var proposalExecutor = {
                        if (extConfig && extConfig[player.platform.bonusSystemType]
                            && extConfig[player.platform.bonusSystemType].withdrawAPIAddr
                        ) {
-                           let options = {
-                               method: 'POST',
-                               uri: extConfig[player.platform.bonusSystemType].withdrawAPIAddr,
-                               body: message,
-                               json: true // Automatically stringifies the body to JSON
-                           };
-
-                           return rp(options)
-                               .then(function (bonusData) {
-                                   console.log('player bonus post success', bonusData);
+                           return RESTUtils.getPMS2Services('postWithdraw', message).then(
+                               function (bonusData) {
+                                   console.log('bonus post success', bonusData);
                                    if (bonusData) {
                                        // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
                                        increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
@@ -4464,19 +4460,7 @@ var proposalExecutor = {
                         proposalId: proposalData.proposalId
                     };
 
-                    let options = {
-                        method: 'POST',
-                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                        body: data,
-                        json: true
-                    };
-
-                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                    return rp(options)
-                        .then(
-                            deferred.resolve, deferred.reject
-                        );
-
+                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
                 } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     pmsAPI.payment_modifyManualTopupRequest({
                         requestId: proposalData.data.requestId,
@@ -4553,19 +4537,7 @@ var proposalExecutor = {
                         proposalId: proposalData.proposalId
                     };
 
-                    let options = {
-                        method: 'POST',
-                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                        body: data,
-                        json: true
-                    };
-
-                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                    return rp(options)
-                        .then(
-                            deferred.resolve, deferred.reject
-                        );
-
+                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
                 } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     pmsAPI.payment_modifyManualTopupRequest({
                         requestId: proposalData.data.requestId,
@@ -4622,19 +4594,7 @@ var proposalExecutor = {
                         proposalId: proposalData.proposalId
                     };
 
-                    let options = {
-                        method: 'POST',
-                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                        body: data,
-                        json: true
-                    };
-
-                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                    return rp(options)
-                        .then(
-                            deferred.resolve, deferred.reject
-                        );
-
+                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
                 } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
@@ -4686,19 +4646,7 @@ var proposalExecutor = {
                         proposalId: proposalData.proposalId
                     };
 
-                    let options = {
-                        method: 'POST',
-                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                        body: data,
-                        json: true
-                    };
-
-                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                    return rp(options)
-                        .then(
-                            deferred.resolve, deferred.reject
-                        );
-
+                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
                 } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
