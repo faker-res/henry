@@ -620,28 +620,12 @@ var dbPlatformBankCardGroup = {
 
         if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
             let options = {
-                method: 'POST',
-                uri: topUpSystemConfig.paymentGroupByPlayerAPIAddr,
-                body: {
-                    platformId: platformId,
-                    userName: playerName,
-                    accountType: type
-                },
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                json: true
+                platformId: platformId,
+                userName: playerName,
+                accountType: type
             };
 
-            console.log('paymentGroupByPlayerAPIAddr req: ', platformId, playerName, type);
-
-            return rp(options).then(function (data) {
-                console.log('paymentGroupByPlayerAPIAddr success', data);
-                return data;
-            }, error => {
-                console.log('paymentGroupByPlayerAPIAddr failed', error);
-                throw error;
-            });
+            return RESTUtils.getPMS2Services("postPaymentGroupByPlayer", options);
         } else {
             return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
                 data => {
@@ -660,24 +644,11 @@ var dbPlatformBankCardGroup = {
             let type = constAccountType.BANK_CARD;
 
             let options = {
-                method: 'POST',
-                uri: topUpSystemConfig.paymentGroupAPIAddr,
-                body: {
-                    platformId: platformId,
-                    accountType: type
-                },
-                json: true
+                platformId: platformId,
+                accountType: type
             };
 
-            console.log('getPMSBankCardGroup req: ', platformId, type);
-
-            return rp(options).then(function (data) {
-                console.log('getPMSBankCardGroup  success',platformId, type, data);
-                return data;
-            }, error => {
-                console.log('getPMSBankCardGroup failed',platformId, type, error);
-                throw error;
-            });
+            return RESTUtils.getPMS2Services("postPaymentGroup", options);
         }
     },
 

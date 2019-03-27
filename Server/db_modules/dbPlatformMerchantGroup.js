@@ -517,10 +517,6 @@ var dbPlatformMerchantGroup = {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let merchantListOptions = {
-                            platformId: platformId
-                        };
-
                         let bankcardListOptions = {
                             platformId: platformId,
                             accountType: constAccountType.BANK_CARD
@@ -536,23 +532,7 @@ var dbPlatformMerchantGroup = {
                             accountType: constAccountType.WECHAT
                         };
 
-                        let merchantListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.merchantListAPIAddr,
-                            body: {
-                                platformId: platformId
-                            },
-                            json: true
-                        };
-
-                        merchantsList = rp(merchantListOptions).then(function (data) {
-                            console.log('merchantListAPIAddr success', data);
-                            return data;
-                        }, error => {
-                            console.log('merchantListAPIAddr failed', error);
-                            throw error;
-                        });
-
+                        merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
                         bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions);
                         aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions);
                         weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions);
@@ -773,20 +753,7 @@ var dbPlatformMerchantGroup = {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let options = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.merchantTypeListAPIAddr,
-                            body: {},
-                            json: true
-                        };
-
-                        return rp(options).then(function (data) {
-                            console.log('merchantTypeList success', data);
-                            return data;
-                        }, error => {
-                            console.log('merchantTypeList failed', error);
-                            throw error;
-                        });
+                        return RESTUtils.getPMS2Services("postMerchantTypeList", {});
                     } else {
                         return pmsAPI.merchant_getMerchantTypeList(
                             {
@@ -808,46 +775,18 @@ var dbPlatformMerchantGroup = {
             let type = constAccountType.ONLINE
 
             let options = {
-                method: 'POST',
-                uri: topUpSystemConfig.paymentGroupAPIAddr,
-                body: {
-                    platformId: platformId,
-                    accountType: type
-                },
-                json: true
+                platformId: platformId,
+                accountType: type
             };
 
-            console.log('getPMSMerchantGroup req: ', platformId, type);
-
-            return rp(options).then(function (data) {
-                console.log('getPMSMerchantGroup success',platformId, type, data);
-                return data;
-            }, error => {
-                console.log('getPMSMerchantGroup failed',platformId, type, error);
-                throw error;
-            });
+            return RESTUtils.getPMS2Services("postPaymentGroup", options);
         }
     }
 };
 
 function getMerchantList(topUpSystemConfig, platformId) {
     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-        let options = {
-            method: 'POST',
-            uri: topUpSystemConfig.merchantListAPIAddr,
-            body: {
-                platformId: platformId
-            },
-            json: true
-        };
-
-        return rp(options).then(function (data) {
-            console.log('merchantList success', data);
-            return data;
-        }, error => {
-            console.log('merchantList failed', error);
-            throw error;
-        });
+        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
     } else {
         return pmsAPI.merchant_getMerchantList(
             {
