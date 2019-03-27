@@ -516,6 +516,20 @@ var dbGame = {
             {new: true, upsert: true}
         ).exec();
     },
+    updatePlatformGameDisplay: function(platformObjId, game, gameDisplay){
+        // update fpms game status
+        let gameData = { platform: platformObjId };
+        let updateData=  { gameDisplay: gameDisplay};
+
+        if(game._id){
+            gameData.game = game._id;
+        }
+        return dbconfig.collection_platformGameStatus.findOneAndUpdate(
+            gameData,
+            updateData,
+            {new: true, upsert: true}
+        ).exec();
+    },
     getGamesByProviders: function (ids) {
         var returnData = [];
         var proms = [];

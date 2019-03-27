@@ -6,6 +6,8 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
 const constAccountType = require('../const/constAccountType');
 
+const RESTUtils = require('../modules/RESTUtils');
+
 var dbPlatformBankCardGroup = {
 
     /**
@@ -200,23 +202,12 @@ var dbPlatformBankCardGroup = {
                         }
                     )
                 } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    let options = {
-                        method: 'POST',
-                        uri: topUpSystemConfig.bankCardListAPIAddr,
-                        body: {
-                            platformId: platformId,
-                            accountType: constAccountType.BANK_CARD
-                        },
-                        json: true
+                    let reqData = {
+                        platformId: platformId,
+                        accountType: constAccountType.BANK_CARD
                     };
 
-                    return rp(options).then(function (data) {
-                        console.log('bankCardListAPIAddr success', data);
-                        return data;
-                    }, error => {
-                        console.log('bankCardListAPIAddr failed', error);
-                        throw error;
-                    });
+                    return RESTUtils.getPMS2Services("postBankCardList", reqData);
                 } else {
                     return pmsAPI.bankcard_getBankcardList(
                         {
@@ -241,20 +232,7 @@ var dbPlatformBankCardGroup = {
                 topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
                 if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    let options = {
-                        method: 'POST',
-                        uri: topUpSystemConfig.bankTypeListAPIAddr,
-                        body: {},
-                        json: true
-                    };
-
-                    return rp(options).then(function (data) {
-                        console.log('bankTypeListAPIAddr success', data);
-                        return data;
-                    }, error => {
-                        console.log('bankTypeListAPIAddr failed', error);
-                        throw error;
-                    });
+                    return RESTUtils.getPMS2Services("postBankTypeList", {});
                 } else {
                     return pmsAPI.bankcard_getBankTypeList({});
                 }
@@ -415,23 +393,12 @@ var dbPlatformBankCardGroup = {
                     topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let options = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.BANK_CARD
-                            },
-                            json: true
+                        let reqData = {
+                            platformId: platformId,
+                            accountType: constAccountType.BANK_CARD
                         };
 
-                        return rp(options).then(function (data) {
-                            console.log('bankCardListAPIAddr success', data);
-                            return data;
-                        }, error => {
-                            console.log('bankCardListAPIAddr failed', error);
-                            throw error;
-                        });
+                        return RESTUtils.getPMS2Services("postBankCardList", reqData);
                     }
                     else {
                         return pmsAPI.bankcard_getBankcardList(

@@ -874,6 +874,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.pushNotification, [data, data.platform], actionName, isValidData);
         },
 
+        getPushNotification: function getPushNotification(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.getPushNotification, [data.platformObjId], actionName, isValidData);
+        },
+
         sendSMSToPlayer: function sendSMSToPlayer(data) {
             var actionName = arguments.callee.name;
             var adminObjId = getAdminId();

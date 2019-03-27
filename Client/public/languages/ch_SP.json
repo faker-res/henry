@@ -1005,6 +1005,7 @@
   "Location": "位置",
   "Login": "登录",
   "Device": "设备",
+  "bindedDeviceId": "绑定设备号",
   "PlayerDomain": "玩家域名",
   "NewPlayer": "新玩家",
   "ActivePlayer": "活跃玩家",
@@ -5385,5 +5386,9 @@
   "Duplicate Assign Domain Name": "已重复",
   "URL already existed": "已重复",
   "noAdmin": "无此账号",
+  "Horizontal": "横屏",
+  "Vertical": "竖屏",
+  "Horizontal / Vertical": "横/竖屏",
+  "Current Game Display Setting is:": "目前的游戏状态设置为: ",
   "WEBSITE_MULTI_SELECTION": "网站（复选）"
 }

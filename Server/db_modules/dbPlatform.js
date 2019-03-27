@@ -51,6 +51,7 @@ const jwt = require('jsonwebtoken');
 const jwtSecret = env.socketSecret;
 const moment = require('moment-timezone');
 const emailer = require("./../modules/emailer");
+const RESTUtils = require("./../modules/RESTUtils");
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -623,7 +624,7 @@ var dbPlatform = {
         if (env.mode != "local" && env.mode != "qa") {
             if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
                 Object.keys(extConfig).forEach(key => {
-                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS2' && extConfig[key].syncPlatformAPIAddr) {
+                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS2') {
                         return dbconfig.collection_platform.find().then(
                             platformArr => {
                                 var sendObj = [];
@@ -641,22 +642,7 @@ var dbPlatform = {
                                         platforms: sendObj
                                     };
 
-                                    let options = {
-                                        method: 'POST',
-                                        uri: extConfig[key].syncPlatformAPIAddr,
-                                        body: data,
-                                        json: true
-                                    };
-
-                                    console.log("syncPlatformAPIAddr check request before sent - ", data);
-
-                                    return rp(options).then(function (syncPlatformData) {
-                                        console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                                        return syncPlatformData;
-                                    }, error => {
-                                        console.log('syncHTTPPMSPlatform failed', error);
-                                        throw error;
-                                    });
+                                    return RESTUtils.getPMS2Services("postSyncPlatform", data);
                                 }
                             }
                         );
@@ -1816,6 +1802,24 @@ var dbPlatform = {
         addOptionalTimeLimitsToQuery(data, query, 'createTime');
         //console.log("query:", query);
         return dbconfig.collection_playerMail.find(query).sort({createTime: -1}).limit(100);
+    },
+
+    getPushNotification: function (platformObjId) {
+        return dbPlatform.getOnePlatformSetting({_id: platformObjId}).then(
+            platformData => {
+                if (!platformData) {
+                    Promise.reject({
+                        name: "DataError",
+                        message: localization.localization.translate("Platform does not exist"),
+                    });
+                }
+
+                return {
+                    jiguangAppKey: platformData.jiguangAppKey || null,
+                    jiguangMasterKey: platformData.jiguangMasterKey || null,
+                };
+            }
+        )
     },
 
     pushNotification: function (data) {
