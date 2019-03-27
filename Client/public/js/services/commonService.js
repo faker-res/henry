@@ -1683,6 +1683,10 @@ define([], () => {
             }
             // end region
 
+            if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.rewardPeriod){
+                proposalDetail["rewardPeriod"] =  $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.startTime) + ' ~ ' + $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.endTime);
+            }
+
             return proposalDetail;
         };
 

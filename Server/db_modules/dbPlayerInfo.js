@@ -6090,8 +6090,12 @@ let dbPlayerInfo = {
                     retentionRecord.forEach(
                         record => {
                             if (record && record.lastReceivedDate && record.rewardEventObjId && record.rewardEventObjId.condition && record.rewardEventObjId.condition.interval
-                                && record.rewardEventObjId.validStartTime && record.rewardEventObjId.validEndTime){
+                                && record.rewardEventObjId.validStartTime && record.rewardEventObjId.validEndTime && record.rewardEventObjId.condition.hasOwnProperty('definePlayerLoginMode')){
                                 let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId, true);
+                                // if the applied mode is 3, the interval is start counting from the application date
+                                if (record.rewardEventObjId.condition.definePlayerLoginMode == 3){
+                                    intervalTime = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(record.lastApplyDate, record.rewardEventObjId);
+                                }
                                 let isRewardValid = true;
                                 let hasReceived = false;
                                 let isForbidden = false;
@@ -6105,7 +6109,7 @@ let dbPlayerInfo = {
                                 }
 
                                 // check if the applyDate is expired
-                                if (intervalTime.startTime > record.lastApplyDate){
+                                if (intervalTime.startTime > record.lastApplyDate || intervalTime.endTime < curTime){
                                     isOutOfAppliedInterval = true;
                                 }
 
