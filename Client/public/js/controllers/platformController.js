@@ -29128,11 +29128,12 @@ define(['js/app'], function (myApp) {
                     });
             }
             vm.submitAddAnnouncement = function () {
+                vm.newAnn.platform = vm.filterAnnouncementPlatform;
                 var sendData = vm.newAnn;
-                vm.newAnn.platform = vm.selectedPlatform.id;
                 $scope.$socketPromise('createPlatformAnnouncement', sendData)
                     .done(function (data) {
-                        vm.configTabClicked('announcement');
+                        // vm.configTabClicked('announcement');
+                        vm.getPlatformAnnouncements(vm.filterAnnouncementPlatform);
                     });
             }
             vm.configStartEdit = function (choice) {
@@ -30179,7 +30180,8 @@ define(['js/app'], function (myApp) {
 
                 function done() {
                     //vm.ConfigAnnouncementClicked();
-                    vm.configTabClicked("announcement");
+                    // vm.configTabClicked("announcement");
+                    vm.getPlatformAnnouncements(vm.filterAnnouncementPlatform);
                     $scope.safeApply();
                 }
             }
@@ -31004,11 +31006,15 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getPlatformAnnouncements = function () {
-                if (!vm.selectedPlatform) return;
-                $scope.$socketPromise('getPlatformAnnouncementsByPlatformId', {platformId: vm.selectedPlatform.data.platformId}).then(function (data) {
-                    vm.allPlatformAnnouncements = data.data;
-                    vm.allPlatformAnnouncements.sort((a, b) => a.order - b.order);
+            vm.getPlatformAnnouncements = function (platformObjId) {
+                if (!platformObjId) return;
+
+                $scope.$socketPromise('getPlatformAnnouncements', {platform: platformObjId}).then(function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getPlatformAnnouncements', data.data);
+                        vm.allPlatformAnnouncements = data.data;
+                        vm.allPlatformAnnouncements.sort((a, b) => a.order - b.order);
+                    });
                 }).done();
             };
 
@@ -31018,9 +31024,10 @@ define(['js/app'], function (myApp) {
                     title: "Delete Announcement",
                     text: `Are you sure you want to delete the announcement "${ann.title}"?`
                 }).then(function () {
-                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title, platform: vm.selectedPlatform.id})
+                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title, platform: ann.platform})
                         .done(function (data) {
-                            vm.configTabClicked("announcement");
+                            // vm.configTabClicked("announcement");
+                            vm.getPlatformAnnouncements(vm.filterAnnouncementPlatform);
                         });
                 });
             }
