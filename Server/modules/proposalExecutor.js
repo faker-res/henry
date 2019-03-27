@@ -2167,7 +2167,7 @@ var proposalExecutor = {
                            applyTime: cTimeString
                         };
 
-                       console.log('withdrawAPIAddr req:', message);
+                       console.log('withdrawAPIAddr player req:', message);
 
                        if (extConfig && extConfig[player.platform.bonusSystemType]
                            && extConfig[player.platform.bonusSystemType].withdrawAPIAddr
@@ -2181,7 +2181,7 @@ var proposalExecutor = {
 
                            return rp(options)
                                .then(function (bonusData) {
-                                   console.log('bonus post success', bonusData);
+                                   console.log('player bonus post success', bonusData);
                                    if (bonusData) {
                                        // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
                                        increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
@@ -2302,29 +2302,67 @@ var proposalExecutor = {
                             loginName: partner.partnerName || "",
                             applyTime: cTimeString
                         };
-                        return pmsAPI.bonus_applyBonus(message).then(
-                            bonusData => {
-                                if (bonusData) {
-                                    return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
-                                        platformData => {
-                                            if (!platformData) {
-                                                return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
-                                            }
 
-                                            let dataToUpdate = {
-                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                            };
-                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                            return bonusData;
-                                        }
-                                    )
+                        console.log('withdrawAPIAddr partner req:', message);
+
+                        if (extConfig && extConfig[partner.platform.bonusSystemType]
+                            && extConfig[partner.platform.bonusSystemType].withdrawAPIAddr
+                        ) {
+                            let options = {
+                                method: 'POST',
+                                uri: extConfig[partner.platform.bonusSystemType].withdrawAPIAddr,
+                                body: message,
+                                json: true // Automatically stringifies the body to JSON
+                            };
+
+                            return rp(options)
+                                .then(function (bonusData) {
+                                    console.log('partner bonus post success', bonusData);
+                                    if (bonusData) {
+                                        return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
+                                            platformData => {
+                                                if (!platformData) {
+                                                    return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                                                }
+
+                                                let dataToUpdate = {
+                                                    "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                    "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                                };
+                                                dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                                return bonusData;
+                                            }
+                                        )
+                                    }
+                                    else {
+                                        return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
+                                    }
+                                })
+                        } else {
+                            return pmsAPI.bonus_applyBonus(message).then(
+                                bonusData => {
+                                    if (bonusData) {
+                                        return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
+                                            platformData => {
+                                                if (!platformData) {
+                                                    return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                                                }
+
+                                                let dataToUpdate = {
+                                                    "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                    "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                                };
+                                                dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                                return bonusData;
+                                            }
+                                        )
+                                    }
+                                    else {
+                                        return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
+                                    }
                                 }
-                                else {
-                                    return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
-                                }
-                            }
-                        );
+                            );
+                        }
                     }
                 ).then(deferred.resolve, deferred.reject);
             },
