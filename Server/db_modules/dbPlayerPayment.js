@@ -11,6 +11,7 @@ const pmsAPI = require("../externalAPI/pmsAPI.js");
 const dbconfig = require('./../modules/dbproperties');
 const dbUtil = require("../modules/dbutility");
 const serverInstance = require("../modules/serverInstance");
+const RESTUtils = require("../modules/RESTUtils");
 const rsaCrypto = require('./../modules/rsaCrypto');
 
 const constDepositMethod = require('./../const/constDepositMethod');
@@ -398,7 +399,7 @@ const dbPlayerPayment = {
 
     // region Common payment
     getMinMaxCommonTopupAmount: (playerId, clientType, loginIp) => {
-        let url = "";
+        // let url = "";
         let topUpSystemConfig;
         let topUpSystemName;
         let platformMinTopUpAmount = 0;
@@ -413,7 +414,7 @@ const dbPlayerPayment = {
         }).lean().then(
             playerData => {
                 if (playerData) {
-                    let paymentUrl = env.paymentHTTPAPIUrl;
+                    // let paymentUrl = env.paymentHTTPAPIUrl;
 
                     topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
@@ -425,25 +426,33 @@ const dbPlayerPayment = {
                         platformMinTopUpAmount = playerData.platform.minTopUpAmount;
                     }
 
-                    if (topUpSystemConfig && topUpSystemConfig.topUpAPIAddr) {
-                        paymentUrl = topUpSystemConfig.topUpAPIAddr;
-
-                        if (topUpSystemConfig.minMaxAPIAddr) {
-                            paymentUrl = topUpSystemConfig.minMaxAPIAddr;
-                        }
-                    }
+                    // if (topUpSystemConfig && topUpSystemConfig.topUpAPIAddr) {
+                    //     paymentUrl = topUpSystemConfig.topUpAPIAddr;
+                    //
+                    //     if (topUpSystemConfig.minMaxAPIAddr) {
+                    //         paymentUrl = topUpSystemConfig.minMaxAPIAddr;
+                    //     }
+                    // }
 
                     if (!topUpSystemConfig || topUpSystemName === 'PMS' || topUpSystemName === 'PMS2') {
-                        url =
-                            paymentUrl
-                            + "foundation/payMinAndMax.do?"
-                            + "platformId=" + playerData.platform.platformId + "&"
-                            + "username=" + playerData.name + "&"
-                            + "clientType=" + clientType;
+                        // url =
+                        //     paymentUrl
+                        //     + "foundation/payMinAndMax.do?"
+                        //     + "platformId=" + playerData.platform.platformId + "&"
+                        //     + "username=" + playerData.name + "&"
+                        //     + "clientType=" + clientType;
+                        //
+                        // console.log('getMinMaxCommonTopupAmount url', url, playerId, playerData.platform.topUpSystemType, new Date());
+                        //
+                        // return rp(url);
 
-                        console.log('getMinMaxCommonTopupAmount url', url, playerId, playerData.platform.topUpSystemType, new Date());
+                        let reqData = {
+                            platformId: playerData.platform.platformId,
+                            name: playerData.name,
+                            clientType: clientType
+                        };
 
-                        return rp(url);
+                        return RESTUtils.getPMS2Services("getMinMax", reqData);
                     } else {
                         return true;
                     }
