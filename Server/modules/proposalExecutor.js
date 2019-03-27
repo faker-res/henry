@@ -2304,15 +2304,8 @@ var proposalExecutor = {
                         if (extConfig && extConfig[partner.platform.bonusSystemType]
                             && extConfig[partner.platform.bonusSystemType].withdrawAPIAddr
                         ) {
-                            let options = {
-                                method: 'POST',
-                                uri: extConfig[partner.platform.bonusSystemType].withdrawAPIAddr,
-                                body: message,
-                                json: true // Automatically stringifies the body to JSON
-                            };
-
-                            return rp(options)
-                                .then(function (bonusData) {
+                            return RESTUtils.getPMS2Services('postWithdraw', message).then(
+                                function (bonusData) {
                                     console.log('partner bonus post success', bonusData);
                                     if (bonusData) {
                                         return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
