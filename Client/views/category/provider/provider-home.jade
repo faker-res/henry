@@ -111,7 +111,7 @@ div
                                 input(type="radio", ng-model="vm.showGame.gameDisplay", ng-value = "3")
                                 {{ vm.gameDisplay[3] }}
                             div(style='display:inline-flex')
-                                .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updatePlatformGameDisplay(vm.showGame.gameDisplay)") {{'EDIT' | translate}}
+                                .btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Update')", ng-click="vm.updatePlatformGameDisplay(vm.showGame.gameDisplay)") {{'EDIT' | translate}}
 
 
 
