@@ -113,7 +113,7 @@ const dbPlayerUtility = {
                 console.log('beforeRec===', beforeRec);
                 console.log('stateName===', stateName);
                 console.log('bFlag===', bFlag);
-                console.log('beforeRec[stateName]===', beforeRec[stateName]);
+                console.log('beforeRec[stateName]===', beforeRec && beforeRec[stateName] ? beforeRec[stateName] : null);
                 if (beforeRec && beforeRec[stateName] === bFlag) {
                     allowExec = false;
                     // if state locked more than 15 minutes, allow execute (prevent state locked forever)
