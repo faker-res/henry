@@ -521,7 +521,7 @@ var playerPostFindUpdate = function (result, bOne) {
             result.guestDeviceId = dbUtil.encodePhoneNum(result.guestDeviceId);
         }
     }
-    if (!bOne && result && result.deviceId) {
+    if (result && result.deviceId) {
         if (result.deviceId.length > 20) {
             let deviceId = result.deviceId;
             try {
