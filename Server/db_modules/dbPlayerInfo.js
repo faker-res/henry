@@ -1713,21 +1713,10 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerNameValid) {
-                    // check player name must start with prefix
-                    if (!pPrefix || pName.indexOf(pPrefix) === 0) {
-                        return {isPlayerPrefixValid: true};
-                    } else {
-                        if (playerdata.guestDeviceId) {
-                            return {isPlayerPrefixValid: true};
-                        }
-                        if (isDxMission) {
-                            return {isPlayerPrefixValid: true};
-                        }
-                        if (playerdata.isTestPlayer && pName.indexOf(pPrefix) === 1) {
-                            return {isPlayerPrefixValid: true};
-                        }
-                        return {isPlayerPrefixValid: false};
+                    if (playerdata.guestDeviceId) {
+                        return dbPlayerInfo.checkDeviceIdRegistered(platformData._id, playerdata.guestDeviceId);
                     }
+                    return 0;
                 } else {
                     return Promise.reject({
                         name: "DBError",
@@ -1746,49 +1735,20 @@ let dbPlayerInfo = {
                 return Promise.reject(error);
             }
         ).then(
-            data => {
-                // if (data.isPlayerPrefixValid) {
-                if (true) { // player prefix is not enforce anymore, deprecated
-                    if (playerdata.guestDeviceId) {
-                        return {isPlayerPasswordValid: true};
+            isRepeat => {
+                if (playerdata.guestDeviceId) {
+                    if (isRepeat) {
+                        return Promise.reject({status: constServerCode.DEVICE_ID_ERROR, message: "Your device has registered. Use your original phone number to login."})
                     }
-                    if ((platformData.playerPasswordMaxLength > 0 && playerdata.password.length > platformData.playerPasswordMaxLength) || (platformData.playerPasswordMinLength > 0 && playerdata.password.length < platformData.playerPasswordMinLength)) {
-                        return {isPlayerPasswordValid: false};
-                    } else {
-                        return {isPlayerPasswordValid: true};
-                    }
-                } else {
-                    // check if player is created by partner
-                    if (playerdata.partnerId) {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: localization.localization.translate("Player name created by partner should use ") + pPrefix + localization.localization.translate(" as prefix.")
-                        });
-                    } else {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: localization.localization.translate("Player name should use ") + pPrefix + localization.localization.translate(" as prefix.")
-                        });
-                    }
+                    return {isPlayerPasswordValid: true};
                 }
+
+                if ((platformData.playerPasswordMaxLength > 0 && playerdata.password.length > platformData.playerPasswordMaxLength) || (platformData.playerPasswordMinLength > 0 && playerdata.password.length < platformData.playerPasswordMinLength)) {
+                    return {isPlayerPasswordValid: false};
+                }
+                return {isPlayerPasswordValid: true};
             },
             error => {
-                if (!error.message) {
-                    // check if player is created by partner
-                    if (playerdata.partnerId) {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: "Player name created by partner should use " + pPrefix + " as prefix.",
-                            error: error
-                        });
-                    } else {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: "Player name should use " + pPrefix + " as prefix.",
-                            error: error
-                        });
-                    }
-                }
                 return Promise.reject(error);
             }
         ).then(
@@ -24176,6 +24136,19 @@ let dbPlayerInfo = {
                 return {number: phoneNumber};
             }
         )
+    },
+
+    checkDeviceIdRegistered: (platformObjId, deviceId) => {
+        let query = {
+            guestDeviceId: deviceId,
+            platform: platformObjId
+        };
+
+        return dbconfig.collection_players.find(query, {_id: 1}).lean().then(
+            players => {
+                return players && players.length || 0;
+            }
+        );
     },
 };
 
