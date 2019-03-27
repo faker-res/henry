@@ -30829,20 +30829,24 @@ define(['js/app'], function (myApp) {
 
             vm.getAdminNameByDepartment = function (departmentId, assignTarget) {
                 if (!departmentId) {
-                    if(assignTarget){
-                        vm[assignTarget] = [];
-                    }else{
-                        vm.adminList = [];
-                    }
-
-                    return;
+                    $scope.$evalAsync(() =>{
+                        if(assignTarget){
+                            vm[assignTarget] = [];
+                        }else{
+                            vm.adminList = [];
+                        }
+                        return;
+                    });
                 }
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
-                    if (assignTarget) {
-                        vm[assignTarget] = data.data;
-                    } else {
-                        vm.adminList = data.data;
-                    }
+                    $scope.$evalAsync(() =>{
+                        if (assignTarget) {
+                            vm[assignTarget] = data.data;
+                        } else {
+                            vm.adminList = data.data;
+                        }
+                    })
+
                 });
             };
 
@@ -31465,7 +31469,12 @@ define(['js/app'], function (myApp) {
                                 callback(data.data);
                             }
                         });
+                    },
+                err => {
+                    if (assignTarget) {
+                        vm[assignTarget] = [];
                     }
+                }
                 );
             }
 
@@ -32856,7 +32865,11 @@ define(['js/app'], function (myApp) {
                     });
             };
 
-            vm.pickCSbyPlatform = function (platformId, platformName) {
+            vm.pickCSbyPlatform = function (platformId) {
+                let platform = vm.platformList.filter( item => {
+                    return item.id == platformId;
+                })
+                let platformName = ( platform[0] && platform[0].text ) ? platform[0].text : null;
                 vm.loadDepartmentByPlatformId(platformId, platformName, 'promoUrlAdminList')
             }
 
