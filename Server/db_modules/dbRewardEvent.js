@@ -390,6 +390,19 @@ var dbRewardEvent = {
                                 message: "Login mode is not found"
                             })
                         }
+
+                        let playerRetentionProm = Promise.resolve();
+                        if (rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP){
+                            playerRetentionProm = dbconfig.collection_playerRetentionRewardGroupRecord.findOne({
+                                platformObjId: playerObj.platform._id,
+                                playerObjId: playerObj._id,
+                                rewardEventObjId: rewardEvent._id
+                            }).sort({'lastApplyDate': -1}).populate({
+                                path: "topUpRecordObjId",
+                                model: dbconfig.collection_playerTopUpRecord
+                            }).lean();
+                        }
+
                         if (rewardEvent.condition.interval) {
                             intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, rewardEvent);
                         }
@@ -442,13 +455,25 @@ var dbRewardEvent = {
                         let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerObjId}).sort({createTime: -1}).limit(1).lean();
                         let eventInPeriodProm = dbconfig.collection_proposal.find(eventQuery).lean();
 
-                        return Promise.all([topUpProm, lastConsumptionProm, eventInPeriodProm]).then(
+                        return Promise.all([topUpProm, lastConsumptionProm, eventInPeriodProm, playerRetentionProm]).then(
                             data => {
                                 let topUpData =  data[0];
                                 let consumptionData =  data[1];
                                 let eventInPeriodData = data[2];
                                 let eventInPeriodCount = eventInPeriodData.length;
                                 let topUpAfterConsumption = [];
+                                let playerRetentionRecord = data[3];
+
+                                let todayTime = dbUtil.getTodaySGTime();
+                                // check if the player retention record is expired
+                                if (playerRetentionRecord && playerRetentionRecord.lastApplyDate && rewardEvent.condition && rewardEvent.condition.hasOwnProperty('definePlayerLoginMode') && rewardEvent.condition.definePlayerLoginMode == 3){
+                                    let newDefinedIntervalTime = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(playerRetentionRecord.lastApplyDate, rewardEvent);
+                                    // set the player retention record to be null if it is expired
+                                    if (newDefinedIntervalTime.endTime <= todayTime.startTime){
+                                        playerRetentionRecord.lastApplyDate = todayTime.startTime;
+                                        playerRetentionRecord.accumulativeDay = null;
+                                    }
+                                }
 
                                 // filter top up record after consumption
                                 if (!rewardEvent.condition.allowConsumptionAfterTopUp) {
@@ -462,7 +487,7 @@ var dbRewardEvent = {
                                 }
 
                                 function checkRewardEventWithTopUp(topUpDataObj) {
-                                    return dbRewardEvent.checkRewardEventGroupApplicable(playerObj, rewardEvent, {selectedTopup: topUpDataObj}).then(
+                                    return dbRewardEvent.checkRewardEventGroupApplicable(playerObj, rewardEvent, {selectedTopup: topUpDataObj}, playerRetentionRecord).then(
                                         checkRewardData => {
                                             // Check reward apply limit in period
                                             if (rewardEvent.param.countInRewardInterval && rewardEvent.param.countInRewardInterval <= eventInPeriodCount) {
@@ -533,6 +558,7 @@ var dbRewardEvent = {
                                 }
 
                                 let promArr = [];
+
                                 if (topUpData && topUpData.length) {
                                     if (rewardEvent.condition && !rewardEvent.condition.allowConsumptionAfterTopUp) {
                                         if (consumptionData && consumptionData.length === 0) { // if no consumption, use all valid top up
@@ -818,7 +844,7 @@ var dbRewardEvent = {
         return returnData;
     },
 
-    checkRewardEventGroupApplicable: function (playerData, eventData, rewardData) {
+    checkRewardEventGroupApplicable: function (playerData, eventData, rewardData, playerRetentionRecord) {
         let todayTime = dbUtil.getTodaySGTime();
         let intervalTime;
         let selectedRewardParam = {};
@@ -962,6 +988,11 @@ var dbRewardEvent = {
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
 
             };
+
+            if (playerRetentionRecord && playerRetentionRecord.lastApplyDate && eventData.condition && eventData.condition.hasOwnProperty('definePlayerLoginMode') && eventData.condition.definePlayerLoginMode == 3){
+                intervalTime = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(playerRetentionRecord.lastApplyDate, eventData)
+            }
+
             if (intervalTime){
                 appliedCountQuery.lastApplyDate = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
                 rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
@@ -975,18 +1006,18 @@ var dbRewardEvent = {
             // check reward apply restriction on ip, phone and IMEI
             checkHasReceivedProm =  dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
 
-            if (eventData.condition.definePlayerLoginMode && eventData.condition.definePlayerLoginMode == 1){
+            if (eventData.condition.definePlayerLoginMode && (eventData.condition.definePlayerLoginMode == 1 || eventData.condition.definePlayerLoginMode == 3)){
                 accumulativeCountProm = dbconfig.collection_proposal.find(rewardProposalQuery).sort({'data.accumulativeCount': -1, createTime: -1}).lean();
             }
             else if (eventData.condition.definePlayerLoginMode && eventData.condition.definePlayerLoginMode == 2){
                 accumulativeCountProm = dbconfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
             }
 
-            if (rewardData && rewardData.selectedTopup) {
-                selectedTopUp = rewardData.selectedTopup;
+            if (playerRetentionRecord && playerRetentionRecord.topUpRecordObjId) {
+                selectedTopUp = playerRetentionRecord.topUpRecordObjId;
                 // oriAmount: the topup amount; amount: the topup amount - service charge
                 // when applying reward, check the oriAmount, not the amount
-                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
+                applyAmount = selectedTopUp.oriAmount ||selectedTopUp.amount;
 
                 if (eventData.condition && eventData.condition.allowOnlyLatestTopUp){
                     //will check is there consumption or withdrawal after the latestTopUp
@@ -1748,7 +1779,7 @@ var dbRewardEvent = {
 
                         let retRewardData = dbPlayerReward.applyRetentionRewardParamLevel(eventData, applyAmount, selectedRewardParam, null, null, rewardSpecificData[3]);
 
-                        returnData.condition.deposit.list = dbPlayerReward.getRetentionRewardList(returnData, rewardData, eventData, selectedRewardParam, rewardSpecificData[3], retRewardData, todayHasApplied);
+                        returnData.condition.deposit.list = dbPlayerReward.getRetentionRewardList(returnData, rewardData, eventData, selectedRewardParam, rewardSpecificData[3], retRewardData, todayHasApplied, playerRetentionRecord);
 
                         // if today has applied/received reward -> skip the following checking
                         // if returnData.condition.deposit.status != 1 meaning it is already failed to fulfill the top up requirment, so no need to go thru the checking

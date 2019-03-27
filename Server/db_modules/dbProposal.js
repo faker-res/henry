@@ -26,6 +26,7 @@ var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
+const dbRewardUtil = require("./../db_common/dbRewardUtility");
 var dbProposalUtility = require('./../db_common/dbProposalUtility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var moment = require('moment-timezone');
@@ -293,10 +294,6 @@ var proposal = {
                 //     proposalData.data.applyAmount = applyAmount;
                 // }
 
-                if (consecutiveNumber) {
-                    proposalData.data.consecutiveNumber = consecutiveNumber;
-                }
-
                 if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId.proposalId &&
                     eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                     proposalData.data.topUpProposalId = rewardGroupRecord.topUpRecordObjId.proposalId;
@@ -328,6 +325,15 @@ var proposal = {
                 if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && eventData.condition
                     && eventData.condition.definePlayerLoginMode && typeof(eventData.condition.definePlayerLoginMode) != 'undefined'){
                     proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
+
+                    if (eventData.condition.definePlayerLoginMode == 3) {
+                        proposalData.data.rewardPeriod = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(rewardGroupRecord.lastApplyDate, eventData);
+                    }
+
+                }
+
+                if (consecutiveNumber) {
+                    proposalData.data.consecutiveNumber = consecutiveNumber;
                 }
 
                 return proposal.createProposalWithTypeId(eventData.executeProposal, proposalData)
@@ -337,7 +343,7 @@ var proposal = {
                 // update playerRetentionRewardRecord
                 let updateQuery = {lastReceivedDate: new Date() };
                 if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode){
-                    if (eventData.condition.definePlayerLoginMode == 1){
+                    if (eventData.condition.definePlayerLoginMode == 1 || eventData.condition.definePlayerLoginMode == 3){
                         // accumulative
                         updateQuery.$inc = {accumulativeDay: 1};
                     }

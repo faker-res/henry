@@ -331,6 +331,13 @@
                                 .col-sm-7
                                     text {{vm.selectedSinglePlayer.csOfficer.adminName || 'Unknown' | translate}}
 
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{'bindedDeviceId' | translate}}
+                                .col-sm-7
+                                    text {{vm.encryptField(vm.selectedSinglePlayer.guestDeviceId) || 'Unknown' | translate}}
+
                 button.pull-right.btn.btn-primary.margin-top-10(ng-click="vm.showSimilarPlayersTable=!vm.showSimilarPlayersTable; vm.showSimilarPlayerTab();") {{"SHOW_SIMILAR_PLAYERS" | translate}}
 
 

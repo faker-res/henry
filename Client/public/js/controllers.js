@@ -776,6 +776,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.playerLoginMode = {
         1: "ACCUMULATIVE_LOGIN_DAY",
         2: "EXACT_LOGIN_DATE",
+        3: "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY",
     };
 
     $scope.constRewardPointsTaskCategory = {
