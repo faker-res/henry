@@ -2,6 +2,9 @@
     .col-md-12
         .well#smsRecordQueryDiv
             .search-filters-item
+                label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
+                select.form-control(ng-model='vm.smsRecordQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+            .search-filters-item
                 label.control-label {{'ACCOUNT' | translate}}
                 input.form-control(ng-model='vm.smsRecordQuery.recipientName')
             .search-filters-item
