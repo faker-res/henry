@@ -6,6 +6,8 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
 const constAccountType = require('../const/constAccountType');
 
+const RESTUtils = require('../modules/RESTUtils');
+
 var dbPlatformMerchantGroup = {
 
     /**
@@ -516,40 +518,29 @@ var dbPlatformMerchantGroup = {
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                         let merchantListOptions = {
+                            platformId: platformId
+                        };
+
+                        let bankcardListOptions = {
+                            platformId: platformId,
+                            accountType: constAccountType.BANK_CARD
+                        };
+
+                        let alipayListOptions = {
+                            platformId: platformId,
+                            accountType: constAccountType.ALIPAY
+                        };
+
+                        let wechatpayListOptions = {
+                            platformId: platformId,
+                            accountType: constAccountType.WECHAT
+                        };
+
+                        let merchantListOptions = {
                             method: 'POST',
                             uri: topUpSystemConfig.merchantListAPIAddr,
                             body: {
                                 platformId: platformId
-                            },
-                            json: true
-                        };
-
-                        let bankcardListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.BANK_CARD
-                            },
-                            json: true
-                        };
-
-                        let alipayListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.ALIPAY
-                            },
-                            json: true
-                        };
-
-                        let wechatpayListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.WECHAT
                             },
                             json: true
                         };
@@ -562,29 +553,9 @@ var dbPlatformMerchantGroup = {
                             throw error;
                         });
 
-                        bankCardList = rp(bankcardListOptions).then(function (data) {
-                            console.log('bankCardList success', data);
-                            return data;
-                        }, error => {
-                            console.log('bankCardList failed', error);
-                            throw error;
-                        });
-
-                        aliPayList = rp(alipayListOptions).then(function (data) {
-                            console.log('aliPayList success', data);
-                            return data;
-                        }, error => {
-                            console.log('aliPayList failed', error);
-                            throw error;
-                        });
-
-                        weChatList = rp(wechatpayListOptions).then(function (data) {
-                            console.log('weChatList success', data);
-                            return data;
-                        }, error => {
-                            console.log('weChatList failed', error);
-                            throw error;
-                        });
+                        bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions);
+                        aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions);
+                        weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions);
                     } else {
                         merchantsList = pmsAPI.merchant_getMerchantList({
                             platformId: platformId,
