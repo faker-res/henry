@@ -28318,6 +28318,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCallBasic.definitionOfAnsweredPhone = vm.selectedPlatform.data.definitionOfAnsweredPhone || "";
                 vm.bulkCallBasic.decomposeAfterNDays = vm.selectedPlatform.data.decomposeAfterNDays || 1;
                 vm.bulkCallBasic.phoneWhiteListExportMaxNumber = vm.selectedPlatform.data.phoneWhiteListExportMaxNumber || 0;
+                vm.bulkCallBasic.defaultFeedbackResult = vm.selectedPlatform.data.defaultFeedbackResult || "";
+                vm.bulkCallBasic.defaultFeedbackTopic = vm.selectedPlatform.data.defaultFeedbackTopic || "";
                 vm.ctiUrlSubDomains = vm.ctiUrlSubDomains || [];
 
                 socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbackResults', {}, function (data) {
@@ -30212,6 +30214,8 @@ define(['js/app'], function (myApp) {
                         teleMarketingMinRedialInterval: srcData.teleMarketingMinRedialInterval,
                         teleMarketingIdleAgentMultiple: srcData.teleMarketingIdleAgentMultiple,
                         definitionOfAnsweredPhone: srcData.definitionOfAnsweredPhone,
+                        defaultFeedbackResult: srcData.defaultFeedbackResult,
+                        defaultFeedbackTopic: srcData.defaultFeedbackTopic,
                         decomposeAfterNDays: srcData.decomposeAfterNDays,
                         phoneWhiteListExportMaxNumber: srcData.phoneWhiteListExportMaxNumber,
                     }
