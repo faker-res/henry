@@ -119,6 +119,7 @@ define(['js/app'], function (myApp) {
 
         vm.getWinnerMonitorRecord = (newSearch) => {
             $('#winnerMonitorTableSpin').show();
+            vm.timerCountDown = 11;
             let period = vm.getPeriod(vm.winnerMonitorQuery.hours);
             vm.winnerMonitorQuery.startTime = period.startTime;
             vm.winnerMonitorQuery.endTime = period.endTime;
@@ -382,36 +383,35 @@ define(['js/app'], function (myApp) {
         $scope.$on("setPlatform", function (e, d) {
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
-            // setTimeout(function () {
-            //
-            //     let countDown = -1;
-            //     clearInterval(vm.refreshInterval);
-            //     vm.refreshInterval = setInterval(function () {
-            //         let item = $('#autoRefreshProposalFlag');
-            //         let isRefresh = item && item.length > 0 && item[0].checked;
-            //         let mark = $('#timeLeftRefreshOperation')[0];
-            //         $(mark).parent().toggleClass('hidden', countDown < 0);
-            //         if (isRefresh) {
-            //             if (countDown < 0) {
-            //                 countDown = 11
-            //             }
-            //             if (countDown === 0) {
-            //                 vm.getPaymentMonitorRecord();
-            //                 countDown = 11;
-            //             }
-            //             countDown--;
-            //             $(mark).text(countDown);
-            //         } else {
-            //             countDown = -1;
-            //         }
-            //         if (window.location.pathname != '/monitor/payment') {
-            //             clearInterval(vm.refreshInterval);
-            //         }
-            //         else if (!vm.paymentMonitorQuery) {
-            //             vm.loadPage();
-            //         }
-            //     }, 1000);
-            // });
+            setTimeout(function () {
+                vm.timerCountDown = -1;
+                clearInterval(vm.refreshInterval);
+                vm.refreshInterval = setInterval(function () {
+                    let item = $('#autoRefreshProposalFlag');
+                    let isRefresh = item && item.length > 0 && item[0].checked;
+                    let mark = $('#timeLeftRefreshOperation')[0];
+                    $(mark).parent().toggleClass('hidden', vm.timerCountDown < 0);
+                    if (isRefresh) {
+                        if (vm.timerCountDown < 0) {
+                            vm.timerCountDown = 11
+                        }
+                        if (vm.timerCountDown === 0) {
+                            vm.getWinnerMonitorRecord();
+                            vm.timerCountDown = 11;
+                        }
+                        vm.timerCountDown--;
+                        $(mark).text(vm.timerCountDown);
+                    } else {
+                        vm.timerCountDown = -1;
+                    }
+                    if (window.location.pathname != '/monitor/winner') {
+                        clearInterval(vm.refreshInterval);
+                    }
+                    else if (!vm.winnerMonitorQuery) {
+                        vm.loadPage();
+                    }
+                }, 1000);
+            });
         });
     };
 
