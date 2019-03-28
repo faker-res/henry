@@ -1239,7 +1239,7 @@ define(['js/app'], function (myApp) {
                             vm.getPlatformRewardProposal();
                             // vm.getPlatformPlayersData(true, true);
                             // vm.getPlatformPartnersData();
-                            vm.getPlatformGameData();
+                            // vm.getPlatformGameData();
                             // vm.loadProposalTypeData();
                             vm.loadBankCardGroupData();
                             vm.loadMerchantGroupData();
@@ -3893,17 +3893,20 @@ define(['js/app'], function (myApp) {
                 vm.batchCreditTransferOut = null;
             }
             //get all platform data from server
-            vm.getPlatformGameData = function () {
+            vm.getPlatformGameData = function (platformObjId) {
                 //init gametab start===============================
                 vm.SelectedProvider = null;
                 vm.showGameCate = "include";
                 vm.curGame = null;
                 //init gameTab end==================================
-                if (!vm.selectedPlatform) {
-                    return
-                }
+                // if (!vm.selectedPlatform) {
+                //     return
+                // }
                 //console.log("getGames", gameIds);
-                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                let sendData = {
+                    _id: platformObjId || null
+                }
+                socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                     console.log('getPlatform', data.data);
                     if (data && data.data && data.data.frontendConfigurationDomainName && vm.selectedPlatform && vm.selectedPlatform.data){
                         vm.selectedPlatform.data.frontendConfigurationDomainName = data.data.frontendConfigurationDomainName;
@@ -3971,7 +3974,7 @@ define(['js/app'], function (myApp) {
             vm.submitProviderChange = function (type, data) {
                 if (!data) return;
                 var sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.filterGamePlatform,
                     providerId: data._id
                 };
                 console.log(sendData);
@@ -4000,7 +4003,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
                     console.log(data);
                     loadPlatformData();
-                    vm.getPlatformGameData();
+                    vm.getPlatformGameData(vm.filterGamePlatform);
                 })
             }
 
@@ -4245,7 +4248,7 @@ define(['js/app'], function (myApp) {
 
                         var sendData = {
                             query: {
-                                game: sendGameId, platform: vm.selectedPlatform.id
+                                game: sendGameId, platform: vm.filterGamePlatform
                             },
                             updateData: {
                                 status: type
@@ -4277,7 +4280,7 @@ define(['js/app'], function (myApp) {
 
                         var sendData = {
                             query: {
-                                game: sendGameId, platform: vm.selectedPlatform.id
+                                game: sendGameId, platform: vm.filterGamePlatform
                             },
                             updateData: {
                                 status: type
@@ -4395,7 +4398,7 @@ define(['js/app'], function (myApp) {
 
                             var sendData = {
                                 query: {
-                                    game: sendGameId, platform: vm.selectedPlatform.id
+                                    game: sendGameId, platform: vm.filterGamePlatform
                                 },
                                 updateData: {
                                     status: vm.allGameStatusString.MAINTENANCE
@@ -4451,13 +4454,13 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.submitBatchCreditTransferOut = function () {
+            vm.submitBatchCreditTransferOut = function (platformObjId) {
                 let sendQuery = {
                     startDate: vm.batchCreditTransferOutQuery.startTime.data('datetimepicker').getLocalDate(),
                     endDate: vm.batchCreditTransferOutQuery.endTime.data('datetimepicker').getLocalDate(),
                     providerId: vm.SelectedProvider.providerId,
                     providerObjId: vm.SelectedProvider._id,
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || null,
                     adminName: authService.adminName
                 };
                 console.log("batchCreditTransferOut", sendQuery);
