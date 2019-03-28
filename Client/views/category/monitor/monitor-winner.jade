@@ -7,7 +7,7 @@ div
             label {{'PROVIDER' | translate}}
             select.form-control(ng-model='vm.winnerMonitorQuery.provider')
                 option(value='')
-                option(ng-repeat='provider in vm.allProviders', value='{{provider.providerId}}') {{provider.name}}
+                option(ng-repeat='provider in vm.allProviders', value='{{provider._id}}') {{provider.name}}
         .search-filters-item
             label {{'WITHIN_N_HOURS' | translate}}
             select.form-control(ng-model='vm.winnerMonitorQuery.hours' convert-to-number ng-change="vm.updateQueryTime()")
