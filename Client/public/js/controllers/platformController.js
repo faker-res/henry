@@ -1240,7 +1240,7 @@ define(['js/app'], function (myApp) {
                             // vm.getPlatformPlayersData(true, true);
                             // vm.getPlatformPartnersData();
                             vm.getPlatformGameData();
-                            vm.loadProposalTypeData();
+                            // vm.loadProposalTypeData();
                             vm.loadBankCardGroupData();
                             vm.loadMerchantGroupData();
                             vm.loadAlipayGroupData();
@@ -31043,12 +31043,15 @@ define(['js/app'], function (myApp) {
 
             /////////////////////////////Mark::Proposal functions////////////////////////////
             //get All proposal list
-            vm.loadProposalTypeData = function () {
+            vm.loadProposalTypeData = function (platformObjId) {
 
                 if (!authService.checkViewPermission('Platform', 'Proposal', 'Read')) {
                     return;
                 }
-                socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: vm.selectedPlatform.id}, function (data) {
+                let sendData = {
+                    platformId: platformObjId || null
+                }
+                socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', sendData, function (data) {
                     vm.buildProposalTypeList(data.data);
                 });
             };
@@ -31498,6 +31501,8 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            // unused proposal type functions
+            /*
             vm.createProposalTypeForm = function () {
                 vm.newProposal = {};
 
@@ -31548,6 +31553,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
             }
+            */
 
             // right panel required functions
             vm.loadAlldepartment = function (callback) {
