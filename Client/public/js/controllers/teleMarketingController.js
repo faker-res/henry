@@ -752,7 +752,8 @@ define(['js/app'], function (myApp) {
 
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(row.tsPhone) + '}',
+                                // 'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(row.tsPhone) + '}',
+                                'ng-click': 'vm.prepareTsPhoneFeedback(' + JSON.stringify(row.tsPhone) + ')',
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'modal',
                                 'data-target': '#modalTsPhoneFeedback',
@@ -1005,6 +1006,20 @@ define(['js/app'], function (myApp) {
                 editObj.referral = null;
             }
         };
+
+        vm.prepareTsPhoneFeedback = function (tsPhoneObj) {
+            vm.tsPhoneAddFeedback = {tsPhone: tsPhoneObj}
+            if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                if (vm.selectedPlatform.data.defaultFeedbackResult) {
+                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedbackResult
+                }
+
+                if (vm.selectedPlatform.data.defaultFeedbackTopic) {
+                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedbackTopic
+                }
+            }
+
+        }
 
         vm.prepareCreateTsPlayer = function (tsDistributedPhoneData) {
             vm.initTsPlayerCredibility();
@@ -1295,10 +1310,20 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
-            for (let i = 0; i < vm.allPlayerFeedbackResults.length; i++) {
-                if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].key)) {
-                    vm.tsPhoneAddFeedback.result = vm.allPlayerFeedbackResults[i].key;
-                    break;
+            // for (let i = 0; i < vm.allPlayerFeedbackResults.length; i++) {
+            //     if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].key)) {
+            //         vm.tsPhoneAddFeedback.result = vm.allPlayerFeedbackResults[i].key;
+            //         break;
+            //     }
+            // }
+
+            if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                if (vm.selectedPlatform.data.defaultFeedbackResult) {
+                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedbackResult
+                }
+
+                if (vm.selectedPlatform.data.defaultFeedbackTopic) {
+                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedbackTopic
                 }
             }
 
