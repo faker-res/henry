@@ -522,9 +522,9 @@ var dbGame = {
         let updateData=  { gameDisplay: gameDisplay};
 
         if(game._id){
-            gameData.game = game._id;
+            gameData._id = game._id;
         }
-        return dbconfig.collection_platformGameStatus.findOneAndUpdate(
+        return dbconfig.collection_game.findOneAndUpdate(
             gameData,
             updateData,
             {new: true, upsert: true}

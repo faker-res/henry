@@ -2170,11 +2170,9 @@ var proposalExecutor = {
                            applyTime: cTimeString
                         };
 
-                       console.log('withdrawAPIAddr req:', message);
+                       console.log('withdrawAPIAddr player req:', message);
 
-                       if (extConfig && extConfig[player.platform.bonusSystemType]
-                           && extConfig[player.platform.bonusSystemType].withdrawAPIAddr
-                       ) {
+                       if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'PMS2') {
                            return RESTUtils.getPMS2Services('postWithdraw', message).then(
                                function (bonusData) {
                                    console.log('bonus post success', bonusData);
@@ -2298,29 +2296,58 @@ var proposalExecutor = {
                             loginName: partner.partnerName || "",
                             applyTime: cTimeString
                         };
-                        return pmsAPI.bonus_applyBonus(message).then(
-                            bonusData => {
-                                if (bonusData) {
-                                    return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
-                                        platformData => {
-                                            if (!platformData) {
-                                                return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
-                                            }
 
-                                            let dataToUpdate = {
-                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                            };
-                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                            return bonusData;
-                                        }
-                                    )
+                        console.log('withdrawAPIAddr partner req:', message);
+
+                        if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'PMS2') {
+                            return RESTUtils.getPMS2Services('postWithdraw', message).then(
+                                function (bonusData) {
+                                    console.log('partner bonus post success', bonusData);
+                                    if (bonusData) {
+                                        return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
+                                            platformData => {
+                                                if (!platformData) {
+                                                    return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                                                }
+
+                                                let dataToUpdate = {
+                                                    "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                    "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                                };
+                                                dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                                return bonusData;
+                                            }
+                                        )
+                                    }
+                                    else {
+                                        return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
+                                    }
+                                })
+                        } else {
+                            return pmsAPI.bonus_applyBonus(message).then(
+                                bonusData => {
+                                    if (bonusData) {
+                                        return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
+                                            platformData => {
+                                                if (!platformData) {
+                                                    return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                                                }
+
+                                                let dataToUpdate = {
+                                                    "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                    "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                                };
+                                                dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                                return bonusData;
+                                            }
+                                        )
+                                    }
+                                    else {
+                                        return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
+                                    }
                                 }
-                                else {
-                                    return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
-                                }
-                            }
-                        );
+                            );
+                        }
                     }
                 ).then(deferred.resolve, deferred.reject);
             },

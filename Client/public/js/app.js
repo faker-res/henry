@@ -486,6 +486,29 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                         }
                     }
                 })
+                .state('monitor.winnerMonitor', {
+                    url: '/winner',
+                    templateUrl: 'category/monitor/monitor-winner',
+                    controller: 'monitorWinnerCtrl',
+                    controllerAs: 'vm',
+                    resolve: {
+                        load: function ($q, $rootScope) {
+                            var deferred = $q.defer();
+
+                            var dependencies = [
+                                "/js/controllers/monitorWinnerController.js"
+                            ];
+
+                            require(dependencies, function () {
+                                $rootScope.$apply(function () {
+                                    deferred.resolve();
+                                });
+                            });
+
+                            return deferred.promise;
+                        }
+                    }
+                })
                 .state('qualityInspection', {
                     url: '/qualityInspection',
                     templateUrl: 'category/qualityInspection/inspection-home',
