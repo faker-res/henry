@@ -24118,7 +24118,12 @@ let dbPlayerInfo = {
     checkDeviceIdRegistered: (platformObjId, deviceId) => {
         let query = {
             guestDeviceId: deviceId,
-            platform: platformObjId
+            platform: platformObjId,
+            $or: [
+                {guestDeviceId: deviceId},
+                {guestDeviceId: rsaCrypto.encrypt(deviceId)},
+                {guestDeviceId: rsaCrypto.oldEncrypt(deviceId)}
+            ]
         };
 
         return dbconfig.collection_players.find(query, {_id: 1}).lean().then(
