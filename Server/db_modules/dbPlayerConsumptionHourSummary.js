@@ -137,7 +137,15 @@ const dbPlayerConsumptionHourSummary = {
                                                 "$consumptionBonusAmount"
                                             ]
                                         },
-                                        "$consumptionValidAmount"
+                                        {
+                                            $cond: {
+                                                if: {
+                                                    $gt: ["$consumptionValidAmount", 0]
+                                                },
+                                                then: "$consumptionValidAmount",
+                                                else: 0.01
+                                            }
+                                        }
                                     ]
                                 }
                             }
