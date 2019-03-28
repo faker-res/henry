@@ -167,6 +167,7 @@ define(['js/app'], function (myApp) {
                     record.consumptionAmount$ = $noRoundTwoDecimalPlaces(record.consumptionAmount);
                     record.consumptionValidAmount$ = $noRoundTwoDecimalPlaces(record.consumptionValidAmount);
                     record.consumptionBonusAmount$ = $noRoundTwoDecimalPlaces(record.consumptionBonusAmount);
+                    record.bonusValidDifference$ = $noRoundTwoDecimalPlaces(record.bonusValidDifference);
                     record.bonusValidRatio$ = $noRoundTwoDecimalPlaces(record.bonusValidRatio*-1) + "%";
                 }
             );
@@ -177,9 +178,6 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.winnerMonitorQuery.aaSorting || [[7, 'desc']],
                 aoColumnDefs: [
-                    // {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    // {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
-                    // {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -204,7 +202,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("TIMES_CONSUMED"), data: "consumptionTimes"},
                     {title: $translate("TOTAL_CONSUMPTION"), data: "consumptionAmount$"},
                     {title: $translate("VALID_CONSUMPTION"), data: "consumptionValidAmount$"},
-                    {title: $translate("PLAYER_PROFIT_AMOUNT"), data: "consumptionBonusAmount$"},
+                    {title: $translate("PLAYER_PROFIT_AMOUNT"), data: "bonusValidDifference$"},
                     {title: $translate("COMPANY_EARNING_RATIO"), data: "bonusValidRatio$"},
                     {
                         title: "",
