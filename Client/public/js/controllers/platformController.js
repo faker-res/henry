@@ -32552,34 +32552,43 @@ define(['js/app'], function (myApp) {
                 let officerPromoteMessageId = $("#officer-promote-message");
                 vm.initClearMessage();
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.platformPromoUrl,
                     name: vm.platformOfficer.way
                 };
                 socketService.$socket($scope.AppSocket, 'addPromoteWay', sendData, function () {
-                        console.log("PromoteWay created");
-                        vm.platformOfficer.way = "";
-                        vm.officerPromoteMessage = $translate('Approved');
-                        officerPromoteMessageId.css("color", "green");
-                        officerPromoteMessageId.css("font-weight", "bold");
-                        vm.getAllPromoteWay();
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            console.log("PromoteWay created");
+                            vm.platformOfficer.way = "";
+                            vm.officerPromoteMessage = $translate('Approved');
+                            officerPromoteMessageId.css("color", "green");
+                            officerPromoteMessageId.css("font-weight", "bold");
+                            vm.getPromoteWay(vm.platformPromoUrl, true);
+                        });
                     },
                     function (err) {
-                        officerPromoteMessageId.css("color", "red");
-                        officerPromoteMessageId.css("font-weight", "normal");
-                        vm.officerPromoteMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            officerPromoteMessageId.css("color", "red");
+                            officerPromoteMessageId.css("font-weight", "normal");
+                            vm.officerPromoteMessage = err.error.message;
+                            console.log(err);
+                        });
                     });
             };
 
-            vm.getAllPromoteWay = function () {
+            vm.getAllPromoteWay = function ( isCreateWay ) {
                 vm.allPromoteWay = {};
                 let query = {
                     platformId: vm.selectedPlatform.id
                 };
+                if ( isCreateWay ) {
+                    query.platformId = vm.platformPromoUrl;
+                }
                 socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
-                        vm.allPromoteWay = data.data;
+                        if ( isCreateWay ) {
+                            vm.platformPromoUrl = data.data;
+                        } else {
+                            vm.allPromoteWay = data.data;
+                        }
                         console.log("vm.allPromoteWay", vm.allPromoteWay);
                         $scope.safeApply();
                     },
@@ -32588,14 +32597,18 @@ define(['js/app'], function (myApp) {
                     });
             };
 
-            vm.getPromoteWay = function (platformId) {
+            vm.getPromoteWay = function (platformId, isCreateWay) {
                 vm.allPromoteWay = {};
                 let query = {
                     platformId: platformId
                 };
                 socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
                         $scope.$evalAsync(() => {
-                            vm.allPromoteWay = data.data;
+                            if ( isCreateWay ) {
+                                vm.promoteWayByPlatform = data.data;
+                            } else {
+                                vm.allPromoteWay = data.data;
+                            }
                             console.log("vm.allPromoteWay", vm.allPromoteWay);
                         });
                     },
@@ -32607,26 +32620,28 @@ define(['js/app'], function (myApp) {
             vm.deletePromoteWay = function () {
                 let deletePromoteMessageId = $("#delete-promote-message");
                 vm.initClearMessage();
-                let promoteWayName = vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay) ? vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay).name : "";
+                let promoteWayName = vm.promoteWayByPlatform.find(a => a._id == vm.deleteOfficer.promoteWay) ? vm.promoteWayByPlatform.find(a => a._id == vm.deleteOfficer.promoteWay).name : "";
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.platformPromoUrl,
                     promoteWayId: vm.deleteOfficer.promoteWay,
                     promoteWayName: promoteWayName
                 };
                 socketService.$socket($scope.AppSocket, 'deletePromoteWay', sendData, function () {
-                        console.log("PromoteWay deleted");
-                        vm.deleteOfficer.promoteWay = "";
-                        vm.deletePromoteMessage = $translate('Approved');
-                        deletePromoteMessageId.css("color", "green");
-                        deletePromoteMessageId.css("font-weight", "bold");
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            console.log("PromoteWay deleted");
+                            vm.deleteOfficer.promoteWay = "";
+                            vm.deletePromoteMessage = $translate('Approved');
+                            deletePromoteMessageId.css("color", "green");
+                            deletePromoteMessageId.css("font-weight", "bold");
+                        });
                     },
                     function (err) {
-                        deletePromoteMessageId.css("color", "red");
-                        deletePromoteMessageId.css("font-weight", "normal");
-                        vm.deletePromoteMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            deletePromoteMessageId.css("color", "red");
+                            deletePromoteMessageId.css("font-weight", "normal");
+                            vm.deletePromoteMessage = err.error.message;
+                            console.log(err);
+                        });
                     });
             };
 
