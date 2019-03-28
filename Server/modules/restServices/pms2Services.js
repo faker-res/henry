@@ -65,7 +65,7 @@ function postRequest (reqData, urlName, method) {
                     }
                 );
             } else {
-                return Promise.reject({message: err});
+                return Promise.reject({message: "Fail to get sub domain"});
             }
 
         }
