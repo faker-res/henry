@@ -28321,6 +28321,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCallBasic.definitionOfAnsweredPhone = vm.selectedPlatform.data.definitionOfAnsweredPhone || "";
                 vm.bulkCallBasic.decomposeAfterNDays = vm.selectedPlatform.data.decomposeAfterNDays || 1;
                 vm.bulkCallBasic.phoneWhiteListExportMaxNumber = vm.selectedPlatform.data.phoneWhiteListExportMaxNumber || 0;
+                vm.bulkCallBasic.defaultFeedbackResult = vm.selectedPlatform.data.defaultFeedbackResult || "";
+                vm.bulkCallBasic.defaultFeedbackTopic = vm.selectedPlatform.data.defaultFeedbackTopic || "";
                 vm.ctiUrlSubDomains = vm.ctiUrlSubDomains || [];
 
                 socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbackResults', {}, function (data) {
@@ -30215,6 +30217,8 @@ define(['js/app'], function (myApp) {
                         teleMarketingMinRedialInterval: srcData.teleMarketingMinRedialInterval,
                         teleMarketingIdleAgentMultiple: srcData.teleMarketingIdleAgentMultiple,
                         definitionOfAnsweredPhone: srcData.definitionOfAnsweredPhone,
+                        defaultFeedbackResult: srcData.defaultFeedbackResult,
+                        defaultFeedbackTopic: srcData.defaultFeedbackTopic,
                         decomposeAfterNDays: srcData.decomposeAfterNDays,
                         phoneWhiteListExportMaxNumber: srcData.phoneWhiteListExportMaxNumber,
                     }
@@ -30999,13 +31003,27 @@ define(['js/app'], function (myApp) {
                 return userIds;
             };
 
-            vm.getAdminNameByDepartment = function (departmentId) {
+            vm.getAdminNameByDepartment = function (departmentId, assignTarget) {
                 if (!departmentId) {
-                    vm.adminList = [];
+                    $scope.$evalAsync(() =>{
+                        if(assignTarget){
+                            vm[assignTarget] = [];
+                        }else{
+                            vm.adminList = [];
+                        }
+                    });
                     return;
+
                 }
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
-                    vm.adminList = data.data;
+                    $scope.$evalAsync(() =>{
+                        if (assignTarget) {
+                            vm[assignTarget] = data.data;
+                        } else {
+                            vm.adminList = data.data;
+                        }
+                    })
+
                 });
             };
 
@@ -31583,13 +31601,18 @@ define(['js/app'], function (myApp) {
                 }
 
                 // getting admin's department might not get the required department by platform for some features
-                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+                vm.loadDepartmentByPlatformId(vm.selectedPlatform.id, vm.selectedPlatform.data.name, null, callback);
+            };
+
+            vm.loadDepartmentByPlatformId = function (platformId, platformName, assignTarget, callback) {
+                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformId},
                     data => {
                         vm.currentPlatformDepartment = data.data;
+                        vm.platformDepartmentObjId = "";
 
                         if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
                             vm.currentPlatformDepartment.map(department => {
-                                if (department.departmentName == vm.selectedPlatform.data.name) {
+                                if (department.departmentName == platformName) {
                                     vm.platformDepartmentObjId = department._id;
                                 }
                             });
@@ -31599,7 +31622,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')) {
-                                vm.getAdminNameByDepartment(vm.platformDepartmentObjId);
+                                vm.getAdminNameByDepartment(vm.platformDepartmentObjId, assignTarget);
                             }
                         }
 
@@ -31608,9 +31631,16 @@ define(['js/app'], function (myApp) {
                                 callback(data.data);
                             }
                         });
+                    },
+                err => {
+                    if (assignTarget) {
+                        $scope.$evalAsync(() => {
+                            vm.promoUrlAdminList = [];
+                        })
                     }
+                }
                 );
-            };
+            }
 
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
@@ -32680,36 +32710,65 @@ define(['js/app'], function (myApp) {
                 let officerPromoteMessageId = $("#officer-promote-message");
                 vm.initClearMessage();
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.platformPromoUrl,
                     name: vm.platformOfficer.way
                 };
                 socketService.$socket($scope.AppSocket, 'addPromoteWay', sendData, function () {
-                        console.log("PromoteWay created");
-                        vm.platformOfficer.way = "";
-                        vm.officerPromoteMessage = $translate('Approved');
-                        officerPromoteMessageId.css("color", "green");
-                        officerPromoteMessageId.css("font-weight", "bold");
-                        vm.getAllPromoteWay();
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            console.log("PromoteWay created");
+                            vm.platformOfficer.way = "";
+                            vm.officerPromoteMessage = $translate('Approved');
+                            officerPromoteMessageId.css("color", "green");
+                            officerPromoteMessageId.css("font-weight", "bold");
+                            vm.getPromoteWay(vm.platformPromoUrl, true);
+                        });
                     },
                     function (err) {
-                        officerPromoteMessageId.css("color", "red");
-                        officerPromoteMessageId.css("font-weight", "normal");
-                        vm.officerPromoteMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            officerPromoteMessageId.css("color", "red");
+                            officerPromoteMessageId.css("font-weight", "normal");
+                            vm.officerPromoteMessage = err.error.message;
+                            console.log(err);
+                        });
                     });
             };
 
-            vm.getAllPromoteWay = function () {
+            vm.getAllPromoteWay = function ( isCreateWay ) {
                 vm.allPromoteWay = {};
                 let query = {
                     platformId: vm.selectedPlatform.id
                 };
+                if ( isCreateWay ) {
+                    query.platformId = vm.platformPromoUrl;
+                }
                 socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
-                        vm.allPromoteWay = data.data;
+                        if ( isCreateWay ) {
+                            vm.platformPromoUrl = data.data;
+                        } else {
+                            vm.allPromoteWay = data.data;
+                        }
                         console.log("vm.allPromoteWay", vm.allPromoteWay);
                         $scope.safeApply();
+                    },
+                    function (err) {
+                        console.log(err);
+                    });
+            };
+
+            vm.getPromoteWay = function (platformId, isCreateWay) {
+                vm.allPromoteWay = {};
+                let query = {
+                    platformId: platformId
+                };
+                socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                        $scope.$evalAsync(() => {
+                            if ( isCreateWay ) {
+                                vm.promoteWayByPlatform = data.data;
+                            } else {
+                                vm.allPromoteWay = data.data;
+                            }
+                            console.log("vm.allPromoteWay", vm.allPromoteWay);
+                        });
                     },
                     function (err) {
                         console.log(err);
@@ -32719,26 +32778,28 @@ define(['js/app'], function (myApp) {
             vm.deletePromoteWay = function () {
                 let deletePromoteMessageId = $("#delete-promote-message");
                 vm.initClearMessage();
-                let promoteWayName = vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay) ? vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay).name : "";
+                let promoteWayName = vm.promoteWayByPlatform.find(a => a._id == vm.deleteOfficer.promoteWay) ? vm.promoteWayByPlatform.find(a => a._id == vm.deleteOfficer.promoteWay).name : "";
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.platformPromoUrl,
                     promoteWayId: vm.deleteOfficer.promoteWay,
                     promoteWayName: promoteWayName
                 };
                 socketService.$socket($scope.AppSocket, 'deletePromoteWay', sendData, function () {
-                        console.log("PromoteWay deleted");
-                        vm.deleteOfficer.promoteWay = "";
-                        vm.deletePromoteMessage = $translate('Approved');
-                        deletePromoteMessageId.css("color", "green");
-                        deletePromoteMessageId.css("font-weight", "bold");
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            console.log("PromoteWay deleted");
+                            vm.deleteOfficer.promoteWay = "";
+                            vm.deletePromoteMessage = $translate('Approved');
+                            deletePromoteMessageId.css("color", "green");
+                            deletePromoteMessageId.css("font-weight", "bold");
+                        });
                     },
                     function (err) {
-                        deletePromoteMessageId.css("color", "red");
-                        deletePromoteMessageId.css("font-weight", "normal");
-                        vm.deletePromoteMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            deletePromoteMessageId.css("color", "red");
+                            deletePromoteMessageId.css("font-weight", "normal");
+                            vm.deletePromoteMessage = err.error.message;
+                            console.log(err);
+                        });
                     });
             };
 
@@ -32858,7 +32919,7 @@ define(['js/app'], function (myApp) {
                     domain: vm.currentUrlEditSelect.domain,
                     officerId: vm.currentUrlEditSelect.admin,
                     way: vm.currentUrlEditSelect.way,
-                    platformId: vm.selectedPlatform.id,
+                    platform: vm.currentUrlEditSelect.platformId,
                     ignoreChecking: vm.ignoreIntervalChecking
                 };
                 console.log("sendData", sendData);
@@ -33004,6 +33065,14 @@ define(['js/app'], function (myApp) {
                         console.log(err);
                     });
             };
+
+            vm.pickCSbyPlatform = function (platformId) {
+                let platform = vm.platformList.filter( item => {
+                    return item.id == platformId;
+                })
+                let platformName = ( platform[0] && platform[0].text ) ? platform[0].text : null;
+                vm.loadDepartmentByPlatformId(platformId, platformName, 'promoUrlAdminList')
+            }
 
             vm.getPlayerCredibilityComment = function (playerObjId) {
                 playerObjId = playerObjId || vm.selectedSinglePlayer._id;

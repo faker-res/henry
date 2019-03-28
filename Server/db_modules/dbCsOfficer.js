@@ -129,11 +129,11 @@ let dbCsOfficer = {
         }
     },
 
-    updateUrl: (urlId, domain, admin, way, platformId, ignoreChecking, lastEditor) => {
+    updateUrl: (urlId, domain, admin, way, platform, ignoreChecking, lastEditor) => {
         let lastUpdate;
         if (ignoreChecking){
             lastUpdate = new Date();
-            return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way, lastEditor, lastUpdate}).lean();
+            return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way, lastEditor, lastUpdate, platform}).lean();
         }
         else{
             return dbconfig.collection_csOfficerUrl.find({ domain: domain }).lean()
@@ -157,7 +157,7 @@ let dbCsOfficer = {
                             })
                         }
                     }
-                    return dbCsOfficer.domainValidityChecking(urlId, platformId)
+                    return dbCsOfficer.domainValidityChecking(urlId, platform)
             })
             .then(
                 count => {
@@ -169,7 +169,7 @@ let dbCsOfficer = {
                     }
                     else{
                         lastUpdate = new Date();
-                        return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way, lastEditor, lastUpdate}).lean();
+                        return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way, lastEditor, lastUpdate, platform}).lean();
                     }
                 })
         }
