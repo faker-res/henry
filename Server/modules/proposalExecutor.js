@@ -2172,9 +2172,7 @@ var proposalExecutor = {
 
                        console.log('withdrawAPIAddr player req:', message);
 
-                       if (extConfig && extConfig[player.platform.bonusSystemType]
-                           && extConfig[player.platform.bonusSystemType].withdrawAPIAddr
-                       ) {
+                       if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'PMS2') {
                            return RESTUtils.getPMS2Services('postWithdraw', message).then(
                                function (bonusData) {
                                    console.log('bonus post success', bonusData);
@@ -2301,9 +2299,7 @@ var proposalExecutor = {
 
                         console.log('withdrawAPIAddr partner req:', message);
 
-                        if (extConfig && extConfig[partner.platform.bonusSystemType]
-                            && extConfig[partner.platform.bonusSystemType].withdrawAPIAddr
-                        ) {
+                        if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'PMS2') {
                             return RESTUtils.getPMS2Services('postWithdraw', message).then(
                                 function (bonusData) {
                                     console.log('partner bonus post success', bonusData);
