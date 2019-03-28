@@ -31628,7 +31628,15 @@ define(['js/app'], function (myApp) {
                                 callback(data.data);
                             }
                         });
-                    });
+                    },
+                err => {
+                    if (assignTarget) {
+                        $scope.$evalAsync(() => {
+                            vm.promoUrlAdminList = [];
+                        })
+                    }
+                }
+                );
             }
 
             vm.initStep = function () {
