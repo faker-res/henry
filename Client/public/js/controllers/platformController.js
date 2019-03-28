@@ -1448,7 +1448,7 @@ define(['js/app'], function (myApp) {
                         vm.configTabClicked();
                         break;
                     case "MessageTemplates":
-                        vm.getPlatformMessageTemplates();
+                        // vm.getPlatformMessageTemplates();
                         break;
                     case "Announcement:":
                         vm.getPlatformAnnouncements();
@@ -32086,10 +32086,9 @@ define(['js/app'], function (myApp) {
                     });
                 };
 
-                vm.getPlatformMessageTemplates = function () {
-
-                    if (!vm.selectedPlatform) return;
-                    $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id}).then(function (data) {
+                vm.getPlatformMessageTemplates = function (platformObjId) {
+                    // if (!vm.selectedPlatform) return;
+                    $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: platformObjId}).then(function (data) {
                         vm.messageTemplatesForPlatform = data.data;
                         console.log("vm.messageTemplatesForPlatform", vm.messageTemplatesForPlatform);
                         // Because selectedMessageTemplate is a reference and not an _id, it is now not holding the correct object, because the list of objects has been re-created
@@ -32125,7 +32124,7 @@ define(['js/app'], function (myApp) {
                             _ids: [vm.selectedMessageTemplate._id]
                         })
                     ).then(
-                        () => vm.getPlatformMessageTemplates()
+                        () => vm.getPlatformMessageTemplates(vm.filterMessageTemplatesPlatform)
                     ).done();
                 };
 
@@ -32135,10 +32134,10 @@ define(['js/app'], function (myApp) {
                         vm.editingMessageTemplate.type = vm.smsTitle;
                     }
                     var templateData = vm.editingMessageTemplate;
-                    templateData.platform = vm.selectedPlatform.id;
+                    templateData.platform = vm.filterMessageTemplatesPlatform;
                     vm.resetToViewMessageTemplate();
                     $scope.$socketPromise('createMessageTemplate', templateData).then(
-                        () => vm.getPlatformMessageTemplates()
+                        () => vm.getPlatformMessageTemplates(vm.filterMessageTemplatesPlatform)
                     ).done();
                 };
 
@@ -32156,7 +32155,7 @@ define(['js/app'], function (myApp) {
                         }
                     ).then(function (data) {
                         var savedTemplateId = data.data._id;
-                        return vm.getPlatformMessageTemplates().then(
+                        return vm.getPlatformMessageTemplates(vm.filterMessageTemplatesPlatform).then(
                             () => selectMessageWithId(savedTemplateId)
                         );
                     }).done();
