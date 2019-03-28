@@ -145,6 +145,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawWinnerMonitorTable = (data) => {
+            if (!data || !data.length) {
+                data = [];
+                $('#winnerMonitorTableSpin').hide();
+            }
             data.map(
                 record => {
                     record.playerName$ = record.player && record.player.name || "";
@@ -186,6 +190,9 @@ define(['js/app'], function (myApp) {
                         data: "credibilityRemarks$",
                         render: (data, type, row) => {
                             let output = "";
+                            if (!data || !data.length) {
+                                return "";
+                            }
                             data.map(function (remarkName) {
                                 output += remarkName;
                                 output += "<br>";
@@ -223,10 +230,10 @@ define(['js/app'], function (myApp) {
 
             vm.winnerMonitorTable = utilService.createDatatableWithFooter('#winnerMonitorTable', tableOptions, {}, true);
 
-            $('#winnerMonitorTable').off('order.dt');
-            $('#winnerMonitorTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'winnerMonitorQuery', vm.getWinnerMonitorRecord);
-            });
+            // $('#winnerMonitorTable').off('order.dt');
+            // $('#winnerMonitorTable').on('order.dt', function (event, a, b) {
+            //     vm.commonSortChangeHandler(a, 'winnerMonitorQuery', vm.getWinnerMonitorRecord);
+            // });
             $('#winnerMonitorTable').resize();
 
             $('#winnerMonitorTableSpin').hide();
@@ -350,6 +357,14 @@ define(['js/app'], function (myApp) {
             return $scope.$socketPromise("getThreeMonthPlayerCreditSummary", {playerObjId: playerObjId}).then(
                 data => {
                     return data.data;
+                }
+            );
+        };
+
+        vm.debugSummaryRecord = function () {
+            return $scope.$socketPromise("debugConsumptionHourSummaryRecord", {platformObjId: vm.selectedPlatform._id, startTime: vm.winnerMonitorQuery.startTime, endTime: vm.winnerMonitorQuery.endTime}).then(
+                data => {
+                    console.log("debugConsumptionHourSummaryRecord", data);
                 }
             );
         };
