@@ -31599,33 +31599,6 @@ define(['js/app'], function (myApp) {
 
                 // getting admin's department might not get the required department by platform for some features
                 vm.loadDepartmentByPlatformId(vm.selectedPlatform.id, vm.selectedPlatform.data.name, null, callback);
-                // socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
-                //     data => {
-                //         vm.currentPlatformDepartment = data.data;
-                //
-                //         if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
-                //             vm.currentPlatformDepartment.map(department => {
-                //                 if (department.departmentName == vm.selectedPlatform.data.name) {
-                //                     vm.platformDepartmentObjId = department._id;
-                //                 }
-                //             });
-                //
-                //             if (!vm.platformDepartmentObjId) {
-                //                 vm.platformDepartmentObjId = "";
-                //             }
-                //
-                //             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')) {
-                //                 vm.getAdminNameByDepartment(vm.platformDepartmentObjId);
-                //             }
-                //         }
-                //
-                //         $scope.$evalAsync(() => {
-                //             if (typeof(callback) == 'function') {
-                //                 callback(data.data);
-                //             }
-                //         });
-                //     }
-                // );
             };
 
             vm.loadDepartmentByPlatformId = function (platformId, platformName, assignTarget, callback) {
@@ -31655,16 +31628,7 @@ define(['js/app'], function (myApp) {
                                 callback(data.data);
                             }
                         });
-                    },
-                err => {
-                    if (assignTarget) {
-                        $scope.$evalAsync(() => {
-                            vm[assignTarget] = [];
-                        })
-
-                    }
-                }
-                );
+                    });
             }
 
             vm.initStep = function () {
