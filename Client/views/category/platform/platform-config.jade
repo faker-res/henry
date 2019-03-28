@@ -527,7 +527,7 @@
                         tbody
                             tr(ng-repeat='item in vm.callRequestConfig.callRequestLineConfig')
                                 td
-                                    select.form-control(ng-model='item.status', ng-disabled='!vm.configTableEdit')
+                                    select.form-control(ng-model='item.status', ng-disabled='!vm.configTableEdit', convert-to-number)
                                         option(ng-value="zeroOne.one") {{"Open" | translate}}
                                         option(ng-value="zeroOne.zero") {{"Closed" | translate}}
                                 td
@@ -543,7 +543,7 @@
 
                             tr(ng-if='vm.configTableEdit')
                                 td
-                                    select.form-control(ng-model='vm.tempCallRequestEntry.status', ng-disabled='!vm.configTableEdit')
+                                    select.form-control(ng-model='vm.tempCallRequestEntry.status', ng-disabled='!vm.configTableEdit', convert-to-number)
                                         option(ng-value="zeroOne.one") {{"Open" | translate}}
                                         option(ng-value="zeroOne.zero") {{"Closed" | translate}}
                                 td

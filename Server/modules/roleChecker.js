@@ -750,7 +750,10 @@ var roleChecker = {
             },
             AttemptCreate:{
                 Read: []
-            }
+            },
+            WinnerMonitor: {
+                Read:["getWinnerMonitorData"]
+            },
         },
         Payment: {
             "BankCardGroup": {
