@@ -21,7 +21,8 @@ define(['js/app'], function (myApp) {
         vm.gameDisplay = {
             1: $translate("Horizontal"),
             2: $translate("Vertical"),
-            3: $translate("Horizontal / Vertical")
+            3: $translate("Horizontal / Vertical"),
+            4: $translate("No need setup")
         }
 
         vm.allProviderStatusKeys = ['NORMAL', 'MAINTENANCE', 'HALT'];
