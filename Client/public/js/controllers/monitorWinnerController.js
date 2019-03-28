@@ -167,7 +167,6 @@ define(['js/app'], function (myApp) {
                     record.consumptionAmount$ = $noRoundTwoDecimalPlaces(record.consumptionAmount);
                     record.consumptionValidAmount$ = $noRoundTwoDecimalPlaces(record.consumptionValidAmount);
                     record.consumptionBonusAmount$ = $noRoundTwoDecimalPlaces(record.consumptionBonusAmount);
-                    record.bonusValidDifference$ = $noRoundTwoDecimalPlaces(record.bonusValidDifference);
                     record.bonusValidRatio$ = $noRoundTwoDecimalPlaces(record.bonusValidRatio*-1) + "%";
                 }
             );
@@ -202,7 +201,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("TIMES_CONSUMED"), data: "consumptionTimes"},
                     {title: $translate("TOTAL_CONSUMPTION"), data: "consumptionAmount$"},
                     {title: $translate("VALID_CONSUMPTION"), data: "consumptionValidAmount$"},
-                    {title: $translate("PLAYER_PROFIT_AMOUNT"), data: "bonusValidDifference$"},
+                    {title: $translate("PLAYER_PROFIT_AMOUNT"), data: "consumptionBonusAmount$"},
                     {title: $translate("COMPANY_EARNING_RATIO"), data: "bonusValidRatio$"},
                     {
                         title: "",

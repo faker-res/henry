@@ -129,23 +129,12 @@ const dbPlayerConsumptionHourSummary = {
                                 consumptionValidAmount: 1,
                                 consumptionBonusAmount: 1,
                                 consumptionTimes: 1,
-                                bonusValidDifference: {
-                                    $subtract: [
-                                        "$consumptionBonusAmount",
-                                        "$consumptionValidAmount"
-                                    ]
-                                },
                                 bonusValidRatio: {
                                     $divide: [
                                         {
                                             $multiply: [
                                                 100,
-                                                {
-                                                    $subtract: [
-                                                        "$consumptionBonusAmount",
-                                                        "$consumptionValidAmount"
-                                                    ]
-                                                }
+                                                "$consumptionBonusAmount"
                                             ]
                                         },
                                         "$consumptionValidAmount"
@@ -156,7 +145,7 @@ const dbPlayerConsumptionHourSummary = {
                         {
                             $match: {
                                 bonusValidRatio: {$gte: config.companyWinRatio},
-                                bonusValidDifference: {$gte: config.playerWonAmount},
+                                consumptionBonusAmount: {$gte: config.playerWonAmount},
                                 consumptionTimes: {$gte: config.consumptionTimes}
                             }
                         }
