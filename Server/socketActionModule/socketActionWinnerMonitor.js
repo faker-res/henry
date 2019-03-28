@@ -62,6 +62,12 @@ function socketActionWinnerMonitor (socketIO, socket) {
             let isValidData = Boolean(data && data.playerObjId);
             socketUtil.emitter(self.socket, dbLargeWithdrawal.getThreeMonthPlayerCreditSummary, [data.playerObjId], actionName, isValidData);
         },
+
+        debugConsumptionHourSummaryRecord: function debugConsumptionHourSummaryRecord (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionHourSummary.debugSummaryRecord, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
+        },
     };
 
     socketActionWinnerMonitor = this.actions;

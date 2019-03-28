@@ -217,7 +217,14 @@ const dbPlayerConsumptionHourSummary = {
                 }
             }
         );
-    }
+    },
+
+    debugSummaryRecord: (platformObjId, startTime, endTime) => {
+        return dbconfig.collection_playerConsumptionHourSummary.find({
+            platform: platformObjId,
+            startTime: {$gte: new Date(startTime), $lt: new Date(endTime)}
+        }).sort({_id: -1}).lean();
+    },
 };
 
 let proto = dbPlayerConsumptionHourSummaryFunc.prototype;
