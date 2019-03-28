@@ -85,9 +85,9 @@
                                 a {{'SELECT' | translate}}
                         tr(ng-if="vm.urlTableEdit")
                             td
-
+                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.platformId', required, ng-options='a.id as a.data.name for a in vm.platformList', ng-change='vm.pickCSbyPlatform(vm.currentUrlEditSelect.platformId);vm.getPromoteWay(vm.currentUrlEditSelect.platformId)')
                             td
-                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin._id', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.adminList')
+                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin._id', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.promoUrlAdminList')
                             td
                                 select.form-control#officerPromoteOption(ng-model='vm.currentUrlEditSelect.way', ng-disabled="!vm.urlTableEdit", required)
                                     option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
@@ -95,7 +95,7 @@
                                 input.form-control(type="text", ng-model="vm.currentUrlEditSelect.domain", ng-disabled="!vm.urlTableEdit", required)
                         tr(ng-if="vm.urlTableAdd")
                             td
-                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.admin._id', required, ng-options='a.id as a.data.name for a in vm.platformList', ng-change='vm.pickCSbyPlatform(vm.currentUrlEditSelect.admin._id)')
+                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect.platformId', required, ng-options='a.id as a.data.name for a in vm.platformList', ng-change='vm.pickCSbyPlatform(vm.currentUrlEditSelect.platformId);vm.getPromoteWay(vm.currentUrlEditSelect.platformId)')
                             td
                                 select.form-control#officerOption(ng-model='vm.addOfficerUrl.officer', required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.promoUrlAdminList')
                                     option(value='') {{'CHOOSE_OFFICER' | translate}}

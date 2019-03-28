@@ -31472,7 +31472,10 @@ define(['js/app'], function (myApp) {
                     },
                 err => {
                     if (assignTarget) {
-                        vm[assignTarget] = [];
+                        $scope.$evalAsync(() => {
+                            vm[assignTarget] = [];
+                        })
+
                     }
                 }
                 );
@@ -32583,6 +32586,22 @@ define(['js/app'], function (myApp) {
                     });
             };
 
+            vm.getPromoteWay = function (platformId) {
+                vm.allPromoteWay = {};
+                let query = {
+                    platformId: platformId
+                };
+                socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                        $scope.$evalAsync(() => {
+                            vm.allPromoteWay = data.data;
+                            console.log("vm.allPromoteWay", vm.allPromoteWay);
+                        });
+                    },
+                    function (err) {
+                        console.log(err);
+                    });
+            };
+
             vm.deletePromoteWay = function () {
                 let deletePromoteMessageId = $("#delete-promote-message");
                 vm.initClearMessage();
@@ -32725,7 +32744,7 @@ define(['js/app'], function (myApp) {
                     domain: vm.currentUrlEditSelect.domain,
                     officerId: vm.currentUrlEditSelect.admin,
                     way: vm.currentUrlEditSelect.way,
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.currentUrlEditSelect.platformId,
                     ignoreChecking: vm.ignoreIntervalChecking
                 };
                 console.log("sendData", sendData);
