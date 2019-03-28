@@ -74,8 +74,8 @@ function socketActionCsOfficer(socketIO, socket) {
 
         updateUrl: function updateUrl(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.urlId && data.domain && data.officerId && data.way && data.platformId && typeof data.ignoreChecking == 'boolean');
-            socketUtil.emitter(self.socket, dbCsOfficer.updateUrl, [data.urlId, data.domain, data.officerId, data.way, data.platformId, data.ignoreChecking, getAdminId()], actionName, isValidData);
+            let isValidData = Boolean(data && data.urlId && data.domain && data.officerId && data.way && data.platform && typeof data.ignoreChecking == 'boolean');
+            socketUtil.emitter(self.socket, dbCsOfficer.updateUrl, [data.urlId, data.domain, data.officerId, data.way, data.platform, data.ignoreChecking, getAdminId()], actionName, isValidData);
         },
 
         searchUrl: function searchUrl(data) {
