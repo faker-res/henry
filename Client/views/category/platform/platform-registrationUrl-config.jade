@@ -70,7 +70,7 @@
                             th.sorting(width="20%")
                             th(width="5%", ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
                     tbody
-                        tr(ng-if="!vm.urlTableAdd && !vm.urlTableEdit", ng-repeat="(i,url) in vm.allUrl", sn-selectable-model="vm.selectedOfficerUrl", sn-selectable-value="url", ng-click="vm.currentUrlEditSelect = url")
+                        tr(ng-if="!vm.urlTableAdd && !vm.urlTableEdit", ng-repeat="(i,url) in vm.allUrl", sn-selectable-model="vm.selectedOfficerUrl", sn-selectable-value="url", ng-click="vm.currentUrlEditSelect = url; vm.currentUrlEditSelect.platformId = ( url.platform && url.platform._id ) ? url.platform._id : '';")
                             td
                                 text {{url.platform.name || ''}}
                             td

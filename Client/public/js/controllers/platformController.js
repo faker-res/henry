@@ -30835,8 +30835,9 @@ define(['js/app'], function (myApp) {
                         }else{
                             vm.adminList = [];
                         }
-                        return;
                     });
+                    return;
+
                 }
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
                     $scope.$evalAsync(() =>{
@@ -31447,6 +31448,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformId},
                     data => {
                         vm.currentPlatformDepartment = data.data;
+                        vm.platformDepartmentObjId = "";
 
                         if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
                             vm.currentPlatformDepartment.map(department => {
@@ -32744,7 +32746,7 @@ define(['js/app'], function (myApp) {
                     domain: vm.currentUrlEditSelect.domain,
                     officerId: vm.currentUrlEditSelect.admin,
                     way: vm.currentUrlEditSelect.way,
-                    platformId: vm.currentUrlEditSelect.platformId,
+                    platform: vm.currentUrlEditSelect.platformId,
                     ignoreChecking: vm.ignoreIntervalChecking
                 };
                 console.log("sendData", sendData);
