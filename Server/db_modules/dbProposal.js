@@ -26,6 +26,7 @@ var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
+const dbRewardUtil = require("./../db_common/dbRewardUtility");
 var dbProposalUtility = require('./../db_common/dbProposalUtility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var moment = require('moment-timezone');
@@ -293,10 +294,6 @@ var proposal = {
                 //     proposalData.data.applyAmount = applyAmount;
                 // }
 
-                if (consecutiveNumber) {
-                    proposalData.data.consecutiveNumber = consecutiveNumber;
-                }
-
                 if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId.proposalId &&
                     eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                     proposalData.data.topUpProposalId = rewardGroupRecord.topUpRecordObjId.proposalId;
@@ -328,6 +325,15 @@ var proposal = {
                 if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && eventData.condition
                     && eventData.condition.definePlayerLoginMode && typeof(eventData.condition.definePlayerLoginMode) != 'undefined'){
                     proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
+
+                    if (eventData.condition.definePlayerLoginMode == 3) {
+                        proposalData.data.rewardPeriod = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(rewardGroupRecord.lastApplyDate, eventData);
+                    }
+
+                }
+
+                if (consecutiveNumber) {
+                    proposalData.data.consecutiveNumber = consecutiveNumber;
                 }
 
                 return proposal.createProposalWithTypeId(eventData.executeProposal, proposalData)
@@ -337,7 +343,7 @@ var proposal = {
                 // update playerRetentionRewardRecord
                 let updateQuery = {lastReceivedDate: new Date() };
                 if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode){
-                    if (eventData.condition.definePlayerLoginMode == 1){
+                    if (eventData.condition.definePlayerLoginMode == 1 || eventData.condition.definePlayerLoginMode == 3){
                         // accumulative
                         updateQuery.$inc = {accumulativeDay: 1};
                     }
@@ -718,7 +724,7 @@ var proposal = {
             .populate({path: "type", model: dbconfig.collection_proposalType})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
-            .populate({path: 'data.platformId', model: dbconfig.collection_platform})
+            .then(populateProposalsWithPlatformData)
             .then(
                 proposalData => {
                     let allProm = [];
@@ -1677,14 +1683,13 @@ var proposal = {
                         proposalTypesId.push(types[i]._id);
                     }
                     return dbconfig.collection_proposal.find({type: {$in: proposalTypesId}}).populate({
-                        path: 'data.platformId', model: dbconfig.collection_platform
-                    }).populate({
                         path: 'type',
                         model: dbconfig.collection_proposalType
                     }).populate({
                         path: 'process',
                         model: dbconfig.collection_proposalProcess
                     }).sort({createTime: -1}).limit(constSystemParam.MAX_RECORD_NUM * 10).lean()
+                        .then(populateProposalsWithPlatformData)
                         .then(
                             data => {
                                 data.map(item => function (item) {
@@ -2049,7 +2054,9 @@ var proposal = {
                         // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
                         .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                         .populate({path: 'isLocked', model: dbconfig.collection_admin})
-                        .sort(sortCol).skip(index).limit(size).then(data => {
+                        .sort(sortCol).skip(index).limit(size)
+                        .then(populateProposalsWithPlatformData)
+                        .then(data => {
                             function getPlayerLevel(info) {
                                 var playerObjId = info && info.data ? info.data.playerObjId : null;
                                 if (!playerObjId) return info;
@@ -2262,9 +2269,9 @@ var proposal = {
                                 .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                                 .populate({path: 'isLocked', model: dbconfig.collection_admin})
                                 .populate({path: 'data.playerObjId', model: dbconfig.collection_players})
-                                .populate({path: 'data.platformId', model: dbconfig.collection_platform})
                                 //.populate({path: 'data.playerObjId.csOfficer', model: dbconfig.collection_csOfficerUrl})
                                 .sort(sortCol).skip(index).limit(size).lean()
+                                .then(populateProposalsWithPlatformData)
                                 .then(
                                     pdata => {
                                         pdata.map(item => {
@@ -2333,8 +2340,8 @@ var proposal = {
                                             .populate({path: 'process', model: dbconfig.collection_proposalProcess})
                                             // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
                                             .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
-                                            .populate({path: 'isLocked', model: dbconfig.collection_admin})
-                                            .populate({path: 'data.platformId', model: dbconfig.collection_platform})
+                                            .populate({path: 'isLocked', model: dbconfig.collection_admin}).lean()
+                                            .then(populateProposalsWithPlatformData)
                                     }
 
                                     for (var index in aggr) {
@@ -3422,6 +3429,10 @@ var proposal = {
         let isApprove = false;
         let isSuccess = false;
         let prom = Promise.resolve([]);
+        let platformListQuery = [];
+        let promoCodeProposalQuery = {
+            name: ["PlayerLimitedOfferReward","PlayerPromoCodeReward"]
+        };
 
         if (reqData.inputDevice) {
             reqData.inputDevice = Number(reqData.inputDevice);
@@ -3446,11 +3457,20 @@ var proposal = {
                 };
             }
         }
-        if (!reqData.type && reqData.platformId) {
+
+        if(reqData.platformList && reqData.platformList.length > 0) {
+            platformListQuery = {$in: reqData.platformList.map(item=>{return ObjectId(item)})};
+            promoCodeProposalQuery.platformId = platformListQuery;
+        }
+
+        if (!reqData.type) {
             let searchQuery = {
-                platformId: ObjectId(reqData.platformId),
                 name: {$nin:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
             };
+
+            if(reqData.platformList && reqData.platformList.length > 0) {
+                searchQuery.platformId = platformListQuery;
+            }
 
             prom = dbconfig.collection_proposalType.find(searchQuery).lean().then(
                 function (data) {
@@ -3477,9 +3497,12 @@ var proposal = {
             ).then(
                 () => {
                     let approvedProposalTypeQuery = {
-                        platformId: ObjectId(reqData.platformId),
                         name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
                     };
+
+                    if(reqData.platformList && reqData.platformList.length > 0) {
+                        approvedProposalTypeQuery.platformId = platformListQuery;
+                    }
 
                     return dbconfig.collection_proposalType.find(approvedProposalTypeQuery).lean().then(
                         approvedProposalType => {
@@ -3497,7 +3520,7 @@ var proposal = {
                 }
             ).then(
                 function (proposalTypeIdList) { // all proposal type ids of this platform
-                    delete queryData.platformId;
+                    delete queryData.platformList;
 
                     let orQuery = [];
 
@@ -3521,32 +3544,56 @@ var proposal = {
                         model: dbconfig.collection_proposalProcess
                     }).populate({
                         path: "type", model: dbconfig.collection_proposalType
-                    }).populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
-                    let c = dbconfig.collection_proposal.aggregate([
-                        {
-                            $match: queryData
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {$sum: "$data.amount"},
-                                totalRewardAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.rewardAmount", NaN]},
-                                            0,
-                                            "$data.rewardAmount"
-                                        ]
-                                    }
-                                },
-                                // totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                totalTopUpAmount: {$sum: "$data.topUpAmount"},
-                                totalUpdateAmount: {$sum: "$data.updateAmount"},
-                                totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
-                                totalCommissionAmount: {$sum: "$data.commissionAmount"}
+                    }).lean().then(populateProposalsWithPlatformData);
+                    let c = dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(
+                        promoCodeProposalType => {
+                            let playerPromoCodeRewardObjId;
+                            if (promoCodeProposalType && promoCodeProposalType.length) {
+                                playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
                             }
+
+                            return dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: queryData
+                                },
+                                {
+                                    $group: {
+                                        _id: null,
+                                        totalAmount: {$sum: "$data.amount"},
+                                        totalRewardAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.rewardAmount", NaN]},
+                                                    0,
+                                                    "$data.rewardAmount"
+                                                ]
+                                            }
+                                        },
+                                        // totalRewardAmount: {$sum: "$data.rewardAmount"},
+                                        totalTopUpAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$or: [
+                                                            {$eq: ["$data.topUpAmount", NaN]},
+                                                            {$setIsSubset: [
+                                                                ["$type"],
+                                                                playerPromoCodeRewardObjId
+                                                            ]}
+                                                        ]},
+                                                    0,
+                                                    "$data.topUpAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalUpdateAmount: {$sum: "$data.updateAmount"},
+                                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
+                                    }
+                                }
+                            ]).read("secondaryPreferred");
                         }
-                    ]).read("secondaryPreferred");
+                    );
+
                     let d = dbconfig.collection_proposal.distinct('data.playerName', queryData);
                     return Promise.all([a, b, c, d]);
                 },
@@ -3592,9 +3639,11 @@ var proposal = {
             let a, b, c, d;
 
             let searchQuery = {
-                platformId: ObjectId(reqData.platformId),
                 name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
             };
+            if(reqData.platformList && reqData.platformList.length > 0) {
+                searchQuery.platformId = platformListQuery;
+            }
 
             prom = dbconfig.collection_proposalType.find(searchQuery, {_id: 1}).lean().then(
                 approvedProposalType => {
@@ -3606,13 +3655,21 @@ var proposal = {
 
                     return approveProposalTypeList;
                 }
-            ).then(
-                () => {
-                    delete reqData.platformId;
+            ).then(()=> {
+                let query = {
+                    name: reqData.type
+                };
+                if(reqData.platformList && reqData.platformList.length > 0) {
+                    query.platformId = platformListQuery;
+                }
+                return dbconfig.collection_proposalType.find(query, {_id: 1}).lean();
+            }).then(
+                (selectedProposalTypeList) => {
+                    delete reqData.platformList;
                     let approvedTypeList = []; // proposalType list which Approved status = 已审核
                     let successTypeList = []; // proposalType list which Approved status = 成功
                     let orQuery = [];
-
+                    reqData.type = {$in: selectedProposalTypeList.map(proposal=>{return ObjectId(proposal._id)})};
                     reqData.type["$in"].forEach(
                         type => {
                             if(type){
@@ -3631,7 +3688,7 @@ var proposal = {
                         //if filter status is 已审核，find from proposalType list which Approved status = 已审核
                         reqData.type = {$in: approvedTypeList};
                     }else if(isSuccess){
-                        //if filter status is 陈宫，find from proposalType list which Approved status = 成功
+                        //if filter status is 成功，find from proposalType list which Approved status = 成功
                         delete reqData.status;
                         delete reqData.type;
                         reqData["$and"] = [];
@@ -3644,72 +3701,87 @@ var proposal = {
                     a = dbconfig.collection_proposal.find(reqData).lean().count();
                     b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                         .populate({path: "type", model: dbconfig.collection_proposalType})
-                        .populate({path: "process", model: dbconfig.collection_proposalProcess})
-                        .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
-                    c = dbconfig.collection_proposal.aggregate([
-                        {
-                            $match: reqData
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.amount", NaN]},
-                                            0,
-                                            "$data.amount"
-                                        ]
-                                    }
-                                },
-                                totalRewardAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.rewardAmount", NaN]},
-                                            0,
-                                            "$data.rewardAmount"
-                                        ]
-                                    }
-                                },
-                                totalTopUpAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.topUpAmount", NaN]},
-                                            0,
-                                            "$data.topUpAmount"
-                                        ]
-                                    }
-                                },
-                                totalUpdateAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.updateAmount", NaN]},
-                                            0,
-                                            "$data.updateAmount"
-                                        ]
-                                    }
-                                },
-                                totalNegativeProfitAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.negativeProfitAmount", NaN]},
-                                            0,
-                                            "$data.negativeProfitAmount"
-                                        ]
-                                    }
-                                },
-                                totalCommissionAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.commissionAmount", NaN]},
-                                            0,
-                                            "$data.commissionAmount"
-                                        ]
-                                    }
-                                },
+                        .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean()
+                        .then(populateProposalsWithPlatformData);
+                    c = dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(
+                        promoCodeProposalType => {
+                            let playerPromoCodeRewardObjId;
+                            if(promoCodeProposalType && promoCodeProposalType.length){
+                                playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
                             }
+
+                            return dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: reqData
+                                },
+                                {
+                                    $group: {
+                                        _id: null,
+                                        totalAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.amount", NaN]},
+                                                    0,
+                                                    "$data.amount"
+                                                ]
+                                            }
+                                        },
+                                        totalRewardAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.rewardAmount", NaN]},
+                                                    0,
+                                                    "$data.rewardAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalTopUpAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$or: [
+                                                        {$eq: ["$data.topUpAmount", NaN]},
+                                                        {$setIsSubset: [
+                                                            ["$type"],
+                                                            playerPromoCodeRewardObjId
+                                                        ]}
+                                                    ]},
+                                                    0,
+                                                    "$data.topUpAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalUpdateAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.updateAmount", NaN]},
+                                                    0,
+                                                    "$data.updateAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalNegativeProfitAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.negativeProfitAmount", NaN]},
+                                                    0,
+                                                    "$data.negativeProfitAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalCommissionAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.commissionAmount", NaN]},
+                                                    0,
+                                                    "$data.commissionAmount"
+                                                ]
+                                            }
+                                        },
+                                    }
+                                }
+                            ]).read("secondaryPreferred");
                         }
-                    ]).read("secondaryPreferred");
+                    );
 
                     d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
 
@@ -8198,7 +8270,7 @@ var proposal = {
     getProposalStatusList: function (proposalIds) {
         let result = [];
 
-        return dbconfig.collection_proposal.find({proposalId: {$in: proposalIds}}, {proposalId: 1, status: 1, 'data.amount': 1, 'data.actualAmountReceived': 1, 'data.rate': 1, type: 1})
+        return dbconfig.collection_proposal.find({proposalId: {$in: proposalIds}}, {proposalId: 1, status: 1, 'data.amount': 1, 'data.actualAmountReceived': 1, 'data.rate': 1, type: 1, createTime: 1})
             .populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
             proposalData => {
                 if (proposalData && proposalData.length > 0) {
@@ -8208,7 +8280,8 @@ var proposal = {
                                 proposalId: data.proposalId,
                                 status: data.status,
                                 amount: data.data.amount,
-                                type: data.type && data.type.name ? data.type.name : ""
+                                type: data.type && data.type.name ? data.type.name : "",
+                                createTime: data.createTime
                             };
 
                             if (data.data.actualAmountReceived) {
@@ -9199,11 +9272,12 @@ function isBankInfoMatched(proposalData, playerId){
 
                     return proposal.updateProposalData({_id: proposalData._id}, dataToUpdate).then(
                         () => {
+                            console.log("player withdrawal checking 1", playerId);
                             return proposalList;
                         }
                     ).catch(errorUtils.reportError);
                 }
-
+                console.log("player withdrawal checking 2", playerId);
                 return proposalList;
             }
         ).then(
@@ -9217,27 +9291,33 @@ function isBankInfoMatched(proposalData, playerId){
                                 if (proposal.data) {
                                     if (proposal.data.bankAccount) {
                                         if (!playerData.bankAccount) {
+                                            console.log("player withdrawal checking bankAccount 1_2", playerId);
                                             return false;
                                         } else if (proposal.data.bankAccount != playerData.bankAccount) {
+                                            console.log("player withdrawal checking bankAccount 2_2", playerId);
                                             return false;
                                         }
                                     }
                                     if (proposal.data.bankAccount2) {
                                         if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount2) {
+                                            console.log("player withdrawal checking bankAccount 2_2", playerId);
                                             return false;
                                         } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount2 != playerData.multipleBankDetailInfo.bankAccount2) {
+                                            console.log("player withdrawal checking bankAccount 2_2", playerId);
                                             return false;
                                         }
                                     }
                                     if (proposal.data.bankAccount3) {
                                         if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount3) {
+                                            console.log("player withdrawal checking bankAccount 3_1", playerId);
                                             return false;
                                         } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount3 != playerData.multipleBankDetailInfo.bankAccount3) {
+                                            console.log("player withdrawal checking bankAccount 3_2", playerId);
                                             return false;
                                         }
                                     }
                                 }
-
+                                console.log("player withdrawal checking 3", playerId);
                                 return true;
                             }
                         }
@@ -10324,6 +10404,30 @@ function getRemark (lineNo, callbackRemark) {
         remark = (remarkMsg[lineNo] && remarkMsg[lineNo][1] && lineNo!= "1") ? remarkMsg[lineNo][1] : '';
     }
     return remark;
+}
+
+function populateProposalsWithPlatformData (proposals) {
+    let allPlatforms = {};
+    function populate(proposal) {
+        if(proposal.data && proposal.data.platformId) {
+            proposal.data.platformId = allPlatforms[proposal.data.platformId.toString()];
+        }
+    }
+    return dbconfig.collection_platform.find().lean().then(platforms=>{
+        platforms.forEach(platform=>{
+            allPlatforms[platform._id] = platform;
+            allPlatforms[platform.platformId] = platform;
+        });
+        if(proposals instanceof Array) {
+            proposals.forEach(proposal=>{
+                populate(proposal);
+            });
+        } else {
+            populate(proposals);
+        }
+
+        return proposals;
+    });
 }
 
 var proto = proposalFunc.prototype;

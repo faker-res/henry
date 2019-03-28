@@ -424,9 +424,10 @@ const dbRewardTask = {
         };
 
         return dbconfig.collection_rewardTaskGroup.find(queryObj)
-            .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup})
+            .populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).lean()
             .then(data => {
                 rewardTaskGroup = data[0];
+                console.log("checking rewardTaskGroup", rewardTaskGroup)
                 let createTime = data[0].createTime ? data[0].createTime :null;
                 if (!createTime) {
                     createTime = new Date(query.from);
@@ -454,11 +455,13 @@ const dbRewardTask = {
                 } else {
                     rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(query._id), String(query._id)]};
                 }
+                console.log("checking rewardTaskProposalQuery", rewardTaskProposalQuery)
                 return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
                     path: "type",
                     model: dbconfig.collection_proposalType
                 }).lean().sort(sortCol);
             }).then(udata => {
+                console.log("checking udata.length", udata.length || 0)
                 udata.map(item => {
                     if(!item.data.topUpProposal) {
                         item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';

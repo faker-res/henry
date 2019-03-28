@@ -310,10 +310,10 @@ define(['js/app'], function (myApp) {
             vm.showPageName = '';
             vm.setPlatform(JSON.stringify(platObj));
         }
-        vm.showProposalModal2 = function (proposalId) {
+        vm.showProposalModal2 = function (proposalId, platformObjId) {
             vm.proposalDialog = 'proposalTopUp';
             socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
-                platformId: vm.selectedPlatform._id,
+                platformId: platformObjId || vm.selectedPlatform._id,
                 proposalId: proposalId
             }, function (data) {
                 vm.selectedProposal = data.data;
@@ -1115,6 +1115,7 @@ define(['js/app'], function (myApp) {
             vm.generalRewardProposalQuery = {};
             vm.generalRewardReportTableProp = {};
             vm.operationReportLoadingStatus = '';
+            vm.refreshSPicker();
 
             drawReportQuery(choice, isReset);
 
@@ -1624,12 +1625,13 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.type = 'all';
             vm.queryTopup.playerName = '';
             vm.queryTopup.paymentChannel = 'all';
+            vm.queryTopup.platformList = [];
         }
         vm.searchTopupRecord = function (newSearch, isExport = false) {
             vm.reportSearchTimeStart = new Date().getTime();
 
             console.log('vm.queryTopup', vm.queryTopup);
-            vm.queryTopup.platformId = vm.curPlatformId;
+            // vm.queryTopup.platformId = vm.curPlatformId;
             $('#topupTableSpin').show();
 
             var staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
@@ -1658,11 +1660,12 @@ define(['js/app'], function (myApp) {
                 bankTypeId: vm.queryTopup.bankTypeId,
                 //new
                 merchantNo: vm.queryTopup.merchantNo,
+                platformList: vm.queryTopup.platformList,
                 status: staArr,
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
 
-                platformId: vm.curPlatformId,
+                // platformId: vm.curPlatformId,
                 index: isExport ? 0 : (newSearch ? 0 : (vm.queryTopup.index || 0)),
                 limit: isExport ? 5000 : (vm.queryTopup.limit || 10),
                 sortCol: vm.queryTopup.sortCol || {proposalId: -1}
@@ -1708,7 +1711,7 @@ define(['js/app'], function (myApp) {
                                 if(item.data.merchantNo){
                                     merchantNo = item.data.merchantNo;
                                 }
-                                item.merchantNoDisplay = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                                item.merchantNoDisplay = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                             } else {
                                 //show topup type for other types
                                 item.topupTypeStr = $translate(item.type.name)
@@ -1789,7 +1792,7 @@ define(['js/app'], function (myApp) {
                         data: "proposalId",
                         render: function (data, type, row) {
                             data = String(data);
-                            return '<a ng-click="vm.showProposalModal2(\'' + data + '\')">' + data + '</a>';
+                            return '<a ng-click="vm.showProposalModal2(\'' + data + '\', \'' + row.data.platformId._id + '\')">' + data + '</a>';
                         }
                     },
                     {
@@ -1802,7 +1805,8 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            var text = $translate(data ? vm.playerInputDevice[data] : vm.playerInputDevice['0']);
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let text = $translate(inputDevice ? vm.playerInputDevice[inputDevice] : data ? vm.playerInputDevice[data] : vm.playerInputDevice['0']);
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -1817,7 +1821,15 @@ define(['js/app'], function (myApp) {
                         "title": $translate('3rd Party Platform'), "data": 'data.merchantUseName',
                         render: function(data, type, row){
                             let merchantName =  row.merchantName ? row.merchantName : '';
-                            var text = data ? data : merchantName;
+                            let text;
+
+                            if (data && merchantName) {
+                                text = data === merchantName ? data : merchantName;
+                            } else if (merchantName && !data) {
+                                text = merchantName;
+                            } else {
+                                text = data ? data : '';
+                            }
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -1880,11 +1892,11 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
             if(isExport){
-                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {13: summary.amount});
+                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {14: summary.amount});
                 $('#topupExcelTable_wrapper').hide();
                 vm.exportToExcel("topupExcelTable", "TOPUP_REPORT");
             }else{
-                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {13: summary.amount});
+                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {14: summary.amount});
                 vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
                 $('#topupTable').off('order.dt');
@@ -2516,7 +2528,12 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
-            socketService.$socket($scope.AppSocket, 'winRateReport', vm.curWinRateQuery, function(data) {
+            let socketName = 'winRateReport';
+            if (vm.curWinRateQuery.searchBySummaryData) {
+                socketName = 'winRateReportFromSummary';
+            }
+
+            socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function (data) {
                 findReportSearchTime();
                 vm.winRateReportLoadingStatus = "";
                 $('#winRateTableSpin').hide();
@@ -2561,7 +2578,13 @@ define(['js/app'], function (myApp) {
             }
 
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
-            socketService.$socket($scope.AppSocket, 'winRateReport', vm.curWinRateQuery, function(data) {
+
+            let socketName = 'winRateReport';
+            if (vm.curWinRateQuery.searchBySummaryData) {
+                socketName = 'winRateReportFromSummary';
+            }
+
+            socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function(data) {
                 vm.drawWinRateLayer2Report(data, data.length, {}, true);
                 findReportSearchTime();
                 vm.winRateReportLoadingStatus = "";
@@ -2590,7 +2613,12 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
 
-            socketService.$socket($scope.AppSocket, 'getWinRateByGameType', vm.curWinRateQuery, function(data) {
+            let socketName = 'getWinRateByGameType';
+            if (vm.curWinRateQuery.searchBySummaryData) {
+                socketName = 'getWinRateByGameTypeFromSummary';
+            }
+
+            socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function(data) {
                 // hide 'loading' gif
                 $('#winRateTableSpin').hide();
                 // calculate the sum of non-repeat participant;
@@ -2622,7 +2650,12 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
 
-            socketService.$socket($scope.AppSocket, 'getWinRateByPlayers', vm.curWinRateQuery, function(data) {
+            let socketName = 'getWinRateByPlayers';
+            if (vm.curWinRateQuery.searchBySummaryData) {
+                socketName = 'getWinRateByPlayersFromSummary';
+            }
+
+            socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function(data) {
                 // hide 'loading' gif
                 $('#winRateTableSpin').hide();
                 vm.drawWinRateLayer4Report(data.data, data.length, data.data.summaryData, true);
@@ -6295,7 +6328,7 @@ define(['js/app'], function (myApp) {
             if (vm.allProposalType.length != proposalNames.length) {
                 vm.allProposalType.filter(item => {
                     if (proposalNames.indexOf(item.name) > -1) {
-                        newproposalQuery.proposalTypeId.push(item._id);
+                        newproposalQuery.proposalTypeId.push(item.name);
                     }
                 });
             }
@@ -6329,7 +6362,7 @@ define(['js/app'], function (myApp) {
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
-                platformId: vm.curPlatformId,
+                // platformId: vm.curPlatformId,
                 proposalId: newproposalQuery.proposalId,
                 index: 0,
                 limit: isExport ? 5000 : 1,
@@ -6340,7 +6373,8 @@ define(['js/app'], function (myApp) {
                 inputDevice: newproposalQuery.inputDevice,
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
-                platformId: vm.curPlatformId,
+                // platformId: vm.curPlatformId,
+                platformList: newproposalQuery.platformList,
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
@@ -6407,7 +6441,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('PROPOSAL ID'), data: "proposalId",
                         render: function (data, type, row) {
                             data = String(data);
-                            return '<a ng-click="vm.showProposalModalNew(\'' + data + '\')">' + data + '</a>';
+                            return '<a ng-click="vm.showProposalModalNew(\'' + data + '\', \'' + row.data.platformId._id + '\')">' + data + '</a>';
                         }
                     },
                     {
@@ -6540,12 +6574,12 @@ define(['js/app'], function (myApp) {
             });
 
             if(isExport){
-                var proposalTbl = utilService.createDatatableWithFooter('#proposalExcelTable', tableOptions, {7: summary.amount});
+                var proposalTbl = utilService.createDatatableWithFooter('#proposalExcelTable', tableOptions, {8: summary.amount});
                 $('#proposalExcelTable_wrapper').hide();
                 //vm.exportToExcel("proposalExcelTable", "PROPOSAL_REPORT");
                 vm.exportProposalReportToCSV(data, 'PROPOSAL_REPORT',true)
             }else{
-                var proposalTbl = utilService.createDatatableWithFooter('#proposalTable', tableOptions, {7: summary.amount});
+                var proposalTbl = utilService.createDatatableWithFooter('#proposalTable', tableOptions, {8: summary.amount});
 
                 vm.proposalQuery.pageObj.init({maxCount: size}, newSearch);
 
@@ -8908,11 +8942,11 @@ define(['js/app'], function (myApp) {
             });
         }
 
-        vm.showProposalModalNew = function (proposalId) {
+        vm.showProposalModalNew = function (proposalId, platformObjId) {
             vm.proposalDetailStyle = {};
             vm.proposalDialog = 'proposal';
             socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
-                platformId: vm.selectedPlatform._id,
+                platformId: platformObjId || vm.selectedPlatform._id,
                 proposalId: proposalId
             }, function (data) {
                 vm.selectedProposal = data.data;
@@ -9045,6 +9079,7 @@ define(['js/app'], function (myApp) {
                     vm.platformList = data.data;
                     //console.log("platformList", vm.platformList);
                     if (vm.platformList.length == 0)return;
+                    commonService.sortAndAddPlatformDisplayName(vm.platformList);
                     var storedPlatform = $cookies.get("platform");
                     var tPlat = {};
                     if (storedPlatform) {
@@ -9483,7 +9518,7 @@ define(['js/app'], function (myApp) {
                     });
                     break;
                 case "PROPOSAL_REPORT":
-                    vm.proposalQuery = {aaSorting: [[8, "desc"]], sortCol: {createTime: -1}};
+                    vm.proposalQuery = {aaSorting: [[9, "desc"]], sortCol: {createTime: -1}};
                     vm.proposalQuery.status = 'all';
                     vm.proposalQuery.promoType = '';
                     vm.proposalQuery.totalCount = 0;
@@ -10183,7 +10218,7 @@ define(['js/app'], function (myApp) {
                                 if(item.merchantNo){
                                     merchantNo = item.merchantNo;
                                 }
-                                item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                                item.merchantNo$ = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                             } else {
                                 //show topup type for other types
                                 item.topupTypeStr = $translate(item.type.name);
@@ -10235,9 +10270,10 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('DEVICE'), data: "userAgent",
+                            title: $translate('DEVICE'), data: "inputDevice",
                             render: function (data, type, row) {
-                                var text = $translate(data ? $scope.userAgentType[data] : "");
+                                let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                                let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                                 return "<div>" + text + "</div>";
                             }
                         },

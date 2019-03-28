@@ -732,6 +732,92 @@ const dbLargeWithdrawal = {
         );
     },
 
+    getTotalPlayerCreditNumber: (playerObjId) => {
+        let validCredit = 0;
+        return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+            player => {
+                if (!player) {
+                    return Promise.reject({message: "Player not found."});
+                }
+                validCredit = player.validCredit || 0;
+                return getTotalUniqueProviderCredit(player);
+            }
+        ).then(
+            gameCredit => {
+                return gameCredit + validCredit;
+            }
+        )
+    },
+
+    getConsumptionTimesByTime: (playerObjId, startTime, endTime) => {
+        return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+            player => {
+                if (!player) {
+                    return Promise.reject({message: "Player not found."});
+                }
+                return getConsumptionTimesByTime(player, startTime, endTime);
+            }
+        );
+    },
+
+    getThreeMonthPlayerCreditSummary: (playerObjId) => {
+        return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+            player => {
+                if (!player) {
+                    return Promise.reject({message: "Player not found."});
+                }
+                let currentMonthDate = dbUtility.getCurrentMonthSGTIme();
+                let lastMonthDate = dbUtility.getLastMonthSGTime();
+                let secondLastMonthDate = dbUtility.getSecondLastMonthSGTime();
+
+                let currentMonthTopUpAmt = getTotalTopUpByTime(player, currentMonthDate.startTime, currentMonthDate.endTime).catch(err => {return traceError("getTotalTopUpByTime3", err)});
+                let lastMonthTopUpAmt = getTotalTopUpByTime(player, lastMonthDate.startTime, lastMonthDate.endTime).catch(err => {return traceError("getTotalTopUpByTime4", err)});
+                let secondLastMonthTopUpAmt = getTotalTopUpByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime).catch(err => {return traceError("getTotalTopUpByTime5", err)});
+
+                let currentMonthWithdrawAmt = getTotalWithdrawalByTime(player, currentMonthDate.startTime, currentMonthDate.endTime).catch(err => {return traceError("getTotalWithdrawalByTime3", err)});
+                let lastMonthWithdrawAmt = getTotalWithdrawalByTime(player, lastMonthDate.startTime, lastMonthDate.endTime).catch(err => {return traceError("getTotalWithdrawalByTime4", err)});
+                let secondLastMonthWithdrawAmt = getTotalWithdrawalByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime).catch(err => {return traceError("getTotalWithdrawalByTime5", err)});
+
+                let currentMonthConsumptionAmt = getTotalConsumptionByTime(player, currentMonthDate.startTime, currentMonthDate.endTime).catch(err => {return traceError("getTotalConsumptionByTime3", err)});
+                let lastMonthConsumptionAmt = getTotalConsumptionByTime(player, lastMonthDate.startTime, lastMonthDate.endTime).catch(err => {return traceError("getTotalConsumptionByTime4", err)});
+                let secondLastMonthConsumptionAmt = getTotalConsumptionByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime).catch(err => {return traceError("getTotalConsumptionByTime5", err)});
+
+                return Promise.all([currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt, currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]);
+            }
+        ).then(
+            ([currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt, currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]) => {
+                let currentMonth = dbUtility.getCurrentMonthSGTIme().endTime.getMonth() + 1;
+
+                return {
+                    lastThreeMonthValue: {
+                        currentMonth: currentMonth,
+                        lastMonth: currentMonth - 1,
+                        secondLastMonth: currentMonth - 2
+                    },
+                    lastThreeMonthTopUp: {
+                        currentMonth: currentMonthTopUpAmt,
+                        lastMonth: lastMonthTopUpAmt,
+                        secondLastMonth: secondLastMonthTopUpAmt
+                    },
+                    lastThreeMonthWithdraw: {
+                        currentMonth: currentMonthWithdrawAmt,
+                        lastMonth: lastMonthWithdrawAmt,
+                        secondLastMonth: secondLastMonthWithdrawAmt
+                    },
+                    lastThreeMonthTopUpWithdrawDifference: {
+                        currentMonth: currentMonthTopUpAmt - currentMonthWithdrawAmt,
+                        lastMonth: lastMonthTopUpAmt - lastMonthWithdrawAmt,
+                        secondLastMonth: secondLastMonthTopUpAmt - secondLastMonthWithdrawAmt
+                    },
+                    lastThreeMonthConsumptionAmount: {
+                        currentMonth: currentMonthConsumptionAmt,
+                        lastMonth: lastMonthConsumptionAmt,
+                        secondLastMonth: secondLastMonthConsumptionAmt
+                    }
+                }
+            }
+        );
+    },
 };
 
 function generateAuditDecisionLink(host, proposalId, adminObjId) {

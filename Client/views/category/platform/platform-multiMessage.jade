@@ -9,6 +9,9 @@
             #sendMultiMessageQuery.col-md-12
                 .well
                     .search-filters-item
+                        label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
+                        select.form-control(ng-model='vm.sendMultiMessage.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                    .search-filters-item
                         label {{"USER TYPE" | translate}}
                         select.form-control(ng-model="vm.sendMultiMessage.playerType", required)
                             option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}

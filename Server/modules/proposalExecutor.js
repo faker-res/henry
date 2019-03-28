@@ -25,7 +25,10 @@ var constPlayerSMSSetting = require("../const/constPlayerSMSSetting");
 const serverInstance = require("./serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 var queryPhoneLocation = require('query-mobile-phone-area');
-var rsaCrypto = require("../modules/rsaCrypto");
+
+const rsaCrypto = require("../modules/rsaCrypto");
+const RESTUtils = require("../modules/RESTUtils");
+
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
 const constClientQnA = require("../const/constClientQnA");
 var dbRewardType = require("../db_modules/dbRewardType.js");
@@ -2167,20 +2170,11 @@ var proposalExecutor = {
                            applyTime: cTimeString
                         };
 
-                       console.log('withdrawAPIAddr req:', message);
+                       console.log('withdrawAPIAddr player req:', message);
 
-                       if (extConfig && extConfig[player.platform.bonusSystemType]
-                           && extConfig[player.platform.bonusSystemType].withdrawAPIAddr
-                       ) {
-                           let options = {
-                               method: 'POST',
-                               uri: extConfig[player.platform.bonusSystemType].withdrawAPIAddr,
-                               body: message,
-                               json: true // Automatically stringifies the body to JSON
-                           };
-
-                           return rp(options)
-                               .then(function (bonusData) {
+                       if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'PMS2') {
+                           return RESTUtils.getPMS2Services('postWithdraw', message).then(
+                               function (bonusData) {
                                    console.log('bonus post success', bonusData);
                                    if (bonusData) {
                                        // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
@@ -2302,29 +2296,58 @@ var proposalExecutor = {
                             loginName: partner.partnerName || "",
                             applyTime: cTimeString
                         };
-                        return pmsAPI.bonus_applyBonus(message).then(
-                            bonusData => {
-                                if (bonusData) {
-                                    return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
-                                        platformData => {
-                                            if (!platformData) {
-                                                return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
-                                            }
 
-                                            let dataToUpdate = {
-                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                            };
-                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                            return bonusData;
-                                        }
-                                    )
+                        console.log('withdrawAPIAddr partner req:', message);
+
+                        if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'PMS2') {
+                            return RESTUtils.getPMS2Services('postWithdraw', message).then(
+                                function (bonusData) {
+                                    console.log('partner bonus post success', bonusData);
+                                    if (bonusData) {
+                                        return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
+                                            platformData => {
+                                                if (!platformData) {
+                                                    return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                                                }
+
+                                                let dataToUpdate = {
+                                                    "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                    "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                                };
+                                                dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                                return bonusData;
+                                            }
+                                        )
+                                    }
+                                    else {
+                                        return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
+                                    }
+                                })
+                        } else {
+                            return pmsAPI.bonus_applyBonus(message).then(
+                                bonusData => {
+                                    if (bonusData) {
+                                        return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
+                                            platformData => {
+                                                if (!platformData) {
+                                                    return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                                                }
+
+                                                let dataToUpdate = {
+                                                    "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                    "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                                };
+                                                dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                                return bonusData;
+                                            }
+                                        )
+                                    }
+                                    else {
+                                        return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
+                                    }
                                 }
-                                else {
-                                    return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
-                                }
-                            }
-                        );
+                            );
+                        }
                     }
                 ).then(deferred.resolve, deferred.reject);
             },
@@ -4426,19 +4449,7 @@ var proposalExecutor = {
                         proposalId: proposalData.proposalId
                     };
 
-                    let options = {
-                        method: 'POST',
-                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                        body: data,
-                        json: true
-                    };
-
-                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                    return rp(options)
-                        .then(
-                            deferred.resolve, deferred.reject
-                        );
-
+                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
                 } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     pmsAPI.payment_modifyManualTopupRequest({
                         requestId: proposalData.data.requestId,
@@ -4515,19 +4526,7 @@ var proposalExecutor = {
                         proposalId: proposalData.proposalId
                     };
 
-                    let options = {
-                        method: 'POST',
-                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                        body: data,
-                        json: true
-                    };
-
-                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                    return rp(options)
-                        .then(
-                            deferred.resolve, deferred.reject
-                        );
-
+                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
                 } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     pmsAPI.payment_modifyManualTopupRequest({
                         requestId: proposalData.data.requestId,
@@ -4584,19 +4583,7 @@ var proposalExecutor = {
                         proposalId: proposalData.proposalId
                     };
 
-                    let options = {
-                        method: 'POST',
-                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                        body: data,
-                        json: true
-                    };
-
-                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                    return rp(options)
-                        .then(
-                            deferred.resolve, deferred.reject
-                        );
-
+                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
                 } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
@@ -4648,19 +4635,7 @@ var proposalExecutor = {
                         proposalId: proposalData.proposalId
                     };
 
-                    let options = {
-                        method: 'POST',
-                        uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                        body: data,
-                        json: true
-                    };
-
-                    console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                    return rp(options)
-                        .then(
-                            deferred.resolve, deferred.reject
-                        );
-
+                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
                 } else if (proposalData && proposalData.data && proposalData.data.requestId) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {

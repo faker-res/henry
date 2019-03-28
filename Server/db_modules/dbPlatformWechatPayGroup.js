@@ -6,6 +6,8 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
 const constAccountType = require('../const/constAccountType');
 
+const RESTUtils = require('../modules/RESTUtils');
+
 let dbPlatformWechatPayGroup = {
 
     /**
@@ -187,23 +189,12 @@ let dbPlatformWechatPayGroup = {
                         }
                     )
                 } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    let options = {
-                        method: 'POST',
-                        uri: topUpSystemConfig.bankCardListAPIAddr,
-                        body: {
-                            platformId: platformId,
-                            accountType: constAccountType.WECHAT
-                        },
-                        json: true
+                    let reqData = {
+                        platformId: platformId,
+                        accountType: constAccountType.WECHAT
                     };
 
-                    return rp(options).then(function (data) {
-                        console.log('wechatlist success', data);
-                        return data;
-                    }, error => {
-                        console.log('wechatlist failed', error);
-                        throw error;
-                    });
+                    return RESTUtils.getPMS2Services("postBankCardList", reqData);
                 } else {
                     return pmsAPI.weChat_getWechatList(
                         {
@@ -287,23 +278,12 @@ let dbPlatformWechatPayGroup = {
                     topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let options = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.WECHAT
-                            },
-                            json: true
+                        let reqData = {
+                            platformId: platformId,
+                            accountType: constAccountType.WECHAT
                         };
 
-                        return rp(options).then(function (data) {
-                            console.log('wechatlist success', data);
-                            return data;
-                        }, error => {
-                            console.log('wechatlist failed', error);
-                            throw error;
-                        });
+                        return RESTUtils.getPMS2Services("postBankCardList", reqData);
                     } else {
                         return pmsAPI.weChat_getWechatList(
                             {
@@ -568,24 +548,11 @@ let dbPlatformWechatPayGroup = {
             let type = constAccountType.WECHAT;
 
             let options = {
-                method: 'POST',
-                uri: topUpSystemConfig.paymentGroupAPIAddr,
-                body: {
-                    platformId: platformId,
-                    accountType: type
-                },
-                json: true
+                platformId: platformId,
+                accountType: type
             };
 
-            console.log('getPMSWechatPayGroup req: ', platformId, type);
-
-            return rp(options).then(function (data) {
-                console.log('getPMSWechatPayGroup success',platformId, type, data);
-                return data;
-            }, error => {
-                console.log('getPMSWechatPayGroup failed',platformId, type, error);
-                throw error;
-            });
+            return RESTUtils.getPMS2Services("postPaymentGroup", options);
         }
     }
 };

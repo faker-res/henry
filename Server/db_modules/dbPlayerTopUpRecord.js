@@ -44,6 +44,7 @@ const errorUtils = require("../modules/errorUtils.js");
 const localization = require("../modules/localization");
 const proposalExecutor = require('./../modules/proposalExecutor');
 
+const RESTUtils = require('./../modules/RESTUtils');
 const rsaCrypto = require('./../modules/rsaCrypto');
 const extConfig = require('./../config/externalPayment/paymentSystems');
 
@@ -787,6 +788,10 @@ var dbPlayerTopUpRecord = {
                     queryObj['data.depositMethod'] = {'$in': convertStringNumber(query.depositMethod)};
                 }
 
+                if(query.platformList && query.platformList.length > 0) {
+                    queryObj['data.platformId'] = {$in: query.platformList.map(item=>{return ObjectId(item)})};
+                }
+
                 if (query.merchantNo && query.merchantNo.length > 0 && (!query.merchantGroup || query.merchantGroup.length == 0)) {
                     queryObj['$or'] = [
                         {'data.merchantNo': {$in: convertStringNumber(query.merchantNo)}},
@@ -855,7 +860,13 @@ var dbPlayerTopUpRecord = {
                     queryObj['data.line'] = {$in: query.line};
                 }
                 console.log('str===', str);
-                return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str}).lean();
+                let proposalTypeQuery = {
+                    name: str
+                };
+                if(query.platformList && query.platformList.length > 0){
+                    proposalTypeQuery.platformId = {$in: query.platformList};
+                }
+                return dbconfig.collection_proposalType.find(proposalTypeQuery).lean();
             }
         ).then(
             proposalType => {
@@ -2464,48 +2475,28 @@ var dbPlayerTopUpRecord = {
                         delete requestData.groupBankcardList;
                         delete requestData.bankTypeId;
 
-                        let options = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.createTopUpAPIAddr,
-                            body: requestData,
-                            json: true
-                        };
-
-                        console.log("createTopUpAPIAddr check request before sent - ", requestData);
-                        return rp(options).then(manualTopUpCardData => {
-                            console.log('createTopUpAPIAddr success', manualTopUpCardData);
-                            if (manualTopUpCardData && manualTopUpCardData.result && manualTopUpCardData.result.bankTypeId) {
-                                let options1 = {
-                                    method: 'POST',
-                                    uri: topUpSystemConfig.bankTypeAPIAddr,
-                                    body: {bankTypeId: manualTopUpCardData.result.bankTypeId},
-                                    json: true
-                                };
-
-                                console.log("bankTypeAPIAddr check request before sent - ", options1.body);
-
-                                return rp(options1).then(
-                                    bankData => {
-                                        console.log("bankTypeAPIAddr success", bankData);
-                                        if (bankData && bankData.data && bankData.data.name) {
-                                            manualTopUpCardData.result.bankName = bankData.data.name;
-                                        } else {
-                                            manualTopUpCardData.result.bankName = "";
+                        return RESTUtils.getPMS2Services("postCreateTopup", requestData).then(
+                            manualTopUpCardData => {
+                                if (manualTopUpCardData && manualTopUpCardData.result && manualTopUpCardData.result.bankTypeId) {
+                                    return RESTUtils.getPMS2Services("postBankType", {bankTypeId: manualTopUpCardData.result.bankTypeId}).then(
+                                        bankData => {
+                                            if (bankData && bankData.data && bankData.data.name) {
+                                                manualTopUpCardData.result.bankName = bankData.data.name;
+                                            } else {
+                                                manualTopUpCardData.result.bankName = "";
+                                            }
+                                            return manualTopUpCardData;
                                         }
-                                        return manualTopUpCardData;
-                                    }, error => {
-                                        console.log('bankTypeAPIAddr failed', error);
-                                        throw error;
-                                    }
-                                )
-                            } else {
-                                return Q.reject({
-                                    status: constServerCode.INVALID_DATA,
-                                    name: "DataError",
-                                    errorMessage: "Bank card not found"
-                                });
+                                    )
+                                } else {
+                                    return Q.reject({
+                                        status: constServerCode.INVALID_DATA,
+                                        name: "DataError",
+                                        errorMessage: "Bank card not found"
+                                    });
+                                }
                             }
-                        });
+                        );
                     } else {
                         return pmsAPI.payment_requestManualBankCard(requestData).then(cardData => {
                             if (cardData && cardData.result && cardData.result.bankTypeId) {
@@ -2953,21 +2944,7 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalId
                         };
 
-                        let options = {
-                            method: 'POST',
-                            uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                            body: data,
-                            json: true
-                        };
-
-                        console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (cancelData) {
-                            console.log('cancelTopUpAPIAddr success', cancelData);
-                            return cancelData;
-                        }, error => {
-                            console.log('cancelTopUpAPIAddr failed', error);
-                            throw error;
-                        });
+                        return RESTUtils.getPMS2Services("postCancelTopup", data);
                     }
                     else if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
                         proposal = proposalData;
@@ -3031,21 +3008,7 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalId
                         };
 
-                        let options = {
-                            method: 'POST',
-                            uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                            body: data,
-                            json: true
-                        };
-
-                        console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (cancelData) {
-                            console.log('cancelTopUpAPIAddr success', cancelData);
-                            return cancelData;
-                        }, error => {
-                            console.log('cancelTopUpAPIAddr failed', error);
-                            throw error;
-                        });
+                        return RESTUtils.getPMS2Services("postCancelTopup", data);
                     }
                     else if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
                         proposal = proposalData;
@@ -3109,21 +3072,7 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalId
                         };
 
-                        let options = {
-                            method: 'POST',
-                            uri: extConfig[proposalData.data.topUpSystemType].cancelTopUpAPIAddr,
-                            body: data,
-                            json: true
-                        };
-
-                        console.log("cancelTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (cancelData) {
-                            console.log('cancelTopUpAPIAddr success', cancelData);
-                            return cancelData;
-                        }, error => {
-                            console.log('cancelTopUpAPIAddr failed', error);
-                            throw error;
-                        });
+                        return RESTUtils.getPMS2Services("postCancelTopup", data);
                     }
                     else if (proposalData.data && proposalData.data.playerId == playerId) {
                         proposal = proposalData;
@@ -3188,21 +3137,7 @@ var dbPlayerTopUpRecord = {
                             delayTime: delayTime
                         };
 
-                        let options = {
-                            method: 'POST',
-                            uri: extConfig[proposalData.data.topUpSystemType].delayTopUpAPIAddr,
-                            body: data,
-                            json: true
-                        };
-
-                        console.log("delayTopUpAPIAddr check request before sent - ", data);
-                        return rp(options).then(function (delayData) {
-                            console.log('delayTopUpAPIAddr success', delayData);
-                            return delayData;
-                        }, error => {
-                            console.log('delayTopUpAPIAddr failed', error);
-                            throw error;
-                        });
+                        return RESTUtils.getPMS2Services("postDelayTopup", data);
                     }
                     else if (proposalData.data && proposalData.data.playerId == playerId) {
                         proposal = proposalData;
@@ -3819,22 +3754,7 @@ var dbPlayerTopUpRecord = {
                             requestData.depositMethod = constTopUpMethod.ALIPAY;
                             requestData.depositTime = cTimeString;
 
-                            let options = {
-                                method: 'POST',
-                                uri: topUpSystemConfig.createTopUpAPIAddr,
-                                body: requestData,
-                                json: true
-                            };
-
-                            console.log("createTopUpAPIAddr check request before sent - ", requestData);
-                            return rp(options).then(function (data) {
-                                console.log('createTopUpAPIAddr - alipay - success', data);
-                                return data;
-                            }, error => {
-                                console.log('createTopUpAPIAddr - alipay -failed', error);
-                                throw error;
-                            });
-
+                            return RESTUtils.getPMS2Services("postCreateTopup", requestData);
                         } else {
                             return pmsAPI.payment_requestAlipayAccount(requestData);
                         }
@@ -4549,21 +4469,7 @@ var dbPlayerTopUpRecord = {
                             requestData.depositMethod = constTopUpMethod.WECHAT;
                             requestData.depositTime = cTimeString;
 
-                            let options = {
-                                method: 'POST',
-                                uri: topUpSystemConfig.createTopUpAPIAddr,
-                                body: requestData,
-                                json: true
-                            };
-
-                            console.log("createTopUpAPIAddr check wechat request before sent ---------", requestData);
-                            return rp(options).then(function (data) {
-                                console.log('createTopUpAPIAddr - wechattopup - success', data);
-                                return data;
-                            }, error => {
-                                console.log('createTopUpAPIAddr - wechattopup - failed', error);
-                                throw error;
-                            });
+                            return RESTUtils.getPMS2Services("postCreateTopup", requestData);
                         } else {
                             if (useQR) {
                                 return pmsAPI.payment_requestWeChatQRAccount(requestData);
@@ -5109,23 +5015,9 @@ var dbPlayerTopUpRecord = {
                     platformId: platformId,
                     proposalId: proposalId,
                     depositId: referenceNumber
-                }
-                let options = {
-                    method: 'POST',
-                    uri: topUpSystemConfig.topupForceMatchAPIAddr,
-                    body: requestData,
-                    json: true
                 };
 
-                console.log("topupForceMatchAPIAddr check request before sent - ", requestData);
-                return rp(options).then(function (data) {
-                    console.log('topupForceMatchAPIAddr success', data);
-                    return data;
-                }, error => {
-                    console.log('topupForceMatchAPIAddr failed', error);
-                    throw error;
-                });
-
+                return RESTUtils.getPMS2Services("postTopupForceMatch", requestData);
             } else {
                 return pmsAPI.foundation_mandatoryMatch({
                     platformId: platformId,
@@ -5538,22 +5430,10 @@ function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, 
         );
     } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
         let options = {
-            method: 'POST',
-            uri: topUpSystemConfig.bankCardAPIAddr,
-            body: {
-                accountNumber: bankCardNo
-            },
-            json: true
+            accountNumber: bankCardNo
         };
 
-        console.log("bankCardAPIAddr check request before sent - ", bankCardNo);
-        prom = rp(options).then(function (syncPlatformData) {
-            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-            return syncPlatformData;
-        }, error => {
-            console.log('syncHTTPPMSPlatform failed', error);
-            throw error;
-        });
+        prom = RESTUtils.getPMS2Services("postBankCard", options);
     } else {
         prom = pmsAPI.bankcard_getBankcard({accountNumber: bankCardNo});
     }
@@ -5576,22 +5456,10 @@ function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, plat
         );
     } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
         let options = {
-            method: 'POST',
-            uri: topUpSystemConfig.bankCardAPIAddr,
-            body: {
-                accountNumber: accNo
-            },
-            json: true
+            accountNumber: accNo
         };
 
-        console.log("bankCardAPIAddr check request before sent - ", accNo);
-        prom = rp(options).then(function (syncPlatformData) {
-            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-            return syncPlatformData;
-        }, error => {
-            console.log('syncHTTPPMSPlatform failed', error);
-            throw error;
-        });
+        prom = RESTUtils.getPMS2Services("postBankCard", options);
     } else {
         prom = pmsAPI.alipay_getAlipay({accountNumber: accNo});
     }
@@ -5617,22 +5485,10 @@ function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, p
         );
     } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
         let options = {
-            method: 'POST',
-            uri: topUpSystemConfig.bankCardAPIAddr,
-            body: {
-                accountNumber: accNo
-            },
-            json: true
+            accountNumber: accNo
         };
 
-        console.log("bankCardAPIAddr check request before sent - ", accNo);
-        prom = rp(options).then(function (syncPlatformData) {
-            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-            return syncPlatformData;
-        }, error => {
-            console.log('syncHTTPPMSPlatform failed', error);
-            throw error;
-        });
+        prom = RESTUtils.getPMS2Services("postBankCard", options);
     } else {
         prom = pmsAPI.weChat_getWechat({accountNumber: accNo});
     }

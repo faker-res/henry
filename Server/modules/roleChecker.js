@@ -168,6 +168,7 @@ var roleChecker = {
         "getAllGameTypes": true,
         "getRewardEventsForPlatform": true,
 
+        "getWinnerMonitorConfig": true,
 
         //todo::to be added to permission list
         "getCredibilityRemarks": true,
@@ -503,6 +504,7 @@ var roleChecker = {
                 Read: ['getPlayerLevelByPlatformId', 'getPlayerTrustLevelByPlatformId', 'getPartnerLevelConfig', 'getPlatformAnnouncements'],
                 PlayerLevelRead: ['getPlayerLevelByPlatformId'],
                 PlayerLevelUpdate: ['updatePlayerLevel'],
+                XBET_PLAYER_LEVEL_CONFIG: ['updatePlayerLevel'],
                 PlayerLevelCreate: ['createPlayerLevel'],
                 PartnerLevelCreate: ['createPartnerLevel'],
                 PartnerLevelUpdate: ['partnerLevel/update'],
@@ -534,7 +536,8 @@ var roleChecker = {
                 RemoveCtiUrl: ['removeCtiUrlSubDomain'],
                 DownloadTranslationCSV: ['downloadTranslationCSV'],
                 DecomposeAfterNDays: [],
-                AutoExportListOrMaxNumOfTxnEveryday: []
+                AutoExportListOrMaxNumOfTxnEveryday: [],
+                WinnerMonitor: ['setWinnerMonitorConfig'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -747,7 +750,10 @@ var roleChecker = {
             },
             AttemptCreate:{
                 Read: []
-            }
+            },
+            WinnerMonitor: {
+                Read:["getWinnerMonitorData"]
+            },
         },
         Payment: {
             "BankCardGroup": {

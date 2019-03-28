@@ -1,10 +1,11 @@
 var mongoose = require('mongoose');
 var env = require('./../config/env').config();
+let rsaCrypto = require('./../modules/rsaCrypto');
 
-var admindb = 'mongodb://' + env.db.adminDBUrl;
-var playerdb = 'mongodb://' + env.db.playerDBUrl;
-var logsdb = 'mongodb://' + env.db.logsDBUrl;
-var logs2db = 'mongodb://' + env.db.logs2DBUrl;
+var admindb = 'mongodb://' + rsaCrypto.decrypt(env.db.adminDBUrl);
+var playerdb = 'mongodb://' + rsaCrypto.decrypt(env.db.playerDBUrl);
+var logsdb = 'mongodb://' + rsaCrypto.decrypt(env.db.logsDBUrl);
+var logs2db = 'mongodb://' + rsaCrypto.decrypt(env.db.logs2DBUrl);
 
 function createConnection(dbURL, callback) {
     // Database connect options
@@ -52,8 +53,6 @@ function createConnection(dbURL, callback) {
     });
 
     db.once('open', function () {
-        console.log(new Date(), "Mongoose connected to " + dbURL);
-
         if (callback) {
             callback();
         }

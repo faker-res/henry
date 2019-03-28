@@ -1268,6 +1268,7 @@
   "AuctionRewardPromotion": "Auction Reward Promotion",
   "AuctionRealPrize": "Auction Real Prize",
   "AuctionRewardPointChange": "Auction Reward Point Change",
+  "PRODUCT_NAME": "Product Name",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",
@@ -1670,6 +1671,10 @@
   "IP_DOMAIN_UNIQUE_ANALYSIS_EXPLAIN": "",
 
   "DOMAIN_VISIT_AMOUNT": "Domain Visit Rate",
+  "WINNING_AMOUNT": "Winning Amount",
+
+  "WINNER_MONITOR": "Winner Monitor",
+  "WITHIN_N_HOURS": "Within N Hours",
 
   "CALL_PERMISSION": "Call Permission",
   "SMS_CHANNEL": "SMS Channel",

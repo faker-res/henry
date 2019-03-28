@@ -6,6 +6,8 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
 const constAccountType = require('../const/constAccountType');
 
+const RESTUtils = require('../modules/RESTUtils');
+
 var dbPlatformAlipayGroup = {
 
     /**
@@ -172,23 +174,12 @@ var dbPlatformAlipayGroup = {
                         }
                     )
                 } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    let options = {
-                        method: 'POST',
-                        uri: topUpSystemConfig.bankCardListAPIAddr,
-                        body: {
-                            platformId: platformId,
-                            accountType: constAccountType.ALIPAY
-                        },
-                        json: true
+                    let reqData = {
+                        platformId: platformId,
+                        accountType: constAccountType.ALIPAY
                     };
 
-                    return rp(options).then(function (data) {
-                        console.log('alipaylist success', data);
-                        return data;
-                    }, error => {
-                        console.log('alipaylist failed', error);
-                        throw error;
-                    });
+                    return RESTUtils.getPMS2Services("postBankCardList", reqData);
                 } else {
                     return pmsAPI.alipay_getAlipayList(
                         {
@@ -272,23 +263,12 @@ var dbPlatformAlipayGroup = {
                     topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let options = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.ALIPAY
-                            },
-                            json: true
+                        let reqData = {
+                            platformId: platformId,
+                            accountType: constAccountType.ALIPAY
                         };
 
-                        return rp(options).then(function (data) {
-                            console.log('alipaylist success', data);
-                            return data;
-                        }, error => {
-                            console.log('alipaylist failed', error);
-                            throw error;
-                        });
+                        return RESTUtils.getPMS2Services("postBankCardList", reqData);
                     } else {
                         return pmsAPI.alipay_getAlipayList(
                             {
@@ -549,24 +529,11 @@ var dbPlatformAlipayGroup = {
             let type = constAccountType.ALIPAY;
 
             let options = {
-                method: 'POST',
-                uri: topUpSystemConfig.paymentGroupAPIAddr,
-                body: {
-                    platformId: platformId,
-                    accountType: type
-                },
-                json: true
+                platformId: platformId,
+                accountType: type
             };
 
-            console.log('getPMSAlipayGroup req: ', platformId, type);
-
-            return rp(options).then(function (data) {
-                console.log('getPMSAlipayGroup success',platformId, type, data);
-                return data;
-            }, error => {
-                console.log('getPMSAlipayGroup failed',platformId, type, error);
-                throw error;
-            });
+            return RESTUtils.getPMS2Services("postPaymentGroup", options);
         }
     }
 

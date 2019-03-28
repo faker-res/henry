@@ -1,6 +1,7 @@
 const constProposalStatus = require('./../const/constProposalStatus');
 
 const dbConfig = require('./../modules/dbproperties');
+const rsaCrypto = require('./../modules/rsaCrypto');
 
 const dbProposalUtility = {
     getProposalDataOfType: (platformObjId, proposalType, proposalQuery, fields = {}) => {

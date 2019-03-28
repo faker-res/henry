@@ -331,6 +331,13 @@
                                 .col-sm-7
                                     text {{vm.selectedSinglePlayer.csOfficer.adminName || 'Unknown' | translate}}
 
+                        div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{'bindedDeviceId' | translate}}
+                                .col-sm-7
+                                    text {{vm.encryptField(vm.selectedSinglePlayer.guestDeviceId) || 'Unknown' | translate}}
+
                 button.pull-right.btn.btn-primary.margin-top-10(ng-click="vm.showSimilarPlayersTable=!vm.showSimilarPlayersTable; vm.showSimilarPlayerTab();") {{"SHOW_SIMILAR_PLAYERS" | translate}}
 
 
@@ -471,8 +478,19 @@
             .modal-body
                 .row
                     .col-md-12
+                        h5 {{'WITHDRAW_INFO_1' | translate}}
                         label {{"Total" | translate}} {{vm.paymetHistoryCount}} {{"records" | translate}}
                         table#playerPaymentHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
+                .row
+                    .col-md-12
+                        h5 {{'WITHDRAW_INFO_2' | translate}}
+                        label {{"Total" | translate}} {{vm.paymetHistoryCount2}} {{"records" | translate}}
+                        table#playerPaymentHistoryTbl2.common-table.display(style='min-width:100%;width:inherit')
+                .row
+                    .col-md-12
+                        h5 {{'WITHDRAW_INFO_3' | translate}}
+                        label {{"Total" | translate}} {{vm.paymetHistoryCount3}} {{"records" | translate}}
+                        table#playerPaymentHistoryTbl3.common-table.display(style='min-width:100%;width:inherit')
 
 #playerIpHistory.collapse
     .panel.panel-info
@@ -868,6 +886,9 @@
                 h4.modal-title {{"Player API Log" | translate}} : {{vm.selectedSinglePlayer.name}}
             .modal-body
                 #playerApiLogQuery.well.col-xs-12
+                    .search-filters-item
+                        label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                        select.form-control(ng-model='vm.actionLogPlatformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
                     .search-filters-item
                         label {{"Start date" | translate}}
                         .startTime
@@ -1721,7 +1742,8 @@
                                     td.col-md-4.oblique {{'CHANGE_AMOUNT' | translate}}
                                     td.col-md-4.oblique {{'updateData' | translate}}
                                 tr
-                                    td {{vm.selectedSinglePlayer.validCredit | number:2}}
+                                    td {{vm.creditChange.validCredit}}
+                                    //td {{vm.selectedSinglePlayer.validCredit | number:2}}
                                     td
                                         input.text-success(type='number', ng-model='vm.creditChange.updateAmount', ng-change="vm.getFinalValidAmount();")
                                     td

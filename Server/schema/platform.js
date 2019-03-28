@@ -218,6 +218,8 @@ var platformSchema = new Schema({
     samePhoneNumberRegisterCount: {type: Number, default: 1},
     // the limit of the same bank account number used
     sameBankAccountCount: {type: Number, default: 1},
+    // check if require sms code when update bankcard for the first time
+    requireSMSCodeForBankRegistrationAtFirstTime: {type: Boolean, default: false},
     // white listing phone number
     whiteListingPhoneNumbers: [{type:String}],
     // black listing phone number
@@ -498,6 +500,10 @@ var platformSchema = new Schema({
     teleMarketingIdleAgentMultiple: {type: Number},
     // Definition of Answered Phone Call
     definitionOfAnsweredPhone: {type: JSON},
+    // default feedback result for tsPhone (key)
+    defaultFeedbackResult: {type: String},
+    // default feedback topic for tsPhone (key)
+    defaultFeedbackTopic: {type: String},
     // Decompose after N days
     decomposeAfterNDays: {type: Number},
     // Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday
@@ -512,6 +518,8 @@ var platformSchema = new Schema({
     disableProviderAfterConsecutiveTimeoutCount: {type: Number},
     // provider consecutively timed out search time frame (last N minutes)
     providerConsecutiveTimeoutSearchTimeFrame: {type: Number},
+    // disable auto player level up reward switch
+    disableAutoPlayerLevelUpReward: {type: Boolean, default: false},
 });
 
 //add platform id before save

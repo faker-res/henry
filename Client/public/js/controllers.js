@@ -776,6 +776,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.playerLoginMode = {
         1: "ACCUMULATIVE_LOGIN_DAY",
         2: "EXACT_LOGIN_DATE",
+        3: "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY",
     };
 
     $scope.constRewardPointsTaskCategory = {
@@ -926,6 +927,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         var isAllowed = authService.checkViewPermission(category, view, viewName);
         //console.log( "checkViewPermission", view, isAllowed );
         return isAllowed;
+    };
+
+    $scope.getNumberArray = (number) => {
+        return new Array(number);
     };
 
     //update current admin user password

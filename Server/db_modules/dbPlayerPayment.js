@@ -11,6 +11,7 @@ const pmsAPI = require("../externalAPI/pmsAPI.js");
 const dbconfig = require('./../modules/dbproperties');
 const dbUtil = require("../modules/dbutility");
 const serverInstance = require("../modules/serverInstance");
+const RESTUtils = require("../modules/RESTUtils");
 const rsaCrypto = require('./../modules/rsaCrypto');
 
 const constDepositMethod = require('./../const/constDepositMethod');
@@ -25,6 +26,7 @@ const dbRewardUtil = require("../db_common/dbRewardUtility")
 
 const dbPromoCode = require('../db_modules/dbPromoCode');
 const dbProposal = require('../db_modules/dbProposal');
+const constPlayerRegistrationInterface = require("./../const/constPlayerRegistrationInterface");
 
 const dbPlayerPayment = {
 
@@ -397,7 +399,7 @@ const dbPlayerPayment = {
 
     // region Common payment
     getMinMaxCommonTopupAmount: (playerId, clientType, loginIp) => {
-        let url = "";
+        // let url = "";
         let topUpSystemConfig;
         let topUpSystemName;
         let platformMinTopUpAmount = 0;
@@ -412,7 +414,7 @@ const dbPlayerPayment = {
         }).lean().then(
             playerData => {
                 if (playerData) {
-                    let paymentUrl = env.paymentHTTPAPIUrl;
+                    // let paymentUrl = env.paymentHTTPAPIUrl;
 
                     topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
@@ -424,25 +426,33 @@ const dbPlayerPayment = {
                         platformMinTopUpAmount = playerData.platform.minTopUpAmount;
                     }
 
-                    if (topUpSystemConfig && topUpSystemConfig.topUpAPIAddr) {
-                        paymentUrl = topUpSystemConfig.topUpAPIAddr;
-
-                        if (topUpSystemConfig.minMaxAPIAddr) {
-                            paymentUrl = topUpSystemConfig.minMaxAPIAddr;
-                        }
-                    }
+                    // if (topUpSystemConfig && topUpSystemConfig.topUpAPIAddr) {
+                    //     paymentUrl = topUpSystemConfig.topUpAPIAddr;
+                    //
+                    //     if (topUpSystemConfig.minMaxAPIAddr) {
+                    //         paymentUrl = topUpSystemConfig.minMaxAPIAddr;
+                    //     }
+                    // }
 
                     if (!topUpSystemConfig || topUpSystemName === 'PMS' || topUpSystemName === 'PMS2') {
-                        url =
-                            paymentUrl
-                            + "foundation/payMinAndMax.do?"
-                            + "platformId=" + playerData.platform.platformId + "&"
-                            + "username=" + playerData.name + "&"
-                            + "clientType=" + clientType;
+                        // url =
+                        //     paymentUrl
+                        //     + "foundation/payMinAndMax.do?"
+                        //     + "platformId=" + playerData.platform.platformId + "&"
+                        //     + "username=" + playerData.name + "&"
+                        //     + "clientType=" + clientType;
+                        //
+                        // console.log('getMinMaxCommonTopupAmount url', url, playerId, playerData.platform.topUpSystemType, new Date());
+                        //
+                        // return rp(url);
 
-                        console.log('getMinMaxCommonTopupAmount url', url, playerId, playerData.platform.topUpSystemType, new Date());
+                        let reqData = {
+                            platformId: playerData.platform.platformId,
+                            name: playerData.name,
+                            clientType: clientType
+                        };
 
-                        return rp(url);
+                        return RESTUtils.getPMS2Services("getMinMax", reqData);
                     } else {
                         return true;
                     }
@@ -489,7 +499,7 @@ const dbPlayerPayment = {
 
     createCommonTopupProposal: (playerId, topupRequest, ipAddress, entryType, adminId, adminName) => {
         let player, rewardEvent, proposal, topUpSystemConfig;
-
+        console.log('topupRequest JY::', topupRequest);
         if (topupRequest.bonusCode && topupRequest.topUpReturnCode) {
             return Promise.reject({
                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -668,7 +678,18 @@ const dbPlayerPayment = {
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
 
-                newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
+                if (Number(topupRequest.clientType) == 1) {
+                    newProposal.inputDevice = constPlayerRegistrationInterface.WEB_PLAYER;
+                }
+                else if (Number(topupRequest.clientType) == 2) {
+                    newProposal.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+                }
+                else if (Number(topupRequest.clientType) == 4) {
+                    newProposal.inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+                } else {
+                    newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
+                }
+
                 return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(

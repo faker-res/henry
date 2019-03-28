@@ -1173,6 +1173,15 @@ var dbLogger = {
         var finalResult = [];
 
         function getAddr(each) {
+            if (each.bankAccountProvince2 || each.bankAccountProvince3) {
+                each.bankAccountProvince = each.bankAccountProvince2 || each.bankAccountProvince3;
+            }
+            if (each.bankAccountCity2 || each.bankAccountCity3) {
+                each.bankAccountCity = each.bankAccountCity2 || each.bankAccountCity3;
+            }
+            if (each.bankAccountDistrict2 || each.bankAccountDistrict3) {
+                each.bankAccountDistrict = each.bankAccountDistrict2 || each.bankAccountDistrict3;
+            }
             var collectionName = '';
             var returnData = Object.assign({}, each);
             if (each.creatorType == constProposalUserType.PLAYERS) {

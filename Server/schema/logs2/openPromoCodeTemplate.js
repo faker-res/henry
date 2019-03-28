@@ -18,6 +18,8 @@ let openPromoCodeTemplateSchema = new Schema({
     requiredConsumption: {type: Number, required: true},
     // Disable Withdrawal after accept promo code
     disableWithdraw: {type: Boolean, default: false, index: true},
+    // forbid withdraw if there is certain amount of balance after unlock
+    forbidWithdrawIfBalanceAfterUnlock: {type: Number},
     // Allowed Game Providers, empty if all providers
     allowedProviders: [{type: Schema.ObjectId}],
     // Is platform using provider group

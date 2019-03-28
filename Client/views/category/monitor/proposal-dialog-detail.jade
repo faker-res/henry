@@ -98,7 +98,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.amount }}
                 tr
                     td {{'DEVICE' | translate}}
-                    td {{ userAgentType[vm.selectedProposal.data.userAgent] }}
+                    td {{ vm.selectedProposal.data.$inputDevice | translate }}
                 tr(ng-if="vm.selectedProposal.data.validTime")
                     td {{'DEPOSITTIME' | translate}}
                     td {{ vm.selectedProposal.data.validTime  | date : 'yyyy-MM-dd HH:mm:ss'}}

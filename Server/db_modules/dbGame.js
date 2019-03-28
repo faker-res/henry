@@ -172,7 +172,7 @@ var dbGame = {
 
         let platformProm = Promise.resolve();
         if (platformId) {
-            platformProm = dbconfig.collection_platform.findOne(platformId).lean();
+            platformProm = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
         }
 
         let playerProm = Promise.resolve();
@@ -514,6 +514,20 @@ var dbGame = {
             gameData,
             updateData,
             {new: true, upsert: true}
+        ).exec();
+    },
+    updatePlatformGameDisplay: function(platformObjId, game, gameDisplay){
+        // update fpms game status
+        let gameData = {};
+        let updateData=  { gameDisplay: gameDisplay};
+
+        if(game._id){
+            gameData._id = game._id;
+        }
+        return dbconfig.collection_game.findOneAndUpdate(
+            gameData,
+            updateData,
+            {new: true}
         ).exec();
     },
     getGamesByProviders: function (ids) {

@@ -2,9 +2,9 @@
 
 define(['js/app'], function (myApp) {
 
-    var injectParams = ['$sce', '$scope', '$filter', '$compile', '$location', '$log', 'socketService', 'authService', 'utilService', '$translate', 'CONFIG', "$cookies","commonService"];
+    var injectParams = ['$sce', '$scope', '$filter', '$compile', '$location', '$log', 'socketService', 'authService', 'utilService', '$translate', 'CONFIG', "$cookies","$timeout","commonService"];
 
-    var operationController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, $translate, CONFIG, $cookies, commonService) {
+    var operationController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, $translate, CONFIG, $cookies, $timeout, commonService) {
         var $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let $fixTwoDecimalStr = (value) => {
@@ -103,6 +103,8 @@ define(['js/app'], function (myApp) {
         vm.selectPlatform = function (id) {
             vm.newProposalNum = 0;
             vm.allPlatformId = [];
+            vm.queryProposalSelectedPlatform = [];
+            vm.queryProposalAuditSelectedPlatform = [];
 
             $.each(vm.platformList, function (i, v) {
                 if (v._id == id) {
@@ -213,6 +215,8 @@ define(['js/app'], function (myApp) {
 
             vm.queryProposalIdUpdate();
 
+            vm.queryProposalSelectedPlatform = [];
+            vm.queryProposalAuditSelectedPlatform = [];
             vm.queryProposalAuditId = "";
             vm.queryProposalEntryType = "";
             vm.queryProposalMinCredit = "";
@@ -238,6 +242,7 @@ define(['js/app'], function (myApp) {
                         } else{
                             vm.renderMultipleSelectDropDownList('select#selectProposalType');
                         }
+                        vm.refreshSPicker();
                     }
                 )
                 .then(vm.proposalTypeClicked(vm.rightPanelTitle == "APPROVAL_PROPOSAL" ? "approval" : "total"));
@@ -484,6 +489,14 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
+            vm.allPlatformId = [];
+            if(!vm.queryProposalSelectedPlatform || vm.queryProposalSelectedPlatform.length < 1){
+                vm.platformList.forEach(platform=>{
+                    vm.allPlatformId.push(platform._id);
+                });
+            } else {
+                vm.allPlatformId = vm.queryProposalSelectedPlatform;
+            }
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
@@ -580,6 +593,14 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.allPlatformId = [];
+            if(!vm.queryProposalAuditSelectedPlatform || vm.queryProposalAuditSelectedPlatform.length < 1){
+                vm.platformList.forEach(platform=>{
+                    vm.allPlatformId.push(platform._id);
+                });
+            } else {
+                vm.allPlatformId = vm.queryProposalAuditSelectedPlatform;
+            }
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
@@ -2791,6 +2812,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                 vm.platformList = data.data;
                 console.log("vm.getAllPlatforms", data);
+                commonService.sortAndAddPlatformDisplayName(vm.platformList);
                 if (vm.platformList.length == 0) {
                     return;
                 }
@@ -3152,6 +3174,13 @@ define(['js/app'], function (myApp) {
         vm.forcePairingWithReferenceNumber = function() {
             commonService.forcePairingWithReferenceNumber($scope, $translate, socketService, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
             vm.forcePairingReferenceNumber = '';
+        };
+
+        vm.refreshSPicker = () => {
+            // without this timeout, 'selectpicker refresh' might done before the DOM able to refresh, which evalAsync doesn't help
+            $timeout(function () {
+                $('.spicker').selectpicker('refresh');
+            }, 0);
         };
 
         function loadPlatform () {

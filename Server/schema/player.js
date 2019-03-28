@@ -67,6 +67,7 @@ var playerSchema = new Schema({
     //is real player
     isRealPlayer: {type: Boolean, default: true, index: true},
     //device ID - guest login/create (frontend app only)
+    // Bind on registration
     guestDeviceId: {type: String, index: true},
     //last feedback time
     lastFeedbackTime: {type: Date, default: "", index: true},
@@ -342,6 +343,7 @@ var playerSchema = new Schema({
     //client data
     clientData: {type: String},
     //device id
+    // Update every time when login
     deviceId: {type: String},
     // tsPhoneObjId
     tsPhone: {type: Schema.ObjectId, ref: 'tsPhone', index: true} ,
@@ -422,6 +424,38 @@ playerSchema.pre('save', function (next) {
     next();
 });
 
+playerSchema.pre('save', function (next) {
+    var player = this;
+
+    if (!player.isModified('deviceId')) {
+        return next();
+    }
+    // override the cleartext password with the hashed one
+    try {
+        player.deviceId = rsaCrypto.encrypt(player.deviceId);
+    }
+    catch (error) {
+        console.log(error);
+    }
+    next();
+});
+
+playerSchema.pre('save', function (next) {
+    var player = this;
+
+    if (!player.isModified('guestDeviceId')) {
+        return next();
+    }
+    // override the cleartext password with the hashed one
+    try {
+        player.guestDeviceId = rsaCrypto.encrypt(player.guestDeviceId);
+    }
+    catch (error) {
+        console.log(error);
+    }
+    next();
+});
+
 playerSchema.methods.comparePassword = function (candidatePassword, cb) {
     bcrypt.compare(candidatePassword, this.password, function (err, isMatch) {
         if (err) {
@@ -469,6 +503,40 @@ var playerPostFindUpdate = function (result, bOne) {
         // var startIndex = Math.max(Math.floor((result.bankAccount.length - 4) / 2), 0);
         // result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
         result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
+    }
+    if (result && result.guestDeviceId) {
+        if (result.guestDeviceId.length > 20) {
+            let guestDeviceId = result.guestDeviceId;
+            try {
+                result.guestDeviceId = rsaCrypto.decrypt(result.guestDeviceId);
+            }
+            catch (err) {
+                console.log(err, guestDeviceId);
+                result.guestDeviceId = guestDeviceId;
+            }
+        }
+        // var startIndex = Math.max(Math.floor((result.bankAccount.length - 4) / 2), 0);
+        // result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
+        if (!bOne) {
+            result.guestDeviceId = dbUtil.encodePhoneNum(result.guestDeviceId);
+        }
+    }
+    if (result && result.deviceId) {
+        if (result.deviceId.length > 20) {
+            let deviceId = result.deviceId;
+            try {
+                result.deviceId = rsaCrypto.decrypt(result.deviceId);
+            }
+            catch (err) {
+                console.log(err, deviceId);
+                result.deviceId = deviceId;
+            }
+        }
+        // var startIndex = Math.max(Math.floor((result.bankAccount.length - 4) / 2), 0);
+        // result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
+        if (!bOne) {
+            result.deviceId = dbUtil.encodePhoneNum(result.deviceId);
+        }
     }
     //hide last 4 digits for qq
     if (result && result.qq) {

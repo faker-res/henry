@@ -6,6 +6,8 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
 const constAccountType = require('../const/constAccountType');
 
+const RESTUtils = require('../modules/RESTUtils');
+
 var dbPlatformMerchantGroup = {
 
     /**
@@ -515,76 +517,25 @@ var dbPlatformMerchantGroup = {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let merchantListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.merchantListAPIAddr,
-                            body: {
-                                platformId: platformId
-                            },
-                            json: true
-                        };
-
                         let bankcardListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.BANK_CARD
-                            },
-                            json: true
+                            platformId: platformId,
+                            accountType: constAccountType.BANK_CARD
                         };
 
                         let alipayListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.ALIPAY
-                            },
-                            json: true
+                            platformId: platformId,
+                            accountType: constAccountType.ALIPAY
                         };
 
                         let wechatpayListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.WECHAT
-                            },
-                            json: true
+                            platformId: platformId,
+                            accountType: constAccountType.WECHAT
                         };
 
-                        merchantsList = rp(merchantListOptions).then(function (data) {
-                            console.log('merchantListAPIAddr success', data);
-                            return data;
-                        }, error => {
-                            console.log('merchantListAPIAddr failed', error);
-                            throw error;
-                        });
-
-                        bankCardList = rp(bankcardListOptions).then(function (data) {
-                            console.log('bankCardList success', data);
-                            return data;
-                        }, error => {
-                            console.log('bankCardList failed', error);
-                            throw error;
-                        });
-
-                        aliPayList = rp(alipayListOptions).then(function (data) {
-                            console.log('aliPayList success', data);
-                            return data;
-                        }, error => {
-                            console.log('aliPayList failed', error);
-                            throw error;
-                        });
-
-                        weChatList = rp(wechatpayListOptions).then(function (data) {
-                            console.log('weChatList success', data);
-                            return data;
-                        }, error => {
-                            console.log('weChatList failed', error);
-                            throw error;
-                        });
+                        merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
+                        bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions);
+                        aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions);
+                        weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions);
                     } else {
                         merchantsList = pmsAPI.merchant_getMerchantList({
                             platformId: platformId,
@@ -802,20 +753,7 @@ var dbPlatformMerchantGroup = {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let options = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.merchantTypeListAPIAddr,
-                            body: {},
-                            json: true
-                        };
-
-                        return rp(options).then(function (data) {
-                            console.log('merchantTypeList success', data);
-                            return data;
-                        }, error => {
-                            console.log('merchantTypeList failed', error);
-                            throw error;
-                        });
+                        return RESTUtils.getPMS2Services("postMerchantTypeList", {});
                     } else {
                         return pmsAPI.merchant_getMerchantTypeList(
                             {
@@ -837,46 +775,18 @@ var dbPlatformMerchantGroup = {
             let type = constAccountType.ONLINE
 
             let options = {
-                method: 'POST',
-                uri: topUpSystemConfig.paymentGroupAPIAddr,
-                body: {
-                    platformId: platformId,
-                    accountType: type
-                },
-                json: true
+                platformId: platformId,
+                accountType: type
             };
 
-            console.log('getPMSMerchantGroup req: ', platformId, type);
-
-            return rp(options).then(function (data) {
-                console.log('getPMSMerchantGroup success',platformId, type, data);
-                return data;
-            }, error => {
-                console.log('getPMSMerchantGroup failed',platformId, type, error);
-                throw error;
-            });
+            return RESTUtils.getPMS2Services("postPaymentGroup", options);
         }
     }
 };
 
 function getMerchantList(topUpSystemConfig, platformId) {
     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-        let options = {
-            method: 'POST',
-            uri: topUpSystemConfig.merchantListAPIAddr,
-            body: {
-                platformId: platformId
-            },
-            json: true
-        };
-
-        return rp(options).then(function (data) {
-            console.log('merchantList success', data);
-            return data;
-        }, error => {
-            console.log('merchantList failed', error);
-            throw error;
-        });
+        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
     } else {
         return pmsAPI.merchant_getMerchantList(
             {

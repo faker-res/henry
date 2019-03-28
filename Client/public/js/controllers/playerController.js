@@ -983,7 +983,7 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                 vm.allPlatformData = data.data;
-
+                commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                 //select platform from cookies data
                 let storedPlatform = $cookies.get("platform");
                 if (storedPlatform) {
@@ -3307,7 +3307,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getFinalValidAmount = function () {
-            vm.creditChange.finalValidAmount= Number(parseFloat(vm.selectedSinglePlayer.validCredit).toFixed(2)) + vm.creditChange.updateAmount;
+            vm.creditChange.finalValidAmount= Number($noRoundTwoDecimalToFix(vm.selectedSinglePlayer.validCredit)) + vm.creditChange.updateAmount;
+            // vm.creditChange.finalValidAmount= Number(parseFloat(vm.selectedSinglePlayer.validCredit).toFixed(2)) + vm.creditChange.updateAmount;
         };
 
         vm.newPlayerList = function () {
@@ -4747,10 +4748,17 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getProviderExpense = function (newSearch) {
+            let platformIdList;
+            if(vm.consumptionRecordPlatformList && vm.consumptionRecordPlatformList.length){
+                platformIdList = vm.consumptionRecordPlatformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
             var queryData = {
                 startTime: vm.expenseQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.expenseQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformId: vm.selectedPlatform.id,
+                platformId: platformIdList,
                 providerObjId: vm.selectedProviderID,
                 playerName: vm.playerName || null,
                 index: newSearch ? 0 : vm.expenseQuery.index,
@@ -4783,6 +4791,7 @@ define(['js/app'], function (myApp) {
                     item.gameType$ = item.cpGameType || item.gameId.name || "";
                     item.betType$ = item.betType || "";
                     item.remark$ = item.playDetail || "";
+                    item.platform$ = item.platformId && item.platformId.name ? item.platformId.name : "";
 
                     return item;
                 }) : [];
@@ -4795,16 +4804,18 @@ define(['js/app'], function (myApp) {
 
                 vm.commonProviderGameTableOptions = {
                     columnDefs: [
-                        {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [7]},
-                        {'sortCol': 'providerId', bSortable: true, 'aTargets': [1]},
-                        {'sortCol': 'gameId', bSortable: true, 'aTargets': [5]},
-                        {'sortCol': 'validAmount', bSortable: true, 'aTargets': [8]},
-                        {'sortCol': 'amount', bSortable: true, 'aTargets': [10]},
-                        {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [9]},
+                        {'sortCol': 'platform$', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'orderNo', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                        {'sortCol': 'providerId', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'gameId', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'validAmount', bSortable: true, 'aTargets': [9]},
+                        {'sortCol': 'amount', bSortable: true, 'aTargets': [11]},
+                        {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [10]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {title: $translate('PRODUCT_NAME'), data: 'platform$'},
                         {title: $translate('orderId'), data: "orderNo"},
                         {title: $translate('PLAYERID'), data: "playerId.name"},
                         {title: $translate('providerId'), data: "providerId.name"},
@@ -4863,9 +4874,9 @@ define(['js/app'], function (myApp) {
                 tableOptions = $.extend(true, {}, vm.providerExpenseDataTableOptions, vm.commonProviderGameTableOptions, tableOptions);
                 vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
                 utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
-                    9: summary.validAmount,
-                    10: summary.bonusAmount,
-                    11: summary.amount,
+                    10: summary.validAmount,
+                    11: summary.bonusAmount,
+                    12: summary.amount,
                     // 8: summary.commissionAmountAll
                 });
                 $('#providerExpenseTable').off('order.dt');
@@ -4921,12 +4932,7 @@ define(['js/app'], function (myApp) {
 
         //get all platform players data from server
         vm.getPlatformPlayersData = function (newSearch, initPage) {
-
-            // $('#loadingPlayerTableSpin').show();
-            socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: vm.selectedPlatform.id}, function (playerCount) {
-                vm.platformPlayerCount = playerCount.data;
-                console.log('playerCount', playerCount);
-            });
+            vm.getTotalPlayerCountByPlatformList();
             vm.advancedQueryObj = vm.advancedQueryObj || {};
             vm.drawPlayerTable([]);
 
@@ -4936,13 +4942,35 @@ define(['js/app'], function (myApp) {
 
         };
 
+        vm.getTotalPlayerCountByPlatformList = function(){
+            let platformIdList;
+            if(vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.platformList && vm.playerAdvanceSearchQuery.platformList.length){
+                platformIdList = vm.playerAdvanceSearchQuery.platformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
+            socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: platformIdList}, function (playerCount) {
+                $scope.$evalAsync(() => {
+                    vm.platformPlayerCount = playerCount.data;
+                    console.log('playerCount', playerCount);
+                });
+            });
+        };
 
         vm.advancedPlayerQuery = function (newSearch) {
             if (vm.advancedQueryObj.credibilityRemarks && (vm.advancedQueryObj.credibilityRemarks.constructor !== Array || vm.advancedQueryObj.credibilityRemarks.length === 0)) {
                 delete vm.advancedQueryObj.credibilityRemarks;
             }
+            let platformIdList;
+            if(vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.platformList && vm.playerAdvanceSearchQuery.platformList.length){
+                platformIdList = vm.playerAdvanceSearchQuery.platformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
             var apiQuery = {
-                platformId: vm.selectedPlatform.id,
+                platformId: platformIdList,
                 query: vm.advancedQueryObj,
                 index: newSearch ? 0 : (vm.playerTableQuery.index || 0),
                 limit: vm.playerTableQuery.limit,
@@ -5010,6 +5038,7 @@ define(['js/app'], function (myApp) {
         });
 
         var setPlayerTableData = function (data) {
+            vm.getTotalPlayerCountByPlatformList();
             return setTableData(vm.playerTable, data);
         };
 
@@ -5038,6 +5067,12 @@ define(['js/app'], function (myApp) {
                         }
                         if (rowData.lastAccessTime) {
                             rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
+                        }
+                        if(rowData.platform){
+                            let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() == rowData.platform.toString());
+                            if(matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name){
+                                rowData.platform$ = matchedPlatformData[0].name;
+                            }
                         }
                         if (table) {
                             table.row.add(rowData);
@@ -5073,8 +5108,12 @@ define(['js/app'], function (myApp) {
                 columnDefs: [
                     {targets: '_all', defaultContent: ' '}
                 ],
-                "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
+                "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
                 columns: [
+                    {
+                        title: $translate('PRODUCT_NAME'),
+                        data: 'platform$'
+                    },
                     {
                         title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                         render: function (data, type, row) {
@@ -5405,7 +5444,7 @@ define(['js/app'], function (myApp) {
                                 if ($scope.checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-plus-circle',
-                                        'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
+                                        'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);vm.loadBankCard()',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerTopUp',
@@ -6828,6 +6867,8 @@ define(['js/app'], function (myApp) {
         vm.getEncPhoneNumber = function (playerData) {
             return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''
         };
+
+        vm.encryptField = (field) => field && field.substring(0, 3) + "******" + field.slice(-4);
 
         /**** Similar Player ****/
         vm.showSimilarPlayerTab = function (tabName) {
@@ -10049,7 +10090,9 @@ define(['js/app'], function (myApp) {
             //     updateAmount: 0
             // };
 
-            vm.creditChange.finalValidAmount = vm.isOneSelectedPlayer().validCredit;
+            vm.creditChange.validCredit = parseFloat($noRoundTwoDecimalToFix(vm.isOneSelectedPlayer().validCredit));
+            vm.creditChange.finalValidAmount = parseFloat($noRoundTwoDecimalToFix(vm.isOneSelectedPlayer().validCredit));
+            // vm.creditChange.finalValidAmount = vm.isOneSelectedPlayer().validCredit;
             vm.creditChange.finalLockedAmount = null;
             vm.creditChange.remark = '';
             vm.creditChange.updateAmount = 0;
@@ -12643,7 +12686,9 @@ define(['js/app'], function (myApp) {
                 objectId: vm.isOneSelectedPlayer()._id,
                 type: "PLAYERS"
             }, function (data) {
-                var drawData = data.data.map(item => {
+                var drawData = data.data.filter(item => {
+                    return item.bankName || item.bankAccount || item.bankAccountName;
+                }).map(item => {
                     item.province = item.provinceData || item.bankAccountProvince;
                     item.city = item.cityData || item.bankAccountCity;
                     item.district = item.districtData || item.bankAccountDistrict;
@@ -12652,8 +12697,46 @@ define(['js/app'], function (myApp) {
                     item.createTime$ = vm.dateReformat(item.changeTime);
                     return item;
                 });
-                vm.paymetHistoryCount = data.data.length;
+                vm.paymetHistoryCount = drawData.length;
                 vm.drawPaymentHistory(drawData);
+                let drawData2 = [];
+                let drawData3 = [];
+                if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                    drawData2 = data.data.filter(item => {
+                        return item.bankName2 || item.bankAccount2 || item.bankAccountName2;
+                    }).map(item => {
+                        item.bankName = item.bankName2 || $translate('Unknown');
+                        item.bankAccount = item.bankAccount2 || $translate('Unknown');
+                        item.bankAccountName = item.bankAccountName2 || $translate('Unknown');
+                        item.bankAddress = item.bankAddress2 || $translate('Unknown');
+                        item.province = item.provinceData || item.bankAccountProvince2;
+                        item.city = item.cityData || item.bankAccountCity2;
+                        item.district = item.districtData || item.bankAccountDistrict2;
+                        item.creatorName = item.creatorInfo.adminName || item.creatorInfo.name;
+                        item.bankStr = vm.allBankTypeList[item.bankName2] || item.bankName2 || $translate('Unknown');
+                        item.createTime$ = vm.dateReformat(item.changeTime);
+                        return item;
+                    });
+                    drawData3 = data.data.filter(item => {
+                        return item.bankName3 || item.bankAccount3 || item.bankAccountName3;
+                    }).map(item => {
+                        item.bankName = item.bankName3 || $translate('Unknown');
+                        item.bankAccount = item.bankAccount3 || $translate('Unknown');
+                        item.bankAccountName = item.bankAccountName3 || $translate('Unknown');
+                        item.bankAddress = item.bankAddress3 || $translate('Unknown');
+                        item.province = item.provinceData || item.bankAccountProvince3;
+                        item.city = item.cityData || item.bankAccountCity3;
+                        item.district = item.districtData || item.bankAccountDistrict3;
+                        item.creatorName = item.creatorInfo.adminName || item.creatorInfo.name;
+                        item.bankStr = vm.allBankTypeList[item.bankName3] || item.bankName3 || $translate('Unknown');
+                        item.createTime$ = vm.dateReformat(item.changeTime);
+                        return item;
+                    });
+                    vm.paymetHistoryCount2 = drawData2.length;
+                    vm.paymetHistoryCount3 = drawData3.length;
+                    vm.drawPaymentHistory2(drawData2);
+                    vm.drawPaymentHistory3(drawData3);
+                }
 
             }, null, true);
             $('#modalPlayerPaymentHistory').modal();
@@ -12683,6 +12766,58 @@ define(['js/app'], function (myApp) {
             var aTable = $('#playerPaymentHistoryTbl').DataTable(tableOptions);
             aTable.columns.adjust().draw();
             $('#playerPaymentHistoryTbl').resize();
+            $scope.safeApply();
+        };
+        vm.drawPaymentHistory2 = function (tblData) {
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('CREATETIME'), data: "createTime$"},
+                    {title: $translate('bankAccountName'), data: "bankAccountName", sClass: "wordWrap"},
+                    {title: $translate('bankName'), data: "bankStr"},
+                    {title: $translate('BANK_BRANCH'), data: "bankBranch", sClass: "wordWrap"},
+                    {title: $translate('bankAddress'), data: "bankAddress", sClass: "wordWrap"},
+                    {title: $translate('PROVINCE'), data: "province"},
+                    {title: $translate('CITY'), data: "city"},
+                    {title: $translate('DISTRICT'), data: "district"},
+                    {title: $translate('creator'), data: "creatorName"},
+                    {title: $translate('source'), data: "sourceStr"},
+                ],
+                "paging": true,
+            });
+
+            var aTable = $('#playerPaymentHistoryTbl2').DataTable(tableOptions);
+            aTable.columns.adjust().draw();
+            $('#playerPaymentHistoryTbl2').resize();
+            $scope.safeApply();
+        };
+        vm.drawPaymentHistory3 = function (tblData) {
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('CREATETIME'), data: "createTime$"},
+                    {title: $translate('bankAccountName'), data: "bankAccountName", sClass: "wordWrap"},
+                    {title: $translate('bankName'), data: "bankStr"},
+                    {title: $translate('BANK_BRANCH'), data: "bankBranch", sClass: "wordWrap"},
+                    {title: $translate('bankAddress'), data: "bankAddress", sClass: "wordWrap"},
+                    {title: $translate('PROVINCE'), data: "province"},
+                    {title: $translate('CITY'), data: "city"},
+                    {title: $translate('DISTRICT'), data: "district"},
+                    {title: $translate('creator'), data: "creatorName"},
+                    {title: $translate('source'), data: "sourceStr"},
+                ],
+                "paging": true,
+            });
+
+            var aTable = $('#playerPaymentHistoryTbl3').DataTable(tableOptions);
+            aTable.columns.adjust().draw();
+            $('#playerPaymentHistoryTbl3').resize();
             $scope.safeApply();
         };
 
@@ -14655,8 +14790,15 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
+            let platformIdList;
+            if(vm.actionLogPlatformList && vm.actionLogPlatformList.length){
+                platformIdList = vm.actionLogPlatformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
             let sendQuery = {
-                platform: vm.selectedPlatform.id,
+                platform: platformIdList,
                 playerObjId: vm.selectedSinglePlayer && vm.selectedSinglePlayer._id || "",
                 playerName: vm.playerApiLog.playerName || "",
                 startDate: vm.playerApiLog.startDate.data('datetimepicker').getLocalDate(),
@@ -14688,6 +14830,7 @@ define(['js/app'], function (myApp) {
                     item.os = item.userAgent[0] && item.userAgent[0].os ? item.userAgent[0].os : "";
                     item.browser = item.userAgent[0] && item.userAgent[0].browser ? item.userAgent[0].browser : "";
                     item.ipArea$ = item.ipArea && item.ipArea.province && item.ipArea.city ? item.ipArea.province + "," + item.ipArea.city : "";
+                    item.platform$ = item.platform && item.platform.name ? item.platform.name : "";
                     if (item.domain) {
                         var filteredDomain = item.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
                         let indexNo = filteredDomain.indexOf("/");
@@ -14711,6 +14854,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('Incident'), data: "action$"},
                     {title: $translate('PLAYER_NAME'), data: "playerName"},
                     {title: $translate('Operation Time'), data: "operationTime$"},
@@ -15023,7 +15167,9 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
                 $scope.$evalAsync(() => {
-                    vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                    if (data && data.data && data.data.data) {
+                        vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                    }
                 })
             })
 
@@ -22171,27 +22317,27 @@ define(['js/app'], function (myApp) {
             }
 
             if (playerQuery.playerId) {
-                var te = $("#playerTable-search-filter > div").not(":nth-child(1)").find(".form-control");
+                var te = $("#playerTable-search-filter > div").not(":nth-child(2)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.name) {
-                var te = $("#playerTable-search-filter > div").not(":nth-child(3)").find(".form-control");
+                var te = $("#playerTable-search-filter > div").not(":nth-child(4)").not(":nth-child(1)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.phoneNumber) {
-                var te = $("#playerTable-search-filter > div").not(":nth-child(10)").find(".form-control");
+                var te = $("#playerTable-search-filter > div").not(":nth-child(11)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.bankAccount) {
-                let te = $("#playerTable-search-filter > div").not(":nth-child(11)").find(".form-control");
+                let te = $("#playerTable-search-filter > div").not(":nth-child(12)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.email) {
-                let te = $("#playerTable-search-filter > div").not(":nth-child(12)").find(".form-control");
+                let te = $("#playerTable-search-filter > div").not(":nth-child(13)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
@@ -22201,8 +22347,16 @@ define(['js/app'], function (myApp) {
                 $("select#selectCredibilityRemark").multipleSelect("enable");
             }
             if (playerQuery.playerId || playerQuery.name || playerQuery.phoneNumber || playerQuery.bankAccount || playerQuery.email) {
+                let platformIdList;
+
+                if(vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.platformList && vm.playerAdvanceSearchQuery.platformList.length){
+                    platformIdList = vm.playerAdvanceSearchQuery.platformList;
+                }else{
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: platformIdList,
                     query: playerQuery,
                     index: 0,
                     limit: 100
@@ -23231,6 +23385,21 @@ define(['js/app'], function (myApp) {
         vm.forcePairingWithReferenceNumber = function() {
             commonService.forcePairingWithReferenceNumber($scope, $translate, socketService, vm.selectedPlatform.data.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
             vm.forcePairingReferenceNumber = '';
+        };
+
+        vm.loadBankCard = function(){
+            // 1st dependencies variable
+            return Promise.all([
+                commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])),
+            ]).then(
+                result => {
+                    $scope.$evalAsync(() => {
+                        if(result && result.length){
+                            vm.bankCards = result[0];
+                        }
+                    });
+                }
+            );
         };
 
         $('body').on('click', '#permissionRecordButtonByPlayerTab', function () {
