@@ -50,19 +50,24 @@ function postRequest (reqData, urlName, method) {
         err => {
             console.log(`${urlName} 1ST FAILED: ${err}`);
 
-            options.uri = getSubDomain().concat(urlName);
+            if (getSubDomain()) {
+                options.uri = getSubDomain().concat(urlName);
 
-            return rp(options).then(
-                data => {
-                    console.log(`${urlName} 2ND SUCCESS: ${data}`);
-                    return data;
-                }
-            ).catch(
-                err => {
-                    console.log(`${urlName} 2ND FAILED: ${err}`);
-                    throw err;
-                }
-            );
+                return rp(options).then(
+                    data => {
+                        console.log(`${urlName} 2ND SUCCESS: ${data}`);
+                        return data;
+                    }
+                ).catch(
+                    err => {
+                        console.log(`${urlName} 2ND FAILED: ${err}`);
+                        throw err;
+                    }
+                );
+            } else {
+                return Promise.reject({message: "Fail to get sub domain"});
+            }
+
         }
     );
 }

@@ -119,6 +119,7 @@ define(['js/app'], function (myApp) {
 
         vm.getWinnerMonitorRecord = (newSearch) => {
             $('#winnerMonitorTableSpin').show();
+            vm.timerCountDown = 11;
             let period = vm.getPeriod(vm.winnerMonitorQuery.hours);
             vm.winnerMonitorQuery.startTime = period.startTime;
             vm.winnerMonitorQuery.endTime = period.endTime;
@@ -145,6 +146,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawWinnerMonitorTable = (data) => {
+            if (!data || !data.length) {
+                data = [];
+                $('#winnerMonitorTableSpin').hide();
+            }
             data.map(
                 record => {
                     record.playerName$ = record.player && record.player.name || "";
@@ -173,9 +178,6 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.winnerMonitorQuery.aaSorting || [[7, 'desc']],
                 aoColumnDefs: [
-                    // {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    // {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
-                    // {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -186,6 +188,9 @@ define(['js/app'], function (myApp) {
                         data: "credibilityRemarks$",
                         render: (data, type, row) => {
                             let output = "";
+                            if (!data || !data.length) {
+                                return "";
+                            }
                             data.map(function (remarkName) {
                                 output += remarkName;
                                 output += "<br>";
@@ -223,10 +228,10 @@ define(['js/app'], function (myApp) {
 
             vm.winnerMonitorTable = utilService.createDatatableWithFooter('#winnerMonitorTable', tableOptions, {}, true);
 
-            $('#winnerMonitorTable').off('order.dt');
-            $('#winnerMonitorTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'winnerMonitorQuery', vm.getWinnerMonitorRecord);
-            });
+            // $('#winnerMonitorTable').off('order.dt');
+            // $('#winnerMonitorTable').on('order.dt', function (event, a, b) {
+            //     vm.commonSortChangeHandler(a, 'winnerMonitorQuery', vm.getWinnerMonitorRecord);
+            // });
             $('#winnerMonitorTable').resize();
 
             $('#winnerMonitorTableSpin').hide();
@@ -354,6 +359,14 @@ define(['js/app'], function (myApp) {
             );
         };
 
+        vm.debugSummaryRecord = function () {
+            return $scope.$socketPromise("debugConsumptionHourSummaryRecord", {platformObjId: vm.selectedPlatform._id, startTime: vm.winnerMonitorQuery.startTime, endTime: vm.winnerMonitorQuery.endTime}).then(
+                data => {
+                    console.log("debugConsumptionHourSummaryRecord", data);
+                }
+            );
+        };
+
         function initPageParam() {
             vm.winnerMonitorQuery = {hours: 24};
             vm.updateQueryTime();
@@ -370,36 +383,35 @@ define(['js/app'], function (myApp) {
         $scope.$on("setPlatform", function (e, d) {
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
-            // setTimeout(function () {
-            //
-            //     let countDown = -1;
-            //     clearInterval(vm.refreshInterval);
-            //     vm.refreshInterval = setInterval(function () {
-            //         let item = $('#autoRefreshProposalFlag');
-            //         let isRefresh = item && item.length > 0 && item[0].checked;
-            //         let mark = $('#timeLeftRefreshOperation')[0];
-            //         $(mark).parent().toggleClass('hidden', countDown < 0);
-            //         if (isRefresh) {
-            //             if (countDown < 0) {
-            //                 countDown = 11
-            //             }
-            //             if (countDown === 0) {
-            //                 vm.getPaymentMonitorRecord();
-            //                 countDown = 11;
-            //             }
-            //             countDown--;
-            //             $(mark).text(countDown);
-            //         } else {
-            //             countDown = -1;
-            //         }
-            //         if (window.location.pathname != '/monitor/payment') {
-            //             clearInterval(vm.refreshInterval);
-            //         }
-            //         else if (!vm.paymentMonitorQuery) {
-            //             vm.loadPage();
-            //         }
-            //     }, 1000);
-            // });
+            setTimeout(function () {
+                vm.timerCountDown = -1;
+                clearInterval(vm.refreshInterval);
+                vm.refreshInterval = setInterval(function () {
+                    let item = $('#autoRefreshProposalFlag');
+                    let isRefresh = item && item.length > 0 && item[0].checked;
+                    let mark = $('#timeLeftRefreshOperation')[0];
+                    $(mark).parent().toggleClass('hidden', vm.timerCountDown < 0);
+                    if (isRefresh) {
+                        if (vm.timerCountDown < 0) {
+                            vm.timerCountDown = 11
+                        }
+                        if (vm.timerCountDown === 0) {
+                            vm.getWinnerMonitorRecord();
+                            vm.timerCountDown = 11;
+                        }
+                        vm.timerCountDown--;
+                        $(mark).text(vm.timerCountDown);
+                    } else {
+                        vm.timerCountDown = -1;
+                    }
+                    if (window.location.pathname != '/monitor/winner') {
+                        clearInterval(vm.refreshInterval);
+                    }
+                    else if (!vm.winnerMonitorQuery) {
+                        vm.loadPage();
+                    }
+                }, 1000);
+            });
         });
     };
 

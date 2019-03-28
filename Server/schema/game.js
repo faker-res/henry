@@ -42,7 +42,7 @@ var gameSchema = new Schema({
     images: {type: JSON},
     // sourceURL to add in front of images url if CDN not set up
     sourceURL: {type: String},
-    // game display : 1.horizontal 2.vertical 3. horizontal/vertical
+    // game display : 1.horizontal 2.vertical 3. horizontal/vertical 4. no need setup
     gameDisplay: {type: String}
 });
 

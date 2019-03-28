@@ -129,26 +129,23 @@ const dbPlayerConsumptionHourSummary = {
                                 consumptionValidAmount: 1,
                                 consumptionBonusAmount: 1,
                                 consumptionTimes: 1,
-                                bonusValidDifference: {
-                                    $subtract: [
-                                        "$consumptionBonusAmount",
-                                        "$consumptionValidAmount"
-                                    ]
-                                },
                                 bonusValidRatio: {
                                     $divide: [
                                         {
                                             $multiply: [
                                                 100,
-                                                {
-                                                    $subtract: [
-                                                        "$consumptionBonusAmount",
-                                                        "$consumptionValidAmount"
-                                                    ]
-                                                }
+                                                "$consumptionBonusAmount"
                                             ]
                                         },
-                                        "$consumptionValidAmount"
+                                        {
+                                            $cond: {
+                                                if: {
+                                                    $gt: ["$consumptionValidAmount", 0]
+                                                },
+                                                then: "$consumptionValidAmount",
+                                                else: 0.01
+                                            }
+                                        }
                                     ]
                                 }
                             }
@@ -156,7 +153,7 @@ const dbPlayerConsumptionHourSummary = {
                         {
                             $match: {
                                 bonusValidRatio: {$gte: config.companyWinRatio},
-                                bonusValidDifference: {$gte: config.playerWonAmount},
+                                consumptionBonusAmount: {$gte: config.playerWonAmount},
                                 consumptionTimes: {$gte: config.consumptionTimes}
                             }
                         }
@@ -217,7 +214,14 @@ const dbPlayerConsumptionHourSummary = {
                 }
             }
         );
-    }
+    },
+
+    debugSummaryRecord: (platformObjId, startTime, endTime) => {
+        return dbconfig.collection_playerConsumptionHourSummary.find({
+            platform: platformObjId,
+            startTime: {$gte: new Date(startTime), $lt: new Date(endTime)}
+        }).sort({_id: -1}).lean();
+    },
 };
 
 let proto = dbPlayerConsumptionHourSummaryFunc.prototype;
