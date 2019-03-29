@@ -23528,6 +23528,18 @@ let dbPlayerInfo = {
         })
     },
 
+    unbindPhoneDeviceId: function (playerObjId) {
+        return dbconfig.collection_players.findOneAndUpdate(
+            {_id: playerObjId},
+            {
+                phoneNumber: null,
+                guestDeviceId: null,
+                phoneProvince: null,
+                phoneCity: null,
+                phoneType: null,
+            }).lean()
+    },
+
     creditTransferedFromPartner: function (proposalId, platformId) {
         let partnerProposal;
         let proposalTypeObj;
