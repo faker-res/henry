@@ -197,7 +197,7 @@
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value2")
 
 
-                    .col-md-12.well.scrollRecord(ng-if="!vm.isNewDisplay")
+                    .col-md-12.well.scrollRecord(ng-if="!vm.isNewDisplay && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name !== 'PlayerRandomRewardGroup')")
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
                             label {{v.des | translate}}
                                 i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
@@ -250,7 +250,7 @@
                                                     i.fa.fa-minus(ng-click='vm.rewardPercentageAmountDeleteRow(idx,entry[i])' ng-show='vm.platformRewardIsEnabled && idx!=0')
                                                     i.fa.fa-plus(ng-click='vm.rewardPercentageAmountNewRow(entry[i])' ng-show='vm.platformRewardIsEnabled && idx==0')
 
-                    .col-md-12.well.scrollRecord(ng-if="vm.isNewDisplay && !vm.isPlayerLevelDiff" style="height: 400px;")
+                    .col-md-12.well.scrollRecord(ng-if="vm.isNewDisplay && !vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name !== 'PlayerRandomRewardGroup')" style="height: 400px;")
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
                             label {{v.des | translate}}
                                 i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
@@ -286,7 +286,7 @@
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;')
                                         option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
 
-                    #platformRewardSetting.col-md-12.well(ng-if="vm.isNewDisplay && vm.isPlayerLevelDiff")
+                    #platformRewardSetting.col-md-12.well(ng-if="vm.isNewDisplay && vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name !== 'PlayerRandomRewardGroup')")
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
                             label {{v.des | translate}}
                                 i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
@@ -328,6 +328,108 @@
                                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;')
                                                     option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
+
+                    .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerRandomRewardGroup'")
+                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableCredit track by $index" ng-cloak)
+                            thead
+                                th(ng-if="vm.isMultiStepReward")
+                                th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
+                            tbody(ng-repeat="entry in cond.value track by $index")
+                                td(ng-if="vm.isMultiStepReward")
+                                    i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.randomRewardType.credit})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                td(ng-repeat="(i,v) in cond.header track by $index")
+                                    //input(ng-if="v.type == 'text' && v == 'title'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
+                                        option(value='') {{'LOCAL_CREDIT' | translate}}
+                                    span.percentage(ng-if="v.type == 'percentage'")
+                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+                        br
+                        br
+                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTablePromoCode1 track by $index" ng-cloak)
+                            thead
+                                th(ng-if="vm.isMultiStepReward")
+                                th(ng-repeat="(i,v) in cond.header") {{v.des || "PROMO_CODE_TYPE_1" | translate}}
+                            tbody(ng-repeat="entry in cond.value track by $index")
+                                td(ng-if="vm.isMultiStepReward")
+                                    i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, entry, {rewardType: vm.randomRewardType.promoCodeBDeposit})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
+                                        option(value='') {{'LOCAL_CREDIT' | translate}}
+                                    span.percentage(ng-if="v.type == 'percentage'")
+                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+                        br
+                        br
+                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTablePromoCode2 track by $index" ng-cloak)
+                            thead
+                                th(ng-if="vm.isMultiStepReward")
+                                th(ng-repeat="(i,v) in cond.header") {{v.des || "PROMO_CODE_TYPE_2" | translate}}
+                            tbody(ng-repeat="entry in cond.value track by $index")
+                                td(ng-if="vm.isMultiStepReward")
+                                    i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, entry, {rewardType: vm.randomRewardType.promoCodeBNoDeposit})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
+                                        option(value='') {{'LOCAL_CREDIT' | translate}}
+                                    span.percentage(ng-if="v.type == 'percentage'")
+                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+                        br
+                        br
+                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTablePromoCode3 track by $index" ng-cloak)
+                            thead
+                                th(ng-if="vm.isMultiStepReward")
+                                th(ng-repeat="(i,v) in cond.header") {{v.des || "PROMO_CODE_TYPE_3" | translate}}
+                            tbody(ng-repeat="entry in cond.value track by $index")
+                                td(ng-if="vm.isMultiStepReward")
+                                    i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, entry, {rewardType: vm.randomRewardType.promoCodeC})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
+                                        option(value='') {{'LOCAL_CREDIT' | translate}}
+                                    span.percentage(ng-if="v.type == 'percentage'")
+                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+                        br
+                        br
+                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableRewardPoints track by $index" ng-cloak)
+                            thead
+                                th(ng-if="vm.isMultiStepReward")
+                                th(ng-repeat="(i,v) in cond.header") {{v.des || "Reward Points Reward" | translate}}
+                            tbody(ng-repeat="entry in cond.value track by $index")
+                                td(ng-if="vm.isMultiStepReward")
+                                    i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, entry, {rewardType: vm.randomRewardType.rewardPoints})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
+                                        option(value='') {{'LOCAL_CREDIT' | translate}}
+                                    span.percentage(ng-if="v.type == 'percentage'")
+                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+                        br
+                        br
+                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTablePrize track by $index" ng-cloak)
+                            thead
+                                th(ng-if="vm.isMultiStepReward")
+                                th(ng-repeat="(i,v) in cond.header") {{v.des || "Real Prize Reward" | translate}}
+                            tbody(ng-repeat="entry in cond.value track by $index")
+                                td(ng-if="vm.isMultiStepReward")
+                                    i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, entry, {rewardType: vm.randomRewardType.realPrize})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
+                                        option(value='') {{'LOCAL_CREDIT' | translate}}
+                                    span.percentage(ng-if="v.type == 'percentage'")
+                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
 
                 .col-md-12.well.scrollRecord(ng-if='vm.showRewardTypeData.isGrouped === true || (vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')

@@ -675,6 +675,15 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "Manual Subscribe Auto Apply"
     };
 
+    $scope.randomRewardType = {
+        1: "Credit",
+        2: "Promo Code-B (With Deposit)",
+        3: "Promo Code-B (Without Deposit)",
+        4: "Promo Code-C",
+        5: "Reward Points",
+        6: "Real Prize"
+    };
+
     $scope.bonusDoubledRewardModal = {
         1: "Principal x Multiplier/100",
         2: "Fixed reward amount based on the multiplier"
