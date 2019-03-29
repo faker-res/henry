@@ -1399,6 +1399,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.clearPlayerState, [data.playerObjId], actionName, isValidData);
         },
 
+        unbindPhoneDeviceId: function unbindPhoneDeviceId(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.unbindPhoneDeviceId, [data.playerObjId], actionName, isValidData);
+        },
+
         getBankZoneData: function getBankZoneData(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
