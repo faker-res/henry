@@ -1656,10 +1656,10 @@ var dbRewardEvent = {
 
                 // Count reward amount and spending amount
                 switch (eventData.type.name) {
-                  
+
                     case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                         let consumptionSlipRewardDetail = rewardSpecificData[0];
-                        
+
                         returnData.condition.deposit.list = [];
                         returnData.condition.bet.list = [];
 
@@ -1710,7 +1710,7 @@ var dbRewardEvent = {
                         }
 
                         if(consumptionSlipRewardDetail.applyList && consumptionSlipRewardDetail.applyList.length){
-                            
+
                             returnData.condition.bet.status = 1;
                             consumptionSlipRewardDetail.applyList.forEach(
                                 detail => {
@@ -2705,12 +2705,35 @@ var dbRewardEvent = {
             }
         );
     },
+    assignRandomRewardToUser: function (playerName, rewardName, platformId, reward) {
 
+        return dbconfig.collection_players.findOne({ name:playerName, platform:platformId }).lean().then(
+            data=> {
+                if (!data) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Error in getting Player ID"
+                    });
+                }
+                console.log(data);
+                console.log(data._id);
+                let rewardData = {
+
+                    platformId: platformId,
+                    rewardEvent: reward,
+                    randomReward: rewardName,
+                    playerId: data._id,
+                    status: 1
+                }
+                return dbconfig.collection_playerRandomReward(rewardData).save();
+            })
+
+    },
     startPlatformRTGEventSettlement: function (platformObjId, eventCode) {
         let applyTargetDate;
 
         let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
- 
+
         let eventProm = dbconfig.collection_rewardEvent.findOne({code: eventCode}).lean();
 
         let rewardTypesProm = dbconfig.collection_rewardType.find({isGrouped: true}).lean();

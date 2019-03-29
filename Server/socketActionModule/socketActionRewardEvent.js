@@ -119,6 +119,14 @@ function socketActionRewardEvent(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId && data.eventCode);
             socketUtil.emitter(self.socket, dbRewardEvent.startPlatformRTGEventSettlement, [data.platformId, data.eventCode], actionName, isValidData);
         },
+        /**
+        *
+        */
+        assignRandomRewardToUser: function assignRandomRewardToUser(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerName && data.rewardName && data.platformId && data.reward);
+            socketUtil.emitter(self.socket, dbRewardEvent.assignRandomRewardToUser, [data.playerName, data.rewardName, data.platformId, data.reward], actionName, isValidData);
+        }
     };
     socketActionRewardEvent.actions = this.actions;
 };

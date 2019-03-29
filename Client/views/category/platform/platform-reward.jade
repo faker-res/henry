@@ -330,6 +330,27 @@
                                                     option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
 
 
+                    .col-md-12.well.scrollRecord( style="height: 400px;")
+                        //.panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
+                            .panel-body(style="min-width: fit-content;")
+                        div
+                            table.simple-table.table-vertical-middle
+                                thead
+                                    tr
+                                        th 操作
+                                        th 指定会员账号
+                                        th 设定随机中奖
+                                tbody
+                                    tr
+                                        td
+                                            i.fa.fa-plus(ng-click='vm.assignRandomRewardToUser(vm.assignRandomReward)')
+                                        td
+                                            input(type='string', ng-model='vm.assignRandomReward.playerName')
+                                        td
+                                            input(type='string', ng-model='vm.assignRandomReward.rewardName')
+                                            //select.form-control(ng-model='entry.betType')
+                                                option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
+
                 .col-md-12.well.scrollRecord(ng-if='vm.showRewardTypeData.isGrouped === true || (vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')
                     label * {{'RICH_TEXT_EDITOR' | translate}}:&nbsp
                     a(href='http://baowang.webcontent.cloud/ume/' target='_blank')
@@ -461,8 +482,8 @@
                                     label {{"GROUP_NAME"|translate}}
                                     select.form-control(ng-model='vm.moveRewardEventGroupId', style='max-width:300px', required)
                                         option(ng-repeat='(i,v) in vm.rewardEventGroup', value='{{v._id}}', ng-if='v._id && v._id != vm.showRewardEventGroup._id') {{v.name}}
-                                                    
-                                
+
+
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.moveRewardEventGroupId', ng-click="vm.moveEventRewardGroup()") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
@@ -481,7 +502,7 @@
                                     label {{"GROUP_NAME"|translate}}
                                     input.form-control(type="text", ng-model="vm.newRewardEventGroupName", required)
 
-                                
+
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.newRewardEventGroupName', ng-click="vm.createRewardEventGroup()") {{"ADD" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
@@ -500,7 +521,7 @@
                                     label {{"GROUP_NAME"|translate}}
                                     input.form-control(type="text", ng-model="vm.editRewardEventGroupName", required)
 
-                                
+
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.editRewardEventGroupName', ng-click="vm.editRewardGroupName()") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}

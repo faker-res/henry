@@ -18278,6 +18278,18 @@ define(['js/app'], function (myApp) {
                 })
             });
 
+            vm.assignRandomRewardToUser = function (assignRandomReward) {
+                let sendQuery = {
+                    playerName: assignRandomReward.playerName,
+                    rewardName: assignRandomReward.rewardName,
+                    platformId: vm.selectedPlatform.id,
+                    reward: vm.showReward._id
+                }
+                socketService.$socket($scope.AppSocket, 'assignRandomRewardToUser', sendQuery, function (data) {
+                    console.log(data);
+                });
+            }
+
             vm.getReferralsList = function (partner) {
                 socketService.$socket($scope.AppSocket, 'getReferralsList', partner, function (data) {
                     if (vm.totalPlayerDownlineBoolean) {
