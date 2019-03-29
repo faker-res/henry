@@ -3387,18 +3387,22 @@ define(['js/app'], function (myApp) {
 
             ////////////////Mark::Game Group functions//////////////////
 
-            vm.loadGameGroupData = function () {
+            vm.loadGameGroupData = function (platformObjId) {
                 //init gametab start===============================
                 vm.showGameCate = "include";
                 vm.toggleGameType();
                 //init gameTab end==================================
-                if (!vm.selectedPlatform) {
+                if (!platformObjId) {
                     return
                 }
                 vm.loadingGameGroup = true;
                 vm.SelectedGameGroupNode = null;
-                console.log("getGames", vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'getPlatformGameGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                // console.log("getGames", vm.selectedPlatform.id);
+                let sendData = {
+                    platform: platformObjId || null
+                }
+                console.log("sendData", sendData);
+                socketService.$socket($scope.AppSocket, 'getPlatformGameGroup', sendData, function (data) {
                     console.log('gamegroup', data);
                     //provider list init
                     vm.loadingGameGroup = false;
@@ -3412,7 +3416,7 @@ define(['js/app'], function (myApp) {
                 console.log(str, vm.SelectedGameGroupNode, vm.newGameGroup);
                 //vm.selectGameGroupParent
                 var sendData = {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.filterGameGroupPlatform,
                     name: vm.newGameGroup.name,
                     parent: vm.newGameGroup.parent,
                     code: vm.newGameGroup.code,
@@ -3420,12 +3424,12 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'addPlatformGameGroup', sendData, function (data) {
                     console.log(data.data);
-                    vm.loadGameGroupData();
+                    vm.loadGameGroupData(vm.filterGameGroupPlatform);
                     $scope.safeApply();
                 })
             }
             vm.removeGameGroup = function () {
-                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text, platform: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text, platform: vm.filterGameGroupPlatform}, function (data) {
                     console.log(data.data);
                     // vm.loadGameGroupData();
                     for (var i = 0; i < vm.platformGameGroupList.length; i++) {
@@ -3443,7 +3447,7 @@ define(['js/app'], function (myApp) {
             vm.renameGameGroup = function () {
                 var sendData = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        platform: vm.filterGameGroupPlatform,
                         // name: vm.SelectedGameGroupNode.groupData.name,
                         _id: vm.SelectedGameGroupNode.id,
                     },
@@ -3457,7 +3461,7 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, function (data) {
                     console.log(data.data);
-                    vm.loadGameGroupData();
+                    vm.loadGameGroupData(vm.filterGameGroupPlatform);
                 })
             }
 
@@ -3473,7 +3477,7 @@ define(['js/app'], function (myApp) {
                     vm.selectedPlatform.data.playerRouteSetting : "";
                 //get included games list
                 var query = {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.filterGameGroupPlatform,
                     // groupId: obj.groupData.groupId,
                     _id: vm.SelectedGameGroupNode.id,
                 }
@@ -3625,7 +3629,7 @@ define(['js/app'], function (myApp) {
                 var gameId = vm.curGame._id;
                 var sendData = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        platform: vm.filterGameGroupPlatform,
                         groupId: vm.SelectedGameGroupNode.groupData.groupId
                     },
                     // update: {
@@ -3871,12 +3875,12 @@ define(['js/app'], function (myApp) {
                     newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null,
                     groupName: vm.SelectedGameGroupNode.groupData.name,
                     newParentGroupName: $scope.gameGroupMove.isRoot ? vm.newGroupParent.groupData.name : null,
-                    platform: vm.selectedPlatform.id
+                    platform: vm.filterGameGroupPlatform
                 }
                 socketService.$socket($scope.AppSocket, 'updateGameGroupParent', sendData, success);
 
                 function success(data) {
-                    vm.loadGameGroupData();
+                    vm.loadGameGroupData(vm.filterGameGroupPlatform);
 
                     $scope.safeApply();
                 }
@@ -4280,7 +4284,7 @@ define(['js/app'], function (myApp) {
 
                         var sendData = {
                             query: {
-                                game: sendGameId, platform: vm.filterGamePlatform
+                                game: sendGameId, platform: vm.filterGameGroupPlatform
                             },
                             updateData: {
                                 status: type
