@@ -226,6 +226,7 @@ var roleChecker = {
                 UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
                 ClearPlayerState: ['resetPlayerState'],
                 BindMultiplePaymentInformation: [],
+                UnbindPhoneDeviceId: ['unbindPhoneDeviceId'],
             },
             "Reward": {
                 AddRewardTask: ['createPlayerRewardTask'],
