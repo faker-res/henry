@@ -20995,7 +20995,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.rewardTabClicked = async function (callback) {
+            vm.rewardTabClicked = async function (callback, platformObjId) {
                 vm.forbidRewardRemark = '';
                 vm.dayHrs = {};
                 vm.dayMin = {};
@@ -21005,11 +21005,15 @@ define(['js/app'], function (myApp) {
                 for (var i = 0; i < 60; i++) {
                     vm.dayMin[i] = vm.getFullDate(i);
                 }
-                if (!vm.selectedPlatform) return;
+                if (!platformObjId) return;
                 if (!authService.checkViewPermission('Platform', 'Reward', 'Read')) {
                     return;
                 }
-                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
+                let sendData = {
+                    platform: platformObjId || null
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         vm.allRewardEvent = data.data;
                         vm.showApplyRewardEvent = data.data.filter(item => {
@@ -21038,14 +21042,14 @@ define(['js/app'], function (myApp) {
                         }
                     })
                 });
-                vm.getAllRewardGroup();
+                vm.getAllRewardGroup(platformObjId);
                 vm.getPlatformProviderGroup();
             };
 
-            vm.getAllRewardGroup = function () {
+            vm.getAllRewardGroup = function (platformObjId) {
                 vm.showRewardEventGroup = null;
                 vm.groupedRewardEvent = []; // to hide grouped reward event in the default group
-                socketService.$socket($scope.AppSocket, 'getRewardEventGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getRewardEventGroup', {platform: platformObjId}, function (data) {
                     $scope.$evalAsync(() => {
                         vm.rewardEventGroup = data.data || [];
                         if (vm.rewardEventGroup.length) {
@@ -21193,7 +21197,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.filterRewardPlatform}, function (data) {
                         $scope.$evalAsync(() => {
                             vm.platformProvider = data.data.gameProviders;
                             vm.disableAllRewardInput();
@@ -21493,10 +21497,10 @@ define(['js/app'], function (myApp) {
                         vm.rewardParams.reward = vm.rewardParams.reward || [];
                     }
 
-                    console.log('platformID', vm.selectedPlatform.id);
+                    console.log('platformID', vm.filterRewardPlatform);
                     if (vm.showRewardTypeData.name == "PlatformTransactionReward") {
                         console.log('action', vm.showRewardTypeData.params.params.playerLevel.action);
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.selectedPlatform.id}, function (data) {
+                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.filterRewardPlatform}, function (data) {
                             $scope.$evalAsync(() => {
                                 vm.allPlayerLevels = data.data;
                             })
@@ -22586,12 +22590,12 @@ define(['js/app'], function (myApp) {
 
             vm.createRewardEventGroup = function () {
                 let sendData = {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.filterRewardPlatform,
                     name: vm.newRewardEventGroupName
                 }
 
                 socketService.$socket($scope.AppSocket, 'createRewardEventGroup', sendData, function () {
-                    vm.getAllRewardGroup();
+                    vm.getAllRewardGroup(vm.filterRewardPlatform);
                 });
             }
 
@@ -22609,7 +22613,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'removeRewardEventGroup', sendData, function (data) {
                     vm.deselectRewardEvent();
-                    vm.getAllRewardGroup();
+                    vm.getAllRewardGroup(vm.filterRewardPlatform);
                     console.log('removeRewardEventGroup success');
                 });
 
@@ -22617,9 +22621,9 @@ define(['js/app'], function (myApp) {
                     if (vm.showRewardEventGroup && vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.length) {
                         socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {
                             _ids: vm.showRewardEventGroup.rewardEvents,
-                            platform: vm.selectedPlatform.id
+                            platform: vm.filterRewardPlatform
                         }, function (data) {
-                            vm.rewardTabClicked();
+                            vm.rewardTabClicked('', vm.filterRewardPlatform);
                         })
                     }
                 }
@@ -22635,7 +22639,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', sendData, function (data) {
                     vm.deselectRewardEvent();
-                   vm.getAllRewardGroup();
+                    vm.getAllRewardGroup(vm.filterRewardPlatform);
                     console.log('updateRewardEventGroup success');
                 });
             }
@@ -22678,7 +22682,7 @@ define(['js/app'], function (myApp) {
                         console.log('add event success');
                     });
 
-                    vm.getAllRewardGroup();
+                    vm.getAllRewardGroup(vm.filterRewardPlatform);
                 }
             }
 
@@ -22826,12 +22830,12 @@ define(['js/app'], function (myApp) {
                 console.log('editReward sendData', sendData);
                 if (isValid) {
                     socketService.$socket($scope.AppSocket, 'updateRewardEvent', sendData, function (data) {
-                        vm.rewardTabClicked();
+                        vm.rewardTabClicked('', vm.filterRewardPlatform);
                         vm.platformRewardPageName = 'showReward';
                         console.log('ok');
                     }, function (data) {
                         console.log("created not", data);
-                        vm.rewardTabClicked();
+                        vm.rewardTabClicked('', vm.filterRewardPlatform);
                     });
                 } else {
                     if (!isHostResult) {
@@ -22848,11 +22852,12 @@ define(['js/app'], function (myApp) {
             }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
-                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name, platform: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name, platform: vm.filterRewardPlatform}, function (data) {
                     //vm.allGameProvider = data.data;
-                    vm.rewardTabClicked(function () {
-                        vm.rewardEventClicked(0, vm.allRewardEvent[0])
-                    });
+                    // vm.rewardTabClicked(function () {
+                    //     vm.rewardEventClicked(0, vm.allRewardEvent[0])
+                    // });
+                    vm.rewardTabClicked('', vm.filterRewardPlatform);
                     vm.platformRewardPageName = 'showReward';
                     $scope.safeApply();
                 }, function (data) {
@@ -22878,7 +22883,7 @@ define(['js/app'], function (myApp) {
                 let isHostResult = true;
                 let isPlayerResult = true;
                 let sendData = {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.filterRewardPlatform,
                     type: vm.showRewardTypeData._id,
                     condition: {},
                     param: {}
@@ -22957,7 +22962,7 @@ define(['js/app'], function (myApp) {
 
                     sendData = vm.showReward;
                     sendData.name = vm.showReward.name;
-                    sendData.platform = vm.selectedPlatform.id;
+                    sendData.platform = vm.filterRewardPlatform;
                     sendData.description = vm.showReward.description;
                     sendData.param = vm.rewardParams;
                     sendData.condition = vm.rewardCondition;
@@ -23013,7 +23018,7 @@ define(['js/app'], function (myApp) {
                 if (isValid) {
                     socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {
                         //vm.allGameProvider = data.data;
-                        vm.rewardTabClicked();
+                        vm.rewardTabClicked('', vm.filterRewardPlatform);
                         vm.rewardEventClicked(0, data.data);
                         vm.platformRewardPageName = 'showReward';
                         $scope.safeApply();
