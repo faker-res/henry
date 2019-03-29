@@ -6827,7 +6827,8 @@ define(['js/app'], function (myApp) {
                 query: {
                     startTime: vm.playerFeedbackQuery.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerFeedbackQuery.endTime.data('datetimepicker').getLocalDate(),
-                    platform: vm.curPlatformId
+                    //platform: vm.curPlatformId
+                    platformList: vm.playerFeedbackQuery.platformList
                 },
                 limit: vm.playerFeedbackQuery.limit || 10,
                 index: newSearch ? 0 : (vm.playerFeedbackQuery.index || 0),
@@ -6856,12 +6857,13 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.playerFeedbackQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'adminId', 'aTargets': [0]},
-                    {'sortCol': 'result', 'aTargets': [4]},
-                    {'sortCol': 'createTime', 'aTargets': [5]},
+                    {'sortCol': 'adminId', 'aTargets': [1]},
+                    {'sortCol': 'result', 'aTargets': [5]},
+                    {'sortCol': 'createTime', 'aTargets': [6]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform.name"},
                     {title: $translate('ADMIN'), data: "adminId.adminName", orderable: true},
                     {title: $translate('PLAYER_Id'), data: "playerId.playerId"},
                     {title: $translate('PLAYER_NAME'), data: "playerId.name"},
