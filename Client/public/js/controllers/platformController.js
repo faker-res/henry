@@ -1248,8 +1248,8 @@ define(['js/app'], function (myApp) {
                             vm.getPlatformRewardProposal();
                             // vm.getPlatformPlayersData(true, true);
                             // vm.getPlatformPartnersData();
-                            vm.getPlatformGameData();
-                            vm.loadProposalTypeData();
+                            // vm.getPlatformGameData();
+                            // vm.loadProposalTypeData();
                             vm.loadBankCardGroupData();
                             vm.loadMerchantGroupData();
                             vm.loadAlipayGroupData();
@@ -1457,7 +1457,7 @@ define(['js/app'], function (myApp) {
                         vm.configTabClicked();
                         break;
                     case "MessageTemplates":
-                        vm.getPlatformMessageTemplates();
+                        // vm.getPlatformMessageTemplates();
                         break;
                     case "Announcement:":
                         vm.getPlatformAnnouncements();
@@ -3902,17 +3902,20 @@ define(['js/app'], function (myApp) {
                 vm.batchCreditTransferOut = null;
             }
             //get all platform data from server
-            vm.getPlatformGameData = function () {
+            vm.getPlatformGameData = function (platformObjId) {
                 //init gametab start===============================
                 vm.SelectedProvider = null;
                 vm.showGameCate = "include";
                 vm.curGame = null;
                 //init gameTab end==================================
-                if (!vm.selectedPlatform) {
-                    return
-                }
+                // if (!vm.selectedPlatform) {
+                //     return
+                // }
                 //console.log("getGames", gameIds);
-                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                let sendData = {
+                    _id: platformObjId || null
+                }
+                socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                     console.log('getPlatform', data.data);
                     if (data && data.data && data.data.frontendConfigurationDomainName && vm.selectedPlatform && vm.selectedPlatform.data){
                         vm.selectedPlatform.data.frontendConfigurationDomainName = data.data.frontendConfigurationDomainName;
@@ -3980,7 +3983,7 @@ define(['js/app'], function (myApp) {
             vm.submitProviderChange = function (type, data) {
                 if (!data) return;
                 var sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.filterGamePlatform,
                     providerId: data._id
                 };
                 console.log(sendData);
@@ -4009,7 +4012,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
                     console.log(data);
                     loadPlatformData();
-                    vm.getPlatformGameData();
+                    vm.getPlatformGameData(vm.filterGamePlatform);
                 })
             }
 
@@ -4254,7 +4257,7 @@ define(['js/app'], function (myApp) {
 
                         var sendData = {
                             query: {
-                                game: sendGameId, platform: vm.selectedPlatform.id
+                                game: sendGameId, platform: vm.filterGamePlatform
                             },
                             updateData: {
                                 status: type
@@ -4286,7 +4289,7 @@ define(['js/app'], function (myApp) {
 
                         var sendData = {
                             query: {
-                                game: sendGameId, platform: vm.selectedPlatform.id
+                                game: sendGameId, platform: vm.filterGamePlatform
                             },
                             updateData: {
                                 status: type
@@ -4404,7 +4407,7 @@ define(['js/app'], function (myApp) {
 
                             var sendData = {
                                 query: {
-                                    game: sendGameId, platform: vm.selectedPlatform.id
+                                    game: sendGameId, platform: vm.filterGamePlatform
                                 },
                                 updateData: {
                                     status: vm.allGameStatusString.MAINTENANCE
@@ -4460,13 +4463,13 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.submitBatchCreditTransferOut = function () {
+            vm.submitBatchCreditTransferOut = function (platformObjId) {
                 let sendQuery = {
                     startDate: vm.batchCreditTransferOutQuery.startTime.data('datetimepicker').getLocalDate(),
                     endDate: vm.batchCreditTransferOutQuery.endTime.data('datetimepicker').getLocalDate(),
                     providerId: vm.SelectedProvider.providerId,
                     providerObjId: vm.SelectedProvider._id,
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || null,
                     adminName: authService.adminName
                 };
                 console.log("batchCreditTransferOut", sendQuery);
@@ -28575,6 +28578,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCallBasic.definitionOfAnsweredPhone = vm.selectedPlatform.data.definitionOfAnsweredPhone || "";
                 vm.bulkCallBasic.decomposeAfterNDays = vm.selectedPlatform.data.decomposeAfterNDays || 1;
                 vm.bulkCallBasic.phoneWhiteListExportMaxNumber = vm.selectedPlatform.data.phoneWhiteListExportMaxNumber || 0;
+                vm.bulkCallBasic.defaultFeedbackResult = vm.selectedPlatform.data.defaultFeedbackResult || "";
+                vm.bulkCallBasic.defaultFeedbackTopic = vm.selectedPlatform.data.defaultFeedbackTopic || "";
                 vm.ctiUrlSubDomains = vm.ctiUrlSubDomains || [];
 
                 socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbackResults', {}, function (data) {
@@ -29385,11 +29390,12 @@ define(['js/app'], function (myApp) {
                     });
             }
             vm.submitAddAnnouncement = function () {
+                vm.newAnn.platform = vm.filterAnnouncementPlatform;
                 var sendData = vm.newAnn;
-                vm.newAnn.platform = vm.selectedPlatform.id;
                 $scope.$socketPromise('createPlatformAnnouncement', sendData)
                     .done(function (data) {
-                        vm.configTabClicked('announcement');
+                        // vm.configTabClicked('announcement');
+                        vm.getPlatformAnnouncements(vm.filterAnnouncementPlatform);
                     });
             }
             vm.configStartEdit = function (choice) {
@@ -30436,7 +30442,8 @@ define(['js/app'], function (myApp) {
 
                 function done() {
                     //vm.ConfigAnnouncementClicked();
-                    vm.configTabClicked("announcement");
+                    // vm.configTabClicked("announcement");
+                    vm.getPlatformAnnouncements(vm.filterAnnouncementPlatform);
                     $scope.safeApply();
                 }
             }
@@ -30467,6 +30474,8 @@ define(['js/app'], function (myApp) {
                         teleMarketingMinRedialInterval: srcData.teleMarketingMinRedialInterval,
                         teleMarketingIdleAgentMultiple: srcData.teleMarketingIdleAgentMultiple,
                         definitionOfAnsweredPhone: srcData.definitionOfAnsweredPhone,
+                        defaultFeedbackResult: srcData.defaultFeedbackResult,
+                        defaultFeedbackTopic: srcData.defaultFeedbackTopic,
                         decomposeAfterNDays: srcData.decomposeAfterNDays,
                         phoneWhiteListExportMaxNumber: srcData.phoneWhiteListExportMaxNumber,
                     }
@@ -31251,21 +31260,39 @@ define(['js/app'], function (myApp) {
                 return userIds;
             };
 
-            vm.getAdminNameByDepartment = function (departmentId) {
+            vm.getAdminNameByDepartment = function (departmentId, assignTarget) {
                 if (!departmentId) {
-                    vm.adminList = [];
+                    $scope.$evalAsync(() =>{
+                        if(assignTarget){
+                            vm[assignTarget] = [];
+                        }else{
+                            vm.adminList = [];
+                        }
+                    });
                     return;
+
                 }
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
-                    vm.adminList = data.data;
+                    $scope.$evalAsync(() =>{
+                        if (assignTarget) {
+                            vm[assignTarget] = data.data;
+                        } else {
+                            vm.adminList = data.data;
+                        }
+                    })
+
                 });
             };
 
-            vm.getPlatformAnnouncements = function () {
-                if (!vm.selectedPlatform) return;
-                $scope.$socketPromise('getPlatformAnnouncementsByPlatformId', {platformId: vm.selectedPlatform.data.platformId}).then(function (data) {
-                    vm.allPlatformAnnouncements = data.data;
-                    vm.allPlatformAnnouncements.sort((a, b) => a.order - b.order);
+            vm.getPlatformAnnouncements = function (platformObjId) {
+                if (!platformObjId) return;
+
+                $scope.$socketPromise('getPlatformAnnouncements', {platform: platformObjId}).then(function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getPlatformAnnouncements', data.data);
+                        vm.allPlatformAnnouncements = data.data;
+                        vm.allPlatformAnnouncements.sort((a, b) => a.order - b.order);
+                    });
                 }).done();
             };
 
@@ -31275,9 +31302,10 @@ define(['js/app'], function (myApp) {
                     title: "Delete Announcement",
                     text: `Are you sure you want to delete the announcement "${ann.title}"?`
                 }).then(function () {
-                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title, platform: vm.selectedPlatform.id})
+                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title, platform: ann.platform})
                         .done(function (data) {
-                            vm.configTabClicked("announcement");
+                            // vm.configTabClicked("announcement");
+                            vm.getPlatformAnnouncements(vm.filterAnnouncementPlatform);
                         });
                 });
             }
@@ -31293,12 +31321,15 @@ define(['js/app'], function (myApp) {
 
             /////////////////////////////Mark::Proposal functions////////////////////////////
             //get All proposal list
-            vm.loadProposalTypeData = function () {
+            vm.loadProposalTypeData = function (platformObjId) {
 
                 if (!authService.checkViewPermission('Platform', 'Proposal', 'Read')) {
                     return;
                 }
-                socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: vm.selectedPlatform.id}, function (data) {
+                let sendData = {
+                    platformId: platformObjId || null
+                }
+                socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', sendData, function (data) {
                     vm.buildProposalTypeList(data.data);
                 });
             };
@@ -31748,6 +31779,8 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            // unused proposal type functions
+            /*
             vm.createProposalTypeForm = function () {
                 vm.newProposal = {};
 
@@ -31798,6 +31831,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
             }
+            */
 
             // right panel required functions
             vm.loadAlldepartment = function (callback) {
@@ -31824,13 +31858,18 @@ define(['js/app'], function (myApp) {
                 }
 
                 // getting admin's department might not get the required department by platform for some features
-                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+                vm.loadDepartmentByPlatformId(vm.selectedPlatform.id, vm.selectedPlatform.data.name, null, callback);
+            };
+
+            vm.loadDepartmentByPlatformId = function (platformId, platformName, assignTarget, callback) {
+                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformId},
                     data => {
                         vm.currentPlatformDepartment = data.data;
+                        vm.platformDepartmentObjId = "";
 
                         if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
                             vm.currentPlatformDepartment.map(department => {
-                                if (department.departmentName == vm.selectedPlatform.data.name) {
+                                if (department.departmentName == platformName) {
                                     vm.platformDepartmentObjId = department._id;
                                 }
                             });
@@ -31840,7 +31879,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')) {
-                                vm.getAdminNameByDepartment(vm.platformDepartmentObjId);
+                                vm.getAdminNameByDepartment(vm.platformDepartmentObjId, assignTarget);
                             }
                         }
 
@@ -31849,9 +31888,16 @@ define(['js/app'], function (myApp) {
                                 callback(data.data);
                             }
                         });
+                    },
+                err => {
+                    if (assignTarget) {
+                        $scope.$evalAsync(() => {
+                            vm.promoUrlAdminList = [];
+                        })
                     }
+                }
                 );
-            };
+            }
 
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
@@ -32336,10 +32382,9 @@ define(['js/app'], function (myApp) {
                     });
                 };
 
-                vm.getPlatformMessageTemplates = function () {
-
-                    if (!vm.selectedPlatform) return;
-                    $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id}).then(function (data) {
+                vm.getPlatformMessageTemplates = function (platformObjId) {
+                    // if (!vm.selectedPlatform) return;
+                    $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: platformObjId}).then(function (data) {
                         vm.messageTemplatesForPlatform = data.data;
                         console.log("vm.messageTemplatesForPlatform", vm.messageTemplatesForPlatform);
                         // Because selectedMessageTemplate is a reference and not an _id, it is now not holding the correct object, because the list of objects has been re-created
@@ -32375,7 +32420,7 @@ define(['js/app'], function (myApp) {
                             _ids: [vm.selectedMessageTemplate._id]
                         })
                     ).then(
-                        () => vm.getPlatformMessageTemplates()
+                        () => vm.getPlatformMessageTemplates(vm.filterMessageTemplatesPlatform)
                     ).done();
                 };
 
@@ -32385,10 +32430,10 @@ define(['js/app'], function (myApp) {
                         vm.editingMessageTemplate.type = vm.smsTitle;
                     }
                     var templateData = vm.editingMessageTemplate;
-                    templateData.platform = vm.selectedPlatform.id;
+                    templateData.platform = vm.filterMessageTemplatesPlatform;
                     vm.resetToViewMessageTemplate();
                     $scope.$socketPromise('createMessageTemplate', templateData).then(
-                        () => vm.getPlatformMessageTemplates()
+                        () => vm.getPlatformMessageTemplates(vm.filterMessageTemplatesPlatform)
                     ).done();
                 };
 
@@ -32406,7 +32451,7 @@ define(['js/app'], function (myApp) {
                         }
                     ).then(function (data) {
                         var savedTemplateId = data.data._id;
-                        return vm.getPlatformMessageTemplates().then(
+                        return vm.getPlatformMessageTemplates(vm.filterMessageTemplatesPlatform).then(
                             () => selectMessageWithId(savedTemplateId)
                         );
                     }).done();
@@ -32922,36 +32967,65 @@ define(['js/app'], function (myApp) {
                 let officerPromoteMessageId = $("#officer-promote-message");
                 vm.initClearMessage();
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.platformPromoUrl,
                     name: vm.platformOfficer.way
                 };
                 socketService.$socket($scope.AppSocket, 'addPromoteWay', sendData, function () {
-                        console.log("PromoteWay created");
-                        vm.platformOfficer.way = "";
-                        vm.officerPromoteMessage = $translate('Approved');
-                        officerPromoteMessageId.css("color", "green");
-                        officerPromoteMessageId.css("font-weight", "bold");
-                        vm.getAllPromoteWay();
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            console.log("PromoteWay created");
+                            vm.platformOfficer.way = "";
+                            vm.officerPromoteMessage = $translate('Approved');
+                            officerPromoteMessageId.css("color", "green");
+                            officerPromoteMessageId.css("font-weight", "bold");
+                            vm.getPromoteWay(vm.platformPromoUrl, true);
+                        });
                     },
                     function (err) {
-                        officerPromoteMessageId.css("color", "red");
-                        officerPromoteMessageId.css("font-weight", "normal");
-                        vm.officerPromoteMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            officerPromoteMessageId.css("color", "red");
+                            officerPromoteMessageId.css("font-weight", "normal");
+                            vm.officerPromoteMessage = err.error.message;
+                            console.log(err);
+                        });
                     });
             };
 
-            vm.getAllPromoteWay = function () {
+            vm.getAllPromoteWay = function ( isCreateWay ) {
                 vm.allPromoteWay = {};
                 let query = {
                     platformId: vm.selectedPlatform.id
                 };
+                if ( isCreateWay ) {
+                    query.platformId = vm.platformPromoUrl;
+                }
                 socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
-                        vm.allPromoteWay = data.data;
+                        if ( isCreateWay ) {
+                            vm.platformPromoUrl = data.data;
+                        } else {
+                            vm.allPromoteWay = data.data;
+                        }
                         console.log("vm.allPromoteWay", vm.allPromoteWay);
                         $scope.safeApply();
+                    },
+                    function (err) {
+                        console.log(err);
+                    });
+            };
+
+            vm.getPromoteWay = function (platformId, isCreateWay) {
+                vm.allPromoteWay = {};
+                let query = {
+                    platformId: platformId
+                };
+                socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                        $scope.$evalAsync(() => {
+                            if ( isCreateWay ) {
+                                vm.promoteWayByPlatform = data.data;
+                            } else {
+                                vm.allPromoteWay = data.data;
+                            }
+                            console.log("vm.allPromoteWay", vm.allPromoteWay);
+                        });
                     },
                     function (err) {
                         console.log(err);
@@ -32961,26 +33035,28 @@ define(['js/app'], function (myApp) {
             vm.deletePromoteWay = function () {
                 let deletePromoteMessageId = $("#delete-promote-message");
                 vm.initClearMessage();
-                let promoteWayName = vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay) ? vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay).name : "";
+                let promoteWayName = vm.promoteWayByPlatform.find(a => a._id == vm.deleteOfficer.promoteWay) ? vm.promoteWayByPlatform.find(a => a._id == vm.deleteOfficer.promoteWay).name : "";
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.platformPromoUrl,
                     promoteWayId: vm.deleteOfficer.promoteWay,
                     promoteWayName: promoteWayName
                 };
                 socketService.$socket($scope.AppSocket, 'deletePromoteWay', sendData, function () {
-                        console.log("PromoteWay deleted");
-                        vm.deleteOfficer.promoteWay = "";
-                        vm.deletePromoteMessage = $translate('Approved');
-                        deletePromoteMessageId.css("color", "green");
-                        deletePromoteMessageId.css("font-weight", "bold");
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            console.log("PromoteWay deleted");
+                            vm.deleteOfficer.promoteWay = "";
+                            vm.deletePromoteMessage = $translate('Approved');
+                            deletePromoteMessageId.css("color", "green");
+                            deletePromoteMessageId.css("font-weight", "bold");
+                        });
                     },
                     function (err) {
-                        deletePromoteMessageId.css("color", "red");
-                        deletePromoteMessageId.css("font-weight", "normal");
-                        vm.deletePromoteMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            deletePromoteMessageId.css("color", "red");
+                            deletePromoteMessageId.css("font-weight", "normal");
+                            vm.deletePromoteMessage = err.error.message;
+                            console.log(err);
+                        });
                     });
             };
 
@@ -33100,7 +33176,7 @@ define(['js/app'], function (myApp) {
                     domain: vm.currentUrlEditSelect.domain,
                     officerId: vm.currentUrlEditSelect.admin,
                     way: vm.currentUrlEditSelect.way,
-                    platformId: vm.selectedPlatform.id,
+                    platform: vm.currentUrlEditSelect.platformId,
                     ignoreChecking: vm.ignoreIntervalChecking
                 };
                 console.log("sendData", sendData);
@@ -33246,6 +33322,14 @@ define(['js/app'], function (myApp) {
                         console.log(err);
                     });
             };
+
+            vm.pickCSbyPlatform = function (platformId) {
+                let platform = vm.platformList.filter( item => {
+                    return item.id == platformId;
+                })
+                let platformName = ( platform[0] && platform[0].text ) ? platform[0].text : null;
+                vm.loadDepartmentByPlatformId(platformId, platformName, 'promoUrlAdminList')
+            }
 
             vm.getPlayerCredibilityComment = function (playerObjId) {
                 playerObjId = playerObjId || vm.selectedSinglePlayer._id;

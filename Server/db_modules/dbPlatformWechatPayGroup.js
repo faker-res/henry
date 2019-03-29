@@ -548,24 +548,11 @@ let dbPlatformWechatPayGroup = {
             let type = constAccountType.WECHAT;
 
             let options = {
-                method: 'POST',
-                uri: topUpSystemConfig.paymentGroupAPIAddr,
-                body: {
-                    platformId: platformId,
-                    accountType: type
-                },
-                json: true
+                platformId: platformId,
+                accountType: type
             };
 
-            console.log('getPMSWechatPayGroup req: ', platformId, type);
-
-            return rp(options).then(function (data) {
-                console.log('getPMSWechatPayGroup success',platformId, type, data);
-                return data;
-            }, error => {
-                console.log('getPMSWechatPayGroup failed',platformId, type, error);
-                throw error;
-            });
+            return RESTUtils.getPMS2Services("postPaymentGroup", options);
         }
     }
 };

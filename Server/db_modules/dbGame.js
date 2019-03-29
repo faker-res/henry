@@ -518,16 +518,16 @@ var dbGame = {
     },
     updatePlatformGameDisplay: function(platformObjId, game, gameDisplay){
         // update fpms game status
-        let gameData = { platform: platformObjId };
+        let gameData = {};
         let updateData=  { gameDisplay: gameDisplay};
 
         if(game._id){
-            gameData.game = game._id;
+            gameData._id = game._id;
         }
-        return dbconfig.collection_platformGameStatus.findOneAndUpdate(
+        return dbconfig.collection_game.findOneAndUpdate(
             gameData,
             updateData,
-            {new: true, upsert: true}
+            {new: true}
         ).exec();
     },
     getGamesByProviders: function (ids) {

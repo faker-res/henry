@@ -500,6 +500,10 @@ var platformSchema = new Schema({
     teleMarketingIdleAgentMultiple: {type: Number},
     // Definition of Answered Phone Call
     definitionOfAnsweredPhone: {type: JSON},
+    // default feedback result for tsPhone (key)
+    defaultFeedbackResult: {type: String},
+    // default feedback topic for tsPhone (key)
+    defaultFeedbackTopic: {type: String},
     // Decompose after N days
     decomposeAfterNDays: {type: Number},
     // Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday

@@ -5044,6 +5044,8 @@
   "Current Game Status": "目前游戏状态",
   "Actions":"状态操作",
   "FPMS System": "客服系统",
+  "DEFAULT_FEEDBACK_TOPIC": "默认回访主题设置",
+  "DEFAULT_FEEDBACK_RESULT": "默认回访结果设置",
 
   "Bet result does not satisfy the reward criteria. Please continue to test your luck.": "查询您注单的开奖结果记录不满足条件，请去游戏厅再试试手气吧",
   "Bulk SMS to Failed Callee": "群发短信给拨电失败名单",
@@ -5060,10 +5062,13 @@
 
   "WinnerMonitor": "盈利监控",
   "winnerMonitor": "盈利监控",
+  "WINNER_MONITOR": "盈利监控",
+  "WITHIN_N_HOURS": "N小时之内",
   "Winner Monitor Setting": "盈利监控设置",
   "WINNING_AMOUNT": "盈利金额",
   "Setting not set, please go config to set it": "需要相关设置，请到基础数据修改设置",
   "player not found": "查无此玩家",
+  "Within Period": "期间内",
 
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",
@@ -5401,6 +5406,7 @@
   "Horizontal": "横屏",
   "Vertical": "竖屏",
   "Horizontal / Vertical": "横/竖屏",
+  "No need setup": "无需设置",
   "Current Game Display Setting is:": "目前的游戏状态设置为: ",
   "WEBSITE_MULTI_SELECTION": "网站（复选）"
 }

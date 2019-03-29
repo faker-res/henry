@@ -102,16 +102,19 @@ div
                             br
                         div(style='display:block')
                             div(style='display:inline-flex')
-                                input(type="radio", ng-model="vm.showGame.gameDisplay", ng-value = "1")
+                                input(type="radio", ng-model="vm.chosenGameDisplay", ng-value = "1")
                                 {{ vm.gameDisplay[1] }}
                             div(style='display:inline-flex')
-                                input(type="radio", ng-model="vm.showGame.gameDisplay", ng-value = "2")
+                                input(type="radio", ng-model="vm.chosenGameDisplay", ng-value = "2")
                                 {{ vm.gameDisplay[2] }}
                             div(style='display:inline-flex')
-                                input(type="radio", ng-model="vm.showGame.gameDisplay", ng-value = "3")
+                                input(type="radio", ng-model="vm.chosenGameDisplay", ng-value = "3")
                                 {{ vm.gameDisplay[3] }}
                             div(style='display:inline-flex')
-                                .btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Update')", ng-click="vm.updatePlatformGameDisplay(vm.showGame.gameDisplay)") {{'EDIT' | translate}}
+                                input(type="radio", ng-model="vm.chosenGameDisplay", ng-value = "4")
+                                {{ vm.gameDisplay[4] }}
+                            div(style='display:inline-flex')
+                                .btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Update')", ng-click="vm.updatePlatformGameDisplay(vm.chosenGameDisplay)") {{'EDIT' | translate}}
 
 
 

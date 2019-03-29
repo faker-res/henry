@@ -2261,7 +2261,9 @@ let dbPlayerInfo = {
         }).lean().then(
             function (data) {
                 // data.fullPhoneNumber = data.phoneNumber;
-                data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
+                if (data.phoneNumber) {
+                    data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
+                }
                 data.email = dbUtility.encodeEmail(data.email);
                 if (data.bankAccount) {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
@@ -24118,7 +24120,12 @@ let dbPlayerInfo = {
     checkDeviceIdRegistered: (platformObjId, deviceId) => {
         let query = {
             guestDeviceId: deviceId,
-            platform: platformObjId
+            platform: platformObjId,
+            $or: [
+                {guestDeviceId: deviceId},
+                {guestDeviceId: rsaCrypto.encrypt(deviceId)},
+                {guestDeviceId: rsaCrypto.oldEncrypt(deviceId)}
+            ]
         };
 
         return dbconfig.collection_players.find(query, {_id: 1}).lean().then(

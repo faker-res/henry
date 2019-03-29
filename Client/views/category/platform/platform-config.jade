@@ -527,7 +527,7 @@
                         tbody
                             tr(ng-repeat='item in vm.callRequestConfig.callRequestLineConfig')
                                 td
-                                    select.form-control(ng-model='item.status', ng-disabled='!vm.configTableEdit')
+                                    select.form-control(ng-model='item.status', ng-disabled='!vm.configTableEdit', convert-to-number)
                                         option(ng-value="zeroOne.one") {{"Open" | translate}}
                                         option(ng-value="zeroOne.zero") {{"Closed" | translate}}
                                 td
@@ -543,7 +543,7 @@
 
                             tr(ng-if='vm.configTableEdit')
                                 td
-                                    select.form-control(ng-model='vm.tempCallRequestEntry.status', ng-disabled='!vm.configTableEdit')
+                                    select.form-control(ng-model='vm.tempCallRequestEntry.status', ng-disabled='!vm.configTableEdit', convert-to-number)
                                         option(ng-value="zeroOne.one") {{"Open" | translate}}
                                         option(ng-value="zeroOne.zero") {{"Closed" | translate}}
                                 td
@@ -1976,7 +1976,15 @@
                                 td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
                                 td
                                     input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "AutoExportListOrMaxNumOfTxnEveryday")' type="number" step="1" min="0")
-                    .margin-small
+                            tr
+                                td {{'DEFAULT_FEEDBACK_RESULT' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.bulkCallBasic.defaultFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_FEEDBACK_TOPIC' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.bulkCallBasic.defaultFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                    .margin-small.pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                             text {{'EDIT' | translate}}
                             img.img-edit
