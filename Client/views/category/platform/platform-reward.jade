@@ -331,24 +331,37 @@
 
 
                     .col-md-12.well.scrollRecord( style="height: 400px;")
+                        button.btn-primary(ng-click='vm.getRandomRewardDetail()') DETAILS
+
                         //.panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
                             .panel-body(style="min-width: fit-content;")
-                        div
+                        div#playerRandomReward
                             table.simple-table.table-vertical-middle
                                 thead
                                     tr
-                                        th 操作
-                                        th 指定会员账号
-                                        th 设定随机中奖
+                                        th {{'ACTION_BUTTON' | translate}}
+                                        th {{'Assign Player Acc' | translate}}
+                                        th {{'Set Reward Item' | translate}}
                                 tbody
-                                    tr
+                                    tr(ng-repeat="v in vm.activeRandomRewards")
                                         td
-                                            i.fa.fa-plus(ng-click='vm.assignRandomRewardToUser(vm.assignRandomReward)')
+                                            div
                                         td
-                                            input(type='string', ng-model='vm.assignRandomReward.playerName')
+                                            input(type='string', ng-model='v.playerId.name')
                                         td
-                                            input(type='string', ng-model='vm.assignRandomReward.rewardName')
-                                            //select.form-control(ng-model='entry.betType')
+                                            //input(type='string', ng-model='v.randomReward')
+                                            select.form-control(ng-model='v.randomReward')
+                                                option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
+
+
+
+                                    tr(ng-repeat="(i,v) in vm.assignRandomRewards")
+                                        td
+                                            i.fa.fa-plus(ng-click='vm.addRandowRewardItem()')
+                                        td
+                                            input(type='string', ng-model='v.playerName')
+                                        td
+                                            select.form-control(ng-model='v.rewardName')
                                                 option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
 
                 .col-md-12.well.scrollRecord(ng-if='vm.showRewardTypeData.isGrouped === true || (vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')

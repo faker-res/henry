@@ -5395,6 +5395,11 @@
   "Vertical": "竖屏",
   "Horizontal / Vertical": "横/竖屏",
   "No need setup": "无需设置",
+  "Created By": "设置客服",
+  "Created Date": "设置时间",
+  "Reward Item":"随机中奖项目",
+  "Set Reward Item": "设定随机中奖",
+  "Assign Player Acc": "指定会员账号",
   "Current Game Display Setting is:": "目前的游戏状态设置为: ",
   "WEBSITE_MULTI_SELECTION": "网站（复选）"
 }

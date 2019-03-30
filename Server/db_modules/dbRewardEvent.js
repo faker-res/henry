@@ -2705,29 +2705,35 @@ var dbRewardEvent = {
             }
         );
     },
-    assignRandomRewardToUser: function (playerName, rewardName, platformId, reward) {
-
-        return dbconfig.collection_players.findOne({ name:playerName, platform:platformId }).lean().then(
-            data=> {
-                if (!data) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Error in getting Player ID"
-                    });
-                }
+    assignRandomRewardToUser: function (randomRewards, platformId, reward) {
+        let proms = [];
+        randomRewards.forEach( randomReward => {
+            let prom = dbconfig.collection_players.findOne({ name:randomReward.playerName, platform:platformId }).lean().then(
+                        data=> {
+                            if (data) {
+                                console.log(data);
+                                console.log(data._id);
+                                let rewardData = {
+                                    platformId: platformId,
+                                    rewardEvent: reward,
+                                    randomReward: randomReward.rewardName,
+                                    playerId: data._id,
+                                    status: 1
+                                }
+                                return dbconfig.collection_playerRandomReward(rewardData).save();
+                            }
+                        })
+            proms.push(prom);
+        })
+    },
+    getRandomRewardDetail: function (rewardId, platformId) {
+        return dbconfig.collection_playerRandomReward.find({ rewardEvent: rewardId, platformId: platformId})
+        .populate({path: "playerId", model: dbconfig.collection_players}).lean().then(
+            data => {
                 console.log(data);
-                console.log(data._id);
-                let rewardData = {
-
-                    platformId: platformId,
-                    rewardEvent: reward,
-                    randomReward: rewardName,
-                    playerId: data._id,
-                    status: 1
-                }
-                return dbconfig.collection_playerRandomReward(rewardData).save();
-            })
-
+                return data;
+            }
+        )
     },
     startPlatformRTGEventSettlement: function (platformObjId, eventCode) {
         let applyTargetDate;

@@ -549,7 +549,8 @@ define(['js/app'], function (myApp) {
                 1: '#modalProposal',
                 2: '#newPlayerModal',
                 3: '#auctionItemModal',
-                4: '#promoUrlItemModal'
+                4: '#promoUrlItemModal',
+                5: '#randomRewardItemModal'
             };
 
             vm.createInnerTable = function (id) {
@@ -18278,15 +18279,40 @@ define(['js/app'], function (myApp) {
                 })
             });
 
-            vm.assignRandomRewardToUser = function (assignRandomReward) {
+            vm.addRandowRewardItem = function () {
+                vm.assignRandomRewards.push({playerName:'', rewardName:''});
+            }
+
+            vm.assignRandomRewardToUser = function () {
+                vm.assignRandomRewards;
                 let sendQuery = {
-                    playerName: assignRandomReward.playerName,
-                    rewardName: assignRandomReward.rewardName,
+                    randomRewards: vm.assignRandomRewards,
                     platformId: vm.selectedPlatform.id,
                     reward: vm.showReward._id
                 }
                 socketService.$socket($scope.AppSocket, 'assignRandomRewardToUser', sendQuery, function (data) {
                     console.log(data);
+                    vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
+                });
+            };
+
+            vm.getRandomRewardDetail = function (status, fieldName) {
+                let sendQuery = {
+                    rewardId: vm.showReward._id,
+                    platformId: vm.selectedPlatform.id
+                };
+                if (status) {
+                    sendQuery.status = status;
+                }
+                socketService.$socket($scope.AppSocket, 'getRandomRewardDetail', sendQuery, function (data) {
+                    $scope.$evalAsync(() => {
+                        if (fieldName) {
+                            vm[fieldName] = ( data && data.data ) ? data.data : [];
+                        } else {
+                            vm.showRandomRewardModal(null, 5, data);
+                        }
+
+                    })
                 });
             }
 
@@ -21139,6 +21165,7 @@ define(['js/app'], function (myApp) {
                 }
                 console.log('vm.rewardParams', vm.rewardParams);
                 //$scope.safeApply();
+
             };
 
             vm.rewardEventTableOptions = function () {
@@ -21670,8 +21697,11 @@ define(['js/app'], function (myApp) {
                                 console.log("created not", data);
                             });
                         }
+                    } else if (vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
+                        vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
+                        //get the random reward still available
+                        vm.getRandomRewardDetail(1, 'activeRandomRewards');
                     }
-
 
                     if (onCreationForm) {
                         if (vm.showRewardTypeData.name == "PartnerConsumptionReturn") {
@@ -22834,9 +22864,11 @@ define(['js/app'], function (myApp) {
                 console.log('editReward sendData', sendData);
                 if (isValid) {
                     socketService.$socket($scope.AppSocket, 'updateRewardEvent', sendData, function (data) {
+                        vm.afterEventCreated(data, vm.showReward);
                         vm.rewardTabClicked();
                         vm.platformRewardPageName = 'showReward';
                         console.log('ok');
+
                     }, function (data) {
                         console.log("created not", data);
                         vm.rewardTabClicked();
@@ -22852,6 +22884,12 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         vm.disableAllRewardInput(false);
                     });
+                }
+            }
+            vm.afterEventCreated = function (data, showReward) {
+                if(vm.showReward.type.name == "PlayerRandomRewardGroup") {
+                    vm.assignRandomRewardToUser();
+                    vm.getRandomRewardDetail(1, 'activeRandomRewards');
                 }
             }
             vm.deleteReward = function (data) {
@@ -25322,7 +25360,19 @@ define(['js/app'], function (myApp) {
                 })
             }
 
+            vm.showRandomRewardModal = function(id, templateNo, data){
+                templateNo = 5;
+                vm.selectedRandomReward = ( data && data.data ) ? data.data : [];
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
 
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.$evalAsync();
+                })
+            }
 
             vm.showProposalModal = function (proposalId, templateNo) {
                 socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
