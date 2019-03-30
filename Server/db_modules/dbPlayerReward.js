@@ -2874,18 +2874,6 @@ let dbPlayerReward = {
                         return Promise.reject({name: "DBError", message: "Cannot find player"})
                     }
                     playerData = playerRecord;
-                    // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
-                    // if (!(playerRecord && playerRecord._id)) {
-                    //     // return {
-                    //     //     "showInfo": 1,
-                    //     //     "usedList": [],
-                    //     //     "noUseList": [],
-                    //     //     "expiredList": [],
-                    //     //     "bonusList": []
-                    //     // }
-                    //
-                    //     return;
-                    // }
 
                     let openPromoCodeQuery = {
                         platformObjId: platformData._id,
