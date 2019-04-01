@@ -72,7 +72,7 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                     i.fa.fa-picture-o
                     | {{ 'ThemeControl' | translate }}
         ul.navbar-right()
-            li(style='min-width:120px !important;font-size:0.8em;color:#ffffff;')
+            //li(style='min-width:120px !important;font-size:0.8em;color:#ffffff;')
                 .row.margin-top-bottom-small(style='margin-left:0;margin-right:0')
                     table.pull-right(style='width:100%')
                         thead
@@ -130,6 +130,9 @@ div.nav-statistic
     span {{ 'Withdrawal Amount (Day)' | translate }}: -{{ profitDetailBonusAmount }} &emsp;
     span {{ 'Revenue (Day)' | translate }}: {{ profitDetailIncome }} &emsp;
     span(ng-if='selectedPlatform.data.financialSettlement && !selectedPlatform.data.financialSettlement.financialSettlementToggle') {{ 'financialPoints' | translate }}: {{ financialPoints | noRoundTwoDecimalPlaces}} &emsp;
+    span.pull-right
+        label.margin-right-5 {{"New Tab" | translate}}
+            input.input-sm.pull-left.margin-right-5(style='height:inherit;margin-top:0', type='checkbox', ng-model='openInNewTab')
 
 ez-modal(modal-id="modalDisplayAdminMails", modal-title="{{'MAIL' | translate}}")
     ez-modal-body
