@@ -2837,6 +2837,138 @@ let dbPlayerReward = {
             )
 
     },
+
+    getOpenPromoCode: (playerId, platformId, status) => {
+        let platformData = null;
+        let playerData = null;
+        let promoListData = null;
+        let openPromoCodeData;
+        let returnData = {
+            "showInfo": 1,
+            "usedList": [],
+            "noUseList": [],
+            "expiredList": [],
+            "bonusList": []
+        };
+
+        return expirePromoCode(true)
+            .then(() => dbConfig.collection_platform.findOne({platformId: platformId}).lean())
+            .then(
+                platformRecord => {
+                    if (platformRecord) {
+                        platformData = platformRecord;
+                        if (playerId) {
+                            return dbConfig.collection_players.findOne({
+                                playerId: playerId,
+                                platform: ObjectId(platformRecord._id)
+                            });
+                        }
+                        return Promise.resolve();
+                    } else {
+                        return Promise.reject({name: "DataError", message: "Platform does not exist"});
+                    }
+                }
+            ).then(
+                playerRecord => {
+                    if (playerId && !playerRecord) {
+                        return Promise.reject({name: "DBError", message: "Cannot find player"})
+                    }
+                    playerData = playerRecord;
+
+                    let openPromoCodeQuery = {
+                        platformObjId: platformData._id,
+                        isProviderGroup: Boolean(platformData && platformData.useProviderGroup),
+                        isDeleted: false, // get available promo code only
+                        $or: [
+                            {genre: {$exists: false}},
+                            {genre: constPromoCodeTemplateGenre.GENERAL}
+                        ],
+                    }
+
+                    if (status && (status == 1 || status == 3)) {
+                        openPromoCodeQuery.status = status;
+                    }
+
+                    return dbConfig.collection_openPromoCodeTemplate.find(openPromoCodeQuery).lean();
+                }
+            ).then(
+                template => {
+                    openPromoCodeData = template;
+                    if (template && template.length && playerData) {
+                        let proposalProm = [];
+                        return dbConfig.collection_proposalType.findOne({
+                            platformId: platformData._id,
+                            name: constProposalType.PLAYER_PROMO_CODE_REWARD
+                        }).lean().then(proposalType => {
+                            if (!proposalType) {
+                                return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                            }
+
+                            template.forEach(t => {
+                                if (t && t._id) {
+                                    proposalProm.push(dbConfig.collection_proposal.findOne(
+                                        {
+                                            type: ObjectId(proposalType._id),
+                                            'data.templateId': ObjectId(t._id),
+                                            createTime: {$gte: t.createTime, $lt: t.expirationTime},
+                                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                                        },
+                                        {_id: 1, data: 1}
+                                    ).lean())
+                                }
+                            })
+                            return Promise.all(proposalProm);
+
+                        })
+                    }
+                }
+            ).then(
+                usedPromoCodeProposal => {
+                    if (playerData && usedPromoCodeProposal && usedPromoCodeProposal.length) {
+                        usedPromoCodeProposal = usedPromoCodeProposal.map(
+                            proposal => proposal && proposal.data && proposal.data.templateId && String(proposal.data.templateId) || ""
+                        )
+                    }
+
+
+                    if (openPromoCodeData && openPromoCodeData.length) {
+                        openPromoCodeData.forEach(
+                            promoCode => {
+                                if (promoCode && promoCode._id) {
+                                    if (promoCode.type && promoCode.type) {
+                                        switch (promoCode.type) {
+                                            case 1:
+                                                promoCode.type = "A";
+                                                break;
+                                            case 2:
+                                                promoCode.type = "B";
+                                                break;
+                                            case 3:
+                                                promoCode.type = "C";
+                                                break;
+                                            default:
+                                                promoCode.type = "";
+                                                break;
+
+                                        }
+                                    }
+                                    if (playerData && usedPromoCodeProposal && usedPromoCodeProposal.length && usedPromoCodeProposal.includes(String(promoCode._id))) {
+                                        returnData.usedList.push(promoCode);
+                                        //status 2 show usedList only
+                                    } else if (!(status && status == 2) && promoCode.expirationTime && promoCode.expirationTime.getTime() < new Date().getTime()) {
+                                        returnData.expiredList.push(promoCode);
+                                    } else if (!(status && status == 2)) {
+                                        returnData.noUseList.push(promoCode);
+                                    }
+
+                                }
+                            }
+                        )
+                    }
+                    return returnData;
+                }
+            )
+    },
     customAccountMask: (str) => {
         str = str || '';
         let strLength = str.length;
