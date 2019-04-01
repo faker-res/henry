@@ -6757,6 +6757,7 @@ let dbPlayerInfo = {
                         allBankTypeList.forEach(type => {
                             if (bank.bankName.toString() === type.id.toString()) {
                                 bank.bankName = type.name;
+                                bank.bankTypeId = type.bankTypeId;
                             }
                         });
                     }
