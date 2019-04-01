@@ -1161,7 +1161,7 @@ let dbTeleSales = {
                 let phoneFeedbackData = data[1];
                 let workloadData = {};
 
-                if(distributedData && distributedData.length > 0 && phoneFeedbackData && phoneFeedbackData.length > 0) {
+                if (distributedData && distributedData.length > 0) {
                     distributedData.forEach(item => {
                         if(item.assignee._id && !workloadData[item.assignee._id]) {
                             workloadData[item.assignee._id] = {};
@@ -1180,6 +1180,8 @@ let dbTeleSales = {
                         }
                         workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
                     });
+                }
+                if (phoneFeedbackData && phoneFeedbackData.length > 0) {
                     phoneFeedbackData.forEach(item => {
                         if(item.adminId._id && !workloadData[item.adminId._id]) {
                             workloadData[item.adminId._id] = {};
