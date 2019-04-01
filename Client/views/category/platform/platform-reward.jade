@@ -330,8 +330,9 @@
                                                     option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
 
 
-                    .col-md-12.well.scrollRecord( style="height: 400px;")
-                        button.btn-primary(ng-click='vm.getRandomRewardDetail()') DETAILS
+                    .col-md-12.well.scrollRecord( style="height: 400px;", ng-if="vm.showRewardTypeData.name=='PlayerRandomRewardGroup'")
+                        .inlineBlk.pull-right
+                            button.btn.btn-primary.common-button(ng-click='vm.getRandomRewardDetail()') {{'DETAILS' | translate }}
 
                         //.panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
                             .panel-body(style="min-width: fit-content;")

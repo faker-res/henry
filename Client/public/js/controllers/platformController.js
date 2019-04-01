@@ -385,6 +385,11 @@ define(['js/app'], function (myApp) {
                 '4':'overAuction'
             }
 
+            vm.randomRewardConvertorStatus = {
+                '1': "Reward Available",
+                '2': "Converted"
+            }
+
             // player advertisement
             vm.currentImageButtonNo = 2;
             vm.playerAdvertisementStatus = {
@@ -18288,7 +18293,8 @@ define(['js/app'], function (myApp) {
                 let sendQuery = {
                     randomRewards: vm.assignRandomRewards,
                     platformId: vm.selectedPlatform.id,
-                    reward: vm.showReward._id
+                    reward: vm.showReward._id,
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId}
                 }
                 socketService.$socket($scope.AppSocket, 'assignRandomRewardToUser', sendQuery, function (data) {
                     console.log(data);

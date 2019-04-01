@@ -125,8 +125,9 @@ function socketActionRewardEvent(socketIO, socket) {
         assignRandomRewardToUser: function assignRandomRewardToUser(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.reward && data.randomRewards);
-            socketUtil.emitter(self.socket, dbRewardEvent.assignRandomRewardToUser, [data.randomRewards, data.platformId, data.reward], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardEvent.assignRandomRewardToUser, [data.randomRewards, data.platformId, data.reward, data.creator], actionName, isValidData);
         },
+
         getRandomRewardDetail: function getRandomRewardDetail(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);

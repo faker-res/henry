@@ -2705,18 +2705,17 @@ var dbRewardEvent = {
             }
         );
     },
-    assignRandomRewardToUser: function (randomRewards, platformId, reward) {
+    assignRandomRewardToUser: function (randomRewards, platformId, reward, creator) {
         let proms = [];
         randomRewards.forEach( randomReward => {
             let prom = dbconfig.collection_players.findOne({ name:randomReward.playerName, platform:platformId }).lean().then(
                         data=> {
                             if (data) {
-                                console.log(data);
-                                console.log(data._id);
                                 let rewardData = {
                                     platformId: platformId,
                                     rewardEvent: reward,
                                     randomReward: randomReward.rewardName,
+                                    creator: creator ? creator : {},
                                     playerId: data._id,
                                     status: 1
                                 }
