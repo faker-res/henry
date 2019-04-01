@@ -5421,19 +5421,33 @@ let dbPlayerReward = {
         )
     },
 
-    getLimitedOfferReport: (platformObjId, startTime, endTime, playerName, promoName, status, level, inputDevice) => {
-        return dbConfig.collection_proposalType.findOne({
-            platformId: platformObjId,
+    getLimitedOfferReport: (platformList, startTime, endTime, playerName, promoName, status, level, inputDevice) => {
+        let platformListQuery;
+        let query = {
             name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
-        }).lean().then(
+        };
+
+        if(platformList && platformList.length > 0) {
+            platformListQuery = {$in: platformList.map(item=>{return ObjectId(item)})};
+        }
+
+        if (platformListQuery) {
+            query.platformId = platformListQuery;
+        }
+
+        return dbConfig.collection_proposalType.find(query).lean().then(
             propType => {
                 if (propType) {
                     let levelArray = [];
+
                     let matchQ = {
-                        "data.platformObjId": platformObjId,
-                        type: propType._id,
+                        type: {$in: propType.map(item => item._id)},
                         createTime: {$gte: startTime, $lt: endTime}
                     };
+
+                    if (platformListQuery) {
+                        matchQ['data.platformId'] = platformListQuery
+                    }
 
                     if (playerName) {
                         matchQ['data.playerName'] = playerName;
@@ -5467,7 +5481,8 @@ let dbPlayerReward = {
                             matchQ.$or.push({"data.requiredLevel": {$exists: false}});
                         }
                     }
-                    return dbConfig.collection_proposal.find(matchQ).lean();
+
+                    return dbConfig.collection_proposal.find(matchQ).populate({path: "data.platformId", model: dbConfig.collection_platform}).lean();
                 }
             }
         ).then(
