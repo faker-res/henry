@@ -1439,8 +1439,9 @@
                             .form-group(ng-show='vm.showApplyRewardEvent')
                                 label.control-label {{"REWARD_EVENT" | translate}}
                                 select.form-control(ng-model='vm.playerApplyRewardPara.rewardObj',ng-change='vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara.rewardObj)', required)
-                                    option(value='{"name": "系统升级优惠", "code": "MANUAL_PLAYER_LEVEL_UP_REWARD"}') {{"系统升级优惠"}}
-                                    option(ng-repeat='(i,v) in vm.allRewardEvent', ng-if='v.needApply || v.condition.applyType == 1 || v.condition.applyType == 4', value='{{v}}') {{v.name}}({{v.code}})
+                                    optgroup(ng-repeat='(key,value) in vm.rewardEventGroup', ng-if='value.hasCount', label='{{value.name}}')
+                                        option(ng-show='!value._id', value='{"name": "系统升级优惠", "code": "MANUAL_PLAYER_LEVEL_UP_REWARD"}') {{"系统升级优惠"}}
+                                        option(ng-repeat='(i,v) in vm.allRewardEvent', ng-show='v.rewardGroup == value.name', ng-if='v.needApply || v.condition.applyType == 1 || v.condition.applyType == 4', value='{{v}}') {{v.name}}({{v.code}})
                             .form-group(ng-if='vm.playerApplyRewardShow.TopupRecordSelect')
                                 label.control-label {{'TOP_UP_LIST' | translate}}
                                 .clearfix
