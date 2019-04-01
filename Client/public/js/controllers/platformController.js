@@ -82,6 +82,15 @@ define(['js/app'], function (myApp) {
                 "NoVerify"
             ];
 
+            vm.randomRewardType = {
+                "credit": 1,
+                "promoCodeBDeposit": 2,
+                "promoCodeBNoDeposit": 3,
+                "promoCodeC": 4,
+                "rewardPoints": 5,
+                "realPrize": 6
+            };
+
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
             //     "UpdatePlayerCredit",
@@ -21237,6 +21246,10 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
+                            vm.isMultiStepReward = true
+                        }
+
                         // Set condition value
                         Object.keys(params.condition).forEach(el => {
                             let mainCond = params.condition[el];
@@ -21417,6 +21430,11 @@ define(['js/app'], function (myApp) {
                             })
                         });
 
+                        if (vm.showRewardTypeData &&  vm.showRewardTypeData.name && vm.showRewardTypeData.name === "PlayerRandomRewardGroup" && vm.rewardMainCondition){
+                            // remove unwanted condition: playerLevelDiff for PlayerRandomRewardGroup
+                            delete vm.rewardMainCondition[9];
+                        }
+
                         setTimeout(function () {
                             let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
 
@@ -21461,7 +21479,7 @@ define(['js/app'], function (myApp) {
                                             })
                                         }
                                     } else {
-                                        if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
+                                        if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0] && vm.rewardMainParamTable && vm.rewardMainParamTable[0])
                                             vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
                                     }
                                     if (el == "rewardPercentageAmount") {
@@ -21874,6 +21892,196 @@ define(['js/app'], function (myApp) {
                             });
                         }
                     }
+                    else if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRandomRewardGroup'){
+
+                        if (vm.gameProviderGroup) {
+                            let providerGroup = {};
+                            for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                let group = vm.gameProviderGroup[i];
+                                providerGroup[group._id] = group.name;
+                            }
+
+                            vm.rewardMainParam.rewardParam.providerGroup.options = providerGroup;
+                        }
+
+                        vm.rewardMainParamTablePromoCode1 = [];
+                        vm.rewardMainParamTablePromoCode2 = [];
+                        vm.rewardMainParamTablePromoCode3 = [];
+                        vm.rewardMainParamTableCredit = [];
+                        vm.rewardMainParamTablePrize = [];
+                        vm.rewardMainParamTableRewardPoints = [];
+                        let promoCode1Value = [];
+                        let promoCode2Value = [];
+                        let promoCode3Value = [];
+                        let prizeValue = [];
+                        let creditValue = [];
+                        let rewardPointsValue = [];
+
+                        if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam[0] && vm.rewardParams.rewardParam[0].value && vm.rewardParams.rewardParam[0].value.length){
+                            promoCode1Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.promoCodeBDeposit);
+                            promoCode2Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.promoCodeBNoDeposit);
+                            promoCode3Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.promoCodeC);
+                            rewardPointsValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.rewardPoints);
+                            creditValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.credit);
+                            prizeValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.realPrize);
+                        }
+
+                        if (promoCode1Value && !promoCode1Value.length){
+                            promoCode1Value = [{ rewardType: vm.randomRewardType.promoCodeBDeposit}];
+                        }
+                        if (promoCode2Value && !promoCode2Value.length){
+                            promoCode2Value = [{ rewardType: vm.randomRewardType.promoCodeBNoDeposit}];
+                        }
+                        if (promoCode3Value && !promoCode3Value.length){
+                            promoCode3Value = [{ rewardType: vm.randomRewardType.promoCodeC}];
+                        }
+                        if (creditValue && !creditValue.length){
+                            creditValue = [{ rewardType: vm.randomRewardType.credit}];
+                        }
+                        if (rewardPointsValue && !rewardPointsValue.length){
+                            rewardPointsValue = [{ rewardType: vm.randomRewardType.rewardPoints}];
+                        }
+                        if (prizeValue && !prizeValue.length){
+                            prizeValue = [{ rewardType: vm.randomRewardType.realPrize}];
+                        }
+
+                        // for promocode type B with deposit
+                        let promoCode1Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(promoCode1Header.amountPercent){
+                            delete promoCode1Header.amountPercent
+                        }
+                        if(promoCode1Header.maxRewardAmount){
+                            delete promoCode1Header.maxRewardAmount
+                        }
+                        if(promoCode1Header.requiredConsumption){
+                            delete promoCode1Header.requiredConsumption
+                        }
+                        if(promoCode1Header.requiredConsumptionDynamic){
+                            delete promoCode1Header.requiredConsumptionDynamic
+                        }
+                        if(promoCode1Header.rewardPoints){
+                            delete promoCode1Header.rewardPoints
+                        }
+                        if(promoCode1Header.realPrize){
+                            delete promoCode1Header.realPrize
+                        }
+
+                        vm.rewardMainParamTablePromoCode1.push({
+                            header: promoCode1Header,
+                            value: promoCode1Value
+                        });
+
+                        // for promocode type B without deposit
+                        let promoCode2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(promoCode2Header.amountPercent){
+                            delete promoCode2Header.amountPercent
+                        }
+                        if(promoCode2Header.maxRewardAmount){
+                            delete promoCode2Header.maxRewardAmount
+                        }
+                        if(promoCode2Header.minTopUpAmount){
+                            delete promoCode2Header.minTopUpAmount
+                        }
+                        if(promoCode2Header.requiredConsumptionDynamic){
+                            delete promoCode2Header.requiredConsumptionDynamic
+                        }
+                        if(promoCode2Header.requiredConsumption){
+                            delete promoCode2Header.requiredConsumption
+                        }
+                        if(promoCode2Header.rewardPoints){
+                            delete promoCode2Header.rewardPoints
+                        }
+                        if(promoCode2Header.realPrize){
+                            delete promoCode2Header.realPrize
+                        }
+
+                        vm.rewardMainParamTablePromoCode2.push({
+                            header: promoCode2Header,
+                            value: promoCode2Value
+                        });
+
+                        // for promocode type C
+                        let promoCode3Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(promoCode3Header.amount){
+                            delete promoCode3Header.amount
+                        }
+                        if(promoCode3Header.maxRewardAmount){
+                            delete promoCode3Header.maxRewardAmount
+                        }
+                        if(promoCode3Header.requiredConsumptionFixed){
+                            delete promoCode3Header.requiredConsumptionFixed
+                        }
+                        if(promoCode3Header.requiredConsumption){
+                            delete promoCode3Header.requiredConsumption
+                        }
+                        if(promoCode3Header.rewardPoints){
+                            delete promoCode3Header.rewardPoints
+                        }
+                        if(promoCode3Header.realPrize){
+                            delete promoCode3Header.realPrize
+                        }
+
+                        vm.rewardMainParamTablePromoCode3.push({
+                            header: promoCode3Header,
+                            value: promoCode3Value
+                        });
+
+                        // for credit
+                        let creditHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(creditHeader.amountPercent){
+                            delete creditHeader.amountPercent
+                        }
+                        if(creditHeader.maxRewardAmount){
+                            delete creditHeader.maxRewardAmount
+                        }
+                        if(creditHeader.minTopUpAmount){
+                            delete creditHeader.minTopUpAmount
+                        }
+                        if(creditHeader.requiredConsumptionFixed){
+                            delete creditHeader.requiredConsumptionFixed
+                        }
+                        if(creditHeader.requiredConsumptionDynamic){
+                            delete creditHeader.requiredConsumptionDynamic
+                        }
+                        if(creditHeader.rewardPoints){
+                            delete creditHeader.rewardPoints
+                        }
+                        if(creditHeader.realPrize){
+                            delete creditHeader.realPrize
+                        }
+                        if(creditHeader.expiredInDay){
+                            delete creditHeader.expiredInDay
+                        }
+
+                        vm.rewardMainParamTableCredit.push({
+                            header: creditHeader,
+                            value: creditValue
+                        });
+
+                        // for rewardPoints
+                        let rewardPointsHeader = {
+                            title: vm.rewardMainParam.rewardParam.title,
+                            rewardPoints: vm.rewardMainParam.rewardParam.rewardPoints,
+                            possibility: vm.rewardMainParam.rewardParam.possibility,
+
+                        };
+                        vm.rewardMainParamTableRewardPoints.push({
+                            header: rewardPointsHeader,
+                            value: rewardPointsValue
+                        });
+
+                        // for real prize
+                        let prizeHeader = {
+                            title: vm.rewardMainParam.rewardParam.title,
+                            realPrize: vm.rewardMainParam.rewardParam.realPrize,
+                            possibility: vm.rewardMainParam.rewardParam.possibility,
+                        };
+
+                        vm.rewardMainParamTablePrize.push({
+                            header: prizeHeader,
+                            value: prizeValue
+                        });
+                    }
                     // for rewardType != PlayerRetentionRewardGroup
                     else {
                         if (vm.isPlayerLevelDiff) {
@@ -21915,6 +22123,14 @@ define(['js/app'], function (myApp) {
                 valueCollection.splice(idx, 1);
                 console.log(vm.rewardMainCondition);
             };
+
+            vm.addNewRewardTypeRow = (row, entry, newEntryData) => {
+                if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)
+                    && vm.isPromoNameExist(entry.title)){
+                    return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                }
+                row.push(newEntryData);
+            }
 
             vm.rewardImageUrlNewRow = (valueCollection) => {
                 valueCollection.push("");
@@ -22682,6 +22898,20 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.repackageRandomRewardGroup = function() {
+                let rewardParamPromoCode1 = vm.rewardMainParamTablePromoCode1 && vm.rewardMainParamTablePromoCode1[0] && vm.rewardMainParamTablePromoCode1[0].value ? vm.rewardMainParamTablePromoCode1[0].value : [];
+                let rewardParamPromoCode2 = vm.rewardMainParamTablePromoCode2 && vm.rewardMainParamTablePromoCode2[0] && vm.rewardMainParamTablePromoCode2[0].value ? vm.rewardMainParamTablePromoCode2[0].value : [];
+                let rewardParamPromoCode3 = vm.rewardMainParamTablePromoCode3 && vm.rewardMainParamTablePromoCode3[0] && vm.rewardMainParamTablePromoCode3[0].value ? vm.rewardMainParamTablePromoCode3[0].value : [];
+                let rewardParamCredit = vm.rewardMainParamTableCredit && vm.rewardMainParamTableCredit[0] && vm.rewardMainParamTableCredit[0].value ? vm.rewardMainParamTableCredit[0].value : [];
+                let rewardParamPrize = vm.rewardMainParamTablePrize && vm.rewardMainParamTablePrize[0] && vm.rewardMainParamTablePrize[0].value ? vm.rewardMainParamTablePrize[0].value : [];
+                let rewardParamRewardPoints = vm.rewardMainParamTableRewardPoints && vm.rewardMainParamTableRewardPoints[0] && vm.rewardMainParamTableRewardPoints[0].value ? vm.rewardMainParamTableRewardPoints[0].value : [];
+
+                // redefine
+                vm.rewardMainParamTable = [];
+                vm.rewardMainParamTable.push({value: []});
+                vm.rewardMainParamTable[0].value = rewardParamPromoCode1.concat(rewardParamPromoCode2).concat(rewardParamPromoCode3).concat(rewardParamCredit).concat(rewardParamPrize).concat(rewardParamRewardPoints);
+            }
+
             vm.editReward = function (i) {
                 let isValid = true;
                 let isHostResult = true;
@@ -22757,6 +22987,20 @@ define(['js/app'], function (myApp) {
                     });
 
                     curReward.param.rewardParam = [];
+
+                    if(vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == "PlayerRandomRewardGroup"){
+                        vm.repackageRandomRewardGroup();
+
+                        // sum up all the possibilities and ensure the sum is not exceeded 100%
+                        let total = 0;
+                        vm.rewardMainParamTable[0].value.forEach( row => {
+                            total = total + (row.possibility || 0)
+                        })
+
+                        if(total > 1){
+                            return socketService.showErrorMessage($translate('The overall possibilities cannot be higher than 100%'));
+                        }
+                    }
 
                     // Set param table
                     Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
@@ -22929,6 +23173,19 @@ define(['js/app'], function (myApp) {
                     });
 
                     sendData.param.rewardParam = [];
+
+                    if(vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == "PlayerRandomRewardGroup"){
+                        vm.repackageRandomRewardGroup();
+                        // sum up all the possibilities and ensure the sum is not exceeded 100%
+                        let total = 0;
+                        vm.rewardMainParamTable[0].value.forEach( row => {
+                            total = total + (row.possibility || 0)
+                        })
+
+                        if(total > 1){
+                            return socketService.showErrorMessage($translate('The overall possibilities cannot be higher than 100%'));
+                        }
+                    }
 
                     // Set param table
                     Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
