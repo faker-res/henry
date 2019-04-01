@@ -18330,6 +18330,10 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         if (fieldName) {
                             vm[fieldName] = ( data && data.data ) ? data.data : [];
+                            // let all the visible
+                            vm[fieldName].forEach( item => {
+                                item.isEdit = false;
+                            })
                         } else {
                             if (data && data.data && data.data.length > 0) {
                                 data.data.forEach( item => {
@@ -23174,8 +23178,8 @@ define(['js/app'], function (myApp) {
                     });
                 }
             }
-            vm.afterEventCreated = function (data, showReward, isFirstCreate) {
-                if (isFirstCreate) {
+            vm.afterEventCreated = function (data, showReward, isFirstCreate, rewardName) {
+                if (isFirstCreate && rewardName && rewardName == 'PlayerRandomRewardGroup') {
                     vm.assignRandomRewardToUser(data._id);
                     vm.getRandomRewardDetail(1, 'activeRandomRewards');
                 } else if(vm.showReward.type.name == "PlayerRandomRewardGroup") {
@@ -23365,7 +23369,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {
                         //vm.allGameProvider = data.data;
                         $scope.$evalAsync(() => {
-                            vm.afterEventCreated(data.data, vm.showReward, true);
+                            let rewardName = ( vm.showRewardTypeData && vm.showRewardTypeData.name ) ? vm.showRewardTypeData.name : '';
+                            vm.afterEventCreated(data.data, vm.showReward, true, rewardName);
                             vm.rewardTabClicked('', vm.filterRewardPlatform);
                             vm.rewardEventClicked(0, data.data);
                             vm.platformRewardPageName = 'showReward';

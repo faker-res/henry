@@ -455,11 +455,11 @@
                                         td
                                             div
                                         td
-                                            input(type='string', ng-model='v.playerId.name')
+                                            input(type='string', ng-model='v.playerId.name', ng-change='v.isEdit = true')
                                         td
                                             //input(type='string', ng-model='v.randomReward')
                                             select.form-control(ng-model='v.randomReward')
-                                                option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
+                                                option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}', ng-change='v.isEdit = true') {{ v.title }}
 
 
 
