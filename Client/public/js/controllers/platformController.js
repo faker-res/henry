@@ -3171,8 +3171,14 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('lastAccessTime'), data: 'lastAccessTime$'},
                         {'title': $translate('registrationTime'), data: 'registrationTime$'},
                         {
-                            render: function () {
-                                var link = $('<input>', {class: "checkRow", type: 'checkbox'})
+                            title: '<div><input type="checkbox" class="toggleCheckAll"> </div>', advSearch:false, orderable: false,// $translate('All'), data: "playerId", "sClass": "",
+                            render: function (data, type, row) {
+
+                                var link = $('<div>', {});
+
+                                link.append($('<input type="checkbox" class="chosenPlayers checkRow" data-id="'+row.playerId+'">', {
+                                }).text(data));
+
                                 return link.prop('outerHTML');
                             }
                         }
