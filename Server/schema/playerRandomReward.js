@@ -16,7 +16,7 @@ var playerRandomRewardSchema = new Schema({
     //reward event
     rewardEvent: {type: Schema.ObjectId, ref: 'rewardEvent'},
     //reward prize
-    randomReward: {type: String, index: true},
+    randomReward: {type: String, index: true, index: true},
     //creator {type(system, player or admin), name, id(shortID for player, longId for admin)
     creator: {type: JSON, default: {}},
     // last admin edit time.
