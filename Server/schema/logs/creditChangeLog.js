@@ -6,7 +6,7 @@ var creditChangeLogSchema = new Schema({
     //Player Id
     playerId: {type: Schema.ObjectId, required: true, index: true},
     //platform
-    platformId: {type: Schema.ObjectId},
+    platformId: {type: Schema.ObjectId, index: true},
     // Admin Id
     operatorId: String,
     // Data

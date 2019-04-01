@@ -889,12 +889,14 @@ var dbLogger = {
         index = index || 0;
         limit = Math.min(limit, constSystemParam.MAX_RECORD_NUM);
         sortCol = sortCol || {};
-        var a = dbconfig.collection_creditChangeLog
+
+        let a = dbconfig.collection_creditChangeLog
             .find(query)
             .populate({path: "playerId", model: dbconfig.collection_players})
-            .sort(sortCol).skip(index).limit(limit).exec();
-        var b = dbconfig.collection_creditChangeLog.find(query).count();
-        var c = dbconfig.collection_creditChangeLog.aggregate(
+            .populate({path: "platformId", model: dbconfig.collection_platform})
+            .sort(sortCol).skip(index).limit(limit).lean();
+        let b = dbconfig.collection_creditChangeLog.find(query).count();
+        let c = dbconfig.collection_creditChangeLog.aggregate(
             {
                 $match: query
             },

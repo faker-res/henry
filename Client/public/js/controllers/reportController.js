@@ -6827,7 +6827,8 @@ define(['js/app'], function (myApp) {
                 query: {
                     startTime: vm.playerFeedbackQuery.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerFeedbackQuery.endTime.data('datetimepicker').getLocalDate(),
-                    platform: vm.curPlatformId
+                    //platform: vm.curPlatformId
+                    platformList: vm.playerFeedbackQuery.platformList
                 },
                 limit: vm.playerFeedbackQuery.limit || 10,
                 index: newSearch ? 0 : (vm.playerFeedbackQuery.index || 0),
@@ -6856,12 +6857,13 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.playerFeedbackQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'adminId', 'aTargets': [0]},
-                    {'sortCol': 'result', 'aTargets': [4]},
-                    {'sortCol': 'createTime', 'aTargets': [5]},
+                    {'sortCol': 'adminId', 'aTargets': [1]},
+                    {'sortCol': 'result', 'aTargets': [5]},
+                    {'sortCol': 'createTime', 'aTargets': [6]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform.name"},
                     {title: $translate('ADMIN'), data: "adminId.adminName", orderable: true},
                     {title: $translate('PLAYER_Id'), data: "playerId.playerId"},
                     {title: $translate('PLAYER_NAME'), data: "playerId.name"},
@@ -6927,7 +6929,8 @@ define(['js/app'], function (myApp) {
 
             var sendData = {
 
-                platformId: vm.curPlatformId,
+                //platformId: vm.curPlatformId,
+                platformList: vm.creditChangeQuery.platformList,
                 operationTime: {
                     startTime: startTime,
                     endTime: endTime
@@ -6959,14 +6962,15 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.creditChangeQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'playerId', 'aTargets': [0]},
                     {'sortCol': 'playerId', 'aTargets': [1]},
-                    {'sortCol': 'operationType', 'aTargets': [2]},
-                    {'sortCol': 'amount', 'aTargets': [3]},
-                    {'sortCol': 'operationTime', 'aTargets': [4]},
+                    {'sortCol': 'playerId', 'aTargets': [2]},
+                    {'sortCol': 'operationType', 'aTargets': [3]},
+                    {'sortCol': 'amount', 'aTargets': [4]},
+                    {'sortCol': 'operationTime', 'aTargets': [5]},
                     {targets: '_all', defaultContent: ' ', bSortable: true}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platformId.name"},
                     {title: $translate('PLAYER_ID'), data: "playerId.playerId"},
                     {title: $translate('PLAYER_NAME'), data: "playerId.name"},
                     {
