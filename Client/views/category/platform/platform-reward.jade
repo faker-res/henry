@@ -1,7 +1,12 @@
+.col-md-12
+    .well.col-xs-12
+        .search-filters-item
+            label {{'PRODUCT_NAME' | translate}}
+            select.form-control(ng-model='vm.filterRewardPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.rewardTabClicked("", vm.filterRewardPlatform)')
 .text-center
-    p(ng-if="!vm.curPlatformText")
+    p(ng-if="!vm.filterRewardPlatform")
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-.col-sm-2(ng-if="vm.curPlatformText", style='padding-left:0')
+.col-sm-2(ng-if="vm.filterRewardPlatform", style='padding-left:0')
     .panel.panel-primary
         .panel-heading.panel-heading-sm
             label {{"TRACKING_GROUP" | translate}}
@@ -24,7 +29,7 @@
             button.btn.btn-primary.common-button(style='text-align:center' ng-if='checkViewPermission("Platform", "Reward", "Add")' ng-click='vm.initReward();vm.disableAllRewardInput(false)')
                 text {{"Add Event"|translate}}
                 img.img-create
-.col-sm-10(ng-if="vm.curPlatformText", style='padding-left:0;padding-right:0;')
+.col-sm-10(ng-if="vm.filterRewardPlatform", style='padding-left:0;padding-right:0;')
     .panel.panel-primary(ng-if='vm.showReward || vm.platformRewardShowEdit()')
         .panel-heading.panel-heading-sm
             label {{"REWARD"|translate}}
