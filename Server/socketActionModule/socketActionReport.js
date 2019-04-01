@@ -611,8 +611,8 @@ function socketActionReport(socketIO, socket) {
 
         getPlayerAlmostLevelupReport: function getPlayerAlmostLevelupReport(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerAlmostLevelupReport, [data.platform, data.percentage, data.index, data.limit, data.sortCol, data.newSummary], actionName, isValidData);
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerAlmostLevelupReport, [data.platformList, data.percentage, data.index, data.limit, data.sortCol, data.newSummary], actionName, isValidData);
         },
 
         getConsumptionIntervalData: function getConsumptionIntervalData(data) {

@@ -3765,8 +3765,15 @@ let dbPlayerInfo = {
      */
     getPlayersByPlatform: function (platformObjId, count) {
         var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
-        return dbconfig.collection_players.find({"platform": platformObjId}, {similarPlayers: 0}).sort({lastAccessTime: -1}).limit(count)
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().exec();
+        let query = {};
+
+        if (platformObjId) {
+            query = { "platform": platformObjId };
+        }
+
+        return dbconfig.collection_players.find(query, {similarPlayers: 0}).sort({lastAccessTime: -1}).limit(count)
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().exec();
     },
 
     getPlayersCountByPlatform: function (platformObjId) {
@@ -10272,9 +10279,11 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerAlmostLevelupReport: function (platform, percentage, skip, limit, sortCol, newSummary) {
-        var resultArr = [];
-        var playerLevelData = {};
+    getPlayerAlmostLevelupReport: function (platformList, percentage, skip, limit, sortCol, newSummary) {
+        let resultArr = [];
+        let playerLevelData = {};
+        let platformListQuery;
+        let query = {};
         const topupFieldsByPeriod = {
             DAY: 'dailyTopUpSum',
             WEEK: 'weeklyTopUpSum',
@@ -10288,12 +10297,21 @@ let dbPlayerInfo = {
         skip = skip || 0;
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {percentage: -1};
-        return dbPlayerLevel.getPlayerLevel({platform: platform})
+
+        if(platformList && platformList.length > 0) {
+            platformListQuery = {$in: platformList.map(item=>{return ObjectId(item)})};
+        }
+
+        if (platformListQuery) {
+            query = {platform: platformListQuery};
+        }
+
+        return dbPlayerLevel.getPlayerLevel(query)
             .then(playerLevel => {
                 playerLevel.map(level => {
                     playerLevelData[level.value] = level;
                 })
-                return dbPlayerInfo.getPlayersByPlatform(platform, 0)
+                return dbPlayerInfo.getPlayersByPlatform(platformListQuery, 0)
             })
             .then(
                 players => {
