@@ -315,6 +315,7 @@
                 "getEasterEggPlayerInfo",
                 "getTopUpPromoList",
                 "getPromoCode",
+                "getOpenPromoCode",
                 "applyPromoCode",
                 "markPromoCodeAsViewed",
                 "getLimitedOffers",

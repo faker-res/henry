@@ -165,6 +165,13 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPromoCode, [conn.playerId, data.platformId, data.status, emptyBonusList], isValidData, false, false, true);
     };
 
+    this.getOpenPromoCode.expectsData = 'platformId: String';
+    this.getOpenPromoCode.onRequest = function(wsFunc, conn, data){
+        let isValidData = Boolean(data && data.platformId);
+        // let emptyBonusList = Boolean(!data.noLogin && !conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getOpenPromoCode, [conn.playerId, data.platformId, data.status], isValidData, false, false, true);
+    };
+
     this.applyPromoCode.expectsData = 'promoCode: Number|String';
     this.applyPromoCode.onRequest = function(wsFunc, conn, data){
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
