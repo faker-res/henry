@@ -459,7 +459,7 @@
                                         td
                                             //input(type='string', ng-model='v.randomReward')
                                             select.form-control(ng-model='v.randomReward')
-                                                option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
+                                                option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
 
 
 
@@ -470,7 +470,7 @@
                                             input(type='string', ng-model='v.playerName')
                                         td
                                             select.form-control(ng-model='v.rewardName')
-                                                option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
+                                                option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
 
                 .col-md-12.well.scrollRecord(ng-if='vm.showRewardTypeData.isGrouped === true || (vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')
                     label * {{'RICH_TEXT_EDITOR' | translate}}:&nbsp

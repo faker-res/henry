@@ -479,7 +479,7 @@
                                 tbody
                                     tr(ng-repeat="v in vm.selectedRandomReward")
                                         td {{v.playerId.name || ''}}
-                                        td {{v.randomReward || ''}}
+                                        td {{v.rewardItemName || ''}}
                                         td {{v.creator.name || ''}}
                                         td {{v.lastEditTime | date : 'yyyy-MM-dd HH:mm:ss'}}
                                         td {{ vm.randomRewardConvertorStatus[v.status] | translate}}
