@@ -557,13 +557,20 @@ function socketActionReport(socketIO, socket) {
         //     socketUtil.emitter(self.socket, dbProposal.getProposalsForReward, args, actionName, isValidData);
         // },
         queryCreditChangeLog: function queryCreditChangeLog(data) {
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId);
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            let sendQuery = {};
+            let platformListQuery;
 
-            var sendQuery = {};
-            if (data && data.platformId) {
-                sendQuery.platformId = ObjectId(data.platformId);
+            // if (data && data.platformId) {
+            //     sendQuery.platformId = ObjectId(data.platformId);
+            // }
+
+            if(data.platformList && data.platformList.length > 0) {
+                platformListQuery = {$in: data.platformList.map(item=>{return ObjectId(item)})};
+                sendQuery.platformId = platformListQuery;
             }
+
             if (data && data.operationTime && data.operationTime.startTime) {
                 sendQuery.operationTime = {};
                 sendQuery.operationTime.$gte = new Date(data.operationTime.startTime);
@@ -604,8 +611,8 @@ function socketActionReport(socketIO, socket) {
 
         getPlayerAlmostLevelupReport: function getPlayerAlmostLevelupReport(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerAlmostLevelupReport, [data.platform, data.percentage, data.index, data.limit, data.sortCol, data.newSummary], actionName, isValidData);
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerAlmostLevelupReport, [data.platformList, data.percentage, data.index, data.limit, data.sortCol, data.newSummary], actionName, isValidData);
         },
 
         getConsumptionIntervalData: function getConsumptionIntervalData(data) {

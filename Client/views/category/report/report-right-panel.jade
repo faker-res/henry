@@ -1787,6 +1787,9 @@
         div(ng-if='vm.showPageName=="PLAYER_FEEDBACK_REPORT"')
             #playerFeedbackReportQuery.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                    select.form-control.spicker(ng-model='vm.playerFeedbackQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
                 .search-filters-item
@@ -1812,6 +1815,9 @@
         div(ng-if='vm.showPageName=="CREDIT_CHANGE_REPORT"')
             #creditChangeReportQuery.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                    select.form-control.spicker(ng-model='vm.creditChangeQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
                 .search-filters-item
@@ -1828,6 +1834,9 @@
 
         div(ng-if='vm.showPageName=="PLAYER_ALMOST_LEVELUP_REPORT"')
             .col-md-12.well
+                .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                    select.form-control.spicker(ng-model='vm.playerAlmostLevelUpQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
                 .search-filters-item
                     label {{"Level-Up Progress"|translate}}
                     .percentage

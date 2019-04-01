@@ -2837,6 +2837,182 @@ let dbPlayerReward = {
             )
 
     },
+
+    getOpenPromoCode: (playerId, platformId, status) => {
+        let platformData = null;
+        let playerData = null;
+        let openPromoCodeData;
+        let returnData = {
+            "showInfo": 1,
+            "usedList": [],
+            "noUseList": [],
+            "expiredList": [],
+            "bonusList": []
+        };
+
+        return expirePromoCode(true)
+            .then(() => dbConfig.collection_platform.findOne({platformId: platformId}).lean())
+            .then(
+                platformRecord => {
+                    if (platformRecord) {
+                        platformData = platformRecord;
+                        if (playerId) {
+                            return dbConfig.collection_players.findOne({
+                                playerId: playerId,
+                                platform: ObjectId(platformRecord._id)
+                            });
+                        }
+                        return Promise.resolve();
+                    } else {
+                        return Promise.reject({name: "DataError", message: "Platform does not exist"});
+                    }
+                }
+            ).then(
+                playerRecord => {
+                    if (playerId && !playerRecord) {
+                        return Promise.reject({name: "DBError", message: "Cannot find player"})
+                    }
+                    playerData = playerRecord;
+
+                    let openPromoCodeQuery = {
+                        platformObjId: platformData._id,
+                        isProviderGroup: Boolean(platformData && platformData.useProviderGroup),
+                        isDeleted: false, // get available promo code only
+                        $or: [
+                            {genre: {$exists: false}},
+                            {genre: constPromoCodeTemplateGenre.GENERAL}
+                        ],
+                    }
+
+                    if (status && (status == 1 || status == 3)) {
+                        openPromoCodeQuery.status = status;
+                    }
+
+                    let populateCond = platformData.useProviderGroup
+                        ? {
+                            path: "allowedProviders",
+                            model: dbConfig.collection_gameProviderGroup,
+                            populate: {path: "providers", model: dbConfig.collection_gameProvider}
+                        }
+                        : {path: "allowedProviders", model: dbConfig.collection_gameProvider};
+
+                    return dbConfig.collection_openPromoCodeTemplate.find(openPromoCodeQuery).populate(populateCond).lean();
+                }
+            ).then(
+                template => {
+                    openPromoCodeData = template;
+                    if (template && template.length && playerData) {
+                        let proposalProm = [];
+                        return dbConfig.collection_proposalType.findOne({
+                            platformId: platformData._id,
+                            name: constProposalType.PLAYER_PROMO_CODE_REWARD
+                        }).lean().then(proposalType => {
+                            if (!proposalType) {
+                                return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                            }
+
+                            template.forEach(t => {
+                                if (t && t._id) {
+                                    proposalProm.push(dbConfig.collection_proposal.findOne(
+                                        {
+                                            type: ObjectId(proposalType._id),
+                                            'data.templateId': ObjectId(t._id),
+                                            createTime: {$gte: t.createTime, $lt: t.expirationTime},
+                                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                                        },
+                                        {_id: 1, data: 1}
+                                    ).lean())
+                                }
+                            })
+                            return Promise.all(proposalProm);
+
+                        })
+                    }
+                }
+            ).then(
+                usedPromoCodeProposal => {
+                    if (playerData && usedPromoCodeProposal && usedPromoCodeProposal.length) {
+                        usedPromoCodeProposal = usedPromoCodeProposal.map(
+                            proposal => proposal && proposal.data && proposal.data.templateId && String(proposal.data.templateId) || ""
+                        )
+                    }
+
+
+                    if (openPromoCodeData && openPromoCodeData.length) {
+                        openPromoCodeData.forEach(
+                            promoCode => {
+                                if (promoCode && promoCode._id) {
+                                    let providers = [];
+                                    let providerGroupName;
+                                    promoCode.allowedProviders.forEach(provider => {
+                                        if (platformData.useProviderGroup) {
+                                            provider.providers.map(e => {
+                                                if (platformData.gameProviderInfo && platformData.gameProviderInfo[String(e._id)]) {
+                                                    providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
+                                                }
+                                            });
+
+                                            providerGroupName = provider.name;
+                                        } else {
+                                            if (platformData.gameProviderInfo && platformData.gameProviderInfo[String(provider._id)]) {
+                                                providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
+                                            }
+                                        }
+                                    });
+
+                                    if (promoCode.type && promoCode.type) {
+                                        switch (promoCode.type) {
+                                            case 1:
+                                                promoCode.type = "A";
+                                                break;
+                                            case 2:
+                                                promoCode.type = "B";
+                                                break;
+                                            case 3:
+                                                promoCode.type = "C";
+                                                break;
+                                            default:
+                                                promoCode.type = "";
+                                                break;
+
+                                        }
+                                    }
+
+                                    let promoCodeObj = {
+                                        name: promoCode.name,
+                                        amount: promoCode.amount,
+                                        minTopUpAmount: promoCode.minTopUpAmount,
+                                        requiredConsumption: promoCode.requiredConsumption,
+                                        expirationTime: promoCode.expirationTime,
+                                        type: promoCode.type,
+                                        code: promoCode.code,
+                                        status: promoCode.status,
+                                        isSharedWithXIMA: promoCode.isSharedWithXIMA,
+                                        createTime: promoCode.createTime,
+                                        games: providers,
+                                        groupName: providerGroupName,
+                                        applyLimitPerPlayer: promoCode.applyLimitPerPlayer,
+                                        ipLimit: promoCode.ipLimit,
+                                        totalApplyLimit: promoCode.totalApplyLimit,
+
+                                    }
+                                    if (playerData && usedPromoCodeProposal && usedPromoCodeProposal.length && usedPromoCodeProposal.includes(String(promoCode._id))) {
+                                        returnData.usedList.push(promoCodeObj);
+                                        //status 2 show usedList only
+                                    } else if (!(status && status == 2) && promoCode.expirationTime && promoCode.expirationTime.getTime() < new Date().getTime()) {
+                                        returnData.expiredList.push(promoCodeObj);
+                                    } else if (!(status && status == 2)) {
+                                        returnData.noUseList.push(promoCodeObj);
+                                    }
+
+                                }
+                            }
+                        )
+                    }
+                    return returnData;
+                }
+            )
+    },
     customAccountMask: (str) => {
         str = str || '';
         let strLength = str.length;
