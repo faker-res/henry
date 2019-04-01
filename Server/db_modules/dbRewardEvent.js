@@ -559,6 +559,7 @@ var dbRewardEvent = {
 
                                 let promArr = [];
 
+                                console.log("checking topUpData", topUpData)
                                 if (topUpData && topUpData.length) {
                                     if (rewardEvent.condition && !rewardEvent.condition.allowConsumptionAfterTopUp) {
                                         if (consumptionData && consumptionData.length === 0) { // if no consumption, use all valid top up
@@ -1013,8 +1014,8 @@ var dbRewardEvent = {
                 accumulativeCountProm = dbconfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
             }
 
-            if (playerRetentionRecord && playerRetentionRecord.topUpRecordObjId) {
-                selectedTopUp = playerRetentionRecord.topUpRecordObjId;
+            if (rewardData && rewardData.selectedTopup) {
+                selectedTopUp = rewardData.selectedTopup;
                 // oriAmount: the topup amount; amount: the topup amount - service charge
                 // when applying reward, check the oriAmount, not the amount
                 applyAmount = selectedTopUp.oriAmount ||selectedTopUp.amount;

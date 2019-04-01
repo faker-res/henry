@@ -8116,7 +8116,7 @@ let dbPlayerReward = {
             if (outputList && outputList.length && selectedIndex != null) {
                 if (loginMode && (loginMode == 1 || loginMode == 3)){
                     // accumulative day
-                    let dayDiff = dbUtility.getTodaySGTime().startTime.getDate() - intervalTime.startTime.getDate();
+                    let dayDiff = (dbUtility.getTodaySGTime().startTime.getTime() - intervalTime.startTime.getTime())/(24*60*60*1000);
                     let expiredLength = dayDiff - selectedIndex;
                     if (expiredLength >= 0) {
                         for (let i = 0; i < expiredLength; i++) {
