@@ -42,6 +42,8 @@ const thirdPartyAPIConfig = {
         subDomain: "http://52.221.143.107:9001/v1/",
 
         topUpAPIAddr: "http://52.221.143.107:8182/",
+        topUpAPIAddr2: "http://52.221.143.107:8182/",
+        topUpAPIAddr3: "http://52.221.143.107:8182/",
         topUpAPICallback: "http://devtest.wsweb.me:7100",
         withdrawAPICallback: "http://devtest.wsweb.me:7100",
 
