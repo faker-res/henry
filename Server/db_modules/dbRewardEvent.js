@@ -2752,7 +2752,6 @@ var dbRewardEvent = {
             proms.push(prom);
         })
         return Promise.all(proms);
-        });
     },
     getRandomRewardDetail: function (query) {
         return dbconfig.collection_playerRandomReward.find(query)
