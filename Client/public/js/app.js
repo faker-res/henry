@@ -189,7 +189,7 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                 })
                 .state('partner', {
                     url: '/partner',
-                    templateUrl: 'category/partner/platform-partner',
+                    templateUrl: 'category/partner/partner-home',
                     controller: 'partnerCtrl',
                     controllerAs: 'vm',
                     resolve: {
