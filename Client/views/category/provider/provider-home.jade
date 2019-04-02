@@ -36,7 +36,7 @@ div
                             option(value='2') {{'HTML5' | translate}}
                     .text-right.widthto100
                         button.btn.btn-primary(data-dismiss='modal', ng-click="vm.providerFilterClicked()") {{"FILTER" | translate}}
-                div(ng-if="checkViewPermission('Provider', 'Game', 'Read')",style='display:flex;height:370px;overflow-x:hidden;overflow-y:auto')
+                div(ng-if="checkViewPermission('Provider', 'Game', 'Read')",style='display:block;height:370px;overflow-x:hidden;overflow-y:auto')
                     include ./game-blocks
                 br
                 .panel(class='{{vm.selectedPenalClass}}')
