@@ -821,7 +821,8 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
     if (playerData && playerData.platform && playerData.platform.topUpSystemType && extConfig &&
         extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].name && extConfig[playerData.platform.topUpSystemType].name === 'PMS2') {
         url += proposalData.proposalId + delimiter;
-        url += proposalData.entryType
+        url += proposalData.entryType + delimiter;
+        url += proposalData.createTime.getTime()
     } else {
         url += proposalData.proposalId
     }
