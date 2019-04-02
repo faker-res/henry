@@ -21167,16 +21167,18 @@ define(['js/app'], function (myApp) {
                             vm.allRewardEvent = vm.allRewardEvent.sort(sortRewardByValidTime);
                         }
 
+                        vm.getAllRewardGroup(platformObjId, true);
+
                         if (callback) {
                             callback();
                         }
                     })
                 });
-                vm.getAllRewardGroup(platformObjId);
                 vm.getPlatformProviderGroup();
             };
 
-            vm.getAllRewardGroup = function (platformObjId) {
+
+            vm.getAllRewardGroup = function (platformObjId, isCheckExpiredRewardEvent) {
                 vm.showRewardEventGroup = null;
                 vm.groupedRewardEvent = []; // to hide grouped reward event in the default group
                 socketService.$socket($scope.AppSocket, 'getRewardEventGroup', {platform: platformObjId}, function (data) {
@@ -21191,15 +21193,58 @@ define(['js/app'], function (myApp) {
                         }
 
                         vm.showRewardEventGroup = vm.rewardEventGroup[0];
+                        if (isCheckExpiredRewardEvent) {
+                            // to prevent checking when each reward event update
+                            vm.checkExpiredRewardEvent(platformObjId);
+                        }
                     })
                 });
             }
 
+            vm.checkExpiredRewardEvent = function (platformObjId) {
+                let expiredRewardEventUpdateList = [];
+                if (vm.allRewardEvent && vm.allRewardEvent.length) {
+                    vm.expiredRewardEventList = [];
+                    vm.allRewardEvent.forEach(
+                        rewardEvent => {
+                            if (rewardEvent && rewardEvent.validEndTime && new Date(rewardEvent.validEndTime).getTime() < new Date().getTime()) {
+                                if (vm.groupedRewardEvent.includes(String(rewardEvent._id))) {
+                                    expiredRewardEventUpdateList.push(rewardEvent._id);
+                                }
+                                vm.expiredRewardEventList.push(rewardEvent._id);
+                            }
+                        }
+                    )
+                    if (expiredRewardEventUpdateList && expiredRewardEventUpdateList.length) {
+                        let sendData = {
+                            query: {rewardEvents: {$in: expiredRewardEventUpdateList}},
+                            updateData: {
+                                $pull: {
+                                    rewardEvents: {$in: expiredRewardEventUpdateList}
+                                }
+                            }
+                        };
+
+                        socketService.$socket($scope.AppSocket, 'updateExpiredRewardEventToGroup', sendData, function (data) {
+                            vm.deselectRewardEvent();
+                            vm.getAllRewardGroup(platformObjId);
+                            console.log('updateExpiredRewardEventToGroup success');
+                        });
+                    }
+                }
+            };
+
             vm.displayRewardEventInGroup = function (rewardEventObj) {
                 let isShow = false;
                 if (rewardEventObj && rewardEventObj._id && vm.showRewardEventGroup) {
-                    if ((!vm.showRewardEventGroup._id && vm.groupedRewardEvent.indexOf(String(rewardEventObj._id)) == -1)
-                        || (vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.indexOf(String(rewardEventObj._id)) > -1)) {
+                    if (!vm.showRewardEventGroup._id && vm.groupedRewardEvent.indexOf(String(rewardEventObj._id)) == -1) {
+                        let isExpiredRewardEvent = vm.expiredRewardEventList.includes(String(rewardEventObj._id));
+                        if (isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == "已结束优惠组*") {
+                            isShow = true;
+                        } else if (!isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == "默认组别*"){
+                            isShow = true;
+                        }
+                    } else if (vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.indexOf(String(rewardEventObj._id)) > -1) {
                         isShow = true;
                     }
                 }

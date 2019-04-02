@@ -71,6 +71,12 @@ function socketActionRewardEvent(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardEvent.updateRewardEventGroup, [data.query, data.updateData], actionName, isValidData);
         },
 
+        updateExpiredRewardEventToGroup: function updateExpiredRewardEventToGroup(data) {
+        var actionName = arguments.callee.name;
+        var isValidData = Boolean(data && data.query && data.updateData);
+        socketUtil.emitter(self.socket, dbRewardEvent.updateExpiredRewardEventToGroup, [data.query, data.updateData], actionName, isValidData);
+        },
+
         /**
          * delete Reward events by id
          * @param {json} data - data has to contain _ids
