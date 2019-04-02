@@ -21046,6 +21046,32 @@ define(['js/app'], function (myApp) {
                                 vm.settlementRewardGroupEvent.push(v);
                             }
                         });
+
+                        function sortRewardByValidTime(a, b) {
+                            let aValidEndTime = a.validEndTime && new Date(a.validEndTime) || null;
+                            let bValidEndTime = b.validEndTime && new Date(b.validEndTime) || null ;
+
+                            if (aValidEndTime && bValidEndTime && aValidEndTime.getTime() < new Date().getTime() && bValidEndTime && bValidEndTime.getTime() < new Date().getTime()) {
+                                if (aValidEndTime.getTime() < bValidEndTime.getTime()) {
+                                    return 1;
+                                }
+                                if (aValidEndTime.getTime() > bValidEndTime.getTime()) {
+                                    return -1;
+                                }
+
+                            } else if (aValidEndTime && aValidEndTime.getTime() < new Date().getTime()) {
+                                return 1;
+                            } else if (bValidEndTime && bValidEndTime.getTime() < new Date().getTime()) {
+                                return -1;
+                            }
+
+                            return 0;
+                        }
+
+                        if (vm.allRewardEvent && vm.allRewardEvent.length) {
+                            vm.allRewardEvent = vm.allRewardEvent.sort(sortRewardByValidTime);
+                        }
+
                         if (callback) {
                             callback();
                         }
