@@ -10432,6 +10432,14 @@ define(['js/app'], function (myApp) {
             vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara);
             // });
         }
+
+        vm.filterEndedRewardEvent = function (rewardEvent) {
+            if (rewardEvent && (rewardEvent.validEndTime && new Date(rewardEvent.validEndTime).getTime() >= new Date().getTime()) || !rewardEvent.validEndTime) {
+                return true;
+            };
+            return false;
+        };
+
         vm.getPlayerTopupRecord = function (playerId, rewardObj, type) {
             socketService.$socket($scope.AppSocket, 'getValidTopUpRecordList', {
                 playerId: playerId || vm.isOneSelectedPlayer().playerId,
