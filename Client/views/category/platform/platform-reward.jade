@@ -452,16 +452,15 @@
                                         th {{'Set Reward Item' | translate}}
                                 tbody
                                     tr(ng-repeat="v in vm.activeRandomRewards")
-                                        td
-                                            div
-                                        td
-                                            input(type='string', ng-model='v.playerId.name', ng-change='v.isEdit = true')
-                                        td
+                                        td(ng-show='v.status=="1"')
+                                            // delete this random reward item , temporary set status = 3,
+                                            i.fa.fa-minus(ng-click='v.status="3"')
+                                        td(ng-show='v.status=="1"')
+                                            input(type='string', ng-model='v.playerName', ng-change='v.isEdit = true')
+                                        td(ng-show='v.status=="1"')
                                             //input(type='string', ng-model='v.randomReward')
-                                            select.form-control(ng-model='v.randomReward')
-                                                option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}', ng-change='v.isEdit = true') {{ v.title }}
-
-
+                                            select.form-control(ng-model='v.rewardName', ng-change='v.isEdit = true')
+                                                option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
 
                                     tr(ng-repeat="(i,v) in vm.assignRandomRewards")
                                         td

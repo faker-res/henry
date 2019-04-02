@@ -2724,12 +2724,38 @@ var dbRewardEvent = {
                         })
             proms.push(prom);
         })
+        return Promise.all(proms);
     },
-    getRandomRewardDetail: function (rewardId, platformId) {
-        return dbconfig.collection_playerRandomReward.find({ rewardEvent: rewardId, platformId: platformId})
+    editRandomRewardToUser: function (randomRewards, platformId, reward, creator) {
+        let proms = [];
+        randomRewards.forEach( randomReward => {
+            let prom = dbconfig.collection_players.findOne({ name:randomReward.playerName, platform:platformId }).lean().then(
+                        data=> {
+                            if (data) {
+                                let searchQuery = {
+                                    _id: randomReward._id,
+                                    platformId: platformId
+                                };
+                                let rewardData = {
+                                    platformId: platformId,
+                                    rewardEvent: reward,
+                                    randomReward: randomReward.rewardName,
+                                    creator: creator ? creator : {},
+                                    playerId: data._id,
+                                    status: randomReward.status
+                                };
+                                return dbconfig.collection_playerRandomReward.findOneAndUpdate( searchQuery, rewardData, { new:true }).lean()
+                            }
+                        })
+            proms.push(prom);
+        })
+        return Promise.all(proms);
+        });
+    },
+    getRandomRewardDetail: function (query) {
+        return dbconfig.collection_playerRandomReward.find(query)
         .populate({path: "playerId", model: dbconfig.collection_players}).lean().then(
             data => {
-                console.log(data);
                 return data;
             }
         )

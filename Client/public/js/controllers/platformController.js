@@ -18308,20 +18308,35 @@ define(['js/app'], function (myApp) {
                 }
                 let sendQuery = {
                     randomRewards: vm.assignRandomRewards,
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.filterRewardPlatform,
                     reward: id,
                     creator: {type: "admin", name: authService.adminName, id: authService.adminId}
                 }
                 socketService.$socket($scope.AppSocket, 'assignRandomRewardToUser', sendQuery, function (data) {
-                    console.log(data);
                     vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
                 });
             };
 
+            vm.editRandomRewardToUser = function () {
+                vm.activeRandomRewards.filter(item => {
+                    return item.isEdit === true;
+                })
+
+                let sendQuery = {
+                    randomRewards: vm.activeRandomRewards,
+                    platformId: vm.filterRewardPlatform,
+                    reward: vm.showReward._id,
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId}
+                }
+                socketService.$socket($scope.AppSocket, 'editRandomRewardToUser', sendQuery, function (data) {
+                    console.log(data);
+                });
+            }
+
             vm.getRandomRewardDetail = function (status, fieldName) {
                 let sendQuery = {
-                    rewardId: vm.showReward._id,
-                    platformId: vm.selectedPlatform.id
+                    rewardEvent: vm.showReward._id,
+                    platformId: vm.filterRewardPlatform
                 };
                 if (status) {
                     sendQuery.status = status;
@@ -18331,8 +18346,16 @@ define(['js/app'], function (myApp) {
                         if (fieldName) {
                             vm[fieldName] = ( data && data.data ) ? data.data : [];
                             // let all the visible
-                            vm[fieldName].forEach( item => {
-                                item.isEdit = false;
+                            vm[fieldName] = vm[fieldName].map( item => {
+                                let rewardDetail = {
+                                    _id: item._id,
+                                    isEdit: false,
+                                    playerName: item.playerId.name,
+                                    platformId: item.platformId,
+                                    rewardName: item.randomReward,
+                                    status: item.status
+                                }
+                                return rewardDetail;
                             })
                         } else {
                             if (data && data.data && data.data.length > 0) {
@@ -21754,7 +21777,7 @@ define(['js/app'], function (myApp) {
                     } else if (vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
                         vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
                         //get the random reward still available
-                        vm.getRandomRewardDetail(1, 'activeRandomRewards');
+                        vm.getRandomRewardDetail('1', 'activeRandomRewards');
                     }
 
                     if (onCreationForm) {
@@ -23181,10 +23204,11 @@ define(['js/app'], function (myApp) {
             vm.afterEventCreated = function (data, showReward, isFirstCreate, rewardName) {
                 if (isFirstCreate && rewardName && rewardName == 'PlayerRandomRewardGroup') {
                     vm.assignRandomRewardToUser(data._id);
-                    vm.getRandomRewardDetail(1, 'activeRandomRewards');
+                    vm.getRandomRewardDetail('1', 'activeRandomRewards');
                 } else if(vm.showReward.type.name == "PlayerRandomRewardGroup") {
                     vm.assignRandomRewardToUser();
-                    vm.getRandomRewardDetail(1, 'activeRandomRewards');
+                    vm.editRandomRewardToUser();
+                    vm.getRandomRewardDetail('1', 'activeRandomRewards');
                 }
             }
             vm.deleteReward = function (data) {
