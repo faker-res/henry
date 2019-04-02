@@ -823,7 +823,7 @@ define(['js/app'], function (myApp) {
 
             // Zero dependencies variable
             [vm.rewardList, vm.promoTypeList, vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,
-             vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
+             vm.allProviders, vm.allRewardEvent, vm.rewardEventGroup, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
              vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
              [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes, [vm.allGameProviders, vm.gameProvidersList],
                 vm.credibilityRemarks, vm.platformRewardtype, vm.allPlayerLvl, vm.smsTemplate, vm.allActiveBankTypeList
@@ -835,6 +835,7 @@ define(['js/app'], function (myApp) {
                 commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})),
                 commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getRewardEventsGroupByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -10412,6 +10413,21 @@ define(['js/app'], function (myApp) {
             // $('#modalPlayerApplyReward').modal();
             // $('#modalPlayerApplyReward').on('shown.bs.modal', function () {
             //     $('#modalPlayerApplyReward').off('shown.bs.modal');
+            if (vm.allRewardEvent && vm.allRewardEvent.length && vm.rewardEventGroup && vm.rewardEventGroup.length) { //to group reward by name
+                for (let i = 0; i < vm.allRewardEvent.length; i++) {
+                    let reward = vm.allRewardEvent[i];
+                    if (reward && reward._id) {
+                        for (let j = vm.rewardEventGroup.length - 1; j >= 0; j--) { // first reward event group is hard coded
+                            if ((vm.rewardEventGroup[j].name && vm.rewardEventGroup[j].rewardEvents && vm.rewardEventGroup[j].rewardEvents.includes(String(reward._id))) || (j == 0 && vm.rewardEventGroup[j].name) ) {
+                                vm.allRewardEvent[i].rewardGroup = vm.rewardEventGroup[j].name;
+                                vm.rewardEventGroup[j].hasCount = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             $scope.rewardObj = vm.allRewardEvent[0];
             vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara);
             // });

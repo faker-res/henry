@@ -3106,7 +3106,8 @@ define(['js/app'], function (myApp) {
             vm.limitedOfferQuery.sortCol = vm.limitedOfferQuery.sortCol || {'applyTime$': -1};
 
             let sendQuery = {
-                platformObjId: vm.selectedPlatform._id,
+                //platformObjId: vm.selectedPlatform._id,
+                platformList: vm.limitedOfferQuery.platformList,
                 startTime: vm.limitedOfferQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.limitedOfferQuery.endTime.data('datetimepicker').getLocalDate(),
                 playerName: vm.limitedOfferQuery.playerName,
@@ -3226,21 +3227,23 @@ define(['js/app'], function (myApp) {
                 data: result,
                 "order": vm.limitedOfferQuery.aaSorting || [[5, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'limitedOfferName$', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'requiredLevel$', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'playerName$', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'applyTime$', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'topUpProposalId$', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'topUpAmount$', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'rewardProposalId$', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'rewardAmount$', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'spendingAmount$', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'inputDevice$', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'data.platformObjId.name', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'proposalId', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'limitedOfferName$', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'requiredLevel$', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'playerName$', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'applyTime$', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'topUpProposalId$', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'topUpAmount$', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'rewardProposalId$', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'rewardAmount$', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'spendingAmount$', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'inputDevice$', 'aTargets': [12], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('ORDER'), sClass: "limitedOfferClaimStatusLabel"},
+                    {title: $translate('PRODUCT_NAME'), data: "data.platformObjId.name"},
                     {title: $translate('Proposal No'), data: "proposalId", sClass: "limitedOfferClaimStatusAmount"},
                     {
                         title: $translate('promoName'),
@@ -6662,7 +6665,8 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerAlmostLevelUp = function (newSearch) {
             vm.reportSearchTimeStart = new Date().getTime();
             var query = {
-                platform: vm.curPlatformId,
+                // platform: vm.curPlatformId,
+                platformList: vm.playerAlmostLevelUpQuery.platformList,
                 percentage: vm.playerAlmostLevelUpQuery.percentage,
                 // limit: parseInt(vm.playerAlmostLevelUpQuery.limit)
                 index: newSearch ? 0 : vm.playerAlmostLevelUpQuery.index,
@@ -6680,12 +6684,12 @@ define(['js/app'], function (myApp) {
                     vm.playerAlmostLevelUpQuery.totalCount = data.data.size;
                     if (newSearch) {
                         vm.playerAlmostLevelUpQuery.savedSummary = {
-                            3: data.data.summary.topupTotal,
-                            4: data.data.summary.topupDay,
-                            5: data.data.summary.topupWeek,
-                            6: data.data.summary.consumTotal,
-                            7: data.data.summary.consumDay,
-                            8: data.data.summary.weeklyConsumptionSum
+                            4: data.data.summary.topupTotal,
+                            5: data.data.summary.topupDay,
+                            6: data.data.summary.topupWeek,
+                            7: data.data.summary.consumTotal,
+                            8: data.data.summary.consumDay,
+                            9: data.data.summary.weeklyConsumptionSum
                         }
                     }
                     $scope.safeApply();
@@ -6704,19 +6708,21 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.playerAlmostLevelUpQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'playerId', 'aTargets': [0]},
-                    {'sortCol': 'name', 'aTargets': [1]},
-                    {'sortCol': 'playerLevel.name', 'aTargets': [2]},
-                    {'sortCol': 'topUpSum', 'aTargets': [3]},
-                    {'sortCol': 'dailyTopUpSum', 'aTargets': [4]},
-                    {'sortCol': 'weeklyTopUpSum', 'aTargets': [5]},
-                    {'sortCol': 'consumptionSum', 'aTargets': [6]},
-                    {'sortCol': 'dailyConsumptionSum', 'aTargets': [7]},
-                    {'sortCol': 'weeklyConsumptionSum', 'aTargets': [8]},
-                    {'sortCol': 'percentage', 'aTargets': [9]},
+                    {'sortCol': 'platform.name', 'aTargets': [0]},
+                    {'sortCol': 'playerId', 'aTargets': [1]},
+                    {'sortCol': 'name', 'aTargets': [2]},
+                    {'sortCol': 'playerLevel.name', 'aTargets': [3]},
+                    {'sortCol': 'topUpSum', 'aTargets': [4]},
+                    {'sortCol': 'dailyTopUpSum', 'aTargets': [5]},
+                    {'sortCol': 'weeklyTopUpSum', 'aTargets': [6]},
+                    {'sortCol': 'consumptionSum', 'aTargets': [7]},
+                    {'sortCol': 'dailyConsumptionSum', 'aTargets': [8]},
+                    {'sortCol': 'weeklyConsumptionSum', 'aTargets': [9]},
+                    {'sortCol': 'percentage', 'aTargets': [10]},
                     {targets: '_all', defaultContent: ' ', bSortable: true}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform.name"},
                     {title: $translate('PLAYERID'), data: "playerId"},
                     {title: $translate('NAME'), data: "name"},
                     {

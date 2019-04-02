@@ -2841,7 +2841,6 @@ let dbPlayerReward = {
     getOpenPromoCode: (playerId, platformId, status) => {
         let platformData = null;
         let playerData = null;
-        let promoListData = null;
         let openPromoCodeData;
         let returnData = {
             "showInfo": 1,
@@ -2889,7 +2888,15 @@ let dbPlayerReward = {
                         openPromoCodeQuery.status = status;
                     }
 
-                    return dbConfig.collection_openPromoCodeTemplate.find(openPromoCodeQuery).lean();
+                    let populateCond = platformData.useProviderGroup
+                        ? {
+                            path: "allowedProviders",
+                            model: dbConfig.collection_gameProviderGroup,
+                            populate: {path: "providers", model: dbConfig.collection_gameProvider}
+                        }
+                        : {path: "allowedProviders", model: dbConfig.collection_gameProvider};
+
+                    return dbConfig.collection_openPromoCodeTemplate.find(openPromoCodeQuery).populate(populateCond).lean();
                 }
             ).then(
                 template => {
@@ -2935,6 +2942,24 @@ let dbPlayerReward = {
                         openPromoCodeData.forEach(
                             promoCode => {
                                 if (promoCode && promoCode._id) {
+                                    let providers = [];
+                                    let providerGroupName;
+                                    promoCode.allowedProviders.forEach(provider => {
+                                        if (platformData.useProviderGroup) {
+                                            provider.providers.map(e => {
+                                                if (platformData.gameProviderInfo && platformData.gameProviderInfo[String(e._id)]) {
+                                                    providers.push(platformData.gameProviderInfo[String(e._id)].localNickName);
+                                                }
+                                            });
+
+                                            providerGroupName = provider.name;
+                                        } else {
+                                            if (platformData.gameProviderInfo && platformData.gameProviderInfo[String(provider._id)]) {
+                                                providers.push(platformData.gameProviderInfo[String(provider._id)].localNickName);
+                                            }
+                                        }
+                                    });
+
                                     if (promoCode.type && promoCode.type) {
                                         switch (promoCode.type) {
                                             case 1:
@@ -2952,13 +2977,32 @@ let dbPlayerReward = {
 
                                         }
                                     }
+
+                                    let promoCodeObj = {
+                                        name: promoCode.name,
+                                        amount: promoCode.amount,
+                                        minTopUpAmount: promoCode.minTopUpAmount,
+                                        requiredConsumption: promoCode.requiredConsumption,
+                                        expirationTime: promoCode.expirationTime,
+                                        type: promoCode.type,
+                                        code: promoCode.code,
+                                        status: promoCode.status,
+                                        isSharedWithXIMA: promoCode.isSharedWithXIMA,
+                                        createTime: promoCode.createTime,
+                                        games: providers,
+                                        groupName: providerGroupName,
+                                        applyLimitPerPlayer: promoCode.applyLimitPerPlayer,
+                                        ipLimit: promoCode.ipLimit,
+                                        totalApplyLimit: promoCode.totalApplyLimit,
+
+                                    }
                                     if (playerData && usedPromoCodeProposal && usedPromoCodeProposal.length && usedPromoCodeProposal.includes(String(promoCode._id))) {
-                                        returnData.usedList.push(promoCode);
+                                        returnData.usedList.push(promoCodeObj);
                                         //status 2 show usedList only
                                     } else if (!(status && status == 2) && promoCode.expirationTime && promoCode.expirationTime.getTime() < new Date().getTime()) {
-                                        returnData.expiredList.push(promoCode);
+                                        returnData.expiredList.push(promoCodeObj);
                                     } else if (!(status && status == 2)) {
-                                        returnData.noUseList.push(promoCode);
+                                        returnData.noUseList.push(promoCodeObj);
                                     }
 
                                 }
@@ -5377,19 +5421,33 @@ let dbPlayerReward = {
         )
     },
 
-    getLimitedOfferReport: (platformObjId, startTime, endTime, playerName, promoName, status, level, inputDevice) => {
-        return dbConfig.collection_proposalType.findOne({
-            platformId: platformObjId,
+    getLimitedOfferReport: (platformList, startTime, endTime, playerName, promoName, status, level, inputDevice) => {
+        let platformListQuery;
+        let query = {
             name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
-        }).lean().then(
+        };
+
+        if(platformList && platformList.length > 0) {
+            platformListQuery = {$in: platformList.map(item=>{return ObjectId(item)})};
+        }
+
+        if (platformListQuery) {
+            query.platformId = platformListQuery;
+        }
+
+        return dbConfig.collection_proposalType.find(query).lean().then(
             propType => {
                 if (propType) {
                     let levelArray = [];
+
                     let matchQ = {
-                        "data.platformObjId": platformObjId,
-                        type: propType._id,
+                        type: {$in: propType.map(item => item._id)},
                         createTime: {$gte: startTime, $lt: endTime}
                     };
+
+                    if (platformListQuery) {
+                        matchQ['data.platformObjId'] = platformListQuery
+                    }
 
                     if (playerName) {
                         matchQ['data.playerName'] = playerName;
@@ -5423,7 +5481,8 @@ let dbPlayerReward = {
                             matchQ.$or.push({"data.requiredLevel": {$exists: false}});
                         }
                     }
-                    return dbConfig.collection_proposal.find(matchQ).lean();
+
+                    return dbConfig.collection_proposal.find(matchQ).populate({path: "data.platformObjId", model: dbConfig.collection_platform}).lean();
                 }
             }
         ).then(
@@ -8072,7 +8131,7 @@ let dbPlayerReward = {
             if (outputList && outputList.length && selectedIndex != null) {
                 if (loginMode && (loginMode == 1 || loginMode == 3)){
                     // accumulative day
-                    let dayDiff = dbUtility.getTodaySGTime().startTime.getDate() - intervalTime.startTime.getDate();
+                    let dayDiff = (dbUtility.getTodaySGTime().startTime.getTime() - intervalTime.startTime.getTime())/(24*60*60*1000);
                     let expiredLength = dayDiff - selectedIndex;
                     if (expiredLength >= 0) {
                         for (let i = 0; i < expiredLength; i++) {
