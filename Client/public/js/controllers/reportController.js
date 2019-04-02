@@ -3227,7 +3227,7 @@ define(['js/app'], function (myApp) {
                 data: result,
                 "order": vm.limitedOfferQuery.aaSorting || [[5, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'data.platformId.name', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'data.platformObjId.name', 'aTargets': [1], bSortable: true},
                     {'sortCol': 'proposalId', 'aTargets': [2], bSortable: true},
                     {'sortCol': 'limitedOfferName$', 'aTargets': [3], bSortable: true},
                     {'sortCol': 'requiredLevel$', 'aTargets': [4], bSortable: true},
@@ -3243,7 +3243,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate('ORDER'), sClass: "limitedOfferClaimStatusLabel"},
-                    {title: $translate('PRODUCT_NAME'), data: "data.platformId.name"},
+                    {title: $translate('PRODUCT_NAME'), data: "data.platformObjId.name"},
                     {title: $translate('Proposal No'), data: "proposalId", sClass: "limitedOfferClaimStatusAmount"},
                     {
                         title: $translate('promoName'),
