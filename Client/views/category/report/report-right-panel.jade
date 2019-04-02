@@ -18,9 +18,6 @@
                     label {{'PLAYER_NAME' | translate}}
                     input.form-control(type='text', ng-model='vm.queryTopup.playerName')
                 .search-filters-item
-                    label {{'Proposal No' | translate}}
-                    input.form-control(type='text', ng-model='vm.queryTopup.proposalID')
-                .search-filters-item
                     label {{'topupType' | translate}}
                     select.form-control(ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.mainTopupType', required)
                         option(value='') {{"any" | translate}}
@@ -67,6 +64,9 @@
                 .search-filters-item
                     label.control-label {{'End date' | translate}}
                     .endTime
+                .search-filters-item
+                    label {{"Proposal No"|translate}}
+                    input.noGrey.form-control(ng-model="vm.queryTopup.proposalId", ng-change='vm.hideOtherConditions("#topUpReportQuery",vm.queryTopup.proposalId,".noGrey")')
                 .text-right.widthto100
                     label &nbsp;
                     button.btn.btn-success.btn-space(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}

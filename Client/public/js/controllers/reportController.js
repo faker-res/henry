@@ -1647,38 +1647,36 @@ define(['js/app'], function (myApp) {
                 })
             }
             utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup, 30);
-            var sendObj = {
+            let sendObj = vm.queryTopup.proposalId ? {
+                // platformId: vm.curPlatformId,
+                proposalId: vm.queryTopup.proposalId,
+                index: 0,
+                limit: isExport ? 5000 : 1,
+            } : {
                 playerName: vm.queryTopup.playerName,
-                proposalNo: vm.queryTopup.proposalID,
                 mainTopupType: vm.queryTopup.mainTopupType,
                 userAgent: vm.queryTopup.userAgent,
                 topupType: vm.queryTopup.topupType,
                 merchantGroup: angular.fromJson(angular.toJson(vm.queryTopup.merchantGroup)),
                 depositMethod: vm.queryTopup.depositMethod,
-
-                //new
                 bankTypeId: vm.queryTopup.bankTypeId,
-                //new
                 merchantNo: vm.queryTopup.merchantNo,
                 platformList: vm.queryTopup.platformList,
                 status: staArr,
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
-
-                // platformId: vm.curPlatformId,
                 index: isExport ? 0 : (newSearch ? 0 : (vm.queryTopup.index || 0)),
                 limit: isExport ? 5000 : (vm.queryTopup.limit || 10),
                 sortCol: vm.queryTopup.sortCol || {proposalId: -1}
+            };
 
-            }
-            // if (vm.queryTopup.status) {
-            //     sendObj.status = {'$in': staArr}
-            // }
             if ( vm.queryTopup.line && vm.queryTopup.line.length > 0 ) {
-                sendObj.line = vm.queryTopup.line
+                sendObj.line = vm.queryTopup.line;
             }
-            vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : [];
-            // showing data with auto-assign card at pms.
+
+            if (vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length) {
+                sendObj.merchantNo = vm.queryTopup.merchantNo;
+            }
 
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
                 $scope.$evalAsync(() => {
