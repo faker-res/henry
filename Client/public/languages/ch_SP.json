@@ -858,6 +858,7 @@
   "Last hour": "上小时",
   "Player Information": "玩家信息",
   "Partner Information": "代理信息",
+  "Partner Information list": "代理信息列表",
   "Partner Commission Info": "佣金设置",
   "Partner Rate Setting": "费用设置",
   "partnerRate": "费用比例",
@@ -5415,6 +5416,13 @@
   "Vertical": "竖屏",
   "Horizontal / Vertical": "横/竖屏",
   "No need setup": "无需设置",
+  "Created By": "设置客服",
+  "Created Date": "设置时间",
+  "Reward Item":"优惠奖励",
+  "Set Reward Item": "设定随机中奖",
+  "Assign Player Acc": "指定会员账号",
+  "Reward Available": "未兑换",
+  "Converted":"已兑换",
   "Current Game Display Setting is:": "目前的游戏状态设置为: ",
   "WEBSITE_MULTI_SELECTION": "网站（复选）"
 }

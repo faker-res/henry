@@ -1989,6 +1989,9 @@
         div(ng-if='vm.showPageName=="LIMITED_OFFER_REPORT"')
             #limitedOfferQuery.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                    select.form-control.spicker(ng-model='vm.limitedOfferQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                .search-filters-item
                     label {{'PLAYERNAME' | translate}}
                     input.form-control(type='text', ng-model='vm.limitedOfferQuery.playerName')
                 .search-filters-item

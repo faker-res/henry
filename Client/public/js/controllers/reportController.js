@@ -3106,7 +3106,8 @@ define(['js/app'], function (myApp) {
             vm.limitedOfferQuery.sortCol = vm.limitedOfferQuery.sortCol || {'applyTime$': -1};
 
             let sendQuery = {
-                platformObjId: vm.selectedPlatform._id,
+                //platformObjId: vm.selectedPlatform._id,
+                platformList: vm.limitedOfferQuery.platformList,
                 startTime: vm.limitedOfferQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.limitedOfferQuery.endTime.data('datetimepicker').getLocalDate(),
                 playerName: vm.limitedOfferQuery.playerName,
@@ -3226,21 +3227,23 @@ define(['js/app'], function (myApp) {
                 data: result,
                 "order": vm.limitedOfferQuery.aaSorting || [[5, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'limitedOfferName$', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'requiredLevel$', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'playerName$', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'applyTime$', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'topUpProposalId$', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'topUpAmount$', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'rewardProposalId$', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'rewardAmount$', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'spendingAmount$', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'inputDevice$', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'data.platformObjId.name', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'proposalId', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'limitedOfferName$', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'requiredLevel$', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'playerName$', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'applyTime$', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'topUpProposalId$', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'topUpAmount$', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'rewardProposalId$', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'rewardAmount$', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'spendingAmount$', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'inputDevice$', 'aTargets': [12], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('ORDER'), sClass: "limitedOfferClaimStatusLabel"},
+                    {title: $translate('PRODUCT_NAME'), data: "data.platformObjId.name"},
                     {title: $translate('Proposal No'), data: "proposalId", sClass: "limitedOfferClaimStatusAmount"},
                     {
                         title: $translate('promoName'),

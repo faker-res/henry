@@ -39,6 +39,8 @@ var rewardEventSchema = new Schema({
     validStartTime: {type: Date},
     //reward event valid end time
     validEndTime: {type: Date},
+    // update time
+    updateTime: {type: Date, default: Date.now},
     //reward event displayId, displayTitle, and displayTextContent
     display: [{
         _id: false,

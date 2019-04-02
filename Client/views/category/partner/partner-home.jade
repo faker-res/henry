@@ -1,0 +1,29 @@
+.row.margin-left-5.margin-right-5(ng-show="checkViewPermission('Partner', 'Partner', 'AdvancedSearch') && vm.curPlatformText")
+    #partnerContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
+        .padding-all-5
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+
+                        //li.active(ng-show="checkViewPermission('Partner', 'Infolist', 'Read')")
+                        li.active
+                            a.common-tab(data-toggle="tab", href="#Infolist", ng-click="vm.loadTab('Infolist');")
+                                .fa.fa-volume-control-phone.margin-right-5
+                                text.span {{"Partner Information list" | translate}}
+
+
+                .panel-body(style="position: relative;")
+                    div.tab-content
+
+                        #Infolist.tab-pane.fade.in.active
+                            include ./platform-partner
+
+
+
+
+
+
+
+
+
+
