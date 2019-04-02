@@ -212,6 +212,8 @@ const messageDispatcher = {
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.promoCode}}', metaData.proposalData.data.promoCode);
             if(metaData.proposalData.data.productName)
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.productName}}', metaData.proposalData.data.productName);
+            if(metaData.proposalData.data.rewardName)
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.rewardName}}', metaData.proposalData.data.rewardName);
             if(metaData.proposalData.data.expirationTime)
             // the time when the promoCode is expired
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.expirationTime}}', moment(metaData.proposalData.data.expirationTime).format("YYYY/MM/DD HH:mm:ss"));

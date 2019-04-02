@@ -54,6 +54,13 @@ const constMessageType = {
     AUCTION_REWARD_POINT_CHANGE_PENDING: "AuctionRewardPointChangePending",
     AUCTION_REWARD_POINT_CHANGE_REJECT: "AuctionRewardPointChangeReject",
 
+    // PlayerRandonRewardGroup
+    RANDOM_REWARD_PROMO_CODE_B_DEPOSIT_SUCCESS: "RandomRewardPromoCodeBDepositSuccess",
+    RANDOM_REWARD_PROMO_CODE_B_NO_DEPOSIT_SUCCESS: "RandomRewardPromoCodeBNoDepositSuccess",
+    RANDOM_REWARD_PROMO_CODE_C_SUCCESS: "RandomRewardPromoCodeCSuccess",
+    RANDOM_REWARD_REWARD_POINTS_SUCCESS: "RandomRewardRewardPointsSuccess",
+    RANDOM_REWARD_REAL_PRIZE_SUCCESS: "RandomRewardRealPrizeSuccess",
+
     // TOP UP
     COMMON_TOPUP_SUCCESS: "CommonTopupSuccess",
 

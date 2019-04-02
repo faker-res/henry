@@ -22144,9 +22144,6 @@ define(['js/app'], function (myApp) {
                         if(promoCode3Header.amount){
                             delete promoCode3Header.amount
                         }
-                        if(promoCode3Header.maxRewardAmount){
-                            delete promoCode3Header.maxRewardAmount
-                        }
                         if(promoCode3Header.requiredConsumptionFixed){
                             delete promoCode3Header.requiredConsumptionFixed
                         }

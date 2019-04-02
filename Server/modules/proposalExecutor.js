@@ -16,6 +16,8 @@ var constShardKeys = require("./../const/constShardKeys");
 var constPlayerCreditChangeType = require("../const/constPlayerCreditChangeType");
 var constProposalStatus = require("../const/constProposalStatus");
 const constPromoCodeStatus = require('../const/constPromoCodeStatus');
+const constPromoCodeTemplateGenre = require('../const/constPromoCodeTemplateGenre');
+const constRandomRewardType = require('../const/constRandomRewardType');
 var Q = require("q");
 var mongoose = require('mongoose');
 var messageDispatcher = require("./messageDispatcher.js");
@@ -115,6 +117,7 @@ var proposalExecutor = {
             || executionType === 'executePlayerRetentionRewardGroup'
             || executionType === 'executePlayerBonusDoubledRewardGroup'
             || executionType === 'executeBaccaratRewardGroup'
+            || executionType === 'executePlayerRandomRewardGroup'
 
             // Auction reward
             || executionType === 'executeAuctionPromoCode'
@@ -3018,59 +3021,281 @@ var proposalExecutor = {
                 }
             },
 
-            executePlayerRandomRewardGroup: function (proposalData, deferred) {
-                //verify data
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
-                    proposalData.data.proposalId = proposalData.proposalId;
-                    let taskData = {
-                        playerId: proposalData.data.playerObjId,
-                        type: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
-                        rewardType: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
-                        platformId: proposalData.data.platformId,
-                        requiredUnlockAmount: proposalData.data.spendingAmount || 0,
-                        currentAmount: proposalData.data.rewardAmount,
-                        initAmount: proposalData.data.rewardAmount,
-                        useConsumption: Boolean(proposalData.data.useConsumption),
-                        eventId: proposalData.data.eventId,
-                        applyAmount: 0,
-                        rewardAppearPeriod: proposalData.data.rewardAppearPeriod,
-                        providerGroup: proposalData.data.providerGroup
-                    };
-                    let deferred1 = Q.defer();
-                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_RANDOM_REWARD_GROUP, proposalData);
-                    deferred1.promise.then(
-                        data => {
-                            let updateData = {$set: {}};
+            executePlayerRandomRewardGroup: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty('rewardType')) {
+                    let rtgData;
+                    let providerGroup$;
+                    let createRTGProm = Promise.resolve(true);
 
-                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
-                                updateData.$set["permission.applyBonus"] = false;
+                    return dbconfig.collection_gameProviderGroup.findOne({_id: ObjectId(proposalData.data.providerGroup)}).lean().then(
+                        providerGroup => {
+                            proposalData.data.allowedProvider$ = providerGroup && providerGroup.name ? providerGroup.name : "自由额度";
+                            providerGroup$ = proposalData.data.allowedProvider$;
+
+                            if (proposalData.data && proposalData.data.rewardType && proposalData.data.rewardType == constRandomRewardType.CREDIT && (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                                let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : (proposalData.data.applyAmount || 0);
+                                let taskData = {
+                                    playerId: proposalData.data.playerObjId,
+                                    type: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
+                                    rewardType: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
+                                    platformId: proposalData.data.platformId,
+                                    requiredUnlockAmount: proposalData.data.spendingAmount,
+                                    currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
+                                    initAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
+                                    useConsumption: Boolean(proposalData.data.useConsumption),
+                                    eventId: proposalData.data.eventId,
+                                    applyAmount: proposalData.data.applyAmount || 0,
+                                    providerGroup: proposalData.data.providerGroup
+                                };
+
+                                createRTGProm = createRTGForProposal(proposalData, taskData, constRewardType.PLAYER_RANDOM_REWARD_GROUP, proposalData).then(
+                                    data => {
+                                        rtgData = data;
+                                        let updateData = {$set: {}};
+
+                                        if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                            updateData.$set["permission.applyBonus"] = false;
+                                        }
+
+                                        return dbconfig.collection_players.findOneAndUpdate(
+                                            {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                            updateData
+                                        )
+                                    }
+                                ).then(
+                                    playerData => {
+                                        if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                            let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                            let newPermissionObj = {applyBonus: false};
+                                            let remark = "优惠提案：" + proposalData.proposalId + "(领取优惠后禁用提款)";
+                                            dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                        }
+
+                                        return rtgData;
+                                    }
+                                )
+                            }
+                            else if (proposalData.data && proposalData.data.rewardType && (proposalData.data.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT || proposalData.data.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT || proposalData.data.rewardType == constRandomRewardType.PROMOCODE_C)
+                                && (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                                let code = null;
+                                let expirationDate = null;
+                                let isProviderGroup = null;
+                                let player;
+                                let newPromoCodeEntry = {};
+                                let platformObjId = proposalData && proposalData.data && proposalData.data.platformId ? proposalData.data.platformId : null;
+                                let playerName = proposalData && proposalData.data && proposalData.data.playerName ? proposalData.data.playerName : null;
+                                let promoCodeDetail = proposalData.data && proposalData.data.rewardDetail ? proposalData.data.rewardDetail : null;
+
+                                let promoCodeTemplate = null;
+                                if (!promoCodeDetail){
+                                    return Promise.reject({
+                                        name: "DataError",
+                                        message: "Cannot find promo code detail to generate promo code"
+                                    })
+                                }
+
+                                createRTGProm = generatePromoCodeTemplate(promoCodeDetail, platformObjId).then(
+                                    retPromoCodeTemplate => {
+                                        if (!retPromoCodeTemplate){
+                                            return Promise.reject({
+                                                name: "DataError",
+                                                message: "Cannot save the promo code template"
+                                            })
+                                        }
+                                        promoCodeTemplate = retPromoCodeTemplate;
+                                        return dbconfig.collection_players.findOne({
+                                            platform: platformObjId,
+                                            name: playerName
+                                        }).lean()
+                                    }
+                                ).then(
+                                    playerData => {
+                                        if (playerData) {
+                                            player = playerData;
+
+                                            return dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", true);
+                                        } else {
+                                            return Promise.reject({name: "DataError", message: "Invalid player data"});
+                                        }
+                                    }
+                                ).then(
+                                    playerState => {
+                                        if (playerState) {
+                                            newPromoCodeEntry.playerObjId = player._id;
+                                            newPromoCodeEntry.code = dbUtil.generateRandomPositiveNumber(1000, 9999);
+                                            newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+                                            newPromoCodeEntry.platformObjId = platformObjId;
+                                            newPromoCodeEntry.promoCodeTemplateObjId = promoCodeTemplate._id;
+                                            newPromoCodeEntry.isSharedWithXIMA = promoCodeTemplate.isSharedWithXIMA;
+                                            newPromoCodeEntry.disableWithdraw = promoCodeTemplate.disableWithdraw;
+                                            newPromoCodeEntry.requiredConsumption = promoCodeTemplate.requiredConsumption;
+                                            newPromoCodeEntry.amount = promoCodeTemplate.amount;
+                                            newPromoCodeEntry.minTopUpAmount = promoCodeTemplate.minTopUpAmount;
+                                            newPromoCodeEntry.isProviderGroup = promoCodeTemplate.isProviderGroup;
+                                            newPromoCodeEntry.isDeleted = promoCodeTemplate.isDeleted;
+                                            newPromoCodeEntry.allowedProviders = promoCodeTemplate.allowedProviders;
+                                            newPromoCodeEntry.forbidWithdrawIfBalanceAfterUnlock = promoCodeTemplate.forbidWithdrawIfBalanceAfterUnlock;
+                                            newPromoCodeEntry.createTime = new Date();
+                                            let todayEndTime = dbUtil.getTodaySGTime().endTime;
+                                            newPromoCodeEntry.expirationTime = dbUtil.getNdaylaterFromSpecificStartTime(promoCodeDetail.expiredInDay, todayEndTime);
+                                            if (promoCodeDetail.maxRewardAmount) {
+                                                newPromoCodeEntry.maxRewardAmount = promoCodeTemplate.maxRewardAmount;
+                                            }
+                                            code =  newPromoCodeEntry.code;
+                                            expirationDate =  newPromoCodeEntry.expirationTime;
+                                            isProviderGroup = newPromoCodeEntry.isProviderGroup;
+
+                                            return dbconfig.collection_promoCodeActiveTime.findOne({
+                                                platform: platformObjId,
+                                                startTime: {$lt: new Date()},
+                                                endTime: {$gt: new Date()}
+                                            }).lean();
+                                        }
+                                    }
+                                ).then(
+                                    activeTimeRes => {
+                                        if (activeTimeRes) {
+                                            newPromoCodeEntry.isActive = true;
+                                        }
+
+                                        let updateData = {
+                                            'data.promoCode': code || null,
+                                            'data.expirationTime': expirationDate || null,
+                                            'data.isProviderGroup': isProviderGroup || false,
+                                            'data.allowedProvider$': providerGroup$ || false,
+                                        };
+
+                                        if (promoCodeTemplate.minTopUpAmount){
+                                            updateData['data.minTopUpAmount'] = promoCodeTemplate.minTopUpAmount;
+                                        }
+                                        if (promoCodeTemplate.maxRewardAmount){
+                                            updateData['data.maxRewardAmount'] = promoCodeTemplate.maxRewardAmount;
+                                        }
+
+                                        if (proposalData.data && proposalData.data.rewardType && (proposalData.data.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT || proposalData.data.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT)){
+                                            if (promoCodeTemplate.amount){
+                                                updateData['data.rewardAmount'] = promoCodeTemplate.amount;
+                                            }
+
+                                            if (promoCodeTemplate.requiredConsumption){
+                                                updateData['data.spendingAmount'] = promoCodeTemplate.requiredConsumption;
+                                            }
+                                        }
+                                        else if (proposalData.data && proposalData.data.rewardType && proposalData.data.rewardType == constRandomRewardType.PROMOCODE_C){
+                                            if (promoCodeTemplate.amount){
+                                                updateData['data.rewardPercentage'] = promoCodeTemplate.amount;
+                                            }
+
+                                            if (promoCodeTemplate.requiredConsumption){
+                                                updateData['data.spendingTimes'] = promoCodeTemplate.requiredConsumption;
+                                            }
+                                        }
+
+                                        let promoCodeProm = new dbconfig.collection_promoCode(newPromoCodeEntry).save();
+                                        let updateProposalProm = dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(proposalData._id)}, updateData, {new: true}).lean();
+                                        return Promise.all([promoCodeProm, updateProposalProm])
+                                    }
+                                ).then(
+                                    retData => {
+                                        if (retData[1] && retData[1].data){
+
+                                            if (retData[1].data.rewardType && retData[1].data.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT){
+                                                sendMessageToPlayer(retData[1], constMessageType.RANDOM_REWARD_PROMO_CODE_B_DEPOSIT_SUCCESS, {});
+                                            }
+                                            else if (retData[1].data.rewardType && retData[1].data.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT){
+                                                sendMessageToPlayer(retData[1], constMessageType.RANDOM_REWARD_PROMO_CODE_B_NO_DEPOSIT_SUCCESS, {});
+                                            }
+                                            else if (retData[1].data.rewardType && retData[1].data.rewardType == constRandomRewardType.PROMOCODE_C){
+                                                sendMessageToPlayer(retData[1], constMessageType.RANDOM_REWARD_PROMO_CODE_C_SUCCESS, {});
+                                            }
+                                            dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
+                                            return retData[1]
+                                        }
+                                    }
+                                ).catch(
+                                    err => {
+                                        console.log("checking error message", err)
+                                        dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
+                                        throw err;
+                                    }
+                                )
+                            }
+                            else if (proposalData.data && proposalData.data.rewardType && proposalData.data.rewardType == constRandomRewardType.REWARD_POINTS && proposalData.data.hasOwnProperty("rewardedRewardPoint") && (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                                let userDevice = proposalData.inputDevice;
+                                let playerObjId = proposalData.data.playerObjId;
+                                let platformObjId = proposalData.data.platformId;
+                                let updateAmount = proposalData.data.rewardedRewardPoint;
+                                let remark = proposalData.data.rewardName;
+                                let creator = 'System';
+
+                                sendMessageToPlayer(proposalData, constMessageType.RANDOM_REWARD_REWARD_POINTS_SUCCESS, {});
+                                createRTGProm = dbPlayerInfo.updatePlayerRewardPointsRecord (playerObjId, platformObjId, updateAmount, remark, null, null, creator, userDevice)
+                            }
+                            else if (proposalData.data && proposalData.data.rewardType && proposalData.data.rewardType == constRandomRewardType.REAL_PRIZE && (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                                sendMessageToPlayer(proposalData, constMessageType.RANDOM_REWARD_REAL_PRIZE_SUCCESS, {});
+                            }
+                            else if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty("rewardRewardPoints") &&
+                                (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED ||
+                                    proposalData.status == constProposalStatus.APPROVE)) {
+                                let userDevice = proposalData.inputDevice;
+                                let playerObjId = proposalData.data.playerObjId;
+                                let platformObjId = proposalData.data.platformId;
+                                let updateAmount = proposalData.data.rewardPointsVariable;
+                                let remark = proposalData.data.productName;
+                                let creator = proposalData.data.seller || 'System';
+
+                                sendMessageToPlayer(proposalData, constMessageType.AUCTION_REWARD_POINT_CHANGE_SUCCESS, {});
+                                createRTGProm = dbPlayerInfo.updatePlayerRewardPointsRecord (playerObjId, platformObjId, updateAmount, remark, null, null, creator, userDevice)
                             }
 
-                            dbconfig.collection_players.findOneAndUpdate(
-                                {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
-                                updateData
-                            ).then(
-                                playerData => {
-                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
-                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
-                                        let newPermissionObj = {applyBonus: false};
-                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
-                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
-                                    }
-                                    return playerData;
-                                }
-                            ).then(
-                                () => {
-                                    deferred.resolve(data);
-                                },
-                                deferred.reject
-                            );
-                        },
-                        deferred.reject
-                    );
+                            return createRTGProm;
+                        }
+                    )
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Incorrect player random reward group proposal data"});
+                    return Promise.reject({name: "DataError", message: "Incorrect player random reward proposal data"});
+                }
+
+                // to generate promoCodeTemplate
+                function generatePromoCodeTemplate(rewardData, platformObjId) {
+                    let allowedProviderList = [];
+                    if (rewardData.allowedProvider){
+                        allowedProviderList.push(ObjectId(rewardData.providerGroup));
+                    }
+                    let obj = {
+                        platformObjId: platformObjId,
+                        allowedProviders: allowedProviderList,
+                        name: rewardData.title,
+                        isSharedWithXIMA: rewardData.isSharedWithXIMA,
+                        isProviderGroup: true,
+                        genre: constPromoCodeTemplateGenre.RANDOM_REWARD,
+                        expiredInDay: rewardData.expiredInDay,
+                        disableWithdraw: rewardData.disableWithdraw,
+                        forbidWithdrawIfBalanceAfterUnlock: rewardData.forbidWithdrawIfBalanceAfterUnlock,
+                        minTopUpAmount: rewardData.minTopUpAmount,
+                        createTime: new Date ()
+                    }
+
+                    if (rewardData.rewardType == constRandomRewardType.PROMOCODE_C){
+                        obj.amount = rewardData.amountPercent*100;
+                        obj.maxRewardAmount = rewardData.maxRewardAmount;
+                        obj.requiredConsumption = rewardData.requiredConsumptionDynamic;
+                        obj.type = 3; // dynamic case
+                    }
+                    else if (rewardData.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT){
+                        obj.amount = rewardData.amount;
+                        obj.requiredConsumption = rewardData.requiredConsumptionFixed;
+                        obj.minTopUpAmount = rewardData.minTopUpAmount;
+                        obj.type = 1; // with top up requirement + fixed reward amount
+                    }
+                    else if (rewardData.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT){
+                        obj.amount = rewardData.amount;
+                        obj.requiredConsumption = rewardData.requiredConsumptionFixed;
+                        obj.type = 2; // with top up requirement + fixed reward amount
+                    }
+
+                    let record = new dbconfig.collection_promoCodeTemplate(obj);
+                    return record.save();
                 }
             },
 
@@ -5505,7 +5730,7 @@ function createRTGForProposal(proposalData, taskData, rewardType, resolveValue) 
 function sendMessageToPlayer (proposalData,type,metaDataObj) {
     //type that need to add 'Success' status
     let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
-        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
+        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP, constRewardType.PLAYER_RANDOM_REWARD_GROUP,
         constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP, constRewardType.PLAYER_RETENTION_REWARD_GROUP
     ];
 
