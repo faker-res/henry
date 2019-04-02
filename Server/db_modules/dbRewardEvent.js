@@ -2381,6 +2381,7 @@ var dbRewardEvent = {
     getRewardEventGroup: function (query) {
         return dbconfig.collection_rewardEventGroup.find(query).lean().then(
             groupData => {
+                groupData.unshift({name: "已结束优惠组*"});
                 groupData.unshift({name: "默认组别*"});
                 return groupData;
             }
@@ -2399,6 +2400,10 @@ var dbRewardEvent = {
 
     updateRewardEventGroup: function (query, updateData) {
         return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).exec();
+    },
+
+    updateExpiredRewardEventToGroup: function (query, updateData) {
+        return dbconfig.collection_rewardEventGroup.update(query, updateData, {multi: true}).exec();
     },
 
     /**
