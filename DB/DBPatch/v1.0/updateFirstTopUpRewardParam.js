@@ -937,11 +937,11 @@ db.rewardParam.update({
                     des: "Repetitive Reward In Period",
                     detail: "Same reward will not be selected in the period"
                 },
-                sameRewardOnTheNextDay: {
+                sameRewardOnTheNextTrial: {
                     index: 47,
                     type: "checkbox",
-                    des: "Same Reward On The Next Day",
-                    detail: "The selected reward will be different for the next day"
+                    des: "Same Reward On The Next Trial",
+                    detail: "The selected reward will be different for the next trial"
                 },
                 defaultRewardTypeInTheFirstTime: {
                     index: 48,

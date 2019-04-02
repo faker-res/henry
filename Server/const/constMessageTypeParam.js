@@ -484,7 +484,74 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.data.rewardPointsVariable' , description:'Changes of Reward Points'},
             {parameterName:'proposalData.data.currentBidPrice' , description:'refundPrice'},
         ]
-    }
+    },
+    RANDOM_REWARD_PROMO_CODE_B_DEPOSIT_SUCCESS: {
+        name: "RandomRewardPromoCodeBDepositSuccess",
+        params: [
+            {parameterName:'proposalData.data.rewardName' , description:'Reward Name'},
+            {parameterName:'proposalData.data.expirationTime' , description:'expirationTime'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingAmount' , description:'spendingAmount'},
+            {parameterName:'proposalData.data.promoCode' , description:'PromoCode'},
+
+
+        ]
+    },
+    RANDOM_REWARD_PROMO_CODE_B_NO_DEPOSIT_SUCCESS: {
+        name: "RandomRewardPromoCodeBNoDepositSuccess",
+        params: [
+            {parameterName:'proposalData.data.rewardName' , description:'Reward Name'},
+            {parameterName:'proposalData.data.expirationTime' , description:'expirationTime'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingAmount' , description:'spendingAmount'},
+            {parameterName:'proposalData.data.promoCode' , description:'PromoCode'},
+        ]
+    },
+    RANDOM_REWARD_PROMO_CODE_C_SUCCESS: {
+        name: "RandomRewardPromoCodeCSuccess",
+        params: [
+            {parameterName:'proposalData.data.rewardName' , description:'Reward Name'},
+            {parameterName:'proposalData.data.expirationTime' , description:'expirationTime'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.data.minTopUpAmount' , description:'minTopUpAmount'},
+            {parameterName:'proposalData.data.rewardPercentage' , description:'rewardPercentage'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingTimes' , description:'spendingTimes'},
+            {parameterName:'proposalData.data.maxRewardAmount' , description:'maxRewardAmount'},
+            {parameterName:'proposalData.data.promoCode' , description:'PromoCode'},
+        ]
+    },
+    PLAYER_RANDOM_REWARD_GROUP_SUCCESS: {
+        name: "PlayerRandomRewardGroupSuccess",
+        params: [
+            {parameterName:'proposalData.data.rewardName' , description:'Reward Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.allowedProvider$' , description:'providerGroup'},
+            {parameterName:'proposalData.data.spendingAmount' , description:'spendingAmount'},
+        ]
+    },
+    RANDOM_REWARD_REWARD_POINTS_SUCCESS: {
+        name: "RandomRewardRewardPointsSuccess",
+        params: [
+            {parameterName:'proposalData.data.rewardName' , description:'Reward Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+            {parameterName:'proposalData.data.rewardedRewardPoint' , description:'rewardAmount'},
+        ]
+    },
+    RANDOM_REWARD_REAL_PRIZE_SUCCESS: {
+        name: "RandomRewardRealPrizeSuccess",
+        params: [
+            {parameterName:'proposalData.data.rewardName' , description:'Reward Name'},
+            {parameterName:'proposalData.createTime' , description:'createTime'},
+        ]
+    },
+
 
 };
 
