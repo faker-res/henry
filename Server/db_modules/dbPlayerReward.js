@@ -7240,7 +7240,6 @@ let dbPlayerReward = {
 
                         if (topUpAmountToParticipate && topUpAmount >= topUpAmountToParticipate) {
                             let useTopupRecordAmount = 0;
-
                             //For set topup bDirty Use
                             topUpRecords.forEach((topUpRecord) => {
                                 if (useTopupRecordAmount < topUpAmountToParticipate) {
@@ -7321,7 +7320,6 @@ let dbPlayerReward = {
 
                         // filter out the valid rewards
                         selectedRewardParam = selectedRewardParam.filter( p => Number.isFinite(p.possibility));
-
                         // check if the player is first time and if there is pre-set reward for first time player
                         if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime){
                             selectedRewardParam = selectedRewardParam.filter( p => p.rewardType == eventData.condition.defaultRewardTypeInTheFirstTime && Number.isFinite(p.possibility))
@@ -7337,7 +7335,6 @@ let dbPlayerReward = {
                         }
 
                         if (!selectedReward) {
-
                             let rewardNameListInInterval = [];
                             // check if rewards cannot be the same in the interval
                             if (eventData.condition && eventData.condition.repetitiveRewardInPeriod && gottenRewardInInterval && gottenRewardInInterval.length){
@@ -7382,7 +7379,6 @@ let dbPlayerReward = {
                                 })
                             }
                             let pNumber = Math.random() * totalProbability;
-
                             selectedRewardParam.some(
                                 eReward => {
                                     if (pNumber <= eReward.totalProbability) {
@@ -7391,7 +7387,6 @@ let dbPlayerReward = {
                                     return selectedReward;
                                 }
                             );
-
                             console.log("checking selectedReward", selectedReward)
                         }
 
@@ -7982,7 +7977,6 @@ let dbPlayerReward = {
             }else {
                 return -1
             }
-
             return 0;
         }
 
@@ -7992,7 +7986,6 @@ let dbPlayerReward = {
             if (eventData.condition.isPlayerLevelDiff) {
                 retObj = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
             } else {
-
                 retObj = eventData.param.rewardParam[0].value;
             }
 
