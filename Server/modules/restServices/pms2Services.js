@@ -12,10 +12,38 @@ function getSubDomain () {
     return extConfig[paymentSystemId].subDomain;
 }
 
+function getMainTopupLobbyAddress () {
+    return extConfig[paymentSystemId].topUpAPIAddr;
+}
+
+function getSubTopupLobbyAddress () {
+    return extConfig[paymentSystemId].topUpAPIAddr2;
+}
+
+function get3rdTopupLobbyAddress () {
+    return extConfig[paymentSystemId].topUpAPIAddr3;
+}
+
 function requestWithPromise (domain, paramStr) {
     let url = domain.concat(paramStr);
 
     return rp(url);
+}
+
+function pingDomain (domain) {
+    if (!domain) {
+        return false;
+    }
+
+    let options = {
+        method: 'HEAD',
+        uri: domain
+    };
+
+    return rp(options).then(
+        () => true,
+        () => false
+    );
 }
 
 function sendRequest (paramStr) {
@@ -84,6 +112,23 @@ function getMinMax (reqData) {
     return sendRequest(paramStr);
 }
 
+async function getTopupLobbyAddress () {
+    if (await pingDomain(getMainTopupLobbyAddress())) {
+        return getMainTopupLobbyAddress();
+    }
+
+    if (await pingDomain(getSubTopupLobbyAddress())) {
+        return getSubTopupLobbyAddress();
+    }
+
+    if (await pingDomain(get3rdTopupLobbyAddress())) {
+        return get3rdTopupLobbyAddress();
+    }
+
+    // If things goes wrong, just return main address
+    return getMainTopupLobbyAddress();
+}
+
 function postWithdraw (reqData) {
     return postRequest(reqData, 'withdraw-proposal', 'POST');
 }
@@ -150,6 +195,7 @@ function postPaymentGroupByPlayer (reqData) {
 
 module.exports = {
     getMinMax: getMinMax,
+    getTopupLobbyAddress: getTopupLobbyAddress,
     postWithdraw: postWithdraw,
     patchTopupStatus: patchTopupStatus,
     postBatchTopupStatus: postBatchTopupStatus,

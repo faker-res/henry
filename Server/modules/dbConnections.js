@@ -53,6 +53,9 @@ function createConnection(dbURL, callback) {
     });
 
     db.once('open', function () {
+        // DO NOT REMOVE - To ensure DB connection
+        console.log("Mongoose connected to " + rsaCrypto.encrypt(dbURL));
+
         if (callback) {
             callback();
         }

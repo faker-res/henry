@@ -693,7 +693,7 @@ const dbPlayerPayment = {
                 return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(
-            proposalObj => {
+            async proposalObj => {
                 if (proposalObj) {
                     if (topUpSystemConfig && topUpSystemConfig.name === '快付收银台') {
                         proposal = proposalObj;
@@ -726,9 +726,8 @@ const dbPlayerPayment = {
 
                         if (player && player.platform && player.platform.topUpSystemType && extConfig
                             && extConfig[player.platform.topUpSystemType]
-                            && extConfig[player.platform.topUpSystemType].topUpAPIAddr
                         ) {
-                            paymentUrl = extConfig[player.platform.topUpSystemType].topUpAPIAddr;
+                            paymentUrl = await RESTUtils.getPMS2Services("getTopupLobbyAddress");
                         }
 
                         return {
