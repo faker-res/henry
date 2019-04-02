@@ -7336,8 +7336,10 @@ let dbPlayerReward = {
                         else if (presetList && presetList.randomReward){
                             let temp = selectedRewardParam.filter( p => p.id == presetList.randomReward && Number.isFinite(p.possibility))
                             selectedReward = temp && temp.length ? temp[0] : null;
-                            isPresetRandomReward = true;
-                            updatePresetList = presetList
+                            if (selectedReward){
+                                isPresetRandomReward = true;
+                                updatePresetList = presetList
+                            }
                         }
                         // random pick
                         else{
