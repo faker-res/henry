@@ -2375,7 +2375,7 @@ var dbRewardEvent = {
         return dbconfig.collection_rewardEvent.find(query).populate({
             path: "type",
             model: dbconfig.collection_rewardType
-        }).exec();
+        }).sort({updateTime: -1}).exec();
     },
 
     getRewardEventGroup: function (query) {
@@ -2393,6 +2393,7 @@ var dbRewardEvent = {
      * @param {Json} updateData
      */
     updateRewardEvent: function (query, updateData) {
+        updateData.updateTime = new Date();
         return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData).exec();
     },
 
