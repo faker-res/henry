@@ -640,9 +640,9 @@ function socketActionReport(socketIO, socket) {
             let actionName = arguments.callee.name;
             let startTime = new Date(data.startTime);
             let endTime = new Date(data.endTime);
-            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && (endTime > startTime));
+            let isValidData = Boolean(data && data.startTime && data.endTime && (endTime > startTime));
 
-            socketUtil.emitter(self.socket, dbPlayerReward.getLimitedOfferReport, [ObjectId(data.platformObjId), startTime, endTime, data.playerName, data.promoName, data.status, data.level, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerReward.getLimitedOfferReport, [data.platformList, startTime, endTime, data.playerName, data.promoName, data.status, data.level, data.inputDevice], actionName, isValidData);
         },
 
         testPMSCashoutAPI: function testPMSCashoutAPI(data) {
