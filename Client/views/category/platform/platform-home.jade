@@ -458,6 +458,34 @@
                                     td {{vm.selectedPromoUrl.lastUpdate | date : 'yyyy-MM-dd HH:mm:ss'}}
             .modal-footer
 
+#randomRewardItemModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                {{ 'DETAILS' | translate }}
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            table.common-table.display(style='min-width:100%')
+                                thead
+                                    th {{'PLAYERNAME' | translate}}
+                                    th {{'Reward Item' | translate}}
+                                    th {{'Created By' | translate}}
+                                    th {{'Created Date' | translate}}
+                                    th {{'STATUS' | translate}}
+
+                                tbody
+                                    tr(ng-repeat="v in vm.selectedRandomReward")
+                                        td {{v.playerId.name || ''}}
+                                        td {{v.rewardItemName || ''}}
+                                        td {{v.creator.name || ''}}
+                                        td {{v.lastEditTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+                                        td {{ vm.randomRewardConvertorStatus[v.status] | translate}}
+            .modal-footer
+
+
 
 #rewardLockModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

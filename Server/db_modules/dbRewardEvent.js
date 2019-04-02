@@ -1657,10 +1657,10 @@ var dbRewardEvent = {
 
                 // Count reward amount and spending amount
                 switch (eventData.type.name) {
-                  
+
                     case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                         let consumptionSlipRewardDetail = rewardSpecificData[0];
-                        
+
                         returnData.condition.deposit.list = [];
                         returnData.condition.bet.list = [];
 
@@ -1711,7 +1711,7 @@ var dbRewardEvent = {
                         }
 
                         if(consumptionSlipRewardDetail.applyList && consumptionSlipRewardDetail.applyList.length){
-                            
+
                             returnData.condition.bet.status = 1;
                             consumptionSlipRewardDetail.applyList.forEach(
                                 detail => {
@@ -2707,12 +2707,66 @@ var dbRewardEvent = {
             }
         );
     },
-
+    assignRandomRewardToUser: function (randomRewards, platformId, reward, creator) {
+        let proms = [];
+        randomRewards.forEach( randomReward => {
+            let prom = dbconfig.collection_players.findOne({ name:randomReward.playerName, platform:platformId }).lean().then(
+                        data=> {
+                            if (data) {
+                                let rewardData = {
+                                    platformId: platformId,
+                                    rewardEvent: reward,
+                                    randomReward: randomReward.rewardName,
+                                    creator: creator ? creator : {},
+                                    playerId: data._id,
+                                    status: 1
+                                }
+                                return dbconfig.collection_playerRandomReward(rewardData).save();
+                            }
+                        })
+            proms.push(prom);
+        })
+        return Promise.all(proms);
+    },
+    editRandomRewardToUser: function (randomRewards, platformId, reward, creator) {
+        let proms = [];
+        randomRewards.forEach( randomReward => {
+            let prom = dbconfig.collection_players.findOne({ name:randomReward.playerName, platform:platformId }).lean().then(
+                        data=> {
+                            if (data) {
+                                let searchQuery = {
+                                    _id: randomReward._id,
+                                    platformId: platformId
+                                };
+                                let rewardData = {
+                                    platformId: platformId,
+                                    rewardEvent: reward,
+                                    randomReward: randomReward.rewardName,
+                                    creator: creator ? creator : {},
+                                    playerId: data._id,
+                                    status: randomReward.status
+                                };
+                                return dbconfig.collection_playerRandomReward.findOneAndUpdate( searchQuery, rewardData, { new:true }).lean()
+                            }
+                        })
+            proms.push(prom);
+        })
+        return Promise.all(proms);
+        });
+    },
+    getRandomRewardDetail: function (query) {
+        return dbconfig.collection_playerRandomReward.find(query)
+        .populate({path: "playerId", model: dbconfig.collection_players}).lean().then(
+            data => {
+                return data;
+            }
+        )
+    },
     startPlatformRTGEventSettlement: function (platformObjId, eventCode) {
         let applyTargetDate;
 
         let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
- 
+
         let eventProm = dbconfig.collection_rewardEvent.findOne({code: eventCode}).lean();
 
         let rewardTypesProm = dbconfig.collection_rewardType.find({isGrouped: true}).lean();
