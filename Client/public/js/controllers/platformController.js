@@ -29504,6 +29504,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformProviderGroup = () => {
+                vm.getPlatformGameData(vm.selectedPlatform.id);
                 return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(
                     data => {
                         if (data) {
