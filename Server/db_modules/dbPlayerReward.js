@@ -5446,7 +5446,7 @@ let dbPlayerReward = {
                     };
 
                     if (platformListQuery) {
-                        matchQ['data.platformId'] = platformListQuery
+                        matchQ['data.platformObjId'] = platformListQuery
                     }
 
                     if (playerName) {
@@ -5482,7 +5482,7 @@ let dbPlayerReward = {
                         }
                     }
 
-                    return dbConfig.collection_proposal.find(matchQ).populate({path: "data.platformId", model: dbConfig.collection_platform}).lean();
+                    return dbConfig.collection_proposal.find(matchQ).populate({path: "data.platformObjId", model: dbConfig.collection_platform}).lean();
                 }
             }
         ).then(
