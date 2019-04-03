@@ -22290,10 +22290,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addNewRewardTypeRow = (row, entry, newEntryData) => {
-                if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)
-                    && vm.isPromoNameExist(entry.title)){
-                    return socketService.showErrorMessage($translate('Promo code name must be unique'));
-                }
+                // if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)
+                //     && vm.isPromoNameExist(entry.title)){
+                //     return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                // }
                 newEntryData.id = createObjectId();
                 row.push(newEntryData);
             }
@@ -23174,7 +23174,7 @@ define(['js/app'], function (myApp) {
                         })
 
                         if(total > 1){
-                            return socketService.showErrorMessage($translate('The overall possibilities cannot be higher than 100%'));
+                            return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
                     }
 
@@ -23388,7 +23388,7 @@ define(['js/app'], function (myApp) {
                         })
 
                         if(total > 1){
-                            return socketService.showErrorMessage($translate('The overall possibilities cannot be higher than 100%'));
+                            return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
                     }
 

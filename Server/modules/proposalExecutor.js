@@ -3087,19 +3087,19 @@ var proposalExecutor = {
                                 let promoCodeDetail = proposalData.data && proposalData.data.rewardDetail ? proposalData.data.rewardDetail : null;
 
                                 let promoCodeTemplate = null;
-                                if (!promoCodeDetail){
+                                if (!promoCodeDetail || (promoCodeDetail && !promoCodeDetail.templateObjId)){
                                     return Promise.reject({
                                         name: "DataError",
-                                        message: "Cannot find promo code detail to generate promo code"
+                                        message: "Cannot find promo code template ObjectId to generate promo code"
                                     })
                                 }
 
-                                createRTGProm = generatePromoCodeTemplate(promoCodeDetail, platformObjId).then(
+                                createRTGProm = dbconfig.collection_promoCodeTemplate.findOne({_id: promoCodeDetail.templateObjId}).lean().then(
                                     retPromoCodeTemplate => {
                                         if (!retPromoCodeTemplate){
                                             return Promise.reject({
                                                 name: "DataError",
-                                                message: "Cannot save the promo code template"
+                                                message: "Cannot get the promo code template"
                                             })
                                         }
                                         promoCodeTemplate = retPromoCodeTemplate;
