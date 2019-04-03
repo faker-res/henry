@@ -742,240 +742,191 @@ var dbPlayerTopUpRecord = {
      * Get total top up amount in a certain period of time
      * @param {Date} startTime,endTime - The date info
      */
-    topupReport: function (query, index, limit, sortObj) {
+    topupReport: async (query, index, limit, sortObj) => {
         let topupRecords = [];
-        var queryObj = {
-            createTime: {
-                $gte: query.startTime ? new Date(query.startTime) : new Date(0),
-                $lt: query.endTime ? new Date(query.endTime) : new Date()
+        let queryObj = {};
+
+        if (query.proposalId) {
+            queryObj = {
+                proposalId: query.proposalId
+            };
+        } else {
+            queryObj = await getProposalQ(query);
+        }
+
+        let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
+        let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
+        let totalAmountProm = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
+            $group: {
+                _id: null,
+                totalAmount: {$sum: "$data.amount"}
             }
-        }
-        if (query.status && query.status.length > 0) {
-            queryObj.status = {$in: convertStringNumber(query.status)};
-        }
-        return Q.resolve().then(
-            () => {
-                var str = '';
-                if (query && query.mainTopupType == constPlayerTopUpType.ONLINE) {
-                    str = constProposalType.PLAYER_TOP_UP;
-                } else if (query && query.mainTopupType == constPlayerTopUpType.ALIPAY) {
-                    str = constProposalType.PLAYER_ALIPAY_TOP_UP
-                } else if (query && query.mainTopupType == constPlayerTopUpType.MANUAL) {
-                    str = constProposalType.PLAYER_MANUAL_TOP_UP;
-                } else if (query && query.mainTopupType == constPlayerTopUpType.WECHAT) {
-                    str = constProposalType.PLAYER_WECHAT_TOP_UP
-                } else if (query && query.mainTopupType == constPlayerTopUpType.QUICKPAY) {
-                    str = constProposalType.PLAYER_QUICKPAY_TOP_UP
-                } else if (query && query.mainTopupType == constPlayerTopUpType.COMMON) {
-                    str = constProposalType.PLAYER_COMMON_TOP_UP
-                } else if (query && query.mainTopupType == constPlayerTopUpType.FUKUAIPAY) {
-                    str = constProposalType.PLAYER_FKP_TOP_UP
-                } else {
-                    str = {
-                        $in: [
-                            constProposalType.PLAYER_TOP_UP,
-                            constProposalType.PLAYER_ALIPAY_TOP_UP,
-                            constProposalType.PLAYER_MANUAL_TOP_UP,
-                            constProposalType.PLAYER_WECHAT_TOP_UP,
-                            constProposalType.PLAYER_QUICKPAY_TOP_UP,
-                            constProposalType.PLAYER_COMMON_TOP_UP,
-                            constProposalType.PLAYER_FKP_TOP_UP,
-                        ]
-                    };
-                }
+        }).read("secondaryPreferred").allowDiskUse(true);
 
-                if (query.depositMethod && query.depositMethod.length > 0) {
-                    queryObj['data.depositMethod'] = {'$in': convertStringNumber(query.depositMethod)};
-                }
+        let prom = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
+            .populate({path: 'type', model: dbconfig.collection_proposalType})
+            .populate({path: "data.playerObjId", model: dbconfig.collection_players})
+            .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
 
-                if(query.platformList && query.platformList.length > 0) {
-                    queryObj['data.platformId'] = {$in: query.platformList.map(item=>{return ObjectId(item)})};
-                }
+        let stream = prom.cursor({batchSize: 500});
+        let balancer = new SettlementBalancer();
 
-                if (query.merchantNo && query.merchantNo.length > 0 && (!query.merchantGroup || query.merchantGroup.length == 0)) {
-                    queryObj['$or'] = [
-                        {'data.merchantNo': {$in: convertStringNumber(query.merchantNo)}},
-                        {'data.bankCardNo': {$in: convertStringNumber(query.merchantNo)}},
-                        {'data.accountNo': {$in: convertStringNumber(query.merchantNo)}},
-                        {'data.alipayAccount': {$in: convertStringNumber(query.merchantNo)}},
-                        {'data.wechatAccount': {$in: convertStringNumber(query.merchantNo)}},
-                        {'data.weChatAccount': {$in: convertStringNumber(query.merchantNo)}}
-                    ]
-                }
-
-                if ((!query.merchantNo || query.merchantNo.length == 0) && query.merchantGroup && query.merchantGroup.length > 0) {
-                    let mGroupList = [];
-                    query.merchantGroup.forEach(item => {
-                        if (item.list.length > 0) {
-                            item.list.forEach(sItem => {
-                                mGroupList.push(sItem)
-                            })
-                        }
-                    })
-                    // console.log(mGroupList);
-                    queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
-                }
-
-                if (query.merchantNo && query.merchantNo.length > 0 && query.merchantGroup && query.merchantGroup.length > 0) {
-                    if (query.merchantGroup.length > 0) {
-                        let mGroupC = [];
-                        let mGroupD = [];
-                        query.merchantNo.forEach(item => {
-                            mGroupC.push(item);
-                        });
-                        query.merchantGroup.forEach(item => {
-                            item.list.forEach(sItem => {
-                                mGroupD.push(sItem)
+        let topupRecordProm = balancer.initConns().then(function () {
+            return Q(
+                balancer.processStream(
+                    {
+                        stream: stream,
+                        batchSize: 100,
+                        makeRequest: function (proposals, request) {
+                            request("player", "topupRecordInsertRepeatCount", {
+                                proposals: proposals,
+                                platformId: query.platformId,
                             });
-                        });
-
-                        if (query.merchantNo.length > 0) {
-                            queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
-                        } else if (query.merchantGroup.length > 0 && query.merchantNo.length == 0) {
-                            queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
+                        },
+                        processResponse: function (record) {
+                            topupRecords = topupRecords.concat(record.data);
                         }
-
                     }
-                }
+                )
+            );
+        });
 
-                if (query.dingdanID) {
-                    queryObj['data.requestId'] = query.dingdanID;
-                }
-                if (query.playerName) {
-                    queryObj['data.playerName'] = query.playerName;
-                }
-                if (query.proposalNo) {
-                    queryObj['proposalId'] = query.proposalNo;
-                }
-                if (query.topupType && query.topupType.length > 0) {
-                    queryObj['data.topupType'] = {$in: convertStringNumber(query.topupType)}
-                }
-                if (query.bankTypeId && query.bankTypeId.length > 0) {
-                    queryObj['data.bankTypeId'] = {$in: convertStringNumber(query.bankTypeId)};
-                }
-                if (query.userAgent && query.userAgent.length > 0) {
-                    queryObj['inputDevice'] = {$in: convertStringNumber(query.userAgent)};
-                }
-                if(query.line){
-                    queryObj['data.line'] = {$in: query.line};
-                }
-                console.log('str===', str);
-                let proposalTypeQuery = {
-                    name: str
-                };
-                if(query.platformList && query.platformList.length > 0){
-                    proposalTypeQuery.platformId = {$in: query.platformList};
-                }
-                return dbconfig.collection_proposalType.find(proposalTypeQuery).lean();
-            }
-        ).then(
-            proposalType => {
-                var typeIds = proposalType.map(type => {
-                    return type._id;
-                });
-                queryObj.type = {$in: typeIds};
-                console.log('proposalType===', proposalType);
-                console.log('typeIds===', typeIds);
-                console.log('queryObj===', queryObj);
-
-                let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
-                let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
-                let totalAmountProm = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
-                    $group: {
-                        _id: null,
-                        totalAmount: {$sum: "$data.amount"}
-                    }
-                }).read("secondaryPreferred").allowDiskUse(true);
-
-
-                let prom = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
-                    .populate({path: 'type', model: dbconfig.collection_proposalType})
-                    .populate({path: "data.playerObjId", model: dbconfig.collection_players})
-                    .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
-
-                let stream = prom.cursor({batchSize: 100});
-                let balancer = new SettlementBalancer();
-
-                let topupRecordProm = balancer.initConns().then(function () {
-
-                    console.log("initConns ");
-                    return Q(
-                        balancer.processStream(
-                            {
-                                stream: stream,
-                                batchSize: 100,
-                                makeRequest: function (proposals, request) {
-                                    request("player", "topupRecordInsertRepeatCount", {
-                                        proposals: proposals,
-                                        platformId: query.platformId,
-                                    });
-                                },
-                                processResponse: function (record) {
-                                    topupRecords = topupRecords.concat(record.data);
-                                }
-                            }
-                        )
-                    );
-                });
-
-                return Q.all([totalCountProm, totalAmountProm, topupRecordProm, totalPlayerProm])
-            }
-        ).then(
+        return Promise.all([totalCountProm, totalAmountProm, topupRecordProm, totalPlayerProm]).then(
             data => {
                 let totalCount = data[0];
                 let totalAmountResult = data[1][0];
                 let totalPlayerResult = data[3] && data[3].length || 0;
-                console.log('totalCount===', totalCount);
-                console.log('totalAmountResult===', totalAmountResult);
-                console.log('totalPlayerResult===', totalPlayerResult);
-
 
                 return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
             }
-        )
+        );
 
-        // dbProposalType.getProposalTypeByPlatformId(query.platformId).then(data => {
-        //     console.log('data', data);
-        // });
+        async function getProposalQ (query) {
+            let queryObj = {
+                createTime: {
+                    $gte: query.startTime ? new Date(query.startTime) : new Date(0),
+                    $lt: query.endTime ? new Date(query.endTime) : new Date()
+                }
+            };
 
-        // var matchObj = {
-        //     createTime: {
-        //         $gte: query.startTime ? new Date(query.startTime) : new Date(0),
-        //         $lt: query.endTime ? new Date(query.endTime) : new Date()
-        //     },
-        //     platformId: ObjectId(query.platformId)
-        // };
-        // sortObj = sortObj || {};
-        // index = index || 0;
-        // count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM);
-        // if (query.type && query.type != 'all') {
-        //     matchObj.topUpType = query.type;
-        // }
-        // if (query.paymentChannel && query.paymentChannel != 'all') {
-        //     matchObj.paymentId = query.paymentChannel;
-        // }
-        // var a = dbconfig.collection_playerTopUpRecord.find(matchObj).count();
-        // var b = dbconfig.collection_playerTopUpRecord.find(matchObj).populate({
-        //     path: "playerId",
-        //     model: dbconfig.collection_players
-        // }).sort(sortObj).skip(index).limit(count);
-        //
-        // var c = dbconfig.collection_playerTopUpRecord.aggregate(
-        //     {
-        //         $match: matchObj
-        //     },
-        //     {
-        //         $group: {
-        //             _id: null,
-        //             totalAmount: {$sum: "$amount"},
-        //         }
-        //     }
-        // ).exec();
-        // return Q.all([a, b, c]).then(
-        //     data => {
-        //         return {data: data[1], size: data[0], total: data[2][0] ? data[2][0].totalAmount : 0};
-        //     }
-        // )
+            if (query.mainTopupType) {
+                let proposalTypeQuery = getProposalTypeStr(Number(query.mainTopupType));
+
+                if (query.platformList && query.platformList.length > 0) {
+                    proposalTypeQuery.platformId = {$in: query.platformList};
+                }
+
+                let proposalType = await dbconfig.collection_proposalType.find(proposalTypeQuery, {_id: 1}).lean();
+
+                queryObj.type = {$in: proposalType.map(type => type._id)};
+            } else {
+                queryObj.mainType = "TopUp";
+            }
+
+            if (query.status && query.status.length > 0) {
+                queryObj.status = {$in: convertStringNumber(query.status)};
+            }
+
+            if (query.depositMethod && query.depositMethod.length > 0) {
+                queryObj['data.depositMethod'] = {'$in': convertStringNumber(query.depositMethod)};
+            }
+
+            if (query.platformList && query.platformList.length > 0) {
+                queryObj['data.platformId'] = {$in: query.platformList.map(item=>{return ObjectId(item)})};
+            }
+
+            if (query.playerName) {
+                queryObj['data.playerName'] = query.playerName;
+            }
+
+            if (query.topupType && query.topupType.length > 0) {
+                queryObj['data.topupType'] = {$in: convertStringNumber(query.topupType)}
+            }
+
+            if (query.bankTypeId && query.bankTypeId.length > 0) {
+                queryObj['data.bankTypeId'] = {$in: convertStringNumber(query.bankTypeId)};
+            }
+
+            if (query.userAgent && query.userAgent.length > 0) {
+                queryObj['inputDevice'] = {$in: convertStringNumber(query.userAgent)};
+            }
+
+            if(query.line){
+                queryObj['data.line'] = {$in: query.line};
+            }
+
+            if (query.merchantNo && query.merchantNo.length > 0 && (!query.merchantGroup || query.merchantGroup.length == 0)) {
+                queryObj['$or'] = [
+                    {'data.merchantNo': {$in: convertStringNumber(query.merchantNo)}},
+                    {'data.bankCardNo': {$in: convertStringNumber(query.merchantNo)}},
+                    {'data.accountNo': {$in: convertStringNumber(query.merchantNo)}},
+                    {'data.alipayAccount': {$in: convertStringNumber(query.merchantNo)}},
+                    {'data.wechatAccount': {$in: convertStringNumber(query.merchantNo)}},
+                    {'data.weChatAccount': {$in: convertStringNumber(query.merchantNo)}}
+                ]
+            }
+
+            if ((!query.merchantNo || query.merchantNo.length == 0) && query.merchantGroup && query.merchantGroup.length > 0) {
+                let mGroupList = [];
+
+                query.merchantGroup.forEach(item => {
+                    if (item.list.length > 0) {
+                        item.list.forEach(sItem => {
+                            mGroupList.push(sItem)
+                        })
+                    }
+                });
+
+                queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
+            }
+
+            if (query.merchantNo && query.merchantNo.length > 0 && query.merchantGroup && query.merchantGroup.length > 0) {
+                let mGroupC = [];
+                let mGroupD = [];
+
+                query.merchantNo.forEach(item => {
+                    mGroupC.push(item);
+                });
+
+                query.merchantGroup.forEach(item => {
+                    item.list.forEach(sItem => {
+                        mGroupD.push(sItem)
+                    });
+                });
+
+                if (query.merchantNo.length > 0) {
+                    queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
+                } else if (query.merchantGroup.length > 0 && query.merchantNo.length === 0) {
+                    queryObj['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
+                }
+            }
+
+            return queryObj;
+        }
+
+        function getProposalTypeStr (mainTopupType) {
+            let str = "";
+
+            if (mainTopupType === constPlayerTopUpType.ONLINE) {
+                str = constProposalType.PLAYER_TOP_UP;
+            } else if (mainTopupType === constPlayerTopUpType.ALIPAY) {
+                str = constProposalType.PLAYER_ALIPAY_TOP_UP
+            } else if (mainTopupType === constPlayerTopUpType.MANUAL) {
+                str = constProposalType.PLAYER_MANUAL_TOP_UP;
+            } else if (mainTopupType === constPlayerTopUpType.WECHAT) {
+                str = constProposalType.PLAYER_WECHAT_TOP_UP
+            } else if (mainTopupType === constPlayerTopUpType.QUICKPAY) {
+                str = constProposalType.PLAYER_QUICKPAY_TOP_UP
+            } else if (mainTopupType === constPlayerTopUpType.COMMON) {
+                str = constProposalType.PLAYER_COMMON_TOP_UP
+            } else if (mainTopupType === constPlayerTopUpType.FUKUAIPAY) {
+                str = constProposalType.PLAYER_FKP_TOP_UP
+            }
+
+            return {
+                name: str
+            };
+        }
     },
 
     topupRecordInsertRepeatCount: function (proposals, platformId) {
