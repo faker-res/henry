@@ -21854,7 +21854,12 @@ define(['js/app'], function (myApp) {
                     } else if (vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
                         vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
                         //get the random reward still available
-                        vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                        if (vm.showReward && vm.showReward.type && vm.showReward.type.name == "PlayerRandomRewardGroup") {
+                            vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                        } else {
+                            vm.activeRandomRewards = [];
+                        }
+
                     }
 
                     if (onCreationForm) {
