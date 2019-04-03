@@ -677,6 +677,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $scope.randomRewardType = {
+        0: "",
         1: "Credit",
         2: "Promo Code-B (With Deposit)",
         3: "Promo Code-B (Without Deposit)",
