@@ -947,6 +947,7 @@ var proposal = {
                 let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
                 let isCommonTopUp = false;
                 let merchantProm = Promise.resolve(false);
+                let sysCustomMerchantRateProm = Promise.resolve();
 
                 if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
                     switch (Number(callbackData.topUpType)) {
@@ -985,11 +986,12 @@ var proposal = {
                         merchantQuery.isPMS2 = {$exists: false};
                     }
 
-                    merchantProm = dbconfig.collection_platformMerchantList.findOne(merchantQuery, 'customizeRate').lean();
+                    merchantProm = dbconfig.collection_platformMerchantList.findOne(merchantQuery, {rate: 1, customizeRate: 1}).lean();
+                    sysCustomMerchantRateProm = dbconfig.collection_platform.findOne({_id: proposalObj.data.platform}, {pmsServiceCharge: 1, fpmsServiceCharge: 1}).lean();
                 };
 
-                return Promise.all([propTypeProm, merchantProm]).then(
-                    ([propType, merchantRate]) => {
+                return Promise.all([propTypeProm, merchantProm, sysCustomMerchantRateProm]).then(
+                    ([propType, merchantRate, sysCustomMerchantRate]) => {
                         let updStatus = status || constProposalStatus.PREPENDING;
                         updObj = {};
 
@@ -1067,6 +1069,14 @@ var proposal = {
                         topupActualAmt = merchantRate && merchantRate.customizeRate ?
                             (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
                             : proposalObj.data.amount;
+
+                        // use system custom rate when there is pms's rate greater than system setting and no customizeRate
+                        if (merchantRate && !merchantRate.customizeRate && merchantRate.rate
+                            && sysCustomMerchantRate && sysCustomMerchantRate.pmsServiceCharge && sysCustomMerchantRate.fpmsServiceCharge
+                            && (merchantRate.rate > sysCustomMerchantRate.pmsServiceCharge)) {
+                            topupRate = sysCustomMerchantRate.fpmsServiceCharge;
+                            topupActualAmt = (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(sysCustomMerchantRate.fpmsServiceCharge)).toFixed(2);
+                        }
 
                         if (updObj && updObj.data && updObj.data.amount) {
                             topupActualAmt = (Number(updObj.data.amount) - Number(updObj.data.amount) * Number(topupRate)).toFixed(2);

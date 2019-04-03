@@ -781,6 +781,31 @@ var dbPlatformMerchantGroup = {
 
             return RESTUtils.getPMS2Services("postPaymentGroup", options);
         }
+    },
+
+    getServiceChargeSetting: function (platformObjId) {
+        return dbconfig.collection_platform.findOne(
+            {
+                _id: platformObjId
+            },
+            {
+                pmsServiceCharge: 1,
+                fpmsServiceCharge: 1
+            }
+        ).lean();
+    },
+
+    updateServiceChargeSetting: function (platformObjId, pmsServiceChargeRate, fpmsServiceChargeRate) {
+        return dbconfig.collection_platform.findOneAndUpdate(
+            {
+                _id: platformObjId
+            },
+            {
+                pmsServiceCharge: pmsServiceChargeRate,
+                fpmsServiceCharge: fpmsServiceChargeRate
+            },
+            {new: true}
+        );
     }
 };
 

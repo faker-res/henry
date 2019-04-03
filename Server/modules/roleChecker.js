@@ -769,14 +769,15 @@ var roleChecker = {
                 UpdateCardGroupType: []
             },
             "MerchantGroup": {
-                Read: ['getPlatformMerchantGroup', 'getMerchantTypeList', 'getIncludedMerchantByMerchantGroup', 'getExcludedMerchantByMerchantGroup'],
+                Read: ['getPlatformMerchantGroup', 'getMerchantTypeList', 'getIncludedMerchantByMerchantGroup', 'getExcludedMerchantByMerchantGroup', 'getServiceChargeSetting'],
                 Create: ['addPlatformMerchantGroup', 'addPlayersToMerchantGroup'],
                 Update: ['renamePlatformMerchantGroup', 'updatePlatformMerchantGroup', 'setPlatformDefaultMerchantGroup'],
                 Delete: ['deleteMerchantGroup'],
                 AddPlayer: ['addPlayersToMerchantGroup'],
                 AddAllPlayer: ['addAllPlayersToMerchantGroup'],
                 UpdateCardGroupType: [],
-                EditServiceChargeRatio: ['updateCustomizeRatePlatformMerchantList']
+                EditServiceChargeRatio: ['updateCustomizeRatePlatformMerchantList'],
+                ServiceChangeSetting: ['updateServiceChargeSetting']
             },
             "AlipayGroup": {
                 Read: ['getPlatformAliPayGroup'],
