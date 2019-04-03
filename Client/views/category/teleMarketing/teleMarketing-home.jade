@@ -1,5 +1,5 @@
 .row.padding-left-right-5(ng-show="checkViewPermission('TeleMarketing')")
-    #marketingContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
+    #marketingContent(style="padding-left:0;" ng-class='vm.rightPanelClass')
         .col-md-12
             button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'phoneNumFilter', 'Read')" ng-class='{active: vm.selectedTab === "NEW_PHONE_LIST"}', ng-click='vm.loadTab("NEW_PHONE_LIST")' title='过滤，导入白名单到系统当中')
                 span {{"NEW_PHONE_LIST" | translate}}
