@@ -5802,6 +5802,8 @@ let dbPlayerReward = {
         let baccaratConsumptionRecord;
         let lastConsumptionProm;
         let selectedReward = null;
+        let updatePresetList = null;
+        let isPresetRandomReward = false;
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
@@ -5990,6 +5992,13 @@ let dbPlayerReward = {
                 checkSMSProm = dbPlayerMail.verifySMSValidationCode(playerData.phoneNumber, playerData.platform, rewardData.smsCode);
             }
             promArr.push(checkSMSProm.then(data => {console.log('checkSMSProm'); return data;}));
+
+            //get the pre-set list for the player
+            promArr.push(dbConfig.collection_playerRandomReward.findOne({
+                playerId: playerData._id,
+                platformId: playerData.platform._id,
+                status: 1
+            }).sort({createTime: 1}).lean());
         }
 
 
@@ -7166,9 +7175,8 @@ let dbPlayerReward = {
                         let periodProps = rewardSpecificData[2];
                         let checkHasReceived = rewardSpecificData[3];
                         let applyRewardTimes = periodProps.length;
-
-                        let presetList = [] // rewardSpecificData[4]; // temp
-                        let gottenRewardInInterval = periodProps; // temp
+                        let presetList = rewardSpecificData[5];
+                        let gottenRewardInInterval = periodProps;
 
                         let participationTimes = eventData.condition && eventData.condition.hasOwnProperty('numberParticipation') ? eventData.condition.numberParticipation : 1;
                         let consumptionToParticipate = eventData.condition && eventData.condition.hasOwnProperty('requiredConsumptionAmount') ? eventData.condition.requiredConsumptionAmount : 0;
@@ -7325,16 +7333,21 @@ let dbPlayerReward = {
                             selectedRewardParam = selectedRewardParam.filter( p => p.rewardType == eventData.condition.defaultRewardTypeInTheFirstTime && Number.isFinite(p.possibility))
                         }
                         // check if the player has been pre-set
-                        else if (presetList){
-
-                            // selectedReward = {};
+                        else if (presetList && presetList.randomReward){
+                            let temp = selectedRewardParam.filter( p => p.id == presetList.randomReward && Number.isFinite(p.possibility))
+                            selectedReward = temp && temp.length ? temp[0] : null;
+                            if (selectedReward){
+                                isPresetRandomReward = true;
+                                updatePresetList = presetList
+                            }
                         }
                         // random pick
                         else{
 
                         }
 
-                        if (!selectedReward) {
+                        if (!selectedReward || (selectedReward && selectedReward.length == 0)) {
+                            selectedReward = null;
                             let rewardNameListInInterval = [];
                             // check if rewards cannot be the same in the interval
                             if (eventData.condition && eventData.condition.repetitiveRewardInPeriod && gottenRewardInInterval && gottenRewardInInterval.length){
@@ -7387,9 +7400,16 @@ let dbPlayerReward = {
                                     return selectedReward;
                                 }
                             );
-                            console.log("checking selectedReward", selectedReward)
-                        }
 
+                        }
+                        console.log("checking selectedReward", selectedReward)
+
+                        if (!selectedReward){
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "There is no reward is selected"
+                            })
+                        }
                         break;
 
                     // case 7
@@ -7818,6 +7838,7 @@ let dbPlayerReward = {
                                 proposalData.data.spendingAmount = (selectedReward.requiredConsumption || 0) * (selectedReward.amount || 0);
                                 proposalData.data.forbidWithdrawAfterApply = Boolean(selectedReward.disableWithdraw && selectedReward.disableWithdraw === true);
                                 proposalData.data.forbidWithdrawIfBalanceAfterUnlock = selectedReward.forbidWithdrawIfBalanceAfterUnlock ? selectedReward.forbidWithdrawIfBalanceAfterUnlock : 0;
+                                proposalData.data.isSharedWithXIMA = Boolean(selectedReward.isSharedWithXIMA && selectedReward.isSharedWithXIMA === true)
                             }
                             else if (selectedReward.rewardType && selectedReward.rewardType == constRandomRewardType.REWARD_POINTS){
                                 proposalData.data.rewardedRewardPoint = selectedReward.rewardPoints || 0;
@@ -7896,6 +7917,18 @@ let dbPlayerReward = {
                                     let newRecord = new dbConfig.collection_playerRetentionRewardGroupRecord(newRetentionData);
 
                                     postPropPromArr.push(newRecord.save());
+                                }
+
+                                // update playerRandonReward record
+                                if (isPresetRandomReward && updatePresetList && updatePresetList.platformId && updatePresetList.playerId && updatePresetList.randomReward &&
+                                    eventData && eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP){
+                                    let searchQuery = {
+                                        playerId: updatePresetList.playerId,
+                                        platformId: updatePresetList.platformId,
+                                        randomReward: updatePresetList.randomReward,
+                                    };
+
+                                    postPropPromArr.push(dbConfig.collection_playerRandomReward.findOneAndUpdate(searchQuery, {status: 2}).lean());
                                 }
 
                                 if (proposalData && proposalData._id) {
