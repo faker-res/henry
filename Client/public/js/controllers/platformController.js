@@ -22290,10 +22290,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addNewRewardTypeRow = (row, entry, newEntryData) => {
-                // if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)
-                //     && vm.isPromoNameExist(entry.title)){
-                //     return socketService.showErrorMessage($translate('Promo code name must be unique'));
-                // }
+                if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)
+                    && vm.isPromoNameExist(entry.title) && !entry.templateObjId){
+                    return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                }
                 newEntryData.id = createObjectId();
                 row.push(newEntryData);
             }
