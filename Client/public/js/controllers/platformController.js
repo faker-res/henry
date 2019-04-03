@@ -23284,7 +23284,7 @@ define(['js/app'], function (myApp) {
                 if (isFirstCreate && rewardName && rewardName == 'PlayerRandomRewardGroup') {
                     vm.assignRandomRewardToUser(data._id);
                     vm.getRandomRewardDetail('1', 'activeRandomRewards');
-                } else if(vm.showReward.type.name == "PlayerRandomRewardGroup") {
+                } else if(showReward && showReward.type && showReward.type.name == "PlayerRandomRewardGroup") {
                     vm.assignRandomRewardToUser();
                     vm.editRandomRewardToUser();
                     vm.getRandomRewardDetail('1', 'activeRandomRewards');
