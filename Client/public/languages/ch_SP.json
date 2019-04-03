@@ -5424,5 +5424,8 @@
   "Reward Available": "未兑换",
   "Converted":"已兑换",
   "Current Game Display Setting is:": "目前的游戏状态设置为: ",
+  "Promo Code-B (With Deposit)": "优惠類型-B(需存款)",
+  "Promo Code-B (Without Deposit)": "优惠類型-B(不存款)",
+  "Promo Code-C": "优惠类型-C",
   "WEBSITE_MULTI_SELECTION": "网站（复选）"
 }
