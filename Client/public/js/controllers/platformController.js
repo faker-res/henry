@@ -23081,6 +23081,8 @@ define(['js/app'], function (myApp) {
                 let isValid = true;
                 let isHostResult = true;
                 let isPlayerResult = true;
+                let isPeriodResultValid = true;
+                let isApplyTypeValid = true;
                 console.log('vm.showReward', vm.showReward);
 
                 if (vm.showReward && vm.showReward.type && vm.showReward.type.name
@@ -23126,6 +23128,14 @@ define(['js/app'], function (myApp) {
                             // Save name and code to outer level
                             if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "showInRealServer" || condName == "validStartTime" || condName == "validEndTime") {
                                 curReward[condName] = condValue;
+                            }
+
+                            if (condName == "interval" && condValue == "6") { // 6 == last month
+                                isPeriodResultValid = false;
+                            }
+
+                            if (condName == "applyType" && condValue == "2") { // 2 == 满足条件后自动生成
+                                isApplyTypeValid = false;
                             }
 
                             // Interval type handling
@@ -23227,6 +23237,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (!isPeriodResultValid && !isApplyTypeValid) {
+                    isValid = false;
+                }
+
                 var sendData = {
                     query: {_id: vm.showReward._id},
                     updateData: curReward
@@ -23249,6 +23263,8 @@ define(['js/app'], function (myApp) {
                         socketService.showErrorMessage($translate("Banker Result is required"));
                     } else if (!isPlayerResult) {
                         socketService.showErrorMessage($translate("Player Result is required"));
+                    } else if (!isPeriodResultValid && !isApplyTypeValid) {
+                        socketService.showErrorMessage($translate('Reward interval does not valid for this reward apply type'));
                     } else {
                         socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
                     }
@@ -23305,6 +23321,8 @@ define(['js/app'], function (myApp) {
                     condition: {},
                     param: {}
                 };
+                let isPeriodResultValid = true;
+                let isApplyTypeValid = true;
 
                 if (vm.showRewardTypeData.isGrouped === true) {
                     // Set condition
@@ -23325,6 +23343,14 @@ define(['js/app'], function (myApp) {
                             // Save name and code to outer level
                             if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "showInRealServer" || condName == "validStartTime" || condName == "validEndTime") {
                                 sendData[condName] = condValue;
+                            }
+
+                            if (condName == "interval" && condValue == "6") { // 6 == last month
+                                isPeriodResultValid = false;
+                            }
+
+                            if (condName == "applyType" && condValue == "2") { // 2 == 满足条件后自动生成
+                                isApplyTypeValid = false;
                             }
 
                             // Interval type handling
@@ -23440,6 +23466,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (!isPeriodResultValid && !isApplyTypeValid) {
+                    isValid = false;
+                }
+
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
@@ -23464,6 +23494,8 @@ define(['js/app'], function (myApp) {
                         socketService.showErrorMessage($translate("Banker Result is required"));
                     } else if (!isPlayerResult) {
                         socketService.showErrorMessage($translate("Player Result is required"));
+                    } else if (!isPeriodResultValid && !isApplyTypeValid) {
+                        socketService.showErrorMessage($translate('Reward interval does not valid for this reward apply type'));
                     } else {
                         socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
                     }
