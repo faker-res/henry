@@ -665,7 +665,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         2: "Weekly",
         3: "Biweekly",
         4: "Monthly",
-        5: "No Interval"
+        6: "LastMonth",
+        5: "No Interval",
     };
 
     $scope.rewardApplyType = {
