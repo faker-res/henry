@@ -23,7 +23,6 @@ define(['js/app'], function (myApp) {
             vm.existRealName = false;
             vm.rewardPointsChange = {};
             vm.rewardPointsConvert = {};
-            vm.platformPageName = 'Feedback';
             vm.platformToReplicate = "";
             vm.winnerMonitorConfig = [];
 
@@ -846,19 +845,6 @@ define(['js/app'], function (myApp) {
                 return deferred.promise;
             }
 
-            //////////Lin Hao:: Provider List Delay Popup
-            utilService.setupPopover({
-                context: ulMenu,
-                elem: '.providerListPopover',
-                content: function () {
-                    return $compile($('#providerListPopover').html())($scope);
-                },
-                callback: function () {
-                    let thisPopover = utilService.$getPopoverID(this);
-                }
-            });
-
-
             vm.getProviderLatestTimeRecord = function () {
                 let longestDelayDate = new Date().toString();
 
@@ -1132,21 +1118,27 @@ define(['js/app'], function (myApp) {
             }
 
             //set selected platform node
-            async function selectPlatformNode (node, option)  {
-                vm.selectedPlatform = node;
-                vm.curPlatformText = node.text;
+            async function selectPlatformNode (platformObj, option)  {
+                vm.selectedPlatform = {
+                    text: platformObj.name,
+                    id: platformObj._id,
+                    selectable: true,
+                    data: platformObj,
+                    image: {
+                        url: platformObj.icon,
+                        width: 30,
+                        height: 30,
+                    }
+                };
+
+                vm.curPlatformText = vm.selectedPlatform.text;
                 vm.isNotAllowEdit = true;
                 vm.isCreateNewPlatform = false;
-                $cookies.put("platform", node.text);
+                $cookies.put("platform", vm.selectedPlatform.text);
 
                 vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
                 beforeUpdatePlatform();
                 vm.retrievePlatformData(vm.showPlatform);
-
-                // if (option && !option.loadAll) {
-                //     $scope.safeApply();
-                //     return;
-                // }
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
 
                 // Zero dependencies variable
@@ -1280,15 +1272,11 @@ define(['js/app'], function (myApp) {
 
             //search and select platform node
             function searchAndSelectPlatform (text, option) {
-                text = text.replace("(", "\\(");
-                text = text.replace(")", "\\)");
-                var findNodes = $('#platformTree').treeview('search', [text, {
-                    ignoreCase: false,
-                    exactMatch: true
-                }]);
+                let findNodes = vm.allPlatformData.filter(e => e.name === text);
                 if (findNodes && findNodes.length > 0) {
                     selectPlatformNode(findNodes[0], option);
-                    $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
+                } else {
+                    selectPlatformNode(vm.allPlatformData[0], option);
                 }
             }
 
@@ -1315,18 +1303,6 @@ define(['js/app'], function (myApp) {
                 //var platformsToDisplay = vm.platformList;
                 var searchText = (vm.platformSearchText || '').toLowerCase();
                 var platformsToDisplay = vm.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
-                $('#platformTree').treeview(
-                    {
-                        data: platformsToDisplay,
-                        highlightSearchResults: false,
-                        showImage: true,
-                        showIcon: false,
-                    }
-                );
-                $('#platformTree').on('nodeSelected', function (event, data) {
-                    selectPlatformNode(data);
-                    vm.showPlatformDropDownList = false;
-                });
             }
 
             //get all platform data from server
@@ -1475,6 +1451,7 @@ define(['js/app'], function (myApp) {
                         vm.initVertificationSMS();
                         break;
                     case "RegistrationUrlConfig":
+                        vm.ignoreIntervalChecking = $scope.checkViewPermission('Platform', 'RegistrationUrlConfig','ignore90DaysEditingRestriction');
                         vm.initPlatformOfficer();
                         break;
                     case "batchPermit":
@@ -1484,11 +1461,11 @@ define(['js/app'], function (myApp) {
                     case "platformSetting":
                         vm.showPlatformDetailTab(null);
                         break;
-                    // setTimeout(() => {
-                    //     $('#partnerDataTable').resize();
-                    // }, 300);
                     case "externalUserInfo":
                         vm.initExternalUserInfo();
+                        break;
+                    case "ClientQnA":
+                        vm.buildClientQnATypeList();
                         break;
                     case "FrontendConfiguration":
                         vm.initFrontendConfiguration();
