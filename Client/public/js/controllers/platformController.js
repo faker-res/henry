@@ -82,6 +82,7 @@ define(['js/app'], function (myApp) {
             ];
 
             vm.randomRewardType = {
+                "": 0,
                 "credit": 1,
                 "promoCodeBDeposit": 2,
                 "promoCodeBNoDeposit": 3,
