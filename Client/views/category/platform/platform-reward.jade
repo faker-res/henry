@@ -454,12 +454,12 @@
                                     tr(ng-repeat="v in vm.activeRandomRewards")
                                         td(ng-show='v.status=="1"')
                                             // delete this random reward item , temporary set status = 3,
-                                            i.fa.fa-minus(ng-click='v.status="3"')
+                                            i.fa.fa-minus(ng-click='v.status="3"', ng-if='!vm.platformRewardShowEdit()')
                                         td(ng-show='v.status=="1"')
-                                            input(type='string', ng-model='v.playerName', ng-change='v.isEdit = true')
-                                        td(ng-show='v.status=="1"')
+                                            input(type='string', ng-model='v.playerName', ng-change='v.isEdit = true', ng-disabled='vm.platformRewardShowEdit()')
+                                        td(ng-show='v.status=="1"', ng-disabled='vm.platformRewardShowEdit()')
                                             //input(type='string', ng-model='v.randomReward')
-                                            select.form-control(ng-model='v.rewardName', ng-change='v.isEdit = true')
+                                            select.form-control(ng-model='v.rewardName', ng-change='v.isEdit = true', ng-disabled='vm.platformRewardShowEdit()')
                                                 option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
 
                                     tr(ng-repeat="(i,v) in vm.assignRandomRewards")
