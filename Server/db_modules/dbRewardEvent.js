@@ -2586,7 +2586,6 @@ var dbRewardEvent = {
             }
         )
 
-
         function checkAndUpdatePromoCodeTemplate (rewardList, platformObjId){
             let updatePromoCodeTemplateProm = [];
             let savePromoCodeTemplateProm = [];
@@ -2614,7 +2613,6 @@ var dbRewardEvent = {
             )
             return Promise.all([Promise.all(updatePromoCodeTemplateProm), Promise.all(savePromoCodeTemplateProm)])
         }
-
 
         function updatePromoCodeTemplate (data){
             let allowedProviderList = [];
@@ -2653,11 +2651,7 @@ var dbRewardEvent = {
             }
 
             return dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: ObjectId(data.templateObjId)}, updateObj).lean()
-
         }
-
-
-
     },
 
     updateRewardEventGroup: function (query, updateData) {
