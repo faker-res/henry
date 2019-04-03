@@ -10418,7 +10418,9 @@ define(['js/app'], function (myApp) {
                     let reward = vm.allRewardEvent[i];
                     if (reward && reward._id) {
                         for (let j = vm.rewardEventGroup.length - 1; j >= 0; j--) { // first reward event group is hard coded
-                            if ((vm.rewardEventGroup[j].name && vm.rewardEventGroup[j].rewardEvents && vm.rewardEventGroup[j].rewardEvents.includes(String(reward._id))) || (j == 0 && vm.rewardEventGroup[j].name) ) {
+                            if ((vm.rewardEventGroup[j].name && vm.rewardEventGroup[j].rewardEvents && vm.rewardEventGroup[j].rewardEvents.includes(String(reward._id))
+                            && reward.validEndTime && new Date(reward.validEndTime).getTime() >= new Date().getTime())
+                            || (j == 0 && vm.rewardEventGroup[j].name) ) {
                                 vm.allRewardEvent[i].rewardGroup = vm.rewardEventGroup[j].name;
                                 vm.rewardEventGroup[j].hasCount = true;
                                 break;
