@@ -2401,7 +2401,8 @@ var dbPlayerTopUpRecord = {
                         districtId: inputData.districtId || "",
                         //groupBankcardList: (player.bankCardGroup && !bPMSGroup) ? player.bankCardGroup.banks : [],
                         operateType: entryType == "ADMIN" ? 1 : 0,
-                        remark: inputData.remark || ''
+                        remark: inputData.remark || '',
+                        createTime: proposalData.createTime.getTime()
                     };
                     requestData.realName = requestData.realName.replace(/\s/g, '');
                     if (!bPMSGroup || isFPMS) {
@@ -3679,7 +3680,7 @@ var dbPlayerTopUpRecord = {
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
                             remark: entryType == "ADMIN" ? remark : (alipayName || remark),
-                            createTime: cTimeString,
+                            createTime: proposalData.createTime.getTime(),
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };
                         requestData.realName = requestData.realName.replace(/\s/g, '');
@@ -4391,7 +4392,7 @@ var dbPlayerTopUpRecord = {
                             amount: amount,
                             groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
                             // remark: remark || player.name,
-                            createTime: cTimeString,
+                            createTime: proposalData.createTime.getTime(),
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };
                         requestData.realName = requestData.realName.replace(/\s/g, '');
