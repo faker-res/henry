@@ -981,14 +981,13 @@ var proposal = {
 
                     isCommonTopUp = true;
                 }
-                console.log('proposalObj.data.platform JY', proposalObj.data.platform);
-                console.log('proposalObj.data.platformId JY', proposalObj.data.platformId);
+
                 if (callbackData.merchantNo && proposalObj.data.platform) {
                     let merchantQuery = {
                         platformId: proposalObj.data.platform,
                         merchantNo: callbackData.merchantNo,
                         topupType: callbackData.depositMethod,
-                        customizeRate: {$exists: true}
+                        name: callbackData.merchantName
                     };
 
                     if (proposalObj.data && proposalObj.data.topUpSystemName && proposalObj.data.topUpSystemName === 'PMS2') {

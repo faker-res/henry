@@ -7619,6 +7619,11 @@ let dbPlayerReward = {
                             };
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
+                            if (intervalTime){
+                                proposalData.data.settlementStartTime = intervalTime.startTime;
+                                proposalData.data.settlementEndTime = rewardData.previewDate ? rewardData.previewDate : intervalTime.endTime;
+                            }
+
                             if (applyDetail.consecutiveNumber) {
                                 proposalData.data.consecutiveNumber = applyDetail.consecutiveNumber;
                             }
@@ -7763,7 +7768,8 @@ let dbPlayerReward = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                         // Extra required Information for PLAYER_LOSE_RETURN_REWARD_GROUP
-                        if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP && intervalTime){
+                        // if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP && intervalTime){
+                        if (intervalTime){
                             proposalData.data.settlementStartTime = intervalTime.startTime;
                             proposalData.data.settlementEndTime = rewardData.previewDate ? rewardData.previewDate : intervalTime.endTime;
                         }
@@ -7825,7 +7831,9 @@ let dbPlayerReward = {
                             if (selectedReward.providerGroup){
                                 proposalData.data.providerGroup = selectedReward.providerGroup
                             }
-
+                            if (eventData.condition && eventData.condition.interval) {
+                                proposalData.data.intervalType = eventData.condition.interval;
+                            }
                             proposalData.data.rewardType = selectedReward.rewardType || null;
                             proposalData.data.rewardName = selectedReward.title || null;
                             proposalData.data.rewardDetail = selectedReward;
@@ -7840,7 +7848,6 @@ let dbPlayerReward = {
                             else if (selectedReward.rewardType && selectedReward.rewardType == constRandomRewardType.REWARD_POINTS){
                                 proposalData.data.rewardedRewardPoint = selectedReward.rewardPoints || 0;
                             }
-
                         }
 
                         if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
@@ -7975,8 +7982,17 @@ let dbPlayerReward = {
                                         }
                                     }
                                     if(eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+
+                                        if ( selectedReward && selectedReward.possibility ) {
+                                            delete selectedReward.possibility;
+                                        }
+                                        if ( selectedReward && selectedReward.totalProbability ) {
+                                            delete selectedReward.totalProbability;
+                                        }
                                         let randomRewardRes = {
-                                            amount: rewardAmount
+                                            selectedReward: selectedReward,
+                                            rewardName: eventData.name,
+                                            code: eventData.code
                                         }
                                         return Promise.all(postPropPromArr).then(
                                             () => {

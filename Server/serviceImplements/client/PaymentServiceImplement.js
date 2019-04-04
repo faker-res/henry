@@ -12,6 +12,8 @@ const dbPlayerPayment = require('../../db_modules/dbPlayerPayment');
 const uaParser = require('ua-parser-js');
 const dbUtility = require('./../../modules/dbutility');
 
+const RESTUtils = require('./../../modules/RESTUtils');
+
 const dbOtherPayment = require('./../../db_modules/externalAPI/dbOtherPayment');
 
 var PaymentServiceImplement = function () {
@@ -287,6 +289,24 @@ var PaymentServiceImplement = function () {
     this.checkExpiredManualTopup.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data && data.proposalId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.checkExpiredManualTopUp, [conn.playerId, data.proposalId], isValidData);
+    };
+
+    this.getBankTypeList.expectsData = '';
+    this.getBankTypeList.onRequest = function (wsFunc, conn, data) {
+        var isValidData = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, getBankTypeList, [], isValidData, false, false, true);
+
+        function getBankTypeList() {
+            return RESTUtils.getPMS2Services("postBankTypeList", {}).then(data => {
+                // bankflag: 1   // 提款银行类型
+                // bankflag: 0   // 存款银行类型
+                // Hank requested to display bankflag 1 only
+                if (data && data.data) {
+                    let withdrawalBank = data.data.filter(bank => bank.bankflag === 1);
+                    return withdrawalBank;
+                }
+            });
+        }
     };
 
     this.getValidFirstTopUpRecordList.expectsData = 'period, [startIndex]: Number, [requestCount]: Number';
