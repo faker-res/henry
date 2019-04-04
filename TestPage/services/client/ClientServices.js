@@ -195,7 +195,6 @@
                 "getCashRechargeStatus",
                 "cancelManualTopupRequest",
                 "delayManualTopupRequest",
-                "modifyManualTopupRequest",
                 "getManualTopupRequestList",
                 "getAlipayTopupRequestList",
                 "manualTopupStatusNotify",

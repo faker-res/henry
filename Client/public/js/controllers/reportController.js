@@ -177,7 +177,6 @@ define(['js/app'], function (myApp) {
         'transferPlayerCreditToProvider',
         'updatePlayerPermission',
         'createUpdateTopUpGroupLog',
-        'requestClearProposalLimit',
         'updatePlayerCredibilityRemark',
         'applyManualTopUpRequest',
         'applyAlipayTopUpRequest',
@@ -11011,7 +11010,6 @@ define(['js/app'], function (myApp) {
                     {group: "PLAYER", text: "transferPlayerCreditToProvider", action: "transferPlayerCreditToProvider"},
                     {group: "PLAYER", text: "updatePlayerPermission", action: "updatePlayerPermission"},
                     {group: "PLAYER", text: "createUpdateTopUpGroupLog", action: "createUpdateTopUpGroupLog"},
-                    {group: "PLAYER", text: "requestClearProposalLimit", action: "requestClearProposalLimit"},
                     {group: "PLAYER", text: "modifyPlayerCredibilityRemark", action: "updatePlayerCredibilityRemark"},
 
                     {group: "PLAYER", text: "applyManualTopUpRequest", action: "applyManualTopUpRequest"},

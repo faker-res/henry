@@ -987,7 +987,7 @@ var proposal = {
                     }
 
                     merchantProm = dbconfig.collection_platformMerchantList.findOne(merchantQuery, {rate: 1, customizeRate: 1}).lean();
-                    sysCustomMerchantRateProm = dbconfig.collection_platform.findOne({_id: proposalObj.data.platform}, {pmsServiceCharge: 1, fpmsServiceCharge: 1}).lean();
+                    sysCustomMerchantRateProm = dbconfig.collection_platform.findOne({_id: proposalObj.data.platformId}, {pmsServiceCharge: 1, fpmsServiceCharge: 1}).lean();
                 };
 
                 return Promise.all([propTypeProm, merchantProm, sysCustomMerchantRateProm]).then(

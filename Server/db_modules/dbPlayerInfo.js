@@ -3017,7 +3017,7 @@ let dbPlayerInfo = {
                 }
 
                 if (isGetQuestion) {
-                    return  pmsAPI.bankcard_getBankTypeList({}).then(
+                    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
                         bankTypeData => {
                             returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
                             returnData.questionList = [];
@@ -6748,7 +6748,7 @@ let dbPlayerInfo = {
                 if (bank3.bankName || bank3.bankAccountName || bank3.bankAccount) {
                     listData.push(bank3);
                 }
-                return pmsAPI.bankcard_getBankTypeList({});
+                return RESTUtils.getPMS2Services("postBankTypeList", {});
             },
         ).then(
             bankTypeList => {
@@ -11858,12 +11858,13 @@ let dbPlayerInfo = {
                 (onlineTopupType) => {
                     if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                     let getMerchantListProm = Promise.resolve([]);
+
                     // only when analysis category is thirdPartyPlatform need get merchantList from pms
-                    if (analysisCategory === 'thirdPartyPlatform')
-                        getMerchantListProm = pmsAPI.merchant_getMerchantList({
-                            platformId: onlineTopupType.platformId.platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
+                    if (analysisCategory === 'thirdPartyPlatform') {
+                        getMerchantListProm = RESTUtils.getPMS2Services("postMerchantList", {platformId: onlineTopupType.platformId.platformId});
+                    }
+
+
                     return getMerchantListProm.then(
                         responseData => {
                             let merchantList = responseData.merchants || [];
@@ -13965,7 +13966,7 @@ let dbPlayerInfo = {
                             pmsQuery.clientType = clientType;
                             return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
                         }
-                        return pmsAPI.merchant_getMerchantList(pmsQuery);
+                        return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
                     // }
                     // else {
                     //     return pmsAPI.bankcard_getBankcardList(pmsQuery);
@@ -19298,12 +19299,7 @@ let dbPlayerInfo = {
             platformData => {
                 console.log('getConsumptionDetailOfPlayers - 1');
                 if (platformData && platformData.platformId) {
-                    return pmsAPI.merchant_getMerchantList(
-                        {
-                            platformId: platformData.platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    ).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
@@ -24022,31 +24018,12 @@ let dbPlayerInfo = {
 
         });
 
-        if (sendObjArr.length) {
-            if (topUpSystemName === 'PMS') {
-                return pmsAPI.foundation_userDepositSettings(
-                    {
-                        queryId: +new Date() + serverInstance.getQueryId(),
-                        data: sendObjArr
-                    }
-                ).then(
-                    updateStatus => {
-                        console.log('foundation_userDepositSettings success', updateStatus);
-                        return updateStatus;
-                    },
-                    error => {
-                        console.log('foundation_userDepositSettings failed', error);
-                        throw error;
-                    }
-                )
+        if (sendObjArr.length && topUpSystemName === 'PMS2') {
+            let data = {
+                requests: sendObjArr
+            };
 
-            } else if (topUpSystemName === 'PMS2') {
-                let data = {
-                    requests: sendObjArr
-                };
-
-                return RESTUtils.getPMS2Services("postBatchTopupStatus", data);
-            }
+            return RESTUtils.getPMS2Services("postBatchTopupStatus", data);
         }
 
         function getPlayerTopupChannelPermission (player) {
@@ -24058,31 +24035,11 @@ let dbPlayerInfo = {
         return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
             sendObj => {
                 console.log('getPlayerTopupChannelPermission sendObj :', sendObj);
-                if (sendObj) {
-                    if (topUpSystemName === 'PMS') {
-                        return pmsAPI.foundation_userDepositSettings(
-                            {
-                                queryId: +new Date() + serverInstance.getQueryId(),
-                                data: [sendObj]
-                            }
-                        ).then(
-                            updateStatus => {
-                                console.log('foundation_userDepositSettings success', updateStatus);
-                                return updateStatus;
-                            },
-                            error => {
-                                console.log('foundation_userDepositSettings failed', error);
-                                throw error;
-                            }
-                        )
+                if (sendObj && topUpSystemName === 'PMS2') {
+                    sendObj.timestamp = Date.now();
 
-                    } else if (topUpSystemName === 'PMS2') {
-                        sendObj.timestamp = Date.now();
-
-                        return RESTUtils.getPMS2Services("patchTopupStatus", sendObj)
-                    }
+                    return RESTUtils.getPMS2Services("patchTopupStatus", sendObj)
                 }
-
             }
         );
 
