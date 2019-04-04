@@ -615,7 +615,6 @@ var dbPlatform = {
 
     syncPlatform: function () {
         dbPlatform.syncHTTPPMSPlatform();
-        dbPlatform.syncPMSPlatform();
         dbPlatform.syncCPMSPlatform();
         dbPlatform.syncSMSPlatform();
     },
@@ -649,28 +648,6 @@ var dbPlatform = {
                     }
                 });
             }
-        }
-    },
-
-    syncPMSPlatform: function () {
-        if (env.mode != "local" && env.mode != "qa") {
-            return dbconfig.collection_platform.find().then(
-                platformArr => {
-                    var sendObj = [];
-                    if (platformArr && platformArr.length > 0) {
-                        for (var i in platformArr) {
-                            var obj = {
-                                platformId: platformArr[i].platformId,
-                                name: platformArr[i].name,
-                                code: platformArr[i].code,
-                                description: platformArr[i].description || ""
-                            }
-                            sendObj.push(obj)
-                        }
-                        return externalUtil.request(pmsAPI.platform_syncData({platforms: sendObj}));
-                    }
-                }
-            )
         }
     },
 

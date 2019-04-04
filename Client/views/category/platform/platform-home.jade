@@ -98,8 +98,9 @@
                         include ./platform-externalUserInfo
                     div(ng-switch-when="ClientQnA")
                         include ./../clientQnA/clientQnA-home
-                    div.tab-pane.fade.frontendConfigurationNoPadding(ng-switch-when="FrontendConfiguration")
-                        iframe(ng-src="{{vm.frontendConfigurationUrl}}", width="100%", frameborder="0", id="configIframe", ng-onload="vm.changeFrameHeight()")
+                    div(ng-switch-when="FrontendConfiguration")
+                        div.tab-pane
+                            iframe(ng-src="{{vm.frontendConfigurationUrl}}" style='height: -webkit-fill-available;' width="100%", frameborder="0", id="configIframe", ng-onload="vm.changeFrameHeight()")
                     div(ng-switch-when="AuctionSystem")
                         include ./platform-auctionSystem
 

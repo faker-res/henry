@@ -520,6 +520,10 @@ var platformSchema = new Schema({
     providerConsecutiveTimeoutSearchTimeFrame: {type: Number},
     // disable auto player level up reward switch
     disableAutoPlayerLevelUpReward: {type: Boolean, default: false},
+    // service charge rate setting
+    pmsServiceCharge: {type: Number},
+    // service charge rate setting
+    fpmsServiceCharge: {type: Number},
 });
 
 //add platform id before save

@@ -207,12 +207,6 @@
         this._service.delayManualTopupRequest.once(callback);
     };
 
-    proto.modifyManualTopupRequest = function (callback, requestData) {
-        var data = requestData || {};
-        this._service.modifyManualTopupRequest.request(data);
-        this._service.modifyManualTopupRequest.once(callback);
-    };
-
     proto.getManualTopupRequestList = function (callback, requestData) {
         var data = requestData || {};
         this._service.getManualTopupRequestList.request(data);

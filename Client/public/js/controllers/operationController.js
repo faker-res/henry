@@ -1125,7 +1125,7 @@ define(['js/app'], function (myApp) {
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
-                    if (v.mainType == 'Reward' && !(v.data && v.type && v.type.name && (v.type.name == "PlayerBonusDoubledRewardGroup" || v.type.name == "BaccaratRewardGroup"))) {
+                    if (v.mainType == 'Reward' && !(v.data && v.type && v.type.name && (v.type.name == "PlayerRandomRewardGroup" || v.type.name == "PlayerBonusDoubledRewardGroup" || v.type.name == "BaccaratRewardGroup"))) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     if (v.mainType == 'Others')

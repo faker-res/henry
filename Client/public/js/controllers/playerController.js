@@ -10704,6 +10704,11 @@ define(['js/app'], function (myApp) {
                     },
 
                 };
+
+                if (rewardObj.condition && rewardObj.condition.interval == "6") {
+                    sendQuery.data.previewDate = new Date(utilService.getThisMonthStartTime());
+                }
+
                 socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
 
                     if (data && data.data) {
@@ -11758,50 +11763,6 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
-        }
-
-        vm.applyPlayerAssignTopUp = function () {
-            var sendData = {
-                playerId: vm.isOneSelectedPlayer().playerId,
-                depositMethod: vm.playerAssignTopUp.depositMethod,
-                amount: vm.playerAssignTopUp.amount,
-                lastBankcardNo: vm.playerAssignTopUp.lastBankcardNo,
-                bankTypeId: vm.playerAssignTopUp.bankTypeId,
-                provinceId: vm.playerAssignTopUp.provinceId,
-                cityId: vm.playerAssignTopUp.cityId,
-                districtId: vm.playerAssignTopUp.districtId,
-                fromFPMS: true,
-                createTime: new Date(),
-                remark: vm.playerAssignTopUp.remark,
-                groupBankcardList: vm.playerAssignTopUp.groupBankcardList,
-                bonusCode: vm.playerAssignTopUp.bonusCode,
-                realName: vm.playerAssignTopUp.realName,
-                topUpReturnCode: vm.playerAssignTopUp.topUpReturnCode,
-                orderNo: vm.playerAssignTopUp.orderNo,
-                platform: vm.selectedPlatform.id,
-                netPayName:vm.playerAssignTopUp.netPayName,
-                atmProvince:vm.playerAssignTopUp.atmProvince,
-                atmCity:vm.playerAssignTopUp.atmCity,
-                counterDepositType:vm.playerAssignTopUp.counterDepositType,
-                counterCardOwner:vm.playerAssignTopUp.counterCardOwner,
-                counterTransferId:vm.playerAssignTopUp.counterTransferId
-            };
-
-            vm.playerAssignTopUp.submitted = true;
-                socketService.$socket($scope.AppSocket, 'applyAssignTopUpRequest', sendData,
-                function (data) {
-                    $scope.$evalAsync(() => {
-                        console.log('assignTopup success', data);
-                        vm.playerAssignTopUp.responseData = data.data;
-                        vm.getPlatformPlayersData();
-                        vm.initPlayerAssignTopUp();
-                    });
-                }, function (error) {
-                    vm.playerAssignTopUp.responseMsg = $translate(error.error.errorMessage);
-                    // socketService.showErrorMessage(error.error.errorMessage);
-                    vm.getPlatformPlayersData();
-                });
-
         }
 
         vm.applyPlayerBonus = function () {
@@ -15063,65 +15024,6 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
-        // Player assign topup
-        vm.initPlayerAssignTopUp = function () {
-            vm.getZoneList();
-            vm.provinceList = [];
-            vm.cityList = [];
-            vm.districtList = [];
-            vm.freezeZoneSelection = false;
-            vm.playerAssignTopUp = {submitted: false};
-            vm.filterBankname("playerAssignTopUp");
-            vm.existingAssignTopup = false;
-            vm.chosenBankAcc = {};
-            vm.timeLeft = 0;
-            vm.loop = null;
-            vm.endCountDown();
-
-            socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
-                $scope.$evalAsync(() => {
-                    vm.existingAssignTopup = data.data ? data.data : false;
-                    if(vm.existingAssignTopup.data && vm.existingAssignTopup.data.validTime){
-                        let validTime = new Date(vm.existingAssignTopup.data.validTime);
-                        vm.startCountDown(validTime);
-                    }
-
-                    if(vm.existingAssignTopup.data.inputData.counterDepositType){
-                        vm.existingAssignTopup.data.inputData.counterDepositTypeName = $scope.counterDepositType[vm.existingAssignTopup.data.inputData.counterDepositType];
-                    }
-                    if(vm.existingAssignTopup && vm.existingAssignTopup.data && vm.existingAssignTopup.data.inputData.atmProvince, vm.existingAssignTopup.data.inputData.atmCity){
-                        let atmProvince = vm.existingAssignTopup.data.inputData.atmProvince;
-                        let atmCity = vm.existingAssignTopup.data.inputData.atmCity;
-
-                        Promise.all([vm.getProvinceName(atmProvince), vm.getCityName(atmCity)])
-                        .then(data=>{
-                            vm.existingAssignTopup.data.inputData.province = data[0];
-                            vm.existingAssignTopup.data.inputData.city = data[1];
-                            vm.existingAssignTopup.data.topupContent = vm.displayAssignTopUp(vm.existingAssignTopup.data);
-                        })
-                    }else{
-                        vm.existingAssignTopup.data.topupContent = vm.displayAssignTopUp(vm.existingAssignTopup.data);
-                    }
-                })
-            });
-
-            socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
-                $scope.$evalAsync(() => {
-                    let depositMethodList = data.data.data.map(item=>{
-                        return item.depositMethod
-                    })
-                    vm.depositMethodType = vm.getDepositMethod(data.data.data);
-                })
-            })
-            // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
-            //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
-            utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
-                vm.playerAssignTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_assign_topup"] .createTime');
-                vm.playerAssignTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
-            });
-            vm.refreshSPicker();
-        };
-
         vm.startCountDown = function(targetTime){
             let timenow = new Date().getTime()
             vm.timeLeft = (targetTime.getTime() - timenow) / 1000 / 60;
@@ -15180,6 +15082,7 @@ define(['js/app'], function (myApp) {
             $(el).select();
             document.execCommand('copy', true);
         }
+
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();
             vm.provinceList = [];
@@ -15529,20 +15432,6 @@ define(['js/app'], function (myApp) {
                     }
                 )
             }
-        }
-
-        vm.requestClearProposalLimit = function () {
-            vm.clearPlayerProposalLimit.resMsg = '';
-            vm.clearPlayerProposalLimit.showSubmit = false;
-            socketService.$socket($scope.AppSocket, 'requestClearProposalLimit', {username: vm.selectedSinglePlayer.name}, function (data) {
-                $scope.$evalAsync(() => {
-                    vm.clearPlayerProposalLimit.resMsg = $translate("Success");
-                })
-            }, function (err) {
-                $scope.$evalAsync(() => {
-                    vm.clearPlayerProposalLimit.resMsg = err.error.errorMsg;
-                })
-            });
         }
         ///////////////////////////////// player feedback //////////////////////////////////////////
 

@@ -993,24 +993,6 @@ include modalGameCreditLog
                     table#sameRealNameLogTable.common-table.display(style='min-width:100%')
                     #sameRealNameLogTablePage.height30
 
-
-#modalClearProposalLimit.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog.modal-medium
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"ClearProposalLimit" | translate}} : {{vm.selectedSinglePlayer.name}}
-            .modal-body
-                label {{'ClearProposalLimit' | translate}}
-            .modal-footer
-                button.btn.btn-success.btn-space(ng-if='vm.clearPlayerProposalLimit.showSubmit', ng-click='vm.requestClearProposalLimit()') {{'APPLY' | translate}}
-                button.btn.btn-warning.btn-space(data-dismiss='modal') {{"CLOSE" | translate}}
-                label.inlineBlk.margin-right-5(ng-if='vm.clearPlayerProposalLimit.resMsg') {{vm.clearPlayerProposalLimit.resMsg}}
-                i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.clearPlayerProposalLimit.showSubmit && !vm.clearPlayerProposalLimit.resMsg')
-
-
-
-
 #modalMailLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content

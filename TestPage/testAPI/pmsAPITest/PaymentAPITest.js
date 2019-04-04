@@ -23,13 +23,6 @@
         this._service.requestOnlineMerchant.onceSync(key, callback);
     };
 
-    proto.modifyManualTopupRequest = function(callback, requestData){
-        var data = requestData;
-        this._service.modifyManualTopupRequest.request(data);
-        var key = this._service.modifyManualTopupRequest.generateSyncKey(data);
-        this._service.modifyManualTopupRequest.onceSync(key, callback);
-    };
-
     proto.setProposalIdToOnlineMerchantRequest = function(callback, requestData){
         var data = requestData;
         this._service.setProposalIdToOnlineMerchantRequest.request(data);
