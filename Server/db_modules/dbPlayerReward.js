@@ -9440,6 +9440,9 @@ function getIntervalPeriodFromEvent(event, applyTargetTime) {
             case "4":
                 intervalTime = applyTargetTime ? dbUtility.getMonthSGTIme(applyTargetTime) : dbUtility.getCurrentMonthSGTIme();
                 break;
+            case "6":
+                intervalTime = applyTargetTime ? dbUtility.getLastMonthSGTImeFromDate(applyTargetTime) : dbUtility.getLastMonthSGTime();
+                break;
             default:
                 if (event.validStartTime && event.validEndTime) {
                     intervalTime = {startTime: event.validStartTime, endTime: event.validEndTime};

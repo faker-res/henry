@@ -3057,6 +3057,11 @@ var dbRewardEvent = {
                     });
                 }
 
+                if (event.condition && event.condition.interval && event.condition.interval == "6") { // 6 == last month
+                    // for startPlatformRTGEventSettlement only, last month is same with month
+                    event.condition.interval = "4";
+                }
+
                 let settleTime =  getIntervalPeriodFromEvent(event, getIntervalPeriodFromEvent(event).startTime.setMinutes(getIntervalPeriodFromEvent(event).startTime.getMinutes() - 10));
 
                 if (event && event.condition && ["1", "2", "3", "4"].includes(event.condition.interval)) {

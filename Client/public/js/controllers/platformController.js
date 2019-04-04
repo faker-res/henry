@@ -2178,6 +2178,8 @@ define(['js/app'], function (myApp) {
                         break;
                     case "4":
                     case 4:
+                    case "6":
+                    case 6:
                         socketName = "getLastMonthSGTime";
                 }
 
