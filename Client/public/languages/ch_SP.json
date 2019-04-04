@@ -5430,5 +5430,10 @@
   "Promo Code-B (With Deposit)": "优惠類型-B(需存款)",
   "Promo Code-B (Without Deposit)": "优惠類型-B(不存款)",
   "Promo Code-C": "优惠类型-C",
-  "WEBSITE_MULTI_SELECTION": "网站（复选）"
+  "WEBSITE_MULTI_SELECTION": "网站（复选）",
+  "WEBSITE_MULTI_SELECTION": "网站（复选）",
+  "Service Charge Setting": "手续费设置",
+  "PMS Service Charge": "PMS手续费",
+  "FPMS Service Charge": "FPMS手续费",
+  "ServiceChangeSetting": "手续费设置"
 }

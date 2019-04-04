@@ -60,6 +60,33 @@ style.
                     button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update') && vm.merchantGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.syncMerchantNoScript()')
                         img.img-create
                         text 同步商户号
+
+                .panel(ng-show="vm.paymentSystemName === 'PMS2'")
+                    .panel.panel-primary(style="height:300px")
+                        .panel-body.common-right-panel-body
+                            div
+                                h4 {{'Service Charge Setting' | translate}}
+                                table(style='width:auto;min-width:99.9%')
+                                    tbody
+                                        tr
+                                            td {{'PMS Service Charge' | translate}}>%
+                                        tr
+                                            td
+                                                input.form-control(type='number', ng-model='vm.pmsServiceChargeRate', ng-disabled='vm.isServiceChargeEditingDisable')
+                                        tr
+                                            td
+                                                br
+                                        tr
+                                            td {{'FPMS Service Charge' | translate}}%
+                                        tr
+                                            td
+                                                input.form-control(type='number', ng-model='vm.fpmsServiceChargeRate', ng-disabled='vm.isServiceChargeEditingDisable')
+                                br
+                                .pull-right
+                                    button.btn.btn-warning.common-button(ng-if='!vm.isServiceChargeEditingDisable && checkViewPermission("Payment", "MerchantGroup", "ServiceChangeSetting")' ng-click='vm.serviceChargeShowEdit("CANCEL")') {{'CANCEL' | translate}}
+                                    button.btn.btn-primary.common-button(ng-if='vm.isServiceChargeEditingDisable && checkViewPermission("Payment", "MerchantGroup", "ServiceChangeSetting")' ng-click='vm.serviceChargeShowEdit("EDIT")') {{'Edit' | translate}}
+                                    button.btn.btn-primary.common-button(ng-if='!vm.isServiceChargeEditingDisable && checkViewPermission("Payment", "MerchantGroup", "ServiceChangeSetting")' ng-click='vm.updateServiceChargeSetting();vm.serviceChargeShowEdit("UPDATE")') {{'SUBMIT' | translate}}
+
     .col-md-10(style="padding-left:0;padding-right:15px")
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
@@ -122,10 +149,12 @@ style.
                             td {{v.permerchantLimits}}
                             td {{v.transactionForPlayerOneDay}}
                             td(ng-init="v.editRate = false")
-                                a(href='', ng-if='!v.editRate && !v.customizeRate && !checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio")') {{v.rate ? (v.rate * 100).toFixed(2) : 0}}%
+                                a(href='', ng-if='!v.editRate && !v.customizeRate && !v.systemCustomRate && !checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio")') {{v.rate ? (v.rate * 100).toFixed(2) : 0}}%
                                 a(href='', ng-if='!v.editRate && v.customizeRate && !checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio")', style='color:red') {{v.customizeRate ? (v.customizeRate * 100).toFixed(2) : 0}}%
-                                a(href='', ng-if='!v.editRate && !v.customizeRate && checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio")', ng-click='vm.editMerchantRateFlag(i)') {{v.rate ? (v.rate * 100).toFixed(2) : 0}}%
+                                a(href='', ng-if='!v.editRate && !v.customizeRate && v.systemCustomRate && !checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio")', style='color:orange') {{(v.systemCustomRate * 100).toFixed(2)}}%
+                                a(href='', ng-if='!v.editRate && !v.customizeRate && !v.systemCustomRate && checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio")', ng-click='vm.editMerchantRateFlag(i)') {{v.rate ? (v.rate * 100).toFixed(2) : 0}}%
                                 a(href='', ng-if='!v.editRate && v.customizeRate && checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio")', style='color:red', ng-click='vm.editMerchantRateFlag(i)') {{v.customizeRate ? (v.customizeRate * 100).toFixed(2) : 0}}%
+                                a(href='', ng-if='!v.editRate && !v.customizeRate && v.systemCustomRate && checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio")', style='color:orange', ng-click='vm.editMerchantRateFlag(i)') {{(v.systemCustomRate * 100).toFixed(2)}}%
                                 input.form-control(name='merchantCustomizeRateTextBox', id='merchantCustomizeRateTextBox', type='text' ng-if='checkViewPermission("Payment", "MerchantGroup", "EditServiceChargeRatio") && v.editRate', ng-model='v.customizeRate', ng-change='vm.validateCustomizeRateIsNumber(v.customizeRate, i)',  ng-keypress='enterSubmitMerchantCustomizeRate($event, v, v.customizeRate)', ng-blur='vm.backToOriRate(v)')
 
                 .text-right.widthto100(ng-show="vm.paymentSystemName === 'PMS' || vm.paymentSystemName === ''")
