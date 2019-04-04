@@ -7976,6 +7976,13 @@ let dbPlayerReward = {
                                         }
                                     }
                                     if(eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+
+                                        if ( selectedReward && selectedReward.possibility ) {
+                                            delete selectedReward.possibility;
+                                        }
+                                        if ( selectedReward && selectedReward.totalProbability ) {
+                                            delete selectedReward.totalProbability;
+                                        }
                                         let randomRewardRes = {
                                             selectedReward: selectedReward,
                                             rewardName: eventData.name,
@@ -9442,6 +9449,9 @@ function getIntervalPeriodFromEvent(event, applyTargetTime) {
                 break;
             case "4":
                 intervalTime = applyTargetTime ? dbUtility.getMonthSGTIme(applyTargetTime) : dbUtility.getCurrentMonthSGTIme();
+                break;
+            case "6":
+                intervalTime = applyTargetTime ? dbUtility.getLastMonthSGTImeFromDate(applyTargetTime) : dbUtility.getLastMonthSGTime();
                 break;
             default:
                 if (event.validStartTime && event.validEndTime) {
