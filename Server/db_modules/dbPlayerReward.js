@@ -7977,7 +7977,9 @@ let dbPlayerReward = {
                                     }
                                     if(eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
                                         let randomRewardRes = {
-                                            amount: rewardAmount
+                                            selectedReward: selectedReward,
+                                            rewardName: eventData.name,
+                                            code: eventData.code
                                         }
                                         return Promise.all(postPropPromArr).then(
                                             () => {
@@ -9440,9 +9442,6 @@ function getIntervalPeriodFromEvent(event, applyTargetTime) {
                 break;
             case "4":
                 intervalTime = applyTargetTime ? dbUtility.getMonthSGTIme(applyTargetTime) : dbUtility.getCurrentMonthSGTIme();
-                break;
-            case "6":
-                intervalTime = applyTargetTime ? dbUtility.getLastMonthSGTImeFromDate(applyTargetTime) : dbUtility.getLastMonthSGTime();
                 break;
             default:
                 if (event.validStartTime && event.validEndTime) {
