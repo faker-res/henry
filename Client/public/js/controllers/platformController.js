@@ -1261,6 +1261,7 @@ define(['js/app'], function (myApp) {
                             vm.initAuctionSystem();
                             loadPromoCodeTemplate();
                             vm.onGoingLoadPlatformData = false;
+                            vm.loadTab("Feedback");
                         })
                     },
                     function (error) {
@@ -1408,9 +1409,6 @@ define(['js/app'], function (myApp) {
                 vm.platformPageName = tabName;
 
                 switch (tabName) {
-                    case "Player":
-                        vm.activatePlayerTab();
-                        break;
                     case "Feedback":
                         vm.initPlayerFeedback();
                         break;
@@ -17667,6 +17665,11 @@ define(['js/app'], function (myApp) {
                         }
                     });
                     vm.getCtiData();
+                    $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                    $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
+                    $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
+                    $('select#selectGameProvider').multipleSelect('refresh');
+                    vm.refreshSPicker();
                 });
             };
 
