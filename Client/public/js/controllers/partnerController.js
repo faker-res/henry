@@ -4184,19 +4184,6 @@ define(['js/app'], function (myApp) {
                     showSubmit: true
                 };
             }
-            vm.requestClearProposalLimit = function () {
-                vm.clearPlayerProposalLimit.resMsg = '';
-                vm.clearPlayerProposalLimit.showSubmit = false;
-                socketService.$socket($scope.AppSocket, 'requestClearProposalLimit', {username: vm.selectedSinglePlayer.name}, function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.clearPlayerProposalLimit.resMsg = $translate("Success");
-                    })
-                }, function (err) {
-                    $scope.$evalAsync(() => {
-                        vm.clearPlayerProposalLimit.resMsg = err.error.errorMsg;
-                    })
-                });
-            }
             ///////////////////////////////// player feedback //////////////////////////////////////////
             vm.initFeedbackQuery = function () {
                 vm.playerFeedbackQuery = vm.playerFeedbackQuery || {

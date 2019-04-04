@@ -365,7 +365,6 @@ var proposalExecutor = {
             this.rejections.rejectPlayerConsecutiveLoginReward.des = "Reject Player Consecutive Login Reward";
             this.rejections.rejectPlayerRegistrationIntention.des = "Reject Player Registration Intention";
             this.rejections.rejectPlayerEasterEggReward.des = "Reject Player Easter Egg Reward";
-            this.rejections.rejectPlayerQuickpayTopUp.des = "Reject Player Quickpay Top Up";
             this.rejections.rejectPlayerTopUpPromo.des = "Reject Player Top Up Promo";
             this.rejections.rejectPlayerConsecutiveConsumptionReward.des = "Reject Player Consecutive Consumption Reward";
             this.rejections.rejectPlayerLevelMigration.des = "Reject Player Level Migration";
@@ -4675,15 +4674,6 @@ var proposalExecutor = {
                     };
 
                     return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
-                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
-                    pmsAPI.payment_modifyManualTopupRequest({
-                        requestId: proposalData.data.requestId,
-                        operationType: constManualTopupOperationType.CANCEL,
-                        data: null
-                    }).then(
-                        deferred.resolve, deferred.reject
-                    );
-                    //deferred.resolve("Proposal is rejected")
                 } else {
                     //deduct alipay daily quota
                     if (proposalData.data && proposalData.data.alipayAccount && proposalData.data.platform && proposalData.data.amount) {
@@ -4702,31 +4692,6 @@ var proposalExecutor = {
                         deferred.reject("Proposal is rejected");
                     }
                 }
-            },
-
-            /**
-             * reject function for player quickpay top up
-             */
-            rejectPlayerQuickpayTopUp: function (proposalData, deferred) {
-                // var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                // if (wsMessageClient) {
-                //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
-                //         {
-                //             proposalId: proposalData.proposalId,
-                //             amount: proposalData.data.amount,
-                //             handleTime: new Date(),
-                //             status: proposalData.status,
-                //             playerId: proposalData.data.playerId
-                //         }
-                //     );
-                // }
-                pmsAPI.payment_modifyManualTopupRequest({
-                    requestId: proposalData.data.requestId,
-                    operationType: constManualTopupOperationType.CANCEL,
-                    data: null
-                }).then(
-                    deferred.resolve, deferred.reject
-                );
             },
 
             /**
@@ -4752,14 +4717,6 @@ var proposalExecutor = {
                     };
 
                     return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
-                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
-                    pmsAPI.payment_modifyManualTopupRequest({
-                        requestId: proposalData.data.requestId,
-                        operationType: constManualTopupOperationType.CANCEL,
-                        data: null
-                    }).then(
-                        deferred.resolve, deferred.reject
-                    );
                 } else {
                     //deduct wechatpay daily quota
                     if (proposalData.data && proposalData.data.weChatAccount && proposalData.data.platform && proposalData.data.amount) {
@@ -4809,27 +4766,6 @@ var proposalExecutor = {
                     };
 
                     return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
-                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
-                    var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                    if (wsMessageClient) {
-                        wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
-                            {
-                                proposalId: proposalData.proposalId,
-                                amount: proposalData.data.amount,
-                                handleTime: new Date(),
-                                status: proposalData.status,
-                                playerId: proposalData.data.playerId
-                            }
-                        );
-                    }
-                    pmsAPI.payment_modifyManualTopupRequest({
-                        requestId: proposalData.data.requestId,
-                        operationType: constManualTopupOperationType.CANCEL,
-                        data: null
-                    }).then(
-                        deferred.resolve, deferred.reject
-                    );
-                    //deferred.resolve("Proposal is rejected");
                 } else {
                     //deduct bank daily quota
                     if (proposalData.data && proposalData.data.bankCardNo && proposalData.data.platform && proposalData.data.amount) {
@@ -4861,27 +4797,6 @@ var proposalExecutor = {
                     };
 
                     return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
-                } else if (proposalData && proposalData.data && proposalData.data.requestId) {
-                    var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                    if (wsMessageClient) {
-                        wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
-                            {
-                                proposalId: proposalData.proposalId,
-                                amount: proposalData.data.amount,
-                                handleTime: new Date(),
-                                status: proposalData.status,
-                                playerId: proposalData.data.playerId
-                            }
-                        );
-                    }
-                    pmsAPI.payment_modifyManualTopupRequest({
-                        requestId: proposalData.data.requestId,
-                        operationType: constManualTopupOperationType.CANCEL,
-                        data: null
-                    }).then(
-                        deferred.resolve, deferred.reject
-                    );
-                    //deferred.resolve("Proposal is rejected");
                 } else {
                     //deduct bank daily quota
                     if (proposalData.data && proposalData.data.bankCardNo && proposalData.data.platform && proposalData.data.amount) {

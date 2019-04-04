@@ -233,8 +233,6 @@ var dbPlatformBankCardGroup = {
 
                 if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                     return RESTUtils.getPMS2Services("postBankTypeList", {});
-                } else {
-                    return pmsAPI.bankcard_getBankTypeList({});
                 }
             }
         );

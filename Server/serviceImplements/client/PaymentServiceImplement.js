@@ -220,12 +220,6 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.delayManualTopupRequest, [conn.playerId, data.proposalId, data.delayTime], isValidData);
     };
 
-    this.modifyManualTopupRequest.expectsData = 'proposalId: String, amount: Number|String, bankTypeId: ?, lastBankcardNo: ?, provinceId, cityId, districtId';
-    this.modifyManualTopupRequest.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data.proposalId && data.amount && data.amount > 0 && data.bankTypeId && data.lastBankcardNo && data.provinceId && data.cityId && data.districtId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.modifyManualTopupRequest, [conn.playerId, data.proposalId, data], isValidData);
-    };
-
     this.getManualTopupRequestList.expectsData = '';
     this.getManualTopupRequestList.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
@@ -286,24 +280,6 @@ var PaymentServiceImplement = function () {
                 provinceId: provinceId,
                 cityId: cityId
             }).then(data => data.districts);
-        }
-    };
-
-    this.getBankTypeList.expectsData = '';
-    this.getBankTypeList.onRequest = function (wsFunc, conn, data) {
-        var isValidData = true;
-        WebSocketUtil.performAction(conn, wsFunc, data, getBankTypeList, [], isValidData, false, false, true);
-
-        function getBankTypeList() {
-            return pmsAPI.bankcard_getBankTypeList({}).then(data => {
-                // bankflag: 1   // 提款银行类型
-                // bankflag: 0   // 存款银行类型
-                // Hank requested to display bankflag 1 only
-                if (data && data.data) {
-                    let withdrawalBank = data.data.filter(bank => bank.bankflag === 1);
-                    return withdrawalBank;
-                }
-            });
         }
     };
 
