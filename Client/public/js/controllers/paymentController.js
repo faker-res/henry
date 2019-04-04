@@ -1566,6 +1566,7 @@ define(['js/app'], function (myApp) {
 
         vm.loadMerchantGroupData = function (keepSelected, selectGroupId, selectGroupName) {
             if (vm.merchantGroupUsed == "PMS" || vm.paymentSystemName === 'PMS2') {
+                vm.getServiceChargeSetting();
                 vm.pmsGroupPlayerName = "";
                 vm.platformMerchantList = [];
                 socketService.$socket($scope.AppSocket, 'getPlatformMerchantList', {platformId: vm.selectedPlatform.id}, function (data) {
@@ -1680,6 +1681,15 @@ define(['js/app'], function (myApp) {
 
                                 if (vm.platformMerchantList[index] && vm.platformMerchantList[index].customizeRate) {
                                     merchant.customizeRate = vm.platformMerchantList[index].customizeRate;
+                                }
+
+                                if (vm.pmsServiceChargeRate && vm.fpmsServiceChargeRate && !vm.platformMerchantList[index].customizeRate) {
+                                    let pmsServiceCharge = vm.pmsServiceChargeRate/100;
+                                    let fpmsServiceCharge = vm.fpmsServiceChargeRate/100;
+
+                                    if (vm.platformMerchantList[index].rate > pmsServiceCharge) {
+                                        merchant.systemCustomRate = fpmsServiceCharge;
+                                    }
                                 }
                             }
                             return merchant;
@@ -3511,6 +3521,57 @@ define(['js/app'], function (myApp) {
                 }
             }
         }
+
+
+        // region Service Charge Setting
+        vm.getServiceChargeSetting = function () {
+            vm.isServiceChargeEditingDisable = true;
+
+            socketService.$socket($scope.AppSocket, 'getServiceChargeSetting', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                console.log(data);
+                vm.pmsServiceChargeRate = data && data.data && data.data.pmsServiceCharge ? parseFloat((data.data.pmsServiceCharge * 100).toFixed(2)) : null;
+                vm.fpmsServiceChargeRate = data && data.data && data.data.fpmsServiceCharge ? parseFloat((data.data.fpmsServiceCharge * 100).toFixed(2)) : null;
+                vm.oriPMSServiceChargeRate = vm.pmsServiceChargeRate ? JSON.parse(JSON.stringify(vm.pmsServiceChargeRate)) : null;
+                vm.oriFPMSServiceChargeRate = vm.fpmsServiceChargeRate ? JSON.parse(JSON.stringify(vm.fpmsServiceChargeRate)) : null;
+
+                $scope.$evalAsync();
+            })
+        };
+
+        vm.serviceChargeShowEdit = function (type) {
+            if (type === "CANCEL") {
+                vm.isServiceChargeEditingDisable = true;
+                vm.pmsServiceChargeRate = vm.oriPMSServiceChargeRate;
+                vm.fpmsServiceChargeRate = vm.oriFPMSServiceChargeRate;
+            };
+            if (type === "EDIT") vm.isServiceChargeEditingDisable = false;
+            if (type === "UPDATE") vm.isServiceChargeEditingDisable = true;
+        };
+
+        vm.updateServiceChargeSetting = function () {
+            let sendData = {
+                platformObjId: vm.selectedPlatform.id,
+                pmsServiceCharge: Number(vm.pmsServiceChargeRate) / 100,
+                fpmsServiceCharge: Number(vm.fpmsServiceChargeRate) / 100,
+            };
+
+            console.log('sendData sent', sendData);
+
+            socketService.$socket($scope.AppSocket, 'updateServiceChargeSetting', sendData, function (data) {
+                console.log(data.data);
+
+                if (vm.merchantGroupUsed === "PMS" || vm.paymentSystemName === 'PMS2') {
+                    vm.loadMerchantGroupData(true, null, data.data.name);
+                }
+                if (vm.merchantGroupUsed === "FPMS") {
+                    let selectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
+                    vm.loadMerchantGroupData(true, selectedMerchantGroupId);
+                }
+                $scope.$evalAsync();
+            })
+        };
+        // end region Service Charge Setting
+
         //////////////////////////initial socket actions//////////////////////////////////
         // vm.getPlayerStatusList = function () {
         //     return $scope.$socketPromise('getPlayerStatusList')

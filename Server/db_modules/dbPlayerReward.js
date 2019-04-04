@@ -7325,11 +7325,10 @@ let dbPlayerReward = {
                                 }
                             }
                         }
-
                         // filter out the valid rewards
                         selectedRewardParam = selectedRewardParam.filter( p => Number.isFinite(p.possibility));
                         // check if the player is first time and if there is pre-set reward for first time player
-                        if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime){
+                        if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
                             selectedRewardParam = selectedRewardParam.filter( p => p.rewardType == eventData.condition.defaultRewardTypeInTheFirstTime && Number.isFinite(p.possibility))
                         }
                         // check if the player has been pre-set
@@ -7369,7 +7368,6 @@ let dbPlayerReward = {
                                 let lastGottenRewardName = gottenRewardInInterval[gottenRewardInInterval.length-1] && gottenRewardInInterval[gottenRewardInInterval.length-1].data && gottenRewardInInterval[gottenRewardInInterval.length-1].data.rewardName ? gottenRewardInInterval[gottenRewardInInterval.length-1].data.rewardName : null;
                                 selectedRewardParam = selectedRewardParam.filter( p => p.title != lastGottenRewardName);
                             }
-
                             // search for reward based on pre-set possibility
                             let totalProbability = 0;
 
@@ -7384,7 +7382,6 @@ let dbPlayerReward = {
                                     reward.totalProbability = totalProbability;
                                 }
                             )
-
                             if (!selectedRewardParam || (selectedRewardParam && selectedRewardParam.length == 0)){
                                 return Promise.reject({
                                     name: "DataError",
@@ -9442,6 +9439,9 @@ function getIntervalPeriodFromEvent(event, applyTargetTime) {
                 break;
             case "4":
                 intervalTime = applyTargetTime ? dbUtility.getMonthSGTIme(applyTargetTime) : dbUtility.getCurrentMonthSGTIme();
+                break;
+            case "6":
+                intervalTime = applyTargetTime ? dbUtility.getLastMonthSGTImeFromDate(applyTargetTime) : dbUtility.getLastMonthSGTime();
                 break;
             default:
                 if (event.validStartTime && event.validEndTime) {

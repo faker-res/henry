@@ -335,6 +335,8 @@
                                                     option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
 
                     .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerRandomRewardGroup'")
+                        div(style="margin-bottom: 20px;")
+                            label(style="color: red") *{{ "Promo code name must be unique" | translate }}
                         table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableCredit track by $index" ng-cloak)
                             thead
                                 th(ng-if="vm.isMultiStepReward")
@@ -344,7 +346,6 @@
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.randomRewardType.credit})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                     i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
-                                    //input(ng-if="v.type == 'text' && v == 'title'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageRandomRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
                                         option(value='') {{'LOCAL_CREDIT' | translate}}
@@ -454,12 +455,12 @@
                                     tr(ng-repeat="v in vm.activeRandomRewards")
                                         td(ng-show='v.status=="1"')
                                             // delete this random reward item , temporary set status = 3,
-                                            i.fa.fa-minus(ng-click='v.status="3"')
+                                            i.fa.fa-minus(ng-click='v.status="3"', ng-if='!vm.platformRewardShowEdit()')
                                         td(ng-show='v.status=="1"')
-                                            input(type='string', ng-model='v.playerName', ng-change='v.isEdit = true')
-                                        td(ng-show='v.status=="1"')
+                                            input(type='string', ng-model='v.playerName', ng-change='v.isEdit = true', ng-disabled='vm.platformRewardShowEdit()')
+                                        td(ng-show='v.status=="1"', ng-disabled='vm.platformRewardShowEdit()')
                                             //input(type='string', ng-model='v.randomReward')
-                                            select.form-control(ng-model='v.rewardName', ng-change='v.isEdit = true')
+                                            select.form-control(ng-model='v.rewardName', ng-change='v.isEdit = true', ng-disabled='vm.platformRewardShowEdit()')
                                                 option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
 
                                     tr(ng-repeat="(i,v) in vm.assignRandomRewards")

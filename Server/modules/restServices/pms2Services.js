@@ -36,8 +36,8 @@ function pingDomain (domain) {
     }
 
     let options = {
-        method: 'HEAD',
-        uri: domain
+        method: 'GET',
+        uri: domain.concat('config/api-host.js')
     };
 
     return rp(options).then(

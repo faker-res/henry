@@ -23,7 +23,6 @@ define(['js/app'], function (myApp) {
             vm.existRealName = false;
             vm.rewardPointsChange = {};
             vm.rewardPointsConvert = {};
-            vm.platformPageName = 'Feedback';
             vm.platformToReplicate = "";
             vm.winnerMonitorConfig = [];
 
@@ -83,6 +82,7 @@ define(['js/app'], function (myApp) {
             ];
 
             vm.randomRewardType = {
+                "": 0,
                 "credit": 1,
                 "promoCodeBDeposit": 2,
                 "promoCodeBNoDeposit": 3,
@@ -846,19 +846,6 @@ define(['js/app'], function (myApp) {
                 return deferred.promise;
             }
 
-            //////////Lin Hao:: Provider List Delay Popup
-            utilService.setupPopover({
-                context: ulMenu,
-                elem: '.providerListPopover',
-                content: function () {
-                    return $compile($('#providerListPopover').html())($scope);
-                },
-                callback: function () {
-                    let thisPopover = utilService.$getPopoverID(this);
-                }
-            });
-
-
             vm.getProviderLatestTimeRecord = function () {
                 let longestDelayDate = new Date().toString();
 
@@ -1132,21 +1119,27 @@ define(['js/app'], function (myApp) {
             }
 
             //set selected platform node
-            async function selectPlatformNode (node, option)  {
-                vm.selectedPlatform = node;
-                vm.curPlatformText = node.text;
+            async function selectPlatformNode (platformObj, option)  {
+                vm.selectedPlatform = {
+                    text: platformObj.name,
+                    id: platformObj._id,
+                    selectable: true,
+                    data: platformObj,
+                    image: {
+                        url: platformObj.icon,
+                        width: 30,
+                        height: 30,
+                    }
+                };
+
+                vm.curPlatformText = vm.selectedPlatform.text;
                 vm.isNotAllowEdit = true;
                 vm.isCreateNewPlatform = false;
-                $cookies.put("platform", node.text);
+                $cookies.put("platform", vm.selectedPlatform.text);
 
                 vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
                 beforeUpdatePlatform();
                 vm.retrievePlatformData(vm.showPlatform);
-
-                // if (option && !option.loadAll) {
-                //     $scope.safeApply();
-                //     return;
-                // }
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
 
                 // Zero dependencies variable
@@ -1280,15 +1273,11 @@ define(['js/app'], function (myApp) {
 
             //search and select platform node
             function searchAndSelectPlatform (text, option) {
-                text = text.replace("(", "\\(");
-                text = text.replace(")", "\\)");
-                var findNodes = $('#platformTree').treeview('search', [text, {
-                    ignoreCase: false,
-                    exactMatch: true
-                }]);
+                let findNodes = vm.allPlatformData.filter(e => e.name === text);
                 if (findNodes && findNodes.length > 0) {
                     selectPlatformNode(findNodes[0], option);
-                    $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
+                } else {
+                    selectPlatformNode(vm.allPlatformData[0], option);
                 }
             }
 
@@ -1315,18 +1304,6 @@ define(['js/app'], function (myApp) {
                 //var platformsToDisplay = vm.platformList;
                 var searchText = (vm.platformSearchText || '').toLowerCase();
                 var platformsToDisplay = vm.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
-                $('#platformTree').treeview(
-                    {
-                        data: platformsToDisplay,
-                        highlightSearchResults: false,
-                        showImage: true,
-                        showIcon: false,
-                    }
-                );
-                $('#platformTree').on('nodeSelected', function (event, data) {
-                    selectPlatformNode(data);
-                    vm.showPlatformDropDownList = false;
-                });
             }
 
             //get all platform data from server
@@ -1475,6 +1452,7 @@ define(['js/app'], function (myApp) {
                         vm.initVertificationSMS();
                         break;
                     case "RegistrationUrlConfig":
+                        vm.ignoreIntervalChecking = $scope.checkViewPermission('Platform', 'RegistrationUrlConfig','ignore90DaysEditingRestriction');
                         vm.initPlatformOfficer();
                         break;
                     case "batchPermit":
@@ -1484,11 +1462,11 @@ define(['js/app'], function (myApp) {
                     case "platformSetting":
                         vm.showPlatformDetailTab(null);
                         break;
-                    // setTimeout(() => {
-                    //     $('#partnerDataTable').resize();
-                    // }, 300);
                     case "externalUserInfo":
                         vm.initExternalUserInfo();
+                        break;
+                    case "ClientQnA":
+                        vm.buildClientQnATypeList();
                         break;
                     case "FrontendConfiguration":
                         vm.initFrontendConfiguration();
@@ -2200,6 +2178,8 @@ define(['js/app'], function (myApp) {
                         break;
                     case "4":
                     case 4:
+                    case "6":
+                    case 6:
                         socketName = "getLastMonthSGTime";
                 }
 
@@ -22313,7 +22293,7 @@ define(['js/app'], function (myApp) {
 
             vm.addNewRewardTypeRow = (row, entry, newEntryData) => {
                 if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)
-                    && vm.isPromoNameExist(entry.title)){
+                    && vm.isPromoNameExist(entry.title) && !entry.templateObjId){
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
                 newEntryData.id = createObjectId();
@@ -23104,6 +23084,8 @@ define(['js/app'], function (myApp) {
                 let isValid = true;
                 let isHostResult = true;
                 let isPlayerResult = true;
+                let isPeriodResultValid = true;
+                let isApplyTypeValid = true;
                 console.log('vm.showReward', vm.showReward);
 
                 if (vm.showReward && vm.showReward.type && vm.showReward.type.name
@@ -23151,6 +23133,14 @@ define(['js/app'], function (myApp) {
                                 curReward[condName] = condValue;
                             }
 
+                            if (condName == "interval" && condValue == "6") { // 6 == last month
+                                isPeriodResultValid = false;
+                            }
+
+                            if (condName == "applyType" && condValue == "2") { // 2 == 满足条件后自动生成
+                                isApplyTypeValid = false;
+                            }
+
                             // Interval type handling
                             if (condType == "interval") {
                                 if (vm.rewardMainCondition[e].hasOwnProperty("value1")) {
@@ -23186,7 +23176,7 @@ define(['js/app'], function (myApp) {
                         })
 
                         if(total > 1){
-                            return socketService.showErrorMessage($translate('The overall possibilities cannot be higher than 100%'));
+                            return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
                     }
 
@@ -23250,6 +23240,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (!isPeriodResultValid && !isApplyTypeValid) {
+                    isValid = false;
+                }
+
                 var sendData = {
                     query: {_id: vm.showReward._id},
                     updateData: curReward
@@ -23272,6 +23266,8 @@ define(['js/app'], function (myApp) {
                         socketService.showErrorMessage($translate("Banker Result is required"));
                     } else if (!isPlayerResult) {
                         socketService.showErrorMessage($translate("Player Result is required"));
+                    } else if (!isPeriodResultValid && !isApplyTypeValid) {
+                        socketService.showErrorMessage($translate('Reward interval does not valid for this reward apply type'));
                     } else {
                         socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
                     }
@@ -23284,7 +23280,7 @@ define(['js/app'], function (myApp) {
                 if (isFirstCreate && rewardName && rewardName == 'PlayerRandomRewardGroup') {
                     vm.assignRandomRewardToUser(data._id);
                     vm.getRandomRewardDetail('1', 'activeRandomRewards');
-                } else if(vm.showReward.type.name == "PlayerRandomRewardGroup") {
+                } else if(showReward && showReward.type && showReward.type.name == "PlayerRandomRewardGroup") {
                     vm.assignRandomRewardToUser();
                     vm.editRandomRewardToUser();
                     vm.getRandomRewardDetail('1', 'activeRandomRewards');
@@ -23328,6 +23324,8 @@ define(['js/app'], function (myApp) {
                     condition: {},
                     param: {}
                 };
+                let isPeriodResultValid = true;
+                let isApplyTypeValid = true;
 
                 if (vm.showRewardTypeData.isGrouped === true) {
                     // Set condition
@@ -23348,6 +23346,14 @@ define(['js/app'], function (myApp) {
                             // Save name and code to outer level
                             if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "showInRealServer" || condName == "validStartTime" || condName == "validEndTime") {
                                 sendData[condName] = condValue;
+                            }
+
+                            if (condName == "interval" && condValue == "6") { // 6 == last month
+                                isPeriodResultValid = false;
+                            }
+
+                            if (condName == "applyType" && condValue == "2") { // 2 == 满足条件后自动生成
+                                isApplyTypeValid = false;
                             }
 
                             // Interval type handling
@@ -23384,7 +23390,7 @@ define(['js/app'], function (myApp) {
                         })
 
                         if(total > 1){
-                            return socketService.showErrorMessage($translate('The overall possibilities cannot be higher than 100%'));
+                            return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
                     }
 
@@ -23463,6 +23469,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (!isPeriodResultValid && !isApplyTypeValid) {
+                    isValid = false;
+                }
+
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
@@ -23487,6 +23497,8 @@ define(['js/app'], function (myApp) {
                         socketService.showErrorMessage($translate("Banker Result is required"));
                     } else if (!isPlayerResult) {
                         socketService.showErrorMessage($translate("Player Result is required"));
+                    } else if (!isPeriodResultValid && !isApplyTypeValid) {
+                        socketService.showErrorMessage($translate('Reward interval does not valid for this reward apply type'));
                     } else {
                         socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
                     }

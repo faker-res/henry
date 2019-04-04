@@ -168,6 +168,18 @@ function socketActionMerchantGroup(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getPMSMerchantGroup, [data.platformId, data.topUpSystemType], actionName, isValidData);
+        },
+
+        getServiceChargeSetting: function getServiceChargeSetting(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getServiceChargeSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        updateServiceChargeSetting: function updateServiceChargeSetting(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.updateServiceChargeSetting, [data.platformObjId, data.pmsServiceCharge, data.fpmsServiceCharge], actionName, isValidData);
         }
     };
     socketActionMerchantGroup.actions = this.actions;
