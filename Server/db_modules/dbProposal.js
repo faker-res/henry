@@ -971,7 +971,8 @@ var proposal = {
 
                     isCommonTopUp = true;
                 }
-
+                console.log('proposalObj.data.platform JY', proposalObj.data.platform);
+                console.log('proposalObj.data.platformId JY', proposalObj.data.platformId);
                 if (callbackData.merchantNo && proposalObj.data.platform) {
                     let merchantQuery = {
                         platformId: proposalObj.data.platform,
