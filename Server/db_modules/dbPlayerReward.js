@@ -3247,10 +3247,10 @@ let dbPlayerReward = {
     getPromoCodeTemplate: (platformObjId, isProviderGroup) => dbConfig.collection_promoCodeTemplate.find({
         platformObjId: ObjectId(platformObjId),
         isProviderGroup: Boolean(isProviderGroup),
-        $or: [
-            {genre: {$exists: false}},
-            {genre: constPromoCodeTemplateGenre.GENERAL}
-        ],
+        // $or: [
+        //     {genre: {$exists: false}},
+        //     {genre: constPromoCodeTemplateGenre.GENERAL}
+        // ],
     }).lean(),
 
     getOpenPromoCodeTemplate: (platformObjId, isProviderGroup, deleteFlag) => {
