@@ -976,7 +976,8 @@ var proposal = {
                     let merchantQuery = {
                         platformId: proposalObj.data.platform,
                         merchantNo: callbackData.merchantNo,
-                        topupType: callbackData.depositMethod
+                        topupType: callbackData.depositMethod,
+                        name: callbackData.merchantName
                     };
 
                     if (proposalObj.data && proposalObj.data.topUpSystemName && proposalObj.data.topUpSystemName === 'PMS2') {
