@@ -7825,7 +7825,9 @@ let dbPlayerReward = {
                             if (selectedReward.providerGroup){
                                 proposalData.data.providerGroup = selectedReward.providerGroup
                             }
-
+                            if (eventData.condition && eventData.condition.interval) {
+                                proposalData.data.intervalType = eventData.condition.interval;
+                            }
                             proposalData.data.rewardType = selectedReward.rewardType || null;
                             proposalData.data.rewardName = selectedReward.title || null;
                             proposalData.data.rewardDetail = selectedReward;
@@ -7840,7 +7842,6 @@ let dbPlayerReward = {
                             else if (selectedReward.rewardType && selectedReward.rewardType == constRandomRewardType.REWARD_POINTS){
                                 proposalData.data.rewardedRewardPoint = selectedReward.rewardPoints || 0;
                             }
-
                         }
 
                         if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
