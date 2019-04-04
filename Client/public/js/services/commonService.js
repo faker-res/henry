@@ -1779,8 +1779,6 @@ define([], () => {
                 platform.name$ = `${platform.platformId}. ${platform.name}`;
             });
         };
-
-
     };
 
     let commonServiceApp = angular.module('commonService', []);
