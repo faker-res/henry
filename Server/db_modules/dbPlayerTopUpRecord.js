@@ -3,15 +3,15 @@ var dbPlayerTopUpRecordFunc = function () {
 module.exports = new dbPlayerTopUpRecordFunc();
 
 const pmsAPI = require("../externalAPI/pmsAPI.js");
-const pmsFakeAPI = require("../externalAPI/pmsFakeAPI.js");
 const externalRESTAPI = require("../externalAPI/externalRESTAPI");
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 const Q = require('q');
 const dbconfig = require('./../modules/dbproperties');
-const dataUtility = require('./../modules/encrypt');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const dbProposal = require('./../db_modules/dbProposal');
+
+const constAccountType = require('./../const/constAccountType');
 const constProposalStatus = require('./../const/constProposalStatus');
 const constSystemParam = require('./../const/constSystemParam');
 const constProposalType = require('./../const/constProposalType');
@@ -49,7 +49,6 @@ const rsaCrypto = require('./../modules/rsaCrypto');
 const extConfig = require('./../config/externalPayment/paymentSystems');
 
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
-const rp = require('request-promise');
 
 var dbPlayerTopUpRecord = {
     /**
@@ -113,20 +112,13 @@ var dbPlayerTopUpRecord = {
         return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
             platformData => {
                 if (platformData && platformData.platformId) {
-                    return pmsAPI.merchant_getMerchantList(
-                        {
-                            platformId: platformData.platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    ).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
                         }
                     )
                 }
-
-                return;
             }
         ).then(
             merchantData => {
@@ -1689,14 +1681,7 @@ var dbPlayerTopUpRecord = {
                 rewardEvent = eventData;
                 if (player && player.platform) {
                     let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
-                    let merchantGroupProm = () => {
-                        return pmsAPI.merchant_getMerchantList(
-                            {
-                                platformId: player.platform.platformId,
-                                queryId: serverInstance.getQueryId()
-                            }
-                        )
-                    };
+                    let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId});
 
                     let merchantTypeProm = Promise.resolve(false);
                     if (bPMSGroup === true || bPMSGroup === "true") {
@@ -1944,13 +1929,6 @@ var dbPlayerTopUpRecord = {
                             error: Error()
                         });
                     }
-
-                    //     .catch(
-                    //     err => Q.reject({name: "DataError", message: "Failure with requestOnlineMerchant", error: err, requestData: requestData})
-                    // );
-
-                    // FAKE CALL PMSAPI
-                    // return pmsFakeAPI.payment_requestOnlineMerchant();
                 }
                 else {
                     return Q.reject({
@@ -2448,28 +2426,6 @@ var dbPlayerTopUpRecord = {
                                 }
                             }
                         );
-                    } else {
-                        return pmsAPI.payment_requestManualBankCard(requestData).then(cardData => {
-                            if (cardData && cardData.result && cardData.result.bankTypeId) {
-                                // find bankName for this card
-                                return pmsAPI.bankcard_getBankType({bankTypeId: cardData.result.bankTypeId, queryId: serverInstance.getQueryId()}).then(
-                                    bankData => {
-                                        if (bankData && bankData.data && bankData.data.name) {
-                                            cardData.result.bankName = bankData.data.name;
-                                        } else {
-                                            cardData.result.bankName = "";
-                                        }
-                                        return cardData;
-                                    }
-                                );
-                            } else {
-                                return Q.reject({
-                                    status: constServerCode.INVALID_DATA,
-                                    name: "DataError",
-                                    errorMessage: "Bank card not found"
-                                });
-                            }
-                        });
                     }
                 }
                 else {
@@ -2897,19 +2853,6 @@ var dbPlayerTopUpRecord = {
 
                         return RESTUtils.getPMS2Services("postCancelTopup", data);
                     }
-                    else if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
-                        proposal = proposalData;
-                        if (adminName) {
-                            return pmsAPI.payment_modifyManualTopupRequest({
-                                requestId: proposalData.data.requestId,
-                                operationType: constManualTopupOperationType.CANCEL,
-                                data: null
-                            });
-                        }
-                        else {
-                            return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId})
-                        }
-                    }
                     else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
                     }
@@ -2960,21 +2903,7 @@ var dbPlayerTopUpRecord = {
                         };
 
                         return RESTUtils.getPMS2Services("postCancelTopup", data);
-                    }
-                    else if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
-                        proposal = proposalData;
-                        if (adminName) {
-                            return pmsAPI.payment_modifyManualTopupRequest({
-                                requestId: proposalData.data.requestId,
-                                operationType: constManualTopupOperationType.CANCEL,
-                                data: null
-                            });
-                        }
-                        else {
-                            return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId})
-                        }
-                    }
-                    else {
+                    } else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
                     }
                 }
@@ -3024,22 +2953,7 @@ var dbPlayerTopUpRecord = {
                         };
 
                         return RESTUtils.getPMS2Services("postCancelTopup", data);
-                    }
-                    else if (proposalData.data && proposalData.data.playerId == playerId) {
-                        proposal = proposalData;
-
-                        if (adminName) {
-                            return pmsAPI.payment_modifyManualTopupRequest({
-                                requestId: proposalData.data.requestId,
-                                operationType: constManualTopupOperationType.CANCEL,
-                                data: null
-                            });
-                        }
-                        else {
-                            return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId})
-                        }
-                    }
-                    else {
+                    } else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
                     }
                 }
@@ -3089,22 +3003,7 @@ var dbPlayerTopUpRecord = {
                         };
 
                         return RESTUtils.getPMS2Services("postDelayTopup", data);
-                    }
-                    else if (proposalData.data && proposalData.data.playerId == playerId) {
-                        proposal = proposalData;
-
-                        if (proposalData.data.requestId) {
-                            return pmsAPI.payment_modifyManualTopupRequest({
-                                requestId: proposalData.data.requestId,
-                                operationType: constManualTopupOperationType.DELAY,
-                                data: {delayTime: delayTime}
-                            });
-                        } else {
-                            //no requestId means it is handle by FPMS (using FPMS payment method)
-                            return true;
-                        }
-                    }
-                    else {
+                    } else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
                     }
                 }
@@ -3126,58 +3025,6 @@ var dbPlayerTopUpRecord = {
             data => {
                 return {proposalId: proposalId, delayTime: delayTime, newValidTime: data.data.validTime}
             }
-        );
-    },
-
-    modifyManualTopupRequest: function (playerId, proposalId, data) {
-        var proposal = null;
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
-            proposalData => {
-                if (proposalData) {
-                    if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
-                        proposal = proposalData;
-
-                        return pmsAPI.payment_modifyManualTopupRequest({
-                            requestId: proposalData.data.requestId,
-                            operationType: constManualTopupOperationType.MODIFY,
-                            data: data
-                        });
-                    }
-                    else {
-                        return Q.reject({name: "DBError", message: 'Invalid proposal'});
-                    }
-                }
-                else {
-                    return Q.reject({name: "DBError", message: 'Cannot find proposal'});
-                }
-            }
-        ).then(
-            modifyData => {
-                var updateData = {};
-                delete data.proposalId;
-                // delete data.requestId;
-                for (var property in data) {
-                    if (data.hasOwnProperty(property) && property != "requestId") {
-                        if (data[property] != proposal.data[property]) {
-                            updateData["data." + property] = data[property];
-                        }
-                    }
-                }
-                if (dataUtility.isEmptyObject(updateData)) {
-                    return true;
-                }
-                else {
-                    return dbconfig.collection_proposal.findOneAndUpdate({
-                            _id: proposal._id,
-                            createTime: proposal.createTime
-                        },
-                        {$set: updateData},
-                        {new: true}
-                    );
-                }
-            }
-        ).then(
-            data => ({proposalId: proposalId})
         );
     },
 
@@ -3706,8 +3553,6 @@ var dbPlayerTopUpRecord = {
                             requestData.depositTime = cTimeString;
 
                             return RESTUtils.getPMS2Services("postCreateTopup", requestData);
-                        } else {
-                            return pmsAPI.payment_requestAlipayAccount(requestData);
                         }
                     }
                     else {
@@ -3955,9 +3800,15 @@ var dbPlayerTopUpRecord = {
                                 pmsQuery.username = playerData.name;
                                 prom = pmsAPI.foundation_requestWechatpayByUsername(pmsQuery);
                             } else {
-                                prom = pmsAPI.weChat_getWechatList(pmsQuery);
+                                let reqData = {
+                                    platformId: platformId,
+                                    accountType: constAccountType.WECHAT
+                                };
+
+                                prom = RESTUtils.getPMS2Services("postBankCardList", reqData);
                             }
                         }
+
                         return prom.then(
                             wechats => {
                                 let bValid = false;
@@ -4036,10 +3887,14 @@ var dbPlayerTopUpRecord = {
                                 pmsQuery.username = playerData.name;
                                 aliPayProm = pmsAPI.foundation_requestAlipayByUsername(pmsQuery);
                             } else {
-                                aliPayProm = pmsAPI.alipay_getAlipayList(pmsQuery);
+                                let reqData = {
+                                    platformId: playerData.platform.platformId,
+                                    accountType: constAccountType.ALIPAY
+                                };
+
+                                aliPayProm = RESTUtils.getPMS2Services("postBankCardList", reqData);
                             }
                         }
-
 
                         let proposalQuery = {
                             'data.playerObjId': {$in: [ObjectId(playerData._id), String(playerData._id)]},
@@ -4421,13 +4276,6 @@ var dbPlayerTopUpRecord = {
                             requestData.depositTime = cTimeString;
 
                             return RESTUtils.getPMS2Services("postCreateTopup", requestData);
-                        } else {
-                            if (useQR) {
-                                return pmsAPI.payment_requestWeChatQRAccount(requestData);
-                            }
-                            else {
-                                return pmsAPI.payment_requestWeChatAccount(requestData);
-                            }
                         }
                     }
                     else {
@@ -4618,202 +4466,6 @@ var dbPlayerTopUpRecord = {
             );
     },
 
-
-    /**
-     * add quickpay topup records of the player
-     * @param playerId
-     * @param amount
-     * @param quickpayName
-     * @param quickpayAccount
-     * @param entryType
-     * @param adminId
-     * @param adminName
-     */
-    requestQuickpayTopup: function (playerId, amount, quickpayName, quickpayAccount, entryType, adminId, adminName, remark, createTime) {
-        let player = null;
-        let proposal = null;
-        let request = null;
-
-        return dbconfig.collection_players.findOne({
-            playerId: playerId
-        }).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        }).populate({
-            path: "quickPayGroup",
-            model: dbconfig.collection_platformQuickPayGroup
-        }).lean().then(
-            playerData => {
-                if (playerData) {
-                    player = playerData;
-                    return dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, amount);
-                } else {
-                    return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
-                }
-            }
-        ).then(
-            intentionProp => {
-                let limitedOfferTopUp = intentionProp;
-
-                if (player && player.platform && player.quickPayGroup && player.quickPayGroup.quickpays && player.quickPayGroup.quickpays.length > 0) {
-                    let minTopUpAmount = player.platform.minTopUpAmount || 0;
-                    if (amount < minTopUpAmount) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_TOP_UP_FAIL,
-                            name: "DataError",
-                            errorMessage: "Top up amount is not enough"
-                        });
-                    }
-                    // if (!playerData.permission || !playerData.permission.quickpayTransaction) {
-                    //     return Q.reject({
-                    //         status: constServerCode.PLAYER_NO_PERMISSION,
-                    //         name: "DataError",
-                    //         errorMessage: "Player does not have this permission"
-                    //     });
-                    // }
-                    let proposalData = {};
-                    proposalData.playerId = playerId;
-                    proposalData.playerObjId = player._id;
-                    proposalData.platformId = player.platform._id;
-                    proposalData.playerLevel = player.playerLevel;
-                    proposalData.platform = player.platform.platformId;
-                    proposalData.playerName = player.name;
-                    proposalData.amount = Number(amount);
-                    proposalData.quickpayName = quickpayName;
-                    proposalData.quickpayAccount = quickpayAccount;
-                    proposalData.remark = remark;
-                    if (createTime) {
-                        proposalData.depositeTime = new Date(createTime);
-                    }
-                    proposalData.creator = entryType === "ADMIN" ? {
-                        type: 'admin',
-                        name: adminName,
-                        id: adminId
-                    } : {
-                        type: 'player',
-                        name: player.name,
-                        id: playerId
-                    };
-
-                    // Check Limited Offer Intention
-                    if (limitedOfferTopUp) {
-                        proposalData.limitedOfferObjId = limitedOfferTopUp._id;
-                        proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
-                    }
-
-                    let newProposal = {
-                        creator: proposalData.creator,
-                        data: proposalData,
-                        entryType: constProposalEntryType[entryType],
-                        //createTime: createTime ? new Date(createTime) : new Date(),
-                        userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                    };
-                    return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_QUICKPAY_TOP_UP, newProposal);
-                }
-                else {
-                    return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
-                }
-            }
-        ).then(
-            proposalData => {
-                if (proposalData) {
-                    proposal = proposalData;
-                    let cTime = createTime ? new Date(createTime) : new Date();
-                    let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
-                    let requestData = {
-                        proposalId: proposalData.proposalId,
-                        platformId: player.platform.platformId,
-                        userName: player.name,
-                        realName: quickpayName || player.realName || "",
-                        amount: amount,
-                        groupMfbList: player.quickPayGroup ? player.quickPayGroup.quickpays : [],
-                        remark: quickpayName || player.realName || "",
-                        // createTime: cTimeString,
-                        operateType: entryType == "ADMIN" ? 1 : 0
-                    };
-                    if (quickpayAccount) {
-                        requestData.groupQuickpayList = [quickpayAccount];
-                    }
-                    //console.log("requestData", requestData);
-                    return pmsAPI.payment_requestMfbAccount(requestData);
-                }
-                else {
-                    return Q.reject({name: "DataError", errorMessage: "Cannot create quickpay top up proposal"});
-                }
-            }
-        ).then(
-            requestData => {
-                //console.log("request response", requestData);
-                if (requestData && requestData.result) {
-                    request = requestData;
-                    //add request data to proposal and update proposal status to pending
-                    var updateData = {
-                        status: constProposalStatus.PENDING
-                    };
-                    updateData.data = Object.assign({}, proposal.data);
-                    updateData.data.requestId = requestData.result.requestId;
-                    updateData.data.proposalId = proposal.proposalId;
-                    updateData.data.mfbAccount = requestData.result.mfbAccount;
-                    requestData.result.mfbQRCode = requestData.result.mfbQRCode || "";
-                    updateData.data.mfbQRCode = requestData.result.mfbQRCode;
-                    updateData.data.createTime = requestData.result.createTime;
-                    if (requestData.result.validTime) {
-                        updateData.data.validTime = new Date(requestData.result.validTime);
-                    }
-                    // requestData.result.quickpayName = quickpayName;
-                    return dbconfig.collection_proposal.findOneAndUpdate(
-                        {_id: proposal._id, createTime: proposal.createTime},
-                        updateData,
-                        {new: true}
-                    );
-                }
-                else {
-                    return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
-                }
-            },
-            err => {
-                updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
-                return Promise.reject(err);
-            }
-        ).then(
-            data => {
-                return {
-                    proposalId: data.proposalId,
-                    requestId: request.result.requestId,
-                    status: data.status,
-                    result: request.result
-                };
-            }
-        );
-    },
-
-    cancelQuickpayTopup: function (playerId, proposalId) {
-        var proposal = null;
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
-            proposalData => {
-                if (proposalData) {
-                    if (proposalData.data && proposalData.data.playerId == playerId) {
-                        proposal = proposalData;
-
-                        return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
-                    }
-                    else {
-                        return Q.reject({name: "DBError", message: 'Invalid proposal'});
-                    }
-                }
-                else {
-                    return Q.reject({name: "DBError", message: 'Cannot find proposal'});
-                }
-            }
-        ).then(
-            request => {
-                return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
-            }
-        ).then(
-            data => ({proposalId: proposalId})
-        );
-    },
-
     isPlayerFirstTopUp: function (playerId) {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
@@ -4936,24 +4588,9 @@ var dbPlayerTopUpRecord = {
         );
     },
 
-    requestProposalSuccessPMS: function (proposalId, status) {
-        return pmsAPI.payment_requestProposalSuccess({proposalId: proposalId, status: status}).then(
-            topUpResult => {
-                if (topUpResult) {
-                    return dbconfig.collection_proposal.findOne({proposalId: proposalId}).lean().then(
-                        pData => {
-                            if (pData) {
-                                return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1);
-                            }
-                        }
-                    );
-                }
-            }
-        );
-    },
-
     forcePairingWithReferenceNumber: function(platformId, proposalObjId, proposalId, referenceNumber) {
         let isPMS2Proposal = false;
+
         return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
             if (proposal && proposal.data && new Date(proposal.data.validTime) < new Date) {
                 return Promise.reject({message: "提案已过期"});
@@ -4961,7 +4598,6 @@ var dbPlayerTopUpRecord = {
 
             if (proposal && proposal.data && proposal.data.topUpSystemName == "PMS2") {
                 isPMS2Proposal = true;
-                let topUpSystemConfig = extConfig && extConfig[4];
                 let requestData = {
                     platformId: platformId,
                     proposalId: proposalId,
@@ -4970,14 +4606,8 @@ var dbPlayerTopUpRecord = {
 
                 return RESTUtils.getPMS2Services("postTopupForceMatch", requestData);
             } else {
-                return pmsAPI.foundation_mandatoryMatch({
-                    platformId: platformId,
-                    queryId: serverInstance.getQueryId(),
-                    proposalId: proposalId,
-                    depositId: referenceNumber
-                })
+                // Other payment systems
             }
-
         }).then(data => {
             console.log("forcePairingWithReferenceNumber data", data);
             if (data || isPMS2Proposal) {
@@ -5385,9 +5015,8 @@ function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, 
         };
 
         prom = RESTUtils.getPMS2Services("postBankCard", options);
-    } else {
-        prom = pmsAPI.bankcard_getBankcard({accountNumber: bankCardNo});
     }
+
     return prom.then(
         bankCard => {
             if (bankCard && bankCard.data && bankCard.data.quota) {
@@ -5411,9 +5040,8 @@ function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, plat
         };
 
         prom = RESTUtils.getPMS2Services("postBankCard", options);
-    } else {
-        prom = pmsAPI.alipay_getAlipay({accountNumber: accNo});
     }
+
     return prom.then(
         aliPay => {
             if (aliPay && aliPay.data && (aliPay.data.quota || aliPay.data.singleLimit)) {
@@ -5428,6 +5056,7 @@ function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, plat
 
 function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, platformId, topUpSystemConfig) {
     let prom;
+
     if (isFPMS && platformId) {
         prom = dbconfig.collection_platformWechatPayList.findOne({accountNumber: accNo, platformId: platformId}).lean().then(
             wechatList => {
@@ -5440,9 +5069,8 @@ function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, p
         };
 
         prom = RESTUtils.getPMS2Services("postBankCard", options);
-    } else {
-        prom = pmsAPI.weChat_getWechat({accountNumber: accNo});
     }
+
     return prom.then(
         wechatPay => {
             if (wechatPay && wechatPay.data && (wechatPay.data.quota || wechatPay.data.singleLimit )) {

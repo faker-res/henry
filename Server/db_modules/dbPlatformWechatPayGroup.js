@@ -195,13 +195,6 @@ let dbPlatformWechatPayGroup = {
                     };
 
                     return RESTUtils.getPMS2Services("postBankCardList", reqData);
-                } else {
-                    return pmsAPI.weChat_getWechatList(
-                        {
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    )
                 }
             }
         )
@@ -284,15 +277,7 @@ let dbPlatformWechatPayGroup = {
                         };
 
                         return RESTUtils.getPMS2Services("postBankCardList", reqData);
-                    } else {
-                        return pmsAPI.weChat_getWechatList(
-                            {
-                                platformId: platformId,
-                                queryId: serverInstance.getQueryId()
-                            }
-                        );
                     }
-
                 }
             }
         ).then(
@@ -464,44 +449,44 @@ let dbPlatformWechatPayGroup = {
 
     getIncludedWechatsByWechatPayGroup: function (platformId, wechatPayGroupId) {
         let allWechats = [];
-        return pmsAPI.weChat_getWechatList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        let reqData = {
+            platformId: platformId,
+            accountType: constAccountType.WECHAT
+        };
+
+        return RESTUtils.getPMS2Services("postBankCardList", reqData).then(
             data => {
                 allWechats = data.data || [];
+
                 return dbconfig.collection_platformWechatPayGroup.findOne({_id: wechatPayGroupId})
             }
         ).then(
             data => {
                 let wechatsArr = data.wechats || [];
-                return allWechats.filter(a => {
-                    return wechatsArr.indexOf(a.accountNumber) !== -1
-                })
+
+                return allWechats.filter(a => wechatsArr.indexOf(a.accountNumber) !== -1)
             }
         )
     },
 
     getExcludedWechatsByWechatPayGroup: function (platformId, wechatPayGroupId) {
         let allWechats = [];
-        return pmsAPI.weChat_getWechatList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        let reqData = {
+            platformId: platformId,
+            accountType: constAccountType.WECHAT
+        };
+
+        return RESTUtils.getPMS2Services("postBankCardList", reqData).then(
             data => {
                 allWechats = data.data || [];
+
                 return dbconfig.collection_platformWechatPayGroup.findOne({_id: wechatPayGroupId})
             }
         ).then(
             data => {
                 let wechatsArr = data.wechats || [];
-                return allWechats.filter(a => {
-                    return wechatsArr.indexOf(a.accountNumber) === -1
-                })
+
+                return allWechats.filter(a => wechatsArr.indexOf(a.accountNumber) === -1)
             }
         )
     },

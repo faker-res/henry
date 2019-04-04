@@ -187,13 +187,9 @@ var dbPlatformMerchantGroup = {
         )
     },
     getIncludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
-        var allMerchants = [];
-        return pmsAPI.merchant_getMerchantList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        let allMerchants = [];
+
+        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}).then(
             data=> {
                 allMerchants = data.merchants || [];
                 return dbconfig.collection_platformMerchantGroup.findOne({_id: merchantGroupId})
@@ -275,14 +271,10 @@ var dbPlatformMerchantGroup = {
 
     getExcludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
         var allMerchants = [];
-        return pmsAPI.merchant_getMerchantList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}).then(
             data=> {
                 allMerchants = data.merchants || [];
+
                 return dbconfig.collection_platformMerchantGroup.findOne({_id: merchantGroupId})
             }
         ).then(
@@ -536,17 +528,6 @@ var dbPlatformMerchantGroup = {
                         bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions);
                         aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions);
                         weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions);
-                    } else {
-                        merchantsList = pmsAPI.merchant_getMerchantList({
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
-                        bankCardList = pmsAPI.bankcard_getBankcardList({
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
-                        weChatList = pmsAPI.weChat_getWechatList({platformId: platformId, queryId: serverInstance.getQueryId()});
-                        aliPayList = pmsAPI.alipay_getAlipayList({platformId: platformId, queryId: serverInstance.getQueryId()});
                     }
 
                     return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
@@ -647,11 +628,7 @@ var dbPlatformMerchantGroup = {
         var allMerchants = [];
         return dbconfig.collection_platform.findOne({'_id': platformObjId}).then(
             platformData => {
-                return pmsAPI.merchant_getMerchantList(
-                    {
-                        platformId: platformData.platformId,
-                        queryId: serverInstance.getQueryId()
-                    })
+                return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId});
             }
         ).then(
             data => {
@@ -754,12 +731,6 @@ var dbPlatformMerchantGroup = {
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                         return RESTUtils.getPMS2Services("postMerchantTypeList", {});
-                    } else {
-                        return pmsAPI.merchant_getMerchantTypeList(
-                            {
-                                queryId: serverInstance.getQueryId()
-                            }
-                        )
                     }
                 }
             }
@@ -787,13 +758,6 @@ var dbPlatformMerchantGroup = {
 function getMerchantList(topUpSystemConfig, platformId) {
     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
         return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
-    } else {
-        return pmsAPI.merchant_getMerchantList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        )
     }
 }
 

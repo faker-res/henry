@@ -3,8 +3,8 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
 var socketUtil = require('./../modules/socketutility');
-var pmsAPI = require('../externalAPI/pmsAPI');
-var serverInstance = require("../modules/serverInstance");
+
+let RESTUtils = require('./../modules/RESTUtils');
 
 function socketActionMerchantGroup(socketIO, socket) {
 
@@ -118,7 +118,7 @@ function socketActionMerchantGroup(socketIO, socket) {
 
         getMerchantList: function getMerchantList(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.merchant_getMerchantList, [{platformId: data.platformId,queryId: serverInstance.getQueryId()}], actionName, true);
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postMerchantList", {platformId: data.platformId}], actionName, true);
         },
 
         getMerchantNBankCard: function getMerchantNBankCard(data){
