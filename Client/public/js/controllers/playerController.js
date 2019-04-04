@@ -10704,6 +10704,11 @@ define(['js/app'], function (myApp) {
                     },
 
                 };
+
+                if (rewardObj.condition && rewardObj.condition.interval == "6") {
+                    sendQuery.data.previewDate = new Date(utilService.getThisMonthStartTime());
+                }
+
                 socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
 
                     if (data && data.data) {

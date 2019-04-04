@@ -7619,6 +7619,11 @@ let dbPlayerReward = {
                             };
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
+                            if (intervalTime){
+                                proposalData.data.settlementStartTime = intervalTime.startTime;
+                                proposalData.data.settlementEndTime = rewardData.previewDate ? rewardData.previewDate : intervalTime.endTime;
+                            }
+
                             if (applyDetail.consecutiveNumber) {
                                 proposalData.data.consecutiveNumber = applyDetail.consecutiveNumber;
                             }
@@ -7763,7 +7768,8 @@ let dbPlayerReward = {
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                         // Extra required Information for PLAYER_LOSE_RETURN_REWARD_GROUP
-                        if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP && intervalTime){
+                        // if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP && intervalTime){
+                        if (intervalTime){
                             proposalData.data.settlementStartTime = intervalTime.startTime;
                             proposalData.data.settlementEndTime = rewardData.previewDate ? rewardData.previewDate : intervalTime.endTime;
                         }

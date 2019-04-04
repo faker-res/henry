@@ -1741,6 +1741,18 @@ define([], () => {
                 proposalDetail["rewardPeriod"] =  $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.startTime) + ' ~ ' + $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.endTime);
             }
 
+            if (vm.selectedProposal && vm.selectedProposal.mainType == "Reward" && vm.selectedProposal.data) {
+                if (vm.selectedProposal.data.intervalStartTime && vm.selectedProposal.data.intervalEndTime) {
+                    proposalDetail["REWARD_APPLY_PERIOD"] = $scope.timeReformat(vm.selectedProposal.data.intervalStartTime) + " -> " + $scope.timeReformat(vm.selectedProposal.data.intervalEndTime);
+                } else {
+                    proposalDetail["REWARD_APPLY_PERIOD"] = " ";
+                }
+                if (proposalDetail) {
+                    delete proposalDetail.intervalStartTime;
+                    delete proposalDetail.intervalEndTime;
+                }
+            }
+
             return proposalDetail;
         };
 
