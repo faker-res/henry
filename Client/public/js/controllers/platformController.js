@@ -23166,7 +23166,7 @@ define(['js/app'], function (myApp) {
                             total = total + (row.possibility || 0)
                         })
 
-                        if(total > 1){
+                        if($noRoundTwoDecimalPlaces(total) > 1){
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
                     }
@@ -23380,7 +23380,7 @@ define(['js/app'], function (myApp) {
                             total = total + (row.possibility || 0)
                         })
 
-                        if(total > 1){
+                        if($noRoundTwoDecimalPlaces(total) > 1){
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
                     }
