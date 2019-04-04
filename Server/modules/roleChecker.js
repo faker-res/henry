@@ -301,6 +301,9 @@ var roleChecker = {
                 ModifyFeedbackResult: ['createPartnerFeedbackResult', 'deletePartnerFeedbackResult'],
                 ModifyFeedbackTopic: ['createPartnerFeedbackTopic', 'deletePartnerFeedbackTopic'],
             },
+            "Config": {
+                PartnerBasic: [],
+            },
         },
         Platform: {
             "PlatformSetting": {

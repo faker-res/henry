@@ -1,0 +1,25 @@
+.row
+    .col-md-3
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                .fa.fa-wrench
+                label &nbsp;{{"CONFIGURATION" | translate}}
+            .panel-body.common-left-sub-panel-body
+                p(ng-if="!vm.curPlatformText")
+                    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+                ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.curPlatformText")
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerBasic"}', ng-click='vm.configTabClicked("partnerBasic")', ng-if="checkViewPermission('Partner', 'Config', 'PartnerBasic')" )
+                        span {{"Partner Basic" | translate}}
+
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"CONFIGURATION_DETAIL" | translate}}
+            .panel-body.common-right-sub-panel-body(ng-if="!vm.curPlatformText")
+            .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
+                .text-center(ng-if='!vm.selectedConfigTab')
+                    label.text-danger {{'Please select a type' | translate}}
+                div(ng-if='vm.selectedConfigTab=="partnerBasic"')
+                    include ./setting/partner-setting-basic
+                div(ng-if='vm.selectedConfigTab=="partnerCommission"')
+                    include ./setting/partner-setting-commission

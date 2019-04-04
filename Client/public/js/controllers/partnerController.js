@@ -270,6 +270,8 @@ define(['js/app'], function (myApp) {
 
         vm.longestDelayStatus = "rgb(0,180,0)";
 
+        //<editor-fold desc="Old Code">
+
         // Basic library functions
         var Lodash = {
             keyBy: (array, keyName) => {
@@ -734,6 +736,11 @@ define(['js/app'], function (myApp) {
             for (var i = 0; i < data.length; i++) {
                 vm.platformList.push(vm.createPlatformNode(data[i]));
             }
+
+            vm.platformList = vm.platformList.sort((a, b) => {
+                return a && a.data && b && b.data && a.data.platformId && b.data.platformId && Number(a.data.platformId) - Number(b.data.platformId);
+            });
+
             //var platformsToDisplay = vm.platformList;
             var searchText = (vm.platformSearchText || '').toLowerCase();
             var platformsToDisplay = vm.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
@@ -12055,101 +12062,6 @@ define(['js/app'], function (myApp) {
             vm.configTableEdit = false;
             vm.configTableAdd = false;
         }
-        vm.configSubmitUpdate = function (choice) {
-            switch (choice) {
-                case 'player':
-                    console.log('vm.playerLvlData', vm.playerLvlData);
-
-                    for (let i = 0; i < Object.keys(vm.playerLvlData).length; i++) {
-                        let levelUpConfig = vm.playerLvlData[Object.keys(vm.playerLvlData)[i]].levelUpConfig;
-                        for (let j = 0; j < levelUpConfig.length; j++) {
-                            if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod ||
-                                vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
-                                vm.platformBatchLevelUp = false;
-                                break;
-                            } else if (vm.isDiffConsumptionProvider(levelUpConfig[j].consumptionSourceProviderId)) {
-                                vm.platformBatchLevelUp = false;
-                                break;
-                            }
-                        }
-                        if (vm.platformBatchLevelUp == false) {
-                            break;
-                        }
-                    }
-
-                    if (vm.playerLevelDisplayList && vm.playerLevelDisplayList.length > 0) {
-                        for (let i = 0; i < vm.playerLevelDisplayList.length; i++) {
-                            if (vm.playerLevelDisplayList[i].displayId == "" && vm.playerLevelDisplayList[i].displayTitle == "" && vm.playerLevelDisplayList[i].displayTextContent == "") {
-                                vm.playerLevelDisplayList.splice(i, 1);
-                            }
-                        }
-
-                        vm.playerLevelDisplayList = vm.playerLevelDisplayList || [];
-                    }
-
-                    updatePlatformBasic({
-                        autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
-                        manualPlayerLevelUp: vm.manualPlayerLevelUp,
-                        playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
-                        playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
-                        platformBatchLevelUp: vm.platformBatchLevelUp,
-                        display: vm.playerLevelDisplayList
-                    });
-                    if (vm.allPlayerLvlReordered) {
-                        // Number the levels correctly.  (This should only really be needed if something went wrong on a previous attempt.)
-                        vm.ensurePlayerLevelOrder();
-                    } else {
-                        updatePlayerLevels(vm.playerIDArr, 0);
-                    }
-                    break;
-                case 'partner':
-                    updatePartnerLevels(vm.partnerIDArr, 0);
-                    break;
-                case 'validActive':
-                    updatePartnerLevelConfig();
-                    break;
-                case 'announcement':
-                    updatePlatformAnnouncements(vm.allPlatformAnnouncements, 0);
-                    break;
-                case 'platformBasic':
-                    updatePlatformBasic(vm.platformBasic);
-                    break;
-                case 'partnerBasic':
-                    updatePartnerBasic(vm.partnerBasic);
-                    break;
-                case 'bonusBasic':
-                    updatePlatformBasic(vm.bonusBasic);
-                    break;
-                case 'autoApproval':
-                    updateAutoApprovalConfig(vm.autoApprovalBasic);
-                    break;
-                case 'monitor':
-                    updateMonitorBasic(vm.monitorBasic);
-                    break;
-                case 'PlayerValue':
-                    updatePlayerValueConfig(vm.playerValueBasic);
-                    updatePlayerLevelScore();
-                    break;
-                case 'credibility':
-                    updateCredibilityRemark();
-                    break;
-                case 'promoSMSContent':
-                    updatePromoSMSContent();
-                    break;
-                case 'providerGroup':
-                    updateProviderGroup();
-                    break;
-                case 'smsGroup':
-                    updateSmsGroup();
-                    break;
-                case 'bulkPhoneCallSetting':
-                    updateBulkCallBasic(vm.bulkCallBasic);
-                    break;
-                case 'callRequestConfig':
-                    updateCallRequestConfig(vm.callRequestConfig);
-                    break;
-            }
-        };
 
         function updatePlayerLevels(arr, index, deltaValue, callback) {
             if (index >= arr.length) {
@@ -12382,61 +12294,13 @@ define(['js/app'], function (myApp) {
         }
 
         vm.partnerCommissionName = function getPartnerCommisionName() {
-            if (vm.partnerBasic.partnerDefaultCommissionGroup) {
+            if (vm.partnerBasic && vm.partnerBasic.partnerDefaultCommissionGroup) {
                 return Object.keys(vm.constPartnerCommisionType)[vm.partnerBasic.partnerDefaultCommissionGroup];
             } else {
                 return "CLOSED_COMMISSION";
             }
         }
 
-        function updatePartnerBasic(srcData) {
-            let whiteListingPhoneNumbers = [];
-            let blackListingPhoneNumbers = [];
-
-            if (srcData.whiteListingPhoneNumbers) {
-                let phones = srcData.whiteListingPhoneNumbers.split(/\r?\n/);
-                for (let i = 0, len = phones.length; i < len; i++) {
-                    let phone = phones[i].trim();
-                    if (phone) whiteListingPhoneNumbers.push(phone);
-                }
-            }
-
-            if (srcData.blackListingPhoneNumbers) {
-                let phones = srcData.blackListingPhoneNumbers.split(/\r?\n/);
-                for (let i = 0, len = phones.length; i < len; i++) {
-                    let phone = phones[i].trim();
-                    if (phone) blackListingPhoneNumbers.push(phone);
-                }
-            }
-            let sendData = {
-                query: {
-                    _id: vm.selectedPlatform.id
-                },
-                updateData: {
-                    partnerNameMaxLength: srcData.partnerNameMaxLength,
-                    partnerNameMinLength: srcData.partnerNameMinLength,
-                    partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
-                    partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
-                    partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
-                    whiteListingPhoneNumbers: whiteListingPhoneNumbers,
-                    blackListingPhoneNumbers: blackListingPhoneNumbers,
-                    partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
-                    partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
-                    partnerRequireSMSVerificationForPaymentUpdate: srcData.partnerRequireSMSVerificationForPaymentUpdate,
-                    partnerSmsVerificationExpireTime: srcData.partnerSmsVerificationExpireTime,
-                    partnerRequireLogInCaptcha: srcData.partnerRequireLogInCaptcha,
-                    partnerRequireCaptchaInSMS: srcData.partnerRequireCaptchaInSMS,
-                    partnerUsePhoneNumberTwoStepsVerification: srcData.partnerUsePhoneNumberTwoStepsVerification,
-                    partnerUnreadMailMaxDuration: srcData.partnerUnreadMailMaxDuration,
-                    partnerDefaultCommissionGroup: srcData.partnerDefaultCommissionGroup
-                }
-            };
-            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                loadPlatformData({
-                    loadAll: false
-                });
-            });
-        }
 
         function updateAutoApprovalConfig(srcData) {
             let sendData = {
@@ -16585,6 +16449,121 @@ define(['js/app'], function (myApp) {
             });
         };
         // end of Partner Permission Log
+
+
+        //</editor-fold>
+
+
+        // region config
+        vm.configTabClicked = function (choice) {
+            vm.selectedConfigTab = choice;
+            vm.configTableEdit = false;
+            vm.blacklistIpConfigTableEdit = false;
+            vm.financialSettlementSystemTableEdit = false;
+            vm.newBlacklistIpConfig = [];
+            vm.delayDurationGroupProviderEdit = false;
+            switch (choice) {
+                // case 'partner':
+                //     vm.newPartnerLvl = {};
+                //     vm.getAllPartners();
+                //     break;
+                // case 'partnerCommission':
+                //     vm.partnerCommission = {};
+                //     vm.getCommissionRateGameProviderGroup();
+                //     vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
+                //     break;
+                case 'partnerBasic':
+                    vm.platformIdInSetting = undefined;
+                    vm.platformInSetting = undefined;
+                    console.log('load here configTbaClicked partnerBAsic')
+                    break;
+
+            }
+        };
+
+        vm.getPlatformInSetting = () => {
+            if (vm.platformIdInSetting) {
+                let selectedPlatform = vm.platformList.find(platformData => {
+                    return platformData && platformData.data && platformData.data.platformId;
+                });
+                vm.platformInSetting = selectedPlatform.data;
+                vm.getPartnerBasic();
+                // $scope.$evalAsync();
+            }
+        };
+
+        vm.getPartnerBasic = function () {
+            vm.partnerBasic = vm.partnerBasic || {};
+            vm.partnerBasic.partnerNameMaxLength = vm.platformInSetting.partnerNameMaxLength;
+            vm.partnerBasic.partnerNameMinLength = vm.platformInSetting.partnerNameMinLength;
+            vm.partnerBasic.partnerPasswordMaxLength = vm.platformInSetting.partnerPasswordMaxLength;
+            vm.partnerBasic.partnerPasswordMinLength = vm.platformInSetting.partnerPasswordMinLength;
+            vm.partnerBasic.partnerPrefix = vm.platformInSetting.partnerPrefix;
+            vm.partnerBasic.partnerCreatePlayerPrefix = vm.platformInSetting.partnerCreatePlayerPrefix;
+            vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.platformInSetting.partnerAllowSamePhoneNumberToRegister;
+            vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.platformInSetting.partnerSamePhoneNumberRegisterCount;
+            vm.partnerBasic.partnerAllowSameRealNameToRegister = vm.platformInSetting.partnerAllowSameRealNameToRegister;
+            vm.partnerBasic.partnerRequireSMSVerification = vm.platformInSetting.partnerRequireSMSVerification;
+            vm.partnerBasic.partnerRequireSMSVerificationForPasswordUpdate = vm.platformInSetting.partnerRequireSMSVerificationForPasswordUpdate;
+            vm.partnerBasic.partnerRequireSMSVerificationForPaymentUpdate = vm.platformInSetting.partnerRequireSMSVerificationForPaymentUpdate;
+            vm.partnerBasic.partnerSmsVerificationExpireTime = vm.platformInSetting.partnerSmsVerificationExpireTime;
+            vm.partnerBasic.partnerRequireLogInCaptcha = vm.platformInSetting.partnerRequireLogInCaptcha;
+            vm.partnerBasic.partnerRequireCaptchaInSMS = vm.platformInSetting.partnerRequireCaptchaInSMS;
+            vm.partnerBasic.partnerUsePhoneNumberTwoStepsVerification = vm.platformInSetting.partnerUsePhoneNumberTwoStepsVerification;
+            vm.partnerBasic.partnerUnreadMailMaxDuration = vm.platformInSetting.partnerUnreadMailMaxDuration;
+            vm.partnerBasic.partnerDefaultCommissionGroup = vm.platformInSetting.partnerDefaultCommissionGroup.toString();
+            vm.partnerBasic.partnerSameBankAccountCount = vm.platformInSetting.partnerSameBankAccountCount;
+
+            $scope.$evalAsync();
+        }
+
+        vm.configSubmitUpdate = function (choice) {
+            switch (choice) {
+                // case 'partner':
+                //     updatePartnerLevels(vm.partnerIDArr, 0);
+                //     break;
+                case 'partnerBasic':
+                    updatePartnerBasic(vm.partnerBasic);
+                    break;
+            }
+        };
+
+        function updatePartnerBasic(srcData) {
+            let sendData = {
+                query: {_id: vm.platformInSetting._id},
+                updateData: {
+                    partnerNameMaxLength: srcData.partnerNameMaxLength,
+                    partnerNameMinLength: srcData.partnerNameMinLength,
+                    partnerPasswordMaxLength: srcData.partnerPasswordMaxLength,
+                    partnerPasswordMinLength: srcData.partnerPasswordMinLength,
+                    partnerPrefix: srcData.partnerPrefix,
+                    partnerCreatePlayerPrefix: srcData.partnerCreatePlayerPrefix,
+                    partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
+                    partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
+                    partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
+                    partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
+                    partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
+                    partnerRequireSMSVerificationForPaymentUpdate: srcData.partnerRequireSMSVerificationForPaymentUpdate,
+                    partnerSmsVerificationExpireTime: srcData.partnerSmsVerificationExpireTime,
+                    partnerRequireLogInCaptcha: srcData.partnerRequireLogInCaptcha,
+                    partnerRequireCaptchaInSMS: srcData.partnerRequireCaptchaInSMS,
+                    partnerUsePhoneNumberTwoStepsVerification: srcData.partnerUsePhoneNumberTwoStepsVerification,
+                    partnerUnreadMailMaxDuration: srcData.partnerUnreadMailMaxDuration,
+                    partnerDefaultCommissionGroup: srcData.partnerDefaultCommissionGroup,
+                    partnerSameBankAccountCount: srcData.partnerSameBankAccountCount
+                }
+            };
+            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                loadPlatformData({loadAll: false});
+            });
+        }
+
+
+
+
+
+
+        // endregion config
     };
 
     let injectParams = [
