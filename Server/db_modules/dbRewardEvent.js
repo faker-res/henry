@@ -119,7 +119,7 @@ var dbRewardEvent = {
                             data.param.rewardParam[0] && data.param.rewardParam[0].value && data.param.rewardParam[0].value.length){
 
                             let list = data.param.rewardParam[0].value.filter( p => (p.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_C) && Number.isFinite(p.possibility))
-                            return dbRewardEvent.createNewPromoCodeTemplate(list, data.platform);
+                            return createNewPromoCodeTemplateFromArr(list, data.platform);
                         }
                         return true;
                     }
@@ -177,9 +177,8 @@ var dbRewardEvent = {
                     ))
                 }
             )
+            return Promise.all(createProm)
         }
-
-        return Promise.all(createProm)
     },
 
     setPromoCodeTemplateObj: function (row, platformObjId){
@@ -3056,6 +3055,11 @@ var dbRewardEvent = {
                         name: "DataError",
                         message: "Error in getting rewardEvent"
                     });
+                }
+
+                if (event.condition && event.condition.interval && event.condition.interval == "6") { // 6 == last month
+                    // for startPlatformRTGEventSettlement only, last month is same with month
+                    event.condition.interval = "4";
                 }
 
                 let settleTime =  getIntervalPeriodFromEvent(event, getIntervalPeriodFromEvent(event).startTime.setMinutes(getIntervalPeriodFromEvent(event).startTime.getMinutes() - 10));

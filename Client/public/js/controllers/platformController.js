@@ -1261,6 +1261,7 @@ define(['js/app'], function (myApp) {
                             vm.initAuctionSystem();
                             loadPromoCodeTemplate();
                             vm.onGoingLoadPlatformData = false;
+                            vm.loadTab("Feedback");
                         })
                     },
                     function (error) {
@@ -1408,9 +1409,6 @@ define(['js/app'], function (myApp) {
                 vm.platformPageName = tabName;
 
                 switch (tabName) {
-                    case "Player":
-                        vm.activatePlayerTab();
-                        break;
                     case "Feedback":
                         vm.initPlayerFeedback();
                         break;
@@ -2178,6 +2176,8 @@ define(['js/app'], function (myApp) {
                         break;
                     case "4":
                     case 4:
+                    case "6":
+                    case 6:
                         socketName = "getLastMonthSGTime";
                 }
 
@@ -16016,19 +16016,7 @@ define(['js/app'], function (myApp) {
                     showSubmit: true
                 };
             }
-            vm.requestClearProposalLimit = function () {
-                vm.clearPlayerProposalLimit.resMsg = '';
-                vm.clearPlayerProposalLimit.showSubmit = false;
-                socketService.$socket($scope.AppSocket, 'requestClearProposalLimit', {username: vm.selectedSinglePlayer.name}, function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.clearPlayerProposalLimit.resMsg = $translate("Success");
-                    })
-                }, function (err) {
-                    $scope.$evalAsync(() => {
-                        vm.clearPlayerProposalLimit.resMsg = err.error.errorMsg;
-                    })
-                });
-            }
+
             ///////////////////////////////// player feedback //////////////////////////////////////////
             vm.initFeedbackQuery = function () {
                 vm.playerFeedbackQuery = vm.playerFeedbackQuery || {
@@ -17677,6 +17665,11 @@ define(['js/app'], function (myApp) {
                         }
                     });
                     vm.getCtiData();
+                    $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                    $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
+                    $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
+                    $('select#selectGameProvider').multipleSelect('refresh');
+                    vm.refreshSPicker();
                 });
             };
 
@@ -22290,10 +22283,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addNewRewardTypeRow = (row, entry, newEntryData) => {
-                // if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)
-                //     && vm.isPromoNameExist(entry.title)){
-                //     return socketService.showErrorMessage($translate('Promo code name must be unique'));
-                // }
+                if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)
+                    && vm.isPromoNameExist(entry.title) && !entry.templateObjId){
+                    return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                }
                 newEntryData.id = createObjectId();
                 row.push(newEntryData);
             }

@@ -393,9 +393,7 @@ var dbLogger = {
                     let action = adminActionRecordData.data[1].status == 1 ? "启用" : "维护";
                     adminActionRecordData.error = "设置" + data.provider.name + action;
                     adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platform ? adminActionRecordData.data[0].platform : adminActionRecordData.platforms;
-                }else if (logAction == 'requestClearProposalLimit' && adminActionRecordData.data[0] && adminActionRecordData.data[0].username){
-                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].username;
-                }else if ((logAction == 'updatePlayerPermission' || logAction == 'updatePartnerPermission')
+                } else if ((logAction == 'updatePlayerPermission' || logAction == 'updatePartnerPermission')
                     && data && (data.name || data.partnerName) && Object.keys(adminActionRecordData.data[2]).length){
                     let permissionChange = '';
                     let name = logAction == 'updatePlayerPermission' ? data.name : data.partnerName;

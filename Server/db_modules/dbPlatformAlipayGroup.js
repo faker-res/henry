@@ -180,13 +180,6 @@ var dbPlatformAlipayGroup = {
                     };
 
                     return RESTUtils.getPMS2Services("postBankCardList", reqData);
-                } else {
-                    return pmsAPI.alipay_getAlipayList(
-                        {
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    );
                 }
             }
         )
@@ -269,13 +262,6 @@ var dbPlatformAlipayGroup = {
                         };
 
                         return RESTUtils.getPMS2Services("postBankCardList", reqData);
-                    } else {
-                        return pmsAPI.alipay_getAlipayList(
-                            {
-                                platformId: platformId,
-                                queryId: serverInstance.getQueryId()
-                            }
-                        )
                     }
                 }
             }
@@ -445,45 +431,47 @@ var dbPlatformAlipayGroup = {
     },
 
     getIncludedAlipaysByAlipayGroup: function (platformId, alipayGroupId) {
-        var allAlipays = [];
-        return pmsAPI.alipay_getAlipayList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
-            data=> {
+        let allAlipays = [];
+        let reqData = {
+            platformId: platformId,
+            accountType: constAccountType.ALIPAY
+        };
+
+        return RESTUtils.getPMS2Services("postBankCardList", reqData).then(
+            data => {
                 allAlipays = data.data || [];
+
                 return dbconfig.collection_platformAlipayGroup.findOne({_id: alipayGroupId})
             }
         ).then(
-            data=> {
-                var alipaysArr = data.alipays || [];
-                return allAlipays.filter(a=> {
-                    return alipaysArr.indexOf(a.accountNumber) != -1
-                })
-            })
+            data => {
+                let alipaysArr = data.alipays || [];
+
+                return allAlipays.filter(a => alipaysArr.indexOf(a.accountNumber) !== -1)
+            }
+        )
     },
 
     getExcludedAlipaysByAlipayGroup: function (platformId, alipayGroupId) {
-        var allAlipays = [];
-        return pmsAPI.alipay_getAlipayList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
-            data=> {
+        let allAlipays = [];
+        let reqData = {
+            platformId: platformId,
+            accountType: constAccountType.ALIPAY
+        };
+
+        return RESTUtils.getPMS2Services("postBankCardList", reqData).then(
+            data => {
                 allAlipays = data.data || [];
+
                 return dbconfig.collection_platformAlipayGroup.findOne({_id: alipayGroupId})
             }
         ).then(
-            data=> {
-                var alipaysArr = data.alipays || [];
-                return allAlipays.filter(a=> {
-                    return alipaysArr.indexOf(a.accountNumber) == -1
-                })
-            })
+            data => {
+                let alipaysArr = data.alipays || [];
+
+                return allAlipays.filter(a => alipaysArr.indexOf(a.accountNumber) === -1)
+            }
+        )
     },
 
     addPlayersToAlipayGroup: function (bankAlipayGroupObjId, playerObjIds) {

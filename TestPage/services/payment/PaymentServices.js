@@ -74,7 +74,6 @@
                 "getMerchantIdListByGroup",
                 "setUpdateCreditProposalStatus",
                 "addTestTopUp",
-                "requestProposalSuccessPMS"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
