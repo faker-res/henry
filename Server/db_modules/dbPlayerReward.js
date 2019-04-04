@@ -7976,8 +7976,17 @@ let dbPlayerReward = {
                                         }
                                     }
                                     if(eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+
+                                        if ( selectedReward && selectedReward.possibility ) {
+                                            delete selectedReward.possibility;
+                                        }
+                                        if ( selectedReward && selectedReward.totalProbability ) {
+                                            delete selectedReward.totalProbability;
+                                        }
                                         let randomRewardRes = {
-                                            amount: rewardAmount
+                                            selectedReward: selectedReward,
+                                            rewardName: eventData.name,
+                                            code: eventData.code
                                         }
                                         return Promise.all(postPropPromArr).then(
                                             () => {
