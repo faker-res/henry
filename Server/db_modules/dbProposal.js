@@ -848,13 +848,11 @@ var proposal = {
         let proposalObj = null;
         let type = constPlayerTopUpType.ONLINE;
         let updObj, topupRate, topupActualAmt;
-        console.log('JY1 xxxxx');
+
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: 'type', model: dbconfig.collection_proposalType
         }).lean().then(
             proposalData => {
-                console.log('JY1 proposalData');
-                console.log('JY1 callbackData', callbackData);
                 if (proposalData && proposalData.data) {
                     proposalObj = proposalData;
                     remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
@@ -951,9 +949,6 @@ var proposal = {
                 let merchantProm = Promise.resolve(false);
                 let sysCustomMerchantRateProm = Promise.resolve();
 
-                console.log('proposalObj.data.platform JY', proposalObj.data.platform);
-                console.log('proposalObj.data.platformId JY', proposalObj.data.platformId);
-
                 if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
                     switch (Number(callbackData.topUpType)) {
                         case 1:
@@ -981,8 +976,7 @@ var proposal = {
                     let merchantQuery = {
                         platformId: proposalObj.data.platform,
                         merchantNo: callbackData.merchantNo,
-                        topupType: callbackData.depositMethod,
-                        customizeRate: {$exists: true}
+                        topupType: callbackData.depositMethod
                     };
 
                     if (proposalObj.data && proposalObj.data.topUpSystemName && proposalObj.data.topUpSystemName === 'PMS2') {
