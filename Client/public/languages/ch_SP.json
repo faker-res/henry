@@ -5430,5 +5430,7 @@
   "Promo Code-B (With Deposit)": "优惠類型-B(需存款)",
   "Promo Code-B (Without Deposit)": "优惠類型-B(不存款)",
   "Promo Code-C": "优惠类型-C",
+  "rewardName": "优惠奖励",
+  "rewardAppearPeriod": "周期内出现场次",
   "WEBSITE_MULTI_SELECTION": "网站（复选）"
 }
