@@ -205,6 +205,10 @@ var proposal = {
     },
 
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
+        console.log('platformId===', platformId);
+        console.log('typeName===', typeName);
+        console.log('proposalData===', proposalData);
+        console.log('smsLogInfo===', smsLogInfo);
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
                 .then(processData => {
@@ -226,6 +230,8 @@ var proposal = {
 
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
+                console.log('check return data===', data);
+                console.log('check smsLogInfo===', smsLogInfo);
                 if (smsLogInfo && data && data.proposalId)
                     dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
 
@@ -540,6 +546,7 @@ var proposal = {
                                     'data.playerName': proposalData.data.playerName
                                 }).lean().then(bankInfoProposal => {
                                     if (!bankInfoProposal) {
+                                        console.log('first bank===11');
                                         return {isFirstBankInfo: true};
                                     }
                                 });
@@ -556,6 +563,7 @@ var proposal = {
                                     'data.partnerName': proposalData.data.partnerName
                                 }).lean().then(bankInfoProposal => {
                                     if (!bankInfoProposal) {
+                                        console.log('first bank===22');
                                         return {isFirstBankInfo: true};
                                     }
                                 });
@@ -564,6 +572,7 @@ var proposal = {
                         }).then(bankInfoProposal => {
                             // add remark if first time bound to the bank info
                             if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
+                                console.log('first bank===33');
                                 proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
                             }
 
@@ -679,6 +688,7 @@ var proposal = {
             function (data) {
                 if (data) {
                     if (bExecute) {
+                        console.log('EXECUTE here===');
                         proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, data)
                             .then(
                                 updatedProposalData => {
@@ -984,7 +994,8 @@ var proposal = {
                     let merchantQuery = {
                         platformId: proposalObj.data.platform,
                         merchantNo: callbackData.merchantNo,
-                        topupType: callbackData.depositMethod
+                        topupType: callbackData.depositMethod,
+                        name: callbackData.merchantName
                     };
 
                     if (proposalObj.data && proposalObj.data.topUpSystemName && proposalObj.data.topUpSystemName === 'PMS2') {

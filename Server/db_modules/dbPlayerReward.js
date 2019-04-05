@@ -7628,7 +7628,10 @@ let dbPlayerReward = {
                                 proposalData.data.consecutiveNumber = applyDetail.consecutiveNumber;
                             }
 
-                            if (applyDetail.targetDate) {
+                            if (eventData.condition.interval && eventData.condition.interval == "6") { // last month
+                                // force applyTargetDate to last month to prevent error
+                                proposalData.data.applyTargetDate = intervalTime.startTime;
+                            } else if (applyDetail.targetDate) {
                                 proposalData.data.applyTargetDate = applyDetail.targetDate.startTime;
                             }
 
@@ -7784,7 +7787,10 @@ let dbPlayerReward = {
                             proposalData.data.actualAmount = actualAmount;
                         }
 
-                        if (rewardData.applyTargetDate) {
+                        if (eventData.condition.interval && eventData.condition.interval == "6") { // last month
+                            // force applyTargetDate to last month to prevent error
+                            proposalData.data.applyTargetDate = intervalTime.startTime;
+                        } else if (rewardData.applyTargetDate) {
                             proposalData.data.applyTargetDate = new Date(rewardData.applyTargetDate);
                         }
 

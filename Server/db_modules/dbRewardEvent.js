@@ -225,9 +225,11 @@ var dbRewardEvent = {
             genre: constPromoCodeTemplateGenre.RANDOM_REWARD,
             expiredInDay: row.expiredInDay,
             disableWithdraw: row.disableWithdraw,
-            forbidWithdrawIfBalanceAfterUnlock: row.forbidWithdrawIfBalanceAfterUnlock,
             // minTopUpAmount: row.minTopUpAmount,
             createTime: new Date ()
+        }
+        if (row.forbidWithdrawIfBalanceAfterUnlock) {
+            obj.forbidWithdrawIfBalanceAfterUnlock = (row.forbidWithdrawIfBalanceAfterUnlock && row.forbidWithdrawIfBalanceAfterUnlock != '') ? Number(row.forbidWithdrawIfBalanceAfterUnlock) : null;
         }
 
         if (row.rewardType == constRandomRewardType.PROMOCODE_C){
@@ -2717,9 +2719,12 @@ var dbRewardEvent = {
                 genre: constPromoCodeTemplateGenre.RANDOM_REWARD,
                 expiredInDay: data.expiredInDay,
                 disableWithdraw: data.disableWithdraw,
-                forbidWithdrawIfBalanceAfterUnlock: data.forbidWithdrawIfBalanceAfterUnlock,
                 // minTopUpAmount: data.minTopUpAmount,
                 // createTime: new Date ()
+            }
+
+            if (data.forbidWithdrawIfBalanceAfterUnlock) {
+                updateObj.forbidWithdrawIfBalanceAfterUnlock = (data.forbidWithdrawIfBalanceAfterUnlock && data.forbidWithdrawIfBalanceAfterUnlock != '') ? Number(data.forbidWithdrawIfBalanceAfterUnlock) : null;
             }
 
             if (data.rewardType == constRandomRewardType.PROMOCODE_C){
