@@ -5997,6 +5997,7 @@ let dbPlayerReward = {
             promArr.push(dbConfig.collection_playerRandomReward.findOne({
                 playerId: playerData._id,
                 platformId: playerData.platform._id,
+                rewardEvent: eventData._id,
                 status: 1
             }).sort({createTime: 1}).lean());
         }
@@ -7995,6 +7996,16 @@ let dbPlayerReward = {
                                         if ( selectedReward && selectedReward.totalProbability ) {
                                             delete selectedReward.totalProbability;
                                         }
+                                        
+                                        if (selectedReward && selectedReward.expiredInDay){
+                                            let todayEndTime = dbUtility.getTodaySGTime().endTime;
+                                            selectedReward.expirationTime = dbUtility.getNdaylaterFromSpecificStartTime(selectedReward.expiredInDay, todayEndTime);
+                                        }
+
+                                        if (proposalData && proposalData.data && proposalData.promoCode){
+                                            selectedReward.promoCode = proposalData.promoCode
+                                        }
+
                                         let randomRewardRes = {
                                             selectedReward: selectedReward,
                                             rewardName: eventData.name,
@@ -8002,8 +8013,9 @@ let dbPlayerReward = {
                                         }
                                         return Promise.all(postPropPromArr).then(
                                             () => {
-                                                  return Promise.resolve(randomRewardRes);
-                                            });
+                                                return Promise.resolve(randomRewardRes);
+                                            }
+                                        );
                                     }
 
                                     return Promise.all(postPropPromArr).then(() => {

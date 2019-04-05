@@ -3,12 +3,14 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 const env = require("./config/env").config();
+const theOtherEnv = require("./config/env").getAnotherConfig()[0];
 const webEnv = require('./public/js/webEnv');
 const nodeUrl = env.redisUrl || 'localhost';
 const port = env.redisPort || 1802;
 const jwt = require('jsonwebtoken');
 const secret = "$ap1U5eR$";
 const crypto = require('crypto');
+const rp = require('request-promise');
 
 const privateKeyPath = "./public/playerPhone.key.pem";
 const replacedPrivateKeyPath = "./public/playerPhone.key.pem.bak";
@@ -224,5 +226,100 @@ http.createServer(function (req, res) {
         });
     }
 }).listen(parseInt(port));
+
+getKeyFromOtherInstance();
+
+function getKeyFromOtherInstance () {
+    let privateKeyProm = privateKey ? Promise.resolve(privateKey) : getPrivateKey();
+    let replPrivateKeyProm = replacedPrivateKey ? Promise.resolve(replacedPrivateKey) : getReplPrivateKey();
+    let publicKeyProm = publicKey ? Promise.resolve(publicKey) : getPublicKey();
+    let replPublicKeyProm = replacedPublicKey ? Promise.resolve(replacedPublicKey) : getReplPublicKey();
+
+    return Promise.all([
+        privateKeyProm,
+        replPrivateKeyProm,
+        publicKeyProm,
+        replPublicKeyProm
+    ]);
+
+    function getPrivateKey () {
+        return rp({
+            method: 'GET',
+            uri: getKeyUrl("playerPhone.key.pem")
+        }).then(
+            data => {
+                if (data) {
+                    console.log('SETTING PRIVATE KEY FROM ANOTHER INSTANCE');
+                    privateKey = data;
+                }
+            }
+        ).catch(
+            err => privateKey
+        )
+    }
+
+    function getReplPrivateKey () {
+        return rp({
+            method: 'GET',
+            uri: getKeyUrl("playerPhone.key.pem.bak")
+        }).then(
+            data => {
+                if (data) {
+                    console.log('SETTING REPL PRIVATE KEY FROM ANOTHER INSTANCE');
+                    replacedPrivateKey = data;
+                }
+            }
+        ).catch(
+            err => replacedPrivateKey
+        )
+    }
+
+    function getPublicKey () {
+        return rp({
+            method: 'GET',
+            uri: getKeyUrl("playerPhone.pub")
+        }).then(
+            data => {
+                if (data) {
+                    console.log('SETTING PUBLIC KEY FROM ANOTHER INSTANCE');
+                    publicKey = data;
+                }
+            }
+        ).catch(
+            err => publicKey
+        )
+    }
+
+    function getReplPublicKey () {
+        return rp({
+            method: 'GET',
+            uri: getKeyUrl("playerPhone.pub.bak")
+        }).then(
+            data => {
+                if (data) {
+                    console.log('SETTING REPL PUBLIC KEY FROM ANOTHER INSTANCE');
+                    replacedPublicKey = data;
+                }
+            }
+        ).catch(
+            err => replacedPublicKey
+        )
+    }
+
+    function getKeyUrl (dirName) {
+        let keyUrl = "http://".concat(theOtherEnv.redisUrl);
+
+        if (theOtherEnv.redisPort) {
+            keyUrl += ":" + theOtherEnv.redisPort;
+        }
+
+        keyUrl += "/";
+        keyUrl += dirName;
+        keyUrl += "?token=";
+        keyUrl += jwt.sign(fpmsKey, secret);
+
+        return keyUrl;
+    }
+}
 
 console.log(`Server listening on port ${port}`);

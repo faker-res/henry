@@ -1261,7 +1261,10 @@ define(['js/app'], function (myApp) {
                             vm.initAuctionSystem();
                             loadPromoCodeTemplate();
                             vm.onGoingLoadPlatformData = false;
-                            vm.loadTab("Feedback");
+
+                            if (!vm.platformPageName) {
+                                vm.loadTab("Feedback");
+                            }
                         })
                     },
                     function (error) {
@@ -9011,7 +9014,6 @@ define(['js/app'], function (myApp) {
                     endDate: new Date(),
                     maxDate: new Date()
                 });
-                vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date("January 01, 1990")));
 
                 vm.existPhone = false;
                 vm.existRealName = false;
@@ -16818,7 +16820,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0) {
-                    sendQueryOr.push({lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}});
+                    sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
                 }
 
                 if (vm.playerFeedbackQuery.filterFeedback) {
@@ -18329,35 +18331,47 @@ define(['js/app'], function (myApp) {
             }
 
             vm.assignRandomRewardToUser = function (id) {
-                vm.assignRandomRewards;
-                if (!id) {
-                    id = vm.showReward._id;
-                }
-                let sendQuery = {
-                    randomRewards: vm.assignRandomRewards,
-                    platformId: vm.filterRewardPlatform,
-                    reward: id,
-                    creator: {type: "admin", name: authService.adminName, id: authService.adminId}
-                }
-                socketService.$socket($scope.AppSocket, 'assignRandomRewardToUser', sendQuery, function (data) {
-                    vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
-                });
+                return new Promise((resolve, reject) => {
+                    vm.assignRandomRewards;
+                    if (!id) {
+                        id = vm.showReward._id;
+                    }
+                    let sendQuery = {
+                        randomRewards: vm.assignRandomRewards,
+                        platformId: vm.filterRewardPlatform,
+                        reward: id,
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId}
+                    }
+                    socketService.$socket($scope.AppSocket, 'assignRandomRewardToUser', sendQuery, function (data) {
+                        vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
+                        resolve(data);
+                    });
+                }, err => {
+                    reject()
+                })
             };
 
             vm.editRandomRewardToUser = function () {
-                vm.activeRandomRewards.filter(item => {
-                    return item.isEdit === true;
+
+                return new Promise((resolve, reject) => {
+                    vm.activeRandomRewards.filter(item => {
+                        return item.isEdit === true;
+                    })
+
+                    let sendQuery = {
+                        randomRewards: vm.activeRandomRewards,
+                        platformId: vm.filterRewardPlatform,
+                        reward: vm.showReward._id,
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId}
+                    }
+                    socketService.$socket($scope.AppSocket, 'editRandomRewardToUser', sendQuery, function (data) {
+                        resolve(data);
+                    });
+
+                }, reject =>{
+                    reject();
                 })
 
-                let sendQuery = {
-                    randomRewards: vm.activeRandomRewards,
-                    platformId: vm.filterRewardPlatform,
-                    reward: vm.showReward._id,
-                    creator: {type: "admin", name: authService.adminName, id: authService.adminId}
-                }
-                socketService.$socket($scope.AppSocket, 'editRandomRewardToUser', sendQuery, function (data) {
-                    console.log(data);
-                });
             }
 
             vm.getRandomRewardDetail = function (status, fieldName) {
@@ -22530,7 +22544,7 @@ define(['js/app'], function (myApp) {
 
             vm.disableAllRewardInput = function (disabled) {
                 typeof disabled == "boolean" ? vm.rewardDisabledInput = disabled : disabled = vm.rewardDisabledInput;
-                $("#rewardMainTasks :input").prop("disabled", disabled);
+                $("#rewardMainTasks :input").not('.excluded').attr("disabled", disabled);
                 if (!disabled) {
                     $("#rewardMainTasks :input").removeClass("disabled");
                 }
@@ -23216,7 +23230,7 @@ define(['js/app'], function (myApp) {
                             total = total + (row.possibility || 0)
                         })
 
-                        if(total > 1){
+                        if($noRoundTwoDecimalPlaces(total) > 1){
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
                     }
@@ -23327,6 +23341,18 @@ define(['js/app'], function (myApp) {
                     vm.getRandomRewardDetail('1', 'activeRandomRewards');
                 }
             }
+            vm.saveRandomRewards = function () {
+                vm.saveRandomRewardMsg = '';
+                let proms = [];
+                let prom1 = vm.editRandomRewardToUser();
+                let prom2 = vm.assignRandomRewardToUser();
+                proms.push(prom1);
+                proms.push(prom2);
+                return Promise.all(proms).then(()=>{
+                    vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                    vm.saveRandomRewardMsg = $translate('DONE');
+                })
+            }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
                 socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name, platform: vm.filterRewardPlatform}, function (data) {
@@ -23430,7 +23456,7 @@ define(['js/app'], function (myApp) {
                             total = total + (row.possibility || 0)
                         })
 
-                        if(total > 1){
+                        if($noRoundTwoDecimalPlaces(total) > 1){
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
                     }
@@ -36402,27 +36428,26 @@ define(['js/app'], function (myApp) {
                     });
                 }
                 vm.feedbackAdminQuery.admin = "any";
-                $('#feedbackquerystarttime').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true,
-                    pickTime: true,
-                });
-                vm.feedbackAdminQuerystartDate = $("#feedbackquerystarttime").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
-
-                $('#feedbackqueryendtime').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
-                vm.feedbackAdminQueryendDate = $('#feedbackqueryendtime').data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
-
                 vm.feedbackAdminQuery = {
                     result: 'all',
                     topic: 'all',
                     topUpTimesOperator: ">="
                 };
                 utilService.actionAfterLoaded("#feedbackAdminTablePage", function () {
+                    $('#feedbackquerystarttime').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    vm.feedbackAdminQuerystartDate = $("#feedbackquerystarttime").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                    $('#feedbackqueryendtime').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+                    vm.feedbackAdminQueryendDate = $('#feedbackqueryendtime').data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
                     vm.feedbackAdminQuery.pageObj = utilService.createPageForPagingTable("#feedbackAdminTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "feedbackAdminQuery", vm.submitAdminPlayerFeedbackQuery)
                     });
