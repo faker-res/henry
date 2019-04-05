@@ -23235,7 +23235,7 @@ define(['js/app'], function (myApp) {
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
 
-                        if (curReward.condition && curReward.condition.hasOwnProperty('numberParticipation') && vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length < curReward.condition.numberParticipation){
+                        if (curReward.condition.noRepetitiveRewardInPeriod && curReward.condition && curReward.condition.hasOwnProperty('numberParticipation') && vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length < curReward.condition.numberParticipation){
                             return socketService.showErrorMessage($translate("The number of chances is larger than the available reward, please untick the 'No Repetitive Reward In Period'"));
                         }
                     }
@@ -23465,7 +23465,7 @@ define(['js/app'], function (myApp) {
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
 
-                        if (curReward.condition && curReward.condition.hasOwnProperty('numberParticipation') && vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length < curReward.condition.numberParticipation){
+                        if (sendData.condition.noRepetitiveRewardInPeriod && sendData.condition && sendData.condition.hasOwnProperty('numberParticipation') && vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length < sendData.condition.numberParticipation){
                             return socketService.showErrorMessage($translate("The number of chances is larger than the available reward, please untick the 'No Repetitive Reward In Period'"));
                         }
                     }
