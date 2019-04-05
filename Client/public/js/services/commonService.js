@@ -1711,6 +1711,7 @@ define([], () => {
                 proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
                 proposalDetail["useConsumptionAmount"] = vm.selectedProposal.data.useConsumptionAmount;
                 proposalDetail["useTopUpAmount"] = vm.selectedProposal.data.useTopUpAmount;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
             }
             // end region
 
