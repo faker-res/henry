@@ -440,8 +440,11 @@
 
                     .col-md-12.well.scrollRecord( style="height: 400px;", ng-if="vm.showRewardTypeData.name=='PlayerRandomRewardGroup'")
                         .inlineBlk.pull-right
-                            button.btn.btn-primary.common-button(ng-click='vm.getRandomRewardDetail()') {{'DETAILS' | translate }}
-
+                            button.btn.btn-primary.common-button.excluded(ng-click='vm.getRandomRewardDetail()') {{'DETAILS' | translate }}
+                        .inlineBlk.pull-right
+                            button.btn.btn-primary.common-button.excluded(ng-click='vm.saveRandomRewards()', ng-if='vm.showReward._id') {{'SAVE' | translate }}
+                        .inlineBlk.pull-right
+                            div.text-success {{ vm.saveRandomRewardMsg }}
                         //.panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
                             .panel-body(style="min-width: fit-content;")
                         div#playerRandomReward
@@ -455,21 +458,21 @@
                                     tr(ng-repeat="v in vm.activeRandomRewards")
                                         td(ng-show='v.status=="1"')
                                             // delete this random reward item , temporary set status = 3,
-                                            i.fa.fa-minus(ng-click='v.status="3"', ng-if='!vm.platformRewardShowEdit()')
+                                            i.fa.fa-minus(ng-click='v.status="3"')
                                         td(ng-show='v.status=="1"')
-                                            input(type='string', ng-model='v.playerName', ng-change='v.isEdit = true', ng-disabled='vm.platformRewardShowEdit()')
-                                        td(ng-show='v.status=="1"', ng-disabled='vm.platformRewardShowEdit()')
+                                            input(type='string', ng-model='v.playerName', ng-change='v.isEdit = true')
+                                        td(ng-show='v.status=="1"')
                                             //input(type='string', ng-model='v.randomReward')
-                                            select.form-control(ng-model='v.rewardName', ng-change='v.isEdit = true', ng-disabled='vm.platformRewardShowEdit()')
+                                            select.form-control(ng-model='v.rewardName', ng-change='v.isEdit = true')
                                                 option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
 
                                     tr(ng-repeat="(i,v) in vm.assignRandomRewards")
                                         td
                                             i.fa.fa-plus(ng-click='vm.addRandowRewardItem()')
                                         td
-                                            input(type='string', ng-model='v.playerName')
+                                            input.excluded(type='string', ng-model='v.playerName')
                                         td
-                                            select.form-control(ng-model='v.rewardName')
+                                            select.form-control.excluded(ng-model='v.rewardName')
                                                 option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
 
                 .col-md-12.well.scrollRecord(ng-if='vm.showRewardTypeData.isGrouped === true || (vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')

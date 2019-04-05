@@ -8,9 +8,6 @@
                 label {{'Customer Service Name' | translate}}
                 select.form-control.feedbackOption(ng-model='vm.feedbackAdminQuery.admin', ng-options='a.adminName as a.adminName group by a.departmentName for a in vm.departmentUsers')
                     option(value="") {{'any' | translate}}
-            //.search-filters-item
-            //    label {{'Customer Service Name' | translate}}
-            //    input.form-control(ng-model='vm.feedbackAdminQuery.cs', placeholder="{{'SEARCH' | translate}}")
             .search-filters-item
                 label {{'PLAYER' | translate}}
                 input.form-control(ng-model='vm.feedbackAdminQuery.player', placeholder="{{'SEARCH' | translate}}")
@@ -58,15 +55,3 @@
         label.margin-left-5 {{"total" | translate}} {{vm.feedbackAdmins.total}} {{"records" | translate}}
         table#feedbackAdminTable.display.common-table.paymentGroup-btn
         #feedbackAdminTablePage
-    //.col-md-12
-        #feedbackAdminTableSummary
-            label
-                span 本页： (充值次数：
-                span.pageTopup
-                span &nbsp;充值额：
-                span.pageAmount
-                span )&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 总计：(充值次数：
-                span.totalTopup
-                span &nbsp;充值额：
-                span.totalAmount
-                span )
