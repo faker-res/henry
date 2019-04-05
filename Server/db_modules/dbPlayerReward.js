@@ -5997,6 +5997,7 @@ let dbPlayerReward = {
             promArr.push(dbConfig.collection_playerRandomReward.findOne({
                 playerId: playerData._id,
                 platformId: playerData.platform._id,
+                rewardEvent: eventData._id,
                 status: 1
             }).sort({createTime: 1}).lean());
         }
@@ -7628,7 +7629,10 @@ let dbPlayerReward = {
                                 proposalData.data.consecutiveNumber = applyDetail.consecutiveNumber;
                             }
 
-                            if (applyDetail.targetDate) {
+                            if (eventData.condition.interval && eventData.condition.interval == "6") { // last month
+                                // force applyTargetDate to last month to prevent error
+                                proposalData.data.applyTargetDate = intervalTime.startTime;
+                            } else if (applyDetail.targetDate) {
                                 proposalData.data.applyTargetDate = applyDetail.targetDate.startTime;
                             }
 
@@ -7784,7 +7788,10 @@ let dbPlayerReward = {
                             proposalData.data.actualAmount = actualAmount;
                         }
 
-                        if (rewardData.applyTargetDate) {
+                        if (eventData.condition.interval && eventData.condition.interval == "6") { // last month
+                            // force applyTargetDate to last month to prevent error
+                            proposalData.data.applyTargetDate = intervalTime.startTime;
+                        } else if (rewardData.applyTargetDate) {
                             proposalData.data.applyTargetDate = new Date(rewardData.applyTargetDate);
                         }
 
@@ -7989,6 +7996,16 @@ let dbPlayerReward = {
                                         if ( selectedReward && selectedReward.totalProbability ) {
                                             delete selectedReward.totalProbability;
                                         }
+                                        
+                                        if (selectedReward && selectedReward.expiredInDay){
+                                            let todayEndTime = dbUtility.getTodaySGTime().endTime;
+                                            selectedReward.expirationTime = dbUtility.getNdaylaterFromSpecificStartTime(selectedReward.expiredInDay, todayEndTime);
+                                        }
+
+                                        if (proposalData && proposalData.data && proposalData.promoCode){
+                                            selectedReward.promoCode = proposalData.promoCode
+                                        }
+
                                         let randomRewardRes = {
                                             selectedReward: selectedReward,
                                             rewardName: eventData.name,
@@ -7996,8 +8013,9 @@ let dbPlayerReward = {
                                         }
                                         return Promise.all(postPropPromArr).then(
                                             () => {
-                                                  return Promise.resolve(randomRewardRes);
-                                            });
+                                                return Promise.resolve(randomRewardRes);
+                                            }
+                                        );
                                     }
 
                                     return Promise.all(postPropPromArr).then(() => {
