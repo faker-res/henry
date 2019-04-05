@@ -1,0 +1,133 @@
+include ./partner-setting-platform-select
+div(ng-if="vm.platformInSetting && checkViewPermission('Partner', 'Config', 'largeWithdrawalSetting')")
+    h4(style='text-align:center;font-weight:bold') {{"PARTNER" | translate}}
+    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+        thead
+            tr
+                th {{'TITLE' | translate}}
+                th {{'VALUE' | translate}}
+        tbody
+            tr
+                td {{'DEFAULT_EMAIL_NAME' | translate}}
+                td
+                    text(style='color:red') {{"large amount withdrawal (x): date--username--current withdrawal amount" | translate}} &nbsp
+                    input(type='text' ng-model='vm.largeWithdrawalPartnerSetting.emailNameExtension', ng-disabled='!vm.configTableEdit')
+            tr
+                td {{'RECIPIENT_SELECT' | translate}}
+                td
+                    text(ng-if='!vm.configTableEdit') {{"Please tick website's recipient" | translate}}
+                    a(data-toggle="modal", data-target='#modalLargeWithdrawalPartnerRecipient', ng-if='vm.configTableEdit', ng-click='vm.initModalLargeWithdrawalPartner()') {{"Please tick website's recipient" | translate}}
+            tr
+                td {{'The person who have the right to execute proposal' | translate}}
+                td
+                    text(ng-if='!vm.configTableEdit') {{"Please tick website's reviewer" | translate}}
+                    a(data-toggle="modal", data-target='#modalLargeWithdrawalPartnerRecipient', ng-if='vm.configTableEdit', ng-click='vm.initModalLargeWithdrawalPartner()') {{"Please tick website's reviewer" | translate}}
+            tr
+                td {{'audit link domain' | translate}}
+                td
+                    input(type='text' ng-model='vm.largeWithdrawalPartnerSetting.domain', ng-disabled='!vm.configTableEdit', placeholder='(e.g. "em9000.fpms8.me:9000")')
+
+    br
+    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+        thead
+            tr
+                th {{'A.'}} {{'PARTNER_INFO_SECTION' | translate}}
+                th {{'SELECT' | translate}}
+                th {{'TITLE' | translate}}
+                th {{'DEFINITION' | translate}}
+        tbody
+            tr
+                td(rowspan=10, style='background-color:lightblue') {{'PARTNER_BASIC_INFO' | translate}}
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showRealName', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'REAL_NAME' | translate}}
+                td
+                    text
+            tr
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showCommissionType', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'COMMISSION_TYPE' | translate}}
+                td
+                    text
+            tr
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showBankCity', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'BANK_CITY' | translate}}
+                td
+                    text {{'Bank card registration city' | translate}}
+            tr
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showRegisterTime', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'REGISTRATION_TIME' | translate}}
+                td
+                    text
+            tr
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showCurrentWithdrawalTime', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'CURRENT_WITHDRAWAL_TIME' | translate}}
+                td
+                    text {{'Current apply withdrawal time' | translate}}
+            tr
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showLastWithdrawalTime', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'LAST_WITHDRAWAL_TIME' | translate}}
+                td
+                    text {{'Last apply withdrawal time' | translate}}
+            tr
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showCurrentCredit', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'providerCreditAmount' | translate}}
+                td
+                    text {{'LOCAL_CREDIT_AMOUNT' | translate}}
+            tr
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showTotalDownlinePlayersCount', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'TOTAL_DOWNLINE_PLAYERS_COUNT' | translate}}
+                td
+                    text {{'Total number of players' | translate}}
+            tr
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showTotalDownlinePartnersCount', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'TOTAL_DOWNLINE_PARTNERS_COUNT' | translate}}
+                td
+                    text {{'Total number of partners' | translate}}
+            tr
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showProposalId', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'withdrawalProposalId' | translate}}
+                td
+                    text {{'current withdraw proposal ID' | translate}}
+    br
+    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+        thead
+            tr
+                th {{'B.'}} {{'PROPOSAL_INFO_SECTION' | translate}}
+                th {{'SELECT' | translate}}
+                th {{'TITLE' | translate}}
+                th {{'DEFINITION' | translate}}
+        tbody
+            tr
+                td(style='background-color:lightcoral') {{'PARTNER_LAST_WITHDRAW_TO_CURRENT_WITHDRAW' | translate}}
+                td
+                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showAllPartnerRelatedProposal', ng-disabled='!vm.configTableEdit')
+                td
+                    text {{'ALL_PARTNER_RELATED_PROPOSAL' | translate}}
+                td
+                    text {{'email all proposal created between two withdrawal times' | translate}}
+
+    br
+    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'largeWithdrawalSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+        text {{'EDIT' | translate}}
+        img.img-edit
+    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("largeWithdrawalPartnerSetting")') {{"CANCEL" | translate}}
+    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("largeWithdrawalPartnerSetting")') {{"CONFIRM" | translate}}

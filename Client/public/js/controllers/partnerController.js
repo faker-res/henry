@@ -16451,6 +16451,8 @@ define(['js/app'], function (myApp) {
                 case 'autoApproval':
                     vm.getAutoApprovalBasic();
                     break;
+                case 'largeWithdrawalPartnerSetting':
+                    vm.getLargeWithdrawalPartnerSetting();
 
             }
 
@@ -16510,6 +16512,112 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.firstWithdrawDifferentIPCheck = vm.platformInSetting.autoAudit.firstWithdrawDifferentIPCheck;
         };
 
+
+        vm.initModalLargeWithdrawalPartner = function () {
+            vm.largeWithdrawPartnerCheckReviewer = {};
+            vm.largeWithdrawPartnerCheckRecipient = {};
+            // to remove duplicate
+            [...new Set(vm.adminList.map(item => item._id))].forEach((admin, index) => {
+                vm.largeWithdrawPartnerCheckRecipient[index] = vm.getLargeWithdrawPartnerIsRecipient(admin);
+                vm.largeWithdrawPartnerCheckReviewer[index] = vm.getLargeWithdrawPartnerIsReviewer(admin);
+                $('#largeWithdrawPartnerRow' + index).removeAttr('style');
+                if (vm.largeWithdrawPartnerCheckReviewer[index]) {
+                    $('#largeWithdrawPartnerRow' + index).css('background-color', 'pink');
+                }
+            })
+        };
+
+        vm.getLargeWithdrawPartnerIsRecipient = function (adminObjId) {
+            // largeWithdrawalPartnerSetting
+            let isRecipient = false;
+            if (adminObjId && vm.largeWithdrawalPartnerSetting && vm.largeWithdrawalPartnerSetting.recipient &&
+                vm.largeWithdrawalPartnerSetting.recipient.length && vm.largeWithdrawalPartnerSetting.recipient.indexOf(String(adminObjId)) > -1) {
+                isRecipient = true;
+            }
+            return isRecipient;
+        };
+
+        vm.getLargeWithdrawPartnerIsReviewer = function (adminObjId) {
+            // largeWithdrawalSetting
+            let isReviewer = false;
+            if (adminObjId && vm.largeWithdrawalPartnerSetting && vm.largeWithdrawalPartnerSetting.reviewer &&
+                vm.largeWithdrawalPartnerSetting.reviewer && vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId)) > -1) {
+                isReviewer = true;
+            }
+            return isReviewer;
+        };
+
+        vm.setLargeWithdrawPartnerRecipient = function (adminObjId, isAdd, index) {
+            if (isAdd) {
+                if (vm.largeWithdrawalPartnerSetting.recipient.indexOf(String(adminObjId)) < 0) {
+                    vm.largeWithdrawalPartnerSetting.recipient.push(String(adminObjId));
+                }
+            } else {
+                let indexRecipient = vm.largeWithdrawalPartnerSetting.recipient.indexOf(String(adminObjId));
+                if (indexRecipient > -1) {
+                    vm.largeWithdrawalPartnerSetting.recipient.splice(indexRecipient, 1);
+                    let indexReviewer = vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId));
+                    if (indexReviewer > -1) {
+                        $('#largeWithdrawPartnerRow' + index).removeAttr('style');
+                        vm.largeWithdrawalPartnerSetting.reviewer.splice(indexReviewer, 1);
+                        vm.largeWithdrawPartnerCheckReviewer[index] = false;
+                    }
+                }
+            }
+        };
+
+        vm.setLargeWithdrawPartnerReviewer = function (adminObjId, isAdd, index) {
+            if (isAdd) {
+                if (vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId)) < 0) {
+                    vm.largeWithdrawalPartnerSetting.reviewer.push(String(adminObjId));
+                    $('#largeWithdrawPartnerRow' + index).css('background-color', 'pink');
+                }
+            } else {
+                let indexReviewer = vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId));
+                if (indexReviewer > -1) {
+                    vm.largeWithdrawalPartnerSetting.reviewer.splice(indexReviewer, 1);
+                    $('#largeWithdrawPartnerRow' + index).removeAttr('style');
+                }
+            }
+        };
+
+        vm.updateLargeWithdrawalPartnerRecipient = function () {
+            let sendData = {
+                query: {platform: vm.platformInSetting._id},
+                updateData: {
+                    recipient: vm.largeWithdrawalPartnerSetting.recipient,
+                    reviewer: vm.largeWithdrawalPartnerSetting.reviewer
+                }
+            }
+            socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
+                console.log("updateLargeWithdrawalPartnerRecipient complete", data)
+            });
+        };
+
+
+        vm.getLargeWithdrawalPartnerSetting = function () {
+            vm.largeWithdrawalPartnerSetting = vm.largeWithdrawalPartnerSetting || {};
+            let sendData = {platform: vm.platformInSetting._id};
+
+            // partner large withdrawal
+            socketService.$socket($scope.AppSocket, 'getLargeWithdrawalPartnerSetting', sendData, function (data) {
+                console.log('getLargeWithdrawalPartnerSetting');
+                $scope.$evalAsync(() => {
+                    vm.largeWithdrawalPartnerSetting = {}
+                    if (data && data.data) {
+                        vm.largeWithdrawalPartnerSetting = data.data;
+                    }
+                    if (!vm.largeWithdrawalPartnerSetting.recipient) {
+                        vm.largeWithdrawalPartnerSetting.recipient = [];
+                    }
+                    if (!vm.largeWithdrawalPartnerSetting.reviewer) {
+                        vm.largeWithdrawalPartnerSetting.reviewer = [];
+                    }
+                });
+            });
+
+        };
+
         vm.configSubmitUpdate = function (choice) {
             switch (choice) {
                 // case 'partner':
@@ -16520,6 +16628,9 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'autoApproval':
                     updateAutoApprovalConfig(vm.autoApprovalBasic);
+                    break;
+                case 'largeWithdrawalPartnerSetting':
+                    updateLargeWithdrawalPartnerSetting(vm.largeWithdrawalPartnerSetting);
             }
         };
 
@@ -16573,6 +16684,29 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        function updateLargeWithdrawalPartnerSetting(srcData) {
+            let sendData = {
+                query: {platform: vm.platformInSetting._id},
+                updateData: {
+                    emailNameExtension: srcData.emailNameExtension,
+                    showRealName: srcData.showRealName,
+                    showCommissionType: srcData.showCommissionType,
+                    showBankCity: srcData.showBankCity,
+                    showRegisterTime: srcData.showRegisterTime,
+                    showCurrentWithdrawalTime: srcData.showCurrentWithdrawalTime,
+                    showLastWithdrawalTime: srcData.showLastWithdrawalTime,
+                    showCurrentCredit: srcData.showCurrentCredit,
+                    showTotalDownlinePlayersCount: srcData.showTotalDownlinePlayersCount,
+                    showTotalDownlinePartnersCount: srcData.showTotalDownlinePartnersCount,
+                    showProposalId: srcData.showProposalId,
+                    showAllPartnerRelatedProposal: srcData.showAllPartnerRelatedProposal,
+                    domain: srcData.domain,
+                }
+            };
+            socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
+                console.log("updateLargeWithdrawalPartnerSetting complete")
+            });
+        }
 
 
 
