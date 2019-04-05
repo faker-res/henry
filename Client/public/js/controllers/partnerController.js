@@ -6,6 +6,8 @@ define(['js/app'], function (myApp) {
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let vm = this;
 
+        //<editor-fold desc="Old Code">
+
         // For debugging:
         window.VM = vm;
 
@@ -270,7 +272,6 @@ define(['js/app'], function (myApp) {
 
         vm.longestDelayStatus = "rgb(0,180,0)";
 
-        //<editor-fold desc="Old Code">
 
         // Basic library functions
         var Lodash = {
@@ -12287,35 +12288,6 @@ define(['js/app'], function (myApp) {
         }
 
 
-        function updateAutoApprovalConfig(srcData) {
-            let sendData = {
-                query: {
-                    _id: vm.selectedPlatform.id
-                },
-                updateData: {
-                    enableAutoApplyBonus: srcData.enableAutoApplyBonus,
-                    manualAuditFirstWithdrawal: srcData.manualAuditFirstWithdrawal,
-                    manualAuditAfterBankChanged: srcData.manualAuditAfterBankChanged,
-                    manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
-                    autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
-                    autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                    autoApproveLostThreshold: srcData.lostThreshold,
-                    autoApproveConsumptionOffset: srcData.consumptionOffset,
-                    autoApproveProfitTimes: srcData.profitTimes,
-                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                    autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
-                    autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
-                }
-            };
-            console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));
-
-            socketService.$socket($scope.AppSocket, 'updateAutoApprovalConfig', sendData, function (data) {
-                console.log('update auto approval socket', JSON.stringify(data));
-                loadPlatformData({
-                    loadAll: false
-                });
-            });
-        }
 
         function updateMonitorBasic(srcData) {
             let sendData = {
@@ -16447,6 +16419,22 @@ define(['js/app'], function (myApp) {
             vm.financialSettlementSystemTableEdit = false;
             vm.newBlacklistIpConfig = [];
             vm.delayDurationGroupProviderEdit = false;
+            vm.getPlatformInSetting()
+        };
+
+        vm.getPlatformInSetting = () => {
+            if (vm.platformIdInSetting) {
+                let selectedPlatform = vm.platformList.find(platformData => {
+                    return platformData && platformData.data && platformData.data.platformId;
+                });
+                vm.platformInSetting = selectedPlatform.data;
+
+                vm.getConfigData();
+            }
+        };
+
+        vm.getConfigData = () => {
+            let choice = vm.selectedConfigTab;
             switch (choice) {
                 // case 'partner':
                 //     vm.newPartnerLvl = {};
@@ -16458,23 +16446,15 @@ define(['js/app'], function (myApp) {
                 //     vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
                 //     break;
                 case 'partnerBasic':
-                    vm.platformIdInSetting = undefined;
-                    vm.platformInSetting = undefined;
-                    console.log('load here configTbaClicked partnerBAsic')
+                    vm.getPartnerBasic();
+                    break;
+                case 'autoApproval':
+                    vm.getAutoApprovalBasic();
                     break;
 
             }
-        };
 
-        vm.getPlatformInSetting = () => {
-            if (vm.platformIdInSetting) {
-                let selectedPlatform = vm.platformList.find(platformData => {
-                    return platformData && platformData.data && platformData.data.platformId;
-                });
-                vm.platformInSetting = selectedPlatform.data;
-                vm.getPartnerBasic();
-                // $scope.$evalAsync();
-            }
+            $scope.$evalAsync();
         };
 
         vm.getPartnerBasic = function () {
@@ -16499,8 +16479,36 @@ define(['js/app'], function (myApp) {
             vm.partnerBasic.partnerDefaultCommissionGroup = vm.platformInSetting.partnerDefaultCommissionGroup.toString();
             vm.partnerBasic.partnerSameBankAccountCount = vm.platformInSetting.partnerSameBankAccountCount;
 
-            $scope.$evalAsync();
-        }
+        };
+
+        vm.getAutoApprovalBasic = () => {
+            vm.autoApprovalBasic = vm.autoApprovalBasic || {};
+            vm.autoApprovalBasic.enableAutoApplyBonus = vm.platformInSetting.enableAutoApplyBonus;
+            vm.autoApprovalBasic.manualAuditFirstWithdrawal = typeof vm.platformInSetting.manualAuditFirstWithdrawal === 'boolean' ? vm.platformInSetting.manualAuditFirstWithdrawal : true;
+            vm.autoApprovalBasic.manualAuditAfterBankChanged = typeof vm.platformInSetting.manualAuditAfterBankChanged === 'boolean' ? vm.platformInSetting.manualAuditAfterBankChanged : true;
+            vm.autoApprovalBasic.manualAuditBanWithdrawal = typeof vm.platformInSetting.manualAuditBanWithdrawal === 'boolean' ? vm.platformInSetting.manualAuditBanWithdrawal : true;
+            vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.platformInSetting.autoApproveWhenSingleBonusApplyLessThan;
+            vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.platformInSetting.autoApproveWhenSingleDayTotalBonusApplyLessThan;
+            vm.autoApprovalBasic.lostThreshold = vm.platformInSetting.autoApproveLostThreshold;
+            vm.autoApprovalBasic.consumptionOffset = vm.platformInSetting.autoApproveConsumptionOffset;
+            vm.autoApprovalBasic.profitTimes = vm.platformInSetting.autoApproveProfitTimes;
+            vm.autoApprovalBasic.profitTimesMinAmount = vm.platformInSetting.autoApproveProfitTimesMinAmount;
+            vm.autoApprovalBasic.bonusProfitOffset = vm.platformInSetting.autoApproveBonusProfitOffset;
+            vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold = vm.platformInSetting.autoUnlockWhenInitAmtLessThanLostThreshold;
+            vm.autoApprovalBasic.checkContinuousApplyBonusTimes = vm.platformInSetting.checkContinuousApplyBonusTimes;
+            vm.autoApprovalBasic.consecutiveTransferInOut = vm.platformInSetting.consecutiveTransferInOut;
+
+            vm.autoApprovalBasic.partnerEnableAutoApplyBonus = vm.platformInSetting.partnerEnableAutoApplyBonus;
+            vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan = vm.platformInSetting.partnerAutoApproveWhenSingleBonusApplyLessThan;
+            vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.platformInSetting.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan;
+            vm.autoApprovalBasic.partnerWithdrawalCommissionDifference = vm.platformInSetting.partnerWithdrawalCommissionDifference;
+
+            vm.autoApprovalBasic.firstWithdrawExceedAmount = vm.platformInSetting.autoAudit.firstWithdrawExceedAmount;
+            vm.autoApprovalBasic.firstWithdrawAndCurrentMinusTopupExceedAmount = vm.platformInSetting.autoAudit.firstWithdrawAndCurrentMinusTopupExceedAmount;
+            vm.autoApprovalBasic.firstWithdrawTotalBetOverTotalTopupExceedTimes = vm.platformInSetting.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes;
+            vm.autoApprovalBasic.firstWithdrawCondBExceedAmount = vm.platformInSetting.autoAudit.firstWithdrawCondBExceedAmount;
+            vm.autoApprovalBasic.firstWithdrawDifferentIPCheck = vm.platformInSetting.autoAudit.firstWithdrawDifferentIPCheck;
+        };
 
         vm.configSubmitUpdate = function (choice) {
             switch (choice) {
@@ -16510,12 +16518,16 @@ define(['js/app'], function (myApp) {
                 case 'partnerBasic':
                     updatePartnerBasic(vm.partnerBasic);
                     break;
+                case 'autoApproval':
+                    updateAutoApprovalConfig(vm.autoApprovalBasic);
             }
         };
 
         function updatePartnerBasic(srcData) {
             let sendData = {
-                query: {_id: vm.platformInSetting._id},
+                query: {
+                    _id: vm.platformInSetting._id
+                },
                 updateData: {
                     partnerNameMaxLength: srcData.partnerNameMaxLength,
                     partnerNameMinLength: srcData.partnerNameMinLength,
@@ -16540,6 +16552,36 @@ define(['js/app'], function (myApp) {
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                 loadPlatformData({loadAll: false});
+            });
+        }
+
+        function updateAutoApprovalConfig(srcData) {
+            let sendData = {
+                query: {
+                    _id: vm.platformInSetting._id
+                },
+                updateData: {
+                    enableAutoApplyBonus: srcData.enableAutoApplyBonus,
+                    manualAuditFirstWithdrawal: srcData.manualAuditFirstWithdrawal,
+                    manualAuditAfterBankChanged: srcData.manualAuditAfterBankChanged,
+                    manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
+                    autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
+                    autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
+                    autoApproveLostThreshold: srcData.lostThreshold,
+                    autoApproveConsumptionOffset: srcData.consumptionOffset,
+                    autoApproveProfitTimes: srcData.profitTimes,
+                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
+                    autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
+                    autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
+                }
+            };
+            console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));
+
+            socketService.$socket($scope.AppSocket, 'updateAutoApprovalConfig', sendData, function (data) {
+                console.log('update auto approval socket', JSON.stringify(data));
+                loadPlatformData({
+                    loadAll: false
+                });
             });
         }
 
