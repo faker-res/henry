@@ -51,6 +51,20 @@ var env = {
 
     config : function() {
         return envConf[this.mode];
+    },
+
+    getAnotherConfig: function () {
+        let selfMode = this.config().mode;
+        let selfUrl = this.config().redisUrl;
+        let selfPort = this.config().redisPort;
+
+        return Object.keys(envConf).filter(isTheOtherConfig).map(o => envConf[o]);
+
+        function isTheOtherConfig (o) {
+            return envConf[o].mode === selfMode
+                && (envConf[o].redisUrl !== selfUrl || envConf[o].redisPort !== selfPort)
+        }
+
     }
 };
 
