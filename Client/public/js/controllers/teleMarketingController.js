@@ -1010,12 +1010,12 @@ define(['js/app'], function (myApp) {
         vm.prepareTsPhoneFeedback = function (tsPhoneObj) {
             vm.tsPhoneAddFeedback = {tsPhone: tsPhoneObj}
             if (vm.selectedPlatform && vm.selectedPlatform.data) {
-                if (vm.selectedPlatform.data.defaultFeedbackResult) {
-                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedbackResult
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult) {
+                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult;
                 }
 
-                if (vm.selectedPlatform.data.defaultFeedbackTopic) {
-                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedbackTopic
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic) {
+                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic;
                 }
             }
 
@@ -1316,12 +1316,12 @@ define(['js/app'], function (myApp) {
             // }
 
             if (vm.selectedPlatform && vm.selectedPlatform.data) {
-                if (vm.selectedPlatform.data.defaultFeedbackResult) {
-                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedbackResult
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult) {
+                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult;
                 }
 
-                if (vm.selectedPlatform.data.defaultFeedbackTopic) {
-                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedbackTopic
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic) {
+                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic;
                 }
             }
 
