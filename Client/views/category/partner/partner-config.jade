@@ -12,6 +12,9 @@
                         span {{"Partner Basic" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "autoApproval"}', ng-click='vm.configTabClicked("autoApproval")', ng-if="checkViewPermission('Partner', 'Config', 'AutoApproval')")
                         span {{"Auto Approval Setting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "largeWithdrawalPartnerSetting"}', ng-click='vm.configTabClicked("largeWithdrawalPartnerSetting")', ng-if="checkViewPermission('Partner', 'Config', 'largeWithdrawalSetting')" )
+                        span {{"largeWithdrawalSetting" | translate}}
+
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -27,3 +30,5 @@
                     include ./setting/partner-setting-commission
                 div(ng-if='vm.selectedConfigTab=="autoApproval"')
                     include ./setting/partner-setting-auto-approval
+                div(ng-if='vm.selectedConfigTab=="largeWithdrawalPartnerSetting"')
+                    include ./setting/partner-setting-large-withdrawal
