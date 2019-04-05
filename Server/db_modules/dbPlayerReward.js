@@ -5997,6 +5997,7 @@ let dbPlayerReward = {
             promArr.push(dbConfig.collection_playerRandomReward.findOne({
                 playerId: playerData._id,
                 platformId: playerData.platform._id,
+                rewardEvent: eventData._id,
                 status: 1
             }).sort({createTime: 1}).lean());
         }
