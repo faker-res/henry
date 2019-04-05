@@ -10,7 +10,7 @@
                 ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.curPlatformText")
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerBasic"}', ng-click='vm.configTabClicked("partnerBasic")', ng-if="checkViewPermission('Partner', 'Config', 'PartnerBasic')" )
                         span {{"Partner Basic" | translate}}
-                    //li.list-group-item(ng-class='{active: vm.selectedConfigTab === "autoApproval"}', ng-click='vm.configTabClicked("autoApproval")')
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "autoApproval"}', ng-click='vm.configTabClicked("autoApproval")', ng-if="checkViewPermission('Partner', 'Config', 'AutoApproval')")
                         span {{"Auto Approval Setting" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")

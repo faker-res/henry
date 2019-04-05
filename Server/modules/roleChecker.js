@@ -302,6 +302,7 @@ var roleChecker = {
             },
             "Config": {
                 PartnerBasic: [],
+                AutoApproval: [],
             },
         },
         Platform: {

@@ -3003,6 +3003,7 @@
   "email all proposal created between two withdrawal times": "邮件将发送两次提款间的所有提案供阅览。",
   "Auto Approval Setting": "自动审核设置",
   "autoApproval": "自动审核",
+  "AutoApproval": "自动审核",
   "PREVIOUS_CONSECUTIVE_LOGIN": "补签",
   "applyForDate": "签到日期",
   "isPrevious": "是否为补签",
