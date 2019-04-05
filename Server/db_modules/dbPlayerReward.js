@@ -7848,6 +7848,14 @@ let dbPlayerReward = {
                             proposalData.data.rewardType = selectedReward.rewardType || null;
                             proposalData.data.rewardName = selectedReward.title || null;
                             proposalData.data.rewardDetail = selectedReward;
+                            proposalData.data.remark = '';
+
+                            if (selectedReward.realPrize && selectedReward.title) {
+                                proposalData.data.remark += selectedReward.realPrize;
+                            }
+                            if (!selectedReward.realPrize && selectedReward.title) {
+                                proposalData.data.remark += selectedReward.title;
+                            }
 
                             if (selectedReward.rewardType && selectedReward.rewardType == constRandomRewardType.CREDIT){
                                 proposalData.data.rewardAmount = selectedReward.amount || 0;
@@ -8000,7 +8008,7 @@ let dbPlayerReward = {
                                         if ( selectedReward && selectedReward.totalProbability ) {
                                             delete selectedReward.totalProbability;
                                         }
-                                        
+
                                         if (selectedReward && selectedReward.expiredInDay){
                                             let todayEndTime = dbUtility.getTodaySGTime().endTime;
                                             selectedReward.expirationTime = dbUtility.getNdaylaterFromSpecificStartTime(selectedReward.expiredInDay, todayEndTime);
