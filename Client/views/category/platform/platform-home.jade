@@ -54,55 +54,54 @@
                 span {{"Push Notification" | translate}}
 
         .col-md-12
-            .panel.panel-primary
-                div(ng-switch="vm.platformPageName")
-                    div(ng-switch-when="Feedback")
-                        include ./platform-feedback
-                    div(ng-switch-when="AutoFeedback")
-                        include ./platform-auto-feedback
-                    div(ng-switch-when="FeedbackAdmin")
-                        include ./platform-feedbackAdmin
-                    div(ng-switch-when="Game")
-                        include ./platform-game
-                    div(ng-switch-when="GameGroup")
-                        include ./platform-gamegroup
-                    div(ng-switch-when="Reward")
-                        include platform-reward
-                    div(ng-switch-when="Proposal")
-                        include ./../proposal/proposal-home
-                    div(ng-switch-when="Config")
-                        include ./platform-config
-                    div(ng-switch-when="MessageTemplates")
-                        include ./platform-message-templates
-                    div(ng-switch-when="Announcement")
-                        include ./platform-announcement
-                    div(ng-switch-when="MultiMessage")
-                        include ./platform-multiMessage
-                    div(ng-switch-when="VertificationSMS")
-                        include ./platform-sms-record
-                    div(ng-switch-when="PushNotification")
-                        include ./platform-push-notification
-                    div(ng-switch-when="PromoCode")
-                        include ./platform-promo-code
-                    div(ng-switch-when="RegistrationUrlConfig")
-                        include platform-registrationUrl-config
-                    div(ng-switch-when="phoneNumFilter")
-                        include ./platform-phone-num-filter
-                    div(ng-switch-when="rewardPoint")
-                        include ./platform-reward-point
-                    div(ng-switch-when="batchPermit")
-                        include ./platform-batch-permit
-                    div(ng-switch-when="platformSetting")
-                        include ./platform-platform-setting
-                    div(ng-switch-when="externalUserInfo")
-                        include ./platform-externalUserInfo
-                    div(ng-switch-when="ClientQnA")
-                        include ./../clientQnA/clientQnA-home
-                    div(ng-switch-when="FrontendConfiguration")
-                        div.tab-pane
-                            iframe(ng-src="{{vm.frontendConfigurationUrl}}" style='height: -webkit-fill-available;' width="100%", frameborder="0", id="configIframe", ng-onload="vm.changeFrameHeight()")
-                    div(ng-switch-when="AuctionSystem")
-                        include ./platform-auctionSystem
+            div(ng-switch="vm.platformPageName")
+                div(ng-switch-when="Feedback")
+                    include ./platform-feedback
+                div(ng-switch-when="AutoFeedback")
+                    include ./platform-auto-feedback
+                div(ng-switch-when="FeedbackAdmin")
+                    include ./platform-feedbackAdmin
+                div(ng-switch-when="MultiMessage")
+                    include ./platform-multiMessage
+                div(ng-switch-when="Game")
+                    include ./platform-game
+                div(ng-switch-when="GameGroup")
+                    include ./platform-gamegroup
+                div(ng-switch-when="Reward")
+                    include platform-reward
+                div(ng-switch-when="Proposal")
+                    include ./../proposal/proposal-home
+                div(ng-switch-when="Config")
+                    include ./platform-config
+                div(ng-switch-when="MessageTemplates")
+                    include ./platform-message-templates
+                div(ng-switch-when="Announcement")
+                    include ./platform-announcement
+                div(ng-switch-when="VertificationSMS")
+                    include ./platform-sms-record
+                div(ng-switch-when="PushNotification")
+                    include ./platform-push-notification
+                div(ng-switch-when="PromoCode")
+                    include ./platform-promo-code
+                div(ng-switch-when="RegistrationUrlConfig")
+                    include platform-registrationUrl-config
+                div(ng-switch-when="phoneNumFilter")
+                    include ./platform-phone-num-filter
+                div(ng-switch-when="rewardPoint")
+                    include ./platform-reward-point
+                div(ng-switch-when="batchPermit")
+                    include ./platform-batch-permit
+                div(ng-switch-when="platformSetting")
+                    include ./platform-platform-setting
+                div(ng-switch-when="externalUserInfo")
+                    include ./platform-externalUserInfo
+                div(ng-switch-when="ClientQnA")
+                    include ./../clientQnA/clientQnA-home
+                div(ng-switch-when="FrontendConfiguration")
+                    div.tab-pane
+                        iframe(ng-src="{{vm.frontendConfigurationUrl}}" style='height: -webkit-fill-available;' width="100%", frameborder="0", id="configIframe", ng-onload="vm.changeFrameHeight()")
+                div(ng-switch-when="AuctionSystem")
+                    include ./platform-auctionSystem
 
 #dialogFrame.dialog-frame
 #modalEditCritical.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
