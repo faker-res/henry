@@ -9338,6 +9338,16 @@ define(['js/app'], function (myApp) {
                 $('#feedbackHistoryTab').removeClass('active');
                 $scope.safeApply();
                 vm.feedbackModalTab = "addFeedbackPanel";
+                vm.playerFeedback = {};
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback) {
+                    if (vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult && vm.playerFeedback) {
+                        vm.playerFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult;
+                    }
+
+                    if (vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic && vm.playerFeedback) {
+                        vm.playerFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic;
+                    }
+                }
             }
 
             if (rowData && rowData.partnerId) {
@@ -9346,6 +9356,21 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 vm.feedbackModalTabPartner = "addPartnerFeedbackPanel";
             }
+        };
+
+        vm.isFeedbackValid = function () {
+            let isValid = false;
+            if (vm.playerFeedback && vm.playerFeedback.result && vm.playerFeedback.topic) {
+                if (vm.playerFeedback.content) {
+                    isValid = true;
+                } else if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback
+                            && vm.playerFeedback.result == vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult
+                            && vm.playerFeedback.topic == vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic) {
+                    isValid = true;
+                }
+            }
+
+            return isValid;
         };
 
         vm.initNewPlayerFeedbackModal = function (selectedPlayer) {

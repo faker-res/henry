@@ -5055,6 +5055,10 @@
   "FPMS System": "客服系统",
   "DEFAULT_FEEDBACK_TOPIC": "默认回访主题设置",
   "DEFAULT_FEEDBACK_RESULT": "默认回访结果设置",
+  "DEFAULT_TELESALES_FEEDBACK_TOPIC": "默认电销回访主题设置",
+  "DEFAULT_TELESALES_FEEDBACK_RESULT": "默认电销回访结果设置",
+  "DEFAULT_PLAYER_FEEDBACK_TOPIC": "默认玩家回访主题设置",
+  "DEFAULT_PLAYER_FEEDBACK_RESULT": "默认玩家回访结果设置",
   "UnbindPhoneDeviceId": "解除绑定电话和设备号",
 
   "Bet result does not satisfy the reward criteria. Please continue to test your luck.": "查询您注单的开奖结果记录不满足条件，请去游戏厅再试试手气吧",
@@ -5425,6 +5429,7 @@
   "Set Reward Item": "设定随机中奖",
   "Assign Player Acc": "指定会员账号",
   "Reward Available": "未兑换",
+  "defaultFeedbackConfig": "默认回访主题/结果设置",
   "Converted":"已兑换",
   "Current Game Display Setting is:": "目前的游戏状态设置为: ",
   "Promo Code-B (With Deposit)": "优惠類型-B(需存款)",

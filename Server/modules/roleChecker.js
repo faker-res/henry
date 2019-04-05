@@ -482,6 +482,7 @@ var roleChecker = {
                 DecomposeAfterNDays: [],
                 AutoExportListOrMaxNumOfTxnEveryday: [],
                 WinnerMonitor: ['setWinnerMonitorConfig'],
+                defaultFeedbackConfig: ['updatePlatform'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
