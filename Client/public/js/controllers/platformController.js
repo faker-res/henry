@@ -18279,35 +18279,47 @@ define(['js/app'], function (myApp) {
             }
 
             vm.assignRandomRewardToUser = function (id) {
-                vm.assignRandomRewards;
-                if (!id) {
-                    id = vm.showReward._id;
-                }
-                let sendQuery = {
-                    randomRewards: vm.assignRandomRewards,
-                    platformId: vm.filterRewardPlatform,
-                    reward: id,
-                    creator: {type: "admin", name: authService.adminName, id: authService.adminId}
-                }
-                socketService.$socket($scope.AppSocket, 'assignRandomRewardToUser', sendQuery, function (data) {
-                    vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
-                });
+                return new Promise((resolve, reject) => {
+                    vm.assignRandomRewards;
+                    if (!id) {
+                        id = vm.showReward._id;
+                    }
+                    let sendQuery = {
+                        randomRewards: vm.assignRandomRewards,
+                        platformId: vm.filterRewardPlatform,
+                        reward: id,
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId}
+                    }
+                    socketService.$socket($scope.AppSocket, 'assignRandomRewardToUser', sendQuery, function (data) {
+                        vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
+                        resolve(data);
+                    });
+                }, err => {
+                    reject()
+                })
             };
 
             vm.editRandomRewardToUser = function () {
-                vm.activeRandomRewards.filter(item => {
-                    return item.isEdit === true;
+
+                return new Promise((resolve, reject) => {
+                    vm.activeRandomRewards.filter(item => {
+                        return item.isEdit === true;
+                    })
+
+                    let sendQuery = {
+                        randomRewards: vm.activeRandomRewards,
+                        platformId: vm.filterRewardPlatform,
+                        reward: vm.showReward._id,
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId}
+                    }
+                    socketService.$socket($scope.AppSocket, 'editRandomRewardToUser', sendQuery, function (data) {
+                        resolve(data);
+                    });
+
+                }, reject =>{
+                    reject();
                 })
 
-                let sendQuery = {
-                    randomRewards: vm.activeRandomRewards,
-                    platformId: vm.filterRewardPlatform,
-                    reward: vm.showReward._id,
-                    creator: {type: "admin", name: authService.adminName, id: authService.adminId}
-                }
-                socketService.$socket($scope.AppSocket, 'editRandomRewardToUser', sendQuery, function (data) {
-                    console.log(data);
-                });
             }
 
             vm.getRandomRewardDetail = function (status, fieldName) {
@@ -22480,7 +22492,7 @@ define(['js/app'], function (myApp) {
 
             vm.disableAllRewardInput = function (disabled) {
                 typeof disabled == "boolean" ? vm.rewardDisabledInput = disabled : disabled = vm.rewardDisabledInput;
-                $("#rewardMainTasks :input").prop("disabled", disabled);
+                $("#rewardMainTasks :input").not('.excluded').attr("disabled", disabled);
                 if (!disabled) {
                     $("#rewardMainTasks :input").removeClass("disabled");
                 }
@@ -23276,6 +23288,18 @@ define(['js/app'], function (myApp) {
                     vm.editRandomRewardToUser();
                     vm.getRandomRewardDetail('1', 'activeRandomRewards');
                 }
+            }
+            vm.saveRandomRewards = function () {
+                vm.saveRandomRewardMsg = '';
+                let proms = [];
+                let prom1 = vm.editRandomRewardToUser();
+                let prom2 = vm.assignRandomRewardToUser();
+                proms.push(prom1);
+                proms.push(prom2);
+                return Promise.all(proms).then(()=>{
+                    vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                    vm.saveRandomRewardMsg = $translate('DONE');
+                })
             }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
