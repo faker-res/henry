@@ -7227,7 +7227,7 @@ let dbPlayerReward = {
                         if (participationTimes && applyRewardTimes >= participationTimes){
                             return Promise.reject({
                                 name: "DataError",
-                                message: "Player has applied for max reward times in event period"
+                                message: "This player has applied for max reward times in event period"
                             })
                         }
 
@@ -7326,6 +7326,8 @@ let dbPlayerReward = {
                                 }
                             }
                         }
+                        console.log("checking initial selectedRewardParam", selectedRewardParam)
+                        console.log("checking presetList", presetList)
                         // filter out the valid rewards
                         selectedRewardParam = selectedRewardParam.filter( p => Number.isFinite(p.possibility));
                         // check if the player is first time and if there is pre-set reward for first time player
@@ -7350,7 +7352,7 @@ let dbPlayerReward = {
                             selectedReward = null;
                             let rewardNameListInInterval = [];
                             // check if rewards cannot be the same in the interval
-                            if (eventData.condition && eventData.condition.repetitiveRewardInPeriod && gottenRewardInInterval && gottenRewardInInterval.length){
+                            if (eventData.condition && eventData.condition.noRepetitiveRewardInPeriod && gottenRewardInInterval && gottenRewardInInterval.length){
                                 gottenRewardInInterval.forEach(
                                     proposal => {
                                         if (proposal && proposal.data && proposal.data.rewardName){
@@ -7390,6 +7392,8 @@ let dbPlayerReward = {
                                 })
                             }
                             let pNumber = Math.random() * totalProbability;
+                            console.log("checking probability", pNumber)
+                            console.log("checking random getting selectedRewardParam", selectedRewardParam)
                             selectedRewardParam.some(
                                 eReward => {
                                     if (pNumber <= eReward.totalProbability) {
@@ -7400,7 +7404,7 @@ let dbPlayerReward = {
                             );
 
                         }
-                        console.log("checking selectedReward", selectedReward)
+                        console.log("checking final selectedReward", selectedReward)
 
                         if (!selectedReward){
                             return Promise.reject({
