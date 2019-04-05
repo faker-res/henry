@@ -1,166 +1,165 @@
-//
-    Created by wanglz on 19/12/16.
-.col-sm-12(ng-if='!vm.curPlatformText')
-    .text-center
-        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-.col-sm-12(ng-if='vm.curPlatformText')
-    .panel.panel-primary(style='opacity:{{vm.toPhoneNumber ? "0.3" : "1"}}')
-        .panel-body.row
-            #sendMultiMessageQuery.col-md-12
-                .well
-                    .search-filters-item
-                        label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
-                        select.form-control(ng-model='vm.sendMultiMessage.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
-                    .search-filters-item
-                        label {{"USER TYPE" | translate}}
-                        select.form-control(ng-model="vm.sendMultiMessage.playerType", required)
-                            option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
-                            option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
-                            option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
-                            option(value='Test Player') {{'TEST_PLAYER' | translate}}
-                            option(value='Partner') {{'partner' | translate}}
-                    .search-filters-item
-                        label {{"PlayerLevel" | translate}}
-                        select.form-control(ng-model='vm.sendMultiMessage.playerLevel', required)
-                            option(value='') {{'ALL' | translate}}
-                            option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
-                    .search-filters-item
-                        label {{"CREDIBILITY"|translate}}
-                        select.form-control#selectCredibilityRemarkMultiMsg(multiple="multiple", ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.sendMultiMessage.credibilityRemarks')
-                    .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.sendMultiMessage.topUpTimesOperator === "range")}')
-                        label {{"TOP_UP_TIMES"|translate}}
+.row
+    .col-md-12(ng-if='!vm.curPlatformText')
+        .text-center
+            label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+    .col-md-12(ng-if='vm.curPlatformText')
+        .panel.panel-primary(style='opacity:{{vm.toPhoneNumber ? "0.3" : "1"}}')
+            .panel-body.row
+                #sendMultiMessageQuery.col-md-12
+                    .well
+                        .search-filters-item
+                            label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
+                            select.form-control(ng-model='vm.sendMultiMessage.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                        .search-filters-item
+                            label {{"USER TYPE" | translate}}
+                            select.form-control(ng-model="vm.sendMultiMessage.playerType", required)
+                                option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                                option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                                option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                                option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                                option(value='Partner') {{'partner' | translate}}
+                        .search-filters-item
+                            label {{"PlayerLevel" | translate}}
+                            select.form-control(ng-model='vm.sendMultiMessage.playerLevel', required)
+                                option(value='') {{'ALL' | translate}}
+                                option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                        .search-filters-item
+                            label {{"CREDIBILITY"|translate}}
+                            select.form-control#selectCredibilityRemarkMultiMsg(multiple="multiple", ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.sendMultiMessage.credibilityRemarks')
+                        .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.sendMultiMessage.topUpTimesOperator === "range")}')
+                            label {{"TOP_UP_TIMES"|translate}}
+                            div
+                                select.threeBoxes.form-control(ng-model="vm.sendMultiMessage.topUpTimesOperator")
+                                    option(value='>=') {{'>='}}
+                                    option(value='=') {{'='}}
+                                    option(value='<=') {{'<='}}
+                                    option(value='range') {{'range'|translate}}
+                                input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.topUpTimesValue")
+                                div.symbol(ng-if="vm.sendMultiMessage.topUpTimesOperator === 'range'") ~
+                                input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.topUpTimesValueTwo" ng-if="vm.sendMultiMessage.topUpTimesOperator === 'range'")
+                        .search-filters-item
+                            label {{"LAST_ACCESS_TIME_START" | translate}}
+                            .accStart
+                        .search-filters-item
+                            label {{"LAST_ACCESS_TIME_END" | translate}}
+                            .accEnd
+                        .search-filters-item
+                            label {{"REGISTRATION_TIME_START" | translate}}
+                            .regStart
+                        .search-filters-item
+                            label {{"REGISTRATION_TIME_END" | translate}}
+                            .regEnd
+                        .search-filters-item
+                            label {{"bankAccount" | translate}}
+                            input.form-control(ng-model='vm.sendMultiMessage.bankAccount')
+                        .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.sendMultiMessage.loginTimesOperator === "range")}')
+                            label {{"LOGIN_TIMES"|translate}}
+                            div
+                                select.threeBoxes.form-control(ng-model="vm.sendMultiMessage.loginTimesOperator")
+                                    option(value='>=') {{'>='}}
+                                    option(value='=') {{'='}}
+                                    option(value='<=') {{'<='}}
+                                    option(value='range') {{'range'|translate}}
+                                input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValue" )
+                                div.symbol(ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'") ~
+                                input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValueTwo" ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'")
+                        .search-filters-item
+                            label {{"REGISTRATION_DEPARTMENT"|translate}}
+                            select.spicker.form-control(ng-model='vm.sendMultiMessage.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.sendMultiMessage)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
+                        .search-filters-item
+                            label {{"REGISTRATION_ROLE"|translate}}
+                            select.spicker.form-control(ng-model='vm.sendMultiMessage.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.sendMultiMessage)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
+                        .search-filters-item
+                            label {{"REGISTRATION_ADMIN"|translate}}
+                            select.spicker.form-control(ng-model='vm.sendMultiMessage.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
+                        //.inlineBlk
+                            label {{"Length Per Page" | translate}}
+                            input.form-control(type='number',ng-model='vm.sendMultiMessage.pageNumber', style='width:70px')
+                        .text-right.widthto100
+                            button.btn.btn-primary(ng-click='vm.searchPlayersForSendingMessage(true)') {{'SEARCH' | translate}}
+                .col-md-12
+                    label.margin-left-5 {{"total" | translate}} {{vm.sendMultiMessage.totalCount}} {{"records" | translate}}
+                    table#mutilplePlayerTable.common-table.datatable-sm.display(style='width:100%;min-width:100%')
+                    #mutilplePlayerTablePage
+        .panel.panel-primary
+            .panel-body
+                .inlinkBlk
+                    .single.col-md-10(style='opacity:{{vm.toPhoneNumber ? "1" : "0.3"}};width:inherit')
+                        label {{"Send single message" | translate}}
+                        textarea.margin-left-5(type='text',ng-model='vm.toPhoneNumber', style='width:130px; height:100px;',
+                            ng-change="vm.phonesChange(); vm.sendMultiMessage.singleBtnText = 'SEND'; vm.sendMultiMessage.singleSendResultText = ''",
+                            placeholder='{{"Please Type Your Phone Numbers" | translate}}')
+                        a.fa.fa-times.text-danger.margin-left-5(ng-show="vm.toPhoneNumber", ng-click='vm.toPhoneNumber=null')
+                        text.text-danger &nbsp;({{"toPhoneNumber_text_1" | translate}}
+                        text.text-danger &nbsp;{{vm.toPhoneNumber === "" ? 0 : vm.sendMultiMessage.phoneCount}}
+                        text.text-danger &nbsp;{{"toPhoneNumber_text_2" | translate}})
+                    .pull-right(ng-show="checkViewPermission('Platform', 'groupMessage', 'SMSSendLog')")
+                        button.btn.btn-primary.btn-sm(data-toggle="modal", ng-click='vm.initSMSLog("multi")', data-target='#modalSMSLog') {{'SMS Send Log' | translate}}
+                .tableRow(ng-hide="vm.sendMultiMessage.messageType==='sms'")
+                    .tableCell(style='width:15%;')
+                        label {{"TITLE" | translate}}:
+                    .tableCell(style='min-width:60%')
+                        input.form-control(style='width:100%;resize:none', type='text', ng-model='vm.sendMultiMessage.messageTitle', placeholder='{{"Please Type Your Title" | translate}}')
+                    .tableCell(style='width:20%;')
+                .tableRow
+                    .tableCell(style='width:15%;')
+                        label *{{"CONTENT" | translate}}:
+                    .tableCell(style='min-width:60%')
+                        div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
+                            label {{"Word Count" | translate}}:
+                            text.text-danger &nbsp;{{vm.sendMultiMessage.wordCount}}
+                        | &nbsp;
+                        div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
+                            label {{"total" | translate}}:
+                            text.text-danger &nbsp;{{vm.sendMultiMessage.numUsedMessage}}
+                            label &nbsp;{{"message(s)" | translate}}
+                        | &nbsp;
+                        div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
+                            label {{"Current channel allow" | translate}}:
+                            text.text-danger &nbsp;{{vm.sendMultiMessage.channelMaxChar}}
+                            label &nbsp;{{"characters/message" | translate}}
                         div
-                            select.threeBoxes.form-control(ng-model="vm.sendMultiMessage.topUpTimesOperator")
-                                option(value='>=') {{'>='}}
-                                option(value='=') {{'='}}
-                                option(value='<=') {{'<='}}
-                                option(value='range') {{'range'|translate}}
-                            input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.topUpTimesValue")
-                            div.symbol(ng-if="vm.sendMultiMessage.topUpTimesOperator === 'range'") ~
-                            input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.topUpTimesValueTwo" ng-if="vm.sendMultiMessage.topUpTimesOperator === 'range'")
-                    .search-filters-item
-                        label {{"LAST_ACCESS_TIME_START" | translate}}
-                        .accStart
-                    .search-filters-item
-                        label {{"LAST_ACCESS_TIME_END" | translate}}
-                        .accEnd
-                    .search-filters-item
-                        label {{"REGISTRATION_TIME_START" | translate}}
-                        .regStart
-                    .search-filters-item
-                        label {{"REGISTRATION_TIME_END" | translate}}
-                        .regEnd
-                    .search-filters-item
-                        label {{"bankAccount" | translate}}
-                        input.form-control(ng-model='vm.sendMultiMessage.bankAccount')
-                    .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.sendMultiMessage.loginTimesOperator === "range")}')
-                        label {{"LOGIN_TIMES"|translate}}
+                        textarea.form-control(style='width:100%;resize:none', rows='5', ng-model='vm.sendMultiMessage.messageContent', ng-change='vm.messagesChange()', placeholder='{{"Please Type Your Message" | translate}}')
+
+
+                    .tableCell(style='width:20%;', ng-show='!vm.toPhoneNumber')
+                        //label {{"SENDMESSAGENOTE" | translate}}
                         div
-                            select.threeBoxes.form-control(ng-model="vm.sendMultiMessage.loginTimesOperator")
-                                option(value='>=') {{'>='}}
-                                option(value='=') {{'='}}
-                                option(value='<=') {{'<='}}
-                                option(value='range') {{'range'|translate}}
-                            input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValue" )
-                            div.symbol(ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'") ~
-                            input.threeBoxes.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValueTwo" ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'")
-                    .search-filters-item
-                        label {{"REGISTRATION_DEPARTMENT"|translate}}
-                        select.spicker.form-control(ng-model='vm.sendMultiMessage.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.sendMultiMessage)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
-                    .search-filters-item
-                        label {{"REGISTRATION_ROLE"|translate}}
-                        select.spicker.form-control(ng-model='vm.sendMultiMessage.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.sendMultiMessage)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
-                    .search-filters-item
-                        label {{"REGISTRATION_ADMIN"|translate}}
-                        select.spicker.form-control(ng-model='vm.sendMultiMessage.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
-                    //.inlineBlk
-                        label {{"Length Per Page" | translate}}
-                        input.form-control(type='number',ng-model='vm.sendMultiMessage.pageNumber', style='width:70px')
-                    .text-right.widthto100
-                        button.btn.btn-primary(ng-click='vm.searchPlayersForSendingMessage(true)') {{'SEARCH' | translate}}
-            .col-md-12
-                label.margin-left-5 {{"total" | translate}} {{vm.sendMultiMessage.totalCount}} {{"records" | translate}}
-                table#mutilplePlayerTable.common-table.datatable-sm.display(style='width:100%;min-width:100%')
-                #mutilplePlayerTablePage
-    .panel.panel-primary
-        .panel-body
-            .inlinkBlk
-                .single.col-md-10(style='opacity:{{vm.toPhoneNumber ? "1" : "0.3"}};width:inherit')
-                    label {{"Send single message" | translate}}
-                    textarea.margin-left-5(type='text',ng-model='vm.toPhoneNumber', style='width:130px; height:100px;',
-                        ng-change="vm.phonesChange(); vm.sendMultiMessage.singleBtnText = 'SEND'; vm.sendMultiMessage.singleSendResultText = ''",
-                        placeholder='{{"Please Type Your Phone Numbers" | translate}}')
-                    a.fa.fa-times.text-danger.margin-left-5(ng-show="vm.toPhoneNumber", ng-click='vm.toPhoneNumber=null')
-                    text.text-danger &nbsp;({{"toPhoneNumber_text_1" | translate}}
-                    text.text-danger &nbsp;{{vm.toPhoneNumber === "" ? 0 : vm.sendMultiMessage.phoneCount}}
-                    text.text-danger &nbsp;{{"toPhoneNumber_text_2" | translate}})
-                .pull-right(ng-show="checkViewPermission('Platform', 'groupMessage', 'SMSSendLog')")
-                    button.btn.btn-primary.btn-sm(data-toggle="modal", ng-click='vm.initSMSLog("multi")', data-target='#modalSMSLog') {{'SMS Send Log' | translate}}
-            .tableRow(ng-hide="vm.sendMultiMessage.messageType==='sms'")
-                .tableCell(style='width:15%;')
-                    label {{"TITLE" | translate}}:
-                .tableCell(style='min-width:60%')
-                    input.form-control(style='width:100%;resize:none', type='text', ng-model='vm.sendMultiMessage.messageTitle', placeholder='{{"Please Type Your Title" | translate}}')
-                .tableCell(style='width:20%;')
-            .tableRow
-                .tableCell(style='width:15%;')
-                    label *{{"CONTENT" | translate}}:
-                .tableCell(style='min-width:60%')
-                    div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
-                        label {{"Word Count" | translate}}:
-                        text.text-danger &nbsp;{{vm.sendMultiMessage.wordCount}}
-                    | &nbsp;
-                    div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
-                        label {{"total" | translate}}:
-                        text.text-danger &nbsp;{{vm.sendMultiMessage.numUsedMessage}}
-                        label &nbsp;{{"message(s)" | translate}}
-                    | &nbsp;
-                    div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
-                        label {{"Current channel allow" | translate}}:
-                        text.text-danger &nbsp;{{vm.sendMultiMessage.channelMaxChar}}
-                        label &nbsp;{{"characters/message" | translate}}
-                    div
-                    textarea.form-control(style='width:100%;resize:none', rows='5', ng-model='vm.sendMultiMessage.messageContent', ng-change='vm.messagesChange()', placeholder='{{"Please Type Your Message" | translate}}')
-
-
-                .tableCell(style='width:20%;', ng-show='!vm.toPhoneNumber')
-                    //label {{"SENDMESSAGENOTE" | translate}}
-                    div
-                        input(type="radio" name="messageType" ng-model="vm.sendMultiMessage.messageType" value="sms")
-                        label.radio-space {{"SMS" | translate}}
-                        input(type="radio" name="messageType" ng-model="vm.sendMultiMessage.messageType" value="mail")
-                        label.radio-space {{"Mail" | translate}}
-                    div
-                        label {{'Recipient' | translate}} : {{vm.sendMultiMessage.numRecipient}}
-                    div(ng-hide='vm.sendMultiMessage.messageType==="mail"')
-                        label {{"Channel" | translate}} :&nbsp;
-                        select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in usableChannelList')
-                    div
-                        input(type='checkbox', ng-model='vm.isSentToAll', ng-init="false", ng-click='vm.sentMailToAllPlayers()')
-                        label.radio-space {{'Sent to all Players' | translate}}
-
-                    div(ng-if="checkViewPermission('Platform', 'groupMessage', 'SendGroupMessage')")
-                        button.btn.btn-primary.btn-sm(ng-click="vm.sendMessages()", ng-disabled='!vm.sendMultiMessage.messageContent || !vm.sendMultiMessage.numRecipient || vm.sendMultiMessage.sendInitiated') {{vm.sendMultiMessage.sendBtnText}}
-
-                    div(ng-show='vm.sendMultiMessage.numReceived+vm.sendMultiMessage.numFailed')
+                            input(type="radio" name="messageType" ng-model="vm.sendMultiMessage.messageType" value="sms")
+                            label.radio-space {{"SMS" | translate}}
+                            input(type="radio" name="messageType" ng-model="vm.sendMultiMessage.messageType" value="mail")
+                            label.radio-space {{"Mail" | translate}}
                         div
-                            label {{'Received' | translate}} :&nbsp;
-                            span#messageSentReceived 0
+                            label {{'Recipient' | translate}} : {{vm.sendMultiMessage.numRecipient}}
+                        div(ng-hide='vm.sendMultiMessage.messageType==="mail"')
+                            label {{"Channel" | translate}} :&nbsp;
+                            select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in usableChannelList')
                         div
-                            label {{'Failed' | translate}} :&nbsp;
-                            span#messageSentFailed 0
-                .tableCell(style='width:20%;', ng-show='vm.toPhoneNumber')
-                    div
-                        label {{"Channel" | translate}} :&nbsp;
-                        select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in usableChannelList')
-                    div
-                        button.btn.btn-primary.btn-sm(ng-click="vm.sendSingleMessages()", ng-disabled="vm.sendMultiMessage.singleSendDisable") {{vm.sendMultiMessage.singleBtnText | translate}}
-                        label.margin-left-5.text-danger(ng-show='vm.sendMultiMessage.singleSendResultText') {{vm.sendMultiMessage.singleSendResultText | translate}}
+                            input(type='checkbox', ng-model='vm.isSentToAll', ng-init="false", ng-click='vm.sentMailToAllPlayers()')
+                            label.radio-space {{'Sent to all Players' | translate}}
 
-            .tableRow(style="margin-top:20px" ng-show="vm.sendMultiMessage.messageType==='sms'")
-                .tableCell(style='width:15%;')
-                    label {{"SMS Templates" | translate}}:
-                .tableCell(style='min-width:75%;text-align:left')
-                    select.form-control(style='width:100%;resize:none',ng-click="vm.useSMSTemplate()", multiple="multiple" ng-model='vm.smsTplSelection' ng-options='a.type|translate for a in vm.smsTemplate')
-                .tableCell(style='width:20%;')
-                    div
+                        div(ng-if="checkViewPermission('Platform', 'groupMessage', 'SendGroupMessage')")
+                            button.btn.btn-primary.btn-sm(ng-click="vm.sendMessages()", ng-disabled='!vm.sendMultiMessage.messageContent || !vm.sendMultiMessage.numRecipient || vm.sendMultiMessage.sendInitiated') {{vm.sendMultiMessage.sendBtnText}}
+
+                        div(ng-show='vm.sendMultiMessage.numReceived+vm.sendMultiMessage.numFailed')
+                            div
+                                label {{'Received' | translate}} :&nbsp;
+                                span#messageSentReceived 0
+                            div
+                                label {{'Failed' | translate}} :&nbsp;
+                                span#messageSentFailed 0
+                    .tableCell(style='width:20%;', ng-show='vm.toPhoneNumber')
+                        div
+                            label {{"Channel" | translate}} :&nbsp;
+                            select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in usableChannelList')
+                        div
+                            button.btn.btn-primary.btn-sm(ng-click="vm.sendSingleMessages()", ng-disabled="vm.sendMultiMessage.singleSendDisable") {{vm.sendMultiMessage.singleBtnText | translate}}
+                            label.margin-left-5.text-danger(ng-show='vm.sendMultiMessage.singleSendResultText') {{vm.sendMultiMessage.singleSendResultText | translate}}
+
+                .tableRow(style="margin-top:20px" ng-show="vm.sendMultiMessage.messageType==='sms'")
+                    .tableCell(style='width:15%;')
+                        label {{"SMS Templates" | translate}}:
+                    .tableCell(style='min-width:75%;text-align:left')
+                        select.form-control(style='width:100%;resize:none',ng-click="vm.useSMSTemplate()", multiple="multiple" ng-model='vm.smsTplSelection' ng-options='a.type|translate for a in vm.smsTemplate')
+                    .tableCell(style='width:20%;')
+                        div
