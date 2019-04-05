@@ -16425,7 +16425,7 @@ define(['js/app'], function (myApp) {
         vm.getPlatformInSetting = () => {
             if (vm.platformIdInSetting) {
                 let selectedPlatform = vm.platformList.find(platformData => {
-                    return platformData && platformData.data && platformData.data.platformId;
+                    return platformData && platformData.data && platformData.data.platformId && (vm.platformIdInSetting == platformData.data.platformId);
                 });
                 vm.platformInSetting = selectedPlatform.data;
 
@@ -16557,31 +16557,19 @@ define(['js/app'], function (myApp) {
 
         function updateAutoApprovalConfig(srcData) {
             let sendData = {
-                query: {
-                    _id: vm.platformInSetting._id
-                },
+                query: {_id: vm.platformInSetting._id},
                 updateData: {
-                    enableAutoApplyBonus: srcData.enableAutoApplyBonus,
-                    manualAuditFirstWithdrawal: srcData.manualAuditFirstWithdrawal,
-                    manualAuditAfterBankChanged: srcData.manualAuditAfterBankChanged,
-                    manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
-                    autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
-                    autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                    autoApproveLostThreshold: srcData.lostThreshold,
-                    autoApproveConsumptionOffset: srcData.consumptionOffset,
-                    autoApproveProfitTimes: srcData.profitTimes,
-                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                    autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
-                    autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
+                    partnerEnableAutoApplyBonus: srcData.partnerEnableAutoApplyBonus,
+                    partnerAutoApproveWhenSingleBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleBonusApplyLessThan,
+                    partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan,
+                    partnerWithdrawalCommissionDifference: srcData.partnerWithdrawalCommissionDifference
                 }
             };
             console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));
 
             socketService.$socket($scope.AppSocket, 'updateAutoApprovalConfig', sendData, function (data) {
                 console.log('update auto approval socket', JSON.stringify(data));
-                loadPlatformData({
-                    loadAll: false
-                });
+                loadPlatformData({loadAll: false});
             });
         }
 
