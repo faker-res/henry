@@ -23133,6 +23133,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardMainParamTable = [];
                 vm.rewardMainParamTable.push({value: []});
                 vm.rewardMainParamTable[0].value = rewardParamPromoCode1.concat(rewardParamPromoCode2).concat(rewardParamPromoCode3).concat(rewardParamCredit).concat(rewardParamPrize).concat(rewardParamRewardPoints);
+                vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title && Number.isFinite(p.possibility))
             }
 
             vm.editReward = function (i) {
@@ -23232,6 +23233,10 @@ define(['js/app'], function (myApp) {
 
                         if($noRoundTwoDecimalPlaces(total) > 1){
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
+                        }
+
+                        if (curReward.condition && curReward.condition.hasOwnProperty('numberParticipation') && vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length < curReward.condition.numberParticipation){
+                            return socketService.showErrorMessage($translate("The number of chances is larger than the available reward, please untick the 'No Repetitive Reward In Period'"));
                         }
                     }
 
@@ -23458,6 +23463,10 @@ define(['js/app'], function (myApp) {
 
                         if($noRoundTwoDecimalPlaces(total) > 1){
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
+                        }
+
+                        if (curReward.condition && curReward.condition.hasOwnProperty('numberParticipation') && vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length < curReward.condition.numberParticipation){
+                            return socketService.showErrorMessage($translate("The number of chances is larger than the available reward, please untick the 'No Repetitive Reward In Period'"));
                         }
                     }
 

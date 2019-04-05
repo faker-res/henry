@@ -235,6 +235,7 @@ var dbRewardEvent = {
         if (row.rewardType == constRandomRewardType.PROMOCODE_C){
             obj.amount = row.amountPercent*100;
             obj.maxRewardAmount = row.maxRewardAmount;
+            obj.minTopUpAmount = row.minTopUpAmount;
             obj.requiredConsumption = row.requiredConsumptionDynamic;
             obj.type = 3; // dynamic case
         }
@@ -2729,6 +2730,7 @@ var dbRewardEvent = {
 
             if (data.rewardType == constRandomRewardType.PROMOCODE_C){
                 updateObj.amount = data.amountPercent*100;
+                updateObj.minTopUpAmount = data.minTopUpAmount;
                 updateObj.maxRewardAmount = data.maxRewardAmount;
                 updateObj.requiredConsumption = data.requiredConsumptionDynamic;
                 updateObj.type = 3; // dynamic case
