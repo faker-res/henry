@@ -56,6 +56,9 @@
                         span {{"WeChatGroupControlSetting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "winnerMonitorSetting"}', ng-click='vm.configTabClicked("winnerMonitorSetting")')
                         span {{"Winner Monitor Setting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "defaultFeedbackConfig"}', ng-click='vm.configTabClicked("defaultFeedbackConfig")')
+                        span {{"defaultFeedbackConfig" | translate}}
+
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
             .panel-heading.panel-heading-sm
@@ -1976,14 +1979,7 @@
                                 td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
                                 td
                                     input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "AutoExportListOrMaxNumOfTxnEveryday")' type="number" step="1" min="0")
-                            tr
-                                td {{'DEFAULT_FEEDBACK_RESULT' | translate}}
-                                td
-                                    select.form-control(ng-model="vm.bulkCallBasic.defaultFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit")
-                            tr
-                                td {{'DEFAULT_FEEDBACK_TOPIC' | translate}}
-                                td
-                                    select.form-control(ng-model="vm.bulkCallBasic.defaultFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+
                     .margin-small.pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                             text {{'EDIT' | translate}}
@@ -2712,6 +2708,44 @@
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("winnerMonitorSetting")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("winnerMonitorSetting")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="defaultFeedbackConfig"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(style="width:850px;") {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'DEFAULT_FEEDBACK_RESULT' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_FEEDBACK_TOPIC' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_PLAYER_FEEDBACK_RESULT' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultPlayerFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_PLAYER_FEEDBACK_TOPIC' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultPlayerFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_TELESALES_FEEDBACK_RESULT' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultTsFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_TELESALES_FEEDBACK_TOPIC' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultTsFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                    .margin-small.pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'defaultFeedbackConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("defaultFeedbackConfig")') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("defaultFeedbackConfig")') {{"CONFIRM" | translate}}
 
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
