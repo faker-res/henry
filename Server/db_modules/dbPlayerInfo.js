@@ -3341,9 +3341,7 @@ let dbPlayerInfo = {
 
                     let firstBankInfoProm = dbPropUtil.getOneProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
                         proposal => {
-                            console.log('proposal===1', proposal);
                             if (!proposal) {
-                                console.log('yes first===1');
                                 return {isFirstBankInfo: true};
                             }
                         }
@@ -3370,9 +3368,7 @@ let dbPlayerInfo = {
                 duplicatedRealNameCount = data[0] || 0;
                 sameBankAccountCount = data[1] || 0;
 
-                console.log('data[2]===', data[2]);
                 if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
-                    console.log('yes first===2');
                     isfirstTimeRegistration = true;
                     if (updateData && updateData.bankAccountName) {
                         updateData.realName = updateData.bankAccountName;
@@ -3443,9 +3439,7 @@ let dbPlayerInfo = {
 
                     // check require sms code if bank card registration at first time
                     if (isfirstTimeRegistration){
-                        console.log('yes first===3');
                         if(platformData.requireSMSCodeForBankRegistrationAtFirstTime){
-                            console.log('yes first===4');
                             platformData.requireSMSVerificationForPaymentUpdate = true;
                         }
                         else{
@@ -3453,13 +3447,11 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    console.log('skipSMSVerification===', skipSMSVerification);
                     // Check if platform sms verification is required
                     if (!platformData.requireSMSVerificationForPaymentUpdate || skipSMSVerification) {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        console.log('yes first===5');
                         return dbPlayerMail.verifySMSValidationCode(playerObj.phoneNumber, platformData, updateData.smsCode);
                     }
                 }

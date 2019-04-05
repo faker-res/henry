@@ -1160,7 +1160,6 @@ var dbLogger = {
     updateSmsLogProposalId: (tel, message, proposalId) => {
         dbconfig.collection_smsLog.find({tel, message}).sort({createTime: -1}).limit(1).lean().exec().then(
             smsLogArr => {
-                console.log('smsLogArr===', smsLogArr);
                 if (smsLogArr && smsLogArr[0]) {
                     let smsLog = smsLogArr[0];
 
