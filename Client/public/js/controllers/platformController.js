@@ -1261,7 +1261,10 @@ define(['js/app'], function (myApp) {
                             vm.initAuctionSystem();
                             loadPromoCodeTemplate();
                             vm.onGoingLoadPlatformData = false;
-                            vm.loadTab("Feedback");
+
+                            if (!vm.platformPageName) {
+                                vm.loadTab("Feedback");
+                            }
                         })
                     },
                     function (error) {
