@@ -3224,7 +3224,7 @@ var proposalExecutor = {
                                 let playerObjId = proposalData.data.playerObjId;
                                 let platformObjId = proposalData.data.platformId;
                                 let updateAmount = proposalData.data.rewardedRewardPoint;
-                                let remark = proposalData.data.rewardName;
+                                let remark = (proposalData.data.eventName || null) + ": " + proposalData.data.rewardName;
                                 let creator = 'System';
 
                                 sendMessageToPlayer(proposalData, constMessageType.RANDOM_REWARD_REWARD_POINTS_SUCCESS, {});
