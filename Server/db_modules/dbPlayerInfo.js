@@ -19127,7 +19127,7 @@ let dbPlayerInfo = {
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
-                                endTime: moment(query.start).add(query.days, "day"),
+                                endTime: query.days? moment(query.start).add(query.days, "day"): new Date(),
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     playerData = playerIdObjs;
@@ -19327,7 +19327,7 @@ let dbPlayerInfo = {
                                 }, 'registrationTime domain').lean().then(
                                     playerData => {
                                         let qStartTime = new Date(playerData.registrationTime);
-                                        let qEndTime = moment(qStartTime).add(query.days, 'day');
+                                        let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
 
                                         return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain, true);
                                     }
@@ -19344,7 +19344,7 @@ let dbPlayerInfo = {
                                         data => {
                                             feedbackData = JSON.parse(JSON.stringify(data));
                                             let qStartTime = new Date(feedbackData.createTime);
-                                            let qEndTime = moment(qStartTime).add(query.days, 'day');
+                                            let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
                                             return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime, null, true);
                                         }
                                     ).then(
