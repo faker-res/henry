@@ -681,7 +681,15 @@ var proposal = {
                     if (bExecute) {
                         proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, data)
                             .then(
-                                () => deferred.resolve(data),
+                                updatedProposalData => {
+                                    // get the promo code from the updated proposal and pass it to the current one to return back
+                                    // for the usage in PlayerRandomRewardGroup
+                                    if (updatedProposalData && updatedProposalData.data && updatedProposalData.data.promoCode){
+                                        data.promoCode = updatedProposalData.data.promoCode;
+                                    }
+
+                                    deferred.resolve(data)
+                                },
                                 err => deferred.reject(err)
                             );
                     }
