@@ -36345,27 +36345,26 @@ define(['js/app'], function (myApp) {
                     });
                 }
                 vm.feedbackAdminQuery.admin = "any";
-                $('#feedbackquerystarttime').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true,
-                    pickTime: true,
-                });
-                vm.feedbackAdminQuerystartDate = $("#feedbackquerystarttime").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
-
-                $('#feedbackqueryendtime').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
-                vm.feedbackAdminQueryendDate = $('#feedbackqueryendtime').data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
-
                 vm.feedbackAdminQuery = {
                     result: 'all',
                     topic: 'all',
                     topUpTimesOperator: ">="
                 };
                 utilService.actionAfterLoaded("#feedbackAdminTablePage", function () {
+                    $('#feedbackquerystarttime').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    vm.feedbackAdminQuerystartDate = $("#feedbackquerystarttime").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                    $('#feedbackqueryendtime').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+                    vm.feedbackAdminQueryendDate = $('#feedbackqueryendtime').data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
                     vm.feedbackAdminQuery.pageObj = utilService.createPageForPagingTable("#feedbackAdminTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "feedbackAdminQuery", vm.submitAdminPlayerFeedbackQuery)
                     });
