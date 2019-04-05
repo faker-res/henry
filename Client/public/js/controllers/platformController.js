@@ -9014,7 +9014,6 @@ define(['js/app'], function (myApp) {
                     endDate: new Date(),
                     maxDate: new Date()
                 });
-                vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date("January 01, 1990")));
 
                 vm.existPhone = false;
                 vm.existRealName = false;
