@@ -1,6 +1,7 @@
 const Q = require("q");
 const rp = require('request-promise');
 const errorUtils = require('./../modules/errorUtils');
+const jwt = require('jsonwebtoken');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 const env = require('../config/env').config();
@@ -22,6 +23,7 @@ const constProposalType = require('./../const/constProposalType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constRewardType = require('../const/constRewardType');
 const constServerCode = require("../const/constServerCode");
+const constSystemParam = require('../const/constSystemParam');
 
 const dbRewardUtil = require("../db_common/dbRewardUtility")
 
@@ -749,23 +751,27 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
     }
 
     url += "?";
-    url += playerData.platform.platformId + delimiter;
-    url += playerData.name + delimiter;
-    url += playerData.realName + delimiter;
-    url += paymentCallbackUrl + "/notifyPayment" + delimiter;
-    url += clientType + delimiter;
-    url += ipAddress + delimiter;
-    url += amount + delimiter;
+
+    let paramString = "";
+    paramString += playerData.platform.platformId + delimiter;
+    paramString += playerData.name + delimiter;
+    paramString += playerData.realName + delimiter;
+    paramString += paymentCallbackUrl + "/notifyPayment" + delimiter;
+    paramString += clientType + delimiter;
+    paramString += ipAddress + delimiter;
+    paramString += amount + delimiter;
     if (playerData && playerData.platform && playerData.platform.topUpSystemType && extConfig &&
         extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].name && extConfig[playerData.platform.topUpSystemType].name === 'PMS2') {
-        url += proposalData.proposalId + delimiter;
-        url += proposalData.entryType + delimiter;
-        url += proposalData.createTime.getTime()
+        paramString += proposalData.proposalId + delimiter;
+        paramString += proposalData.entryType + delimiter;
+        paramString += proposalData.createTime.getTime()
     } else {
-        url += proposalData.proposalId
+        paramString += proposalData.proposalId
     }
 
-    return url;
+    let encryptedParamString = "tk=".concat(jwt.sign(paramString, constSystemParam.PMS2_AUTH_SECRET_KEY));
+
+    return url.concat(encryptedParamString);
 }
 
 module.exports = dbPlayerPayment;
