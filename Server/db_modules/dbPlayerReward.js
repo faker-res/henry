@@ -7947,8 +7947,8 @@ let dbPlayerReward = {
                                 }
 
                                 // update playerRandonReward record
-                                console.log("checking ----- isPresetRandomReward", isPresetRandomReward)
-                                console.log("checking ----- updatePresetList", updatePresetList)
+                                console.log("checking isPresetRandomReward", isPresetRandomReward)
+                                console.log("checking updatePresetList", updatePresetList)
                                 if (isPresetRandomReward && updatePresetList && updatePresetList.platformId && updatePresetList.playerId && updatePresetList.randomReward &&
                                     eventData && eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP){
                                     let searchQuery = {
