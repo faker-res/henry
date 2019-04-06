@@ -7352,7 +7352,7 @@ let dbPlayerReward = {
                         if (!selectedReward || (selectedReward && selectedReward.length == 0)) {
                             selectedReward = null;
                             let rewardNameListInInterval = [];
-                            console.log("checking eventData.condition.noRepetitiveRewardInPeriod", eventData.condition.noRepetitiveRewardInPeriod)
+                            console.log("checking eventData.condition.noRepetitiveRewardInPeriod", eventData.condition.noRepetitiveRewardInPeriod || null)
                             // check if rewards cannot be the same in the interval
                             if (eventData.condition && eventData.condition.noRepetitiveRewardInPeriod && gottenRewardInInterval && gottenRewardInInterval.length){
                                 gottenRewardInInterval.forEach(
