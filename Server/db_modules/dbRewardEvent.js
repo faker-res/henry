@@ -121,6 +121,8 @@ var dbRewardEvent = {
                             data.param.rewardParam[0] && data.param.rewardParam[0].value && data.param.rewardParam[0].value.length){
 
                             promoCodeTemplateList = data.param.rewardParam[0].value.filter( p => (p.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_C) && Number.isFinite(p.possibility))
+                            promoCodeTemplateList.forEach( item => { item.rewardEvent = data._id; });
+
                             return createNewPromoCodeTemplateFromArr(promoCodeTemplateList, data.platform);
                         }
                         return true;
@@ -143,6 +145,7 @@ var dbRewardEvent = {
 
                                 if (index != -1) {
                                     reward.templateObjId = templates[index].templateObjId;
+                                    reward.rewardEvent = data._id || null;
                                 }
                             }
                             return reward
@@ -2600,7 +2603,7 @@ var dbRewardEvent = {
                     rewardList = updateData && updateData.param && updateData.param.rewardParam && updateData.param.rewardParam[0] && updateData.param.rewardParam[0].value && updateData.param.rewardParam[0].value.length ? updateData.param.rewardParam[0].value: null;
 
                     if (rewardList && rewardList.length){
-                        return checkAndUpdatePromoCodeTemplate (rewardList, platformObjId, param)
+                        return checkAndUpdatePromoCodeTemplate (rewardList, platformObjId, param, query._id)
                     }
                 }
                 return true
@@ -2616,6 +2619,7 @@ var dbRewardEvent = {
 
                             if (index != -1) {
                                 reward.templateObjId = promoCodeTemplate[index].templateObjId;
+                                reward.rewardEvent = query._id || null;
                             }
                         }
                         return reward
@@ -2662,7 +2666,7 @@ var dbRewardEvent = {
             }
         )
 
-        function checkAndUpdatePromoCodeTemplate (rewardList, platformObjId, existingParam){
+        function checkAndUpdatePromoCodeTemplate (rewardList, platformObjId, existingParam, rewardId){
             let updatePromoCodeTemplateProm = [];
             let savePromoCodeTemplateProm = [];
             let deletePromoCodeTemplateProm = [];
@@ -2677,6 +2681,9 @@ var dbRewardEvent = {
                         }
                         else{
                             let obj = dbRewardEvent.setPromoCodeTemplateObj(row, platformObjId);
+                            if (rewardId) {
+                                obj.rewardEvent = rewardId;
+                            }
                             savePromoCodeTemplateProm.push(new dbconfig.collection_promoCodeTemplate(obj).save().then(
                                 data => {
                                     return {

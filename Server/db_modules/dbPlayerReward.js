@@ -3910,6 +3910,8 @@ let dbPlayerReward = {
         let isType2Promo = false;
         let platformObjId = '';
         let topUpAmount = 0;
+        let rewardId = '';
+        let rewardName = '';
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
                 playerId: playerId
@@ -4088,6 +4090,20 @@ let dbPlayerReward = {
                 }
             }
         ).then(() => {
+
+                if (!promoCodeObj ||  !promoCodeObj.promoCodeTemplateObjId || !promoCodeObj.promoCodeTemplateObjId.rewardEvent) {
+                    return
+                }
+                return dbConfig.collection_rewardEvent.findOne({
+                    platform: platformObjId,
+                    _id: promoCodeObj.promoCodeTemplateObjId.rewardEvent
+                }).lean();
+            }
+        ).then((data) => {
+            if (data) {
+                rewardId = ( data && data._id ) ? data._id : '';
+                rewardName = ( data && data.name ) ? data.name : '';
+            }
             return dbConfig.collection_proposalType.findOne({
                 platformId: platformObjId,
                 name: constProposalType.PLAYER_PROMO_CODE_REWARD
@@ -4146,6 +4162,11 @@ let dbPlayerReward = {
                     } else {
                         proposalData.data.providers = promoCodeObj.allowedProviders;
                     }
+                }
+
+                if (rewardName && rewardId) {
+                    proposalData.data.rewardName = rewardName;
+                    proposalData.data.rewardId = rewardId;
                 }
 
                 return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
@@ -7329,7 +7350,7 @@ let dbPlayerReward = {
                         // filter out the valid rewards
                         selectedRewardParam = selectedRewardParam.filter( p => Number.isFinite(p.possibility));
                         // check if the player is first time and if there is pre-set reward for first time player
-                        if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
+                        if ( (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
                             selectedRewardParam = selectedRewardParam.filter( p => p.rewardType == eventData.condition.defaultRewardTypeInTheFirstTime && Number.isFinite(p.possibility))
                         }
                         // check if the player has been pre-set
