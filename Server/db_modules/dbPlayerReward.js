@@ -7350,7 +7350,7 @@ let dbPlayerReward = {
                         // filter out the valid rewards
                         selectedRewardParam = selectedRewardParam.filter( p => Number.isFinite(p.possibility));
                         // check if the player is first time and if there is pre-set reward for first time player
-                        if ( (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
+                        if ( applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
                             selectedRewardParam = selectedRewardParam.filter( p => p.rewardType == eventData.condition.defaultRewardTypeInTheFirstTime && Number.isFinite(p.possibility))
                         }
                         // check if the player has been pre-set
