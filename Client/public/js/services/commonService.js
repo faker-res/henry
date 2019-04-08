@@ -818,6 +818,12 @@ define([], () => {
                 if (vm.selectedProposal.data.hasOwnProperty("topUpSystemName")) {
                     proposalDetail["topUpSystemName"] = vm.selectedProposal.data.topUpSystemName;
                 }
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // endregion
 
@@ -866,6 +872,12 @@ define([], () => {
                 }
                 if (vm.selectedProposal.data.hasOwnProperty("topUpSystemName")) {
                     proposalDetail["topUpSystemName"] = vm.selectedProposal.data.topUpSystemName;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
                 }
             }
             // endregion
@@ -919,6 +931,12 @@ define([], () => {
                 if (vm.selectedProposal.data.hasOwnProperty("topUpSystemName")) {
                     proposalDetail["topUpSystemName"] = vm.selectedProposal.data.topUpSystemName;
                 }
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // endregion
 
@@ -965,6 +983,12 @@ define([], () => {
                 }
                 if (vm.selectedProposal.data.hasOwnProperty("topUpSystemName")) {
                     proposalDetail["topUpSystemName"] = vm.selectedProposal.data.topUpSystemName;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
                 }
             }
             // endregion
@@ -1028,6 +1052,12 @@ define([], () => {
                 proposalDetail["rewardStartTime"] = vm.selectedProposal.data.eventStartTime;
                 proposalDetail["rewardEndTime"] = vm.selectedProposal.data.eventEndTime;
                 proposalDetail["rewardInterval"] = vm.selectedProposal.data.intervalType;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1159,6 +1189,13 @@ define([], () => {
                 } else if (vm.selectedProposal.data.isResetAll) {
                     proposalDetail["isResetAll"] = vm.selectedProposal.data.isResetAll;
                 }
+
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1261,6 +1298,13 @@ define([], () => {
 
                 proposalDetail["COMMISSION_TOTAL"] = $fixTwoDecimalStr(vm.selectedProposal.data.amount) + " "
                     + "(" + $fixTwoDecimalStr(grossCommission) + "-" + $fixTwoDecimalStr(totalFee) + ")";
+
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1281,6 +1325,12 @@ define([], () => {
                 proposalDetail["CHILD_PARTNER_COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.childPartnerCommissionType]);
                 proposalDetail["CHILD_PARTNER_TOTAL_WINLOSE"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.childPlayerTotalWinLose);
                 proposalDetail["CHILD_PARTNER_RELATED_PROPOSAL_NO"] = vm.selectedProposal.data.relatedProposalId;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1308,6 +1358,12 @@ define([], () => {
                 proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
 
             // end region
@@ -1342,6 +1398,12 @@ define([], () => {
 
                     proposalDetail[$translate("Targeted Downline Player") + "（" + orderNo + "）" + "/" + $translate("Transferred Amount") + "/" + $translate("PROVIDER_GROUP") + "/" + $translate("Withdraw Consumption")] =  str;
                 });
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1377,6 +1439,12 @@ define([], () => {
 
                 proposalDetail["INPUT_DEVICE"] = inputDevice;
                 proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1403,6 +1471,12 @@ define([], () => {
 
                 proposalDetail["INPUT_DEVICE"] = inputDevice;
                 proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1428,6 +1502,12 @@ define([], () => {
 
                 proposalDetail["INPUT_DEVICE"] = inputDevice;
                 proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1491,6 +1571,12 @@ define([], () => {
                 if(vm.selectedProposal.data.bonusSystemName) {
                     proposalDetail["bonusSystemName"] = vm.selectedProposal.data.bonusSystemName;
                 }
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             //end region
 
@@ -1527,6 +1613,12 @@ define([], () => {
                 if(vm.selectedProposal.data.bonusSystemName) {
                     proposalDetail["bonusSystemName"] = vm.selectedProposal.data.bonusSystemName;
                 }
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1543,6 +1635,12 @@ define([], () => {
                 proposalDetail.defineLoseValue = $translate($scope.loseValueType[vm.selectedProposal.data.defineLoseValue]);
                 if (vm.selectedProposal.data.rewardPercent) {
                     proposalDetail.rewardPercent = vm.selectedProposal.data.rewardPercent + "%";
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
                 }
             }
             // end region
@@ -1584,6 +1682,12 @@ define([], () => {
 
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || "";
                 proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || "";
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1610,6 +1714,12 @@ define([], () => {
 
                 proposalDetail["INPUT_DEVICE"] = inputDevice;
                 proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1626,6 +1736,12 @@ define([], () => {
                 proposalDetail["oldLevelName"] = vm.selectedProposal.data.oldLevelName;
                 proposalDetail["newLevelName"] = vm.selectedProposal.data.newLevelName;
                 proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1642,6 +1758,12 @@ define([], () => {
                 proposalDetail["oldAccAdmin"] = vm.selectedProposal.data.oldAccAdmin;
                 proposalDetail["newAccAdmin"] = vm.selectedProposal.data.newAccAdmin;
                 proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1699,6 +1821,12 @@ define([], () => {
                 if (vm.selectedProposal.data.maxReward){
                     proposalDetail["maxReward"] = vm.selectedProposal.data.maxReward;
                 }
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1740,6 +1868,12 @@ define([], () => {
                 proposalDetail["useConsumptionAmount"] = vm.selectedProposal.data.useConsumptionAmount;
                 proposalDetail["useTopUpAmount"] = vm.selectedProposal.data.useTopUpAmount;
                 proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
@@ -1762,6 +1896,12 @@ define([], () => {
                 proposalDetail["startingPrice"] = vm.selectedProposal.data.startingPrice;
                 proposalDetail["directPurchasePrice"] = vm.selectedProposal.data.directPurchasePrice;
                 proposalDetail["isExclusive"] = vm.selectedProposal.data.isExclusive;
+                if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                    proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+                }
+                if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                    proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+                }
             }
             // end region
 
