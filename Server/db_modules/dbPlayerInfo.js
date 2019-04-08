@@ -1013,6 +1013,9 @@ let dbPlayerInfo = {
                         domain: {$exists: true}
                     }).sort({createTime: -1}).lean().then(
                         data => {
+                            if (!data || !data.domain) {
+                                return;
+                            }
                             return dbconfig.collection_csOfficerUrl.findOne({
                                 domain: data.domain,
                                 platform: platformObjId
