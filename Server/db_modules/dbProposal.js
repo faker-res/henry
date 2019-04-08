@@ -1258,7 +1258,7 @@ var proposal = {
      * @param {String} memo - memo of the step
      * @param {Boolean} bApprove - memo of the step
      */
-    updateProposalProcessStep: function (proposalId, adminId, memo, bApprove) {
+    updateProposalProcessStep: function (proposalId, adminId, memo, bApprove, remark, platform, rejectRemark) {
         var deferred = Q.defer();
         var nextStepId = null;
         var proposalData = null;
@@ -1468,7 +1468,11 @@ var proposal = {
                                         return Promise.resolve();
                                     }
 
-                                    let updateData = {status: status, isLocked: null};
+                                    let updateData = {
+                                        status: status,
+                                        isLocked: null,
+                                        "data.rejectRemark": rejectRemark,
+                                    };
                                     console.log("LH Check Proposal Reject 3------------", updateData);
                                     console.log("LH Check Proposal Reject 3.1------------", proposalData.status);
 
@@ -1576,7 +1580,7 @@ var proposal = {
         return deferred.promise;
     },
 
-    cancelProposal: function (proposalId, adminId, remark, adminObjId) {
+    cancelProposal: function (proposalId, adminId, remark, adminObjId, cancelRemark) {
         let proposalData;
         return dbconfig.collection_proposal.findOne({_id: proposalId})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
@@ -1621,7 +1625,8 @@ var proposal = {
                     noSteps: true,
                     process: null,
                     status: constProposalStatus.CANCEL,
-                    "data.cancelBy": "客服：" + adminId
+                    "data.cancelBy": "客服：" + adminId,
+                    "data.cancelRemark": cancelRemark,
                 };
                 if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
                     dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
