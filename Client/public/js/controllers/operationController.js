@@ -1999,7 +1999,8 @@ define(['js/app'], function (myApp) {
                 memo: $translate(bApprove ? "Approved" : "Rejected") + " " + $('#proposalRemark').val(),
                 bApprove: bApprove,
                 remark: $('#proposalRemark').val(),
-                platform: vm.selectedPlatform._id
+                platform: vm.selectedPlatform._id,
+                rejectRemark: vm.rejectMultipleRemark || ""
             }, function (data) {
                 deferred.resolve(true);
             }, function (error) {
@@ -2481,7 +2482,8 @@ define(['js/app'], function (myApp) {
             vm.selectedProposal.showCancel = false;
             socketService.$socket($scope.AppSocket, 'cancelProposal', {
                 proposalId: proposal._id,
-                remark: $('#proposalRemark').val()
+                remark: $('#proposalRemark').val(),
+                cancelRemark: vm.selectedProposal.cancelRemark || ""
             }, function (data) {
                 vm.selectedProposal.cancelling = false;
                 vm.selectedProposal.cancelled = true;
@@ -2497,7 +2499,8 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 memo: $translate(bApprove ? "Approved" : "Rejected") + " " + $('#proposalRemark').val(),
                 bApprove: bApprove,
-                platform: vm.selectedPlatform._id
+                platform: vm.selectedPlatform._id,
+                rejectRemark: vm.rejectRemark || ""
             }, function (data) {
                 console.log(data.data);
                 vm.loadProposalQueryData();
