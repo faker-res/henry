@@ -10634,6 +10634,16 @@ define(['js/app'], function (myApp) {
                     $('#feedbackHistoryTab').removeClass('active');
                     $scope.safeApply();
                     vm.feedbackModalTab = "addFeedbackPanel";
+                    vm.playerFeedback = {};
+                    if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback) {
+                        if (vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult && vm.playerFeedback) {
+                            vm.playerFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult;
+                        }
+
+                        if (vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic && vm.playerFeedback) {
+                            vm.playerFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic;
+                        }
+                    }
                 }
 
                 if (rowData && rowData.partnerId) {
@@ -10642,6 +10652,36 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     vm.feedbackModalTabPartner = "addPartnerFeedbackPanel";
                 }
+            };
+
+            vm.isFeedbackValid = function () {
+                let isValid = false;
+                if (vm.playerFeedback && vm.playerFeedback.result && vm.playerFeedback.topic) {
+                    if (vm.playerFeedback.content) {
+                        isValid = true;
+                    } else if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback
+                        && vm.playerFeedback.result == vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult
+                        && vm.playerFeedback.topic == vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic) {
+                        isValid = true;
+                    }
+                }
+
+                return isValid;
+            };
+
+            vm.isFeedbackAddValid = function () {
+                let isValid = false;
+                if (vm.addFeedback && vm.addFeedback.result && vm.addFeedback.topic) {
+                    if (vm.addFeedback.content) {
+                        isValid = true;
+                    } else if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback
+                        && vm.addFeedback.result == vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult
+                        && vm.addFeedback.topic == vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic) {
+                        isValid = true;
+                    }
+                }
+
+                return isValid;
             };
 
             vm.initNewPlayerFeedbackModal = function (selectedPlayer) {
@@ -16668,6 +16708,16 @@ define(['js/app'], function (myApp) {
                     vm.addFeedback = {
                         playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
                         platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
+                    }
+                }
+
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback) {
+                    if (vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult && vm.addFeedback) {
+                        vm.addFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult;
+                    }
+
+                    if (vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic && vm.addFeedback) {
+                        vm.addFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic;
                     }
                 }
 
@@ -23083,6 +23133,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardMainParamTable = [];
                 vm.rewardMainParamTable.push({value: []});
                 vm.rewardMainParamTable[0].value = rewardParamPromoCode1.concat(rewardParamPromoCode2).concat(rewardParamPromoCode3).concat(rewardParamCredit).concat(rewardParamPrize).concat(rewardParamRewardPoints);
+                vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title && Number.isFinite(p.possibility))
             }
 
             vm.editReward = function (i) {
@@ -23182,6 +23233,10 @@ define(['js/app'], function (myApp) {
 
                         if($noRoundTwoDecimalPlaces(total) > 1){
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
+                        }
+
+                        if (curReward.condition.noRepetitiveRewardInPeriod && curReward.condition && curReward.condition.hasOwnProperty('numberParticipation') && vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length < curReward.condition.numberParticipation){
+                            return socketService.showErrorMessage($translate("The number of chances is larger than the available reward, please untick the 'No Repetitive Reward In Period'"));
                         }
                     }
 
@@ -23409,6 +23464,10 @@ define(['js/app'], function (myApp) {
                         if($noRoundTwoDecimalPlaces(total) > 1){
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
                         }
+
+                        if (sendData.condition.noRepetitiveRewardInPeriod && sendData.condition && sendData.condition.hasOwnProperty('numberParticipation') && vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length < sendData.condition.numberParticipation){
+                            return socketService.showErrorMessage($translate("The number of chances is larger than the available reward, please untick the 'No Repetitive Reward In Period'"));
+                        }
                     }
 
                     // Set param table
@@ -23633,6 +23692,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'winnerMonitorSetting':
                         vm.getWinnerMonitorConfig();
+                        break;
+                    case 'defaultFeedbackConfig':
+                        vm.getDefaultFeedbackConfig();
                         break;
                 }
             };
@@ -28828,8 +28890,6 @@ define(['js/app'], function (myApp) {
                 vm.bulkCallBasic.definitionOfAnsweredPhone = vm.selectedPlatform.data.definitionOfAnsweredPhone || "";
                 vm.bulkCallBasic.decomposeAfterNDays = vm.selectedPlatform.data.decomposeAfterNDays || 1;
                 vm.bulkCallBasic.phoneWhiteListExportMaxNumber = vm.selectedPlatform.data.phoneWhiteListExportMaxNumber || 0;
-                vm.bulkCallBasic.defaultFeedbackResult = vm.selectedPlatform.data.defaultFeedbackResult || "";
-                vm.bulkCallBasic.defaultFeedbackTopic = vm.selectedPlatform.data.defaultFeedbackTopic || "";
                 vm.ctiUrlSubDomains = vm.ctiUrlSubDomains || [];
 
                 socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbackResults', {}, function (data) {
@@ -28847,6 +28907,18 @@ define(['js/app'], function (myApp) {
                 });
 
                 $scope.safeApply();
+            };
+
+            vm.getDefaultFeedbackConfig = () => {
+                vm.defaultFeedback = vm.defaultFeedback || {};
+                vm.defaultFeedback.defaultFeedbackResult = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult || "";
+                vm.defaultFeedback.defaultFeedbackTopic = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic || "";
+                vm.defaultFeedback.defaultPlayerFeedbackResult = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult || "";
+                vm.defaultFeedback.defaultPlayerFeedbackTopic = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic || "";
+                vm.defaultFeedback.defaultTsFeedbackResult = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult || "";
+                vm.defaultFeedback.defaultTsFeedbackTopic = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic || "";
+
+                $scope.$evalAsync();
             };
 
             vm.getPlatformBasic = function () {
@@ -29835,6 +29907,9 @@ define(['js/app'], function (myApp) {
                     case 'winnerMonitorSetting':
                         updateWinnerMonitorSetting();
                         break
+                    case 'defaultFeedbackConfig':
+                        updateDefaultFeedback(vm.defaultFeedback);
+                        break
 
                 }
             };
@@ -30725,10 +30800,28 @@ define(['js/app'], function (myApp) {
                         teleMarketingMinRedialInterval: srcData.teleMarketingMinRedialInterval,
                         teleMarketingIdleAgentMultiple: srcData.teleMarketingIdleAgentMultiple,
                         definitionOfAnsweredPhone: srcData.definitionOfAnsweredPhone,
-                        defaultFeedbackResult: srcData.defaultFeedbackResult,
-                        defaultFeedbackTopic: srcData.defaultFeedbackTopic,
                         decomposeAfterNDays: srcData.decomposeAfterNDays,
                         phoneWhiteListExportMaxNumber: srcData.phoneWhiteListExportMaxNumber,
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateDefaultFeedback(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        defaultFeedback: {
+                            defaultFeedbackResult: srcData.defaultFeedbackResult,
+                            defaultFeedbackTopic: srcData.defaultFeedbackTopic,
+                            defaultPlayerFeedbackResult: srcData.defaultPlayerFeedbackResult,
+                            defaultPlayerFeedbackTopic: srcData.defaultPlayerFeedbackTopic,
+                            defaultTsFeedbackResult: srcData.defaultTsFeedbackResult,
+                            defaultTsFeedbackTopic: srcData.defaultTsFeedbackTopic,
+                        }
                     }
                 };
 

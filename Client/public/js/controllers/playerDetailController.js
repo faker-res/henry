@@ -1499,6 +1499,17 @@ define(['js/app'], function (myApp) {
                 playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
                 platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
             };
+
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback) {
+                if (vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult && vm.addFeedback) {
+                    vm.addFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult;
+                }
+
+                if (vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic && vm.addFeedback) {
+                    vm.addFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic;
+                }
+            }
+
             if (vm.curFeedbackPlayer._id) {
                 vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
                     vm.curPlayerFeedbackDetail = data;
@@ -1515,6 +1526,21 @@ define(['js/app'], function (myApp) {
                 vm.curPlayerFeedbackDetail = {};
                 $scope.$evalAsync();
             }
+        };
+
+        vm.isFeedbackAddValid = function () {
+            let isValid = false;
+            if (vm.addFeedback && vm.addFeedback.result && vm.addFeedback.topic) {
+                if (vm.addFeedback.content) {
+                    isValid = true;
+                } else if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback
+                    && vm.addFeedback.result == vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult
+                    && vm.addFeedback.topic == vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic) {
+                    isValid = true;
+                }
+            }
+
+            return isValid;
         };
 
         vm.getPlayerNFeedback = function (playerId, limit, callback) {
@@ -5127,6 +5153,16 @@ define(['js/app'], function (myApp) {
                 $('#feedbackHistoryTab').removeClass('active');
                 $scope.$evalAsync();
                 vm.feedbackModalTab = "addFeedbackPanel";
+                vm.playerFeedback = {};
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback) {
+                    if (vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult && vm.playerFeedback) {
+                        vm.playerFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult;
+                    }
+
+                    if (vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic && vm.playerFeedback) {
+                        vm.playerFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic;
+                    }
+                }
             }
 
             if (rowData && rowData.partnerId) {
@@ -5135,6 +5171,21 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync();
                 vm.feedbackModalTabPartner = "addPartnerFeedbackPanel";
             }
+        };
+
+        vm.isFeedbackValid = function () {
+            let isValid = false;
+            if (vm.playerFeedback && vm.playerFeedback.result && vm.playerFeedback.topic) {
+                if (vm.playerFeedback.content) {
+                    isValid = true;
+                } else if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback
+                    && vm.playerFeedback.result == vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult
+                    && vm.playerFeedback.topic == vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic) {
+                    isValid = true;
+                }
+            }
+
+            return isValid;
         };
 
         vm.clearFeedBackResultDataStatus = function (rowData) {

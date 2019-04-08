@@ -7248,7 +7248,7 @@ let dbPlayerReward = {
                         if (participationTimes && applyRewardTimes >= participationTimes){
                             return Promise.reject({
                                 name: "DataError",
-                                message: "Player has applied for max reward times in event period"
+                                message: "This player has applied for max reward times in event period"
                             })
                         }
 
@@ -7347,10 +7347,13 @@ let dbPlayerReward = {
                                 }
                             }
                         }
+                        console.log("checking initial selectedRewardParam", selectedRewardParam)
+                        console.log("checking presetList", presetList)
                         // filter out the valid rewards
                         selectedRewardParam = selectedRewardParam.filter( p => Number.isFinite(p.possibility));
                         // check if the player is first time and if there is pre-set reward for first time player
-                        if ( applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
+                        console.log("checking applyRewardTimes", applyRewardTimes)
+                        if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
                             selectedRewardParam = selectedRewardParam.filter( p => p.rewardType == eventData.condition.defaultRewardTypeInTheFirstTime && Number.isFinite(p.possibility))
                         }
                         // check if the player has been pre-set
@@ -7370,8 +7373,9 @@ let dbPlayerReward = {
                         if (!selectedReward || (selectedReward && selectedReward.length == 0)) {
                             selectedReward = null;
                             let rewardNameListInInterval = [];
+                            console.log("checking eventData.condition.noRepetitiveRewardInPeriod", eventData.condition.noRepetitiveRewardInPeriod || null)
                             // check if rewards cannot be the same in the interval
-                            if (eventData.condition && eventData.condition.repetitiveRewardInPeriod && gottenRewardInInterval && gottenRewardInInterval.length){
+                            if (eventData.condition && eventData.condition.noRepetitiveRewardInPeriod && gottenRewardInInterval && gottenRewardInInterval.length){
                                 gottenRewardInInterval.forEach(
                                     proposal => {
                                         if (proposal && proposal.data && proposal.data.rewardName){
@@ -7381,10 +7385,12 @@ let dbPlayerReward = {
                                 )
                             }
 
+                            console.log("checking rewardNameListInInterval", rewardNameListInInterval)
                             if (rewardNameListInInterval.length){
-                                selectedRewardParam = selectedRewardParam.filter( p => rewardNameListInInterval.indexOf(p.title) != -1)
+                                selectedRewardParam = selectedRewardParam.filter( p => rewardNameListInInterval.indexOf(p.title) == -1)
                             }
 
+                            console.log("checking after filter selectedRewardParam", selectedRewardParam)
                             // check if the next reward cannot be the same as previous one
                             if (eventData.condition && eventData.condition.sameRewardOnTheNextTrial && gottenRewardInInterval && gottenRewardInInterval.length){
                                 let lastGottenRewardName = gottenRewardInInterval[gottenRewardInInterval.length-1] && gottenRewardInInterval[gottenRewardInInterval.length-1].data && gottenRewardInInterval[gottenRewardInInterval.length-1].data.rewardName ? gottenRewardInInterval[gottenRewardInInterval.length-1].data.rewardName : null;
@@ -7411,6 +7417,8 @@ let dbPlayerReward = {
                                 })
                             }
                             let pNumber = Math.random() * totalProbability;
+                            console.log("checking probability", pNumber)
+                            console.log("checking random getting selectedRewardParam", selectedRewardParam)
                             selectedRewardParam.some(
                                 eReward => {
                                     if (pNumber <= eReward.totalProbability) {
@@ -7421,7 +7429,7 @@ let dbPlayerReward = {
                             );
 
                         }
-                        console.log("checking selectedReward", selectedReward)
+                        console.log("checking final selectedReward", selectedReward)
 
                         if (!selectedReward){
                             return Promise.reject({
@@ -7960,12 +7968,16 @@ let dbPlayerReward = {
                                 }
 
                                 // update playerRandonReward record
+                                console.log("checking isPresetRandomReward", isPresetRandomReward)
+                                console.log("checking updatePresetList", updatePresetList)
                                 if (isPresetRandomReward && updatePresetList && updatePresetList.platformId && updatePresetList.playerId && updatePresetList.randomReward &&
                                     eventData && eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP){
                                     let searchQuery = {
-                                        playerId: updatePresetList.playerId,
-                                        platformId: updatePresetList.platformId,
+                                        playerId: ObjectId(updatePresetList.playerId),
+                                        platformId: ObjectId(updatePresetList.platformId),
+                                        rewardEvent: ObjectId(eventData._id),
                                         randomReward: updatePresetList.randomReward,
+                                        status: 1
                                     };
 
                                     postPropPromArr.push(dbConfig.collection_playerRandomReward.findOneAndUpdate(searchQuery, {status: 2}).lean());
