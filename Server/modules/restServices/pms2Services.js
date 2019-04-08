@@ -41,14 +41,8 @@ function pingDomain (domain) {
     };
 
     return rp(options).then(
-        data => {
-            console.log('r11 - data', data);
-            return true;
-        },
-        err => {
-            console.log('r11 - err', err);
-            throw false;
-        }
+        () => true,
+        () => false
     );
 }
 
