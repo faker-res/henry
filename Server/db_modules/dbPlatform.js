@@ -193,14 +193,21 @@ var dbPlatform = {
                     function (data) {
                         //add platform to PMS
                         if (env.mode != "local" && env.mode != "qa") {
-                            externalUtil.request(pmsAPI.platform_add(
-                                {
-                                    platformId: platformData.platformId,
-                                    name: platformData.name,
-                                    code: platformData.code,
-                                    description: platformData.description || ""
-                                }
-                            ));
+                            // externalUtil.request(pmsAPI.platform_add(
+                            //     {
+                            //         platformId: platformData.platformId,
+                            //         name: platformData.name,
+                            //         code: platformData.code,
+                            //         description: platformData.description || ""
+                            //     }
+                            // ));
+                            let data = {
+                                platformId: platformData.platformId,
+                                name: platformData.name,
+                                code: platformData.code
+                            };
+
+                            RESTUtils.getPMS2Services("postPlatformAdd", data);
                         }
                         deferred.resolve(platformData);
                     },
@@ -402,13 +409,14 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
                 if (env.mode != "local" && env.mode != "qa") {
-                    var platformData = {
+                    let platformData = {
                         platformId: data.platformId,
                         name: data.name,
                         code: data.code,
                         description: data.description
                     };
-                    externalUtil.request(pmsAPI.platform_update(platformData));
+                    //externalUtil.request(pmsAPI.platform_update(platformData));
+                    RESTUtils.getPMS2Services("patchPlatformUpdate", platformData);
                 }
                 return data;
             }
@@ -541,7 +549,8 @@ var dbPlatform = {
             .then(
                 data => {
                     if (platformId && env.mode != "local" && env.mode != "qa") {
-                        externalUtil.request(pmsAPI.platform_delete({platformId: platformId}));
+                        //externalUtil.request(pmsAPI.platform_delete({platformId: platformId}));
+                        RESTUtils.getPMS2Services("deletePlatformDelete", {platformId: platformId});
                     }
                     return data;
                 }

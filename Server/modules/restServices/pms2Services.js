@@ -223,6 +223,18 @@ function postDistrictList (reqData) {
     return postRequest(reqData, 'getDistrictList', 'POST')
 }
 
+function postPlatformAdd (reqData) {
+    return postRequest(reqData, 'platform', 'POST')
+}
+
+function deletePlatformDelete (reqData) {
+    return postRequest(reqData, 'platform', 'DELETE')
+}
+
+function patchPlatformUpdate (reqData) {
+    return postRequest(reqData, 'platform', 'PATCH')
+}
+
 module.exports = {
     getMinMax: getMinMax,
     getTopupLobbyAddress: getTopupLobbyAddress,
@@ -248,4 +260,7 @@ module.exports = {
     postCityList: postCityList,
     postDistrict: postDistrict,
     postDistrictList: postDistrictList,
+    postPlatformAdd: postPlatformAdd,
+    deletePlatformDelete: deletePlatformDelete,
+    patchPlatformUpdate: patchPlatformUpdate,
 };
