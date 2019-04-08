@@ -228,22 +228,31 @@ const dbProposalUtility = {
         function getIntervalForPlayerLoginMode3 (rewardEvent, retentionApplicationDate) {
             let startDate = dbUtility.getTargetSGTime(retentionApplicationDate).startTime;
             let endDate = null;
+            let intervalTime = {};
 
             if (rewardEvent.condition.interval) {
                 switch (rewardEvent.condition.interval) {
                     case "2":
-                        endDate = dbUtility.getNdaylaterFromSpecificStartTime(7, startDate)
+                        endDate = dbUtility.getNdaylaterFromSpecificStartTime(7, startDate);
+                        intervalTime.startTime  = startDate;
+                        intervalTime.endTime = endDate;
                         break;
                     case "3":
                         if (isNewDefineHalfMonth){
-                            endDate = dbUtility.getNdaylaterFromSpecificStartTime(15, startDate)
+                            endDate = dbUtility.getNdaylaterFromSpecificStartTime(15, startDate);
+                            intervalTime.startTime  = startDate;
+                            intervalTime.endTime = endDate;
                         }
                         else{
-                            endDate = dbUtility.getNdaylaterFromSpecificStartTime(14, startDate)
+                            endDate = dbUtility.getNdaylaterFromSpecificStartTime(14, startDate);
+                            intervalTime.startTime  = startDate;
+                            intervalTime.endTime = endDate;
                         }
                         break;
                     case "4":
-                        endDate = dbUtility.getNdaylaterFromSpecificStartTime(30, startDate)
+                        endDate = dbUtility.getNdaylaterFromSpecificStartTime(30, startDate);
+                        intervalTime.startTime  = startDate;
+                        intervalTime.endTime = endDate;
                         break;
                     case "6":
                         intervalTime = retentionApplicationDate ? dbUtility.getLastMonthSGTImeFromDate(retentionApplicationDate) : dbUtility.getLastMonthSGTime();
@@ -256,11 +265,8 @@ const dbProposalUtility = {
                 }
             }
 
-            if (startDate && startDate){
-                return {
-                    startTime: startDate,
-                    endTime: endDate
-                };
+            if (intervalTime && intervalTime.startTime &&intervalTime.endTime){
+                return intervalTime
             }
             else{
                 return Promise.reject({
