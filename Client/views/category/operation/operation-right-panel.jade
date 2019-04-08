@@ -183,7 +183,8 @@ style.
                         button.btn.btn-success.common-button(ng-show="checkViewPermission('Operation', 'Proposal','ApproveProposal')", ng-click="vm.updateMultiProposal(true);vm.searchProposalByQuery(true)") {{"APPROVE" | translate}}
                             text(ng-show='!vm.showProposalIndicator.approve') ({{vm.multiProposalSelected.length}})
                             i.fa.fa-spin.fa-spinner(ng-show='vm.showProposalIndicator.approve')
-                        button.btn.btn-danger.common-button(ng-show="checkViewPermission('Operation', 'Proposal','RejectProposal')", ng-click="vm.updateMultiProposal();vm.searchProposalByQuery(true)") {{"REJECT" | translate}}
+                        //button.btn.btn-danger.common-button(ng-show="checkViewPermission('Operation', 'Proposal','RejectProposal')", ng-click="vm.updateMultiProposal();vm.searchProposalByQuery(true)") {{"REJECT" | translate}}
+                        button.btn.btn-danger.common-button(ng-show="checkViewPermission('Operation', 'Proposal','RejectProposal')", ng-click='vm.rejectMultipleRemark = ""', data-toggle="modal", data-target='#modalAddRemarkRejectMultipleProposal') {{"REJECT" | translate}}
                             text(ng-show='!vm.showProposalIndicator.reject') ({{vm.multiProposalSelected.length}})
                             i.fa.fa-spin.fa-spinner(ng-show='vm.showProposalIndicator.reject')
                 //#topupMonitorTableDiv.tab-pane.fade
@@ -217,6 +218,76 @@ style.
                 tr(ng-repeat='(i,v) in vm.operationListContent')
                     td {{v.key}}
                     td {{v.val}}
+#modalAddRemarkCancelProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true' style="z-index:1052; margin-top:150px;")
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_REASON_CANCEL_PROPOSAL" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"ADD_REASON_CANCEL_PROPOSAL" | translate}}:
+                                    textarea.form-control(ng-model="vm.selectedProposal.cancelRemark")
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-if='vm.selectedProposal.showCancel', ng-disabled="!vm.selectedProposal.cancelRemark" ng-click="vm.submitCancelProposal(vm.selectedProposal)")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
+                .inlineBlk(ng-if='vm.selectedProposal.cancelling')
+                    label {{'Cancelling Proposal' | translate}}
+                    i.fa.fa-spin.fa-2x.fa-spinner
+                label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
+
+#modalAddRemarkRejectProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true' style="z-index:1052; margin-top:150px;")
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_REASON_REJECT_PROPOSAL" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"ADD_REASON_REJECT_PROPOSAL" | translate}}:
+                                    textarea.form-control(ng-model="vm.rejectRemark")
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-disabled="!vm.rejectRemark" ng-click="vm.updateProposal(vm.selectedProposal._id, false)")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
+
+#modalAddRemarkRejectMultipleProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true' style="z-index:1052; margin-top:150px;")
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_REASON_REJECT_MULTIPLE_PROPOSAL" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"ADD_REASON_REJECT_MULTIPLE_PROPOSAL" | translate}}:
+                                    textarea.form-control(ng-model="vm.rejectMultipleRemark")
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-disabled="!vm.rejectMultipleRemark" ng-click="vm.updateMultiProposal();vm.searchProposalByQuery(true)")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
+
 #modalOperationProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
@@ -247,8 +318,10 @@ style.
                     label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
                 .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
                     button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
-                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
-                button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
+                    //button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click='vm.rejectRemark = ""', data-toggle="modal", data-target='#modalAddRemarkRejectProposal') {{"REJECT" | translate}}
+                //button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal', ng-if='vm.selectedProposal.showCancel', data-toggle="modal", data-target='#modalAddRemarkCancelProposal') {{"Cancel Proposal" | translate}}
                 .inlineBlk(ng-if='vm.selectedProposal.cancelling')
                     label {{'Cancelling Proposal' | translate}}
                     i.fa.fa-spin.fa-2x.fa-spinner

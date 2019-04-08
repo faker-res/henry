@@ -1284,6 +1284,34 @@ define([], () => {
             }
             // end region
 
+            // region Parent Partner Commission Proposal
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerPromoCodeReward") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["proposalPlayerLevelValue"] = vm.selectedProposal.data.proposalPlayerLevelValue;
+                proposalDetail["REWARD_NAME"] = vm.selectedProposal.data.rewardName;
+                proposalDetail["topUpAmount"] = vm.selectedProposal.data.topUpAmount;
+                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
+                proposalDetail["applyAmount"] = vm.selectedProposal.data.applyAmount;
+                proposalDetail["PROMO_CODE_TYPE"] = vm.selectedProposal.data.PROMO_CODE_TYPE;
+                proposalDetail["disableWithdraw"] = vm.selectedProposal.data.disableWithdraw;
+                proposalDetail["promoCode"] = vm.selectedProposal.data.promoCode;
+                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+            }
+
+            // end region
+
             // region Partner Credit Transfer To Downline Proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PartnerCreditTransferToDownline") {
                 proposalDetail = {};
@@ -1740,6 +1768,12 @@ define([], () => {
 
             if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.rewardPeriod){
                 proposalDetail["rewardPeriod"] =  $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.startTime) + ' ~ ' + $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.endTime);
+            }
+            if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+            }
+            if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
             }
 
             return proposalDetail;

@@ -37,12 +37,18 @@ function pingDomain (domain) {
 
     let options = {
         method: 'GET',
-        uri: domain.concat('config/api-host.js')
+        uri: domain.concat('fpms-test.txt')
     };
 
     return rp(options).then(
-        () => true,
-        () => false
+        data => {
+            console.log('r11 - data', data);
+            return true;
+        },
+        err => {
+            console.log('r11 - err', err);
+            throw false;
+        }
     );
 }
 

@@ -1887,6 +1887,11 @@
   "Product List": "商品列表",
   "Disable All": "全部禁用",
   "Enable All": "全部启用",
+  "ADD_REASON_CANCEL_PROPOSAL": "添加取消此提案的原因",
+  "ADD_REASON_REJECT_PROPOSAL": "添加拒绝此提案的原因",
+  "ADD_REASON_REJECT_MULTIPLE_PROPOSAL": "添加拒绝批量提案的原因",
+  "cancelRemark": "取消原因",
+  "rejectRemark": "拒绝原因",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
@@ -5446,5 +5451,6 @@
   "Service Charge Setting": "手续费设置",
   "PMS Service Charge": "PMS手续费",
   "FPMS Service Charge": "FPMS手续费",
+  "disableWithdraw": "領取后禁用提款",
   "ServiceChangeSetting": "手续费设置"
 }

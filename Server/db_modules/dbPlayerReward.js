@@ -3910,6 +3910,8 @@ let dbPlayerReward = {
         let isType2Promo = false;
         let platformObjId = '';
         let topUpAmount = 0;
+        let rewardId = '';
+        let rewardName = '';
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
                 playerId: playerId
@@ -4088,6 +4090,20 @@ let dbPlayerReward = {
                 }
             }
         ).then(() => {
+
+                if (!promoCodeObj ||  !promoCodeObj.promoCodeTemplateObjId || !promoCodeObj.promoCodeTemplateObjId.rewardEvent) {
+                    return
+                }
+                return dbConfig.collection_rewardEvent.findOne({
+                    platform: platformObjId,
+                    _id: promoCodeObj.promoCodeTemplateObjId.rewardEvent
+                }).lean();
+            }
+        ).then((data) => {
+            if (data) {
+                rewardId = ( data && data._id ) ? data._id : '';
+                rewardName = ( data && data.name ) ? data.name : '';
+            }
             return dbConfig.collection_proposalType.findOne({
                 platformId: platformObjId,
                 name: constProposalType.PLAYER_PROMO_CODE_REWARD
@@ -4146,6 +4162,11 @@ let dbPlayerReward = {
                     } else {
                         proposalData.data.providers = promoCodeObj.allowedProviders;
                     }
+                }
+
+                if (rewardName && rewardId) {
+                    proposalData.data.rewardName = rewardName;
+                    proposalData.data.rewardId = rewardId;
                 }
 
                 return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
