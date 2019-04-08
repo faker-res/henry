@@ -7508,10 +7508,8 @@ define(['js/app'], function (myApp) {
             vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {
                 language: 'en',
                 format: 'yyyy/MM/dd',
-                endDate: new Date(),
                 maxDate: new Date()
             });
-
             vm.existPhone = false;
             vm.existRealName = false;
             vm.newPlayer = {};
@@ -8424,8 +8422,6 @@ define(['js/app'], function (myApp) {
         vm.createNewPlayer = function () {
             vm.newPlayer.platform = vm.selectedPlatform.id;
             vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
-            vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
-            vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
 
             console.log('newPlayer', vm.newPlayer);
