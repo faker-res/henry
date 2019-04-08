@@ -37,7 +37,7 @@ function pingDomain (domain) {
 
     let options = {
         method: 'GET',
-        uri: domain.concat('config/api-host.js')
+        uri: domain.concat('fpms-test.txt')
     };
 
     return rp(options).then(
