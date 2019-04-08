@@ -5446,5 +5446,6 @@
   "Service Charge Setting": "手续费设置",
   "PMS Service Charge": "PMS手续费",
   "FPMS Service Charge": "FPMS手续费",
+  "disableWithdraw": "領取后禁用提款",
   "ServiceChangeSetting": "手续费设置"
 }
