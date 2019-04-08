@@ -29582,6 +29582,10 @@ define(['js/app'], function (myApp) {
                         name: '黑名单IP',
                         score: 0
                     },
+                    {
+                        name: '代理开户',
+                        score: 0
+                    },
                 ];
 
                 let sendData = {
