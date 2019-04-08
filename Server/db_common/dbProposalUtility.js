@@ -265,7 +265,7 @@ const dbProposalUtility = {
                 }
             }
 
-            if (intervalTime && intervalTime.startTime &&intervalTime.endTime){
+            if (intervalTime && intervalTime.startTime && intervalTime.endTime){
                 return intervalTime
             }
             else{
