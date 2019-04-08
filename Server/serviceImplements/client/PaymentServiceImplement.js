@@ -258,7 +258,8 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getProvinceList, [], isValidData, false, false, true);
 
         function getProvinceList() {
-            return pmsAPI.foundation_getProvinceList({}).then(data => data.provinces);
+            return RESTUtils.getPMS2Services("postProvinceList", {}).then(data => data.data);
+            //return pmsAPI.foundation_getProvinceList({}).then(data => data.provinces);
         }
     };
 
@@ -268,7 +269,8 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getCityList, [data.provinceId], isValidData, false, false, true);
 
         function getCityList(provinceId) {
-            return pmsAPI.foundation_getCityList({provinceId: provinceId}).then(data => data.cities);
+            return RESTUtils.getPMS2Services("postCityList", {provinceId: provinceId}).then(data => data.data);
+            //return pmsAPI.foundation_getCityList({provinceId: provinceId}).then(data => data.cities);
         }
     };
 
@@ -278,10 +280,8 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getDistrictList, [data.provinceId, data.cityId], isValidData, false, false, true);
 
         function getDistrictList(provinceId, cityId) {
-            return pmsAPI.foundation_getDistrictList({
-                provinceId: provinceId,
-                cityId: cityId
-            }).then(data => data.districts);
+            return RESTUtils.getPMS2Services("postDistrictList", {provinceId: provinceId, cityId: cityId}).then(data => data.data);
+            // return pmsAPI.foundation_getDistrictList({provinceId: provinceId, cityId: cityId}).then(data => data.districts);
         }
     };
 

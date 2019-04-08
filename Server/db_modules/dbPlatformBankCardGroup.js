@@ -313,11 +313,14 @@ var dbPlatformBankCardGroup = {
 
     getZoneList: function (provinceId, cityId) {
         if (!provinceId && !cityId) {
-            return pmsAPI.foundation_getProvinceList({});
+            return RESTUtils.getPMS2Services("postProvinceList", {});
+            // return pmsAPI.foundation_getProvinceList({});
         } else if (provinceId && !cityId) {
-            return pmsAPI.foundation_getCityList({provinceId: provinceId});
+            return RESTUtils.getPMS2Services("postCityList", {provinceId: provinceId});
+            // return pmsAPI.foundation_getCityList({provinceId: provinceId});
         } else if (provinceId && cityId) {
-            return pmsAPI.foundation_getDistrictList({provinceId: provinceId, cityId: cityId});
+            return RESTUtils.getPMS2Services("postDistrictList", {provinceId: provinceId, cityId: cityId});
+            // return pmsAPI.foundation_getDistrictList({provinceId: provinceId, cityId: cityId});
         }
     },
 
@@ -326,13 +329,16 @@ var dbPlatformBankCardGroup = {
         var defer = Q.defer();
         switch (type) {
             case "province":
-                a = pmsAPI.foundation_getProvince({provinceId: data});
+                a = RESTUtils.getPMS2Services("postProvince", {provinceId: data});
+                // a = pmsAPI.foundation_getProvince({provinceId: data});
                 break;
             case "city":
-                a = pmsAPI.foundation_getCity({cityId: data});
+                a = RESTUtils.getPMS2Services("postCity", {cityId: data});
+                // a = pmsAPI.foundation_getCity({cityId: data});
                 break;
             case "district":
-                a = pmsAPI.foundation_getDistrict({districtId: data});
+                a = RESTUtils.getPMS2Services("postDistrict", {districtId: data});
+                // a = pmsAPI.foundation_getDistrict({districtId: data});
                 break;
             default:
         }
@@ -343,7 +349,8 @@ var dbPlatformBankCardGroup = {
             },
             err => {
                 var obj = {};
-                obj[type] = {name: data + type + 'name', id: data};
+                //obj[type] = {name: data + type + 'name', id: data};
+                obj = {name: data + type + 'name', id: data};
                 defer.resolve(obj)
             }
         )
