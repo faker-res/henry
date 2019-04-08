@@ -1769,6 +1769,12 @@ define([], () => {
             if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.rewardPeriod){
                 proposalDetail["rewardPeriod"] =  $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.startTime) + ' ~ ' + $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.endTime);
             }
+            if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+            }
+            if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+            }
 
             return proposalDetail;
         };
