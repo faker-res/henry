@@ -1010,12 +1010,12 @@ define(['js/app'], function (myApp) {
         vm.prepareTsPhoneFeedback = function (tsPhoneObj) {
             vm.tsPhoneAddFeedback = {tsPhone: tsPhoneObj}
             if (vm.selectedPlatform && vm.selectedPlatform.data) {
-                if (vm.selectedPlatform.data.defaultFeedbackResult) {
-                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedbackResult
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult) {
+                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult;
                 }
 
-                if (vm.selectedPlatform.data.defaultFeedbackTopic) {
-                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedbackTopic
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic) {
+                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic;
                 }
             }
 
@@ -1031,8 +1031,6 @@ define(['js/app'], function (myApp) {
                 endDate: new Date(),
                 maxDate: new Date()
             });
-            vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date("January 01, 1990")));
-
             vm.existPhone = false;
             vm.existRealName = false;
             vm.newPlayer = {};
@@ -1318,12 +1316,12 @@ define(['js/app'], function (myApp) {
             // }
 
             if (vm.selectedPlatform && vm.selectedPlatform.data) {
-                if (vm.selectedPlatform.data.defaultFeedbackResult) {
-                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedbackResult
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult) {
+                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult;
                 }
 
-                if (vm.selectedPlatform.data.defaultFeedbackTopic) {
-                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedbackTopic
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic) {
+                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic;
                 }
             }
 

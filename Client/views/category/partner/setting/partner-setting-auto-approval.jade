@@ -33,7 +33,7 @@ div.margin-top-5
                     td(style="text-align: left;")  {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"The withdrawing amount is larger than the commission" | translate }}
 
         br
-        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Partner', 'Config', 'autoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Partner', 'Config', 'AutoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
             text {{'EDIT' | translate}}
             img.img-edit
         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("autoApproval")') {{"CANCEL" | translate}}

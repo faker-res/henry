@@ -1284,6 +1284,34 @@ define([], () => {
             }
             // end region
 
+            // region Parent Partner Commission Proposal
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerPromoCodeReward") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["proposalPlayerLevelValue"] = vm.selectedProposal.data.proposalPlayerLevelValue;
+                proposalDetail["REWARD_NAME"] = vm.selectedProposal.data.rewardName;
+                proposalDetail["topUpAmount"] = vm.selectedProposal.data.topUpAmount;
+                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
+                proposalDetail["applyAmount"] = vm.selectedProposal.data.applyAmount;
+                proposalDetail["PROMO_CODE_TYPE"] = vm.selectedProposal.data.PROMO_CODE_TYPE;
+                proposalDetail["disableWithdraw"] = vm.selectedProposal.data.disableWithdraw;
+                proposalDetail["promoCode"] = vm.selectedProposal.data.promoCode;
+                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+            }
+
+            // end region
+
             // region Partner Credit Transfer To Downline Proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PartnerCreditTransferToDownline") {
                 proposalDetail = {};
@@ -1686,6 +1714,8 @@ define([], () => {
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                // proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
+                // proposalDetail["proposalPlayerLevelValue"] = vm.selectedProposal.data.proposalPlayerLevelValue;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realName || " ";
                 proposalDetail["lastLoginIp"] = vm.selectedProposal.data.lastLoginIp || " ";
                 proposalDetail["phoneNumber"] = vm.selectedProposal.data.phoneNumber || " ";
@@ -1696,21 +1726,20 @@ define([], () => {
                 proposalDetail["rewardAppearPeriod"] = getIntervalTime($scope, $translate, vm.selectedProposal.data.rewardAppearPeriod);
                 proposalDetail["rewardType"] = $translate($scope.randomRewardType[rewardType]);
                 proposalDetail["rewardName"] = vm.selectedProposal.data.rewardName;
-                proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
                 proposalDetail["applyTargetDate"] = vm.selectedProposal.data.applyTargetDate;
                 proposalDetail["forbidWithdrawAfterApply"] = vm.selectedProposal.data.forbidWithdrawAfterApply;
                 proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
                 proposalDetail["isDynamicRewardAmount"] = vm.selectedProposal.data.isDynamicRewardAmount;
                 proposalDetail["isGroupReward"] = vm.selectedProposal.data.isGroupReward;
                 proposalDetail["isIgnoreAudit"] = vm.selectedProposal.data.isIgnoreAudit;
-                proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
-                proposalDetail["proposalPlayerLevelValue"] = vm.selectedProposal.data.proposalPlayerLevelValue;
                 proposalDetail["providerGroup"] = vm.selectedProposal.data.providerGroup;
-                proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                // proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
                 proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
                 proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
                 proposalDetail["useConsumptionAmount"] = vm.selectedProposal.data.useConsumptionAmount;
                 proposalDetail["useTopUpAmount"] = vm.selectedProposal.data.useTopUpAmount;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
             }
             // end region
 
