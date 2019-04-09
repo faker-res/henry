@@ -3311,6 +3311,8 @@ let dbPlayerInfo = {
         let sameBankAccountCount = 0;
         let isfirstTimeRegistration = false;
 
+        console.log('updatePlayerPayment updateData:', updateData);
+
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 if (!playerData) {

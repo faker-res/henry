@@ -7849,6 +7849,8 @@ let dbPlayerReward = {
                             proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
                             if (eventData.condition.definePlayerLoginMode == 3){
                                 proposalData.data.rewardPeriod = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(null, eventData);
+                                // the date when applying this reward with login mode 3;
+                                proposalData.data.retentionApplicationDate = new Date();
                             }
                         }
 
