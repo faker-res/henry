@@ -2024,7 +2024,7 @@ var dbPlayerTopUpRecord = {
 
                 if(updateData.data.merchantNo && player.platform._id && merchantName != ""){
                     getRateProm = getMerchantRate(updateData.data.merchantNo , player.platform.platformId, merchantName);
-                    sysCustomMerchantRateProm = dbconfig.collection_platform.findOne({_id: proposalObj.data.platformId}, {pmsServiceCharge: 1, fpmsServiceCharge: 1}).lean();
+                    sysCustomMerchantRateProm = dbconfig.collection_platform.findOne({_id: player.platform._id}, {pmsServiceCharge: 1, fpmsServiceCharge: 1}).lean();
                 }
 
                 return Promise.all([getRateProm, sysCustomMerchantRateProm]).then(
