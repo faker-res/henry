@@ -3864,6 +3864,7 @@ define(['js/app'], function (myApp) {
                                                         : item.data.accountNo ? item.data.accountNo : null;
                                     item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                                     item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                                    item.playerCommonTopUpCount$ = item.$playerCurrentCommonTopUpCount + "/" + item.$playerAllCommonTopUpCount;
                                     item.status$ = $translate(item.status);
                                     item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
                                     item.website = item && item.data && item.data.platform && item.data.platformId ?
@@ -4005,6 +4006,7 @@ define(['js/app'], function (myApp) {
 
                                     item.merchantCount$ = item.merchantCurrentCount + "/" + item.merchantTotalCount + " (" + item.merchantGapTime + ")";
                                     item.playerCount$ = item.playerCurrentCount + "/" + item.playerTotalCount + " (" + item.playerGapTime + ")";
+                                    item.playerCommonTopUpCount$ = item.playerCurrentCommonTopUpCount + "/" + item.playerCommonTopUpTotalCount;
                                     item.status$ = $translate(item.status);
                                     item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.proposalCreateTime));
                                     return item;
@@ -4352,6 +4354,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "playerCount"},
                     {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText playerCount"},
                     {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount"},
+                    {title: $translate('Total Members Common Top up'), data: "playerCommonTopUpCount$", sClass: "sumText playerCount"},
                     {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight playerCount"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
@@ -4533,6 +4536,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "playerObjId.name", sClass: "playerCount"},
                     {title: $translate('Real Name'), data: "playerObjId.realName", sClass: "sumText playerCount"},
                     {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount"},
+                    {title: $translate('Total Members Common Top up'), data: "playerCommonTopUpCount$", sClass: "sumText playerCount"},
                     {title: $translate('TopUp Amount'), data: "amount", sClass: "sumFloat alignRight playerCount"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
@@ -4693,6 +4697,8 @@ define(['js/app'], function (myApp) {
                     playerName: rowData.data.playerObjId.name,
                     playerCurrentCount: rowData.$playerCurrentCount,
                     playerTotalCount: rowData.$playerAllCount,
+                    playerCurrentCommonTopUpCount: rowData.$playerCurrentCommonTopUpCount,
+                    playerCommonTopUpTotalCount: rowData.$playerAllCommonTopUpCount,
                     playerGapTime: rowData.$playerGapTime,
                     amount: rowData.amount$,
                     proposalCreateTime: rowData.createTime,
