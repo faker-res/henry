@@ -86,6 +86,8 @@ let rewardPointsTaskSchema = require('./../schema/rewardPointsTask');
 let playerPageAdvertisementInfoSchema = require('./../schema/playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoSchema = require('./../schema/partnerPageAdvertisementInfo');
 
+let advertisementPageXBETSchema = require('./../schema/advertisementPageXBET');
+
 let playerMultipleBankDetailInfoSchema = require('./../schema/playerMultipleBankDetailInfo');
 
 let smsGroupSchema = require('./../schema/smsGroup');
@@ -93,6 +95,7 @@ let promoCodeTemplateSchema = require('./../schema/promoCodeTemplate');
 let depositGroupSchema = require('./../schema/depositGroup');
 let qualityInspectionSchema = require('./../schema/qualityInspection');
 let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary');
+let scheduledLive800DailyRecordSchema = require('./../schema/logs2/scheduledLive800DailyRecords');
 let wcDeviceSchema = require('./../schema/admindb/wcDevice');
 let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig');
 let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
@@ -232,6 +235,9 @@ let largeWithdrawalLogModel = dbLogs2.model('largeWithdrawalLog', largeWithdrawa
 let partnerLargeWithdrawalLogSchema = require('../schema/partnerLargeWithdrawalLog');
 let partnerLargeWithdrawalLogModel = dbLogs2.model('partnerLargeWithdrawalLog', partnerLargeWithdrawalLogSchema, 'partnerLargeWithdrawalLog');
 
+let winnerMonitorConfigSchema = require('../schema/winnerMonitorConfig');
+let winnerMonitorConfigModel = dbLogs2.model('winnerMonitorConfig', winnerMonitorConfigSchema, 'winnerMonitorConfig');
+
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
 
@@ -240,6 +246,8 @@ let partnerFeedbackTopicModel = db_admin.model('partnerFeedbackTopic', partnerFe
 
 let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementInfo', playerPageAdvertisementInfoSchema, 'playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
+
+let advertisementPageXBETModel = db_admin.model('advertisementPageXBET', advertisementPageXBETSchema, 'advertisementPageXBET');
 
 let playerMultipleBankDetailInfoModel = db_admin.model('playerMultipleBankDetailInfo', playerMultipleBankDetailInfoSchema, 'playerMultipleBankDetailInfo');
 
@@ -399,6 +407,12 @@ let frontendDataModel = dbLogs2.model('frontendData', frontendDataSchema, 'front
 let resetPasswordVerificationSchema = require('./../schema/logs2/resetPasswordVerification');
 let resetPasswordVerificationModel = dbLogs2.model('resetPasswordVerification', resetPasswordVerificationSchema, 'resetPasswordVerification');
 
+let paymentMonitorFollowUpSchema = require('./../schema/logs2/paymentMonitorFollowUp');
+let paymentMonitorFollowUpModel = dbLogs2.model('paymentMonitorFollowUp', paymentMonitorFollowUpSchema, 'paymentMonitorFollowUp');
+
+let playerConsumptionHourSummarySchema = require('./../schema/logs2/playerConsumptionHourSummary');
+let playerConsumptionHourSummaryModel = dbLogs2.model('playerConsumptionHourSummary', playerConsumptionHourSummarySchema, 'playerConsumptionHourSummary');
+
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
@@ -480,8 +494,14 @@ let callBackToUserLogModel = dbLogs2.model('callBackToUserLog', callBackToUserLo
 let auctionSystemSchema = require('./../schema/auctionSystem');
 let auctionSystemModel = dbLogs2.model('auctionSystem', auctionSystemSchema, 'auctionSystem');
 
+let playerRandomRewardSchemaSchema = require('./../schema/playerRandomReward');
+let playerRandomRewardSchemaModel = dbLogs2.model('playerRandomReward', playerRandomRewardSchemaSchema, 'playerRandomReward');
+
 let playerReportDataDaySummarySchema = require('../schema/playerReportDataDaySummary');
 let playerReportDataDaySummaryModel = dbLogs2.model('playerReportDataDaySummary', playerReportDataDaySummarySchema, 'playerReportDataDaySummary');
+
+let winRateReportDataDaySummarySchema = require('../schema/winRateReportDataDaySummary');
+let winRateReportDataDaySummaryModel = dbLogs2.model('winRateReportDataDaySummary', winRateReportDataDaySummarySchema, 'winRateReportDataDaySummary');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -518,6 +538,8 @@ let rewardPointsLogModel = dbLogs.model('rewardPointsLog', rewardPointsLogSchema
 
 let qualityInspectionModel = dbLogs.model('qualityInspection', qualityInspectionSchema, 'qualityInspection');
 let live800RecordDaySummaryModel = dbLogs.model('live800RecordDaySummary', live800RecordDaySummarySchema, 'live800RecordDaySummary');
+
+let scheduledLive800DailyRecordModel = dbLogs2.model('scheduledLive800DailyRecord', scheduledLive800DailyRecordSchema, 'scheduledLive800DailyRecord');
 
 let playerInfoFromExternalSourceSchema = require('./../schema/logs2/playerInfoFromExternalSource');
 let playerInfoFromExternalSourceModel = dbLogs2.model('playerInfoFromExternalSource', playerInfoFromExternalSourceSchema, 'playerInfoFromExternalSource');
@@ -598,6 +620,7 @@ var dbProperties = {
     collection_clientQnATemplate: clientQnATemplateModel,
     collection_clientQnATemplateConfig: clientQnATemplateConfigModel,
     collection_resetPasswordVerification: resetPasswordVerificationModel,
+    collection_paymentMonitorFollowUp: paymentMonitorFollowUpModel,
     collection_platformFeeEstimate: platformFeeEstimateModel,
     collection_platformBankCardList: platformBankCardListModel,
     collection_platformMerchantGroup: platformMerchantGroupModel,
@@ -644,6 +667,8 @@ var dbProperties = {
     collection_largeWithdrawalLog: largeWithdrawalLogModel,
     collection_partnerLargeWithdrawalLog: partnerLargeWithdrawalLogModel,
 
+    collection_winnerMonitorConfig: winnerMonitorConfigModel,
+
     collection_actionLog: actionLogModel,
     collection_callBackToUserLog: callBackToUserLogModel,
 
@@ -662,8 +687,10 @@ var dbProperties = {
     collection_playerPageAdvertisementInfo: playerPageAdvertisementInfoModel,
     collection_partnerPageAdvertisementInfo: partnerPageAdvertisementInfoModel,
 
+    collection_advertisementPageXBET: advertisementPageXBETModel,
+
     collection_playerMultipleBankDetailInfo: playerMultipleBankDetailInfoModel,
-    
+
     collection_idcIp: idcIpModel,
     collection_smsGroup: smsGroupModel,
     collection_promoCodeTemplate: promoCodeTemplateModel,
@@ -674,6 +701,7 @@ var dbProperties = {
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,
+    collection_winRateReportDataDaySummary: winRateReportDataDaySummaryModel,
 
     //logs
     collection_playerMail: playerMailModel,
@@ -687,6 +715,7 @@ var dbProperties = {
     collection_playerTopUpWeekSummary: playerTopUpWeekSummaryModel,
     collection_playerConsumptionRecord: playerConsumptionRecordModel,
     collection_playerConsumptionSummary: playerConsumptionSummaryModel,
+    collection_playerConsumptionHourSummary: playerConsumptionHourSummaryModel,
     collection_playerConsumptionDaySummary: playerConsumptionDaySummaryModel,
     collection_playerConsumptionWeekSummary: playerConsumptionWeekSummaryModel,
     collection_playerGameTypeConsumptionDaySummary: playerGameTypeConsumptionDaySummaryModel,
@@ -762,8 +791,10 @@ var dbProperties = {
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
+    collection_live800RecordDayRecord: scheduledLive800DailyRecordModel,
     collection_playerDataFromExternalSource: playerInfoFromExternalSourceModel,
     collection_queryCreditTimeout: queryCreditTimeoutModel,
+    collection_playerRandomReward: playerRandomRewardSchemaModel,
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,

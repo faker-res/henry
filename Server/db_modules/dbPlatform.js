@@ -13,6 +13,7 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 var dbconfig = require('./../modules/dbproperties');
 var constPartnerLevel = require('./../const/constPartnerLevel');
 var constPlayerLevel = require('./../const/constPlayerLevel');
+var constXBETAdvertisementType = require('./../const/constXBETAdvertisementType');
 const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 var constPlayerTrustLevel = require('./../const/constPlayerTrustLevel');
 var constProposalType = require('./../const/constProposalType');
@@ -50,6 +51,7 @@ const jwt = require('jsonwebtoken');
 const jwtSecret = env.socketSecret;
 const moment = require('moment-timezone');
 const emailer = require("./../modules/emailer");
+const RESTUtils = require("./../modules/RESTUtils");
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -191,14 +193,21 @@ var dbPlatform = {
                     function (data) {
                         //add platform to PMS
                         if (env.mode != "local" && env.mode != "qa") {
-                            externalUtil.request(pmsAPI.platform_add(
-                                {
-                                    platformId: platformData.platformId,
-                                    name: platformData.name,
-                                    code: platformData.code,
-                                    description: platformData.description || ""
-                                }
-                            ));
+                            // externalUtil.request(pmsAPI.platform_add(
+                            //     {
+                            //         platformId: platformData.platformId,
+                            //         name: platformData.name,
+                            //         code: platformData.code,
+                            //         description: platformData.description || ""
+                            //     }
+                            // ));
+                            let data = {
+                                platformId: platformData.platformId,
+                                name: platformData.name,
+                                code: platformData.code
+                            };
+
+                            RESTUtils.getPMS2Services("postPlatformAdd", data);
                         }
                         deferred.resolve(platformData);
                     },
@@ -400,13 +409,14 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
                 if (env.mode != "local" && env.mode != "qa") {
-                    var platformData = {
+                    let platformData = {
                         platformId: data.platformId,
                         name: data.name,
                         code: data.code,
                         description: data.description
                     };
-                    externalUtil.request(pmsAPI.platform_update(platformData));
+                    //externalUtil.request(pmsAPI.platform_update(platformData));
+                    RESTUtils.getPMS2Services("patchPlatformUpdate", platformData);
                 }
                 return data;
             }
@@ -539,7 +549,8 @@ var dbPlatform = {
             .then(
                 data => {
                     if (platformId && env.mode != "local" && env.mode != "qa") {
-                        externalUtil.request(pmsAPI.platform_delete({platformId: platformId}));
+                        //externalUtil.request(pmsAPI.platform_delete({platformId: platformId}));
+                        RESTUtils.getPMS2Services("deletePlatformDelete", {platformId: platformId});
                     }
                     return data;
                 }
@@ -613,7 +624,6 @@ var dbPlatform = {
 
     syncPlatform: function () {
         dbPlatform.syncHTTPPMSPlatform();
-        dbPlatform.syncPMSPlatform();
         dbPlatform.syncCPMSPlatform();
         dbPlatform.syncSMSPlatform();
     },
@@ -622,7 +632,7 @@ var dbPlatform = {
         if (env.mode != "local" && env.mode != "qa") {
             if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
                 Object.keys(extConfig).forEach(key => {
-                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS2' && extConfig[key].syncPlatformAPIAddr) {
+                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS2') {
                         return dbconfig.collection_platform.find().then(
                             platformArr => {
                                 var sendObj = [];
@@ -631,6 +641,7 @@ var dbPlatform = {
                                         var obj = {
                                             platformId: platformArr[i].platformId,
                                             name: platformArr[i].name,
+                                            code: platformArr[i].code
                                         }
                                         sendObj.push(obj)
                                     }
@@ -639,50 +650,13 @@ var dbPlatform = {
                                         platforms: sendObj
                                     };
 
-                                    let options = {
-                                        method: 'POST',
-                                        uri: extConfig[key].syncPlatformAPIAddr,
-                                        body: data,
-                                        json: true
-                                    };
-
-                                    console.log("syncPlatformAPIAddr check request before sent - ", data);
-
-                                    return rp(options).then(function (syncPlatformData) {
-                                        console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                                        return syncPlatformData;
-                                    }, error => {
-                                        console.log('syncHTTPPMSPlatform failed', error);
-                                        throw error;
-                                    });
+                                    return RESTUtils.getPMS2Services("postSyncPlatform", data);
                                 }
                             }
                         );
                     }
                 });
             }
-        }
-    },
-
-    syncPMSPlatform: function () {
-        if (env.mode != "local" && env.mode != "qa") {
-            return dbconfig.collection_platform.find().then(
-                platformArr => {
-                    var sendObj = [];
-                    if (platformArr && platformArr.length > 0) {
-                        for (var i in platformArr) {
-                            var obj = {
-                                platformId: platformArr[i].platformId,
-                                name: platformArr[i].name,
-                                code: platformArr[i].code,
-                                description: platformArr[i].description || ""
-                            }
-                            sendObj.push(obj)
-                        }
-                        return externalUtil.request(pmsAPI.platform_syncData({platforms: sendObj}));
-                    }
-                }
-            )
         }
     },
 
@@ -1816,6 +1790,24 @@ var dbPlatform = {
         return dbconfig.collection_playerMail.find(query).sort({createTime: -1}).limit(100);
     },
 
+    getPushNotification: function (platformObjId) {
+        return dbPlatform.getOnePlatformSetting({_id: platformObjId}).then(
+            platformData => {
+                if (!platformData) {
+                    Promise.reject({
+                        name: "DataError",
+                        message: localization.localization.translate("Platform does not exist"),
+                    });
+                }
+
+                return {
+                    jiguangAppKey: platformData.jiguangAppKey || null,
+                    jiguangMasterKey: platformData.jiguangMasterKey || null,
+                };
+            }
+        )
+    },
+
     pushNotification: function (data) {
         var appKey = data.appKey;
         var masterKey = data.masterKey;
@@ -2078,7 +2070,7 @@ var dbPlatform = {
         let smsLogCount = 0;
         var a = dbconfig.collection_smsLog.find(query).sort(sortCol).skip(index).limit(limit);
         var b = dbconfig.collection_smsLog.find(query).count();
-        let platformProm = dbconfig.collection_platform.findOne({_id: data.platformObjId}, fieldOption).lean();
+        let platformProm = dbconfig.collection_platform.findOne({_id: {$in: data.platformObjId}}, fieldOption).lean();
         return Q.all([a, b, platformProm]).then(
             result => {
                 smsLogCount = result[1];
@@ -3036,6 +3028,7 @@ var dbPlatform = {
                         returnedObj.twoStepsForModifyPhoneNumber = platformData.partnerUsePhoneNumberTwoStepsVerification ? 1 : 0;
                         returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
                         returnedObj.cndOrFtpLink = platformData.partnerRouteSetting ? platformData.partnerRouteSetting : "";
+                        returnedObj.requireSMSCodeForBankRegistrationAtFirstTime = platformData.requireSMSCodeForBankRegistrationAtFirstTime ? platformData.requireSMSCodeForBankRegistrationAtFirstTime : "";
                         // returnedObj.themeStyle = platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeStyleId.themeStyle ? platformData.partnerThemeSetting.themeStyleId.themeStyle : "";
                         console.log("checking --- yH platformData.partnerThemeSetting", platformData.partnerThemeSetting)
                         if (platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeIdObjId) {
@@ -6110,7 +6103,82 @@ var dbPlatform = {
 
             return paymentSystemName;
         }
-    }
+    },
+
+    createNewXBETAdvertisement: function (saveData) {
+        return dbconfig.collection_advertisementPageXBET(saveData).save()
+    },
+
+    getXBETAdvertisement: function (platformId, type) {
+        return dbconfig.collection_advertisementPageXBET.find(
+            {
+                platformId: platformId,
+                type: type
+            }
+        ).lean();
+    },
+
+    updateXBETAdvertisement: function (updateDataArr) {
+        let promArr = []
+        for (let i = 0; i < updateDataArr.length; i++) {
+            if (updateDataArr[i].platformId && updateDataArr[i].type && updateDataArr[i].orderNo) {
+                let updateObj = {
+                    orderNo: updateDataArr[i].orderNo,
+                    // advertisementType: updateDataArr[i].advertisementType,
+                    title: updateDataArr[i].title || "",
+                    url: updateDataArr[i].url || "",
+                    hyperLink: updateDataArr[i].hyperLink || "",
+                    matchId: updateDataArr[i].matchId || "",
+                    showInFrontEnd: updateDataArr[i].showInFrontEnd,
+                }
+
+                if (updateDataArr[i].type == constXBETAdvertisementType.MAIN_PAGE_AD) {
+                    updateObj.advertisementType = updateDataArr[i].advertisementType;
+                }
+
+                let updateProm = dbconfig.collection_advertisementPageXBET.update(
+                    {
+                        _id: updateDataArr[i]._id,
+                        platformId: updateDataArr[i].platformId,
+                    }, updateObj);
+                promArr.push(updateProm);
+            } else {
+                return Promise.reject({name: "DataError", message: "Invalid data"});
+            }
+        }
+
+        return Promise.all(promArr);
+    },
+
+    deleteXBETAdvertisementRecord: function (advertisementObjId, platformId) {
+        return dbconfig.collection_advertisementPageXBET.remove({_id:advertisementObjId, platformId: platformId});
+    },
+
+    changeXBETAdvertisementStatus: function (advertisementObjId, platformId, status) {
+        status = status? 1: 0;
+        return dbconfig.collection_advertisementPageXBET.findOneAndUpdate(
+            {
+                platformId: platformId,
+                _id: advertisementObjId
+            },
+            {
+                status: status
+            }
+        ).lean();
+    },
+
+    updateXBETAdvCss: function (platformId, advertisementObjId, css, hoverCss) {
+        return dbconfig.collection_advertisementPageXBET.findOneAndUpdate(
+            {
+                platformId: platformId,
+                _id: advertisementObjId
+            },
+            {
+                css: css,
+                hoverCss: hoverCss
+            }
+        ).lean();
+    },
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

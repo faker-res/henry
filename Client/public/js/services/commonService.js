@@ -23,7 +23,17 @@ define([], () => {
                 return allBankTypeList[id];
             }
         }
+        function getIntervalTime ($scope, $translate, rewardAppearPeriod) {
+            // display time interval of reward (week)
+            let startDate = ( rewardAppearPeriod && rewardAppearPeriod.startDate ) ? $scope.weekDay [rewardAppearPeriod.startDate] : '';
+            let endDate = ( rewardAppearPeriod && rewardAppearPeriod.endDate ) ? $scope.weekDay [rewardAppearPeriod.endDate] : '';
+            let startTime = ( rewardAppearPeriod && rewardAppearPeriod.startTime ) ? pad(rewardAppearPeriod.startTime) : '';
+            let endTime = ( rewardAppearPeriod && rewardAppearPeriod.endTime ) ? pad(rewardAppearPeriod.endTime) : '';
 
+            let fullDate = $translate(startDate) + startTime + ':00' + ' - ' + $translate(endDate) + endTime + ':00';
+            return fullDate
+        }
+        function pad(n){ return n < 10 ? '0' + n : n}
         // region General get functions
 
         self.getRewardList = ($scope, platformObjId) => {
@@ -140,6 +150,10 @@ define([], () => {
 
         self.getRewardEventsByPlatform = ($scope, platformObjId) => {
             return $scope.$socketPromise('getRewardEventsForPlatform', {platform: platformObjId}).then(data => data.data)
+        };
+
+        self.getRewardEventsGroupByPlatform = ($scope, platformObjId) => {
+            return $scope.$socketPromise('getRewardEventGroup', {platform: platformObjId}).then(data => data.data)
         };
 
         self.getRewardPointsEvent = ($scope, platformObjId) => {
@@ -374,6 +388,49 @@ define([], () => {
                 state:"NORMAL"
             }
             return lineAcc;
+        };
+
+        self.convertClientTypeToInputDevice = function (clientType) {
+            let inputDevice;
+
+            //clientType
+            //1 - Web
+            //2 - MOBILE
+            //4 - APP
+
+            if (clientType) {
+                switch (Number(clientType)) {
+                    case 1:
+                        inputDevice = 1;
+                        break;
+                    case 2:
+                        inputDevice = 3;
+                        break;
+                    case 4:
+                        inputDevice = 5;
+                        break;
+                }
+            }
+
+            return inputDevice;
+        };
+
+        self.getProvinceName = function($scope, provinceId) {
+            return $scope.$socketPromise('getProvince', {provinceId: provinceId})
+                .then(data => {
+                    let text = data.data.data ? data.data.data.name : '';
+
+                    return text;
+                });
+        };
+
+        self.getCityName = function($scope, cityId) {
+            return $scope.$socketPromise('getCity', {cityId: cityId})
+                .then(data => {
+                    let text = data.data.data ? data.data.data.name : '';
+
+                    return text;
+                });
         };
         // endregion
 
@@ -718,9 +775,16 @@ define([], () => {
                 }
             }
         };
-
         this.setFixedPropDetail = ($scope, $translate, $noRoundTwoDecimalPlaces, vm, $fixTwoDecimalStr) => {
-            let proposalDetail = vm.selectedProposal.data || {};
+            let proposalDetail = {};
+            if(vm && vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.platformId && vm.selectedProposal.data.platformId.name
+                && proposalDetail && !proposalDetail.PRODUCT_NAME) {
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+            }
+            proposalDetail = Object.assign(proposalDetail, vm.selectedProposal.data);
+            proposalDetail.platformId = proposalDetail.platformId._id;
+
+            let inputDevice = proposalDetail  && proposalDetail.clientType ? this.convertClientTypeToInputDevice(proposalDetail.clientType) : null;
 
             // region Manual top up proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
@@ -729,6 +793,7 @@ define([], () => {
                     vm.selectedProposal.data = {};
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["MAIN_TYPE"] = $translate("ManualPlayerTopUp");
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
@@ -745,7 +810,11 @@ define([], () => {
                 proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositTime)) : " ";
                 proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
                 proposalDetail["bankCardGroup"] = vm.selectedProposal.data.bankCardGroupName || " ";
                 proposalDetail["REQUEST_BANK_TYPE"] = vm.allBankTypeList[vm.selectedProposal.data.bankCardType] || (vm.selectedProposal.data.bankCardType + " ! " + $translate("not in bank type list"));
                 proposalDetail["USE_PMS_CARD_GROUP"] = vm.selectedProposal.data.bPMSGroup || false;
@@ -777,6 +846,7 @@ define([], () => {
                     vm.selectedProposal.data = {};
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["MAIN_TYPE"] = $translate("PlayerTopUp");
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
@@ -793,7 +863,11 @@ define([], () => {
                     proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
                 }
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice]) || $translate("BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
                 proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -820,6 +894,7 @@ define([], () => {
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
                 }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["MAIN_TYPE"] = $translate("PlayerAlipayTopUp");
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
@@ -833,7 +908,11 @@ define([], () => {
                 proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
                 proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
                 proposalDetail["PERSONAL_ALIPAY_GROUP"] = vm.selectedProposal.data.aliPayGroupName || " ";
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -867,6 +946,7 @@ define([], () => {
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
                 }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["MAIN_TYPE"] = $translate("PlayerWechatTopUp");
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
@@ -879,7 +959,11 @@ define([], () => {
                 proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
                 proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
                 proposalDetail["PERSONAL_WECHAT_GROUP"] = vm.selectedProposal.data.wechatPayGroupName || " ";
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -933,6 +1017,7 @@ define([], () => {
                     });
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
@@ -970,6 +1055,7 @@ define([], () => {
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
                 }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
                 if (vm.selectedProposal.data.isEditAll) {
@@ -1112,6 +1198,7 @@ define([], () => {
                 let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
                 let consumptionUsedKey = vm.selectedProposal.data.commissionType == 5 ? "totalConsumption" : "siteBonusAmount";
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime);
@@ -1202,6 +1289,7 @@ define([], () => {
                     vm.selectedProposal.data = {};
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["PARENT_PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["PARENT_PARTNER_ID"] = vm.selectedProposal.data.partnerId;
                 proposalDetail["PARENT_PARTNER_COMMISSION_RATE"] = vm.selectedProposal.data.parentCommissionRate + "%";
@@ -1214,6 +1302,34 @@ define([], () => {
             }
             // end region
 
+            // region Parent Partner Commission Proposal
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerPromoCodeReward") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["proposalPlayerLevelValue"] = vm.selectedProposal.data.proposalPlayerLevelValue;
+                proposalDetail["REWARD_NAME"] = vm.selectedProposal.data.rewardName;
+                proposalDetail["topUpAmount"] = vm.selectedProposal.data.topUpAmount;
+                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
+                proposalDetail["applyAmount"] = vm.selectedProposal.data.applyAmount;
+                proposalDetail["PROMO_CODE_TYPE"] = vm.selectedProposal.data.PROMO_CODE_TYPE;
+                proposalDetail["disableWithdraw"] = vm.selectedProposal.data.disableWithdraw;
+                proposalDetail["promoCode"] = vm.selectedProposal.data.promoCode;
+                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+            }
+
+            // end region
+
             // region Partner Credit Transfer To Downline Proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PartnerCreditTransferToDownline") {
                 proposalDetail = {};
@@ -1221,6 +1337,7 @@ define([], () => {
                     vm.selectedProposal.data = {};
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
                 proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["PARTNER_CREDIT_AMOUNT_BEFORE_TRANSFER"] = vm.selectedProposal.data.currentCredit;
@@ -1260,6 +1377,7 @@ define([], () => {
                     providerGroupName = $translate("LOCAL_CREDIT");
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["Downline Player ID"] = vm.selectedProposal.data.playerId;
                 proposalDetail["Downline Player Name"] = vm.selectedProposal.data.playerName;
                 proposalDetail["Received Amount"] = vm.selectedProposal.data.amount;
@@ -1288,6 +1406,7 @@ define([], () => {
                     vm.selectedProposal.data = {};
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["PLAYER_Id"] = vm.selectedProposal.data.playerId;
                 proposalDetail["Player Level"] = vm.selectedProposal.data.playerLevelName;
@@ -1313,6 +1432,7 @@ define([], () => {
                     vm.selectedProposal.data = {};
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["partnerName"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["partnerId"] = vm.selectedProposal.data.partnerId;
                 proposalDetail["partnerRealNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
@@ -1339,6 +1459,7 @@ define([], () => {
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
                 }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
@@ -1399,6 +1520,7 @@ define([], () => {
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
                 }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["partnerRealName"] = vm.selectedProposal.data.realNameBeforeEdit;
                 proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
@@ -1435,6 +1557,7 @@ define([], () => {
                         delete proposalDetail[i];
                     }
                 }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail.defineLoseValue = $translate($scope.loseValueType[vm.selectedProposal.data.defineLoseValue]);
                 if (vm.selectedProposal.data.rewardPercent) {
                     proposalDetail.rewardPercent = vm.selectedProposal.data.rewardPercent + "%";
@@ -1456,7 +1579,7 @@ define([], () => {
                 let bonusAmountQueryString = vm.getNumberQueryStr(vm.selectedProposal.data.bonusAmountOperator, vm.selectedProposal.data.bonusAmountFormal, vm.selectedProposal.data.bonusAmountLater);
                 let withdrawalTimesQueryString = vm.getNumberQueryStr(vm.selectedProposal.data.withdrawalTimesOperator, vm.selectedProposal.data.withdrawalTimesFormal, vm.selectedProposal.data.withdrawalTimesLater);
 
-
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["MAIN_TYPE"] = $translate("BulkExportPlayerData");
                 proposalDetail["USER_TYPE"] = $translate(vm.selectedProposal.data.playerType) || " ";
                 proposalDetail["BANNER TITLE"] = $translate(vm.selectedProposal.data.title) || " ";
@@ -1490,6 +1613,7 @@ define([], () => {
                     vm.selectedProposal.data = {};
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
@@ -1514,6 +1638,7 @@ define([], () => {
                     vm.selectedProposal.data = {};
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
                 proposalDetail["oldLevelName"] = vm.selectedProposal.data.oldLevelName;
@@ -1529,6 +1654,7 @@ define([], () => {
                     vm.selectedProposal.data = {};
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
                 proposalDetail["oldAccAdmin"] = vm.selectedProposal.data.oldAccAdmin;
@@ -1557,6 +1683,7 @@ define([], () => {
                     providerGroupName = $translate("LOCAL_CREDIT");
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
@@ -1593,6 +1720,47 @@ define([], () => {
             }
             // end region
 
+            // region random reward Proposal
+            if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "PlayerRandomRewardGroup")) {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                let rewardType = vm.selectedProposal.data.rewardType;
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+                proposalDetail["MAIN_TYPE"] = $translate("PlayerRandomRewardGroup");
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                // proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
+                // proposalDetail["proposalPlayerLevelValue"] = vm.selectedProposal.data.proposalPlayerLevelValue;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realName || " ";
+                proposalDetail["lastLoginIp"] = vm.selectedProposal.data.lastLoginIp || " ";
+                proposalDetail["phoneNumber"] = vm.selectedProposal.data.phoneNumber || " ";
+                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                proposalDetail["eventId"] = vm.selectedProposal.data.eventId;
+                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                proposalDetail["rewardInterval"] = vm.selectedProposal.data.intervalType;
+                proposalDetail["rewardAppearPeriod"] = getIntervalTime($scope, $translate, vm.selectedProposal.data.rewardAppearPeriod);
+                proposalDetail["rewardType"] = $translate($scope.randomRewardType[rewardType]);
+                proposalDetail["rewardName"] = vm.selectedProposal.data.rewardName;
+                proposalDetail["applyTargetDate"] = vm.selectedProposal.data.applyTargetDate;
+                proposalDetail["forbidWithdrawAfterApply"] = vm.selectedProposal.data.forbidWithdrawAfterApply;
+                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                proposalDetail["isDynamicRewardAmount"] = vm.selectedProposal.data.isDynamicRewardAmount;
+                proposalDetail["isGroupReward"] = vm.selectedProposal.data.isGroupReward;
+                proposalDetail["isIgnoreAudit"] = vm.selectedProposal.data.isIgnoreAudit;
+                proposalDetail["providerGroup"] = vm.selectedProposal.data.providerGroup;
+                // proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
+                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
+                proposalDetail["useConsumptionAmount"] = vm.selectedProposal.data.useConsumptionAmount;
+                proposalDetail["useTopUpAmount"] = vm.selectedProposal.data.useTopUpAmount;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+            }
+            // end region
+
             // region auction product Proposal
             if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "AuctionPromoCode" || vm.selectedProposal.type.name === "AuctionOpenPromoCode" ||
                 vm.selectedProposal.type.name === "AuctionRewardPromotion" || vm.selectedProposal.type.name === "AuctionRealPrize" || vm.selectedProposal.type.name === "AuctionRewardPointChange")) {
@@ -1601,6 +1769,7 @@ define([], () => {
                     vm.selectedProposal.data = {};
                 }
 
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
@@ -1613,6 +1782,17 @@ define([], () => {
                 proposalDetail["isExclusive"] = vm.selectedProposal.data.isExclusive;
             }
             // end region
+
+
+            if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.rewardPeriod){
+                proposalDetail["rewardPeriod"] =  $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.startTime) + ' ~ ' + $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.endTime);
+            }
+            if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+            }
+            if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
+            }
 
             return proposalDetail;
         };
@@ -1635,7 +1815,22 @@ define([], () => {
                     }
                 );
             }
-        }
+        };
+
+        this.sortAndAddPlatformDisplayName = (platforms) => {
+            platforms.sort((current, next)=>{
+                let curId = parseInt(current.platformId);
+                let nextId = parseInt(next.platformId);
+                if(!isNaN(curId) && !isNaN(nextId)) {
+                    return curId - nextId;
+                } else {
+                    return 1;
+                }
+            });
+            platforms.forEach(platform=>{
+                platform.name$ = `${platform.platformId}. ${platform.name}`;
+            });
+        };
     };
 
     let commonServiceApp = angular.module('commonService', []);

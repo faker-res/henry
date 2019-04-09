@@ -23,8 +23,8 @@ define(['js/app'], function (myApp) {
             vm.existRealName = false;
             vm.rewardPointsChange = {};
             vm.rewardPointsConvert = {};
-            vm.platformPageName = 'Feedback';
             vm.platformToReplicate = "";
+            vm.winnerMonitorConfig = [];
 
             // constants declaration
             vm.constPartnerCommisionType = {
@@ -36,6 +36,14 @@ define(['js/app'], function (myApp) {
                 WEEKLY_CONSUMPTION: 5,
                 OPTIONAL_REGISTRATION: 6
             };
+
+            vm.constXBETAdvertisementType = {
+                MAIN_PAGE_AD: 1,
+                FIRST_TIME_AD: 2,
+                LOGIN_AD: 3,
+                REWARD_POINTS_AD: 4
+            };
+
 
             vm.constPartnerCommisionTypeOption = {
                 DAILY_BONUS_AMOUNT: 1,
@@ -72,6 +80,16 @@ define(['js/app'], function (myApp) {
                 "CsPending",
                 "NoVerify"
             ];
+
+            vm.randomRewardType = {
+                "": 0,
+                "credit": 1,
+                "promoCodeBDeposit": 2,
+                "promoCodeBNoDeposit": 3,
+                "promoCodeC": 4,
+                "rewardPoints": 5,
+                "realPrize": 6
+            };
 
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
@@ -333,6 +351,7 @@ define(['js/app'], function (myApp) {
                 PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
                 PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
                 RESET_PASSWORD: 'resetPassword',
+                SET_PHONE_NUMBER: 'setPhoneNumber',
                 INQUIRE_ACCOUNT: 'inquireAccount'
             };
 
@@ -373,6 +392,11 @@ define(['js/app'], function (myApp) {
                 '2':'startingAuction',
                 '3':'notInPublishAuction',
                 '4':'overAuction'
+            }
+
+            vm.randomRewardConvertorStatus = {
+                '1': "Reward Available",
+                '2': "Converted"
             }
 
             // player advertisement
@@ -538,7 +562,9 @@ define(['js/app'], function (myApp) {
             vm.proposalTemplate = {
                 1: '#modalProposal',
                 2: '#newPlayerModal',
-                3: '#auctionItemModal'
+                3: '#auctionItemModal',
+                4: '#promoUrlItemModal',
+                5: '#randomRewardItemModal'
             };
 
             vm.createInnerTable = function (id) {
@@ -820,19 +846,6 @@ define(['js/app'], function (myApp) {
                 return deferred.promise;
             }
 
-            //////////Lin Hao:: Provider List Delay Popup
-            utilService.setupPopover({
-                context: ulMenu,
-                elem: '.providerListPopover',
-                content: function () {
-                    return $compile($('#providerListPopover').html())($scope);
-                },
-                callback: function () {
-                    let thisPopover = utilService.$getPopoverID(this);
-                }
-            });
-
-
             vm.getProviderLatestTimeRecord = function () {
                 let longestDelayDate = new Date().toString();
 
@@ -1106,21 +1119,27 @@ define(['js/app'], function (myApp) {
             }
 
             //set selected platform node
-            async function selectPlatformNode (node, option)  {
-                vm.selectedPlatform = node;
-                vm.curPlatformText = node.text;
+            async function selectPlatformNode (platformObj, option)  {
+                vm.selectedPlatform = {
+                    text: platformObj.name,
+                    id: platformObj._id,
+                    selectable: true,
+                    data: platformObj,
+                    image: {
+                        url: platformObj.icon,
+                        width: 30,
+                        height: 30,
+                    }
+                };
+
+                vm.curPlatformText = vm.selectedPlatform.text;
                 vm.isNotAllowEdit = true;
                 vm.isCreateNewPlatform = false;
-                $cookies.put("platform", node.text);
+                $cookies.put("platform", vm.selectedPlatform.text);
 
                 vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
                 beforeUpdatePlatform();
                 vm.retrievePlatformData(vm.showPlatform);
-
-                // if (option && !option.loadAll) {
-                //     $scope.safeApply();
-                //     return;
-                // }
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
 
                 // Zero dependencies variable
@@ -1228,8 +1247,8 @@ define(['js/app'], function (myApp) {
                             vm.getPlatformRewardProposal();
                             // vm.getPlatformPlayersData(true, true);
                             // vm.getPlatformPartnersData();
-                            vm.getPlatformGameData();
-                            vm.loadProposalTypeData();
+                            // vm.getPlatformGameData();
+                            // vm.loadProposalTypeData();
                             vm.loadBankCardGroupData();
                             vm.loadMerchantGroupData();
                             vm.loadAlipayGroupData();
@@ -1242,27 +1261,27 @@ define(['js/app'], function (myApp) {
                             vm.initAuctionSystem();
                             loadPromoCodeTemplate();
                             vm.onGoingLoadPlatformData = false;
+
+                            if (!vm.platformPageName) {
+                                vm.loadTab("Feedback");
+                            }
                         })
                     },
                     function (error) {
                         console.log("error getting all levels", error);
                     }
                 ).done();
-                vm.jiguang.appKey = vm.selectedPlatform.data.jiguangAppKey;
-                vm.jiguang.masterKey = vm.selectedPlatform.data.jiguangMasterKey;
+                // vm.jiguang.appKey = vm.selectedPlatform.data.jiguangAppKey;
+                // vm.jiguang.masterKey = vm.selectedPlatform.data.jiguangMasterKey;
             }
 
             //search and select platform node
             function searchAndSelectPlatform (text, option) {
-                text = text.replace("(", "\\(");
-                text = text.replace(")", "\\)");
-                var findNodes = $('#platformTree').treeview('search', [text, {
-                    ignoreCase: false,
-                    exactMatch: true
-                }]);
+                let findNodes = vm.allPlatformData.filter(e => e.name === text);
                 if (findNodes && findNodes.length > 0) {
                     selectPlatformNode(findNodes[0], option);
-                    $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
+                } else {
+                    selectPlatformNode(vm.allPlatformData[0], option);
                 }
             }
 
@@ -1289,18 +1308,6 @@ define(['js/app'], function (myApp) {
                 //var platformsToDisplay = vm.platformList;
                 var searchText = (vm.platformSearchText || '').toLowerCase();
                 var platformsToDisplay = vm.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
-                $('#platformTree').treeview(
-                    {
-                        data: platformsToDisplay,
-                        highlightSearchResults: false,
-                        showImage: true,
-                        showIcon: false,
-                    }
-                );
-                $('#platformTree').on('nodeSelected', function (event, data) {
-                    selectPlatformNode(data);
-                    vm.showPlatformDropDownList = false;
-                });
             }
 
             //get all platform data from server
@@ -1322,6 +1329,7 @@ define(['js/app'], function (myApp) {
                     vm.allPlatformData = data.data;
                     if (data.data) {
                         buildPlatformList(data.data);
+                        commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                     }
                     $('#platformRefresh').removeClass('fa-spin');
 
@@ -1404,9 +1412,6 @@ define(['js/app'], function (myApp) {
                 vm.platformPageName = tabName;
 
                 switch (tabName) {
-                    case "Player":
-                        vm.activatePlayerTab();
-                        break;
                     case "Feedback":
                         vm.initPlayerFeedback();
                         break;
@@ -1436,7 +1441,7 @@ define(['js/app'], function (myApp) {
                         vm.configTabClicked();
                         break;
                     case "MessageTemplates":
-                        vm.getPlatformMessageTemplates();
+                        // vm.getPlatformMessageTemplates();
                         break;
                     case "Announcement:":
                         vm.getPlatformAnnouncements();
@@ -1448,6 +1453,7 @@ define(['js/app'], function (myApp) {
                         vm.initVertificationSMS();
                         break;
                     case "RegistrationUrlConfig":
+                        vm.ignoreIntervalChecking = $scope.checkViewPermission('Platform', 'RegistrationUrlConfig','ignore90DaysEditingRestriction');
                         vm.initPlatformOfficer();
                         break;
                     case "batchPermit":
@@ -1457,11 +1463,11 @@ define(['js/app'], function (myApp) {
                     case "platformSetting":
                         vm.showPlatformDetailTab(null);
                         break;
-                    // setTimeout(() => {
-                    //     $('#partnerDataTable').resize();
-                    // }, 300);
                     case "externalUserInfo":
                         vm.initExternalUserInfo();
+                        break;
+                    case "ClientQnA":
+                        vm.buildClientQnATypeList();
                         break;
                     case "FrontendConfiguration":
                         vm.initFrontendConfiguration();
@@ -1506,6 +1512,16 @@ define(['js/app'], function (myApp) {
             vm.jiguang.tittle = "";
             vm.jiguang.text = "";
 
+            vm.getPushNotification = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getPushNotification', {platformObjId: platformObjId}, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getPushNotification', data.data);
+                        vm.jiguang.appKey = data.data.jiguangAppKey;
+                        vm.jiguang.masterKey = data.data.jiguangMasterKey;
+                    })
+                });
+            };
+
             vm.pushNotification = function () {
                 if (vm.jiguang && !vm.jiguang.appKey) {
                     alert("请先到编辑平台里设置推送API用的App Key。");
@@ -1532,7 +1548,7 @@ define(['js/app'], function (myApp) {
                     masterKey: vm.jiguang.masterKey,
                     tittle: vm.jiguang.tittle,
                     text: vm.jiguang.text,
-                    platform: vm.selectedPlatform.id
+                    platform: vm.jiguang.platform
                 }, function (data) {
                     if (data && data.success) {
                         alert("发送成功！");
@@ -2163,6 +2179,8 @@ define(['js/app'], function (myApp) {
                         break;
                     case "4":
                     case 4:
+                    case "6":
+                    case 6:
                         socketName = "getLastMonthSGTime";
                 }
 
@@ -2774,8 +2792,15 @@ define(['js/app'], function (myApp) {
                     playerQuery.csOfficer = vm.sendMultiMessage.admins && vm.sendMultiMessage.admins.length > 0 ? vm.sendMultiMessage.admins : admins;
                 }
 
+                let platformIdList;
+                if (vm.sendMultiMessage && vm.sendMultiMessage.platformList && vm.sendMultiMessage.platformList.length) {
+                    platformIdList = vm.sendMultiMessage.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: platformIdList,
                     query: playerQuery,
                     index: vm.sendMultiMessage.index || 0,
                     limit: vm.sendMultiMessage.limit || 100,
@@ -2792,6 +2817,12 @@ define(['js/app'], function (myApp) {
                             }
                             item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
                             item.registrationTime$ = vm.dateReformat(item.registrationTime);
+                            if (item.platform) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
                             return item;
                         }), size, newSearch);
                         vm.sendMultiMessage.totalCount = size;
@@ -2902,6 +2933,13 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.submitSMSRecordQuery = function (newSearch) {
+                let platformIdList;
+                if (vm.smsRecordQuery && vm.smsRecordQuery.platformList && vm.smsRecordQuery.platformList.length) {
+                    platformIdList = vm.smsRecordQuery.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
@@ -2914,7 +2952,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
                     index: newSearch ? 0 : vm.smsRecordQuery.index,
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit,
-                    platformObjId: vm.selectedPlatform.data._id,
+                    platformObjId: platformIdList,
                     sortCol: vm.smsRecordQuery.sortCol
                 };
 
@@ -2941,6 +2979,12 @@ define(['js/app'], function (myApp) {
                             default:
                                 item.validationStatus$$ = "-";
                         }
+                        if (item.platform) {
+                            let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                            if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                item.platform$ = matchedPlatformData[0].name;
+                            }
+                        }
                         return item;
                     }), size, newSearch);
 
@@ -2953,12 +2997,16 @@ define(['js/app'], function (myApp) {
             vm.drawVertificationSMSTable = function (data, size, newSearch) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
-                    order: vm.smsRecordQuery.aaSorting || [[2, 'desc']],
+                    order: vm.smsRecordQuery.aaSorting || [[3, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [2]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {'title': $translate('ACCOUNT'), data: 'recipientName'},
                         {
                             'title': $translate('STATUS'),
@@ -3059,7 +3107,7 @@ define(['js/app'], function (myApp) {
             vm.drawSendMessagesTable = function (data, size, newSearch) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
-                    order: vm.sendMultiMessage.aaSorting || [[5, 'desc']],
+                    order: vm.sendMultiMessage.aaSorting || [[6, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [5]},
                         {
@@ -3073,6 +3121,10 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {'title': $translate('PLAYER_NAME'), data: 'name'},
                         // {'title': $translate('PLAYERID'), data: 'playerId'},
                         {'title': $translate('realName'), sClass: "wordWrap realNameCell", data: 'realName'},
@@ -3115,8 +3167,14 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('lastAccessTime'), data: 'lastAccessTime$'},
                         {'title': $translate('registrationTime'), data: 'registrationTime$'},
                         {
-                            render: function () {
-                                var link = $('<input>', {class: "checkRow", type: 'checkbox'})
+                            title: '<div><input type="checkbox" class="toggleCheckAll"> </div>', advSearch:false, orderable: false,// $translate('All'), data: "playerId", "sClass": "",
+                            render: function (data, type, row) {
+
+                                var link = $('<div>', {});
+
+                                link.append($('<input type="checkbox" class="chosenPlayers checkRow" data-id="'+row.playerId+'">', {
+                                }).text(data));
+
                                 return link.prop('outerHTML');
                             }
                         }
@@ -3331,18 +3389,22 @@ define(['js/app'], function (myApp) {
 
             ////////////////Mark::Game Group functions//////////////////
 
-            vm.loadGameGroupData = function () {
+            vm.loadGameGroupData = function (platformObjId) {
                 //init gametab start===============================
                 vm.showGameCate = "include";
                 vm.toggleGameType();
                 //init gameTab end==================================
-                if (!vm.selectedPlatform) {
+                if (!platformObjId) {
                     return
                 }
                 vm.loadingGameGroup = true;
                 vm.SelectedGameGroupNode = null;
-                console.log("getGames", vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'getPlatformGameGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                // console.log("getGames", vm.selectedPlatform.id);
+                let sendData = {
+                    platform: platformObjId || null
+                }
+                console.log("sendData", sendData);
+                socketService.$socket($scope.AppSocket, 'getPlatformGameGroup', sendData, function (data) {
                     console.log('gamegroup', data);
                     //provider list init
                     vm.loadingGameGroup = false;
@@ -3356,7 +3418,7 @@ define(['js/app'], function (myApp) {
                 console.log(str, vm.SelectedGameGroupNode, vm.newGameGroup);
                 //vm.selectGameGroupParent
                 var sendData = {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.filterGameGroupPlatform,
                     name: vm.newGameGroup.name,
                     parent: vm.newGameGroup.parent,
                     code: vm.newGameGroup.code,
@@ -3364,12 +3426,12 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'addPlatformGameGroup', sendData, function (data) {
                     console.log(data.data);
-                    vm.loadGameGroupData();
+                    vm.loadGameGroupData(vm.filterGameGroupPlatform);
                     $scope.safeApply();
                 })
             }
             vm.removeGameGroup = function () {
-                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text, platform: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text, platform: vm.filterGameGroupPlatform}, function (data) {
                     console.log(data.data);
                     // vm.loadGameGroupData();
                     for (var i = 0; i < vm.platformGameGroupList.length; i++) {
@@ -3387,7 +3449,7 @@ define(['js/app'], function (myApp) {
             vm.renameGameGroup = function () {
                 var sendData = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        platform: vm.filterGameGroupPlatform,
                         // name: vm.SelectedGameGroupNode.groupData.name,
                         _id: vm.SelectedGameGroupNode.id,
                     },
@@ -3401,7 +3463,7 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, function (data) {
                     console.log(data.data);
-                    vm.loadGameGroupData();
+                    vm.loadGameGroupData(vm.filterGameGroupPlatform);
                 })
             }
 
@@ -3417,7 +3479,7 @@ define(['js/app'], function (myApp) {
                     vm.selectedPlatform.data.playerRouteSetting : "";
                 //get included games list
                 var query = {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.filterGameGroupPlatform,
                     // groupId: obj.groupData.groupId,
                     _id: vm.SelectedGameGroupNode.id,
                 }
@@ -3569,7 +3631,7 @@ define(['js/app'], function (myApp) {
                 var gameId = vm.curGame._id;
                 var sendData = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        platform: vm.filterGameGroupPlatform,
                         groupId: vm.SelectedGameGroupNode.groupData.groupId
                     },
                     // update: {
@@ -3815,12 +3877,12 @@ define(['js/app'], function (myApp) {
                     newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null,
                     groupName: vm.SelectedGameGroupNode.groupData.name,
                     newParentGroupName: $scope.gameGroupMove.isRoot ? vm.newGroupParent.groupData.name : null,
-                    platform: vm.selectedPlatform.id
+                    platform: vm.filterGameGroupPlatform
                 }
                 socketService.$socket($scope.AppSocket, 'updateGameGroupParent', sendData, success);
 
                 function success(data) {
-                    vm.loadGameGroupData();
+                    vm.loadGameGroupData(vm.filterGameGroupPlatform);
 
                     $scope.safeApply();
                 }
@@ -3837,17 +3899,20 @@ define(['js/app'], function (myApp) {
                 vm.batchCreditTransferOut = null;
             }
             //get all platform data from server
-            vm.getPlatformGameData = function () {
+            vm.getPlatformGameData = function (platformObjId) {
                 //init gametab start===============================
                 vm.SelectedProvider = null;
                 vm.showGameCate = "include";
                 vm.curGame = null;
                 //init gameTab end==================================
-                if (!vm.selectedPlatform) {
-                    return
-                }
+                // if (!vm.selectedPlatform) {
+                //     return
+                // }
                 //console.log("getGames", gameIds);
-                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                let sendData = {
+                    _id: platformObjId || null
+                }
+                socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                     console.log('getPlatform', data.data);
                     if (data && data.data && data.data.frontendConfigurationDomainName && vm.selectedPlatform && vm.selectedPlatform.data){
                         vm.selectedPlatform.data.frontendConfigurationDomainName = data.data.frontendConfigurationDomainName;
@@ -3915,7 +3980,7 @@ define(['js/app'], function (myApp) {
             vm.submitProviderChange = function (type, data) {
                 if (!data) return;
                 var sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.filterGamePlatform,
                     providerId: data._id
                 };
                 console.log(sendData);
@@ -3944,7 +4009,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
                     console.log(data);
                     loadPlatformData();
-                    vm.getPlatformGameData();
+                    vm.getPlatformGameData(vm.filterGamePlatform);
                 })
             }
 
@@ -4189,7 +4254,7 @@ define(['js/app'], function (myApp) {
 
                         var sendData = {
                             query: {
-                                game: sendGameId, platform: vm.selectedPlatform.id
+                                game: sendGameId, platform: vm.filterGamePlatform
                             },
                             updateData: {
                                 status: type
@@ -4221,7 +4286,7 @@ define(['js/app'], function (myApp) {
 
                         var sendData = {
                             query: {
-                                game: sendGameId, platform: vm.selectedPlatform.id
+                                game: sendGameId, platform: vm.filterGameGroupPlatform
                             },
                             updateData: {
                                 status: type
@@ -4339,7 +4404,7 @@ define(['js/app'], function (myApp) {
 
                             var sendData = {
                                 query: {
-                                    game: sendGameId, platform: vm.selectedPlatform.id
+                                    game: sendGameId, platform: vm.filterGamePlatform
                                 },
                                 updateData: {
                                     status: vm.allGameStatusString.MAINTENANCE
@@ -4395,13 +4460,13 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.submitBatchCreditTransferOut = function () {
+            vm.submitBatchCreditTransferOut = function (platformObjId) {
                 let sendQuery = {
                     startDate: vm.batchCreditTransferOutQuery.startTime.data('datetimepicker').getLocalDate(),
                     endDate: vm.batchCreditTransferOutQuery.endTime.data('datetimepicker').getLocalDate(),
                     providerId: vm.SelectedProvider.providerId,
                     providerObjId: vm.SelectedProvider._id,
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || null,
                     adminName: authService.adminName
                 };
                 console.log("batchCreditTransferOut", sendQuery);
@@ -8260,6 +8325,8 @@ define(['js/app'], function (myApp) {
                 // Row click
                 $(nRow).off('click');
                 $(nRow).on('click', function () {
+                    // vm.selectedPlatform = vm.allPlatformData.filter(platform => platform._id == aData.platform)[0];
+                    // vm.selectedPlatform.id = vm.selectedPlatform._id;
                     $('#playerDataTable tbody tr').removeClass('selected');
                     $('#playerFeedbackDataTable tbody tr').removeClass('selected');
                     $(this).toggleClass('selected');
@@ -8539,13 +8606,13 @@ define(['js/app'], function (myApp) {
                         vm.showCityStr = '';
                         vm.showDistrictStr = '';
                         $scope.getProvinceStr(vm.selectedSinglePlayer.bankAccountProvince).then(data => {
-                            if (data.data.province) {
-                                vm.showProvinceStr = data.data.province.name;
+                            if (data.data.data) {
+                                vm.showProvinceStr = data.data.data.name;
                                 $scope.getCityStr(vm.selectedSinglePlayer.bankAccountCity).then(data => {
-                                    if (data.data.city) {
-                                        vm.showCityStr = data.data.city.name;
+                                    if (data.data.data) {
+                                        vm.showCityStr = data.data.data.name;
                                         $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
-                                            vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
+                                            vm.showDistrictStr = data.data.data ? data.data.data.name : vm.selectedSinglePlayer.bankAccountDistrict;
                                             $scope.safeApply();
                                         }, err => {
                                             vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
@@ -8555,7 +8622,7 @@ define(['js/app'], function (myApp) {
                                     else {
                                         vm.showCityStr = vm.selectedSinglePlayer.bankAccountCity;
                                     }
-                                    vm.showCityStr = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.bankAccountCity;
+                                    vm.showCityStr = data.data.data ? data.data.data.name : vm.selectedSinglePlayer.bankAccountCity;
                                     $scope.safeApply();
                                 }, err => {
                                     vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountCity || $translate("Unknown");
@@ -8739,6 +8806,7 @@ define(['js/app'], function (myApp) {
                 //vm.getSMSTemplate();
                 var title, text;
                 if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+                    vm.smstpl = "";
                     vm.smsPlayer = {
                         playerId: playerObjId.playerId,
                         name: playerObjId.name,
@@ -8942,11 +9010,8 @@ define(['js/app'], function (myApp) {
             vm.prepareCreatePlayer = function () {
                 vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {
                     language: 'en',
-                    format: 'yyyy/MM/dd',
-                    endDate: new Date(),
-                    maxDate: new Date()
+                    format: 'yyyy/MM/dd'
                 });
-                vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date("January 01, 1990")));
 
                 vm.existPhone = false;
                 vm.existRealName = false;
@@ -9728,8 +9793,6 @@ define(['js/app'], function (myApp) {
             vm.createNewPlayer = function () {
                 vm.newPlayer.platform = vm.selectedPlatform.id;
                 vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
-                vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
-                vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
                 vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
 
                 console.log('newPlayer', vm.newPlayer);
@@ -10567,6 +10630,16 @@ define(['js/app'], function (myApp) {
                     $('#feedbackHistoryTab').removeClass('active');
                     $scope.safeApply();
                     vm.feedbackModalTab = "addFeedbackPanel";
+                    vm.playerFeedback = {};
+                    if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback) {
+                        if (vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult && vm.playerFeedback) {
+                            vm.playerFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult;
+                        }
+
+                        if (vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic && vm.playerFeedback) {
+                            vm.playerFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic;
+                        }
+                    }
                 }
 
                 if (rowData && rowData.partnerId) {
@@ -10575,6 +10648,36 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     vm.feedbackModalTabPartner = "addPartnerFeedbackPanel";
                 }
+            };
+
+            vm.isFeedbackValid = function () {
+                let isValid = false;
+                if (vm.playerFeedback && vm.playerFeedback.result && vm.playerFeedback.topic) {
+                    if (vm.playerFeedback.content) {
+                        isValid = true;
+                    } else if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback
+                        && vm.playerFeedback.result == vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult
+                        && vm.playerFeedback.topic == vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic) {
+                        isValid = true;
+                    }
+                }
+
+                return isValid;
+            };
+
+            vm.isFeedbackAddValid = function () {
+                let isValid = false;
+                if (vm.addFeedback && vm.addFeedback.result && vm.addFeedback.topic) {
+                    if (vm.addFeedback.content) {
+                        isValid = true;
+                    } else if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback
+                        && vm.addFeedback.result == vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult
+                        && vm.addFeedback.topic == vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic) {
+                        isValid = true;
+                    }
+                }
+
+                return isValid;
             };
 
             vm.initNewPlayerFeedbackModal = function (selectedPlayer) {
@@ -10616,7 +10719,7 @@ define(['js/app'], function (myApp) {
                 vm.playerSmsSetting = {smsGroup: {}};
                 vm.getPlatformSmsGroups();
                 vm.getAllMessageTypes();
-                $scope.safeApply();
+                $scope.$evalAsync();
             };
 
             vm.initPartnerSMSModal = function () {
@@ -13045,8 +13148,8 @@ define(['js/app'], function (myApp) {
                             // });
                             vm.provinceList.length = 0;
 
-                            for (let i = 0, len = data.data.provinces.length; i < len; i++) {
-                                let province = data.data.provinces[i];
+                            for (let i = 0, len = data.data.data.length; i < len; i++) {
+                                let province = data.data.data[i];
                                 province.id = province.id.toString();
                                 vm.provinceList.push(province);
                             }
@@ -13067,10 +13170,10 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince.province}, function (data) {
                     if (data) {
                         // vm.cityList = data.data.cities;
-                        if (data.data.cities) {
+                        if (data.data.data) {
                             vm.cityList.length = 0;
-                            for (let i = 0, len = data.data.cities.length; i < len; i++) {
-                                let city = data.data.cities[i];
+                            for (let i = 0, len = data.data.data.length; i < len; i++) {
+                                let city = data.data.data[i];
                                 city.id = city.id.toString();
                                 vm.cityList.push(city);
                             }
@@ -13090,10 +13193,10 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     if (data) {
                         // vm.districtList = data.data.districts;
-                        if (data.data.districts) {
+                        if (data.data.data) {
                             vm.districtList.length = 0;
-                            for (let i = 0, len = data.data.districts.length; i < len; i++) {
-                                let district = data.data.districts[i];
+                            for (let i = 0, len = data.data.data.length; i < len; i++) {
+                                let district = data.data.data[i];
                                 district.id = district.id.toString();
                                 vm.districtList.push(district);
                             }
@@ -15929,15 +16032,15 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getZoneList', sendQuery, function (data) {
                     console.log(data.data);
                     if (!provinceId && !cityId) {
-                        vm.provinceList = data.data.provinces || [];
+                        vm.provinceList = data.data.data || [];
                         vm.playerManualTopUp.provinceId = vm.provinceList[0].id;
                         vm.getZoneList(vm.playerManualTopUp.provinceId);
                     } else if (provinceId && !cityId) {
-                        vm.cityList = data.data.cities || [];
+                        vm.cityList = data.data.data || [];
                         // vm.playerManualTopUp.cityId = vm.cityList[0].id;
                         vm.getZoneList(vm.playerManualTopUp.provinceId, vm.cityList[0].id);
                     } else if (provinceId && cityId) {
-                        vm.districtList = data.data.districts || [];
+                        vm.districtList = data.data.data || [];
                         vm.playerManualTopUp.districtId = '';
                     }
                     vm.freezeZoneSelection = false;
@@ -15951,19 +16054,7 @@ define(['js/app'], function (myApp) {
                     showSubmit: true
                 };
             }
-            vm.requestClearProposalLimit = function () {
-                vm.clearPlayerProposalLimit.resMsg = '';
-                vm.clearPlayerProposalLimit.showSubmit = false;
-                socketService.$socket($scope.AppSocket, 'requestClearProposalLimit', {username: vm.selectedSinglePlayer.name}, function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.clearPlayerProposalLimit.resMsg = $translate("Success");
-                    })
-                }, function (err) {
-                    $scope.$evalAsync(() => {
-                        vm.clearPlayerProposalLimit.resMsg = err.error.errorMsg;
-                    })
-                });
-            }
+
             ///////////////////////////////// player feedback //////////////////////////////////////////
             vm.initFeedbackQuery = function () {
                 vm.playerFeedbackQuery = vm.playerFeedbackQuery || {
@@ -16423,15 +16514,9 @@ define(['js/app'], function (myApp) {
                 vm.getCtiData();
             };
 
-            vm.drawSinglePlayerFeedback = function (data) {
-                let playerList = [], extendedResult = [];
-                vm.curFeedbackPlayer = data.data.data;
-                vm.feedbackPlayersPara.total = data.data.total || 0;
-                vm.feedbackPlayersPara.index = data.data.index + 1;
-
+            vm.handleExtendedFeedbackTable = () => {
+                let extendedResult = [];
                 if (vm.curFeedbackPlayer && !$.isEmptyObject(vm.curFeedbackPlayer)) {
-                    playerList.push(vm.curFeedbackPlayer);
-                    //process data for extended table
                     if (vm.curFeedbackPlayer.consumptionDetail && !$.isEmptyObject(vm.curFeedbackPlayer.consumptionDetail)) {
                         vm.playerFeedbackResultExtended = vm.curFeedbackPlayer.consumptionDetail;
                         vm.playerFeedbackResultExtended.manualTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.manualTopUpAmount).toFixed(2);
@@ -16500,11 +16585,113 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackResultExtended.bonusTimes = vm.curFeedbackPlayer.withdrawTimes || 0;
                         vm.playerFeedbackResultExtended.consumptionTimes = vm.curFeedbackPlayer.consumptionTimes || 0;
                         extendedResult.push(vm.playerFeedbackResultExtended);
-                    } //end processing for extended table
+                    }
+                    else {
+                        return $scope.$socketPromise("getOnePlayerSummaryRecord", {platformObjId: vm.selectedPlatform.id, playerObjId: vm.curFeedbackPlayer._id}).then(
+                            data => {
+                                if (data && data.data && data.data[0] && !$.isEmptyObject(data.data[0])) {
+                                    vm.curFeedbackPlayer.consumptionDetail = data.data[0];
+                                    return vm.handleExtendedFeedbackTable();
+                                }
+                            }
+                        )
+                    }
+
+                    if (vm.extendedPlayerTable) {
+                        setTableData(vm.extendedPlayerTable, extendedResult);
+                    } else {
+                        vm.drawExtendedFeedbackTable(extendedResult);
+                    }
+                }
+            };
+
+            vm.drawSinglePlayerFeedback = function (data) {
+                let playerList = [];
+                vm.curFeedbackPlayer = data.data.data;
+                vm.feedbackPlayersPara.total = data.data.total || 0;
+                vm.feedbackPlayersPara.index = (data.data.index || 0) + 1;
+
+                if (vm.curFeedbackPlayer && !$.isEmptyObject(vm.curFeedbackPlayer)) {
+                    playerList.push(vm.curFeedbackPlayer);
+                    vm.handleExtendedFeedbackTable();
+                    //process data for extended table
+                    // if (vm.curFeedbackPlayer.consumptionDetail && !$.isEmptyObject(vm.curFeedbackPlayer.consumptionDetail)) {
+                    //     vm.playerFeedbackResultExtended = vm.curFeedbackPlayer.consumptionDetail;
+                    //     vm.playerFeedbackResultExtended.manualTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.manualTopUpAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.onlineTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.onlineTopUpAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.weChatTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.weChatTopUpAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.aliPayTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.aliPayTopUpAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.topUpAmount$ = parseFloat(vm.curFeedbackPlayer.topUpSum).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.bonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.bonusAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.rewardAmount$ = parseFloat(vm.playerFeedbackResultExtended.rewardAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.consumptionReturnAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionReturnAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.consumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.validConsumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.validConsumptionAmount).toFixed(2);
+                    //     vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.curFeedbackPlayer.bonusAmountSum).toFixed(2);
+                    //
+                    //     vm.playerFeedbackResultExtended.playerLevel$ = "";
+                    //     if (vm.playerLvlData && vm.playerFeedbackResultExtended.playerLevel && vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
+                    //         vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
+                    //     }
+                    //     else {
+                    //         vm.playerFeedbackResultExtended.playerLevel$ = "";
+                    //     }
+                    //
+                    //     vm.playerFeedbackResultExtended.credibility$ = "";
+                    //     if (vm.playerFeedbackResultExtended.credibilityRemarks) {
+                    //         for (let i = 0; i < vm.playerFeedbackResultExtended.credibilityRemarks.length; i++) {
+                    //             for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                    //                 if (vm.playerFeedbackResultExtended.credibilityRemarks[i] && vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                    //                     vm.playerFeedbackResultExtended.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    //
+                    //     vm.playerFeedbackResultExtended.providerArr = [];
+                    //     for (var key in vm.playerFeedbackResultExtended.providerDetail) {
+                    //         if (vm.playerFeedbackResultExtended.providerDetail.hasOwnProperty(key)) {
+                    //             vm.playerFeedbackResultExtended.providerDetail[key].providerId = key;
+                    //             vm.playerFeedbackResultExtended.providerArr.push(vm.playerFeedbackResultExtended.providerDetail[key]);
+                    //         }
+                    //     }
+                    //
+                    //     vm.playerFeedbackResultExtended.provider$ = "";
+                    //     if (vm.playerFeedbackResultExtended.providerDetail) {
+                    //         for (let i = 0; i < vm.playerFeedbackResultExtended.providerArr.length; i++) {
+                    //             vm.playerFeedbackResultExtended.providerArr[i].amount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].amount).toFixed(2);
+                    //             vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
+                    //             vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
+                    //             vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                    //             if (vm.allProviders && vm.allProviders.length) {
+                    //                 for (let j = 0; j < vm.allProviders.length; j++) {
+                    //                     if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                    //                         vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
+                    //                         vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                    //                     }
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    //
+                    //     vm.playerFeedbackResultExtended.profit$ = 0;
+                    //     if (vm.playerFeedbackResultExtended.consumptionBonusAmount != 0 && vm.playerFeedbackResultExtended.validConsumptionAmount != 0) {
+                    //         vm.playerFeedbackResultExtended.profit$ = parseFloat((vm.playerFeedbackResultExtended.consumptionBonusAmount / vm.playerFeedbackResultExtended.validConsumptionAmount) * -100).toFixed(2) + "%";
+                    //     }
+                    //
+                    //     vm.playerFeedbackResultExtended.topUpTimes = vm.curFeedbackPlayer.topUpTimes || 0;
+                    //     vm.playerFeedbackResultExtended.bonusTimes = vm.curFeedbackPlayer.withdrawTimes || 0;
+                    //     vm.playerFeedbackResultExtended.consumptionTimes = vm.curFeedbackPlayer.consumptionTimes || 0;
+                    //     extendedResult.push(vm.playerFeedbackResultExtended);
+                    // } //end processing for extended table
                 }
 
-                vm.drawPlayerTable(playerList);
-                vm.drawExtendedFeedbackTable(extendedResult);
+                if (vm.playerFeedbackTable) {
+                    setTableData(vm.playerFeedbackTable, playerList);
+                } else {
+                    vm.drawPlayerTable(playerList);
+                }
+                // vm.drawExtendedFeedbackTable(extendedResult);
 
                 $('#platformFeedbackSpin').hide();
                 if (!vm.curFeedbackPlayer) {
@@ -16512,10 +16699,24 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
-                vm.addFeedback = {
-                    playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-                    platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-                };
+                vm.addFeedback = vm.addFeedback || {};
+                if (vm.curFeedbackPlayer && (!vm.addFeedback.playerId || vm.addFeedback.playerId !== vm.curFeedbackPlayer._id))  {
+                    vm.addFeedback = {
+                        playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
+                        platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
+                    }
+                }
+
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback) {
+                    if (vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult && vm.addFeedback) {
+                        vm.addFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult;
+                    }
+
+                    if (vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic && vm.addFeedback) {
+                        vm.addFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic;
+                    }
+                }
+
                 if (vm.curFeedbackPlayer._id) {
                     vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
                         vm.curPlayerFeedbackDetail = data;
@@ -16551,7 +16752,12 @@ define(['js/app'], function (myApp) {
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
                 let sendQuery = {platform: vm.selectedPlatform.id};
+                // let sendQuery = {};
                 let sendQueryOr = [];
+
+                // if(vm.playerFeedbackQuery.selectedPlatform && vm.playerFeedbackQuery.selectedPlatform.length > 0) {
+                //     sendQuery.platform = vm.playerFeedbackQuery.selectedPlatform;
+                // }
 
                 if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
                     sendQuery.playerType = vm.playerFeedbackQuery.playerType;
@@ -16610,7 +16816,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0) {
-                    sendQueryOr.push({lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}});
+                    sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
                 }
 
                 if (vm.playerFeedbackQuery.filterFeedback) {
@@ -16933,16 +17139,16 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
-                if (playerTbl) {
-                    playerTbl.clear();
+                if (vm.extendedPlayerTable) {
+                    vm.extendedPlayerTable.clear();
                 }
-                var playerTbl = $('#playerFeedbackDataTableExtended').DataTable(tableOptions);
+                vm.extendedPlayerTable = $('#playerFeedbackDataTableExtended').DataTable(tableOptions);
 
                 $('#playerFeedbackDataTableExtended').resize();
                 $('#playerFeedbackDataTableExtended tbody').off('click', 'td.expandLobby');
                 $('#playerFeedbackDataTableExtended tbody').on('click', 'td.expandLobby', function () {
                     var tr = $(this).closest('tr');
-                    var row = playerTbl.row(tr);
+                    var row = vm.extendedPlayerTable.row(tr);
 
                     if (row.child.isShown()) {
                         // This row is already open - close it
@@ -17135,7 +17341,9 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
                     vm.addFeedback.content = "";
                     vm.addFeedback.result = "";
-                    // vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
+                    if (!vm.ctiData || !vm.ctiData.hasOnGoingMission) {
+                        return vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
+                    }
                     if (vm.playerFeedbackSearchType = 'one') {
                         vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
                             vm.curPlayerFeedbackDetail = data;
@@ -17326,18 +17534,11 @@ define(['js/app'], function (myApp) {
                             vm.ctiData.callee.map(callee => {
                                 if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
                                     if (vm.playerFeedbackSearchType=="many") {
-                                        if (vm.showPlayerDetailInNewTab) {
-                                            let playerObjId = callee && callee.player && callee.player._id;
-                                            if (playerObjId) {
-                                                let url = window.location.origin + "/playerDetail/" + playerObjId;
-                                                utilService.openInNewTab(url);
-                                            }
+                                        let playerObjId = callee && callee.player && callee.player._id;
+                                        if (playerObjId) {
+                                            let url = window.location.origin + "/playerDetail/" + playerObjId;
+                                            utilService.openInNewTab(url);
                                         }
-                                        else {
-                                            vm.initFeedbackModal(callee.player);
-                                            $('#modalAddPlayerFeedback').modal().show();
-                                        }
-
                                     }
                                     else {
                                         vm.lastSelectedCallPlayer = callee.player || vm.lastSelectedCallPlayer;
@@ -17348,12 +17549,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         if (vm.playerFeedbackSearchType == "one") {
-                            if (vm.playerFeedbackTable) {
-                                setTableData(vm.playerFeedbackTable, [vm.lastSelectedCallPlayer]);
-                            }
-                            else {
-                                vm.drawPlayerTable([vm.lastSelectedCallPlayer])
-                            }
+                            vm.drawSinglePlayerFeedback({data: {data: vm.lastSelectedCallPlayer}})
                         }
 
                     }
@@ -17424,6 +17620,7 @@ define(['js/app'], function (myApp) {
             };
 
             function getQueryDepartments () {
+                let parentId;
                 vm.currentPlatformDepartment = vm.currentPlatformDepartment || [];
 
                 vm.currentPlatformDepartment.map(e => {
@@ -17468,7 +17665,7 @@ define(['js/app'], function (myApp) {
                         } else {
                             getQueryDepartments();
                         }
-                        
+
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
                     $('#registerStartTimePicker').datetimepicker({
@@ -17516,6 +17713,11 @@ define(['js/app'], function (myApp) {
                         }
                     });
                     vm.getCtiData();
+                    $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                    $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
+                    $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
+                    $('select#selectGameProvider').multipleSelect('refresh');
+                    vm.refreshSPicker();
                 });
             };
 
@@ -17779,9 +17981,16 @@ define(['js/app'], function (myApp) {
                 var startTime = $('#feedbackquerystarttime').data('datetimepicker');
                 var endTime = $('#feedbackqueryendtime').data('datetimepicker');
 
+                let platformIdList;
+                if (vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList && vm.feedbackAdminQuery.platformList.length) {
+                    platformIdList = vm.feedbackAdminQuery.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 var sendQuery = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        platform: platformIdList,
                         startTime: startTime.getLocalDate(),
                         endTime: endTime.getLocalDate()
                     },
@@ -17854,11 +18063,18 @@ define(['js/app'], function (myApp) {
                         j.csOfficerName = "--";
                     }
 
+                    if (j.platform) {
+                        let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === j.platform.toString());
+                        if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                            j.platform$ = matchedPlatformData[0].name;
+                        }
+                    }
+
                     showData.push(j);
                 });
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: showData,
-                    order: vm.feedbackAdminQuery.aaSorting || [[4, 'desc']],
+                    order: vm.feedbackAdminQuery.aaSorting || [[5, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
                         {'sortCol': 'topupTimes', bSortable: true, 'aTargets': [8]},
@@ -17866,6 +18082,10 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {
                             title: $translate('Customer Service Name'),
                             //data: "result",
@@ -18102,6 +18322,101 @@ define(['js/app'], function (myApp) {
                 })
             });
 
+            vm.addRandowRewardItem = function () {
+                vm.assignRandomRewards.push({playerName:'', rewardName:''});
+            }
+
+            vm.assignRandomRewardToUser = function (id) {
+                return new Promise((resolve, reject) => {
+                    vm.assignRandomRewards;
+                    if (!id) {
+                        id = vm.showReward._id;
+                    }
+                    let sendQuery = {
+                        randomRewards: vm.assignRandomRewards,
+                        platformId: vm.filterRewardPlatform,
+                        reward: id,
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId}
+                    }
+                    socketService.$socket($scope.AppSocket, 'assignRandomRewardToUser', sendQuery, function (data) {
+                        vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
+                        resolve(data);
+                    });
+                }, err => {
+                    reject()
+                })
+            };
+
+            vm.editRandomRewardToUser = function () {
+
+                return new Promise((resolve, reject) => {
+                    vm.activeRandomRewards.filter(item => {
+                        return item.isEdit === true;
+                    })
+
+                    let sendQuery = {
+                        randomRewards: vm.activeRandomRewards,
+                        platformId: vm.filterRewardPlatform,
+                        reward: vm.showReward._id,
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId}
+                    }
+                    socketService.$socket($scope.AppSocket, 'editRandomRewardToUser', sendQuery, function (data) {
+                        resolve(data);
+                    });
+
+                }, reject =>{
+                    reject();
+                })
+
+            }
+
+            vm.getRandomRewardDetail = function (status, fieldName) {
+                let sendQuery = {
+                    rewardEvent: vm.showReward._id,
+                    platformId: vm.filterRewardPlatform
+                };
+                if (status) {
+                    sendQuery.status = status;
+                }
+                socketService.$socket($scope.AppSocket, 'getRandomRewardDetail', sendQuery, function (data) {
+                    $scope.$evalAsync(() => {
+                        if (fieldName) {
+                            vm[fieldName] = ( data && data.data ) ? data.data : [];
+                            // let all the visible
+                            vm[fieldName] = vm[fieldName].map( item => {
+                                let rewardDetail = {
+                                    _id: item._id,
+                                    isEdit: false,
+                                    playerName: item.playerId.name,
+                                    platformId: item.platformId,
+                                    rewardName: item.randomReward,
+                                    status: item.status
+                                }
+                                return rewardDetail;
+                            })
+                        } else {
+                            if (data && data.data && data.data.length > 0) {
+                                data.data.forEach( item => {
+                                    item = vm.getRandomRewardName(item);
+                                    return item;
+                                })
+                            }
+                            vm.showRandomRewardModal(null, 5, data);
+                        }
+
+                    })
+                });
+            }
+            vm.getRandomRewardName = function (item) {
+                if ( vm.rewardMainParamTable &&  vm.rewardMainParamTable[0]  &&  vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length > 0 ) {
+                    let rewardItem = vm.rewardMainParamTable[0].value.filter( param => {
+                        return param.id == item.randomReward;
+                    })
+                    rewardItem = ( rewardItem && rewardItem[0] ) ? rewardItem[0] : {};
+                    item.rewardItemName = ( rewardItem && rewardItem.title) ? rewardItem.title : '';
+                }
+                return item;
+            }
             vm.getReferralsList = function (partner) {
                 socketService.$socket($scope.AppSocket, 'getReferralsList', partner, function (data) {
                     if (vm.totalPlayerDownlineBoolean) {
@@ -19142,7 +19457,7 @@ define(['js/app'], function (myApp) {
                 vm.showProvinceStr = '';
                 let province = curProvince ? curProvince : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountProvince ? vm.selectedSinglePartner.bankAccountProvince : '';
                 $scope.getProvinceStr(province).then(data => {
-                    vm.showProvinceStr = data.data.province ? data.data.province.name : province;
+                    vm.showProvinceStr = data.data.data ? data.data.data.name : province;
                     $scope.safeApply();
                 }, err => {
                     vm.showProvinceStr = province || $translate("Unknown");
@@ -19154,7 +19469,7 @@ define(['js/app'], function (myApp) {
                 vm.showCityStr = '';
                 let city = curCity ? curCity : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountCity ? vm.selectedSinglePartner.bankAccountCity : '';
                 $scope.getCityStr(city).then(data => {
-                    vm.showCityStr = data.data.city ? data.data.city.name : city;
+                    vm.showCityStr = data.data.data ? data.data.data.name : city;
                     $scope.safeApply();
                 }, err => {
                     vm.showCityStr = city || $translate("Unknown");
@@ -19596,8 +19911,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
                         if (data) {
                             vm.provinceList.length = 0;
-                            for (let i = 0, len = data.data.provinces.length; i < len; i++) {
-                                let province = data.data.provinces[i];
+                            for (let i = 0, len = data.data.data.length; i < len; i++) {
+                                let province = data.data.data[i];
                                 province.id = province.id.toString();
                                 vm.provinceList.push(province);
                             }
@@ -20815,7 +21130,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.rewardTabClicked = async function (callback) {
+            vm.rewardTabClicked = async function (callback, platformObjId) {
                 vm.forbidRewardRemark = '';
                 vm.dayHrs = {};
                 vm.dayMin = {};
@@ -20825,11 +21140,15 @@ define(['js/app'], function (myApp) {
                 for (var i = 0; i < 60; i++) {
                     vm.dayMin[i] = vm.getFullDate(i);
                 }
-                if (!vm.selectedPlatform) return;
+                if (!platformObjId) return;
                 if (!authService.checkViewPermission('Platform', 'Reward', 'Read')) {
                     return;
                 }
-                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
+                let sendData = {
+                    platform: platformObjId || null
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         vm.allRewardEvent = data.data;
                         vm.showApplyRewardEvent = data.data.filter(item => {
@@ -20853,19 +21172,47 @@ define(['js/app'], function (myApp) {
                                 vm.settlementRewardGroupEvent.push(v);
                             }
                         });
+
+                        function sortRewardByValidTime(a, b) {
+                            let aValidEndTime = a.validEndTime && new Date(a.validEndTime) || null;
+                            let bValidEndTime = b.validEndTime && new Date(b.validEndTime) || null ;
+
+                            if (aValidEndTime && bValidEndTime && aValidEndTime.getTime() < new Date().getTime() && bValidEndTime && bValidEndTime.getTime() < new Date().getTime()) {
+                                if (aValidEndTime.getTime() < bValidEndTime.getTime()) {
+                                    return 1;
+                                }
+                                if (aValidEndTime.getTime() > bValidEndTime.getTime()) {
+                                    return -1;
+                                }
+
+                            } else if (aValidEndTime && aValidEndTime.getTime() < new Date().getTime()) {
+                                return 1;
+                            } else if (bValidEndTime && bValidEndTime.getTime() < new Date().getTime()) {
+                                return -1;
+                            }
+
+                            return 0;
+                        }
+
+                        if (vm.allRewardEvent && vm.allRewardEvent.length) {
+                            vm.allRewardEvent = vm.allRewardEvent.sort(sortRewardByValidTime);
+                        }
+
+                        vm.getAllRewardGroup(platformObjId, true);
+
                         if (callback) {
                             callback();
                         }
                     })
                 });
-                vm.getAllRewardGroup();
                 vm.getPlatformProviderGroup();
             };
 
-            vm.getAllRewardGroup = function () {
+
+            vm.getAllRewardGroup = function (platformObjId, isCheckExpiredRewardEvent) {
                 vm.showRewardEventGroup = null;
                 vm.groupedRewardEvent = []; // to hide grouped reward event in the default group
-                socketService.$socket($scope.AppSocket, 'getRewardEventGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getRewardEventGroup', {platform: platformObjId}, function (data) {
                     $scope.$evalAsync(() => {
                         vm.rewardEventGroup = data.data || [];
                         if (vm.rewardEventGroup.length) {
@@ -20877,15 +21224,58 @@ define(['js/app'], function (myApp) {
                         }
 
                         vm.showRewardEventGroup = vm.rewardEventGroup[0];
+                        if (isCheckExpiredRewardEvent) {
+                            // to prevent checking when each reward event update
+                            vm.checkExpiredRewardEvent(platformObjId);
+                        }
                     })
                 });
             }
 
+            vm.checkExpiredRewardEvent = function (platformObjId) {
+                let expiredRewardEventUpdateList = [];
+                if (vm.allRewardEvent && vm.allRewardEvent.length) {
+                    vm.expiredRewardEventList = [];
+                    vm.allRewardEvent.forEach(
+                        rewardEvent => {
+                            if (rewardEvent && rewardEvent.validEndTime && new Date(rewardEvent.validEndTime).getTime() < new Date().getTime()) {
+                                if (vm.groupedRewardEvent.includes(String(rewardEvent._id))) {
+                                    expiredRewardEventUpdateList.push(rewardEvent._id);
+                                }
+                                vm.expiredRewardEventList.push(rewardEvent._id);
+                            }
+                        }
+                    )
+                    if (expiredRewardEventUpdateList && expiredRewardEventUpdateList.length) {
+                        let sendData = {
+                            query: {rewardEvents: {$in: expiredRewardEventUpdateList}},
+                            updateData: {
+                                $pull: {
+                                    rewardEvents: {$in: expiredRewardEventUpdateList}
+                                }
+                            }
+                        };
+
+                        socketService.$socket($scope.AppSocket, 'updateExpiredRewardEventToGroup', sendData, function (data) {
+                            vm.deselectRewardEvent();
+                            vm.getAllRewardGroup(platformObjId);
+                            console.log('updateExpiredRewardEventToGroup success');
+                        });
+                    }
+                }
+            };
+
             vm.displayRewardEventInGroup = function (rewardEventObj) {
                 let isShow = false;
                 if (rewardEventObj && rewardEventObj._id && vm.showRewardEventGroup) {
-                    if ((!vm.showRewardEventGroup._id && vm.groupedRewardEvent.indexOf(String(rewardEventObj._id)) == -1)
-                        || (vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.indexOf(String(rewardEventObj._id)) > -1)) {
+                    if (!vm.showRewardEventGroup._id && vm.groupedRewardEvent.indexOf(String(rewardEventObj._id)) == -1) {
+                        let isExpiredRewardEvent = vm.expiredRewardEventList.includes(String(rewardEventObj._id));
+                        if (isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == "已结束优惠组*") {
+                            isShow = true;
+                        } else if (!isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == "默认组别*"){
+                            isShow = true;
+                        }
+                    } else if (vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.indexOf(String(rewardEventObj._id)) > -1) {
                         isShow = true;
                     }
                 }
@@ -20951,6 +21341,7 @@ define(['js/app'], function (myApp) {
                 }
                 console.log('vm.rewardParams', vm.rewardParams);
                 //$scope.safeApply();
+
             };
 
             vm.rewardEventTableOptions = function () {
@@ -20995,6 +21386,10 @@ define(['js/app'], function (myApp) {
                                        v.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
                                        v.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
                                    }
+                                   else if (vm.rewardCondition.definePlayerLoginMode == 3) {
+                                       v.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
+                                       v.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
+                                   }
                                }
                             }
 
@@ -21009,7 +21404,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.filterRewardPlatform}, function (data) {
                         $scope.$evalAsync(() => {
                             vm.platformProvider = data.data.gameProviders;
                             vm.disableAllRewardInput();
@@ -21051,6 +21446,10 @@ define(['js/app'], function (myApp) {
                             if (vm.baccaratRewardGameProviders && vm.baccaratRewardGameProviders.length == 0) {
                                 vm.baccaratRewardGameProviders = JSON.parse(JSON.stringify(vm.allGameProviders));
                             }
+                        }
+
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
+                            vm.isMultiStepReward = true
                         }
 
                         // Set condition value
@@ -21137,6 +21536,16 @@ define(['js/app'], function (myApp) {
                                         break;
                                     case "depositMethod":
                                         result = vm.depositMethod;
+                                        break;
+                                    case "playerLevel":
+                                        if (!vm.allPlayerLvl) break;
+                                        let playerLevels = {};
+                                        for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                                            let level = vm.allPlayerLvl[i];
+                                            playerLevels[level._id] = level.name;
+                                        }
+                                        result = playerLevels;
+                                        break;
                                     default:
                                         result = $scope[cond.options];
                                         if (result) {
@@ -21179,6 +21588,21 @@ define(['js/app'], function (myApp) {
                                         vm.rewardDisabledParam.push("consumptionProvider");
                                     }
 
+                                }
+
+                                if(el == "visibleFromHomePage" || el == "visibleFromRewardEntry" || el == "visibleFromRewardList"){
+                                    if(!(vm.showReward && vm.showReward.condition &&
+                                        (vm.showReward.condition["visibleFromHomePage"] || vm.showReward.condition["visibleFromRewardEntry"]
+                                        || vm.showReward.condition["visibleFromRewardList"]))){
+                                        vm.rewardDisabledParam.push("visibleForPhoneNumberBinding");
+                                        vm.rewardDisabledParam.push("visibleForNewPlayer");
+                                        vm.rewardDisabledParam.push("visibleForFirstLogin");
+                                        vm.rewardDisabledParam.push("visibleForPlayerLevel");
+                                        vm.rewardDisabledParam.push("visibleIfCreditLessThan");
+                                        vm.rewardDisabledParam.push("visibleIfAppliedFollowingReward");
+                                        vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
+                                        vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
+                                    }
                                 }
 
                                 // Get value
@@ -21233,6 +21657,11 @@ define(['js/app'], function (myApp) {
                             })
                         });
 
+                        if (vm.showRewardTypeData &&  vm.showRewardTypeData.name && vm.showRewardTypeData.name === "PlayerRandomRewardGroup" && vm.rewardMainCondition){
+                            // remove unwanted condition: playerLevelDiff for PlayerRandomRewardGroup
+                            delete vm.rewardMainCondition[9];
+                        }
+
                         setTimeout(function () {
                             let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
 
@@ -21277,7 +21706,7 @@ define(['js/app'], function (myApp) {
                                             })
                                         }
                                     } else {
-                                        if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
+                                        if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0] && vm.rewardMainParamTable && vm.rewardMainParamTable[0])
                                             vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
                                     }
                                     if (el == "rewardPercentageAmount") {
@@ -21309,10 +21738,10 @@ define(['js/app'], function (myApp) {
                         vm.rewardParams.reward = vm.rewardParams.reward || [];
                     }
 
-                    console.log('platformID', vm.selectedPlatform.id);
+                    console.log('platformID', vm.filterRewardPlatform);
                     if (vm.showRewardTypeData.name == "PlatformTransactionReward") {
                         console.log('action', vm.showRewardTypeData.params.params.playerLevel.action);
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.selectedPlatform.id}, function (data) {
+                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.filterRewardPlatform}, function (data) {
                             $scope.$evalAsync(() => {
                                 vm.allPlayerLevels = data.data;
                             })
@@ -21478,8 +21907,16 @@ define(['js/app'], function (myApp) {
                                 console.log("created not", data);
                             });
                         }
-                    }
+                    } else if (vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
+                        vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
+                        //get the random reward still available
+                        if (vm.showReward && vm.showReward.type && vm.showReward.type.name == "PlayerRandomRewardGroup") {
+                            vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                        } else {
+                            vm.activeRandomRewards = [];
+                        }
 
+                    }
 
                     if (onCreationForm) {
                         if (vm.showRewardTypeData.name == "PartnerConsumptionReturn") {
@@ -21607,6 +22044,16 @@ define(['js/app'], function (myApp) {
                 return value;
             };
 
+            // generate a objectId for edit random reward item.
+            function createObjectId () {
+              return hex(Date.now() / 1000) +
+                ' '.repeat(16).replace(/./g, () => hex(Math.random() * 16))
+            }
+
+            function hex (value) {
+              return Math.floor(value).toString(16)
+            }
+
             vm.changeRewardParamLayout = (model, isFirstLoad) => {
                 let isResetLayout = Boolean(isFirstLoad);
 
@@ -21661,6 +22108,34 @@ define(['js/app'], function (myApp) {
                     isResetLayout = true;
                 }
 
+
+                if(model && (model.name == "visibleFromHomePage" || model.name == "visibleFromRewardEntry" || model.name == "visibleFromRewardList")){
+                    if(vm.rewardMainCondition && ((vm.rewardMainCondition["4.1"] && vm.rewardMainCondition["4.1"].value) ||
+                        (vm.rewardMainCondition["4.11"] && vm.rewardMainCondition["4.11"].value)
+                    || (vm.rewardMainCondition["4.12"] && vm.rewardMainCondition["4.12"].value))){
+                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name =>
+                            name !== "visibleForPhoneNumberBinding" &&
+                            name !== "visibleForNewPlayer" &&
+                            name !== "visibleForFirstLogin" &&
+                            name !== "visibleForPlayerLevel" &&
+                            name !== "visibleIfCreditLessThan" &&
+                            name !== "visibleIfAppliedFollowingReward" &&
+                            name !== "visibleIfTopUpCountMoreThan" &&
+                            name !== "invisibleIfApplyCurrentReward"
+                        );
+                    }else{
+                        vm.rewardDisabledParam.push("visibleForPhoneNumberBinding");
+                        vm.rewardDisabledParam.push("visibleForNewPlayer");
+                        vm.rewardDisabledParam.push("visibleForFirstLogin");
+                        vm.rewardDisabledParam.push("visibleForPlayerLevel");
+                        vm.rewardDisabledParam.push("visibleIfCreditLessThan");
+                        vm.rewardDisabledParam.push("visibleIfAppliedFollowingReward");
+                        vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
+                        vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
+                    }
+                }
+
+
                 if (isResetLayout) {
                     vm.rewardMainParamTable = [];
 
@@ -21689,6 +22164,194 @@ define(['js/app'], function (myApp) {
                                 value: value
                             });
                         }
+                    }
+                    else if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRandomRewardGroup'){
+
+                        if (vm.gameProviderGroup) {
+                            let providerGroup = {};
+                            for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                let group = vm.gameProviderGroup[i];
+                                providerGroup[group._id] = group.name;
+                            }
+
+                            vm.rewardMainParam.rewardParam.providerGroup.options = providerGroup;
+                        }
+
+                        vm.rewardMainParamTablePromoCode1 = [];
+                        vm.rewardMainParamTablePromoCode2 = [];
+                        vm.rewardMainParamTablePromoCode3 = [];
+                        vm.rewardMainParamTableCredit = [];
+                        vm.rewardMainParamTablePrize = [];
+                        vm.rewardMainParamTableRewardPoints = [];
+                        let promoCode1Value = [];
+                        let promoCode2Value = [];
+                        let promoCode3Value = [];
+                        let prizeValue = [];
+                        let creditValue = [];
+                        let rewardPointsValue = [];
+
+                        if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam[0] && vm.rewardParams.rewardParam[0].value && vm.rewardParams.rewardParam[0].value.length){
+                            promoCode1Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.promoCodeBDeposit);
+                            promoCode2Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.promoCodeBNoDeposit);
+                            promoCode3Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.promoCodeC);
+                            rewardPointsValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.rewardPoints);
+                            creditValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.credit);
+                            prizeValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.randomRewardType.realPrize);
+                        }
+
+                        if (promoCode1Value && !promoCode1Value.length){
+                            promoCode1Value = [{ id: createObjectId(), rewardType: vm.randomRewardType.promoCodeBDeposit}];
+                        }
+                        if (promoCode2Value && !promoCode2Value.length){
+                            promoCode2Value = [{ id: createObjectId(), rewardType: vm.randomRewardType.promoCodeBNoDeposit}];
+                        }
+                        if (promoCode3Value && !promoCode3Value.length){
+                            promoCode3Value = [{ id: createObjectId(), rewardType: vm.randomRewardType.promoCodeC}];
+                        }
+                        if (creditValue && !creditValue.length){
+                            creditValue = [{ id: createObjectId(), rewardType: vm.randomRewardType.credit}];
+                        }
+                        if (rewardPointsValue && !rewardPointsValue.length){
+                            rewardPointsValue = [{ id: createObjectId(), rewardType: vm.randomRewardType.rewardPoints}];
+                        }
+                        if (prizeValue && !prizeValue.length){
+                            prizeValue = [{ id: createObjectId(), rewardType: vm.randomRewardType.realPrize}];
+                        }
+
+                        // for promocode type B with deposit
+                        let promoCode1Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(promoCode1Header.amountPercent){
+                            delete promoCode1Header.amountPercent
+                        }
+                        if(promoCode1Header.maxRewardAmount){
+                            delete promoCode1Header.maxRewardAmount
+                        }
+                        if(promoCode1Header.requiredConsumption){
+                            delete promoCode1Header.requiredConsumption
+                        }
+                        if(promoCode1Header.requiredConsumptionDynamic){
+                            delete promoCode1Header.requiredConsumptionDynamic
+                        }
+                        if(promoCode1Header.rewardPoints){
+                            delete promoCode1Header.rewardPoints
+                        }
+                        if(promoCode1Header.realPrize){
+                            delete promoCode1Header.realPrize
+                        }
+
+                        vm.rewardMainParamTablePromoCode1.push({
+                            header: promoCode1Header,
+                            value: promoCode1Value
+                        });
+
+                        // for promocode type B without deposit
+                        let promoCode2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(promoCode2Header.amountPercent){
+                            delete promoCode2Header.amountPercent
+                        }
+                        if(promoCode2Header.maxRewardAmount){
+                            delete promoCode2Header.maxRewardAmount
+                        }
+                        if(promoCode2Header.minTopUpAmount){
+                            delete promoCode2Header.minTopUpAmount
+                        }
+                        if(promoCode2Header.requiredConsumptionDynamic){
+                            delete promoCode2Header.requiredConsumptionDynamic
+                        }
+                        if(promoCode2Header.requiredConsumption){
+                            delete promoCode2Header.requiredConsumption
+                        }
+                        if(promoCode2Header.rewardPoints){
+                            delete promoCode2Header.rewardPoints
+                        }
+                        if(promoCode2Header.realPrize){
+                            delete promoCode2Header.realPrize
+                        }
+
+                        vm.rewardMainParamTablePromoCode2.push({
+                            header: promoCode2Header,
+                            value: promoCode2Value
+                        });
+
+                        // for promocode type C
+                        let promoCode3Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(promoCode3Header.amount){
+                            delete promoCode3Header.amount
+                        }
+                        if(promoCode3Header.requiredConsumptionFixed){
+                            delete promoCode3Header.requiredConsumptionFixed
+                        }
+                        if(promoCode3Header.requiredConsumption){
+                            delete promoCode3Header.requiredConsumption
+                        }
+                        if(promoCode3Header.rewardPoints){
+                            delete promoCode3Header.rewardPoints
+                        }
+                        if(promoCode3Header.realPrize){
+                            delete promoCode3Header.realPrize
+                        }
+
+                        vm.rewardMainParamTablePromoCode3.push({
+                            header: promoCode3Header,
+                            value: promoCode3Value
+                        });
+
+                        // for credit
+                        let creditHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(creditHeader.amountPercent){
+                            delete creditHeader.amountPercent
+                        }
+                        if(creditHeader.maxRewardAmount){
+                            delete creditHeader.maxRewardAmount
+                        }
+                        if(creditHeader.minTopUpAmount){
+                            delete creditHeader.minTopUpAmount
+                        }
+                        if(creditHeader.requiredConsumptionFixed){
+                            delete creditHeader.requiredConsumptionFixed
+                        }
+                        if(creditHeader.requiredConsumptionDynamic){
+                            delete creditHeader.requiredConsumptionDynamic
+                        }
+                        if(creditHeader.rewardPoints){
+                            delete creditHeader.rewardPoints
+                        }
+                        if(creditHeader.realPrize){
+                            delete creditHeader.realPrize
+                        }
+                        if(creditHeader.expiredInDay){
+                            delete creditHeader.expiredInDay
+                        }
+
+                        vm.rewardMainParamTableCredit.push({
+                            header: creditHeader,
+                            value: creditValue
+                        });
+
+                        // for rewardPoints
+                        let rewardPointsHeader = {
+                            title: vm.rewardMainParam.rewardParam.title,
+                            rewardPoints: vm.rewardMainParam.rewardParam.rewardPoints,
+                            possibility: vm.rewardMainParam.rewardParam.possibility,
+
+                        };
+                        vm.rewardMainParamTableRewardPoints.push({
+                            header: rewardPointsHeader,
+                            value: rewardPointsValue
+                        });
+
+                        // for real prize
+                        let prizeHeader = {
+                            title: vm.rewardMainParam.rewardParam.title,
+                            realPrize: vm.rewardMainParam.rewardParam.realPrize,
+                            possibility: vm.rewardMainParam.rewardParam.possibility,
+                        };
+
+                        vm.rewardMainParamTablePrize.push({
+                            header: prizeHeader,
+                            value: prizeValue
+                        });
+                        vm.repackageRandomRewardGroup();
                     }
                     // for rewardType != PlayerRetentionRewardGroup
                     else {
@@ -21731,6 +22394,15 @@ define(['js/app'], function (myApp) {
                 valueCollection.splice(idx, 1);
                 console.log(vm.rewardMainCondition);
             };
+
+            vm.addNewRewardTypeRow = (row, entry, newEntryData) => {
+                if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)
+                    && vm.isPromoNameExist(entry.title) && !entry.templateObjId){
+                    return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                }
+                newEntryData.id = createObjectId();
+                row.push(newEntryData);
+            }
 
             vm.rewardImageUrlNewRow = (valueCollection) => {
                 valueCollection.push("");
@@ -21855,6 +22527,10 @@ define(['js/app'], function (myApp) {
                             vm.showRewardTypeData.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
                             vm.showRewardTypeData.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
                         }
+                        else if (model.value == 3) {
+                            vm.showRewardTypeData.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
+                            vm.showRewardTypeData.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY";
+                        }
                     }
 
 
@@ -21917,7 +22593,7 @@ define(['js/app'], function (myApp) {
 
             vm.disableAllRewardInput = function (disabled) {
                 typeof disabled == "boolean" ? vm.rewardDisabledInput = disabled : disabled = vm.rewardDisabledInput;
-                $("#rewardMainTasks :input").prop("disabled", disabled);
+                $("#rewardMainTasks :input").not('.excluded').attr("disabled", disabled);
                 if (!disabled) {
                     $("#rewardMainTasks :input").removeClass("disabled");
                 }
@@ -22398,12 +23074,12 @@ define(['js/app'], function (myApp) {
 
             vm.createRewardEventGroup = function () {
                 let sendData = {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.filterRewardPlatform,
                     name: vm.newRewardEventGroupName
                 }
 
                 socketService.$socket($scope.AppSocket, 'createRewardEventGroup', sendData, function () {
-                    vm.getAllRewardGroup();
+                    vm.getAllRewardGroup(vm.filterRewardPlatform);
                 });
             }
 
@@ -22421,7 +23097,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'removeRewardEventGroup', sendData, function (data) {
                     vm.deselectRewardEvent();
-                    vm.getAllRewardGroup();
+                    vm.getAllRewardGroup(vm.filterRewardPlatform);
                     console.log('removeRewardEventGroup success');
                 });
 
@@ -22429,9 +23105,9 @@ define(['js/app'], function (myApp) {
                     if (vm.showRewardEventGroup && vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.length) {
                         socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {
                             _ids: vm.showRewardEventGroup.rewardEvents,
-                            platform: vm.selectedPlatform.id
+                            platform: vm.filterRewardPlatform
                         }, function (data) {
-                            vm.rewardTabClicked();
+                            vm.rewardTabClicked('', vm.filterRewardPlatform);
                         })
                     }
                 }
@@ -22447,7 +23123,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', sendData, function (data) {
                     vm.deselectRewardEvent();
-                   vm.getAllRewardGroup();
+                    vm.getAllRewardGroup(vm.filterRewardPlatform);
                     console.log('updateRewardEventGroup success');
                 });
             }
@@ -22490,14 +23166,31 @@ define(['js/app'], function (myApp) {
                         console.log('add event success');
                     });
 
-                    vm.getAllRewardGroup();
+                    vm.getAllRewardGroup(vm.filterRewardPlatform);
                 }
+            }
+
+            vm.repackageRandomRewardGroup = function() {
+                let rewardParamPromoCode1 = vm.rewardMainParamTablePromoCode1 && vm.rewardMainParamTablePromoCode1[0] && vm.rewardMainParamTablePromoCode1[0].value ? vm.rewardMainParamTablePromoCode1[0].value : [];
+                let rewardParamPromoCode2 = vm.rewardMainParamTablePromoCode2 && vm.rewardMainParamTablePromoCode2[0] && vm.rewardMainParamTablePromoCode2[0].value ? vm.rewardMainParamTablePromoCode2[0].value : [];
+                let rewardParamPromoCode3 = vm.rewardMainParamTablePromoCode3 && vm.rewardMainParamTablePromoCode3[0] && vm.rewardMainParamTablePromoCode3[0].value ? vm.rewardMainParamTablePromoCode3[0].value : [];
+                let rewardParamCredit = vm.rewardMainParamTableCredit && vm.rewardMainParamTableCredit[0] && vm.rewardMainParamTableCredit[0].value ? vm.rewardMainParamTableCredit[0].value : [];
+                let rewardParamPrize = vm.rewardMainParamTablePrize && vm.rewardMainParamTablePrize[0] && vm.rewardMainParamTablePrize[0].value ? vm.rewardMainParamTablePrize[0].value : [];
+                let rewardParamRewardPoints = vm.rewardMainParamTableRewardPoints && vm.rewardMainParamTableRewardPoints[0] && vm.rewardMainParamTableRewardPoints[0].value ? vm.rewardMainParamTableRewardPoints[0].value : [];
+
+                // redefine
+                vm.rewardMainParamTable = [];
+                vm.rewardMainParamTable.push({value: []});
+                vm.rewardMainParamTable[0].value = rewardParamPromoCode1.concat(rewardParamPromoCode2).concat(rewardParamPromoCode3).concat(rewardParamCredit).concat(rewardParamPrize).concat(rewardParamRewardPoints);
+                vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title && Number.isFinite(p.possibility))
             }
 
             vm.editReward = function (i) {
                 let isValid = true;
                 let isHostResult = true;
                 let isPlayerResult = true;
+                let isPeriodResultValid = true;
+                let isApplyTypeValid = true;
                 console.log('vm.showReward', vm.showReward);
 
                 if (vm.showReward && vm.showReward.type && vm.showReward.type.name
@@ -22545,6 +23238,14 @@ define(['js/app'], function (myApp) {
                                 curReward[condName] = condValue;
                             }
 
+                            if (condName == "interval" && condValue == "6") { // 6 == last month
+                                isPeriodResultValid = false;
+                            }
+
+                            if (condName == "applyType" && condValue == "2") { // 2 == 满足条件后自动生成
+                                isApplyTypeValid = false;
+                            }
+
                             // Interval type handling
                             if (condType == "interval") {
                                 if (vm.rewardMainCondition[e].hasOwnProperty("value1")) {
@@ -22569,6 +23270,24 @@ define(['js/app'], function (myApp) {
                     });
 
                     curReward.param.rewardParam = [];
+
+                    if(vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == "PlayerRandomRewardGroup"){
+                        vm.repackageRandomRewardGroup();
+
+                        // sum up all the possibilities and ensure the sum is not exceeded 100%
+                        let total = 0;
+                        vm.rewardMainParamTable[0].value.forEach( row => {
+                            total = total + (row.possibility || 0)
+                        })
+
+                        if($noRoundTwoDecimalPlaces(total) > 1){
+                            return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
+                        }
+
+                        if (curReward.condition.noRepetitiveRewardInPeriod && curReward.condition && curReward.condition.hasOwnProperty('numberParticipation') && vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length < curReward.condition.numberParticipation){
+                            return socketService.showErrorMessage($translate("The number of chances is larger than the available reward, please untick the 'No Repetitive Reward In Period'"));
+                        }
+                    }
 
                     // Set param table
                     Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
@@ -22630,6 +23349,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (!isPeriodResultValid && !isApplyTypeValid) {
+                    isValid = false;
+                }
+
                 var sendData = {
                     query: {_id: vm.showReward._id},
                     updateData: curReward
@@ -22638,18 +23361,22 @@ define(['js/app'], function (myApp) {
                 console.log('editReward sendData', sendData);
                 if (isValid) {
                     socketService.$socket($scope.AppSocket, 'updateRewardEvent', sendData, function (data) {
-                        vm.rewardTabClicked();
+                        vm.rewardTabClicked('', vm.filterRewardPlatform);
+                        vm.afterEventCreated(data, vm.showReward);
                         vm.platformRewardPageName = 'showReward';
                         console.log('ok');
+
                     }, function (data) {
                         console.log("created not", data);
-                        vm.rewardTabClicked();
+                        vm.rewardTabClicked('', vm.filterRewardPlatform);
                     });
                 } else {
                     if (!isHostResult) {
                         socketService.showErrorMessage($translate("Banker Result is required"));
                     } else if (!isPlayerResult) {
                         socketService.showErrorMessage($translate("Player Result is required"));
+                    } else if (!isPeriodResultValid && !isApplyTypeValid) {
+                        socketService.showErrorMessage($translate('Reward interval does not valid for this reward apply type'));
                     } else {
                         socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
                     }
@@ -22658,13 +23385,36 @@ define(['js/app'], function (myApp) {
                     });
                 }
             }
+            vm.afterEventCreated = function (data, showReward, isFirstCreate, rewardName) {
+                if (isFirstCreate && rewardName && rewardName == 'PlayerRandomRewardGroup') {
+                    vm.assignRandomRewardToUser(data._id);
+                    vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                } else if(showReward && showReward.type && showReward.type.name == "PlayerRandomRewardGroup") {
+                    vm.assignRandomRewardToUser();
+                    vm.editRandomRewardToUser();
+                    vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                }
+            }
+            vm.saveRandomRewards = function () {
+                vm.saveRandomRewardMsg = '';
+                let proms = [];
+                let prom1 = vm.editRandomRewardToUser();
+                let prom2 = vm.assignRandomRewardToUser();
+                proms.push(prom1);
+                proms.push(prom2);
+                return Promise.all(proms).then(()=>{
+                    vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                    vm.saveRandomRewardMsg = $translate('DONE');
+                })
+            }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
-                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name, platform: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name, platform: vm.filterRewardPlatform}, function (data) {
                     //vm.allGameProvider = data.data;
-                    vm.rewardTabClicked(function () {
-                        vm.rewardEventClicked(0, vm.allRewardEvent[0])
-                    });
+                    // vm.rewardTabClicked(function () {
+                    //     vm.rewardEventClicked(0, vm.allRewardEvent[0])
+                    // });
+                    vm.rewardTabClicked('', vm.filterRewardPlatform);
                     vm.platformRewardPageName = 'showReward';
                     $scope.safeApply();
                 }, function (data) {
@@ -22690,11 +23440,13 @@ define(['js/app'], function (myApp) {
                 let isHostResult = true;
                 let isPlayerResult = true;
                 let sendData = {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.filterRewardPlatform,
                     type: vm.showRewardTypeData._id,
                     condition: {},
                     param: {}
                 };
+                let isPeriodResultValid = true;
+                let isApplyTypeValid = true;
 
                 if (vm.showRewardTypeData.isGrouped === true) {
                     // Set condition
@@ -22715,6 +23467,14 @@ define(['js/app'], function (myApp) {
                             // Save name and code to outer level
                             if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "showInRealServer" || condName == "validStartTime" || condName == "validEndTime") {
                                 sendData[condName] = condValue;
+                            }
+
+                            if (condName == "interval" && condValue == "6") { // 6 == last month
+                                isPeriodResultValid = false;
+                            }
+
+                            if (condName == "applyType" && condValue == "2") { // 2 == 满足条件后自动生成
+                                isApplyTypeValid = false;
                             }
 
                             // Interval type handling
@@ -22741,6 +23501,23 @@ define(['js/app'], function (myApp) {
                     });
 
                     sendData.param.rewardParam = [];
+
+                    if(vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == "PlayerRandomRewardGroup"){
+                        vm.repackageRandomRewardGroup();
+                        // sum up all the possibilities and ensure the sum is not exceeded 100%
+                        let total = 0;
+                        vm.rewardMainParamTable[0].value.forEach( row => {
+                            total = total + (row.possibility || 0)
+                        })
+
+                        if($noRoundTwoDecimalPlaces(total) > 1){
+                            return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
+                        }
+
+                        if (sendData.condition.noRepetitiveRewardInPeriod && sendData.condition && sendData.condition.hasOwnProperty('numberParticipation') && vm.rewardMainParamTable[0].value && vm.rewardMainParamTable[0].value.length < sendData.condition.numberParticipation){
+                            return socketService.showErrorMessage($translate("The number of chances is larger than the available reward, please untick the 'No Repetitive Reward In Period'"));
+                        }
+                    }
 
                     // Set param table
                     Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
@@ -22769,7 +23546,7 @@ define(['js/app'], function (myApp) {
 
                     sendData = vm.showReward;
                     sendData.name = vm.showReward.name;
-                    sendData.platform = vm.selectedPlatform.id;
+                    sendData.platform = vm.filterRewardPlatform;
                     sendData.description = vm.showReward.description;
                     sendData.param = vm.rewardParams;
                     sendData.condition = vm.rewardCondition;
@@ -22817,6 +23594,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (!isPeriodResultValid && !isApplyTypeValid) {
+                    isValid = false;
+                }
+
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
@@ -22825,10 +23606,14 @@ define(['js/app'], function (myApp) {
                 if (isValid) {
                     socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {
                         //vm.allGameProvider = data.data;
-                        vm.rewardTabClicked();
-                        vm.rewardEventClicked(0, data.data);
-                        vm.platformRewardPageName = 'showReward';
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            let rewardName = ( vm.showRewardTypeData && vm.showRewardTypeData.name ) ? vm.showRewardTypeData.name : '';
+                            vm.afterEventCreated(data.data, vm.showReward, true, rewardName);
+                            vm.rewardTabClicked('', vm.filterRewardPlatform);
+                            vm.rewardEventClicked(0, data.data);
+                            vm.platformRewardPageName = 'showReward';
+                        });
+
                     }, function (data) {
                         console.log("created not", data);
                     });
@@ -22837,6 +23622,8 @@ define(['js/app'], function (myApp) {
                         socketService.showErrorMessage($translate("Banker Result is required"));
                     } else if (!isPlayerResult) {
                         socketService.showErrorMessage($translate("Player Result is required"));
+                    } else if (!isPeriodResultValid && !isApplyTypeValid) {
+                        socketService.showErrorMessage($translate('Reward interval does not valid for this reward apply type'));
                     } else {
                         socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
                     }
@@ -22951,6 +23738,13 @@ define(['js/app'], function (myApp) {
                         vm.newWechatGroupControlSetting = {};
                         vm.deleteWechatGroupControl = [];
                         vm.getWechatGroupControlSetting();
+                        break;
+                    case 'winnerMonitorSetting':
+                        vm.getWinnerMonitorConfig();
+                        break;
+                    case 'defaultFeedbackConfig':
+                        vm.getDefaultFeedbackConfig();
+                        break;
                 }
             };
 
@@ -24839,7 +25633,7 @@ define(['js/app'], function (myApp) {
                     isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
                 };
 
-                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeSubType.length && vm.promoCodeQuery.promoCodeSubType.length != vm.promoCodeQuery.promoCodeSubTypeTotal) {
+                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeSubType && vm.promoCodeQuery.promoCodeSubType.length && vm.promoCodeQuery.promoCodeSubType.length != vm.promoCodeQuery.promoCodeSubTypeTotal) {
                     sendObj.promoCodeSubType = vm.promoCodeQuery.promoCodeSubType
                 }
 
@@ -25043,17 +25837,29 @@ define(['js/app'], function (myApp) {
 
                     if (vm.selectedProposal.data.inputData) {
                         if (vm.selectedProposal.data.inputData.provinceId) {
-                            vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                            //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                            commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data.provinceName = data;
+                            });
                         }
                         if (vm.selectedProposal.data.inputData.cityId) {
-                            vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                            //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                            commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data.cityName = data;
+                            });
                         }
                     } else {
                         if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                            vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                            //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                            commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                            });
                         }
                         if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                            vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                            //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                            commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                            });
                         }
                     }
 
@@ -25108,6 +25914,34 @@ define(['js/app'], function (myApp) {
 
             }
 
+            vm.showPromoUrlModal = function(id, templateNo, data){
+                templateNo = 4;
+                vm.selectedPromoUrl = data;
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.$evalAsync();
+                })
+            }
+
+            vm.showRandomRewardModal = function(id, templateNo, data){
+                templateNo = 5;
+                vm.selectedRandomReward = ( data && data.data ) ? data.data : [];
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.$evalAsync();
+                })
+            }
+
             vm.showProposalModal = function (proposalId, templateNo) {
                 socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
                     platformId: vm.selectedPlatform.id,
@@ -25120,17 +25954,29 @@ define(['js/app'], function (myApp) {
 
                     if (vm.selectedProposal.data.inputData) {
                         if (vm.selectedProposal.data.inputData.provinceId) {
-                            vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                            // vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                            commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data.provinceName = data;
+                            });
                         }
                         if (vm.selectedProposal.data.inputData.cityId) {
-                            vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                            // vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                            commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data.cityName = data;
+                            });
                         }
                     } else {
                         if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                            vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                            // vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                            commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                            });
                         }
                         if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                            vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                            // vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                            commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                            });
                         }
                     }
 
@@ -25150,7 +25996,7 @@ define(['js/app'], function (myApp) {
 
             vm.getProvinceName = function (provinceId, fieldName) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-                    let text = data.data.province ? data.data.province.name : '';
+                    let text = data.data.data ? data.data.data.name : '';
                     if (text) {
                         if (fieldName) {
                             vm.selectedProposal.data[fieldName] = text;
@@ -25163,7 +26009,7 @@ define(['js/app'], function (myApp) {
 
             vm.getCityName = function (cityId, fieldName) {
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-                    let text = data.data.city ? data.data.city.name : '';
+                    let text = data.data.data ? data.data.data.name : '';
                     if (text) {
                         if (fieldName) {
                             vm.selectedProposal.data[fieldName] = text;
@@ -25536,13 +26382,17 @@ define(['js/app'], function (myApp) {
                             title: $translate('withdrawAmount'),
                             data: "nextWithdrawAmount"
                         },
+                        // {
+                        //     title: $translate('playerCredit'),
+                        //     data: "playerCredit"
+                        // },
                         {
-                            title: $translate('playerCredit'),
-                            data: "playerCredit"
+                            title: $translate('topUpAmount'),
+                            data: "nextTopUpAmount"
                         },
                         {
-                            title: $translate('nextTopUpAmount'),
-                            data: "nextTopUpAmount"
+                            title: $translate('nextTopUpProposalId'),
+                            data: "nextTopUpProposalId",
                         },
                         {
                             title: $translate('nextWithdrawProposalId'),
@@ -25609,13 +26459,17 @@ define(['js/app'], function (myApp) {
                             title: $translate('withdrawAmount'),
                             data: "nextWithdrawAmount"
                         },
+                        // {
+                        //     title: $translate('playerCredit'),
+                        //     data: "playerCredit"
+                        // },
                         {
-                            title: $translate('playerCredit'),
-                            data: "playerCredit"
+                            title: $translate('topUpAmount'),
+                            data: "nextTopUpAmount"
                         },
                         {
-                            title: $translate('nextTopUpAmount'),
-                            data: "nextTopUpAmount"
+                            title: $translate('nextTopUpProposalId'),
+                            data: "nextTopUpProposalId",
                         },
                         {
                             title: $translate('nextWithdrawProposalId'),
@@ -26639,11 +27493,15 @@ define(['js/app'], function (myApp) {
                 return providerString;
             }
 
-            vm.getAllPlayerLevels = function () {
+            vm.getAllPlayerLevels = function (platformObjId) {
                 vm.playerIDArr = [];
                 vm.autoCheckPlayerLevelUp = null;
                 vm.manualPlayerLevelUp = null;
                 vm.playerLevelDisplayList = [];
+
+                if(platformObjId){
+                    vm.selectedPlatform.id = platformObjId;
+                }
                 return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
                     .then(function (data) {
                         $scope.$evalAsync(() => {
@@ -26651,6 +27509,7 @@ define(['js/app'], function (myApp) {
                             vm.allPlayerLvl = data.data;
                             vm.platformBatchLevelUp = true;
                             vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+                            vm.disableAutoPlayerLevelUpReward = vm.selectedPlatform.data.disableAutoPlayerLevelUpReward;
                             vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
                             vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
                             vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod ? vm.selectedPlatform.data.playerLevelDownPeriod : vm.allPlayerLevelUpPeriod.MONTH;
@@ -28127,6 +28986,18 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getDefaultFeedbackConfig = () => {
+                vm.defaultFeedback = vm.defaultFeedback || {};
+                vm.defaultFeedback.defaultFeedbackResult = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult || "";
+                vm.defaultFeedback.defaultFeedbackTopic = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic || "";
+                vm.defaultFeedback.defaultPlayerFeedbackResult = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult || "";
+                vm.defaultFeedback.defaultPlayerFeedbackTopic = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic || "";
+                vm.defaultFeedback.defaultTsFeedbackResult = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult || "";
+                vm.defaultFeedback.defaultTsFeedbackTopic = vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic || "";
+
+                $scope.$evalAsync();
+            };
+
             vm.getPlatformBasic = function () {
                 vm.platformBasic = vm.platformBasic || {};
                 vm.platformBasic.playerNameMaxLength = vm.selectedPlatform.data.playerNameMaxLength;
@@ -28139,6 +29010,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
                 vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
+                vm.platformBasic.requireSMSCodeForBankRegistrationAtFirstTime = vm.selectedPlatform.data.requireSMSCodeForBankRegistrationAtFirstTime;
                 vm.platformBasic.demoPlayerValidDays = vm.selectedPlatform.data.demoPlayerValidDays;
                 vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
                 vm.platformBasic.requireLogInCaptcha = vm.selectedPlatform.data.requireLogInCaptcha;
@@ -28791,6 +29663,10 @@ define(['js/app'], function (myApp) {
                         name: '黑名单IP',
                         score: 0
                     },
+                    {
+                        name: '代理开户',
+                        score: 0
+                    },
                 ];
 
                 let sendData = {
@@ -28857,6 +29733,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformProviderGroup = () => {
+                vm.getPlatformGameData(vm.selectedPlatform.id);
                 return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(
                     data => {
                         if (data) {
@@ -28917,11 +29794,12 @@ define(['js/app'], function (myApp) {
                     });
             }
             vm.submitAddAnnouncement = function () {
+                vm.newAnn.platform = vm.filterAnnouncementPlatform;
                 var sendData = vm.newAnn;
-                vm.newAnn.platform = vm.selectedPlatform.id;
                 $scope.$socketPromise('createPlatformAnnouncement', sendData)
                     .done(function (data) {
-                        vm.configTabClicked('announcement');
+                        // vm.configTabClicked('announcement');
+                        vm.getPlatformAnnouncements(vm.filterAnnouncementPlatform);
                     });
             }
             vm.configStartEdit = function (choice) {
@@ -28968,6 +29846,7 @@ define(['js/app'], function (myApp) {
                             vm.allPlayerLvl = vm.allPlayerLvlBeforeEdit;
                         }
                         vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+                        vm.disableAutoPlayerLevelUpReward = vm.selectedPlatform.data.disableAutoPlayerLevelUpReward;
 
                         if (vm.playerLevelDisplayListBeforeEdit && vm.playerLevelDisplayListBeforeEdit.length > 0) {
                             vm.playerLevelDisplayList = vm.playerLevelDisplayListBeforeEdit;
@@ -29025,6 +29904,7 @@ define(['js/app'], function (myApp) {
                             playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
                             playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
                             platformBatchLevelUp: vm.platformBatchLevelUp,
+                            disableAutoPlayerLevelUpReward: vm.disableAutoPlayerLevelUpReward,
                             display: vm.playerLevelDisplayList
                         });
                         if (vm.allPlayerLvlReordered) {
@@ -29105,6 +29985,12 @@ define(['js/app'], function (myApp) {
                     case 'platformFeeEstimateSetting':
                         updatePlatformFeeEstimateSetting(vm.platformFeeEstimate);
                         break;
+                    case 'winnerMonitorSetting':
+                        updateWinnerMonitorSetting();
+                        break
+                    case 'defaultFeedbackConfig':
+                        updateDefaultFeedback(vm.defaultFeedback);
+                        break
 
                 }
             };
@@ -29270,6 +30156,39 @@ define(['js/app'], function (myApp) {
             }
 
             // end of wechat group setting
+
+            // region winner monitor setting
+            vm.getWinnerMonitorConfig = function () {
+                return $scope.$socketPromise('getWinnerMonitorConfig', {platformObjId: vm.selectedPlatform.id}).then(data => {
+                    console.log('getWinnerMonitorConfig', data);
+                    vm.winnerMonitorConfig = [];
+                    for (let i = 0; i < vm.allGameProviders.length; i++) {
+                        let provider = vm.allGameProviders[i];
+
+                        let relevantConfig;
+                        if (data && data.data && data.data.length) {
+                            relevantConfig = data.data.find(config => config.provider == provider._id);
+                        }
+
+                        let companyWinRatio = 0, playerWonAmount = 0, consumptionTimes = 0;
+                        if (relevantConfig) {
+                            companyWinRatio = relevantConfig.companyWinRatio;
+                            playerWonAmount = relevantConfig.playerWonAmount;
+                            consumptionTimes = relevantConfig.consumptionTimes;
+                        }
+
+                        vm.winnerMonitorConfig.push({
+                            providerObjId: provider._id,
+                            providerName: provider.name,
+                            companyWinRatio,
+                            playerWonAmount,
+                            consumptionTimes,
+                        });
+                    }
+                    $scope.$evalAsync()
+                });
+            };
+            // endregion winner monitor setting
 
             vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
@@ -29549,15 +30468,33 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.changeOpenPromoCode = function (selectedPromoCode) {
+                if (!(selectedPromoCode && selectedPromoCode._id)) {
+                    return;
+                }
+
+                let sendData = {
+                    _id: selectedPromoCode._id
+                }
+
+                socketService.$socket($scope.AppSocket, 'changeOpenPromoCode', sendData, function (data) {
+                    if (data && data.data)
+                        $scope.$evalAsync(() => {
+                            selectedPromoCode.code = data.data.code;
+                        })
+                });
+
+            }
+
             vm.generateOpenPromoCode = function (col, index, data, type, template) {
                 if (template && data && vm.isPromoNameExist(data.name)) {
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
                 vm.promoCodeFieldCheckFlag = false;
                 let sendData = Object.assign({},data);
-                let returnedMsg = vm.checkPromoCodeField(data, type);
+                let returnedMsg = vm.checkPromoCodeField(data, type, "openPromoCode");
 
-                if (returnedMsg) {
+                if (returnedMsg === true) {
 
                     if (!sendData.hasOwnProperty("isProviderGroup")){
                         sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
@@ -29610,6 +30547,9 @@ define(['js/app'], function (myApp) {
                                 data.expirationTime = ret.data.expirationTime;
                                 data.createTime = ret.data.createTime;
                                 if (template){
+                                    if (ret && ret.data) {
+                                        data._id = ret.data._id;
+                                    }
                                     vm.updatePromoCodeTemplateInEdit("add", template, data, type, "openPromoCode");
                                     vm.initNewPromoCodeTemplate(type, 'openPromoCode')
                                 }
@@ -29909,7 +30849,8 @@ define(['js/app'], function (myApp) {
 
                 function done() {
                     //vm.ConfigAnnouncementClicked();
-                    vm.configTabClicked("announcement");
+                    // vm.configTabClicked("announcement");
+                    vm.getPlatformAnnouncements(vm.filterAnnouncementPlatform);
                     $scope.safeApply();
                 }
             }
@@ -29950,6 +30891,26 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            function updateDefaultFeedback(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        defaultFeedback: {
+                            defaultFeedbackResult: srcData.defaultFeedbackResult,
+                            defaultFeedbackTopic: srcData.defaultFeedbackTopic,
+                            defaultPlayerFeedbackResult: srcData.defaultPlayerFeedbackResult,
+                            defaultPlayerFeedbackTopic: srcData.defaultPlayerFeedbackTopic,
+                            defaultTsFeedbackResult: srcData.defaultTsFeedbackResult,
+                            defaultTsFeedbackTopic: srcData.defaultTsFeedbackTopic,
+                        }
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
             function updateCallRequestConfig(srcData) {
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
@@ -29972,11 +30933,13 @@ define(['js/app'], function (myApp) {
                         minTopUpAmount: srcData.showMinTopupAmount,
                         allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                        requireSMSCodeForBankRegistrationAtFirstTime: srcData.requireSMSCodeForBankRegistrationAtFirstTime,
                         demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
                         sameBankAccountCount: srcData.sameBankAccountCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
+                        disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
                         platformBatchLevelUp: srcData.platformBatchLevelUp,
                         playerLevelUpPeriod: srcData.playerLevelUpPeriod,
@@ -30111,6 +31074,27 @@ define(['js/app'], function (myApp) {
                     vm.getBlackWhiteListingConfig();
                     loadPlatformData({loadAll: false});
                 });
+            }
+
+            function updateWinnerMonitorSetting() {
+                let winnerMonitorData = [];
+                for (let i = 0; i < vm.winnerMonitorConfig.length; i++) {
+                    let config = vm.winnerMonitorConfig[i];
+                    winnerMonitorData.push({
+                        providerObjId: config.providerObjId,
+                        companyWinRatio: config.companyWinRatio,
+                        playerWonAmount: config.playerWonAmount,
+                        consumptionTimes: config.consumptionTimes,
+                    });
+                }
+
+                return $scope.$socketPromise("setWinnerMonitorConfig", {platformObjId: vm.selectedPlatform.id, winnerMonitorData: winnerMonitorData}).then(
+                    data => {
+                        console.log('setWinnerMonitorConfig', data);
+                        vm.configTabClicked("winnerMonitorSetting");
+                    }
+                )
+
             }
 
             function updatePlatformFeeEstimateSetting(srcData) {
@@ -30701,21 +31685,39 @@ define(['js/app'], function (myApp) {
                 return userIds;
             };
 
-            vm.getAdminNameByDepartment = function (departmentId) {
+            vm.getAdminNameByDepartment = function (departmentId, assignTarget) {
                 if (!departmentId) {
-                    vm.adminList = [];
+                    $scope.$evalAsync(() =>{
+                        if(assignTarget){
+                            vm[assignTarget] = [];
+                        }else{
+                            vm.adminList = [];
+                        }
+                    });
                     return;
+
                 }
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
-                    vm.adminList = data.data;
+                    $scope.$evalAsync(() =>{
+                        if (assignTarget) {
+                            vm[assignTarget] = data.data;
+                        } else {
+                            vm.adminList = data.data;
+                        }
+                    })
+
                 });
             };
 
-            vm.getPlatformAnnouncements = function () {
-                if (!vm.selectedPlatform) return;
-                $scope.$socketPromise('getPlatformAnnouncementsByPlatformId', {platformId: vm.selectedPlatform.data.platformId}).then(function (data) {
-                    vm.allPlatformAnnouncements = data.data;
-                    vm.allPlatformAnnouncements.sort((a, b) => a.order - b.order);
+            vm.getPlatformAnnouncements = function (platformObjId) {
+                if (!platformObjId) return;
+
+                $scope.$socketPromise('getPlatformAnnouncements', {platform: platformObjId}).then(function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getPlatformAnnouncements', data.data);
+                        vm.allPlatformAnnouncements = data.data;
+                        vm.allPlatformAnnouncements.sort((a, b) => a.order - b.order);
+                    });
                 }).done();
             };
 
@@ -30725,9 +31727,10 @@ define(['js/app'], function (myApp) {
                     title: "Delete Announcement",
                     text: `Are you sure you want to delete the announcement "${ann.title}"?`
                 }).then(function () {
-                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title, platform: vm.selectedPlatform.id})
+                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title, platform: ann.platform})
                         .done(function (data) {
-                            vm.configTabClicked("announcement");
+                            // vm.configTabClicked("announcement");
+                            vm.getPlatformAnnouncements(vm.filterAnnouncementPlatform);
                         });
                 });
             }
@@ -30743,12 +31746,15 @@ define(['js/app'], function (myApp) {
 
             /////////////////////////////Mark::Proposal functions////////////////////////////
             //get All proposal list
-            vm.loadProposalTypeData = function () {
+            vm.loadProposalTypeData = function (platformObjId) {
 
                 if (!authService.checkViewPermission('Platform', 'Proposal', 'Read')) {
                     return;
                 }
-                socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: vm.selectedPlatform.id}, function (data) {
+                let sendData = {
+                    platformId: platformObjId || null
+                }
+                socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', sendData, function (data) {
                     vm.buildProposalTypeList(data.data);
                 });
             };
@@ -31030,8 +32036,8 @@ define(['js/app'], function (myApp) {
                     if (data) {
                         $scope.$evalAsync(() => {
                             vm.qnaProvinceList = [];
-                            for (let i = 0, len = data.data.provinces.length; i < len; i++) {
-                                let province = data.data.provinces[i];
+                            for (let i = 0, len = data.data.data.length; i < len; i++) {
+                                let province = data.data.data[i];
                                 province.id = province.id.toString();
                                 vm.qnaProvinceList.push(province);
                             }
@@ -31089,11 +32095,11 @@ define(['js/app'], function (myApp) {
             vm.getCityListQnA = function () {
                 socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.clientQnAInput.bankCardProvince}, function (data) {
                     if (data) {
-                        if (data.data.cities) {
+                        if (data.data.data) {
                             $scope.$evalAsync(() => {
                                 vm.qnaCityList = [];
-                                for (let i = 0, len = data.data.cities.length; i < len; i++) {
-                                    let city = data.data.cities[i];
+                                for (let i = 0, len = data.data.data.length; i < len; i++) {
+                                    let city = data.data.data[i];
                                     city.id = city.id.toString();
                                     vm.qnaCityList.push(city);
                                 }
@@ -31198,6 +32204,8 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            // unused proposal type functions
+            /*
             vm.createProposalTypeForm = function () {
                 vm.newProposal = {};
 
@@ -31248,6 +32256,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
             }
+            */
 
             // right panel required functions
             vm.loadAlldepartment = function (callback) {
@@ -31274,13 +32283,18 @@ define(['js/app'], function (myApp) {
                 }
 
                 // getting admin's department might not get the required department by platform for some features
-                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+                vm.loadDepartmentByPlatformId(vm.selectedPlatform.id, vm.selectedPlatform.data.name, null, callback);
+            };
+
+            vm.loadDepartmentByPlatformId = function (platformId, platformName, assignTarget, callback) {
+                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformId},
                     data => {
                         vm.currentPlatformDepartment = data.data;
+                        vm.platformDepartmentObjId = "";
 
                         if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
                             vm.currentPlatformDepartment.map(department => {
-                                if (department.departmentName == vm.selectedPlatform.data.name) {
+                                if (department.departmentName == platformName) {
                                     vm.platformDepartmentObjId = department._id;
                                 }
                             });
@@ -31290,7 +32304,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')) {
-                                vm.getAdminNameByDepartment(vm.platformDepartmentObjId);
+                                vm.getAdminNameByDepartment(vm.platformDepartmentObjId, assignTarget);
                             }
                         }
 
@@ -31299,9 +32313,17 @@ define(['js/app'], function (myApp) {
                                 callback(data.data);
                             }
                         });
+                    },
+                err => {
+                    if (assignTarget) {
+                        $scope.$evalAsync(() => {
+                            vm.promoUrlAdminList = [];
+                        })
                     }
+                }
                 );
-            };
+            }
+
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
@@ -31785,10 +32807,9 @@ define(['js/app'], function (myApp) {
                     });
                 };
 
-                vm.getPlatformMessageTemplates = function () {
-
-                    if (!vm.selectedPlatform) return;
-                    $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id}).then(function (data) {
+                vm.getPlatformMessageTemplates = function (platformObjId) {
+                    // if (!vm.selectedPlatform) return;
+                    $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: platformObjId}).then(function (data) {
                         vm.messageTemplatesForPlatform = data.data;
                         console.log("vm.messageTemplatesForPlatform", vm.messageTemplatesForPlatform);
                         // Because selectedMessageTemplate is a reference and not an _id, it is now not holding the correct object, because the list of objects has been re-created
@@ -31824,7 +32845,7 @@ define(['js/app'], function (myApp) {
                             _ids: [vm.selectedMessageTemplate._id]
                         })
                     ).then(
-                        () => vm.getPlatformMessageTemplates()
+                        () => vm.getPlatformMessageTemplates(vm.filterMessageTemplatesPlatform)
                     ).done();
                 };
 
@@ -31834,10 +32855,10 @@ define(['js/app'], function (myApp) {
                         vm.editingMessageTemplate.type = vm.smsTitle;
                     }
                     var templateData = vm.editingMessageTemplate;
-                    templateData.platform = vm.selectedPlatform.id;
+                    templateData.platform = vm.filterMessageTemplatesPlatform;
                     vm.resetToViewMessageTemplate();
                     $scope.$socketPromise('createMessageTemplate', templateData).then(
-                        () => vm.getPlatformMessageTemplates()
+                        () => vm.getPlatformMessageTemplates(vm.filterMessageTemplatesPlatform)
                     ).done();
                 };
 
@@ -31855,7 +32876,7 @@ define(['js/app'], function (myApp) {
                         }
                     ).then(function (data) {
                         var savedTemplateId = data.data._id;
-                        return vm.getPlatformMessageTemplates().then(
+                        return vm.getPlatformMessageTemplates(vm.filterMessageTemplatesPlatform).then(
                             () => selectMessageWithId(savedTemplateId)
                         );
                     }).done();
@@ -32371,36 +33392,65 @@ define(['js/app'], function (myApp) {
                 let officerPromoteMessageId = $("#officer-promote-message");
                 vm.initClearMessage();
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.platformPromoUrl,
                     name: vm.platformOfficer.way
                 };
                 socketService.$socket($scope.AppSocket, 'addPromoteWay', sendData, function () {
-                        console.log("PromoteWay created");
-                        vm.platformOfficer.way = "";
-                        vm.officerPromoteMessage = $translate('Approved');
-                        officerPromoteMessageId.css("color", "green");
-                        officerPromoteMessageId.css("font-weight", "bold");
-                        vm.getAllPromoteWay();
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            console.log("PromoteWay created");
+                            vm.platformOfficer.way = "";
+                            vm.officerPromoteMessage = $translate('Approved');
+                            officerPromoteMessageId.css("color", "green");
+                            officerPromoteMessageId.css("font-weight", "bold");
+                            vm.getPromoteWay(vm.platformPromoUrl, true);
+                        });
                     },
                     function (err) {
-                        officerPromoteMessageId.css("color", "red");
-                        officerPromoteMessageId.css("font-weight", "normal");
-                        vm.officerPromoteMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            officerPromoteMessageId.css("color", "red");
+                            officerPromoteMessageId.css("font-weight", "normal");
+                            vm.officerPromoteMessage = err.error.message;
+                            console.log(err);
+                        });
                     });
             };
 
-            vm.getAllPromoteWay = function () {
+            vm.getAllPromoteWay = function ( isCreateWay ) {
                 vm.allPromoteWay = {};
                 let query = {
                     platformId: vm.selectedPlatform.id
                 };
+                if ( isCreateWay ) {
+                    query.platformId = vm.platformPromoUrl;
+                }
                 socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
-                        vm.allPromoteWay = data.data;
+                        if ( isCreateWay ) {
+                            vm.platformPromoUrl = data.data;
+                        } else {
+                            vm.allPromoteWay = data.data;
+                        }
                         console.log("vm.allPromoteWay", vm.allPromoteWay);
                         $scope.safeApply();
+                    },
+                    function (err) {
+                        console.log(err);
+                    });
+            };
+
+            vm.getPromoteWay = function (platformId, isCreateWay) {
+                vm.allPromoteWay = {};
+                let query = {
+                    platformId: platformId
+                };
+                socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                        $scope.$evalAsync(() => {
+                            if ( isCreateWay ) {
+                                vm.promoteWayByPlatform = data.data;
+                            } else {
+                                vm.allPromoteWay = data.data;
+                            }
+                            console.log("vm.allPromoteWay", vm.allPromoteWay);
+                        });
                     },
                     function (err) {
                         console.log(err);
@@ -32410,26 +33460,28 @@ define(['js/app'], function (myApp) {
             vm.deletePromoteWay = function () {
                 let deletePromoteMessageId = $("#delete-promote-message");
                 vm.initClearMessage();
-                let promoteWayName = vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay) ? vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay).name : "";
+                let promoteWayName = vm.promoteWayByPlatform.find(a => a._id == vm.deleteOfficer.promoteWay) ? vm.promoteWayByPlatform.find(a => a._id == vm.deleteOfficer.promoteWay).name : "";
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.platformPromoUrl,
                     promoteWayId: vm.deleteOfficer.promoteWay,
                     promoteWayName: promoteWayName
                 };
                 socketService.$socket($scope.AppSocket, 'deletePromoteWay', sendData, function () {
-                        console.log("PromoteWay deleted");
-                        vm.deleteOfficer.promoteWay = "";
-                        vm.deletePromoteMessage = $translate('Approved');
-                        deletePromoteMessageId.css("color", "green");
-                        deletePromoteMessageId.css("font-weight", "bold");
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            console.log("PromoteWay deleted");
+                            vm.deleteOfficer.promoteWay = "";
+                            vm.deletePromoteMessage = $translate('Approved');
+                            deletePromoteMessageId.css("color", "green");
+                            deletePromoteMessageId.css("font-weight", "bold");
+                        });
                     },
                     function (err) {
-                        deletePromoteMessageId.css("color", "red");
-                        deletePromoteMessageId.css("font-weight", "normal");
-                        vm.deletePromoteMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            deletePromoteMessageId.css("color", "red");
+                            deletePromoteMessageId.css("font-weight", "normal");
+                            vm.deletePromoteMessage = err.error.message;
+                            console.log(err);
+                        });
                     });
             };
 
@@ -32549,7 +33601,7 @@ define(['js/app'], function (myApp) {
                     domain: vm.currentUrlEditSelect.domain,
                     officerId: vm.currentUrlEditSelect.admin,
                     way: vm.currentUrlEditSelect.way,
-                    platformId: vm.selectedPlatform.id,
+                    platform: vm.currentUrlEditSelect.platformId,
                     ignoreChecking: vm.ignoreIntervalChecking
                 };
                 console.log("sendData", sendData);
@@ -32578,19 +33630,46 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id
                 };
                 socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                    vm.allUrl = data.data;
-                    vm.allUrl = vm.allUrl.map(url => {
-                        for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                            let admin = vm.adminList[i];
-                            if (url.admin.toString() === admin._id.toString()) {
-                                url.adminName$ = admin.adminName;
-                                break;
+                    $scope.$evalAsync(()=>{
+                        vm.countPromoWay = {
+                            cs:[],
+                            promoWay:[],
+                            promoUrl:[]
+                        };
+                        let noAdmin = { _id: 'noadmin001', adminName: $translate('noAdmin') };
+                        vm.allUrl = data.data;
+                        vm.allUrl = vm.allUrl.map(url => {
+
+                            vm.countPromoWay.promoWay.push(url.way);
+                            vm.countPromoWay.promoUrl.push(url.domain);
+
+                            if (!url.admin) {
+                                url.admin = noAdmin;
                             }
-                        }
-                        return url;
+                            if (url.admin && url.admin._id) {
+                                vm.countPromoWay.cs.push(url.admin._id);
+                            }
+                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                                let admin = vm.adminList[i];
+                                if (url.admin && url.admin.toString() === admin._id.toString()) {
+                                    url.adminName$ = admin.adminName;
+                                    break;
+                                }
+                            }
+                            return url;
+                        });
+
+                        vm.countPromoWay.cs = [...(new Set(vm.countPromoWay.cs))];
+                        vm.countPromoWay.promoWay = [...(new Set(vm.countPromoWay.promoWay))];
+                        vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
+
+                        vm.allUrl.sort((a, b) => {
+                             if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
+                             else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
+                             return 0;
+                         });
+                        console.log("vm.allUrl", vm.allUrl);
                     });
-                    console.log("vm.allUrl", vm.allUrl);
-                    $scope.safeApply();
                 },
                 function (err) {
                     console.log(err);
@@ -32600,32 +33679,82 @@ define(['js/app'], function (myApp) {
             vm.searchCsUrl = function () {
                 vm.allUrl = [];
                 let query = {
-                    platformId: vm.selectedPlatform.id,
-                    admin: vm.csUrlSearchQuery.admin || "",
+                    platformIds: vm.csUrlSearchQuery.platforms || [],
+                    admin: vm.csUrlSearchQuery.adminName || "",
                     domain: vm.csUrlSearchQuery.url || "",
                     way: vm.csUrlSearchQuery.promoteWay || ""
                 };
-
-
                 socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
-                        vm.allUrl = data.data;
-                        vm.allUrl = vm.allUrl.map(url => {
-                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                                let admin = vm.adminList[i];
-                                if (url.admin.toString() === admin._id.toString()) {
-                                    url.adminName$ = admin.adminName;
-                                    break;
+                    $scope.$evalAsync(() => {
+
+                            let noAdmin = { _id: 'noadmin001', adminName: $translate('noAdmin') };
+                            vm.countPromoWay = {
+                                cs:[],
+                                promoWay:[],
+                                promoUrl:[]
+                            };
+                            vm.allUrl = data.data;
+                            vm.allUrl = vm.allUrl.map(url => {
+                                vm.countPromoWay.promoWay.push(url.way);
+                                vm.countPromoWay.promoUrl.push(url.domain);
+                                if (!url.admin) {
+                                    url.admin = noAdmin;
                                 }
+                                if (url.admin && url.admin._id) {
+                                    vm.countPromoWay.cs.push(url.admin._id);
+                                }
+                                for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                                    let admin = vm.adminList[i];
+                                    if (url.admin && url.admin.toString() === admin._id.toString()) {
+                                        url.adminName$ = admin.adminName;
+                                        break;
+                                    }
+                                }
+                                return url;
+                            });
+
+                            // use es6 feature , filter to only unique element in array
+                            vm.countPromoWay.cs = [...(new Set(vm.countPromoWay.cs))];
+                            vm.countPromoWay.promoWay = [...(new Set(vm.countPromoWay.promoWay))];
+                            vm.countPromoWay.promoUrl = [...(new Set(vm.countPromoWay.promoUrl))];
+                            console.log("vm.allUrl", vm.allUrl);
+
+                            // sorting by alphabet
+                            if (vm.sortCS == 'promoUrl') {
+                                vm.allUrl.sort((a, b) => {
+                                    if (a.domain < b.domain) return -1;
+                                    else if (a.domain > b.domain) return 1;
+                                    return 0;
+                                });
+                            } else if (vm.sortCS == 'promoWay') {
+                                vm.allUrl.sort((a, b) => {
+                                    if (a.way < b.way) return -1;
+                                    else if (a.way > b.way) return 1;
+                                    return 0;
+                                });
+                            } else {
+                                vm.allUrl.sort((a, b) => {
+                                     if (a.admin && b.admin && a.admin.adminName < b.admin.adminName) return -1;
+                                     else if (a.admin && b.admin && a.admin.adminName > b.admin.adminName) return 1;
+                                     return 0;
+                                 });
                             }
-                            return url;
+
                         });
-                        console.log("vm.allUrl", vm.allUrl);
-                        $scope.safeApply();
+
                     },
                     function (err) {
                         console.log(err);
                     });
             };
+
+            vm.pickCSbyPlatform = function (platformId) {
+                let platform = vm.platformList.filter( item => {
+                    return item.id == platformId;
+                })
+                let platformName = ( platform[0] && platform[0].text ) ? platform[0].text : null;
+                vm.loadDepartmentByPlatformId(platformId, platformName, 'promoUrlAdminList')
+            }
 
             vm.getPlayerCredibilityComment = function (playerObjId) {
                 playerObjId = playerObjId || vm.selectedSinglePlayer._id;
@@ -35389,27 +36518,26 @@ define(['js/app'], function (myApp) {
                     });
                 }
                 vm.feedbackAdminQuery.admin = "any";
-                $('#feedbackquerystarttime').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true,
-                    pickTime: true,
-                });
-                vm.feedbackAdminQuerystartDate = $("#feedbackquerystarttime").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
-
-                $('#feedbackqueryendtime').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
-                vm.feedbackAdminQueryendDate = $('#feedbackqueryendtime').data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
-
                 vm.feedbackAdminQuery = {
                     result: 'all',
                     topic: 'all',
                     topUpTimesOperator: ">="
                 };
                 utilService.actionAfterLoaded("#feedbackAdminTablePage", function () {
+                    $('#feedbackquerystarttime').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    vm.feedbackAdminQuerystartDate = $("#feedbackquerystarttime").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                    $('#feedbackqueryendtime').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+                    vm.feedbackAdminQueryendDate = $('#feedbackqueryendtime').data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
                     vm.feedbackAdminQuery.pageObj = utilService.createPageForPagingTable("#feedbackAdminTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "feedbackAdminQuery", vm.submitAdminPlayerFeedbackQuery)
                     });
@@ -36461,6 +37589,550 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            // region XBET advertisement
+            vm.initMainPageAdvertisement = () => {
+                vm.mainPageAdvertisementList = [];
+                vm.getMainPageAdvertisement();
+
+                vm.addNewMainPageAdvertisement = false;
+                vm.editXBETAdvertisement = false;
+            }
+
+            vm.addNewMainPageAd = () => {
+                if (vm.mainPageAdvertisementList && vm.mainPageAdvertisementList.length >= 6) { //XBET requirement
+                    return;
+                }
+                vm.addNewMainPageAdvertisement = true;
+                vm.newMainPageAd = {
+                    status: 1,
+                    // orderNo: vm.getNextXBETOrderNo(vm.mainPageAdvertisementList),
+                    orderNo: vm.mainPageAdvertisementList && vm.mainPageAdvertisementList.length && vm.mainPageAdvertisementList.length + 1 || 1,
+                    advertisementType: "0",
+                    type: vm.constXBETAdvertisementType.MAIN_PAGE_AD,
+                    css: "width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
+                }
+            }
+
+            vm.isEBETAdDuplicateOrderNo = (objArr) => {
+                let isDuplicate = false;
+                if (objArr && objArr.length) {
+                    let tempArr = [];
+                    for (let i = 0; i < objArr.length; i++) {
+                        if (objArr[i].hasOwnProperty("orderNo") && objArr[i].orderNo != null) {
+                            if (tempArr.includes(objArr[i].orderNo)) {
+                                isDuplicate = true;
+                                break;
+                            }
+                            if (!isNaN(objArr[i].orderNo)) {
+                                tempArr.push(objArr[i].orderNo);
+                            }
+
+                        } else {
+                            // check if orderNo exists
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+                }
+                return isDuplicate;
+            }
+
+            vm.saveNewMainPageAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.mainPageAdvertisementList) || !(vm.newMainPageAd && vm.newMainPageAd.orderNo)) {
+                    return;
+                }
+                if (vm.mainPageAdvertisementList && vm.mainPageAdvertisementList.length) {
+                    let allOrderNo = vm.mainPageAdvertisementList.map(item => item.orderNo)
+                    if (allOrderNo.includes(vm.newMainPageAd.orderNo)) {
+                        return;
+                    }
+                }
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    orderNo: vm.newMainPageAd.orderNo,
+                    type: vm.newMainPageAd.type,
+                    advertisementType: vm.newMainPageAd.advertisementType,
+                    title: vm.newMainPageAd.title,
+                    url: vm.newMainPageAd.url,
+                    hyperLink:vm.newMainPageAd.hyperLink,
+                    matchId: vm.newMainPageAd.matchId,
+                    status: vm.newMainPageAd.status,
+                    showInFrontEnd: vm.newMainPageAd.showInFrontEnd,
+                    css: vm.newMainPageAd.css,
+                    hoverCss: vm.newMainPageAd.hoverCss,
+                }
+
+                socketService.$socket($scope.AppSocket, 'createNewXBETAdvertisement', sendData, function (data) {
+                    if (data) {
+                        vm.addNewMainPageAdvertisement = false;
+                        vm.getMainPageAdvertisement();
+                    }
+                });
+
+            }
+
+            vm.updateMainPageAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.mainPageAdvertisementList)) {
+                    return;
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateXBETAdvertisement', vm.mainPageAdvertisementList, function (data) {
+                    if (data) {
+                        vm.editXBETAdvertisement = false;
+                        vm.getMainPageAdvertisement();
+                    }
+                });
+            }
+
+            vm.getMainPageAdvertisement = () => {
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    type: vm.constXBETAdvertisementType.MAIN_PAGE_AD
+                }
+                socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
+                    if (data && data.data) {
+                        vm.mainPageAdvertisementList = data.data;
+                    } else {
+                        vm.mainPageAdvertisementList = [];
+                    }
+                    $scope.$evalAsync();
+                });
+
+            }
+
+            vm.deleteMainPageAdvertisementRecord = function (advertisementId, index) {
+                if (advertisementId) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                    };
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deleteXBETAdvertisementRecord', sendData, function (data) {
+                            if (data) {
+                                if (typeof index !== "undefined") {
+                                    vm.mainPageAdvertisementList.splice(index, 1);
+                                    $scope.$evalAsync();
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+
+            vm.changeXBETAdvertisementStatus = function (advertisementId, advertisementStatus, getListCallBack) {
+                if (advertisementId) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                        status: advertisementStatus ? advertisementStatus : 0
+                    }
+
+                    let statusChangeConfirmText = "";
+
+                    if (advertisementStatus == vm.playerAdvertisementStatus["CLOSE"]) {
+                        statusChangeConfirmText = "Confirm to turn advertisement on ?";
+                    } else {
+                        statusChangeConfirmText = "Confirm to turn advertisement off ?";
+                    }
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate(statusChangeConfirmText)
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'changeXBETAdvertisementStatus', sendData, function (data) {
+                            if (data && typeof getListCallBack == 'function') {
+                                getListCallBack();
+                            }
+                        });
+                    });
+                }
+            }
+
+            vm.getNextXBETOrderNo = (objArr) => {
+                let biggestOrderNo = 0;
+                if (objArr && objArr.length) {
+                    objArr.forEach(
+                        item => {
+                            if (item.hasOwnProperty("orderNo") && !isNaN(item.orderNo)) {
+                                let currentOrderNo = Number(item.orderNo);
+                                biggestOrderNo = biggestOrderNo <= currentOrderNo? ++currentOrderNo: biggestOrderNo;
+                            }
+                        }
+                    )
+                }
+                return biggestOrderNo;
+            }
+
+            vm.XBETAdvertisementPreview = function (objData) {
+
+                vm.CSSContentEdit = false;
+                if (objData) {
+                    vm.selectedAdvertisement = objData;
+                    vm.drawXBETAdPreviewCSS(vm.selectedAdvertisement);
+                }
+
+            };
+
+            vm.drawXBETAdPreviewCSS = function (elem) {
+                if (vm.hoverStyle) {
+                    vm.clearStyle();
+                }
+
+                // generate the css
+                setTimeout(function () {
+                    vm.hoverStyle = document.createElement('style');
+                    if (vm.hoverStyle.styleSheet) {
+                        vm.hoverStyle.styleSheet.cssText = '';
+                    }
+                    else {
+                        vm.hoverStyle.appendChild(document.createTextNode(''));
+                    }
+
+                    let temp = '';
+                    let css = '#' + "imagePreviewXBET" + "{" + elem.css + "}";
+                    temp += css;
+                    let hoverCss = '#' + "imagePreviewXBET" + elem.hoverCss;
+                    temp += hoverCss;
+
+                    vm.hoverStyle.appendChild(document.createTextNode(temp));
+                    document.getElementsByTagName('head')[0].appendChild(vm.hoverStyle);
+                    $scope.$evalAsync();
+                }, 0);
+            };
+
+            vm.XBETAdvCssUpdate = function (elem) {
+                if (elem) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: elem._id,
+                        css: elem.css,
+                        hoverCss: elem.hoverCss,
+                    };
+                    socketService.$socket($scope.AppSocket, 'updateXBETAdvCss', sendData, function (data) {
+                    });
+                }
+            };
+
+            vm.initFirstEntryAdvertisement = () => {
+                vm.firstEntryAdvertisementList = [];
+                vm.getFirstEntryAdvertisement();
+
+                vm.addNewFirstEntryAdvertisement = false;
+                vm.editXBETAdvertisement = false;
+            }
+
+            vm.getFirstEntryAdvertisement = () => {
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    type: vm.constXBETAdvertisementType.FIRST_TIME_AD
+                }
+                socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
+                    if (data && data.data) {
+                        vm.firstEntryAdvertisementList = data.data;
+                    } else {
+                        vm.firstEntryAdvertisementList = [];
+                    }
+                    $scope.$evalAsync();
+                });
+
+            }
+
+            vm.addNewFirstEntryAd = () => {
+                vm.addNewFirstEntryAdvertisement = true;
+                vm.newFirstEntryAd = {
+                    status: 1,
+                    orderNo: vm.firstEntryAdvertisementList && vm.firstEntryAdvertisementList.length && vm.firstEntryAdvertisementList.length + 1 || 1,
+                    type: vm.constXBETAdvertisementType.FIRST_TIME_AD,
+                    css: "width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
+                }
+            }
+
+            vm.saveNewFirstEntryAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.firstEntryAdvertisementList) || !(vm.newFirstEntryAd && vm.newFirstEntryAd.orderNo)) {
+                    return;
+                }
+                if (vm.firstEntryAdvertisementList && vm.firstEntryAdvertisementList.length) {
+                    let allOrderNo = vm.firstEntryAdvertisementList.map(item => item.orderNo)
+                    if (allOrderNo.includes(vm.newFirstEntryAd.orderNo)) {
+                        return;
+                    }
+                }
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    orderNo: vm.newFirstEntryAd.orderNo,
+                    type: vm.newFirstEntryAd.type,
+                    title: vm.newFirstEntryAd.title,
+                    url: vm.newFirstEntryAd.url,
+                    hyperLink:vm.newFirstEntryAd.hyperLink,
+                    status: vm.newFirstEntryAd.status,
+                    showInFrontEnd: vm.newFirstEntryAd.showInFrontEnd,
+                    css: vm.newFirstEntryAd.css,
+                    hoverCss: vm.newFirstEntryAd.hoverCss,
+                }
+
+                socketService.$socket($scope.AppSocket, 'createNewXBETAdvertisement', sendData, function (data) {
+                    if (data) {
+                        vm.addNewFirstEntryAdvertisement = false;
+                        vm.getFirstEntryAdvertisement();
+                    }
+                });
+
+            }
+
+            vm.updateFirstEntryAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.firstEntryAdvertisementList)) {
+                    return;
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateXBETAdvertisement', vm.firstEntryAdvertisementList, function (data) {
+                    if (data) {
+                        vm.editXBETAdvertisement = false;
+                        vm.getFirstEntryAdvertisement();
+                    }
+                });
+            }
+
+            vm.deleteFirstEntryAdvertisementRecord = function (advertisementId, index) {
+                if (advertisementId) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                    };
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deleteXBETAdvertisementRecord', sendData, function (data) {
+                            if (data) {
+                                if (typeof index !== "undefined") {
+                                    vm.firstEntryAdvertisementList.splice(index, 1);
+                                    $scope.$evalAsync();
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+
+            vm.initFirstLoginAdvertisement = () => {
+                vm.firstLoginAdvertisementList = [];
+                vm.getFirstLoginAdvertisement();
+
+                vm.addNewFirstLoginAdvertisement = false;
+                vm.editXBETAdvertisement = false;
+            }
+
+            vm.getFirstLoginAdvertisement = () => {
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    type: vm.constXBETAdvertisementType.LOGIN_AD
+                }
+                socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
+                    if (data && data.data) {
+                        vm.firstLoginAdvertisementList = data.data;
+                    } else {
+                        vm.firstLoginAdvertisementList = [];
+                    }
+                    $scope.$evalAsync();
+                });
+
+            }
+
+            vm.addNewFirstLoginAd = () => {
+                vm.addNewFirstLoginAdvertisement = true;
+                vm.newFirstLoginAd = {
+                    status: 1,
+                    orderNo: vm.firstLoginAdvertisementList && vm.firstLoginAdvertisementList.length && vm.firstLoginAdvertisementList.length + 1 || 1,
+                    type: vm.constXBETAdvertisementType.LOGIN_AD,
+                    css: "width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
+                }
+            }
+
+            vm.saveNewFirstLoginAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.firstLoginAdvertisementList) || !(vm.newFirstLoginAd && vm.newFirstLoginAd.orderNo)) {
+                    return;
+                }
+                if (vm.firstLoginAdvertisementList && vm.firstLoginAdvertisementList.length) {
+                    let allOrderNo = vm.firstLoginAdvertisementList.map(item => item.orderNo)
+                    if (allOrderNo.includes(vm.newFirstLoginAd.orderNo)) {
+                        return;
+                    }
+                }
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    orderNo: vm.newFirstLoginAd.orderNo,
+                    type: vm.newFirstLoginAd.type,
+                    title: vm.newFirstLoginAd.title,
+                    url: vm.newFirstLoginAd.url,
+                    hyperLink:vm.newFirstLoginAd.hyperLink,
+                    status: vm.newFirstLoginAd.status,
+                    showInFrontEnd: vm.newFirstLoginAd.showInFrontEnd,
+                    css: vm.newFirstLoginAd.css,
+                    hoverCss: vm.newFirstLoginAd.hoverCss,
+                }
+
+                socketService.$socket($scope.AppSocket, 'createNewXBETAdvertisement', sendData, function (data) {
+                    if (data) {
+                        vm.addNewFirstLoginAdvertisement = false;
+                        vm.getFirstLoginAdvertisement();
+                    }
+                });
+
+            }
+
+            vm.updateFirstLoginAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.firstLoginAdvertisementList)) {
+                    return;
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateXBETAdvertisement', vm.firstLoginAdvertisementList, function (data) {
+                    if (data) {
+                        vm.editXBETAdvertisement = false;
+                        vm.getFirstLoginAdvertisement();
+                    }
+                });
+            }
+
+            vm.deleteFirstLoginAdvertisementRecord = function (advertisementId, index) {
+                if (advertisementId) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                    };
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deleteXBETAdvertisementRecord', sendData, function (data) {
+                            if (data) {
+                                if (typeof index !== "undefined") {
+                                    vm.firstLoginAdvertisementList.splice(index, 1);
+                                    $scope.$evalAsync();
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+
+            vm.initRewardShopAdvertisement = () => {
+                vm.rewardShopAdvertisementList = [];
+                vm.getRewardShopAdvertisement();
+
+                vm.addNewRewardShopAdvertisement = false;
+                vm.editXBETAdvertisement = false;
+            }
+
+            vm.getRewardShopAdvertisement = () => {
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    type: vm.constXBETAdvertisementType.REWARD_POINTS_AD
+                }
+                socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
+                    if (data && data.data) {
+                        vm.rewardShopAdvertisementList = data.data;
+                    } else {
+                        vm.rewardShopAdvertisementList = [];
+                    }
+                    $scope.$evalAsync();
+                });
+
+            }
+
+            vm.addNewRewardShopAd = () => {
+                vm.addNewRewardShopAdvertisement = true;
+                vm.newRewardShopAd = {
+                    status: 1,
+                    orderNo: vm.rewardShopAdvertisementList && vm.rewardShopAdvertisementList.length && vm.rewardShopAdvertisementList.length + 1 || 1,
+                    type: vm.constXBETAdvertisementType.REWARD_POINTS_AD,
+                    css: "width: auto; height: auto; top:87%; left: 20%",
+                    hoverCss: ":hover{filter: contrast(200%);}"
+                }
+            }
+
+            vm.saveNewRewardShopAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.rewardShopAdvertisementList) || !(vm.newRewardShopAd && vm.newRewardShopAd.orderNo)) {
+                    return;
+                }
+                if (vm.rewardShopAdvertisementList && vm.rewardShopAdvertisementList.length) {
+                    let allOrderNo = vm.rewardShopAdvertisementList.map(item => item.orderNo)
+                    if (allOrderNo.includes(vm.newRewardShopAd.orderNo)) {
+                        return;
+                    }
+                }
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    orderNo: vm.newRewardShopAd.orderNo,
+                    type: vm.newRewardShopAd.type,
+                    title: vm.newRewardShopAd.title,
+                    url: vm.newRewardShopAd.url,
+                    hyperLink:vm.newRewardShopAd.hyperLink,
+                    status: vm.newRewardShopAd.status,
+                    showInFrontEnd: vm.newRewardShopAd.showInFrontEnd,
+                    css: vm.newRewardShopAd.css,
+                    hoverCss: vm.newRewardShopAd.hoverCss,
+                }
+
+                socketService.$socket($scope.AppSocket, 'createNewXBETAdvertisement', sendData, function (data) {
+                    if (data) {
+                        vm.addNewRewardShopAdvertisement = false;
+                        vm.getRewardShopAdvertisement();
+                    }
+                });
+
+            }
+
+            vm.updateRewardShopAd = () => {
+                if (vm.isEBETAdDuplicateOrderNo(vm.rewardShopAdvertisementList)) {
+                    return;
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateXBETAdvertisement', vm.rewardShopAdvertisementList, function (data) {
+                    if (data) {
+                        vm.editXBETAdvertisement = false;
+                        vm.getRewardShopAdvertisement();
+                    }
+                });
+            }
+
+            vm.deleteRewardShopAdvertisementRecord = function (advertisementId, index) {
+                if (advertisementId) {
+                    let sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        _id: advertisementId,
+                    };
+
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_ADVERTISEMENT'),
+                        text: $translate('Confirm to delete advertisement ?')
+                    }).then(function () {
+                        socketService.$socket($scope.AppSocket, 'deleteXBETAdvertisementRecord', sendData, function (data) {
+                            if (data) {
+                                if (typeof index !== "undefined") {
+                                    vm.rewardShopAdvertisementList.splice(index, 1);
+                                    $scope.$evalAsync();
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+
+            // endregion
+
             /***** Auction System - start *****/
             vm.initAuctionSystem = function() {
                 vm.excludeAuctionItem = [];
@@ -37116,8 +38788,23 @@ define(['js/app'], function (myApp) {
                     }
                 });
                 return auctionItems;
-            }
+            };
             /***** Auction System - end *****/
+
+            vm.getQueryCreditTimeOutRecords = (platformId, providerId, startTime, endTime) => {
+                let sendQuery = {
+                    startTime: startTime,
+                    endTime: endTime,
+                    platformId: platformId,
+                    providerId: providerId,
+                };
+                console.log("getQueryCreditTimeOutRecords sendQuery", sendQuery);
+                socketService.$socket($scope.AppSocket, 'getQueryCreditTimeOutRecords', sendQuery, function (data) {
+                    console.log("getQueryCreditTimeOutRecords ret", data);
+                }, function (err) {
+                    console.log("getQueryCreditTimeOutRecords err", err);
+                });
+            };
 
             vm.changeFrameHeight = function() {
                 let ifm = document.getElementById("configIframe");

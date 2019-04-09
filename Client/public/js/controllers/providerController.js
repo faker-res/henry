@@ -18,6 +18,13 @@ define(['js/app'], function (myApp) {
             MAINTENANCE: 2,
             HALT: 3
         };
+        vm.gameDisplay = {
+            1: $translate("Horizontal"),
+            2: $translate("Vertical"),
+            3: $translate("Horizontal / Vertical"),
+            4: $translate("No need setup")
+        }
+
         vm.allProviderStatusKeys = ['NORMAL', 'MAINTENANCE', 'HALT'];
         vm.allGameStatusString = {
             ENABLE: 1, // "Enable",
@@ -170,6 +177,16 @@ define(['js/app'], function (myApp) {
                 status:status
             }
             socketService.$socket($scope.AppSocket, 'updatePlatformGameStatus', query, function (data) {
+                vm.gameProviderClicked({data:vm.SelectedProvider});
+            })
+        }
+        vm.updatePlatformGameDisplay = function(gameDisplay){
+            var query = {
+                platform: vm.selectedPlatform.data._id,
+                game:vm.showGame,
+                gameDisplay:gameDisplay
+            }
+            socketService.$socket($scope.AppSocket, 'updatePlatformGameDisplay', query, function (data) {
                 vm.gameProviderClicked({data:vm.SelectedProvider});
             })
         }

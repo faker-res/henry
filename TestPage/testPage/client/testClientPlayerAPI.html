@@ -87,6 +87,11 @@
         </label>
     </div>
     <div>
+        <label id="deviceId">Device ID
+            <input type=text name="deviceId">
+        </label>
+    </div>
+    <div>
         <label>isAutoCreate
             <select name="isAutoCreate">
                 <option value="" selected>False</option>
@@ -203,6 +208,11 @@
     <div>
         <label id="playerLoginClientDomain">Client Domain
             <input id="playerLoginClientDomain" type=text name="clientDomain">
+        </label>
+    </div>
+    <div>
+        <label>Device ID
+            <input type=text name="deviceId">
         </label>
     </div>
     <div class="playerCaptcha" style="display:none">
@@ -1605,6 +1615,11 @@
 
     </div>
     <div>
+        <label>phoneNumber
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
         <label>Device Id
             <input type=text name="guestDeviceId">
         </label>
@@ -1869,6 +1884,16 @@
             <input type=text name="phoneNumber">
         </label>
     </div>
+    <div>
+        <label>Account Prefix
+            <input type=text name="accountPrefix">
+        </label>
+    </div>
+    <div>
+        <label id="captchaCode">Captcha Code
+            <input id="captchaCodeInput" type=text name="captcha">
+        </label>
+    </div>
     <button data-api-name="getSMSCode">Get Verification Code</button>
     <label>SMSCode
         <input type=text name="smsCode">
@@ -1876,6 +1901,37 @@
 
     <div>
         <button data-api-name="playerLoginOrRegisterWithSMS">Login With SMS</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+
+<h3>Player Login via Phone Number with Password (玩家电话号码与密码登入)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input type=text name="password">
+        </label>
+    </div>
+    <div>
+        <label id="captchaCode">Captcha Code
+            <input id="captchaCodeInput" type=text name="captcha">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="phoneNumberLoginWithPassword">Login With Password</button>
     </div>
     <div>
         <textarea></textarea>
@@ -1902,6 +1958,96 @@
         <textarea id="changeBirthdayDateOutput"></textarea>
     </div>
 </div>
+
+<h3>Set Phone Number (初次设置手机号码)</h3>
+<div class="test-container">
+    <div>
+        <label>Phone Number
+            <input type=text name="number">
+        </label>
+    </div>
+    <div>
+        <label>SMS Code
+            <input name="date" type="smsCode">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="setPhoneNumber">Send</button>
+    </div>
+    <div>
+        <textarea id="setPhoneNumberOutput"></textarea>
+    </div>
+</div>
+
+<h3>Get Bind Bank Card List (获取绑定银行卡列表)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <button id="getBindBankCardList" data-api-name="getBindBankCardList">Get Bind Bank Card List</button>
+    </div>
+</div>
+
+<h3>Update Device ID (更新设备号)</h3>
+<div class="test-container">
+    <div>
+        <label>Device ID
+            <input type=text name="deviceId">
+        </label>
+    </div>
+    <div>
+        <button id="updateDeviceId" data-api-name="updateDeviceId">Update</button>
+    </div>
+</div>
+
+<h3>Generate Update Password Token (获取更新密码令牌)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Username
+            <input type=text name="name">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>SMS Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get SMS Code</button>
+    <div>
+        <button id="generateUpdatePasswordToken" data-api-name="generateUpdatePasswordToken">Get</button>
+    </div>
+</div>
+
+<h3>Update Password With Token (令牌更新密码)</h3>
+<div class="test-container">
+    <div>
+        <label>Token
+            <input type=text name="token">
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input type=text name="password">
+        </label>
+    </div>
+    <div>
+        <button id="updatePasswordWithToken" data-api-name="updatePasswordWithToken">Update</button>
+    </div>
+</div>
+
 
 
 <script>

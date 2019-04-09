@@ -189,7 +189,7 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                 })
                 .state('partner', {
                     url: '/partner',
-                    templateUrl: 'category/partner/platform-partner',
+                    templateUrl: 'category/partner/partner-home',
                     controller: 'partnerCtrl',
                     controllerAs: 'vm',
                     resolve: {
@@ -474,6 +474,29 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
 
                             var dependencies = [
                                 "/js/controllers/monitorProposalAndPaymentController.js"
+                            ];
+
+                            require(dependencies, function () {
+                                $rootScope.$apply(function () {
+                                    deferred.resolve();
+                                });
+                            });
+
+                            return deferred.promise;
+                        }
+                    }
+                })
+                .state('monitor.winnerMonitor', {
+                    url: '/winner',
+                    templateUrl: 'category/monitor/monitor-winner',
+                    controller: 'monitorWinnerCtrl',
+                    controllerAs: 'vm',
+                    resolve: {
+                        load: function ($q, $rootScope) {
+                            var deferred = $q.defer();
+
+                            var dependencies = [
+                                "/js/controllers/monitorWinnerController.js"
                             ];
 
                             require(dependencies, function () {

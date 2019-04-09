@@ -45,6 +45,9 @@ const dbRewardUtility = {
                 case "4":
                     intervalTime = rewardData.applyTargetDate ? dbUtil.getMonthSGTIme(rewardData.applyTargetDate) : dbUtil.getCurrentMonthSGTIme();
                     break;
+                case "6":
+                    intervalTime = rewardData.applyTargetDate ? dbUtil.getLastMonthSGTImeFromDate(rewardData.applyTargetDate) : dbUtil.getLastMonthSGTime();
+                    break;
                 default:
                     if (eventData.validStartTime && eventData.validEndTime) {
                         intervalTime = {startTime: eventData.validStartTime, endTime: eventData.validEndTime};
@@ -52,6 +55,32 @@ const dbRewardUtility = {
                     break;
             }
         }
+
+        return intervalTime;
+    },
+
+    getRewardEventIntervalTimeByApplicationDate: (applicationDate, eventData) => {
+        let todayTime = applicationDate ? dbUtil.getTargetSGTime(applicationDate) : dbUtil.getTodaySGTime();
+        let intervalTime;
+        let duration = null;
+
+        switch (eventData.condition.interval) {
+            // weekly
+            case '2':
+                duration = 7;
+                break;
+            // bi-weekly
+            case '3':
+                duration = 15;
+                break;
+            // monthly
+            case '4':
+                duration = 30;
+                break;
+        }
+
+        let endDate = dbUtil.getNdaylaterFromSpecificStartTime(duration, todayTime.startTime);
+        intervalTime = {startTime: todayTime.startTime, endTime: endDate};
 
         return intervalTime;
     },
@@ -482,9 +511,31 @@ const dbRewardUtility = {
         }
 
         // check reward apply restriction on ip, phone and IMEI
-        let checkHasReceivedProm = dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, player, rewardEvent);
+        let checkHasReceivedProm;
 
-        return Promise.all([pendingCount, eventInPeriodProm, topupInPeriodProm, checkHasReceivedProm]).then(
+        // get the last applied reward proposal to get the retentionApplicationDate for loginMode 3
+        let lastAppliedRewardProposalProm = Promise.resolve();
+        if (rewardEvent.condition && rewardEvent.condition.definePlayerLoginMode && rewardEvent.condition.definePlayerLoginMode == 3) {
+
+            let query = {
+                'data.eventId': rewardEvent._id,
+                'data.platformId': player.platform._id,
+                'data.playerObjId': player._id,
+                'data.retentionApplicationDate': {$exists: true}
+            };
+            lastAppliedRewardProposalProm = dbConfig.collection_proposal.findOne(query).sort({createTime: -1}).lean()
+        }
+
+        return lastAppliedRewardProposalProm.then(
+            lastProposal => {
+                console.log("checking last proposal", lastProposal)
+                let retentionApplicationDate = lastProposal && lastProposal.data && lastProposal.data.retentionApplicationDate ? lastProposal.data.retentionApplicationDate : null
+                console.log("checking retentionApplicationDate", retentionApplicationDate)
+                checkHasReceivedProm = dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, player, rewardEvent, retentionApplicationDate);
+
+                return Promise.all([pendingCount, eventInPeriodProm, topupInPeriodProm, checkHasReceivedProm])
+            }
+        ).then(
             checkList => {
 
                 let rewardPendingCount = checkList[0]
@@ -684,6 +735,58 @@ const dbRewardUtility = {
                 }
             }
         );
+    },
+
+    checkRewardApplyType: (eventData, userAgent, adminInfo) => {
+        if (dbUtil.getInputDevice(userAgent, false, adminInfo) != 0 && eventData.condition && eventData.condition.applyType && eventData.condition.applyType == 3) {
+            return Promise.reject({
+                name: "DataError",
+                message: "The way of applying this reward is not correct."
+            })
+        }
+    },
+
+    checkRewardApplyRegistrationInterface: (eventData, rewardData) => {
+        if (dbRewardUtility.checkInterfaceRewardPermission(eventData, rewardData)) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This interface is not allowed for reward"
+            });
+        }
+    },
+
+    checkTopupRecordIsDirtyForReward: (eventData, rewardData) => {
+        let isUsed = false;
+
+        if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.usedEvent && rewardData.selectedTopup.usedEvent.length > 0) {
+            if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
+                rewardData.selectedTopup.usedEvent.map(eventId => {
+                    let isOneMatch = false;
+                    eventData.condition.ignoreTopUpDirtyCheckForReward.map(eventIgnoreId => {
+                        if (String(eventId) == String(eventIgnoreId)) {
+                            isOneMatch = true;
+                        }
+                    });
+                    // If one of the reward matched in ignore list, dirty check for this reward is ignored
+                    isUsed = isOneMatch ? isUsed : true;
+                })
+            } else {
+                isUsed = true;
+            }
+        }
+
+        return isUsed;
+    },
+
+    checkRewardApplyTopupRecordIsDirty: (eventData, rewardData) => {
+        if (dbRewardUtility.checkTopupRecordIsDirtyForReward(eventData, rewardData)) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This top up record has been used"
+            });
+        }
     },
 
     // endregion

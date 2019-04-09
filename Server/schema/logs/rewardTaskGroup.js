@@ -11,7 +11,7 @@ let rewardTaskGroupSchema = new Schema({
     status: {type: String, default: constRewardTaskStatus.STARTED, index: true},
     //target game provider
     //if null , means it is free amount reward task group
-    providerGroup: {type: Schema.Types.ObjectId},
+    providerGroup: {type: Schema.Types.ObjectId, index: true},
     //task data, data structure depend on type
     data: {type: JSON, default: null},
     //creation time

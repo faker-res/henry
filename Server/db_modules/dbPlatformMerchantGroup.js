@@ -6,6 +6,8 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
 const constAccountType = require('../const/constAccountType');
 
+const RESTUtils = require('../modules/RESTUtils');
+
 var dbPlatformMerchantGroup = {
 
     /**
@@ -185,13 +187,9 @@ var dbPlatformMerchantGroup = {
         )
     },
     getIncludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
-        var allMerchants = [];
-        return pmsAPI.merchant_getMerchantList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        let allMerchants = [];
+
+        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}).then(
             data=> {
                 allMerchants = data.merchants || [];
                 return dbconfig.collection_platformMerchantGroup.findOne({_id: merchantGroupId})
@@ -273,14 +271,10 @@ var dbPlatformMerchantGroup = {
 
     getExcludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
         var allMerchants = [];
-        return pmsAPI.merchant_getMerchantList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}).then(
             data=> {
                 allMerchants = data.merchants || [];
+
                 return dbconfig.collection_platformMerchantGroup.findOne({_id: merchantGroupId})
             }
         ).then(
@@ -459,51 +453,6 @@ var dbPlatformMerchantGroup = {
             }
         ).then(
             () => {
-                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    return dbconfig.collection_platformMerchantGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
-                        pms2MerchantGroupExists => {
-                            if (!pms2MerchantGroupExists) {
-                                let defaultStr = "PMS2DefaultGroup";
-                                let groupData = {
-                                    groupId: defaultStr,
-                                    name: defaultStr,
-                                    code: defaultStr,
-                                    displayName: defaultStr,
-                                    platform: platformObjId,
-                                    isPMS2: true
-                                };
-
-                                if(newMerchants && newMerchants.length > 0 || newMerchantNames && newMerchantNames.length > 0) {
-                                    groupData.merchants = newMerchants;
-                                    groupData.merchantNames = newMerchantNames;
-                                } else if (merchantList && merchantList.length > 0) {
-                                    let merchants = merchantList.map(merchant => merchant.merchantNo);
-                                    let merchantNames = merchantList.map(merchant => merchant.name || merchant.Name);
-
-                                    groupData.merchants = merchants;
-                                    groupData.merchantNames = merchantNames;
-                                }
-
-                                let merchantGroup = new dbconfig.collection_platformMerchantGroup(groupData);
-
-                                return merchantGroup.save().catch(function (err) {
-                                    let message = '';
-                                    if (err) {
-                                        if (err.code == '11000') {
-                                            message = "This Key is Exist，Please Choose Another Name";
-                                        } else {
-                                            message = err.errmsg ? err.errmsg : "";
-                                        }
-                                        return Q.reject({name: "DataError", message: message});
-                                    }
-                                })
-                            }
-                        }
-                    );
-                }
-            }
-        ).then(
-            () => {
                 if(newMerchants && newMerchants.length > 0 || newMerchantNames && newMerchantNames.length > 0) {
                     let groupQuery;
 
@@ -560,87 +509,25 @@ var dbPlatformMerchantGroup = {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let merchantListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.merchantListAPIAddr,
-                            body: {
-                                platformId: platformId
-                            },
-                            json: true
-                        };
-
                         let bankcardListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.BANK_CARD
-                            },
-                            json: true
+                            platformId: platformId,
+                            accountType: constAccountType.BANK_CARD
                         };
 
                         let alipayListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.ALIPAY
-                            },
-                            json: true
+                            platformId: platformId,
+                            accountType: constAccountType.ALIPAY
                         };
 
                         let wechatpayListOptions = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.WECHAT
-                            },
-                            json: true
+                            platformId: platformId,
+                            accountType: constAccountType.WECHAT
                         };
 
-                        merchantsList = rp(merchantListOptions).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
-                        }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
-                            throw error;
-                        });
-
-                        bankCardList = rp(bankcardListOptions).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
-                        }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
-                            throw error;
-                        });
-
-                        aliPayList = rp(alipayListOptions).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
-                        }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
-                            throw error;
-                        });
-
-                        weChatList = rp(wechatpayListOptions).then(function (syncPlatformData) {
-                            console.log('syncHTTPPMSPlatform success', syncPlatformData);
-                            return syncPlatformData;
-                        }, error => {
-                            console.log('syncHTTPPMSPlatform failed', error);
-                            throw error;
-                        });
-                    } else {
-                        merchantsList = pmsAPI.merchant_getMerchantList({
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
-                        bankCardList = pmsAPI.bankcard_getBankcardList({
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
-                        weChatList = pmsAPI.weChat_getWechatList({platformId: platformId, queryId: serverInstance.getQueryId()});
-                        aliPayList = pmsAPI.alipay_getAlipayList({platformId: platformId, queryId: serverInstance.getQueryId()});
+                        merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
+                        bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions);
+                        aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions);
+                        weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions);
                     }
 
                     return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
@@ -741,11 +628,7 @@ var dbPlatformMerchantGroup = {
         var allMerchants = [];
         return dbconfig.collection_platform.findOne({'_id': platformObjId}).then(
             platformData => {
-                return pmsAPI.merchant_getMerchantList(
-                    {
-                        platformId: platformData.platformId,
-                        queryId: serverInstance.getQueryId()
-                    })
+                return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId});
             }
         ).then(
             data => {
@@ -780,14 +663,27 @@ var dbPlatformMerchantGroup = {
         })
     },
     updateCustomizeRatePlatformMerchantList: function (platformId, name, merchantNo, customizeRate) {
-        return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
+        let topUpSystemConfig;
+
+        return dbconfig.collection_platform.findOne({_id: platformId}, {platformId: 1, topUpSystemType: 1}).lean().then(
             platformData => {
                 if (platformData && platformData.platformId) {
-                    return dbconfig.collection_platformMerchantList.findOneAndUpdate({
-                            merchantNo: merchantNo,
-                            name: name,
-                            platformId: platformData.platformId
-                        },
+
+                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+                    let updateQuery = {
+                        merchantNo: merchantNo,
+                        name: name,
+                        platformId: platformData.platformId
+                    };
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        updateQuery.isPMS2 = {$exists: true};
+                    } else {
+                        updateQuery.isPMS2 = {$exists: false};
+                    }
+
+                    return dbconfig.collection_platformMerchantList.findOneAndUpdate(updateQuery,
                         {
                             customizeRate: customizeRate
                         },
@@ -800,10 +696,24 @@ var dbPlatformMerchantGroup = {
         );
     },
     getPlatformMerchantList: function (platformId) {
-        return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
+        let topUpSystemConfig;
+
+        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1}).lean().then(
             platformData => {
                 if (platformData && platformData.platformId) {
-                    return dbconfig.collection_platformMerchantList.find({platformId: platformData.platformId, isPMS2: {$exists: false}}).lean();
+                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+                    let query = {
+                        platformId: platformData.platformId
+                    }
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        query.isPMS2 = {$exists: true};
+                    } else {
+                        query.isPMS2 = {$exists: false};
+                    }
+
+                    return dbconfig.collection_platformMerchantList.find(query).lean();
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
@@ -820,58 +730,59 @@ var dbPlatformMerchantGroup = {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let options = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.merchantTypeListAPIAddr,
-                            body: {},
-                            json: true
-                        };
-
-                        return rp(options).then(function (data) {
-                            console.log('merchantTypeList success', data);
-                            return data;
-                        }, error => {
-                            console.log('merchantTypeList failed', error);
-                            throw error;
-                        });
-                    } else {
-                        return pmsAPI.merchant_getMerchantTypeList(
-                            {
-                                queryId: serverInstance.getQueryId()
-                            }
-                        )
+                        return RESTUtils.getPMS2Services("postMerchantTypeList", {});
                     }
                 }
             }
+        );
+    },
+
+    getPMSMerchantGroup: function (platformId, topUpSystemType) {
+        let topUpSystemConfig;
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            let type = constAccountType.ONLINE
+
+            let options = {
+                platformId: platformId,
+                accountType: type
+            };
+
+            return RESTUtils.getPMS2Services("postPaymentGroup", options);
+        }
+    },
+
+    getServiceChargeSetting: function (platformObjId) {
+        return dbconfig.collection_platform.findOne(
+            {
+                _id: platformObjId
+            },
+            {
+                pmsServiceCharge: 1,
+                fpmsServiceCharge: 1
+            }
+        ).lean();
+    },
+
+    updateServiceChargeSetting: function (platformObjId, pmsServiceChargeRate, fpmsServiceChargeRate) {
+        return dbconfig.collection_platform.findOneAndUpdate(
+            {
+                _id: platformObjId
+            },
+            {
+                pmsServiceCharge: pmsServiceChargeRate,
+                fpmsServiceCharge: fpmsServiceChargeRate
+            },
+            {new: true}
         );
     }
 };
 
 function getMerchantList(topUpSystemConfig, platformId) {
     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-        let options = {
-            method: 'POST',
-            uri: topUpSystemConfig.merchantListAPIAddr,
-            body: {
-                platformId: platformId
-            },
-            json: true
-        };
-
-        return rp(options).then(function (data) {
-            console.log('merchantList success', data);
-            return data;
-        }, error => {
-            console.log('merchantList failed', error);
-            throw error;
-        });
-    } else {
-        return pmsAPI.merchant_getMerchantList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        )
+        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
     }
 }
 

@@ -20,6 +20,7 @@ const dbPlayerLoginRecord = require('./../db_modules/dbPlayerLoginRecord');
 const dbProposal = require('./../db_modules/dbProposal');
 const dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 const dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+const dbPlatform = require('./../db_modules/dbPlatform');
 const roleChecker = require('../modules/roleChecker');
 const dbUtil = require("../modules/dbutility");
 
@@ -324,6 +325,12 @@ router.post('/loginKeyServer', function (req, res, next) {
     }
 });
 
+//PLATFORM
+router.post('/getPlatformByAdminId', function (req, res, next) {
+    let data = req.body;
+    let isValidData = Boolean(data && data.adminObjId);
+    emit(req, res, dbPlatform.getPlatformByAdminId, [data.adminObjId], 'getPlatformByAdminId', isValidData);
+});
 //DASHBOARD
 router.post('/countLoginPlayerAllPlatform', function (req, res, next) {
     let data = req.body;

@@ -214,7 +214,7 @@ define(['js/app'], function (myApp) {
             if (!$scope.targetPlayerObjId) {
                 // todo :: show player not found
             }
-            $scope.$socketPromise("getOnePlayerSimpleDetail", {platformObjId: $scope.selectedPlatform.id, playerObjId: $scope.targetPlayerObjId}).then(
+            return $scope.$socketPromise("getOnePlayerSimpleDetail", {platformObjId: $scope.selectedPlatform.id, playerObjId: $scope.targetPlayerObjId}).then(
                 data => {
                     console.log('getOnePlayerSimpleDetail', data);
                     vm.playerData = data.data;
@@ -1499,6 +1499,17 @@ define(['js/app'], function (myApp) {
                 playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
                 platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
             };
+
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback) {
+                if (vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult && vm.addFeedback) {
+                    vm.addFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult;
+                }
+
+                if (vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic && vm.addFeedback) {
+                    vm.addFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic;
+                }
+            }
+
             if (vm.curFeedbackPlayer._id) {
                 vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
                     vm.curPlayerFeedbackDetail = data;
@@ -1515,6 +1526,21 @@ define(['js/app'], function (myApp) {
                 vm.curPlayerFeedbackDetail = {};
                 $scope.$evalAsync();
             }
+        };
+
+        vm.isFeedbackAddValid = function () {
+            let isValid = false;
+            if (vm.addFeedback && vm.addFeedback.result && vm.addFeedback.topic) {
+                if (vm.addFeedback.content) {
+                    isValid = true;
+                } else if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback
+                    && vm.addFeedback.result == vm.selectedPlatform.data.defaultFeedback.defaultFeedbackResult
+                    && vm.addFeedback.topic == vm.selectedPlatform.data.defaultFeedback.defaultFeedbackTopic) {
+                    isValid = true;
+                }
+            }
+
+            return isValid;
         };
 
         vm.getPlayerNFeedback = function (playerId, limit, callback) {
@@ -1812,7 +1838,7 @@ define(['js/app'], function (myApp) {
                         if (data.data.city) {
                             vm.showCityStr = data.data.city.name;
                             $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
-                                vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
+                                vm.showDistrictStr = data.data.data ? data.data.data.name : vm.selectedSinglePlayer.bankAccountDistrict;
                                 $scope.$evalAsync();
                             }, err => {
                                 vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
@@ -2230,8 +2256,8 @@ define(['js/app'], function (myApp) {
                     if (data) {
                         vm.provinceList.length = 0;
 
-                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
-                            let province = data.data.provinces[i];
+                        for (let i = 0, len = data.data.data.length; i < len; i++) {
+                            let province = data.data.data[i];
                             province.id = province.id.toString();
                             vm.provinceList.push(province);
                         }
@@ -2249,10 +2275,10 @@ define(['js/app'], function (myApp) {
         vm.changeProvince = function (reset) {
             socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince.province}, function (data) {
                 if (data) {
-                    if (data.data.cities) {
+                    if (data.data.data) {
                         vm.cityList.length = 0;
-                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
-                            let city = data.data.cities[i];
+                        for (let i = 0, len = data.data.data.length; i < len; i++) {
+                            let city = data.data.data[i];
                             city.id = city.id.toString();
                             vm.cityList.push(city);
                         }
@@ -2272,10 +2298,10 @@ define(['js/app'], function (myApp) {
                 cityId: vm.currentCity.city
             }, function (data) {
                 if (data) {
-                    if (data.data.districts) {
+                    if (data.data.data) {
                         vm.districtList.length = 0;
-                        for (let i = 0, len = data.data.districts.length; i < len; i++) {
-                            let district = data.data.districts[i];
+                        for (let i = 0, len = data.data.data.length; i < len; i++) {
+                            let district = data.data.data[i];
                             district.id = district.id.toString();
                             vm.districtList.push(district);
                         }
@@ -2412,14 +2438,14 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getZoneList', sendQuery, function (data) {
                 console.log(data.data);
                 if (!provinceId && !cityId) {
-                    vm.provinceList = data.data.provinces || [];
+                    vm.provinceList = data.data.data || [];
                     vm.playerManualTopUp.provinceId = vm.provinceList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId);
                 } else if (provinceId && !cityId) {
-                    vm.cityList = data.data.cities || [];
+                    vm.cityList = data.data.data || [];
                     vm.getZoneList(vm.playerManualTopUp.provinceId, vm.cityList[0].id);
                 } else if (provinceId && cityId) {
-                    vm.districtList = data.data.districts || [];
+                    vm.districtList = data.data.data || [];
                     vm.playerManualTopUp.districtId = '';
                 }
                 vm.freezeZoneSelection = false;
@@ -3589,17 +3615,29 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
-                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        // vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.provinceName = data;
+                        });
                     }
                     if (vm.selectedProposal.data.inputData.cityId) {
-                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        // vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.cityName = data;
+                        });
                     }
                 } else {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                        vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                        // vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                        commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                        });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                        vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        // vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                        });
                     }
                 }
 
@@ -4216,19 +4254,32 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
-                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        // vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.provinceName = data;
+                        });
                     }
                     if (vm.selectedProposal.data.inputData.cityId) {
-                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        // vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.cityName = data;
+                        });
                     }
                 } else {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                        vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                        // vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                        commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                        });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                        vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        // vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                        });
                     }
                 }
+
 
                 let tmpt = vm.proposalTemplate[templateNo];
                 $(tmpt).modal('show');
@@ -4896,6 +4947,10 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync();
         };
 
+        vm.changeSMSTemplate = function () {
+            vm.smsPlayer.message = vm.smstpl ? vm.smstpl.content : '';
+        };
+
         vm.showSmsTab = function (tabName) {
             if (!tabName && (vm.selectedSinglePlayer && vm.selectedSinglePlayer.permission && vm.selectedSinglePlayer.permission.SMSFeedBack === false)) {
                 vm.smsModalTab = "smsLogPanel";
@@ -4904,6 +4959,37 @@ define(['js/app'], function (myApp) {
             else {
                 vm.smsModalTab = tabName ? tabName : "smsToPlayerPanel";
             }
+        };
+
+        vm.initSMSLog = function (type) {
+            vm.smsLog = vm.smsLog || {index: 0, limit: 10};
+            vm.smsLog.type = type;
+            vm.smsLog.query = {};
+            vm.smsLog.searchResults = [{}];
+            vm.smsLog.query.status = "all";
+            vm.smsLog.query.isAdmin = true;
+            vm.smsLog.query.isSystem = false;
+            let endTimeElementPath = '.modal.in #smsLogPanel #smsLogQuery .endTime';
+            let tablePageId = "smsLogTablePage";
+            if (type == "multi") {
+                endTimeElementPath = '#groupSmsLogQuery .endTime';
+                tablePageId = "#groupSmsLogTablePage";
+            }
+            utilService.actionAfterLoaded(endTimeElementPath, function () {
+                vm.smsLog.query.startTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .startTime');
+                vm.smsLog.query.endTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .endTime');
+                if (type == "multi") {
+                    vm.smsLog.query.startTime = utilService.createDatePicker('#groupSmsLogQuery .startTime');
+                    vm.smsLog.query.endTime = utilService.createDatePicker('#groupSmsLogQuery .endTime');
+                }
+                vm.smsLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.smsLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.smsLog.pageObj = utilService.createPageForPagingTable(tablePageId, {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLog);
+                });
+                // Be user friendly: Fetch some results immediately!
+                vm.searchSMSLog(true);
+            });
         };
 
         vm.sendSMSToPlayer = function () {
@@ -5045,6 +5131,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
             console.log(type, data);
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+                vm.smstpl = "";
                 vm.smsPlayer = {
                     playerId: playerObjId.playerId,
                     name: playerObjId.name,
@@ -5091,6 +5178,16 @@ define(['js/app'], function (myApp) {
                 $('#feedbackHistoryTab').removeClass('active');
                 $scope.$evalAsync();
                 vm.feedbackModalTab = "addFeedbackPanel";
+                vm.playerFeedback = {};
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback) {
+                    if (vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult && vm.playerFeedback) {
+                        vm.playerFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult;
+                    }
+
+                    if (vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic && vm.playerFeedback) {
+                        vm.playerFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic;
+                    }
+                }
             }
 
             if (rowData && rowData.partnerId) {
@@ -5099,6 +5196,21 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync();
                 vm.feedbackModalTabPartner = "addPartnerFeedbackPanel";
             }
+        };
+
+        vm.isFeedbackValid = function () {
+            let isValid = false;
+            if (vm.playerFeedback && vm.playerFeedback.result && vm.playerFeedback.topic) {
+                if (vm.playerFeedback.content) {
+                    isValid = true;
+                } else if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.defaultFeedback
+                    && vm.playerFeedback.result == vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackResult
+                    && vm.playerFeedback.topic == vm.selectedPlatform.data.defaultFeedback.defaultPlayerFeedbackTopic) {
+                    isValid = true;
+                }
+            }
+
+            return isValid;
         };
 
         vm.clearFeedBackResultDataStatus = function (rowData) {
@@ -7086,6 +7198,44 @@ define(['js/app'], function (myApp) {
                 }
             })
             return result;
+        };
+
+        $('body').on('click', '#permissionRecordButton', function () {
+            vm.getPlayerPermissionChange("new")
+        });
+
+        vm.getPlayerPermissionChange = function (flag) {
+            $('.playerPermissionPopover').popover('hide');
+            vm.playerPermissionQuery = vm.playerPermissionQuery || {};
+            vm.playerPermissionQuery.searching = true;
+            vm.playerPermissionHistory = [];
+            $scope.$evalAsync();
+            if (flag == 'new') {
+                utilService.actionAfterLoaded('#modalPlayerPermissionChangeLog .searchDiv .startTime', function () {
+                    vm.playerPermissionQuery.startTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .startTime');
+                    vm.playerPermissionQuery.endTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .endTime');
+                    vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
+                    vm.playerPermissionQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                });
+            }
+            let tempPlayerId = vm.popOverPlayerPermission && vm.popOverPlayerPermission._id ? vm.popOverPlayerPermission._id :
+                vm.selectedSinglePlayer && vm.selectedSinglePlayer._id ? vm.selectedSinglePlayer._id : null;
+            var sendData = {
+                playerId: tempPlayerId,
+                platform: vm.selectedPlatform.id,
+                createTime: {
+                    $gte: new Date(vm.playerPermissionQuery.startTime.data('datetimepicker').getLocalDate()),
+                    $lt: new Date(vm.playerPermissionQuery.endTime.data('datetimepicker').getLocalDate())
+                }
+            }
+            socketService.$socket($scope.AppSocket, 'getPlayerPermissionLog', sendData, function (data) {
+                data.data.forEach(row => {
+                    row.admin = row.isSystem ? {adminName: "System"} : row.admin;
+                });
+                vm.playerPermissionHistory = data.data || [];
+                vm.playerPermissionQuery.searching = false;
+                $scope.$evalAsync();
+            });
         };
         // endregion - popup function related
 

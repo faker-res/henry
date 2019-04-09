@@ -26,6 +26,7 @@ var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
+const dbRewardUtil = require("./../db_common/dbRewardUtility");
 var dbProposalUtility = require('./../db_common/dbProposalUtility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var moment = require('moment-timezone');
@@ -293,10 +294,6 @@ var proposal = {
                 //     proposalData.data.applyAmount = applyAmount;
                 // }
 
-                if (consecutiveNumber) {
-                    proposalData.data.consecutiveNumber = consecutiveNumber;
-                }
-
                 if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId.proposalId &&
                     eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                     proposalData.data.topUpProposalId = rewardGroupRecord.topUpRecordObjId.proposalId;
@@ -328,6 +325,15 @@ var proposal = {
                 if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && eventData.condition
                     && eventData.condition.definePlayerLoginMode && typeof(eventData.condition.definePlayerLoginMode) != 'undefined'){
                     proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
+
+                    if (eventData.condition.definePlayerLoginMode == 3) {
+                        proposalData.data.rewardPeriod = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(rewardGroupRecord.lastApplyDate, eventData);
+                    }
+
+                }
+
+                if (consecutiveNumber) {
+                    proposalData.data.consecutiveNumber = consecutiveNumber;
                 }
 
                 return proposal.createProposalWithTypeId(eventData.executeProposal, proposalData)
@@ -337,7 +343,7 @@ var proposal = {
                 // update playerRetentionRewardRecord
                 let updateQuery = {lastReceivedDate: new Date() };
                 if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode){
-                    if (eventData.condition.definePlayerLoginMode == 1){
+                    if (eventData.condition.definePlayerLoginMode == 1 || eventData.condition.definePlayerLoginMode == 3){
                         // accumulative
                         updateQuery.$inc = {accumulativeDay: 1};
                     }
@@ -675,7 +681,15 @@ var proposal = {
                     if (bExecute) {
                         proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, data)
                             .then(
-                                () => deferred.resolve(data),
+                                updatedProposalData => {
+                                    // get the promo code from the updated proposal and pass it to the current one to return back
+                                    // for the usage in PlayerRandomRewardGroup
+                                    if (updatedProposalData && updatedProposalData.data && updatedProposalData.data.promoCode){
+                                        data.promoCode = updatedProposalData.data.promoCode;
+                                    }
+
+                                    deferred.resolve(data)
+                                },
                                 err => deferred.reject(err)
                             );
                     }
@@ -718,6 +732,7 @@ var proposal = {
             .populate({path: "type", model: dbconfig.collection_proposalType})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
+            .then(populateProposalsWithPlatformData)
             .then(
                 proposalData => {
                     let allProm = [];
@@ -940,6 +955,7 @@ var proposal = {
                 let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
                 let isCommonTopUp = false;
                 let merchantProm = Promise.resolve(false);
+                let sysCustomMerchantRateProm = Promise.resolve();
 
                 if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
                     switch (Number(callbackData.topUpType)) {
@@ -969,7 +985,7 @@ var proposal = {
                         platformId: proposalObj.data.platform,
                         merchantNo: callbackData.merchantNo,
                         topupType: callbackData.depositMethod,
-                        customizeRate: {$exists: true}
+                        name: callbackData.merchantName
                     };
 
                     if (proposalObj.data && proposalObj.data.topUpSystemName && proposalObj.data.topUpSystemName === 'PMS2') {
@@ -978,11 +994,12 @@ var proposal = {
                         merchantQuery.isPMS2 = {$exists: false};
                     }
 
-                    merchantProm = dbconfig.collection_platformMerchantList.findOne(merchantQuery, 'customizeRate').lean();
+                    merchantProm = dbconfig.collection_platformMerchantList.findOne(merchantQuery, {rate: 1, customizeRate: 1}).lean();
+                    sysCustomMerchantRateProm = dbconfig.collection_platform.findOne({_id: proposalObj.data.platformId}, {pmsServiceCharge: 1, fpmsServiceCharge: 1}).lean();
                 };
 
-                return Promise.all([propTypeProm, merchantProm]).then(
-                    ([propType, merchantRate]) => {
+                return Promise.all([propTypeProm, merchantProm, sysCustomMerchantRateProm]).then(
+                    ([propType, merchantRate, sysCustomMerchantRate]) => {
                         let updStatus = status || constProposalStatus.PREPENDING;
                         updObj = {};
 
@@ -1060,6 +1077,14 @@ var proposal = {
                         topupActualAmt = merchantRate && merchantRate.customizeRate ?
                             (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
                             : proposalObj.data.amount;
+
+                        // use system custom rate when there is pms's rate greater than system setting and no customizeRate
+                        if (merchantRate && !merchantRate.customizeRate && merchantRate.rate
+                            && sysCustomMerchantRate && sysCustomMerchantRate.pmsServiceCharge && sysCustomMerchantRate.fpmsServiceCharge
+                            && (merchantRate.rate > sysCustomMerchantRate.pmsServiceCharge)) {
+                            topupRate = sysCustomMerchantRate.fpmsServiceCharge;
+                            topupActualAmt = (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(sysCustomMerchantRate.fpmsServiceCharge)).toFixed(2);
+                        }
 
                         if (updObj && updObj.data && updObj.data.amount) {
                             topupActualAmt = (Number(updObj.data.amount) - Number(updObj.data.amount) * Number(topupRate)).toFixed(2);
@@ -1233,7 +1258,7 @@ var proposal = {
      * @param {String} memo - memo of the step
      * @param {Boolean} bApprove - memo of the step
      */
-    updateProposalProcessStep: function (proposalId, adminId, memo, bApprove) {
+    updateProposalProcessStep: function (proposalId, adminId, memo, bApprove, remark, platform, rejectRemark) {
         var deferred = Q.defer();
         var nextStepId = null;
         var proposalData = null;
@@ -1264,7 +1289,7 @@ var proposal = {
                 select: "bankAccount bankName",
                 model: dbconfig.collection_players
             }
-        ).then(
+        ).lean().then(
             function (data) {
                 console.log("updateProposalProcessStep data", data);
                 //todo::add proposal or process status check here
@@ -1313,7 +1338,7 @@ var proposal = {
                         proposalData = data;
                         return dbconfig.collection_proposalProcess.findOne({_id: data.process})
                             .populate({path: "currentStep", model: dbconfig.collection_proposalProcessStep})
-                            .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).exec();
+                            .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).lean().exec();
                     }
                 }
                 else {
@@ -1356,7 +1381,7 @@ var proposal = {
                         return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
                             {_id: proposalProcessData.currentStep._id, createTime: proposalProcessData.currentStep.createTime},
                             stepData
-                        ).exec();
+                        ).lean().exec();
                     }
                     else {
                         deferred.reject({name: "DBError", message: "Can't find proposal process"});
@@ -1381,7 +1406,7 @@ var proposal = {
                     return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
                         {_id: proposalProcessData.currentStep._id, createTime: proposalProcessData.currentStep.createTime},
                         stepData
-                    ).exec();
+                    ).lean().exec();
                 }
                 else {
                     deferred.reject({name: "DBError", message: "Can't find proposal process"});
@@ -1443,7 +1468,11 @@ var proposal = {
                                         return Promise.resolve();
                                     }
 
-                                    let updateData = {status: status, isLocked: null};
+                                    let updateData = {
+                                        status: status,
+                                        isLocked: null,
+                                        "data.rejectRemark": rejectRemark,
+                                    };
                                     console.log("LH Check Proposal Reject 3------------", updateData);
                                     console.log("LH Check Proposal Reject 3.1------------", proposalData.status);
 
@@ -1551,7 +1580,7 @@ var proposal = {
         return deferred.promise;
     },
 
-    cancelProposal: function (proposalId, adminId, remark, adminObjId) {
+    cancelProposal: function (proposalId, adminId, remark, adminObjId, cancelRemark) {
         let proposalData;
         return dbconfig.collection_proposal.findOne({_id: proposalId})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
@@ -1596,7 +1625,8 @@ var proposal = {
                     noSteps: true,
                     process: null,
                     status: constProposalStatus.CANCEL,
-                    "data.cancelBy": "客服：" + adminId
+                    "data.cancelBy": "客服：" + adminId,
+                    "data.cancelRemark": cancelRemark,
                 };
                 if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
                     dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
@@ -1682,6 +1712,7 @@ var proposal = {
                         path: 'process',
                         model: dbconfig.collection_proposalProcess
                     }).sort({createTime: -1}).limit(constSystemParam.MAX_RECORD_NUM * 10).lean()
+                        .then(populateProposalsWithPlatformData)
                         .then(
                             data => {
                                 data.map(item => function (item) {
@@ -2046,7 +2077,9 @@ var proposal = {
                         // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
                         .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                         .populate({path: 'isLocked', model: dbconfig.collection_admin})
-                        .sort(sortCol).skip(index).limit(size).then(data => {
+                        .sort(sortCol).skip(index).limit(size)
+                        .then(populateProposalsWithPlatformData)
+                        .then(data => {
                             function getPlayerLevel(info) {
                                 var playerObjId = info && info.data ? info.data.playerObjId : null;
                                 if (!playerObjId) return info;
@@ -2261,6 +2294,7 @@ var proposal = {
                                 .populate({path: 'data.playerObjId', model: dbconfig.collection_players})
                                 //.populate({path: 'data.playerObjId.csOfficer', model: dbconfig.collection_csOfficerUrl})
                                 .sort(sortCol).skip(index).limit(size).lean()
+                                .then(populateProposalsWithPlatformData)
                                 .then(
                                     pdata => {
                                         pdata.map(item => {
@@ -2329,7 +2363,8 @@ var proposal = {
                                             .populate({path: 'process', model: dbconfig.collection_proposalProcess})
                                             // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
                                             .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
-                                            .populate({path: 'isLocked', model: dbconfig.collection_admin})
+                                            .populate({path: 'isLocked', model: dbconfig.collection_admin}).lean()
+                                            .then(populateProposalsWithPlatformData)
                                     }
 
                                     for (var index in aggr) {
@@ -3408,6 +3443,7 @@ var proposal = {
     getProposalsByAdvancedQuery: function (reqData, index, count, sortObj) {
         sortObj = sortObj || {};
         let proposalTypeList = [];
+        let approveProposalTypeList = [];
         let queryData = reqData;
         let resultArray = null;
         let totalSize = 0;
@@ -3416,6 +3452,10 @@ var proposal = {
         let isApprove = false;
         let isSuccess = false;
         let prom = Promise.resolve([]);
+        let platformListQuery = [];
+        let promoCodeProposalQuery = {
+            name: ["PlayerLimitedOfferReward","PlayerPromoCodeReward"]
+        };
 
         if (reqData.inputDevice) {
             reqData.inputDevice = Number(reqData.inputDevice);
@@ -3440,13 +3480,19 @@ var proposal = {
                 };
             }
         }
-        if (!reqData.type && reqData.platformId) {
-            let searchQuery = {
-                platformId: ObjectId(reqData.platformId)
-            }
 
-            if(isApprove){
-                searchQuery.name = {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]} ;
+        if(reqData.platformList && reqData.platformList.length > 0) {
+            platformListQuery = {$in: reqData.platformList.map(item=>{return ObjectId(item)})};
+            promoCodeProposalQuery.platformId = platformListQuery;
+        }
+
+        if (!reqData.type) {
+            let searchQuery = {
+                name: {$nin:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
+            };
+
+            if(reqData.platformList && reqData.platformList.length > 0) {
+                searchQuery.platformId = platformListQuery;
             }
 
             prom = dbconfig.collection_proposalType.find(searchQuery).lean().then(
@@ -3472,51 +3518,106 @@ var proposal = {
                     })
                 }
             ).then(
+                () => {
+                    let approvedProposalTypeQuery = {
+                        name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
+                    };
+
+                    if(reqData.platformList && reqData.platformList.length > 0) {
+                        approvedProposalTypeQuery.platformId = platformListQuery;
+                    }
+
+                    return dbconfig.collection_proposalType.find(approvedProposalTypeQuery).lean().then(
+                        approvedProposalType => {
+                            if(approvedProposalType && approvedProposalType.length){
+                                for (var i = 0; i < approvedProposalType.length; i++) {
+                                    (approveProposalTypeList.push(ObjectId(approvedProposalType[i]._id)));
+                                }
+                            }
+
+                            return proposalTypeList;
+                        },
+                        error => {
+                        }
+                    )
+                }
+            ).then(
                 function (proposalTypeIdList) { // all proposal type ids of this platform
-                    delete queryData.platformId;
-                    let a = dbconfig.collection_proposal.find({
-                        type: {$in: proposalTypeIdList},
-                        $and: [queryData]
-                    }).read("secondaryPreferred").count();
-                    let b = dbconfig.collection_proposal.find({
-                        type: {$in: proposalTypeIdList},
-                        $and: [queryData]
-                    }).sort(sortObj).skip(index).limit(count).populate({
+                    delete queryData.platformList;
+
+                    let orQuery = [];
+
+                    if(isApprove){
+                        queryData.type = {$in: approveProposalTypeList};
+                    }else if(isSuccess){
+                        delete queryData.status;
+                        queryData["$and"] = [];
+                        orQuery.push({type: proposalTypeList, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
+                        orQuery.push({type: approveProposalTypeList, status: constProposalStatus.SUCCESS});
+
+                        queryData["$and"].push({$or: orQuery});
+                    }else{
+                        let allTypeList = proposalTypeList.concat(approveProposalTypeList);
+                        queryData.type = {$in: allTypeList};
+                    }
+
+                    let a = dbconfig.collection_proposal.find(queryData).read("secondaryPreferred").count();
+                    let b = dbconfig.collection_proposal.find(queryData).sort(sortObj).skip(index).limit(count).populate({
                         path: "process",
                         model: dbconfig.collection_proposalProcess
-                    }).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
-                    let c = dbconfig.collection_proposal.aggregate([
-                        {
-                            $match: {
-                                type: {$in: proposalTypeIdList},
-                                $and: [queryData]
+                    }).populate({
+                        path: "type", model: dbconfig.collection_proposalType
+                    }).lean().then(populateProposalsWithPlatformData);
+                    let c = dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(
+                        promoCodeProposalType => {
+                            let playerPromoCodeRewardObjId;
+                            if (promoCodeProposalType && promoCodeProposalType.length) {
+                                playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
                             }
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {$sum: "$data.amount"},
-                                totalRewardAmount: {
-                                    $sum: {
-                                        $cond: [
-                                            {$eq: ["$data.rewardAmount", NaN]},
-                                            0,
-                                            "$data.rewardAmount"
-                                        ]
-                                    }
+
+                            return dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: queryData
                                 },
-                                // totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                totalTopUpAmount: {$sum: "$data.topUpAmount"},
-                                totalUpdateAmount: {$sum: "$data.updateAmount"},
-                                totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
-                                totalCommissionAmount: {$sum: "$data.commissionAmount"}
-                            }
+                                {
+                                    $group: {
+                                        _id: null,
+                                        totalAmount: {$sum: "$data.amount"},
+                                        totalRewardAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.rewardAmount", NaN]},
+                                                    0,
+                                                    "$data.rewardAmount"
+                                                ]
+                                            }
+                                        },
+                                        // totalRewardAmount: {$sum: "$data.rewardAmount"},
+                                        totalTopUpAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$or: [
+                                                            {$eq: ["$data.topUpAmount", NaN]},
+                                                            {$setIsSubset: [
+                                                                ["$type"],
+                                                                playerPromoCodeRewardObjId
+                                                            ]}
+                                                        ]},
+                                                    0,
+                                                    "$data.topUpAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalUpdateAmount: {$sum: "$data.updateAmount"},
+                                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
+                                    }
+                                }
+                            ]).read("secondaryPreferred");
                         }
-                    ]).read("secondaryPreferred");
-                    let d = dbconfig.collection_proposal.distinct('data.playerName', {
-                        type: {$in: proposalTypeIdList},
-                        $and: [queryData]
-                    });
+                    );
+
+                    let d = dbconfig.collection_proposal.distinct('data.playerName', queryData);
                     return Promise.all([a, b, c, d]);
                 },
                 function (error) {
@@ -3559,250 +3660,166 @@ var proposal = {
             }
 
             let a, b, c, d;
-            if(isApprove){
-                let searchQuery = {
-                    platformId: ObjectId(reqData.platformId),
-                    name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
-                };
 
-                a = dbconfig.collection_proposalType.find(searchQuery).lean().then(
-                    proposalType => {
-                        delete reqData.platformId;
-                        if(proposalType && proposalType.length > 0){
-                            let proposalTypeIdList = [];
-                            proposalType.forEach(p => {
-                                if(p && p._id){
-                                    let indexNo = reqData.type.$in.findIndex(r => r == p.id);
-
-                                    if(indexNo != -1){
-                                        proposalTypeIdList.push(p._id);
-                                    }
-                                }
-                            });
-
-                            reqData.type = {$in: proposalTypeIdList};
-                        }
-
-                        return dbconfig.collection_proposal.find(reqData).lean().count();
-                    }
-                );
-
-                b = dbconfig.collection_proposalType.find(searchQuery).lean().then(
-                    proposalType => {
-                        delete reqData.platformId;
-                        if(proposalType && proposalType.length > 0){
-                            let proposalTypeIdList = [];
-                            proposalType.forEach(p => {
-                                if(p && p._id){
-                                    let indexNo = reqData.type.$in.findIndex(r => r == p.id);
-
-                                    if(indexNo != -1){
-                                        proposalTypeIdList.push(p._id);
-                                    }
-                                }
-                            });
-
-                            reqData.type = {$in: proposalTypeIdList};
-                        }
-
-                        return dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
-                            .populate({path: "type", model: dbconfig.collection_proposalType})
-                            .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
-                    }
-                );
-
-                c = dbconfig.collection_proposalType.find(searchQuery).lean().then(
-                    proposalType => {
-                        delete reqData.platformId;
-                        if(proposalType && proposalType.length > 0){
-                            let proposalTypeIdList = [];
-                            proposalType.forEach(p => {
-                                if(p && p._id){
-                                    let indexNo = reqData.type.$in.findIndex(r => r == p.id);
-
-                                    if(indexNo != -1){
-                                        proposalTypeIdList.push(p._id);
-                                    }
-                                }
-                            });
-
-                            reqData.type = {$in: proposalTypeIdList};
-                        }
-                        return dbconfig.collection_proposal.aggregate([
-                            {
-                                $match: reqData
-                            },
-                            {
-                                $group: {
-                                    _id: null,
-                                    totalAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.amount", NaN]},
-                                                0,
-                                                "$data.amount"
-                                            ]
-                                        }
-                                    },
-                                    totalRewardAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.rewardAmount", NaN]},
-                                                0,
-                                                "$data.rewardAmount"
-                                            ]
-                                        }
-                                    },
-                                    totalTopUpAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.topUpAmount", NaN]},
-                                                0,
-                                                "$data.topUpAmount"
-                                            ]
-                                        }
-                                    },
-                                    totalUpdateAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.updateAmount", NaN]},
-                                                0,
-                                                "$data.updateAmount"
-                                            ]
-                                        }
-                                    },
-                                    totalNegativeProfitAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.negativeProfitAmount", NaN]},
-                                                0,
-                                                "$data.negativeProfitAmount"
-                                            ]
-                                        }
-                                    },
-                                    totalCommissionAmount: {
-                                        $sum: {
-                                            $cond: [
-                                                {$eq: ["$data.commissionAmount", NaN]},
-                                                0,
-                                                "$data.commissionAmount"
-                                            ]
-                                        }
-                                    },
-                                }
-                            }
-                        ]).read("secondaryPreferred");
-
-                        d = dbconfig.collection_proposalType.find(searchQuery).lean().then(
-                            proposalType => {
-                                delete reqData.platformId;
-                                if(proposalType && proposalType.length > 0){
-                                    let proposalTypeIdList = [];
-                                    proposalType.forEach(p => {
-                                        if(p && p._id){
-                                            let indexNo = reqData.type.$in.findIndex(r => r == p.id);
-
-                                            if(indexNo != -1){
-                                                proposalTypeIdList.push(p._id);
-                                            }
-                                        }
-                                    });
-
-                                    reqData.type = {$in: proposalTypeIdList};
-                                }
-
-                                return dbconfig.collection_proposal.distinct('data.playerName', reqData);
-                            }
-                        );
-                    }
-                );
-            }else{
-                delete reqData.platformId;
-                a = dbconfig.collection_proposal.find(reqData).lean().count();
-                b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
-                    .populate({path: "type", model: dbconfig.collection_proposalType})
-                    .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
-                c = dbconfig.collection_proposal.aggregate([
-                    {
-                        $match: reqData
-                    },
-                    {
-                        $group: {
-                            _id: null,
-                            totalAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$eq: ["$data.amount", NaN]},
-                                        0,
-                                        "$data.amount"
-                                    ]
-                                }
-                            },
-                            totalRewardAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$eq: ["$data.rewardAmount", NaN]},
-                                        0,
-                                        "$data.rewardAmount"
-                                    ]
-                                }
-                            },
-                            totalTopUpAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$or: [{$eq: ["$data.topUpAmount", NaN]}, {$gt: ["$data.rewardAmount", 0]}]},
-                                        0,
-                                        "$data.topUpAmount"
-                                    ]
-                                }
-                            },
-                            totalUpdateAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$eq: ["$data.updateAmount", NaN]},
-                                        0,
-                                        "$data.updateAmount"
-                                    ]
-                                }
-                            },
-                            totalNegativeProfitAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$eq: ["$data.negativeProfitAmount", NaN]},
-                                        0,
-                                        "$data.negativeProfitAmount"
-                                    ]
-                                }
-                            },
-                            totalCommissionAmount: {
-                                $sum: {
-                                    $cond: [
-                                        {$eq: ["$data.commissionAmount", NaN]},
-                                        0,
-                                        "$data.commissionAmount"
-                                    ]
-                                }
-                            },
-                        }
-                    }
-                ]).read("secondaryPreferred");
-                d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
+            let searchQuery = {
+                name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
+            };
+            if(reqData.platformList && reqData.platformList.length > 0) {
+                searchQuery.platformId = platformListQuery;
             }
 
-            prom = Promise.all([a, b, c, d]).then(
-                function (data) {
+            prom = dbconfig.collection_proposalType.find(searchQuery, {_id: 1}).lean().then(
+                approvedProposalType => {
+                    if(approvedProposalType && approvedProposalType.length){
+                        for (var i = 0; i < approvedProposalType.length; i++) {
+                            approveProposalTypeList.push(ObjectId(approvedProposalType[i]._id));
+                        }
+                    }
+
+                    return approveProposalTypeList;
+                }
+            ).then(()=> {
+                let query = {
+                    name: reqData.type
+                };
+                if(reqData.platformList && reqData.platformList.length > 0) {
+                    query.platformId = platformListQuery;
+                }
+                return dbconfig.collection_proposalType.find(query, {_id: 1}).lean();
+            }).then(
+                (selectedProposalTypeList) => {
+                    delete reqData.platformList;
+                    let approvedTypeList = []; // proposalType list which Approved status = 已审核
+                    let successTypeList = []; // proposalType list which Approved status = 成功
+                    let orQuery = [];
+                    reqData.type = {$in: selectedProposalTypeList.map(proposal=>{return ObjectId(proposal._id)})};
+                    reqData.type["$in"].forEach(
+                        type => {
+                            if(type){
+                                let indexNo = approveProposalTypeList.findIndex(a => a.toString() == type.toString());
+
+                                if(indexNo != -1){
+                                    approvedTypeList.push(type);
+                                }else{
+                                    successTypeList.push(type);
+                                }
+                            }
+                        }
+                    );
+
+                    if(isApprove){
+                        //if filter status is 已审核，find from proposalType list which Approved status = 已审核
+                        reqData.type = {$in: approvedTypeList};
+                    }else if(isSuccess){
+                        //if filter status is 成功，find from proposalType list which Approved status = 成功
+                        delete reqData.status;
+                        delete reqData.type;
+                        reqData["$and"] = [];
+                        orQuery.push({type: {$in: successTypeList}, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }})
+                        orQuery.push({type: {$in: approvedTypeList}, status: constProposalStatus.SUCCESS});
+
+                        reqData["$and"].push({$or: orQuery});
+                    }
+
+                    a = dbconfig.collection_proposal.find(reqData).lean().count();
+                    b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
+                        .populate({path: "type", model: dbconfig.collection_proposalType})
+                        .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean()
+                        .then(populateProposalsWithPlatformData);
+                    c = dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(
+                        promoCodeProposalType => {
+                            let playerPromoCodeRewardObjId;
+                            if(promoCodeProposalType && promoCodeProposalType.length){
+                                playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
+                            }
+
+                            return dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: reqData
+                                },
+                                {
+                                    $group: {
+                                        _id: null,
+                                        totalAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.amount", NaN]},
+                                                    0,
+                                                    "$data.amount"
+                                                ]
+                                            }
+                                        },
+                                        totalRewardAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.rewardAmount", NaN]},
+                                                    0,
+                                                    "$data.rewardAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalTopUpAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$or: [
+                                                        {$eq: ["$data.topUpAmount", NaN]},
+                                                        {$setIsSubset: [
+                                                            ["$type"],
+                                                            playerPromoCodeRewardObjId
+                                                        ]}
+                                                    ]},
+                                                    0,
+                                                    "$data.topUpAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalUpdateAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.updateAmount", NaN]},
+                                                    0,
+                                                    "$data.updateAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalNegativeProfitAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.negativeProfitAmount", NaN]},
+                                                    0,
+                                                    "$data.negativeProfitAmount"
+                                                ]
+                                            }
+                                        },
+                                        totalCommissionAmount: {
+                                            $sum: {
+                                                $cond: [
+                                                    {$eq: ["$data.commissionAmount", NaN]},
+                                                    0,
+                                                    "$data.commissionAmount"
+                                                ]
+                                            }
+                                        },
+                                    }
+                                }
+                            ]).read("secondaryPreferred");
+                        }
+                    );
+
+                    d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
+
+                    return Promise.all([a, b, c, d])
+                }
+            ).then(
+                data => {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
                     totalPlayer = data[3] && data[3].length || 0;
 
-                    if(resultArray && resultArray.length > 0 && isSuccess){
-                        resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
-                    }
-
                     return resultArray;
                 },
-                function (err) {
+                err => {
                     return Promise.reject({
                         name: "DataError",
                         message: "Error in getting proposals type in the selected platform.",
@@ -6097,6 +6114,7 @@ var proposal = {
     getPaymentMonitorTotalResult: (data) => {
         let query = {};
         let sort = {createTime: -1};
+        let filteredProposal = [];
 
         query["createTime"] = {};
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
@@ -6250,65 +6268,133 @@ var proposal = {
 
                 query.type = {$in: typeIds};
 
-                console.log("LH check payment monitor 1------------");
-
-                return dbconfig.collection_proposal.find(query).lean().sort(sort)
+                return dbconfig.collection_proposal.find(query).lean().sort(sort).limit(1000)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players});
             }
         ).then(
             proposalData => {
-                console.log("LH check payment monitor 2------------");
+                console.log("LH Check payment monitor total 0----------------------", proposalData.length);
                 return insertRepeatCount(proposalData, data.platformList);
             }
         ).then(
             proposals => {
-                console.log("LH check payment monitor 3------------");
-                return {data: proposals};
+                console.log("LH Check payment monitor total 4----------------------", proposals.length);
+                return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
+                    platformDetail => {
+                        if(platformDetail){
+                            proposals.forEach(
+                                proposal => {
+                                    if(proposal){
+                                        if(data.failCount && data.failCount.length) {
+                                            let merchantIndex = data.failCount.findIndex(f => f == "merchant");
+                                            let memberIndex = data.failCount.findIndex(f => f == "member");
+
+                                            if (merchantIndex > -1 && memberIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount
+                                                && ((proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)
+                                                    || (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))))
+                                            {
+                                                filteredProposal.push(proposal);
+                                            }else if(merchantIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount
+                                                && (proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)))
+                                            {
+                                                filteredProposal.push(proposal);
+                                            }else if(memberIndex > -1 && proposal.$playerCurrentCount && proposal.$playerAllCount &&
+                                                (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))
+                                            {
+                                                filteredProposal.push(proposal);
+                                            }
+                                        }else if (proposal.$playerCurrentCount && proposal.$playerAllCount && proposal.$playerCurrentCount == proposal.$playerAllCount
+                                            && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4))
+                                        {
+                                            filteredProposal.push(proposal);
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        console.log("LH Check payment monitor total 5----------------------", filteredProposal);
+                        return filteredProposal;
+                    }
+                );
+            }
+        ).then(
+            filteredResult => {
+                if(filteredResult && filteredResult.length){
+                    let checkFollowUpProm = [];
+
+                    filteredResult.forEach(
+                        result => {
+                            if(result){
+                                checkFollowUpProm.push(proposal.checkIfProposalIsFollowUp(result, query.createTime));
+                            }
+                        }
+                    );
+
+                    console.log("LH Check payment monitor total 6----------------------", checkFollowUpProm.length);
+                    return Promise.all(checkFollowUpProm);
+                }
+            }
+        ).then(
+            finalResult => {
+                console.log("LH Check payment monitor total 7----------------------", finalResult);
+                return {data: finalResult || []};
             }
         );
+    },
+
+    checkIfProposalIsFollowUp: (proposal, createTimeQuery) => {
+        if(proposal && proposal.proposalId){
+            return dbconfig.collection_paymentMonitorFollowUp.findOne({proposalId: proposal.proposalId}).then(
+                followUpRecord => {
+                    if(followUpRecord && followUpRecord.createTime){
+                        let hoursSinceLastFollowUp = Math.abs(new Date() - followUpRecord.createTime) / 36e5;
+
+                        if(hoursSinceLastFollowUp < 24){
+                            return;
+                        }
+                    }
+
+                    return proposal;
+                }
+            )
+        }
     },
 
     getPaymentMonitorTotalCompletedResult: (data) => {
         let query = {};
         let sort = {createTime: -1};
+        let filteredProposal = [];
+        query["proposalCreateTime"] = {};
+        query["proposalCreateTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
+        query["proposalCreateTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-        query["createTime"] = {};
-        query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
-        query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
+        if (data.playerName) {
+            query['playerName'] = data.playerName;
+        }
+        if (data.proposalNo) {
+            query['proposalId'] = data.proposalNo;
+        }
 
-        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
-        let searchInterval = Math.abs(query.createTime.$gte.getTime() - query.createTime.$lt.getTime());
-        if (searchInterval > maxDiffTime) {
-            return Promise.reject({
-                name: "DataError",
-                message: "Exceed proposal search max time frame"
-            });
+        if (data.userAgent && data.userAgent.length > 0) {
+            query['userAgent'] = {$in: convertStringNumber(data.userAgent)};
+        }
+
+        if (data.topupType && data.topupType.length > 0) {
+            query['topupType'] = {$in: convertStringNumber(data.topupType)}
         }
 
         if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup || data.merchantGroup.length == 0)) {
             query['$and'] = [];
             query['$and'].push({$or: [
-                    {'data.merchantNo': {$in: convertStringNumber(data.merchantNo)}},
-                    {'data.bankCardNo': {$in: convertStringNumber(data.merchantNo)}},
-                    {'data.accountNo': {$in: convertStringNumber(data.merchantNo)}},
-                    {'data.alipayAccount': {$in: convertStringNumber(data.merchantNo)}},
-                    {'data.wechatAccount': {$in: convertStringNumber(data.merchantNo)}},
-                    {'data.weChatAccount': {$in: convertStringNumber(data.merchantNo)}}
+                    {'merchantNo': {$in: convertStringNumber(data.merchantNo)}},
+                    {'bankCardNo': {$in: convertStringNumber(data.merchantNo)}},
+                    {'accountNo': {$in: convertStringNumber(data.merchantNo)}},
+                    {'alipayAccount': {$in: convertStringNumber(data.merchantNo)}},
+                    {'wechatAccount': {$in: convertStringNumber(data.merchantNo)}},
+                    {'weChatAccount': {$in: convertStringNumber(data.merchantNo)}}
                 ]}
-            );
-            query['$and'].push(
-                {'data.followUpContent': {$exists: true}},
-                {'data.followUpContent': {$ne: null}},
-                {'data.followUpContent': {$ne: ""}}
-            );
-        }else{
-            query['$and'] = [];
-
-            query['$and'].push(
-                    {'data.followUpContent': {$exists: true}},
-                    {'data.followUpContent': {$ne: null}},
-                    {'data.followUpContent': {$ne: ""}}
             );
         }
 
@@ -6319,7 +6405,7 @@ var proposal = {
                     mGroupList.push(sItem)
                 })
             });
-            query['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
+            query['merchantNo'] = {$in: convertStringNumber(mGroupList)};
         }
 
         if (data.merchantNo && data.merchantNo.length > 0 && data.merchantGroup && data.merchantGroup.length > 0) {
@@ -6335,30 +6421,20 @@ var proposal = {
                     });
                 });
                 if (data.merchantNo.length > 0) {
-                    query['data.merchantNo'] = {$in: convertStringNumber(mGroupC)};
+                    query['merchantNo'] = {$in: convertStringNumber(mGroupC)};
                 } else if (data.merchantGroup.length > 0 && data.merchantNo.length == 0) {
-                    query['data.merchantNo'] = {$in: convertStringNumber(mGroupD)}
+                    query['merchantNo'] = {$in: convertStringNumber(mGroupD)}
                 }
             }
         }
 
-        if (data.orderId) {
-            query['data.requestId'] = data.orderId;
-        }
-        if (data.playerName) {
-            query['data.playerName'] = data.playerName;
-        }
-        if (data.proposalNo) {
-            query['proposalId'] = data.proposalNo;
-        }
-        if (data.bankTypeId && data.bankTypeId.length > 0) {
-            query['data.bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
-        }
-        if (data.userAgent && data.userAgent.length > 0) {
-            query['data.userAgent'] = {$in: convertStringNumber(data.userAgent)};
+        if (data.depositMethod && data.depositMethod.length > 0) {
+            query['depositMethod'] = {'$in': convertStringNumber(data.depositMethod)};
         }
 
-        query['status'] = {$in: ["PrePending", "Pending", "Fail", "Rejected", "Cancel", "Undetermined", 'Expired']};
+        if (data.bankTypeId && data.bankTypeId.length > 0) {
+            query['bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
+        }
 
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
@@ -6392,19 +6468,7 @@ var proposal = {
                     ]
                 };
         }
-        if (data.topupType && data.topupType.length > 0) {
-            query['data.topupType'] = {$in: convertStringNumber(data.topupType)}
-        }
 
-        if (data.depositMethod && data.depositMethod.length > 0) {
-            query['data.depositMethod'] = {'$in': convertStringNumber(data.depositMethod)};
-        }
-
-        if(data.line){
-            query['data.line'] = data.line;
-        }
-
-        let proposalCount, proposals;
         let proposalTypeQuery = {
             name: mainTopUpType
         };
@@ -6413,31 +6477,102 @@ var proposal = {
             proposalTypeQuery.platformId = {$in: data.platformList};
         }
 
-        // get all the relevant proposal
         return dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(
             proposalTypes => {
-                let typeIds = proposalTypes.map(type => {
-                    return type._id;
-                });
+                if(proposalTypes){
+                    let typeIds = proposalTypes.map(type => {
+                        return type._id;
+                    });
 
-                query.type = {$in: typeIds};
+                    query.type = {$in: typeIds};
 
-                console.log("LH check payment completed monitor 1------------");
-                return dbconfig.collection_proposal.find(query).lean().sort(sort)
-                    .populate({path: 'type', model: dbconfig.collection_proposalType})
-                    .populate({path: "data.playerObjId", model: dbconfig.collection_players});
+                    return dbconfig.collection_paymentMonitorFollowUp.find(query).limit(1000)
+                        .populate({path: "type", model: dbconfig.collection_proposalType})
+                        .populate({path: "playerObjId", model: dbconfig.collection_players}).lean();
+                }
             }
         ).then(
-            proposalData => {
-                console.log("LH check payment completed monitor 2------------");
-                return insertRepeatCount(proposalData, data.platformList);
-            }
-        ).then(
-            proposals => {
-                console.log("LH check payment completed monitor 3------------");
-                return {data: proposals};
+            followUpDataList => {
+                if(followUpDataList && followUpDataList.length){
+                    return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
+                        platformDetail => {
+                            if(platformDetail){
+                                followUpDataList.forEach(
+                                    followUpData => {
+                                        if(data.failCount && data.failCount.length){
+                                            let merchantIndex = data.failCount.findIndex(f => f == "merchant");
+                                            let memberIndex = data.failCount.findIndex(f => f == "member");
+
+                                            if(merchantIndex > -1 && memberIndex > -1){
+                                                filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                            }else if(merchantIndex > -1 && followUpData.merchantCurrentCount && followUpData.merchantTotalCount
+                                                && followUpData.merchantCurrentCount == followUpData.merchantTotalCount && followUpData.merchantTotalCount >= (platformDetail.monitorMerchantCount || 10)){
+                                                filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                            }else if(memberIndex > -1 && followUpData.playerCurrentCount && followUpData.playerTotalCount
+                                                && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformDetail.monitorPlayerCount || 4)){
+                                                filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                            }
+                                        }else if(followUpData.playerCurrentCount && followUpData.playerTotalCount
+                                            && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformDetail.monitorPlayerCount || 4))
+                                        {
+                                            filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                        }
+                                    }
+                                )
+                            }
+
+                            return Promise.all(filteredProposal);
+                        }
+                    );
+                }else{
+                    return [];
+                }
             }
         );
+    },
+
+    getTotalSuccessNoAfterFollowUp: (proposalData) => {
+        if(proposalData && proposalData.playerObjId && proposalData.playerObjId._id && proposalData.createTime){
+            let query = {
+                'data.playerObjId': proposalData.playerObjId._id,
+                createTime: {
+                    $gte: proposalData.createTime,
+                },
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVE, constProposalStatus.APPROVED]}
+            };
+
+            let proposalTypeQuery = {
+                name: {
+                    $in: [
+                        constProposalType.PLAYER_TOP_UP,
+                        constProposalType.PLAYER_ALIPAY_TOP_UP,
+                        constProposalType.PLAYER_MANUAL_TOP_UP,
+                        constProposalType.PLAYER_WECHAT_TOP_UP,
+                        constProposalType.PLAYER_QUICKPAY_TOP_UP,
+                        constProposalType.PLAYER_COMMON_TOP_UP,
+                    ]
+                }
+            };
+
+            return dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(
+                proposalType => {
+                    if(proposalType){
+                        let typeIds = proposalType.map(type => {
+                            return type._id;
+                        });
+
+                        query.type = {$in: typeIds};
+
+                        return dbconfig.collection_proposal.find(query).count();
+                    }
+                }
+            ).then(
+                totalSuccessTopUp => {
+                    proposalData.totalSuccess = totalSuccessTopUp || 0;
+                    return proposalData
+                }
+            );
+        }
     },
 
     approveCsPendingAndChangeStatus: (proposalObjId, createTime, adminName) => {
@@ -7912,12 +8047,46 @@ var proposal = {
         return dbconfig.collection_proposal.findOneAndUpdate({proposalId: proposalId},{'data.lockedAdminId': "", 'data.lockedAdminName': "" ,'data.followUpContent': ""});
     },
 
-    updateFollowUpContent: (proposalId, followUpContent) => {
-        if(!proposalId){
+    updateFollowUpContent: (followUpData, followUpContent) => {
+        if(!followUpData){
             return;
         }
 
-        return dbconfig.collection_proposal.findOneAndUpdate({proposalId: proposalId},{'data.followUpContent': followUpContent, 'data.followUpCompletedTime': new Date()});
+        let followUpObj = {
+            platformObjId: followUpData.platformObjId,
+            website: followUpData.website,
+            proposalId: followUpData.proposalId,
+            type: followUpData.type,
+            userAgent: followUpData.userAgent,
+            topupType: followUpData.topupType,
+            merchantNo: followUpData.merchantNo,
+            merchantNo$: followUpData.merchantNo$,
+            inputDevice: followUpData.inputDevice,
+            depositMethod: followUpData.depositMethod,
+            bankTypeId: followUpData.bankTypeId,
+            merchantName: followUpData.merchantName,
+            merchantCurrentCount: followUpData.merchantCurrentCount,
+            merchantTotalCount: followUpData.merchantTotalCount,
+            merchantGapTime: followUpData.merchantGapTime,
+            status: followUpData.status,
+            playerObjId: followUpData.playerObjId,
+            playerName: followUpData.playerName,
+            playerCurrentCount: followUpData.playerCurrentCount,
+            playerTotalCount: followUpData.playerTotalCount,
+            playerCurrentCommonTopUpCount: followUpData.playerCurrentCommonTopUpCount,
+            playerCommonTopUpTotalCount: followUpData.playerCommonTopUpTotalCount,
+            playerGapTime: followUpData.playerGapTime,
+            amount: followUpData.amount,
+            proposalCreateTime: followUpData.proposalCreateTime,
+            createTime: followUpData.createTime,
+            lockedAdminId: followUpData.lockedAdminId,
+            lockedAdminName: followUpData.lockedAdminName,
+            followUpCompletedTime: followUpData.followUpCompletedTime,
+            followUpContent: followUpContent,
+            line: followUpData.line
+        };
+
+        return dbconfig.collection_paymentMonitorFollowUp(followUpObj).save();
     },
 
     rejectPendingProposalIfAvailable: (platformObjId, playerName, proposalType, remark) => {
@@ -8123,6 +8292,43 @@ var proposal = {
         );
     },
 
+    getProposalStatusList: function (proposalIds) {
+        let result = [];
+
+        return dbconfig.collection_proposal.find({proposalId: {$in: proposalIds}}, {proposalId: 1, status: 1, 'data.amount': 1, 'data.actualAmountReceived': 1, 'data.rate': 1, type: 1, createTime: 1})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
+            proposalData => {
+                if (proposalData && proposalData.length > 0) {
+                    proposalData.forEach(data => {
+                        if (data) {
+                            let elements = {
+                                proposalId: data.proposalId,
+                                status: data.status,
+                                amount: data.data.amount,
+                                type: data.type && data.type.name ? data.type.name : "",
+                                createTime: data.createTime
+                            };
+
+                            if (data.data.actualAmountReceived) {
+                                elements.actualAmountReceived = data.actualAmountReceived;
+                            }
+
+                            if (data.data.rate) {
+                                elements.rate = data.rate;
+                            }
+
+                            result.push(elements);
+                        }
+                    })
+
+                    return result;
+                } else {
+                    return result;
+                }
+            }
+        )
+    }
+
 };
 
 /*
@@ -8200,7 +8406,9 @@ var proposal = {
 function insertRepeatCount(proposals, platformList) {
     return new Promise(function (resolve) {
         let typeIds = null;
+        let commonTopUpTypeIds;
         let getProposalTypesIdProm = typeIds ? Promise.resolve(typeIds) : getTopUpProposalTypeIds(platformList);
+        let getCommonTopUpTypeIdProm = commonTopUpTypeIds ? Promise.resolve(commonTopUpTypeIds) : getCommonTopUpProposalTypeIds(platformList);
         let insertedProposals = [];
 
         if (!proposals || proposals.length === 0) {
@@ -8216,9 +8424,10 @@ function insertRepeatCount(proposals, platformList) {
                     insertedProposals[i] = handleSuccessProposal(proposal);
                     res();
                 } else {
-                    getProposalTypesIdProm.then(
+                    Promise.all([getProposalTypesIdProm, getCommonTopUpTypeIdProm]).then(
                         typeIdData => {
-                            typeIds = typeIdData;
+                            typeIds = typeIdData[0] || null;
+                            commonTopUpTypeIds = typeIdData[1] || null;
                             return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
                         }
                     ).then(
@@ -8271,12 +8480,34 @@ function insertRepeatCount(proposals, platformList) {
             let bankCardNoRegExp;
 
             if (proposal.data.bankCardNo) {
-                let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
-                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
-                bankCardNoRegExp = [
-                    {"data.bankCardNo": bankCardNoRegExpA},
-                    {"data.bankCardNo": bankCardNoRegExpB}
-                ];
+                console.log("LH Check payment monitor total 1----------------------", proposal.data.bankCardNo);
+                let bankCardNoPrefix = proposal.data.bankCardNo.substring(0, 6);
+                let bankCardNoRegExpA;
+                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));;
+                if(bankCardNoPrefix.indexOf('*') == -1){
+
+                    console.log("LH Check payment monitor total 2----------------------", bankCardNoRegExpA);
+                    console.log("LH Check payment monitor total 3----------------------", bankCardNoRegExpB);
+
+                    bankCardNoRegExpA = new RegExp(bankCardNoPrefix + ".*");
+                    bankCardNoRegExp = [
+                        {"data.bankCardNo": bankCardNoRegExpA},
+                        {"data.bankCardNo": bankCardNoRegExpB}
+                    ];
+                }else{
+                    bankCardNoRegExp = [
+                        {"data.bankCardNo": bankCardNoRegExpB}
+                    ];
+                }
+
+                // let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                // let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+
+
+                // bankCardNoRegExp = [
+                //     {"data.bankCardNo": bankCardNoRegExpA},
+                //     {"data.bankCardNo": bankCardNoRegExpB}
+                // ];
             }
 
             let prevSuccessQuery = {
@@ -8455,20 +8686,31 @@ function insertRepeatCount(proposals, platformList) {
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
                     }
 
+                    let allCommonTopUpCountQuery = JSON.parse(JSON.stringify(allCountQuery));
+                    allCommonTopUpCountQuery.type = {$in: commonTopUpTypeIds};
+                    let currentCommonTopUpCountQuery = JSON.parse(JSON.stringify(currentCountQuery));
+                    currentCommonTopUpCountQuery.type = {$in: commonTopUpTypeIds};
+
                     let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
                     let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
                     let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery);
+                    let allCommonTopUpCountProm = dbconfig.collection_proposal.find(allCommonTopUpCountQuery).count();
+                    let currentCommonTopUpCountProm = dbconfig.collection_proposal.find(currentCommonTopUpCountQuery).count();
 
-                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
+                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm, allCommonTopUpCountProm, currentCommonTopUpCountProm]);
                 }
             ).then(
                 countData => {
                     let allCount = countData[0];
                     let currentCount = countData[1];
                     let firstFailure = countData[2];
+                    let allCommonTopUpCount = countData[3];
+                    let currentCommonTopUpCount = countData[4];
 
                     proposal.$playerAllCount = allCount;
                     proposal.$playerCurrentCount = currentCount;
+                    proposal.$playerAllCommonTopUpCount = allCommonTopUpCount;
+                    proposal.$playerCurrentCommonTopUpCount = currentCommonTopUpCount;
 
                     if (!firstFailure || String(firstFailure.proposalId) === String(proposal.proposalId)) {
                         proposal.$playerGapTime = 0;
@@ -8486,6 +8728,8 @@ function insertRepeatCount(proposals, platformList) {
             proposal['$merchantGapTime'] = '-';
             proposal['$playerAllCount'] = '-';
             proposal['$playerCurrentCount'] = '-';
+            proposal['$playerAllCommonTopUpCount'] = '-';
+            proposal['$playerCurrentCommonTopUpCount'] = '-';
             proposal['$playerGapTime'] = '-';
             return proposal;
         }
@@ -8687,6 +8931,24 @@ function getTopUpProposalTypeIds(platformList) {
     }
 
     return dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(
+        proposalTypes => {
+            return proposalTypes.map(type => {
+                return type._id;
+            });
+        }
+    );
+}
+
+function getCommonTopUpProposalTypeIds(platformList) {
+    let proposalTypeQuery = {
+        name: constProposalType.PLAYER_COMMON_TOP_UP
+    };
+
+    if(platformList && platformList.length > 0){
+        proposalTypeQuery.platformId = {$in: platformList}
+    }
+
+    return dbconfig.collection_proposalType.find(proposalTypeQuery, {_id: 1}).lean().then(
         proposalTypes => {
             return proposalTypes.map(type => {
                 return type._id;
@@ -9069,11 +9331,12 @@ function isBankInfoMatched(proposalData, playerId){
 
                     return proposal.updateProposalData({_id: proposalData._id}, dataToUpdate).then(
                         () => {
+                            console.log("player withdrawal checking 1", playerId);
                             return proposalList;
                         }
                     ).catch(errorUtils.reportError);
                 }
-
+                console.log("player withdrawal checking 2", playerId);
                 return proposalList;
             }
         ).then(
@@ -9087,27 +9350,33 @@ function isBankInfoMatched(proposalData, playerId){
                                 if (proposal.data) {
                                     if (proposal.data.bankAccount) {
                                         if (!playerData.bankAccount) {
+                                            console.log("player withdrawal checking bankAccount 1_2", playerId);
                                             return false;
                                         } else if (proposal.data.bankAccount != playerData.bankAccount) {
+                                            console.log("player withdrawal checking bankAccount 2_2", playerId);
                                             return false;
                                         }
                                     }
                                     if (proposal.data.bankAccount2) {
                                         if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount2) {
+                                            console.log("player withdrawal checking bankAccount 2_2", playerId);
                                             return false;
                                         } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount2 != playerData.multipleBankDetailInfo.bankAccount2) {
+                                            console.log("player withdrawal checking bankAccount 2_2", playerId);
                                             return false;
                                         }
                                     }
                                     if (proposal.data.bankAccount3) {
                                         if (playerData.multipleBankDetailInfo && !playerData.multipleBankDetailInfo.bankAccount3) {
+                                            console.log("player withdrawal checking bankAccount 3_1", playerId);
                                             return false;
                                         } else if (playerData.multipleBankDetailInfo && proposal.data.bankAccount3 != playerData.multipleBankDetailInfo.bankAccount3) {
+                                            console.log("player withdrawal checking bankAccount 3_2", playerId);
                                             return false;
                                         }
                                     }
                                 }
-
+                                console.log("player withdrawal checking 3", playerId);
                                 return true;
                             }
                         }
@@ -10194,6 +10463,30 @@ function getRemark (lineNo, callbackRemark) {
         remark = (remarkMsg[lineNo] && remarkMsg[lineNo][1] && lineNo!= "1") ? remarkMsg[lineNo][1] : '';
     }
     return remark;
+}
+
+function populateProposalsWithPlatformData (proposals) {
+    let allPlatforms = {};
+    function populate(proposal) {
+        if(proposal.data && proposal.data.platformId) {
+            proposal.data.platformId = allPlatforms[proposal.data.platformId.toString()];
+        }
+    }
+    return dbconfig.collection_platform.find().lean().then(platforms=>{
+        platforms.forEach(platform=>{
+            allPlatforms[platform._id] = platform;
+            allPlatforms[platform.platformId] = platform;
+        });
+        if(proposals instanceof Array) {
+            proposals.forEach(proposal=>{
+                populate(proposal);
+            });
+        } else {
+            populate(proposals);
+        }
+
+        return proposals;
+    });
 }
 
 var proto = proposalFunc.prototype;

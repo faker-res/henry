@@ -2,12 +2,15 @@ import React, { Component } from 'react';
 import LineChart from './lineChart';
 import Card from './card';
 import NavBar from './navBar';
+import DateFilter from './dateFilter';
+
 import socketService from '../services/socketService';
-import authService from '../services/authService';
+import localStorageService from '../services/localStorageService';
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const chartStartDate = new Date(new Date().setDate(new Date().getDate() - 6)).toDateString();
-const chartEndDate = new Date(new Date().setDate(new Date().getDate() + 1)).toDateString();
+const chartEndDate = new Date(new Date().setDate(new Date().getDate())).toDateString();
+const getPlatformObjId = () => {return localStorageService.get("selectedPlatform")._id};
 
 class Dashboard extends Component {
     state = {
@@ -99,7 +102,7 @@ class Dashboard extends Component {
 
     getChartData = (path, chartName) => {
         socketService.emit(path, {
-            platformObjId: authService.getPlatformObjId(),
+            platformObjId: getPlatformObjId(),
             startDate: chartStartDate,
             endDate: chartEndDate
         }).then(data => {
@@ -174,7 +177,7 @@ class Dashboard extends Component {
 
     getCardData = (path, cardName) => {
         socketService.emit(path, {
-            platformObjId: authService.getPlatformObjId(),
+            platformObjId: getPlatformObjId(),
             startDate: new Date(),
             endDate: new Date()
         }).then(data => {
@@ -230,7 +233,7 @@ class Dashboard extends Component {
     getAllRewardProposalCountAndCredit() {
         let path = "getAllRewardProposal";
         let sendData = {
-            platformObjId: authService.getPlatformObjId()
+            platformObjId: getPlatformObjId()
         };
         
         socketService.emit(path, sendData).then(data => {
@@ -355,6 +358,9 @@ class Dashboard extends Component {
                             </div>
                         </div>
                     </div>
+
+                    <DateFilter/>
+
                 </div>
             </div>
         );

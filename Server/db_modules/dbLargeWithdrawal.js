@@ -20,6 +20,7 @@ const cpmsAPI = require("../externalAPI/cpmsAPI");
 const constProposalMainType = require('../const/constProposalMainType');
 const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
 const proposalExecutor = require('./../modules/proposalExecutor');
+const RESTUtils = require('./../modules/RESTUtils');
 
 
 const dbLargeWithdrawal = {
@@ -105,7 +106,8 @@ const dbLargeWithdrawal = {
                     },
                 }).count();
 
-                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: player.bankAccountProvince}).catch(err => {return traceError("foundation_getCityList", err)});
+                //let bankCityProm = pmsAPI.foundation_getCityList({provinceId: player.bankAccountProvince}).catch(err => {return traceError("foundation_getCityList", err)});
+                let bankCityProm = RESTUtils.getPMS2Services("postCityList", {provinceId: player.bankAccountProvince}).catch(err => {return traceError("postCityList", err)});
                 let gameCreditProm = getTotalUniqueProviderCredit(player).catch(err => {return traceError("getTotalUniqueProviderCredit", err)});
 
                 let totalTopUpFromLastWithdrawal = Promise.resolve(0); //default amount
@@ -183,10 +185,10 @@ const dbLargeWithdrawal = {
                     withdrawalAmount = proposal.data.amount;
                 }
 
-                if (bankCity && bankCity.cities && bankCity.cities.length && player.bankAccountCity) {
-                    for (let i = 0; i < bankCity.cities.length; i++) {
-                        if (bankCity.cities[i].id == player.bankAccountCity) {
-                            bankCityName = bankCity.cities[i].name;
+                if (bankCity && bankCity.data && bankCity.data.length && player.bankAccountCity) {
+                    for (let i = 0; i < bankCity.data.length; i++) {
+                        if (bankCity.data[i].id == player.bankAccountCity) {
+                            bankCityName = bankCity.data[i].name;
                             break;
                         }
                     }
@@ -381,7 +383,8 @@ const dbLargeWithdrawal = {
                     },
                 }).read("secondaryPreferred").count();
 
-                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: partner.bankAccountProvince});
+                //let bankCityProm = pmsAPI.foundation_getCityList({provinceId: partner.bankAccountProvince});
+                let bankCityProm = RESTUtils.getPMS2Services("postCityList", {provinceId: partner.bankAccountProvince});
                 let lastWithdrawalProm = dbconfig.collection_proposal.findOne({
                     'data.partnerObjId': proposal.data.partnerObjId,
                     mainType: constProposalType.PLAYER_BONUS,
@@ -399,10 +402,10 @@ const dbLargeWithdrawal = {
                 todayLargeAmount = (todayLargeAmountData || 0) + 1;
 
                 bankCityName = "";
-                if (bankCityData && bankCityData.cities && bankCityData.cities.length && partner.bankAccountCity) {
-                    for (let i = 0; i < bankCityData.cities.length; i++) {
-                        if (bankCityData.cities[i].id == partner.bankAccountCity) {
-                            bankCityName = bankCityData.cities[i].name;
+                if (bankCityData && bankCityData.data && bankCityData.data.length && partner.bankAccountCity) {
+                    for (let i = 0; i < bankCityData.data.length; i++) {
+                        if (bankCityData.data[i].id == partner.bankAccountCity) {
+                            bankCityName = bankCityData.data[i].name;
                             break;
                         }
                     }
@@ -666,6 +669,11 @@ const dbLargeWithdrawal = {
                 }
                 log = logData;
 
+                if (!bSuccess && !log.emailSentTimes) {
+                    // no email sending is necessary if its a reject without previous email sent
+                    return [{}];
+                }
+
                 let settingProm = settingModel.findOne({platform: log.platform}).lean();
                 let proposalProcessProm = dbconfig.collection_proposalProcess.findOne({_id: proposal.process}).populate({path: "steps", model: dbconfig.collection_proposalProcessStep}).lean();
 
@@ -727,6 +735,92 @@ const dbLargeWithdrawal = {
         );
     },
 
+    getTotalPlayerCreditNumber: (playerObjId) => {
+        let validCredit = 0;
+        return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+            player => {
+                if (!player) {
+                    return Promise.reject({message: "Player not found."});
+                }
+                validCredit = player.validCredit || 0;
+                return getTotalUniqueProviderCredit(player);
+            }
+        ).then(
+            gameCredit => {
+                return gameCredit + validCredit;
+            }
+        )
+    },
+
+    getConsumptionTimesByTime: (playerObjId, startTime, endTime) => {
+        return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+            player => {
+                if (!player) {
+                    return Promise.reject({message: "Player not found."});
+                }
+                return getConsumptionTimesByTime(player, startTime, endTime);
+            }
+        );
+    },
+
+    getThreeMonthPlayerCreditSummary: (playerObjId) => {
+        return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+            player => {
+                if (!player) {
+                    return Promise.reject({message: "Player not found."});
+                }
+                let currentMonthDate = dbUtility.getCurrentMonthSGTIme();
+                let lastMonthDate = dbUtility.getLastMonthSGTime();
+                let secondLastMonthDate = dbUtility.getSecondLastMonthSGTime();
+
+                let currentMonthTopUpAmt = getTotalTopUpByTime(player, currentMonthDate.startTime, currentMonthDate.endTime).catch(err => {return traceError("getTotalTopUpByTime3", err)});
+                let lastMonthTopUpAmt = getTotalTopUpByTime(player, lastMonthDate.startTime, lastMonthDate.endTime).catch(err => {return traceError("getTotalTopUpByTime4", err)});
+                let secondLastMonthTopUpAmt = getTotalTopUpByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime).catch(err => {return traceError("getTotalTopUpByTime5", err)});
+
+                let currentMonthWithdrawAmt = getTotalWithdrawalByTime(player, currentMonthDate.startTime, currentMonthDate.endTime).catch(err => {return traceError("getTotalWithdrawalByTime3", err)});
+                let lastMonthWithdrawAmt = getTotalWithdrawalByTime(player, lastMonthDate.startTime, lastMonthDate.endTime).catch(err => {return traceError("getTotalWithdrawalByTime4", err)});
+                let secondLastMonthWithdrawAmt = getTotalWithdrawalByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime).catch(err => {return traceError("getTotalWithdrawalByTime5", err)});
+
+                let currentMonthConsumptionAmt = getTotalConsumptionByTime(player, currentMonthDate.startTime, currentMonthDate.endTime).catch(err => {return traceError("getTotalConsumptionByTime3", err)});
+                let lastMonthConsumptionAmt = getTotalConsumptionByTime(player, lastMonthDate.startTime, lastMonthDate.endTime).catch(err => {return traceError("getTotalConsumptionByTime4", err)});
+                let secondLastMonthConsumptionAmt = getTotalConsumptionByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime).catch(err => {return traceError("getTotalConsumptionByTime5", err)});
+
+                return Promise.all([currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt, currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]);
+            }
+        ).then(
+            ([currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt, currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]) => {
+                let currentMonth = dbUtility.getCurrentMonthSGTIme().endTime.getMonth() + 1;
+
+                return {
+                    lastThreeMonthValue: {
+                        currentMonth: currentMonth,
+                        lastMonth: currentMonth - 1,
+                        secondLastMonth: currentMonth - 2
+                    },
+                    lastThreeMonthTopUp: {
+                        currentMonth: currentMonthTopUpAmt,
+                        lastMonth: lastMonthTopUpAmt,
+                        secondLastMonth: secondLastMonthTopUpAmt
+                    },
+                    lastThreeMonthWithdraw: {
+                        currentMonth: currentMonthWithdrawAmt,
+                        lastMonth: lastMonthWithdrawAmt,
+                        secondLastMonth: secondLastMonthWithdrawAmt
+                    },
+                    lastThreeMonthTopUpWithdrawDifference: {
+                        currentMonth: currentMonthTopUpAmt - currentMonthWithdrawAmt,
+                        lastMonth: lastMonthTopUpAmt - lastMonthWithdrawAmt,
+                        secondLastMonth: secondLastMonthTopUpAmt - secondLastMonthWithdrawAmt
+                    },
+                    lastThreeMonthConsumptionAmount: {
+                        currentMonth: currentMonthConsumptionAmt,
+                        lastMonth: lastMonthConsumptionAmt,
+                        secondLastMonth: secondLastMonthConsumptionAmt
+                    }
+                }
+            }
+        );
+    },
 };
 
 function generateAuditDecisionLink(host, proposalId, adminObjId) {
@@ -872,7 +966,7 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
             let subject = getLogDetailEmailSubject(largeWithdrawalLog);
 
             let emailConfig = {
-                sender: "no-reply@snsoft.my", // company email?
+                sender: 'FPMS系统 <no-reply@snsoft.my>', // company email?
                 recipient: admin.email, // admin email
                 subject: subject, // title
                 body: html, // html content

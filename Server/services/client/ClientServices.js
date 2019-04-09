@@ -103,7 +103,13 @@
                 "callBackToUser",
                 "getOMCaptcha",
                 "getReceiveTransferList",
-                "playerLoginOrRegisterWithSMS"
+                "phoneNumberLoginWithPassword",
+                "setPhoneNumber",
+                "updateDeviceId",
+                "generateUpdatePasswordToken",
+                "updatePasswordWithToken",
+                "playerLoginOrRegisterWithSMS",
+                "getBindBankCardList",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -189,7 +195,6 @@
                 "getCashRechargeStatus",
                 "cancelManualTopupRequest",
                 "delayManualTopupRequest",
-                "modifyManualTopupRequest",
                 "getManualTopupRequestList",
                 "getAlipayTopupRequestList",
                 "manualTopupStatusNotify",
@@ -309,6 +314,7 @@
                 "getEasterEggPlayerInfo",
                 "getTopUpPromoList",
                 "getPromoCode",
+                "getOpenPromoCode",
                 "applyPromoCode",
                 "markPromoCodeAsViewed",
                 "getLimitedOffers",

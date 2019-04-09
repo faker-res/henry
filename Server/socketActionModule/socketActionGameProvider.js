@@ -109,7 +109,7 @@ function socketActionGame(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.providerObjId);
 
-            var argArr = [data, ObjectId(data.platformId), data.providerObjId && data.providerObjId != 'all' ? ObjectId(data.providerObjId) : null, data.playerName, data.index, data.limit, data.sortCol, data.showSumOnly];
+            var argArr = [data, data.platformId, data.providerObjId && data.providerObjId != 'all' ? ObjectId(data.providerObjId) : null, data.playerName, data.index, data.limit, data.sortCol, data.showSumOnly];
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionRecordByGameProvider, argArr, actionName, isValidData);
         },
 
@@ -173,6 +173,12 @@ function socketActionGame(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.providerIdArr);
             socketUtil.emitter(self.socket, dbGameProvider.checkTransferInSequence, [data.platformObjId, data.playerObjId, data.providerIdArr], actionName, isValidData);
         },
+
+        getQueryCreditTimeOutRecords: function getQueryCreditTimeOutRecords(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.startTime && data.endTime && data.platformId && data.providerId);
+            socketUtil.emitter(self.socket, dbGameProvider.getQueryCreditTimeOutRecords, [data.platformId, data.providerId, data.startTime, data.endTime], actionName, isValidData);
+        }
     };
     socketActionGame.actions = this.actions;
 };

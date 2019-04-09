@@ -752,7 +752,8 @@ define(['js/app'], function (myApp) {
 
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(row.tsPhone) + '}',
+                                // 'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(row.tsPhone) + '}',
+                                'ng-click': 'vm.prepareTsPhoneFeedback(' + JSON.stringify(row.tsPhone) + ')',
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'modal',
                                 'data-target': '#modalTsPhoneFeedback',
@@ -1006,18 +1007,28 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.prepareTsPhoneFeedback = function (tsPhoneObj) {
+            vm.tsPhoneAddFeedback = {tsPhone: tsPhoneObj}
+            if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult) {
+                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult;
+                }
+
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic) {
+                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic;
+                }
+            }
+
+        }
+
         vm.prepareCreateTsPlayer = function (tsDistributedPhoneData) {
             vm.initTsPlayerCredibility();
             vm.tsCreditRemark = "";
             vm.tsPhoneAddFeedback = {};
             vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {
                 language: 'en',
-                format: 'yyyy/MM/dd',
-                endDate: new Date(),
-                maxDate: new Date()
+                format: 'yyyy/MM/dd'
             });
-            vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date("January 01, 1990")));
-
             vm.existPhone = false;
             vm.existRealName = false;
             vm.newPlayer = {};
@@ -1295,10 +1306,20 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
-            for (let i = 0; i < vm.allPlayerFeedbackResults.length; i++) {
-                if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].key)) {
-                    vm.tsPhoneAddFeedback.result = vm.allPlayerFeedbackResults[i].key;
-                    break;
+            // for (let i = 0; i < vm.allPlayerFeedbackResults.length; i++) {
+            //     if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].key)) {
+            //         vm.tsPhoneAddFeedback.result = vm.allPlayerFeedbackResults[i].key;
+            //         break;
+            //     }
+            // }
+
+            if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult) {
+                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult;
+                }
+
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic) {
+                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic;
                 }
             }
 
@@ -1401,8 +1422,6 @@ define(['js/app'], function (myApp) {
             }
             vm.newPlayer.platform = vm.selectedPlatform.id;
             vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
-            vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
-            vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
 
             console.log('newPlayer', vm.newPlayer);
@@ -3304,15 +3323,15 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getZoneList', sendQuery, function (data) {
                 console.log(data.data);
                 if (!provinceId && !cityId) {
-                    vm.provinceList = data.data.provinces || [];
+                    vm.provinceList = data.data.data || [];
                     vm.playerManualTopUp.provinceId = vm.provinceList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId);
                 } else if (provinceId && !cityId) {
-                    vm.cityList = data.data.cities || [];
+                    vm.cityList = data.data.data || [];
                     // vm.playerManualTopUp.cityId = vm.cityList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId, vm.cityList[0].id);
                 } else if (provinceId && cityId) {
-                    vm.districtList = data.data.districts || [];
+                    vm.districtList = data.data.data || [];
                     vm.playerManualTopUp.districtId = '';
                 }
                 vm.freezeZoneSelection = false;
@@ -6560,6 +6579,18 @@ define(['js/app'], function (myApp) {
                         vm.tsAssigneesOriginal = $.extend(true, [], data.data);
                         vm.updateTsAssigneesDisplay();
                         vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
+                        if (vm.adminList && vm.adminList.length && vm.tsAssignees && vm.tsAssignees.length) {
+                            vm.tsAssignees.forEach(
+                                tsAssignee => {
+                                   if (tsAssignee.admin) {
+                                       let admin = vm.adminList.find(admin => String(admin._id) == String(tsAssignee.admin))
+                                       if (admin && admin.departmentName) {
+                                           tsAssignee.departmentName = admin.departmentName;
+                                       }
+                                   }
+                                }
+                            )
+                        }
                         setTimeout(()=>{
                             $('.spicker').selectpicker('refresh');
                         },1);

@@ -849,7 +849,7 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.code && data.data);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerInfo.applyRewardEvent, [userAgent, data.playerId, data.code, data.data, getAdminId(), getAdminName(), data.platform], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.applyRewardEvent, [userAgent, data.playerId, data.code, data.data, getAdminId(), getAdminName()], actionName, isValidData);
         },
 
         getPlayerTransferErrorLogs: function getPlayerTransferErrorLogs(data) {
@@ -872,6 +872,12 @@ function socketActionPlayer(socketIO, socket) {
             var isValidData = Boolean(data && data.appKey != null && data.masterKey != null && data.tittle != null && data.text != null);
             console.log("pushNotification: " + JSON.stringify(data));
             socketUtil.emitter(self.socket, dbPlatform.pushNotification, [data, data.platform], actionName, isValidData);
+        },
+
+        getPushNotification: function getPushNotification(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.getPushNotification, [data.platformObjId], actionName, isValidData);
         },
 
         sendSMSToPlayer: function sendSMSToPlayer(data) {
@@ -1063,13 +1069,6 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPlatform.getPagedPlatformCreditTransferLog, [data.playerName, data.startTime, data.endTime, data.provider, data.type, data.index, data.limit, data.sortCol, data.status, data.PlatformObjId], actionName, isValidData);
-        },
-
-        requestClearProposalLimit: function requestClearProposalLimit(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.username);
-            let username = data.username || '';
-            socketUtil.emitter(self.socket, pmsAPI.payment_requestClearProposalLimits, [{username: username}], actionName, isValidData);
         },
 
         getPlayerCreditsDaily: function getPlayerCreditsDaily(data) {
@@ -1391,6 +1390,18 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerObjId);
             socketUtil.emitter(self.socket, dbPlayerInfo.clearPlayerState, [data.playerObjId], actionName, isValidData);
+        },
+
+        unbindPhoneDeviceId: function unbindPhoneDeviceId(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.unbindPhoneDeviceId, [data.playerObjId], actionName, isValidData);
+        },
+
+        getBankZoneData: function getBankZoneData(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getBankZoneData, [data], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

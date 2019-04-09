@@ -777,7 +777,11 @@ const dbPlayerMail = {
                     }).lean();
 
                     let validPhoneNumberProm = Promise.resolve({isPhoneNumberValid: true});
-                    if (purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.PARTNER_REGISTRATION || purpose === constSMSPurpose.NEW_PHONE_NUMBER) {
+                    if (purpose === constSMSPurpose.REGISTRATION
+                        || purpose === constSMSPurpose.PARTNER_REGISTRATION
+                        || purpose === constSMSPurpose.NEW_PHONE_NUMBER
+                        || purpose === constSMSPurpose.SET_PHONE_NUMBER
+                    ) {
                         if (!(platform[whiteListPhone]
                                 && platform[whiteListPhone].length > 0
                                 && platform[whiteListPhone].indexOf(telNum) > -1)) {
@@ -827,12 +831,6 @@ const dbPlayerMail = {
 
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
                         isSpam = true;
-                        if (purpose === constSMSPurpose.NEW_PHONE_NUMBER) {
-                            return Promise.reject({
-                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                message: "New phone number is already used. Please insert other phone number."
-                            });
-                        }
 
                         return Promise.reject({
                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,
@@ -1063,6 +1061,13 @@ const dbPlayerMail = {
             }
         ).then(
             player => {
+                if (player && !player.phoneNumber) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Please bind phone number first"
+                    })
+                }
+
                 // block send SMS code to player if it is Demo player and meet purpose condition
                 if (player && !player.isRealPlayer && purpose && (purpose === 'oldPhoneNumber' || purpose === 'newPhoneNumber' || purpose === 'updateBankInfo' || purpose === 'freeTrialReward')) {
                     return Q.reject({

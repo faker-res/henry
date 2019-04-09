@@ -6,6 +6,8 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
 const constAccountType = require('../const/constAccountType');
 
+const RESTUtils = require('../modules/RESTUtils');
+
 var dbPlatformAlipayGroup = {
 
     /**
@@ -50,31 +52,29 @@ var dbPlatformAlipayGroup = {
      */
     getPlatformAlipayGroup: function (platformId) {
         let topUpSystemConfig;
+        let curPlatformId;
 
-        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1}).lean().then(
+        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1, name: 1}).lean().then(
             platformData => {
                 if (platformData) {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+                    curPlatformId = platformData && platformData.platformId ? platformData.platformId : null;
 
-                    return addDefaultAlipayGroup(topUpSystemConfig, platformId).then(
-                        () => {
-                            let matchQuery = {
-                                platform: platformId
-                            };
+                    let matchQuery = {
+                        platform: platformId
+                    };
 
-                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                                matchQuery.isPMS2 = {$exists: true};
-                            } else {
-                                matchQuery.isPMS2 = {$exists: false};
-                            }
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        matchQuery.isPMS2 = {$exists: true};
+                    } else {
+                        matchQuery.isPMS2 = {$exists: false};
+                    }
 
-                            return dbconfig.collection_platformAlipayGroup.aggregate(
-                                {
-                                    $match: matchQuery
-                                }
-                            ).exec();
+                    return dbconfig.collection_platformAlipayGroup.aggregate(
+                        {
+                            $match: matchQuery
                         }
-                    );
+                    ).exec();
                 }
             }
         )
@@ -174,30 +174,12 @@ var dbPlatformAlipayGroup = {
                         }
                     )
                 } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    let options = {
-                        method: 'POST',
-                        uri: topUpSystemConfig.bankCardListAPIAddr,
-                        body: {
-                            platformId: platformId,
-                            accountType: constAccountType.ALIPAY
-                        },
-                        json: true
+                    let reqData = {
+                        platformId: platformId,
+                        accountType: constAccountType.ALIPAY
                     };
 
-                    return rp(options).then(function (data) {
-                        console.log('alipaylist success', data);
-                        return data;
-                    }, error => {
-                        console.log('alipaylist failed', error);
-                        throw error;
-                    });
-                } else {
-                    return pmsAPI.alipay_getAlipayList(
-                        {
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    );
+                    return RESTUtils.getPMS2Services("postBankCardList", reqData);
                 }
             }
         )
@@ -274,30 +256,12 @@ var dbPlatformAlipayGroup = {
                     topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let options = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.ALIPAY
-                            },
-                            json: true
+                        let reqData = {
+                            platformId: platformId,
+                            accountType: constAccountType.ALIPAY
                         };
 
-                        return rp(options).then(function (data) {
-                            console.log('alipaylist success', data);
-                            return data;
-                        }, error => {
-                            console.log('alipaylist failed', error);
-                            throw error;
-                        });
-                    } else {
-                        return pmsAPI.alipay_getAlipayList(
-                            {
-                                platformId: platformId,
-                                queryId: serverInstance.getQueryId()
-                            }
-                        )
+                        return RESTUtils.getPMS2Services("postBankCardList", reqData);
                     }
                 }
             }
@@ -467,45 +431,47 @@ var dbPlatformAlipayGroup = {
     },
 
     getIncludedAlipaysByAlipayGroup: function (platformId, alipayGroupId) {
-        var allAlipays = [];
-        return pmsAPI.alipay_getAlipayList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
-            data=> {
+        let allAlipays = [];
+        let reqData = {
+            platformId: platformId,
+            accountType: constAccountType.ALIPAY
+        };
+
+        return RESTUtils.getPMS2Services("postBankCardList", reqData).then(
+            data => {
                 allAlipays = data.data || [];
+
                 return dbconfig.collection_platformAlipayGroup.findOne({_id: alipayGroupId})
             }
         ).then(
-            data=> {
-                var alipaysArr = data.alipays || [];
-                return allAlipays.filter(a=> {
-                    return alipaysArr.indexOf(a.accountNumber) != -1
-                })
-            })
+            data => {
+                let alipaysArr = data.alipays || [];
+
+                return allAlipays.filter(a => alipaysArr.indexOf(a.accountNumber) !== -1)
+            }
+        )
     },
 
     getExcludedAlipaysByAlipayGroup: function (platformId, alipayGroupId) {
-        var allAlipays = [];
-        return pmsAPI.alipay_getAlipayList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
-            data=> {
+        let allAlipays = [];
+        let reqData = {
+            platformId: platformId,
+            accountType: constAccountType.ALIPAY
+        };
+
+        return RESTUtils.getPMS2Services("postBankCardList", reqData).then(
+            data => {
                 allAlipays = data.data || [];
+
                 return dbconfig.collection_platformAlipayGroup.findOne({_id: alipayGroupId})
             }
         ).then(
-            data=> {
-                var alipaysArr = data.alipays || [];
-                return allAlipays.filter(a=> {
-                    return alipaysArr.indexOf(a.accountNumber) == -1
-                })
-            })
+            data => {
+                let alipaysArr = data.alipays || [];
+
+                return allAlipays.filter(a => alipaysArr.indexOf(a.accountNumber) === -1)
+            }
+        )
     },
 
     addPlayersToAlipayGroup: function (bankAlipayGroupObjId, playerObjIds) {
@@ -540,36 +506,25 @@ var dbPlatformAlipayGroup = {
 
     deleteAlipayAcc: function (AlipayObjId) {
         return dbconfig.collection_platformAlipayList.remove({_id: AlipayObjId}).exec();
+    },
+
+    getPMSAlipayGroup: function (platformId, topUpSystemType) {
+        let topUpSystemConfig;
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            let type = constAccountType.ALIPAY;
+
+            let options = {
+                platformId: platformId,
+                accountType: type
+            };
+
+            return RESTUtils.getPMS2Services("postPaymentGroup", options);
+        }
     }
 
 };
-
-function addDefaultAlipayGroup(topUpSystemConfig, platformObjId) {
-    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-        return dbconfig.collection_platformAlipayGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
-            pms2AlipayGroupExists => {
-                if (!pms2AlipayGroupExists) {
-                    let defaultStr = "PMS2DefaultGroup";
-                    let groupData = {
-                        groupId: defaultStr,
-                        name: defaultStr,
-                        code: defaultStr,
-                        displayName: defaultStr,
-                        platform: platformObjId,
-                        isPMS2: true
-                    };
-
-                    let aliGroup = new dbconfig.collection_platformAlipayGroup(groupData);
-
-                    return aliGroup.save();
-                } else {
-                    return Promise.resolve(true);
-                }
-            }
-        );
-    } else {
-        return Promise.resolve(true);
-    }
-}
 
 module.exports = dbPlatformAlipayGroup;

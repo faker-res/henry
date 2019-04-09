@@ -6,6 +6,8 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
 const constAccountType = require('../const/constAccountType');
 
+const RESTUtils = require('../modules/RESTUtils');
+
 let dbPlatformWechatPayGroup = {
 
     /**
@@ -56,31 +58,29 @@ let dbPlatformWechatPayGroup = {
      */
     getPlatformWechatPayGroup: function (platformId) {
         let topUpSystemConfig;
+        let curPlatformId;
 
-        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1}).lean().then(
+        return dbconfig.collection_platform.findOne({_id: platformId}, {topUpSystemType: 1, platformId: 1, name: 1}).lean().then(
             platformData => {
                 if (platformData) {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+                    curPlatformId = platformData && platformData.platformId ? platformData.platformId : null;
 
-                    return addDefaultWechatPayGroup(topUpSystemConfig, platformId).then(
-                        () => {
-                            let matchQuery = {
-                                platform: platformId
-                            };
+                    let matchQuery = {
+                        platform: platformId
+                    };
 
-                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                                matchQuery.isPMS2 = {$exists: true};
-                            } else {
-                                matchQuery.isPMS2 = {$exists: false};
-                            }
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        matchQuery.isPMS2 = {$exists: true};
+                    } else {
+                        matchQuery.isPMS2 = {$exists: false};
+                    }
 
-                            return dbconfig.collection_platformWechatPayGroup.aggregate(
-                                {
-                                    $match: matchQuery
-                                }
-                            ).exec();
+                    return dbconfig.collection_platformWechatPayGroup.aggregate(
+                        {
+                            $match: matchQuery
                         }
-                    );
+                    ).exec();
                 }
             }
         );
@@ -189,30 +189,12 @@ let dbPlatformWechatPayGroup = {
                         }
                     )
                 } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    let options = {
-                        method: 'POST',
-                        uri: topUpSystemConfig.bankCardListAPIAddr,
-                        body: {
-                            platformId: platformId,
-                            accountType: constAccountType.WECHAT
-                        },
-                        json: true
+                    let reqData = {
+                        platformId: platformId,
+                        accountType: constAccountType.WECHAT
                     };
 
-                    return rp(options).then(function (data) {
-                        console.log('wechatlist success', data);
-                        return data;
-                    }, error => {
-                        console.log('wechatlist failed', error);
-                        throw error;
-                    });
-                } else {
-                    return pmsAPI.weChat_getWechatList(
-                        {
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    )
+                    return RESTUtils.getPMS2Services("postBankCardList", reqData);
                 }
             }
         )
@@ -289,32 +271,13 @@ let dbPlatformWechatPayGroup = {
                     topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let options = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.WECHAT
-                            },
-                            json: true
+                        let reqData = {
+                            platformId: platformId,
+                            accountType: constAccountType.WECHAT
                         };
 
-                        return rp(options).then(function (data) {
-                            console.log('wechatlist success', data);
-                            return data;
-                        }, error => {
-                            console.log('wechatlist failed', error);
-                            throw error;
-                        });
-                    } else {
-                        return pmsAPI.weChat_getWechatList(
-                            {
-                                platformId: platformId,
-                                queryId: serverInstance.getQueryId()
-                            }
-                        );
+                        return RESTUtils.getPMS2Services("postBankCardList", reqData);
                     }
-
                 }
             }
         ).then(
@@ -486,44 +449,44 @@ let dbPlatformWechatPayGroup = {
 
     getIncludedWechatsByWechatPayGroup: function (platformId, wechatPayGroupId) {
         let allWechats = [];
-        return pmsAPI.weChat_getWechatList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        let reqData = {
+            platformId: platformId,
+            accountType: constAccountType.WECHAT
+        };
+
+        return RESTUtils.getPMS2Services("postBankCardList", reqData).then(
             data => {
                 allWechats = data.data || [];
+
                 return dbconfig.collection_platformWechatPayGroup.findOne({_id: wechatPayGroupId})
             }
         ).then(
             data => {
                 let wechatsArr = data.wechats || [];
-                return allWechats.filter(a => {
-                    return wechatsArr.indexOf(a.accountNumber) !== -1
-                })
+
+                return allWechats.filter(a => wechatsArr.indexOf(a.accountNumber) !== -1)
             }
         )
     },
 
     getExcludedWechatsByWechatPayGroup: function (platformId, wechatPayGroupId) {
         let allWechats = [];
-        return pmsAPI.weChat_getWechatList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        let reqData = {
+            platformId: platformId,
+            accountType: constAccountType.WECHAT
+        };
+
+        return RESTUtils.getPMS2Services("postBankCardList", reqData).then(
             data => {
                 allWechats = data.data || [];
+
                 return dbconfig.collection_platformWechatPayGroup.findOne({_id: wechatPayGroupId})
             }
         ).then(
             data => {
                 let wechatsArr = data.wechats || [];
-                return allWechats.filter(a => {
-                    return wechatsArr.indexOf(a.accountNumber) === -1
-                })
+
+                return allWechats.filter(a => wechatsArr.indexOf(a.accountNumber) === -1)
             }
         )
     },
@@ -559,35 +522,24 @@ let dbPlatformWechatPayGroup = {
 
     deleteWechatPayAcc: function (WechatPayObjId) {
         return dbconfig.collection_platformWechatPayList.remove({_id: WechatPayObjId}).exec();
+    },
+
+    getPMSWechatPayGroup: function (platformId, topUpSystemType) {
+        let topUpSystemConfig;
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            let type = constAccountType.WECHAT;
+
+            let options = {
+                platformId: platformId,
+                accountType: type
+            };
+
+            return RESTUtils.getPMS2Services("postPaymentGroup", options);
+        }
     }
 };
-
-function addDefaultWechatPayGroup(topUpSystemConfig, platformObjId) {
-    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-        return dbconfig.collection_platformWechatPayGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
-            pms2WechatPayGroupExists => {
-                if (!pms2WechatPayGroupExists) {
-                    let defaultStr = "PMS2DefaultGroup";
-                    let groupData = {
-                        groupId: defaultStr,
-                        name: defaultStr,
-                        code: defaultStr,
-                        displayName: defaultStr,
-                        platform: platformObjId,
-                        isPMS2: true
-                    };
-
-                    let wechatPayGroup = new dbconfig.collection_platformWechatPayGroup(groupData);
-
-                    return wechatPayGroup.save();
-                } else {
-                    return Promise.resolve(true);
-                }
-            }
-        );
-    } else {
-        return Promise.resolve(true);
-    }
-}
 
 module.exports = dbPlatformWechatPayGroup;

@@ -54,6 +54,11 @@
                         span {{"platformFeeEstimateSetting (show in report)" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "WeChatGroupControlSetting"}', ng-click='vm.configTabClicked("WeChatGroupControlSetting")')
                         span {{"WeChatGroupControlSetting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "winnerMonitorSetting"}', ng-click='vm.configTabClicked("winnerMonitorSetting")')
+                        span {{"Winner Monitor Setting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "defaultFeedbackConfig"}', ng-click='vm.configTabClicked("defaultFeedbackConfig")')
+                        span {{"defaultFeedbackConfig" | translate}}
+
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
             .panel-heading.panel-heading-sm
@@ -94,6 +99,11 @@
                                     text(ng-if='!vm.configTableEdit') {{ vm.playerLevelPeriod.levelDownPeriodName | translate }}
                                     select.form-control(style='width:30%;margin:auto' ng-change='vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod); vm.changeLevelPeriodAllField()'
                                     ng-if='vm.configTableEdit', ng-model='vm.playerLevelPeriod.playerLevelDownPeriod', ng-options='v as i | translate for (i,v) in vm.allPlayerLevelUpPeriod', required)
+                            tr
+                                td {{'DISABLE_AUTO_LEVEL_UP_REWARD' | translate}} {{'(XBET)'}}
+                                td
+                                    text(ng-show='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.disableAutoPlayerLevelUpReward', ng-disabled='!vm.configTableEdit')
 
                     br
                     br
@@ -386,11 +396,45 @@
                                         select.form-control(ng-model="val.playerLevel" ng-disabled='!vm.configTableEdit' style="width: 150px;")
                                             option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
 
-                    .pull-right
+                    .pull-right(style='margin-bottom:1em')
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI(); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
                             text {{'ADD_LEVEL' | translate}}
                             img.img-create
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player");')
+                            text {{"CANCEL" | translate}}
+                            .fa.fa-ban
+                        button.btn.btn-primary.common-button(ng-if="vm.configTableAdd", ng-disabled='formPlatformConfigPlayerLevel.$invalid || !vm.configAddPlayerLevelValid()', ng-click='vm.configTableAdd=false; vm.submitAddPlayerLvl()')
+                            text {{"SUBMIT" | translate}}
+                            .fa.fa-check
+                        button.btn.btn-primary.common-button(ng-if="vm.configTableEdit", ng-disabled='formPlatformConfigPlayerLevel.$invalid || !vm.configPlayerLevelTableIsValid()', ng-click='vm.configTableEdit=false; vm.configSubmitUpdate("player")')
+                            text {{"CONFIRM" | translate}}
+                            .fa.fa-check
+
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%', ng-if="checkViewPermission('Platform', 'Config', 'XBET_PLAYER_LEVEL_CONFIG')")
+                        thead
+                            tr
+                                th {{"LEVEL" | translate}}
+                                th {{'GLORY_PACKAGE' | translate}}
+                                th {{'VIDEO_CALL_CS' | translate}}
+                                th {{'LIVE_COMMENTING_COLOR' | translate}}
+                        tbody
+                            tr(ng-repeat='(i,level) in vm.allPlayerLvl')
+                                td
+                                    text {{level.name}}
+                                td
+                                    input(type='checkbox', ng-model='level.gloryPackage', ng-disabled='!vm.configTableEdit')
+                                td
+                                    input(type='checkbox', ng-model='level.videoCallCS', ng-disabled='!vm.configTableEdit')
+                                //td(style="background-color:{{level.liveCommentColor}}") {{level.liveCommentColor}}
+                                td
+                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", colorpicker="rgb", type="text", ng-model="level.liveCommentColor")
+                                    //input(type='text', ng-model='level.liveCommentColor', ng-disabled='!vm.configTableEdit')
+
+                    .pull-right(style='margin-top:1em')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'XBET_PLAYER_LEVEL_CONFIG')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player");')
@@ -486,7 +530,7 @@
                         tbody
                             tr(ng-repeat='item in vm.callRequestConfig.callRequestLineConfig')
                                 td
-                                    select.form-control(ng-model='item.status', ng-disabled='!vm.configTableEdit')
+                                    select.form-control(ng-model='item.status', ng-disabled='!vm.configTableEdit', convert-to-number)
                                         option(ng-value="zeroOne.one") {{"Open" | translate}}
                                         option(ng-value="zeroOne.zero") {{"Closed" | translate}}
                                 td
@@ -502,7 +546,7 @@
 
                             tr(ng-if='vm.configTableEdit')
                                 td
-                                    select.form-control(ng-model='vm.tempCallRequestEntry.status', ng-disabled='!vm.configTableEdit')
+                                    select.form-control(ng-model='vm.tempCallRequestEntry.status', ng-disabled='!vm.configTableEdit', convert-to-number)
                                         option(ng-value="zeroOne.one") {{"Open" | translate}}
                                         option(ng-value="zeroOne.zero") {{"Closed" | translate}}
                                 td
@@ -1033,6 +1077,10 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
                                     input(type='number', ng-show='vm.configTableEdit && vm.platformBasic.showAllowSamePhoneNumberToRegister', min=1, ng-model='vm.platformBasic.samePhoneNumberRegisterCount')
+                            tr
+                                td {{'bankRegistrationAtFirstTimeNeedSMSCode' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSCodeForBankRegistrationAtFirstTime', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'sameBankAccountCount' | translate}}
                                 td
@@ -1931,7 +1979,8 @@
                                 td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
                                 td
                                     input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "AutoExportListOrMaxNumOfTxnEveryday")' type="number" step="1" min="0")
-                    .margin-small
+
+                    .margin-small.pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                             text {{'EDIT' | translate}}
                             img.img-edit
@@ -2634,7 +2683,70 @@
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("largeWithdrawalSetting")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("largeWithdrawalSetting")') {{"CONFIRM" | translate}}
                     
-                    
+                div(ng-if='vm.selectedConfigTab=="winnerMonitorSetting"')
+                    table#winnerMonitorConfigTable.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{"game platform (provider)" | translate}}
+                                th {{"COMPANY_EARNING_RATIO" | translate}}（≤）
+                                th {{"WINNING_AMOUNT" | translate}}（≥）
+                                th {{"TIMES_CONSUMED" | translate}}（≥）
+                        tbody
+                            tr(ng-repeat='config in vm.winnerMonitorConfig')
+                                td {{config.providerName}}
+                                td
+                                    text.inline-block -
+                                    input.inline-block(ng-disabled = "!vm.configTableEdit" ng-model='config.companyWinRatio' size=5)
+                                    text.inline-block %
+                                td
+                                    input.form-control(ng-disabled = "!vm.configTableEdit" ng-model='config.playerWonAmount')
+                                td
+                                    input.form-control(ng-disabled = "!vm.configTableEdit" ng-model='config.consumptionTimes')
+
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'WinnerMonitor')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("winnerMonitorSetting")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("winnerMonitorSetting")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="defaultFeedbackConfig"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(style="width:850px;") {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'DEFAULT_FEEDBACK_RESULT' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_FEEDBACK_TOPIC' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_PLAYER_FEEDBACK_RESULT' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultPlayerFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_PLAYER_FEEDBACK_TOPIC' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultPlayerFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_TELESALES_FEEDBACK_RESULT' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultTsFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_TELESALES_FEEDBACK_TOPIC' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultTsFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                    .margin-small.pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'defaultFeedbackConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("defaultFeedbackConfig")') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("defaultFeedbackConfig")') {{"CONFIRM" | translate}}
+
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
                         form(name="platformAnnouncementsForm")

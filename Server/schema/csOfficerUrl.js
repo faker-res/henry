@@ -6,7 +6,9 @@ var csOfficerUrlSchema = new Schema({
     platform: {type: Schema.ObjectId, ref: 'platform', index: true},
     admin: {type: Schema.ObjectId, ref: 'adminInfo'},
     way: {type: String},
-    createTime: {type: Date, default: Date.now}
+    createTime: {type: Date, default: Date.now},
+    lastEditor:  {type: Schema.ObjectId, ref: 'adminInfo'},
+    lastUpdate:  {type: Date}
 });
 
 module.exports = csOfficerUrlSchema;

@@ -19,6 +19,7 @@ const errorUtils = require("../modules/errorUtils.js");
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const proposalExecutor = require('../modules/proposalExecutor');
+const RESTUtils = require('../modules/RESTUtils');
 
 let dbAutoProposal = {
     applyBonus: (platformObjId) => {
@@ -109,9 +110,9 @@ let dbAutoProposal = {
         )
     },
 
-    processAutoProposals: (proposals, platformObj) => {
+    processAutoProposals: (proposals, platformObj, withdrawalBank) => {
         if (proposals && proposals.length > 0) {
-            return Promise.all(proposals.map(proposal => checkRewardTaskGroup(proposal, platformObj)));
+            return Promise.all(proposals.map(proposal => checkRewardTaskGroup(proposal, platformObj, withdrawalBank)));
         }
     },
 
@@ -243,7 +244,7 @@ function checkPartnerAutoBonus (proposal, platformObj) {
 /**
  * Audit reward task group auto audit proposal
  */
-function checkRewardTaskGroup(proposal, platformObj) {
+function checkRewardTaskGroup(proposal, platformObj, withdrawalBank) {
     let todayBonusAmount = 0;
     let bFirstWithdraw = false;
     // let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
@@ -345,7 +346,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 }
             });
 
-            let provinceListProm = pmsAPI.foundation_getProvinceList({});
+            //let provinceListProm = pmsAPI.foundation_getProvinceList({});
+            let provinceListProm = RESTUtils.getPMS2Services("postProvinceList", {});
 
             let promises = [
                 RTGPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise, creditLogPromise,
@@ -423,8 +425,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 }
             }
 
-            if (data && data[6] && data[6].provinces && playerData && playerData.bankAccountProvince) {
-                let allProvinces = data[6].provinces;
+            if (data && data[6] && data[6].data && playerData && playerData.bankAccountProvince) {
+                let allProvinces = data[6].data;
                 let pIdx = allProvinces.findIndex(d => d.id == playerData.bankAccountProvince);
                 if (allProvinces[pIdx] && allProvinces[pIdx].name) {
                     bankProvince = allProvinces[pIdx].name.replace("省", "")
@@ -556,9 +558,9 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             // Check consumption approved or not
             if (isApprove && canApprove) {
-                sendToApprove(proposal._id, playerData);
+                sendToApprove(proposal._id, playerData, null, null, null, null, null, null, null, null, null, withdrawalBank);
             } else {
-                sendToAudit(proposal._id, playerData, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                sendToAudit(proposal._id, playerData, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, null, null, null, withdrawalBank);
             }
         }
     )
@@ -601,7 +603,7 @@ function sendToApprovePartner (proposalObjId, createTime, remark, remarkChinese)
     )
 };
 
-function sendToApprove(proposalObjId, playerData, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg) {
+function sendToApprove(proposalObjId, playerData, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg, withdrawalBank) {
     processRemark = processRemark ? processRemark : "";
     let proposalObj;
 
@@ -628,12 +630,12 @@ function sendToApprove(proposalObjId, playerData, createTime, remark, remarkChin
                             'data.devCheckMsg': devCheckMsg
                         }
 
-                        if(playerData && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
-                            if(playerData.bankAccount){
-                                dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(playerData.bankAccount);
+                        if(withdrawalBank && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
+                            if(withdrawalBank.bankAccount){
+                                dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(withdrawalBank.bankAccount);
                             }
-                            if(playerData.bankName){
-                                dataToUpdate["data.bankNameWhenApprove"] = playerData.bankName;
+                            if(withdrawalBank.bankName){
+                                dataToUpdate["data.bankNameWhenApprove"] = withdrawalBank.bankName;
                             }
                         }
 
@@ -733,7 +735,7 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
     );
 }
 
-function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg) {
+function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg, withdrawalBank) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -758,13 +760,13 @@ function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChines
                         'data.devCheckMsg': devCheckMsg
                     };
 
-                    if(playerData && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
-                        if(playerData.bankAccount){
-                            dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(playerData.bankAccount);
+                    if(withdrawalBank && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
+                        if(withdrawalBank.bankAccount){
+                            dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(withdrawalBank.bankAccount);
                         }
 
-                        if(playerData.bankName){
-                            dataToUpdate["data.bankNameWhenApprove"] = playerData.bankName;
+                        if(withdrawalBank.bankName){
+                            dataToUpdate["data.bankNameWhenApprove"] = withdrawalBank.bankName;
                         }
                     }
 
@@ -788,13 +790,13 @@ function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChines
                                 'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
                             };
 
-                            if(playerData && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
-                                if(playerData.bankAccount){
-                                    dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(playerData.bankAccount);
+                            if(withdrawalBank && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
+                                if(withdrawalBank.bankAccount){
+                                    dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(withdrawalBank.bankAccount);
                                 }
 
-                                if(playerData.bankName){
-                                    dataToUpdate["data.bankNameWhenApprove"] = playerData.bankName;
+                                if(withdrawalBank.bankName){
+                                    dataToUpdate["data.bankNameWhenApprove"] = withdrawalBank.bankName;
                                 }
                             }
 

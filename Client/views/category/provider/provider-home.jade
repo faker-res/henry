@@ -47,27 +47,30 @@ div
                     .panel-body(ng-if="checkViewPermission('Provider', 'Game', 'Read')",style='height:100px;padding:5px;')
                         .textareaDetail
                             textarea(disabled,readonly, ng-model="vm.showGame.description", rows='4', style="border:none")
-                p
-                .btn-group.text-center(style="min-width:110px", role="group")
-                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Create')",ng-disabled="!vm.SelectedProvider", data-toggle="modal", data-target='#modalGame', ng-click='vm.gameEditStatus="create";vm.initGameDetail();vm.showGame={};')
-                    //    text {{'CREATE' | translate}}
-                    //    img.img-create
-                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Delete')",ng-disabled="!vm.showGame", data-toggle="modal", data-target='#modalGame', ng-click='vm.gameEditStatus="delete"')
-                    //    text {{'DELETE' | translate}}
-                    //    img.img-delete
-                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Update')",ng-disabled="!vm.showGame", data-toggle="modal", data-target='#modalGame', ng-click='vm.gameEditStatus="update";vm.initGameDetail()')
-                    //    text {{'EDIT' | translate}}
-                    //    img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider','Game', 'Expense')",ng-disabled="!vm.showGame._id", ng-click='vm.initShowGameExpense()')
-                        text {{"EXPENSE" | translate}}
-                        i.fa.fa-table
-                    div(style="display: inline-flex;" ng-if="vm.showGame._id")
+
+                div(style="display: flex")
+                    p
+                    .btn-group.text-center(style="min-width:110px", role="group")
+                        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Create')",ng-disabled="!vm.SelectedProvider", data-toggle="modal", data-target='#modalGame', ng-click='vm.gameEditStatus="create";vm.initGameDetail();vm.showGame={};')
+                        //    text {{'CREATE' | translate}}
+                        //    img.img-create
+                        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Delete')",ng-disabled="!vm.showGame", data-toggle="modal", data-target='#modalGame', ng-click='vm.gameEditStatus="delete"')
+                        //    text {{'DELETE' | translate}}
+                        //    img.img-delete
+                        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Update')",ng-disabled="!vm.showGame", data-toggle="modal", data-target='#modalGame', ng-click='vm.gameEditStatus="update";vm.initGameDetail()')
+                        //    text {{'EDIT' | translate}}
+                        //    img.img-edit
+                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider','Game', 'Expense')",ng-disabled="!vm.showGame._id", ng-click='vm.initShowGameExpense()')
+                            text {{"EXPENSE" | translate}}
+                            i.fa.fa-table
+
+                    div.margin-medium(style="display: inline-flex;" ng-if="vm.showGame._id")
                         buton.btn.btn-success.common-button(ng-if="checkViewPermission('Provider', 'Game', 'UploadGamePic')", ng-click='vm.updateImageUrl("gameProviderImageUploader");')
                             i.fa.fa-upload
                             text {{"Upload Custom Game Thumbnail" | translate}}
                         input(type='file', name='file' id='gameProviderImageUploader' style="display: inline !important")
                         label(ng-if="vm.uploadImageMsg" style="color: red;") {{vm.uploadImageMsg | translate}}
-                    table.table-bordered(style='width:100%;text-align:center')
+                    table.table-bordered(style='width:40%;text-align:center')
                         thead.thPadding5
                             th
                                 div {{'Source' | translate}}
@@ -91,6 +94,29 @@ div
                                 div
                                     .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'MaintainGame')", ng-click="vm.updatePlatformGameStatus(vm.allGameStatusString.MAINTENANCE)") {{'Maintenance' | translate}}
                                     .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updatePlatformGameStatus(vm.allGameStatusString.ENABLE)") {{'Enable' | translate}}
+
+                    div.margin-medium(style="display: block;")
+                        div(style='display:block')
+                            {{"Current Game Display Setting is:" | translate}} {{ vm.gameDisplay[vm.showGame.gameDisplay] || '未设置' }}
+                            br
+                            br
+                        div(style='display:block')
+                            div(style='display:inline-flex')
+                                input(type="radio", ng-model="vm.chosenGameDisplay", ng-value = "1")
+                                {{ vm.gameDisplay[1] }}
+                            div(style='display:inline-flex')
+                                input(type="radio", ng-model="vm.chosenGameDisplay", ng-value = "2")
+                                {{ vm.gameDisplay[2] }}
+                            div(style='display:inline-flex')
+                                input(type="radio", ng-model="vm.chosenGameDisplay", ng-value = "3")
+                                {{ vm.gameDisplay[3] }}
+                            div(style='display:inline-flex')
+                                input(type="radio", ng-model="vm.chosenGameDisplay", ng-value = "4")
+                                {{ vm.gameDisplay[4] }}
+                            div(style='display:inline-flex')
+                                .btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Update')", ng-click="vm.updatePlatformGameDisplay(vm.chosenGameDisplay)") {{'EDIT' | translate}}
+
+
 
 
                 //form(name='myForm')

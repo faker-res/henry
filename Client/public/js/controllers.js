@@ -665,7 +665,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         2: "Weekly",
         3: "Biweekly",
         4: "Monthly",
-        5: "No Interval"
+        6: "LastMonth",
+        5: "No Interval",
     };
 
     $scope.rewardApplyType = {
@@ -673,6 +674,16 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         2: "Auto Apply",
         3: "Batch Apply",
         4: "Manual Subscribe Auto Apply"
+    };
+
+    $scope.randomRewardType = {
+        0: "",
+        1: "Credit",
+        2: "Promo Code-B (With Deposit)",
+        3: "Promo Code-B (Without Deposit)",
+        4: "Promo Code-C",
+        5: "Reward Points",
+        6: "Real Prize"
     };
 
     $scope.bonusDoubledRewardModal = {
@@ -776,6 +787,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.playerLoginMode = {
         1: "ACCUMULATIVE_LOGIN_DAY",
         2: "EXACT_LOGIN_DATE",
+        3: "ACCUMULATIVE_LOGIN_DAY_COUNT_WHEN_APPLY",
     };
 
     $scope.constRewardPointsTaskCategory = {
@@ -926,6 +938,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         var isAllowed = authService.checkViewPermission(category, view, viewName);
         //console.log( "checkViewPermission", view, isAllowed );
         return isAllowed;
+    };
+
+    $scope.getNumberArray = (number) => {
+        return new Array(number);
     };
 
     //update current admin user password
@@ -1770,25 +1786,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         return new Q.Promise(function (resolve, reject) {
             socketService.$socket($scope.AppSocket, apiHook, requestData, resolve, reject, showConfirm);
         });
-    };
-
-    $scope.getAllProvinceList = function (callback) {
-        socketService.$socket($scope.AppSocket, 'getProvinceList', {}, onSuccess, onFail, true);
-
-        function onSuccess(data) {
-            $scope.provinceList = data.data.provinces;
-            console.log("Got provinceList:", $scope.provinceList);
-            if (callback) {
-                callback.call(this);
-            }
-        }
-
-        function onFail(error) {
-            console.error("Failed to get provinceList!", error);
-            if (callback) {
-                callback.call(this, error);
-            }
-        }
     };
     $scope.getProvinceStr = function (provinceId) {
         if (!provinceId) return Q.resolve('');

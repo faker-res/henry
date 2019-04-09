@@ -185,6 +185,15 @@ var dbUtility = {
         };
     },
 
+    getLastMonthSGTImeFromDate: function (inputDate) {
+        var startTime = moment(inputDate).tz('Asia/Singapore').subtract(1, 'months').startOf('month').toDate();
+        let endTime = moment(startTime).add(1, 'months').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getQuarterSGTime: function (inputDate) {
         var startTime = moment(inputDate).tz('Asia/Singapore').startOf('quarter').toDate();
         var endTime = moment(inputDate).tz('Asia/Singapore').endOf('quarter').toDate();
@@ -205,6 +214,21 @@ var dbUtility = {
             startTime: startTime,
             endTime: endTime
         };
+    },
+
+    getNumberOfDays: function (startData, endDate) {
+        // The number of milliseconds in one day
+        let oneDay = 1000 * 60 * 60 * 24;
+
+        // Convert both dates to milliseconds
+        let date1 = new Date(startData).getTime();
+        let date2 = new Date(endDate).getTime();
+
+        // Calculate the difference in milliseconds
+        let difference = Math.abs(date1 - date2);
+
+        // Convert back to days and return
+        return Math.ceil(difference/oneDay);
     },
 
     /**
@@ -1110,6 +1134,13 @@ var dbUtility = {
         }
 
         return filteredDomain;
+    },
+
+    encryptMessage: (msg) => {
+        return new Promise((resolve, reject) => {
+            let encrypted = rsaCrypto.encrypt(msg);
+            resolve(encrypted);
+        })
     },
 
     encodeEmail: function(email) {

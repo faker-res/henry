@@ -400,6 +400,18 @@ var generalCond = {
     },
     // Is player manually applicable
     canApplyFromClient: {index: 4, type: "checkbox", des: "Is player manually applicable", detail: "REWARD_CLIENT_APPLY_DETAIL"},
+    // Display in home page popup
+    visibleFromHomePage: {index: 4.10, type: "checkbox", des: "Is visible in home page"},
+    visibleFromRewardEntry: {index: 4.11, type: "checkbox", des: "Is visible in reward entry"},
+    visibleFromRewardList: {index: 4.12, type: "checkbox", des: "Is visible in reward list"},
+    visibleForPhoneNumberBinding: {index: 4.13, type: "checkbox", des: "Is visible for phone number binding player"},
+    visibleForNewPlayer: {index: 4.14, type: "checkbox", des: "Is visible for new player", detail: "REWARD_CLIENT_NEW_PLAYER"},
+    visibleForFirstLogin: {index: 4.15, type: "checkbox", des: "Is visible for first login player", detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"},
+    visibleForPlayerLevel: {index: 4.16, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
+    visibleIfCreditLessThan: {index: 4.17, type: "number", des: "Is visible if credit less than"},
+    visibleIfAppliedFollowingReward: {index: 4.18, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
+    visibleIfTopUpCountMoreThan: {index: 4.19, type: "number", des: "Is visible if topup count more than"},
+    invisibleIfApplyCurrentReward: {index: 4.20, type: "checkbox", des: "Is invisible if apply current reward"},
     // Is show in production server
     showInRealServer: {index: 5, type: "checkbox", des: "Is show in production server", detail: "REWARD_SERVER_SHOW_DETAIL", default: true},
     // Is ignore audit
@@ -911,27 +923,67 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Need SMS verification"
                 },
+                numberParticipation: {
+                    index: 42,
+                    type: "number",
+                    des: "Number of participation"
+                },
+                requiredTopUpAmount: {
+                    index: 43,
+                    type: "number",
+                    des: "Required top up amount"
+                },
+                operatorOption: {
+                    index: 44,
+                    type: "checkbox",
+                    des: "Required both"
+                },
+                requiredConsumptionAmount: {
+                    index: 45,
+                    type: "number",
+                    des: "Required consumption amount"
+                },
+                noRepetitiveRewardInPeriod: {
+                    index: 46,
+                    type: "checkbox",
+                    des: "No Repetitive Reward In Period",
+                    detail: "Same reward will not be selected in the period"
+                },
+                sameRewardOnTheNextTrial: {
+                    index: 47,
+                    type: "checkbox",
+                    des: "Same Reward On The Next Trial",
+                    detail: "The selected reward will be different for the next trial"
+                },
+                defaultRewardTypeInTheFirstTime: {
+                    index: 48,
+                    type: "select",
+                    des: "Default Reward Type For The First Time",
+                    detail: "Set the default reward type for the first time; the reward will be randomly selected from the collection of the reward type",
+                    options: "randomRewardType",
+                }
+
             }
         },
         param: {
             tblOptFixed: {
                 rewardParam: {
-                    numberParticipation: {type: "number", des: "Number of participation"},
-                    requiredTopUpAmount: {type: "number", des: "Required top up amount"},
-                    operatorOption: {type: "checkbox", des: "Required both"},
-                    requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
-                    rewardPercentageAmount: {
-                        type: "PercentageAmount",
-                        des: "Reward percentage and reward amount",
-                        value: [{percentage: "", amount: ""}]
-                    },
-                    spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
-                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
-                    forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "number",
-                        des: "Forbid withdraw if there is balance after unlock"
-                    },
-                    remark: {type: "text", des: "Remark"},
+                    title: {type: "text"},
+                    amount: {type: "number", des: "REWARD_AMOUNT"},
+                    amountPercent: {type: "percentage", des: "REWARD_AMOUNT_PERCENT"},
+                    rewardPoints: {type: "number", des: "Reward Points"},
+                    realPrize: {type: "text", des: "Real Prize"},
+                    possibility: {type: 'percentage', des: 'Possibility'},
+                    minTopUpAmount: {type: "number", des: "PROMO_minTopUpAmount"},
+                    maxRewardAmount: {type: "number", des: "maxRewardAmount"},
+                    requiredConsumptionFixed: {type: "number", des: "PROMO_CONSUMPTION_1"},
+                    requiredConsumption: {type: "number", des: "Spending times on reward"},
+                    requiredConsumptionDynamic: {type: "number", des: "PROMO_CONSUMPTION_3"},
+                    isSharedWithXIMA: {type: "checkbox", des: "SHARE_WITH_XIMA"},
+                    expiredInDay: {type: "number", des: "PROMO_DUE_DATE (IN DAY)"},
+                    disableWithdraw: {type: "checkbox", des: "DISABLE_WITHDRAWAL_AFTER_PROMO"},
+                    forbidWithdrawIfBalanceAfterUnlock: {type: "number", des: "forbidWithdrawIfBalanceAfterUnlock"},
+                    providerGroup: {type: "select", des: "Provider group", options: "providerGroup"}
                 }
             },
             tblOptDynamic: {} // will never reach here
@@ -1069,7 +1121,8 @@ db.rewardParam.update({
                     options: "playerLoginMode",
                     des: "Define player login mode",
                     detail1: "1. Accumulative login day: login at  day 1, 2 and 3, collect the reward for day 1, 2 and 3.",
-                    detail2: "2. Exact login date: login at 1st, 3rd and 5th, collect the reward for day 1, 3 and 5."
+                    detail2: "2. Exact login date: login at 1st, 3rd and 5th, collect the reward for day 1, 3 and 5.",
+                    detail3: "3. Accumulative login day: the period start counting from the day when player applies; login at  day 1, 2 and 3, collect the reward for day 1, 2 and 3."
                 },
             }
         },

@@ -8,6 +8,9 @@
 .col-md-12(ng-show="checkViewPermission('Player', 'Player', 'AdvancedSearch') && vm.curPlatformText")
     .col-md-12.search-filters-container#playerTable-search-filter.well
         .search-filters-item
+            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+            select.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+        .search-filters-item
             label {{'PLAYER_ID' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
         .search-filters-item
@@ -129,6 +132,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'ClearPlayerState')" ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearPlayerState', ng-click='vm.prepareClearPlayerState()')
             text {{"ClearPlayerState" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'UnbindPhoneDeviceId')" ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", ng-click='vm.prepareUnbindPhoneDeviceId()')
+            text {{"UnbindPhoneDeviceId" | translate}}
+            img.img-edit
 
 // Sub-views
 #modalCreatePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
@@ -197,17 +203,17 @@ include modalGameCreditLog
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPlayerPayment();")
                                             text.span {{"WITHDRAW_INFO" | translate}}
                                     li(ng-show="editMultipleWithdrawPermission",ng-class="selectedTab=='withdrawInfo2'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo2';prepareEditPlayerPayment();")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo2';prepareEditPlayerPayment2();")
                                             text.span {{"WITHDRAW_INFO_2" | translate}}
                                     li(ng-show="editMultipleWithdrawPermission",ng-class="selectedTab=='withdrawInfo3'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo3';prepareEditPlayerPayment();")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo3';prepareEditPlayerPayment3();")
                                             text.span {{"WITHDRAW_INFO_3" | translate}}
                                     li(ng-show="editPlayerPermission",ng-class="selectedTab=='topUpInfo'?'active':''")
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='topUpInfo';initTopUpGroupChangeLog()")
                                             text.span {{"Topup Group" | translate}}
-                                    li(ng-show="editPlayerPermission",ng-class="selectedTab=='adminNameAdjunction'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='adminNameAdjunction';")
-                                            text.span {{"AdminNameAdjunction" | translate}}
+                                    //li(ng-show="editPlayerPermission",ng-class="selectedTab=='adminNameAdjunction'?'active':''")
+                                    //    a.common-tab(data-toggle="tab", ng-click="selectedTab ='adminNameAdjunction';")
+                                    //        text.span {{"AdminNameAdjunction" | translate}}
                                             //button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditCritical("player")', data-target='#modalEditCritical') {{"EDIT" | translate}}
 
                             .panel-body.common-right-panel-body
@@ -987,24 +993,6 @@ include modalGameCreditLog
                     table#sameRealNameLogTable.common-table.display(style='min-width:100%')
                     #sameRealNameLogTablePage.height30
 
-
-#modalClearProposalLimit.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog.modal-medium
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"ClearProposalLimit" | translate}} : {{vm.selectedSinglePlayer.name}}
-            .modal-body
-                label {{'ClearProposalLimit' | translate}}
-            .modal-footer
-                button.btn.btn-success.btn-space(ng-if='vm.clearPlayerProposalLimit.showSubmit', ng-click='vm.requestClearProposalLimit()') {{'APPLY' | translate}}
-                button.btn.btn-warning.btn-space(data-dismiss='modal') {{"CLOSE" | translate}}
-                label.inlineBlk.margin-right-5(ng-if='vm.clearPlayerProposalLimit.resMsg') {{vm.clearPlayerProposalLimit.resMsg}}
-                i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.clearPlayerProposalLimit.showSubmit && !vm.clearPlayerProposalLimit.resMsg')
-
-
-
-
 #modalMailLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
@@ -1121,6 +1109,9 @@ include modalGameCreditLog
                 .panel.panel-primary
                     .panel-body
                         #providerExpenseQuery.well
+                            .search-filters-item
+                                label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                                select.form-control(ng-model='vm.consumptionRecordPlatformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
                             .search-filters-item
                                 .control-label {{"Provider" | translate}}
                                 select.form-control(ng-model='vm.selectedProviderID', ng-init='vm.selectedProviderID="all"')

@@ -17,6 +17,9 @@ const dbProposalUtil = require('../db_common/dbProposalUtility');
 const dbPlayerConsumptionWeekSummary = require('./../db_modules/dbPlayerConsumptionWeekSummary');
 const dbGameType = require('../db_modules/dbGameType');
 const dbPropUtil = require('./../db_common/dbProposalUtility');
+const constRandomRewardType = require('./../const/constRandomRewardType');
+const constPromoCodeTemplateGenre = require('./../const/constPromoCodeTemplateGenre');
+const constPromoCodeStatus = require("./../const/constPromoCodeStatus");
 const moment = require('moment-timezone');
 
 let cpmsAPI = require("../externalAPI/cpmsAPI");
@@ -35,56 +38,225 @@ var dbRewardEvent = {
      * Create a new reward event
      * @param {json} rewardData - The data of the reward event. Refer to reward event schema.
      */
+    // createRewardEvent: function (data) {
+    //     var rewardName = null;
+    //     if (data.type && data.platform) {
+    //         var deferred = Q.defer();
+    //         dbconfig.collection_rewardType.findOne({_id: data.type}).then(
+    //             function (typeData) {
+    //                 if (typeData) {
+    //                     rewardName = typeData.name;
+    //                     return dbconfig.collection_proposalType.findOne({
+    //                         platformId: data.platform,
+    //                         name: typeData.name
+    //                     }).exec();
+    //                 }
+    //                 else {
+    //                     deferred.reject({name: "DataError", message: "Can't find reward rule"});
+    //                 }
+    //             },
+    //             function (error) {
+    //                 deferred.reject({name: "DBError", message: "Error finding reward rule", error: error});
+    //             }
+    //         ).then(
+    //             function (typeData) {
+    //                 if (typeData && typeData._id) {
+    //                     data.executeProposal = typeData._id;
+    //                     data.priority = constRewardPriority[rewardName];
+    //                     var event = new dbconfig.collection_rewardEvent(data);
+    //                     return event.save();
+    //                 }
+    //                 else {
+    //                     deferred.reject({name: "DataError", message: "Can't find proposal type"});
+    //                 }
+    //             },
+    //             function (error) {
+    //                 deferred.reject({name: "DBError", message: "Error finding proposal type", error: error});
+    //             }
+    //         ).then(
+    //             function (data) {
+    //                 deferred.resolve(data);
+    //             },
+    //             function (error) {
+    //                 deferred.reject({name: "DBError", message: "Error creating reward event", error: error});
+    //             }
+    //         );
+    //         return deferred.promise;
+    //     }
+    //     else {
+    //         var rewardEvent = new dbconfig.collection_rewardEvent(data);
+    //         return rewardEvent.save();
+    //     }
+    // },
+
     createRewardEvent: function (data) {
-        var rewardName = null;
+        let rewardName = null;
+        let promoCodeTemplateList = null;
+        let prom;
+
         if (data.type && data.platform) {
-            var deferred = Q.defer();
-            dbconfig.collection_rewardType.findOne({_id: data.type}).then(
-                function (typeData) {
+            prom = dbconfig.collection_rewardType.findOne({_id: data.type}).then(
+                typeData => {
                     if (typeData) {
                         rewardName = typeData.name;
                         return dbconfig.collection_proposalType.findOne({
                             platformId: data.platform,
                             name: typeData.name
-                        }).exec();
+                        }).lean();
                     }
                     else {
-                        deferred.reject({name: "DataError", message: "Can't find reward rule"});
+                        return Promise.reject({name: "DataError", message: "Can't find reward rule"});
                     }
                 },
                 function (error) {
-                    deferred.reject({name: "DBError", message: "Error finding reward rule", error: error});
+                    return Promise.reject({name: "DBError", message: "Error finding reward rule", error: error});
                 }
             ).then(
-                function (typeData) {
+               typeData => {
                     if (typeData && typeData._id) {
                         data.executeProposal = typeData._id;
                         data.priority = constRewardPriority[rewardName];
-                        var event = new dbconfig.collection_rewardEvent(data);
-                        return event.save();
+
+                        if (rewardName == constRewardType.PLAYER_RANDOM_REWARD_GROUP && data.param && data.param.rewardParam &&
+                            data.param.rewardParam[0] && data.param.rewardParam[0].value && data.param.rewardParam[0].value.length){
+
+                            promoCodeTemplateList = data.param.rewardParam[0].value.filter( p => (p.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_C) && Number.isFinite(p.possibility))
+                            promoCodeTemplateList.forEach( item => { item.rewardEvent = data._id; });
+
+                            return createNewPromoCodeTemplateFromArr(promoCodeTemplateList, data.platform);
+                        }
+                        return true;
                     }
                     else {
-                        deferred.reject({name: "DataError", message: "Can't find proposal type"});
+                        return Promise.reject({name: "DataError", message: "Can't find proposal type"});
                     }
                 },
                 function (error) {
-                    deferred.reject({name: "DBError", message: "Error finding proposal type", error: error});
+                    return Promise.reject({name: "DBError", message: "Error finding proposal type", error: error});
                 }
             ).then(
-                function (data) {
-                    deferred.resolve(data);
+                templates => {
+                    if (templates && templates.length > 0) {
+                        // for PlayerRandomRewardGroup: link back the templateObjId respectively
+                        let rewardList = data.param.rewardParam[0].value;
+                        rewardList.map(reward => {
+                            if (reward && reward.title) {
+                                let index = templates.findIndex(template => template.templateName == reward.title)
+
+                                if (index != -1) {
+                                    reward.templateObjId = templates[index].templateObjId;
+                                    reward.rewardEvent = data._id || null;
+                                }
+                            }
+                            return reward
+                        })
+                    }
+
+                    let event = new dbconfig.collection_rewardEvent(data);
+                    return event.save();
                 },
                 function (error) {
-                    deferred.reject({name: "DBError", message: "Error creating reward event", error: error});
+                    return Promise.reject({name: "DBError", message: "Error creating reward event", error: error});
                 }
             );
-            return deferred.promise;
         }
         else {
-            var rewardEvent = new dbconfig.collection_rewardEvent(data);
-            return rewardEvent.save();
+            let rewardEvent = new dbconfig.collection_rewardEvent(data);
+            prom = rewardEvent.save();
+        }
+
+        return prom.catch(
+            err => {
+                // if there is error happened when saving the reward event for playerRandomRewardGroup, delete the generated promo code template
+                let templateProm = [];
+                let createTime = new Date(new Date().getTime() - 1000*60);
+
+                if (data && data.platform && rewardName && rewardName == constRewardType.PLAYER_RANDOM_REWARD_GROUP && promoCodeTemplateList && promoCodeTemplateList.length) {
+                    promoCodeTemplateList.forEach(
+                        reward => {
+                            templateProm.push(dbconfig.collection_promoCodeTemplate.findOneAndUpdate({
+                                name: reward.title,
+                                platformObjId: data.platform,
+                                createTime: {$gte: createTime, $lte: new Date()}
+                            }, {isDeleted: true}))
+                        }
+                    )
+                }
+
+                return Promise.all(templateProm).then(
+                    () => {
+                        return Promise.reject({
+                            name: "DBError",
+                            message: "Error when creating reward event",
+                            error: err
+                        })
+                    }
+                )
+            }
+        );
+
+        function createNewPromoCodeTemplateFromArr (list, platformObjId) {
+            let createProm = [];
+            list.forEach(
+                row => {
+                    let obj = dbRewardEvent.setPromoCodeTemplateObj(row, platformObjId);
+                    createProm.push(new dbconfig.collection_promoCodeTemplate(obj).save().then(
+                        data => {
+                            return {
+                                templateName: data.name,
+                                templateObjId: data._id
+                            };
+                        }
+                    ))
+                }
+            )
+            return Promise.all(createProm)
         }
     },
+
+    setPromoCodeTemplateObj: function (row, platformObjId){
+        let allowedProviderList = [];
+        if (row.providerGroup){
+            allowedProviderList.push(ObjectId(row.providerGroup));
+        }
+        let obj = {
+            platformObjId: platformObjId,
+            allowedProviders: allowedProviderList,
+            name: row.title,
+            isSharedWithXIMA: row.isSharedWithXIMA,
+            isProviderGroup: true,
+            genre: constPromoCodeTemplateGenre.RANDOM_REWARD,
+            expiredInDay: row.expiredInDay,
+            disableWithdraw: row.disableWithdraw,
+            // minTopUpAmount: row.minTopUpAmount,
+            createTime: new Date ()
+        }
+        if (row.forbidWithdrawIfBalanceAfterUnlock) {
+            obj.forbidWithdrawIfBalanceAfterUnlock = (row.forbidWithdrawIfBalanceAfterUnlock && row.forbidWithdrawIfBalanceAfterUnlock != '') ? Number(row.forbidWithdrawIfBalanceAfterUnlock) : null;
+        }
+
+        if (row.rewardType == constRandomRewardType.PROMOCODE_C){
+            obj.amount = row.amountPercent*100;
+            obj.maxRewardAmount = row.maxRewardAmount;
+            obj.minTopUpAmount = row.minTopUpAmount;
+            obj.requiredConsumption = row.requiredConsumptionDynamic;
+            obj.type = 3; // dynamic case
+        }
+        else if (row.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT){
+            obj.amount = row.amount;
+            obj.requiredConsumption = row.requiredConsumptionFixed;
+            obj.minTopUpAmount = row.minTopUpAmount;
+            obj.type = 1; // with top up requirement + fixed reward amount
+        }
+        else if (row.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT){
+            obj.amount = row.amount;
+            obj.requiredConsumption = row.requiredConsumptionFixed;
+            obj.type = 2; // with top up requirement + fixed reward amount
+        }
+
+        return obj
+    },
+
 
     createRewardEventGroup: function (data) {
         return dbconfig.collection_rewardEventGroup(data).save();
@@ -390,6 +562,19 @@ var dbRewardEvent = {
                                 message: "Login mode is not found"
                             })
                         }
+
+                        let playerRetentionProm = Promise.resolve();
+                        if (rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP){
+                            playerRetentionProm = dbconfig.collection_playerRetentionRewardGroupRecord.findOne({
+                                platformObjId: playerObj.platform._id,
+                                playerObjId: playerObj._id,
+                                rewardEventObjId: rewardEvent._id
+                            }).sort({'lastApplyDate': -1}).populate({
+                                path: "topUpRecordObjId",
+                                model: dbconfig.collection_playerTopUpRecord
+                            }).lean();
+                        }
+
                         if (rewardEvent.condition.interval) {
                             intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, rewardEvent);
                         }
@@ -442,13 +627,25 @@ var dbRewardEvent = {
                         let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerObjId}).sort({createTime: -1}).limit(1).lean();
                         let eventInPeriodProm = dbconfig.collection_proposal.find(eventQuery).lean();
 
-                        return Promise.all([topUpProm, lastConsumptionProm, eventInPeriodProm]).then(
+                        return Promise.all([topUpProm, lastConsumptionProm, eventInPeriodProm, playerRetentionProm]).then(
                             data => {
                                 let topUpData =  data[0];
                                 let consumptionData =  data[1];
                                 let eventInPeriodData = data[2];
                                 let eventInPeriodCount = eventInPeriodData.length;
                                 let topUpAfterConsumption = [];
+                                let playerRetentionRecord = data[3];
+
+                                let todayTime = dbUtil.getTodaySGTime();
+                                // check if the player retention record is expired
+                                if (playerRetentionRecord && playerRetentionRecord.lastApplyDate && rewardEvent.condition && rewardEvent.condition.hasOwnProperty('definePlayerLoginMode') && rewardEvent.condition.definePlayerLoginMode == 3){
+                                    let newDefinedIntervalTime = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(playerRetentionRecord.lastApplyDate, rewardEvent);
+                                    // set the player retention record to be null if it is expired
+                                    if (newDefinedIntervalTime.endTime <= todayTime.startTime){
+                                        playerRetentionRecord.lastApplyDate = todayTime.startTime;
+                                        playerRetentionRecord.accumulativeDay = null;
+                                    }
+                                }
 
                                 // filter top up record after consumption
                                 if (!rewardEvent.condition.allowConsumptionAfterTopUp) {
@@ -462,7 +659,7 @@ var dbRewardEvent = {
                                 }
 
                                 function checkRewardEventWithTopUp(topUpDataObj) {
-                                    return dbRewardEvent.checkRewardEventGroupApplicable(playerObj, rewardEvent, {selectedTopup: topUpDataObj}).then(
+                                    return dbRewardEvent.checkRewardEventGroupApplicable(playerObj, rewardEvent, {selectedTopup: topUpDataObj}, playerRetentionRecord).then(
                                         checkRewardData => {
                                             // Check reward apply limit in period
                                             if (rewardEvent.param.countInRewardInterval && rewardEvent.param.countInRewardInterval <= eventInPeriodCount) {
@@ -533,6 +730,8 @@ var dbRewardEvent = {
                                 }
 
                                 let promArr = [];
+
+                                console.log("checking topUpData", topUpData)
                                 if (topUpData && topUpData.length) {
                                     if (rewardEvent.condition && !rewardEvent.condition.allowConsumptionAfterTopUp) {
                                         if (consumptionData && consumptionData.length === 0) { // if no consumption, use all valid top up
@@ -818,7 +1017,7 @@ var dbRewardEvent = {
         return returnData;
     },
 
-    checkRewardEventGroupApplicable: function (playerData, eventData, rewardData) {
+    checkRewardEventGroupApplicable: function (playerData, eventData, rewardData, playerRetentionRecord) {
         let todayTime = dbUtil.getTodaySGTime();
         let intervalTime;
         let selectedRewardParam = {};
@@ -962,6 +1161,11 @@ var dbRewardEvent = {
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
 
             };
+
+            if (playerRetentionRecord && playerRetentionRecord.lastApplyDate && eventData.condition && eventData.condition.hasOwnProperty('definePlayerLoginMode') && eventData.condition.definePlayerLoginMode == 3){
+                intervalTime = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(playerRetentionRecord.lastApplyDate, eventData)
+            }
+
             if (intervalTime){
                 appliedCountQuery.lastApplyDate = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
                 rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
@@ -975,7 +1179,7 @@ var dbRewardEvent = {
             // check reward apply restriction on ip, phone and IMEI
             checkHasReceivedProm =  dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
 
-            if (eventData.condition.definePlayerLoginMode && eventData.condition.definePlayerLoginMode == 1){
+            if (eventData.condition.definePlayerLoginMode && (eventData.condition.definePlayerLoginMode == 1 || eventData.condition.definePlayerLoginMode == 3)){
                 accumulativeCountProm = dbconfig.collection_proposal.find(rewardProposalQuery).sort({'data.accumulativeCount': -1, createTime: -1}).lean();
             }
             else if (eventData.condition.definePlayerLoginMode && eventData.condition.definePlayerLoginMode == 2){
@@ -986,7 +1190,7 @@ var dbRewardEvent = {
                 selectedTopUp = rewardData.selectedTopup;
                 // oriAmount: the topup amount; amount: the topup amount - service charge
                 // when applying reward, check the oriAmount, not the amount
-                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
+                applyAmount = selectedTopUp.oriAmount ||selectedTopUp.amount;
 
                 if (eventData.condition && eventData.condition.allowOnlyLatestTopUp){
                     //will check is there consumption or withdrawal after the latestTopUp
@@ -1625,10 +1829,10 @@ var dbRewardEvent = {
 
                 // Count reward amount and spending amount
                 switch (eventData.type.name) {
-                  
+
                     case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                         let consumptionSlipRewardDetail = rewardSpecificData[0];
-                        
+
                         returnData.condition.deposit.list = [];
                         returnData.condition.bet.list = [];
 
@@ -1679,7 +1883,7 @@ var dbRewardEvent = {
                         }
 
                         if(consumptionSlipRewardDetail.applyList && consumptionSlipRewardDetail.applyList.length){
-                            
+
                             returnData.condition.bet.status = 1;
                             consumptionSlipRewardDetail.applyList.forEach(
                                 detail => {
@@ -1748,7 +1952,7 @@ var dbRewardEvent = {
 
                         let retRewardData = dbPlayerReward.applyRetentionRewardParamLevel(eventData, applyAmount, selectedRewardParam, null, null, rewardSpecificData[3]);
 
-                        returnData.condition.deposit.list = dbPlayerReward.getRetentionRewardList(returnData, rewardData, eventData, selectedRewardParam, rewardSpecificData[3], retRewardData, todayHasApplied);
+                        returnData.condition.deposit.list = dbPlayerReward.getRetentionRewardList(returnData, rewardData, eventData, selectedRewardParam, rewardSpecificData[3], retRewardData, todayHasApplied, playerRetentionRecord);
 
                         // if today has applied/received reward -> skip the following checking
                         // if returnData.condition.deposit.status != 1 meaning it is already failed to fulfill the top up requirment, so no need to go thru the checking
@@ -2343,12 +2547,13 @@ var dbRewardEvent = {
         return dbconfig.collection_rewardEvent.find(query).populate({
             path: "type",
             model: dbconfig.collection_rewardType
-        }).exec();
+        }).sort({updateTime: -1}).exec();
     },
 
     getRewardEventGroup: function (query) {
         return dbconfig.collection_rewardEventGroup.find(query).lean().then(
             groupData => {
+                groupData.unshift({name: "已结束优惠组*"});
                 groupData.unshift({name: "默认组别*"});
                 return groupData;
             }
@@ -2361,11 +2566,204 @@ var dbRewardEvent = {
      * @param {Json} updateData
      */
     updateRewardEvent: function (query, updateData) {
-        return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData).exec();
+        updateData.updateTime = new Date();
+        let updateProm;
+        let rewardList;
+        let platformObjId;
+        let param;
+        let rewardEventType;
+
+        return dbconfig.collection_rewardEvent.findOne(query, {type: 1, platform: 1, param: 1}).lean().then(
+            event => {
+                let eventTypeProm = Promise.resolve();
+                if (event && event.type){
+                    platformObjId = event.platform;
+                    param = event.param;
+                    eventTypeProm = dbconfig.collection_rewardType.findOne({_id: ObjectId(event.type)}).lean()
+                }
+
+                return eventTypeProm
+            }
+        ).then(
+            rewardType => {
+                if(!rewardType){
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error finding reward event type",
+                    })
+                }
+
+                rewardEventType = rewardType;
+                if (platformObjId && rewardType && rewardType.name && rewardType.name == constRewardType.PLAYER_RANDOM_REWARD_GROUP){
+
+                    if(param && param.rewardParam && param.rewardParam[0] && param.rewardParam[0].value && param.rewardParam[0].value.length){
+                        param = param.rewardParam[0].value.filter(p => (p.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_C) &&
+                            Number.isFinite(p.possibility) && p.templateObjId && p.title)
+                    }
+
+                    rewardList = updateData && updateData.param && updateData.param.rewardParam && updateData.param.rewardParam[0] && updateData.param.rewardParam[0].value && updateData.param.rewardParam[0].value.length ? updateData.param.rewardParam[0].value: null;
+
+                    if (rewardList && rewardList.length){
+                        return checkAndUpdatePromoCodeTemplate (rewardList, platformObjId, param, query._id)
+                    }
+                }
+                return true
+            }
+        ).then(
+            retData => {
+                if (retData && retData.length && retData[1] && retData[1].length && rewardList && rewardList.length){
+                    let promoCodeTemplate = retData[1];
+
+                    rewardList.map(reward => {
+                        if (reward && reward.title) {
+                            let index = promoCodeTemplate.findIndex(template => template.templateName == reward.title)
+
+                            if (index != -1) {
+                                reward.templateObjId = promoCodeTemplate[index].templateObjId;
+                                reward.rewardEvent = query._id || null;
+                            }
+                        }
+                        return reward
+                    })
+                }
+
+                return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData).exec();
+            }
+        ).catch(
+            err => {
+                // if there is error happened when updating the playerRandomRewardGroup event, delete the generated promo code template
+                let templateProm = [];
+                let createTime = new Date(new Date().getTime() - 1000*60)
+
+                if (platformObjId && rewardEventType && rewardEventType.name && rewardEventType.name == constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+                    let rewardParam = updateData && updateData.param && updateData.param.rewardParam && updateData.param.rewardParam[0] && updateData.param.rewardParam[0].value && updateData.param.rewardParam[0].value.length ? updateData.param.rewardParam[0].value : null;
+                    if (rewardParam && rewardParam.length) {
+                        rewardParam = rewardParam.filter(p => (p.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_C) &&
+                            Number.isFinite(p.possibility) && !p.templateObjId && p.title)
+
+                        if (rewardParam && rewardParam.length) {
+                            rewardParam.forEach(
+                                reward => {
+                                    templateProm.push(dbconfig.collection_promoCodeTemplate.findOneAndUpdate({
+                                        name: reward.title,
+                                        platformObjId: platformObjId,
+                                        createTime: {$gte: createTime, $lte: new Date()}
+                                    }, {isDeleted: true}))
+                                }
+                            )
+                        }
+                    }
+                }
+
+                return Promise.all(templateProm).then(
+                    () => {
+                        return Promise.reject({
+                            name: "DBError",
+                            message: "Error when creating reward event",
+                            error: err
+                        })
+                    }
+                )
+            }
+        )
+
+        function checkAndUpdatePromoCodeTemplate (rewardList, platformObjId, existingParam, rewardId){
+            let updatePromoCodeTemplateProm = [];
+            let savePromoCodeTemplateProm = [];
+            let deletePromoCodeTemplateProm = [];
+
+            rewardList.forEach(
+                row => {
+                    if ((row.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT || row.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT || row.rewardType == constRandomRewardType.PROMOCODE_C) &&
+                        Number.isFinite(row.possibility) && row.title){
+
+                        if (row.templateObjId){
+                            updatePromoCodeTemplateProm.push(updatePromoCodeTemplate(row))
+                        }
+                        else{
+                            let obj = dbRewardEvent.setPromoCodeTemplateObj(row, platformObjId);
+                            if (rewardId) {
+                                obj.rewardEvent = rewardId;
+                            }
+                            savePromoCodeTemplateProm.push(new dbconfig.collection_promoCodeTemplate(obj).save().then(
+                                data => {
+                                    return {
+                                        templateName: data.name,
+                                        templateObjId: data._id
+                                    };
+                                }
+                            ))
+                        }
+                    }
+                }
+            );
+
+            // check if existing promo code template has been removed, update the status to be deleted if removed
+            let newList = rewardList.filter( p => (p.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT || p.rewardType == constRandomRewardType.PROMOCODE_C) &&
+                Number.isFinite(p.possibility) && p.templateObjId && p.title)
+
+            existingParam.forEach(
+                param => {
+                    let index = newList.findIndex( i => i.title == param.title);
+                    if (index == -1){
+                        deletePromoCodeTemplateProm.push(dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: param.templateObjId}, {isDeleted: true}).lean())
+                    }
+                }
+            )
+
+            return Promise.all([Promise.all(updatePromoCodeTemplateProm), Promise.all(savePromoCodeTemplateProm), Promise.all(deletePromoCodeTemplateProm)])
+        }
+
+        function updatePromoCodeTemplate (data){
+            let allowedProviderList = [];
+            if (data.providerGroup){
+                allowedProviderList.push(ObjectId(data.providerGroup));
+            }
+            let updateObj = {
+                allowedProviders: allowedProviderList,
+                name: data.title,
+                isSharedWithXIMA: data.isSharedWithXIMA,
+                isProviderGroup: true,
+                genre: constPromoCodeTemplateGenre.RANDOM_REWARD,
+                expiredInDay: data.expiredInDay,
+                disableWithdraw: data.disableWithdraw,
+                // minTopUpAmount: data.minTopUpAmount,
+                // createTime: new Date ()
+            }
+
+            if (data.forbidWithdrawIfBalanceAfterUnlock) {
+                updateObj.forbidWithdrawIfBalanceAfterUnlock = (data.forbidWithdrawIfBalanceAfterUnlock && data.forbidWithdrawIfBalanceAfterUnlock != '') ? Number(data.forbidWithdrawIfBalanceAfterUnlock) : null;
+            }
+
+            if (data.rewardType == constRandomRewardType.PROMOCODE_C){
+                updateObj.amount = data.amountPercent*100;
+                updateObj.minTopUpAmount = data.minTopUpAmount;
+                updateObj.maxRewardAmount = data.maxRewardAmount;
+                updateObj.requiredConsumption = data.requiredConsumptionDynamic;
+                updateObj.type = 3; // dynamic case
+            }
+            else if (data.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT){
+                updateObj.amount = data.amount;
+                updateObj.requiredConsumption = data.requiredConsumptionFixed;
+                updateObj.minTopUpAmount = data.minTopUpAmount;
+                updateObj.type = 1; // with top up requirement + fixed reward amount
+            }
+            else if (data.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT){
+                updateObj.amount = data.amount;
+                updateObj.requiredConsumption = data.requiredConsumptionFixed;
+                updateObj.type = 2; // with top up requirement + fixed reward amount
+            }
+
+            return dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: ObjectId(data.templateObjId)}, updateObj).lean()
+        }
     },
 
     updateRewardEventGroup: function (query, updateData) {
         return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).exec();
+    },
+
+    updateExpiredRewardEventToGroup: function (query, updateData) {
+        return dbconfig.collection_rewardEventGroup.update(query, updateData, {multi: true}).exec();
     },
 
     /**
@@ -2674,12 +3072,66 @@ var dbRewardEvent = {
             }
         );
     },
-
+    assignRandomRewardToUser: function (randomRewards, platformId, reward, creator) {
+        let proms = [];
+        randomRewards.forEach( randomReward => {
+            let prom = dbconfig.collection_players.findOne({ name:randomReward.playerName, platform:platformId }).lean().then(
+                        data=> {
+                            if (data) {
+                                let rewardData = {
+                                    platformId: platformId,
+                                    rewardEvent: reward,
+                                    randomReward: randomReward.rewardName,
+                                    creator: creator ? creator : {},
+                                    playerId: data._id,
+                                    status: 1
+                                }
+                                return dbconfig.collection_playerRandomReward(rewardData).save();
+                            }
+                        })
+            proms.push(prom);
+        })
+        return Promise.all(proms);
+    },
+    editRandomRewardToUser: function (randomRewards, platformId, reward, creator) {
+        let proms = [];
+        randomRewards.forEach( randomReward => {
+            let prom = dbconfig.collection_players.findOne({ name:randomReward.playerName, platform:platformId }).lean().then(
+                        data=> {
+                            if (data) {
+                                let searchQuery = {
+                                    _id: randomReward._id,
+                                    platformId: platformId
+                                };
+                                let rewardData = {
+                                    platformId: platformId,
+                                    rewardEvent: reward,
+                                    randomReward: randomReward.rewardName,
+                                    creator: creator ? creator : {},
+                                    playerId: data._id,
+                                    status: randomReward.status,
+                                    lastEditTime: new Date()
+                                };
+                                return dbconfig.collection_playerRandomReward.findOneAndUpdate( searchQuery, rewardData, { new:true }).lean()
+                            }
+                        })
+            proms.push(prom);
+        })
+        return Promise.all(proms);
+    },
+    getRandomRewardDetail: function (query) {
+        return dbconfig.collection_playerRandomReward.find(query)
+        .populate({path: "playerId", model: dbconfig.collection_players}).lean().then(
+            data => {
+                return data;
+            }
+        )
+    },
     startPlatformRTGEventSettlement: function (platformObjId, eventCode) {
         let applyTargetDate;
 
         let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
- 
+
         let eventProm = dbconfig.collection_rewardEvent.findOne({code: eventCode}).lean();
 
         let rewardTypesProm = dbconfig.collection_rewardType.find({isGrouped: true}).lean();
@@ -2709,6 +3161,11 @@ var dbRewardEvent = {
                         name: "DataError",
                         message: "Error in getting rewardEvent"
                     });
+                }
+
+                if (event.condition && event.condition.interval && event.condition.interval == "6") { // 6 == last month
+                    // for startPlatformRTGEventSettlement only, last month is same with month
+                    event.condition.interval = "4";
                 }
 
                 let settleTime =  getIntervalPeriodFromEvent(event, getIntervalPeriodFromEvent(event).startTime.setMinutes(getIntervalPeriodFromEvent(event).startTime.getMinutes() - 10));

@@ -1,0 +1,104 @@
+include ./partner-setting-platform-select
+div(ng-if="vm.platformInSetting && checkViewPermission('Partner', 'Config', 'PartnerBasic')")
+    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+        thead
+            tr
+                th {{'NAME' | translate}}
+                th {{'VALUE' | translate}}
+        tbody
+            tr
+                td {{'partnerNameMaxLength' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerNameMaxLength}}
+                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerNameMaxLength')
+            tr
+                td {{'partnerNameMinLength' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerNameMinLength}}
+                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerNameMinLength')
+            tr
+                td {{'partnerPasswordMaxLength' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerPasswordMaxLength}}
+                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerPasswordMaxLength')
+            tr
+                td {{'partnerPasswordMinLength' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerPasswordMinLength}}
+                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerPasswordMinLength')
+            tr
+                td {{'partnerPrefix' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerPrefix}}
+                    input(type='text', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerPrefix')
+            tr
+                td {{'partnerCreatePlayerPrefix' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerCreatePlayerPrefix}}
+                    input(type='text', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerCreatePlayerPrefix')
+            tr
+                td {{'partnerAllowSamePhoneNumberToRegister' | translate}}
+                td
+                    input(type='checkbox', ng-model='vm.partnerBasic.partnerAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
+            tr
+                td {{'partnerSamePhoneNumberRegisterCount' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerSamePhoneNumberRegisterCount}}
+                    input(type='number', ng-show='vm.configTableEdit && vm.partnerBasic.partnerAllowSamePhoneNumberToRegister', min=1, ng-model='vm.partnerBasic.partnerSamePhoneNumberRegisterCount')
+            tr
+                td {{'partnerSameBankAccountCount' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerSameBankAccountCount}}
+                    input(type='number', ng-show='vm.configTableEdit', min=1, ng-model='vm.partnerBasic.partnerSameBankAccountCount')
+            tr
+                td {{'partnerAllowSameRealNameToRegister' | translate}}
+                td
+                    input(type='checkbox', ng-model='vm.partnerBasic.partnerAllowSameRealNameToRegister', ng-disabled='!vm.configTableEdit')
+            tr
+                td {{'partnerRequireSMSVerification' | translate}}
+                td
+                    input(type='checkbox', ng-model='vm.partnerBasic.partnerRequireSMSVerification', ng-disabled='!vm.configTableEdit')
+            tr
+                td {{'partnerRequireSMSVerificationForPasswordUpdate' | translate}}
+                td
+                    input(type='checkbox', ng-model='vm.partnerBasic.partnerRequireSMSVerificationForPasswordUpdate', ng-disabled='!vm.configTableEdit')
+            tr
+                td {{'partnerRequireSMSVerificationForPaymentUpdate' | translate}}
+                td
+                    input(type='checkbox', ng-model='vm.partnerBasic.partnerRequireSMSVerificationForPaymentUpdate', ng-disabled='!vm.configTableEdit')
+            tr
+                td {{'partnerSmsVerificationExpireTime' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerSmsVerificationExpireTime}}
+                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerSmsVerificationExpireTime')
+            tr
+                td {{'partnerRequireLogInCaptcha' | translate}}
+                td
+                    input(type='checkbox', ng-model='vm.partnerBasic.partnerRequireLogInCaptcha', ng-disabled='!vm.configTableEdit')
+            tr
+                td {{'partnerRequireCaptchaInSMS' | translate}}
+                td
+                    input(type='checkbox', ng-model='vm.partnerBasic.partnerRequireCaptchaInSMS', ng-disabled='!vm.configTableEdit')
+            tr
+                td {{'partnerUsePhoneNumberTwoStepsVerification' | translate}}
+                td
+                    text {{'NULL' | translate}}
+                    //input(type='checkbox', ng-model='vm.partnerBasic.partnerUsePhoneNumberTwoStepsVerification', ng-disabled='!vm.configTableEdit')
+            tr
+                td {{'partnerUnreadMailMaxDuration' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerUnreadMailMaxDuration}}
+                    input(type='number', ng-show='vm.configTableEdit', min=1, ng-model='vm.partnerBasic.partnerUnreadMailMaxDuration')
+            tr
+                td {{'partnerDefaultCommissionGroup' | translate}}
+                td
+                    text(ng-show='!vm.configTableEdit') {{vm.partnerCommissionName() | translate}}
+                    select.form-control(style = 'max-width:80%; margin-left:10%' ng-show="vm.configTableEdit", ng-model="vm.partnerBasic.partnerDefaultCommissionGroup")
+                        option(ng-repeat='(i,j) in vm.constPartnerCommisionType', value= '{{j}}') {{i | translate}}
+            br
+    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+        text {{'EDIT' | translate}}
+        img.img-edit
+    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("partnerBasic")') {{"CANCEL" | translate}}
+    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("partnerBasic")') {{"CONFIRM" | translate}}
+

@@ -20,6 +20,7 @@ var DxMissionServiceImplement = require("./serviceImplements/client/DXServiceImp
 var WCGroupControlServiceImplement = require("./serviceImplements/client/WCGroupControlServiceImplement");
 var AuctionServiceImplement = require("./serviceImplements/client/AuctionServiceImplement");
 var SmsServiceImplement = require("./serviceImplements/client/SmsServiceImplement");
+var OtherServiceImplement = require("./serviceImplements/others/otherServicesImplement");
 var dbPlatform = require("./db_modules/dbPlatform");
 var ebetRTN = require("./modules/ebetRTN");
 var errorUtils = require("./modules/errorUtils.js");
@@ -39,12 +40,12 @@ var ClientAPIServer = serviceUtils.buildWSServer(
         TopUpIntentionServiceImplement, PlayerLevelServiceImplement, ConnectionServiceImplement,
         RewardServiceImplement, RewardPointsServiceImplement, GameServiceImplement,
         ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement,
-        DxMissionServiceImplement, WCGroupControlServiceImplement, AuctionServiceImplement, SmsServiceImplement
+        DxMissionServiceImplement, WCGroupControlServiceImplement, AuctionServiceImplement, SmsServiceImplement, OtherServiceImplement
     ],
     process.env.USE_SSL
 );
 
-// ebetRTN.connect(5).catch(errorUtils.reportError);
+ebetRTN.connect(5).catch(errorUtils.reportError);
 
 var server = new ClientAPIServer(process.env.PORT || 9280);
 server._needAuth = true;

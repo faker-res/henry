@@ -95,9 +95,6 @@
 
             //define functions
             var functionNames = [
-                //"requestManualBankCard",
-                //"requestOnlineMerchant",
-                "modifyManualTopupRequest",
                 "setProposalIdToOnlineMerchantRequest",
                 "setProposalIdToManualTopupRequest"
             ];

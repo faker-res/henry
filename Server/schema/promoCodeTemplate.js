@@ -32,6 +32,8 @@ let promoCodeTemplateSchema = new Schema({
     type: {type: Number},
     // Reward amount shared with XIMA
     isSharedWithXIMA: {type: Boolean, default: true},
+    // forbid withdraw if there is certain amount of balance after unlock
+    forbidWithdrawIfBalanceAfterUnlock: {type: Number},
     // created time
     createTime: {type: Date, default: Date.now, index: true},
     // Promo Code Accept Time
@@ -51,7 +53,9 @@ let promoCodeTemplateSchema = new Schema({
     // remark
     remark: {type: String},
     // category: 1: general; 2: for auction system
-    genre: {type: Number, index: true}
+    genre: {type: Number, index: true},
+    // Event Object Id
+    rewardEvent : {type: Schema.ObjectId, ref: 'rewardEvent'}
 
 });
 

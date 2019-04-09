@@ -1,6 +1,8 @@
 const constProposalStatus = require('./../const/constProposalStatus');
-
+var dbUtility = require('./../modules/dbutility');
+var constRewardType = require("./../const/constRewardType");
 const dbConfig = require('./../modules/dbproperties');
+const rsaCrypto = require('./../modules/rsaCrypto');
 
 const dbProposalUtility = {
     getProposalDataOfType: (platformObjId, proposalType, proposalQuery, fields = {}) => {
@@ -14,6 +16,22 @@ const dbProposalUtility = {
                 return dbConfig.collection_proposal.find(proposalQuery, fields).populate(
                     {path: "process", model: dbConfig.collection_proposalProcess}
                 ).lean();
+            }
+        )
+    },
+
+    // check the next proposal (either top up or withdrawal) after applying promo code
+    getNextProposalRecord: (platformObjId, proposalType, proposalQuery) => {
+        return dbConfig.collection_proposalType.findOne({
+            platformId: platformObjId,
+            name: proposalType
+        }).lean().then(
+            proposalType => {
+                if (proposalType && proposalType._id) {
+                    proposalQuery.$or = [{type: proposalType._id}, {mainType: "TopUp"}];
+
+                    return dbConfig.collection_proposal.findOne(proposalQuery).lean();
+                }
             }
         )
     },
@@ -102,20 +120,40 @@ const dbProposalUtility = {
     // region Proposal check
 
     // check reward apply restriction on ip, phone and IMEI
-    checkRestrictionOnDeviceForApplyReward: (intervalTime, player, rewardEvent) => {
+    checkRestrictionOnDeviceForApplyReward: (intervalTime, player, rewardEvent, retentionApplicationDate) => {
+        let intervalTimeForLoginMode3 = null;
+        let matchQuery = {
+            "data.eventId": rewardEvent._id,
+            "status": {$in: [constProposalStatus.APPROVED, constProposalStatus.APPROVE, constProposalStatus.SUCCESS]},
+            $or: [
+                {'data.playerObjId': player._id},
+                {'data.lastLoginIp': player.lastLoginIp},
+                {'data.phoneNumber': player.phoneNumber},
+                {'data.deviceId': player.deviceId},
+            ]
+        };
+
+        //get the interval time for loginMode 3
+        if (retentionApplicationDate) {
+            intervalTimeForLoginMode3 = getIntervalForPlayerLoginMode3(rewardEvent, retentionApplicationDate);
+            console.log("checking intervalTimeForLoginMode3", intervalTimeForLoginMode3)
+        }
+
+        if(rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && rewardEvent.condition
+            && rewardEvent.condition.definePlayerLoginMode && rewardEvent.condition.definePlayerLoginMode == 3 && retentionApplicationDate &&
+            intervalTimeForLoginMode3 && intervalTimeForLoginMode3.endTime > new Date()){
+
+            matchQuery['data.retentionApplicationDate'] = {$gte: intervalTimeForLoginMode3.startTime, $lte: intervalTimeForLoginMode3.endTime};
+        }
+        else{
+            matchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+        }
+
+        console.log('checking matchQuery', matchQuery)
+
         return dbConfig.collection_proposal.aggregate(
             {
-                $match: {
-                    "createTime": {$gte: intervalTime.startTime, $lte: intervalTime.endTime},
-                    "data.eventId": rewardEvent._id,
-                    "status": {$in: [constProposalStatus.APPROVED, constProposalStatus.APPROVE, constProposalStatus.SUCCESS]},
-                    $or: [
-                        {'data.playerObjId': player._id},
-                        {'data.lastLoginIp': player.lastLoginIp},
-                        {'data.phoneNumber': player.phoneNumber},
-                        {'data.deviceId': player.deviceId},
-                    ]
-                }
+                $match: matchQuery
             },
             {
                 $project: {
@@ -186,6 +224,58 @@ const dbProposalUtility = {
                 return resultArr;
             }
         );
+
+        function getIntervalForPlayerLoginMode3 (rewardEvent, retentionApplicationDate) {
+            let startDate = dbUtility.getTargetSGTime(retentionApplicationDate).startTime;
+            let endDate = null;
+            let intervalTime = {};
+
+            if (rewardEvent.condition.interval) {
+                switch (rewardEvent.condition.interval) {
+                    case "2":
+                        endDate = dbUtility.getNdaylaterFromSpecificStartTime(7, startDate);
+                        intervalTime.startTime  = startDate;
+                        intervalTime.endTime = endDate;
+                        break;
+                    case "3":
+                        if (isNewDefineHalfMonth){
+                            endDate = dbUtility.getNdaylaterFromSpecificStartTime(15, startDate);
+                            intervalTime.startTime  = startDate;
+                            intervalTime.endTime = endDate;
+                        }
+                        else{
+                            endDate = dbUtility.getNdaylaterFromSpecificStartTime(14, startDate);
+                            intervalTime.startTime  = startDate;
+                            intervalTime.endTime = endDate;
+                        }
+                        break;
+                    case "4":
+                        endDate = dbUtility.getNdaylaterFromSpecificStartTime(30, startDate);
+                        intervalTime.startTime  = startDate;
+                        intervalTime.endTime = endDate;
+                        break;
+                    case "6":
+                        intervalTime = retentionApplicationDate ? dbUtility.getLastMonthSGTImeFromDate(retentionApplicationDate) : dbUtility.getLastMonthSGTime();
+                        break;
+                    default:
+                        if (rewardEvent.validStartTime && rewardEvent.validEndTime) {
+                            intervalTime = {startTime: rewardEvent.validStartTime, rewardEvent: eventData.validEndTime};
+                        }
+                        break;
+                }
+            }
+
+            if (intervalTime && intervalTime.startTime && intervalTime.endTime){
+                return intervalTime
+            }
+            else{
+                return Promise.reject({
+                    name: "DataError",
+                    message: "cannot get the interval time for player retention reward with login mode = 3"
+                })
+            }
+        }
+
     },
 
     isLastTopUpProposalWithin30Mins: (proposalType, platformObjId, playerObj) => {

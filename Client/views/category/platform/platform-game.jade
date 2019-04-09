@@ -1,7 +1,13 @@
-.col-sm-12(ng-if='!vm.curPlatformText')
+.row
+    .col-sm-12
+        .well.col-xs-12
+            .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.filterGamePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformGameData(vm.filterGamePlatform)')
+.col-sm-12(ng-if='!vm.filterGamePlatform')
     .text-center
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-.row(ng-if='vm.curPlatformText')
+.row(ng-if='vm.filterGamePlatform')
     .col-md-4
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
@@ -263,7 +269,7 @@
                                     label {{"End date" | translate}}
                                     .endTime
             .modal-footer
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitBatchCreditTransferOut();") {{"TRANSFER_OUT" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitBatchCreditTransferOut(vm.filterGamePlatform);") {{"TRANSFER_OUT" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalEditAttachedProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

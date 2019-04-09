@@ -355,6 +355,7 @@ var dbGameProvider = {
                                     providerId: gameProvider.providerId,
                                     name: gameProvider.name,
                                     nickName: gameProvider.nickName,
+                                    chName: gameProvider.chName ? gameProvider.chName : '',
                                     prefix: gameProvider.prefix,
                                     status: gameProviderStatus
                                 };
@@ -628,6 +629,17 @@ var dbGameProvider = {
         }else{
             return dbconfig.collection_gameProvider.find({},{_id: 1, name: 1});
         }
+    },
+
+    getQueryCreditTimeOutRecords: function(platformId, providerId, startTime, endTime) {
+        return dbconfig.collection_queryCreditTimeout.find({
+            platformId: platformId,
+            providerId: providerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lte: new Date(endTime)
+            }
+        }).lean();
     }
 };
 

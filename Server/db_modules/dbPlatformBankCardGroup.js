@@ -6,6 +6,8 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
 const constAccountType = require('../const/constAccountType');
 
+const RESTUtils = require('../modules/RESTUtils');
+
 var dbPlatformBankCardGroup = {
 
     /**
@@ -49,6 +51,7 @@ var dbPlatformBankCardGroup = {
      */
     getPlatformBankCardGroup: function (platformId) {
         let topUpSystemConfig;
+        let curPlatformId;
 
         return dbconfig.collection_platform.findOne({_id:platformId}).lean().then(
             platformData => {
@@ -66,12 +69,9 @@ var dbPlatformBankCardGroup = {
                 }
 
                 topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+                curPlatformId = platformData && platformData.platformId ? platformData.platformId : null;
 
-                return addDefaultBankCardGroup(topUpSystemConfig, platformId).then(
-                    () => {
-                        return dbPlatformBankCardGroup.syncBankCardGroupData(platformData)
-                    }
-                ).then(
+                return dbPlatformBankCardGroup.syncBankCardGroupData(platformData).then(
                     data => {
                         let matchQuery = {
                             platform: platformId
@@ -92,34 +92,6 @@ var dbPlatformBankCardGroup = {
                 )
             }
         )
-
-        function addDefaultBankCardGroup(topUpSystemConfig, platformObjId) {
-            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                return dbconfig.collection_platformBankCardGroup.findOne({platform: platformObjId, isPMS2: {$exists: true}}).lean().then(
-                    pms2BankCardGroupExists => {
-                        if (!pms2BankCardGroupExists) {
-                            let defaultStr = "PMS2DefaultGroup";
-                            let groupData = {
-                                groupId: defaultStr,
-                                name: defaultStr,
-                                code: defaultStr,
-                                displayName: defaultStr,
-                                platform: platformObjId,
-                                isPMS2: true
-                            };
-
-                            let bankCardGroup = new dbconfig.collection_platformBankCardGroup(groupData);
-
-                            return bankCardGroup.save();
-                        } else {
-                            return Promise.resolve(true);
-                        }
-                    }
-                );
-            } else {
-                return Promise.resolve(true);
-            }
-        }
 
     },
 
@@ -209,8 +181,6 @@ var dbPlatformBankCardGroup = {
     },
     getAllBankCard: function(platformId){
         let topUpSystemConfig;
-        let groupName = 'default';
-        let bankCardData;
 
         return dbconfig.collection_platform.findOne({platformId:platformId}).lean().then(
             platformData => {
@@ -232,23 +202,12 @@ var dbPlatformBankCardGroup = {
                         }
                     )
                 } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    let options = {
-                        method: 'POST',
-                        uri: topUpSystemConfig.bankCardListAPIAddr,
-                        body: {
-                            platformId: platformId,
-                            accountType: constAccountType.BANK_CARD
-                        },
-                        json: true
+                    let reqData = {
+                        platformId: platformId,
+                        accountType: constAccountType.BANK_CARD
                     };
 
-                    return rp(options).then(function (data) {
-                        console.log('bankCardListAPIAddr success', data);
-                        return data;
-                    }, error => {
-                        console.log('bankCardListAPIAddr failed', error);
-                        throw error;
-                    });
+                    return RESTUtils.getPMS2Services("postBankCardList", reqData);
                 } else {
                     return pmsAPI.bankcard_getBankcardList(
                         {
@@ -273,22 +232,7 @@ var dbPlatformBankCardGroup = {
                 topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
                 if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    let options = {
-                        method: 'POST',
-                        uri: topUpSystemConfig.bankTypeListAPIAddr,
-                        body: {},
-                        json: true
-                    };
-
-                    return rp(options).then(function (data) {
-                        console.log('bankTypeListAPIAddr success', data);
-                        return data;
-                    }, error => {
-                        console.log('bankTypeListAPIAddr failed', error);
-                        throw error;
-                    });
-                } else {
-                    return pmsAPI.bankcard_getBankTypeList({});
+                    return RESTUtils.getPMS2Services("postBankTypeList", {});
                 }
             }
         );
@@ -369,11 +313,14 @@ var dbPlatformBankCardGroup = {
 
     getZoneList: function (provinceId, cityId) {
         if (!provinceId && !cityId) {
-            return pmsAPI.foundation_getProvinceList({});
+            return RESTUtils.getPMS2Services("postProvinceList", {});
+            // return pmsAPI.foundation_getProvinceList({});
         } else if (provinceId && !cityId) {
-            return pmsAPI.foundation_getCityList({provinceId: provinceId});
+            return RESTUtils.getPMS2Services("postCityList", {provinceId: provinceId});
+            // return pmsAPI.foundation_getCityList({provinceId: provinceId});
         } else if (provinceId && cityId) {
-            return pmsAPI.foundation_getDistrictList({provinceId: provinceId, cityId: cityId});
+            return RESTUtils.getPMS2Services("postDistrictList", {provinceId: provinceId, cityId: cityId});
+            // return pmsAPI.foundation_getDistrictList({provinceId: provinceId, cityId: cityId});
         }
     },
 
@@ -382,13 +329,16 @@ var dbPlatformBankCardGroup = {
         var defer = Q.defer();
         switch (type) {
             case "province":
-                a = pmsAPI.foundation_getProvince({provinceId: data});
+                a = RESTUtils.getPMS2Services("postProvince", {provinceId: data});
+                // a = pmsAPI.foundation_getProvince({provinceId: data});
                 break;
             case "city":
-                a = pmsAPI.foundation_getCity({cityId: data});
+                a = RESTUtils.getPMS2Services("postCity", {cityId: data});
+                // a = pmsAPI.foundation_getCity({cityId: data});
                 break;
             case "district":
-                a = pmsAPI.foundation_getDistrict({districtId: data});
+                a = RESTUtils.getPMS2Services("postDistrict", {districtId: data});
+                // a = pmsAPI.foundation_getDistrict({districtId: data});
                 break;
             default:
         }
@@ -399,7 +349,8 @@ var dbPlatformBankCardGroup = {
             },
             err => {
                 var obj = {};
-                obj[type] = {name: data + type + 'name', id: data};
+                //obj[type] = {name: data + type + 'name', id: data};
+                obj = {name: data + type + 'name', id: data};
                 defer.resolve(obj)
             }
         )
@@ -447,23 +398,12 @@ var dbPlatformBankCardGroup = {
                     topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let options = {
-                            method: 'POST',
-                            uri: topUpSystemConfig.bankCardListAPIAddr,
-                            body: {
-                                platformId: platformId,
-                                accountType: constAccountType.BANK_CARD
-                            },
-                            json: true
+                        let reqData = {
+                            platformId: platformId,
+                            accountType: constAccountType.BANK_CARD
                         };
 
-                        return rp(options).then(function (data) {
-                            console.log('bankCardListAPIAddr success', data);
-                            return data;
-                        }, error => {
-                            console.log('bankCardListAPIAddr failed', error);
-                            throw error;
-                        });
+                        return RESTUtils.getPMS2Services("postBankCardList", reqData);
                     }
                     else {
                         return pmsAPI.bankcard_getBankcardList(
@@ -659,15 +599,62 @@ var dbPlatformBankCardGroup = {
         );
     },
 
-    getUserPaymentGroup: function (platformId, playerName) {
+    getUserPaymentGroup: function (platformId, playerName, topUpSystemType, accountType) {
         // debug param, todo :: remove later
         // platformId = "100";
         // playerName = "111";
-        return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
-            data => {
-                return data;
-            }
-        );
+        let topUpSystemConfig;
+        let type;
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        switch (accountType) {
+            case "1":
+                type = constAccountType.BANK_CARD;
+                break;
+            case "2":
+                type = constAccountType.ALIPAY;
+                break;
+            case "3":
+                type = constAccountType.WECHAT;
+                break;
+            case "4":
+                type = constAccountType.ONLINE;
+                break;
+        }
+
+        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            let options = {
+                platformId: platformId,
+                userName: playerName,
+                accountType: type
+            };
+
+            return RESTUtils.getPMS2Services("postPaymentGroupByPlayer", options);
+        } else {
+            return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
+                data => {
+                    return data;
+                }
+            );
+        }
+    },
+
+    getPMSBankCardGroup: function (platformId, topUpSystemType) {
+        let topUpSystemConfig;
+
+        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+
+        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+            let type = constAccountType.BANK_CARD;
+
+            let options = {
+                platformId: platformId,
+                accountType: type
+            };
+
+            return RESTUtils.getPMS2Services("postPaymentGroup", options);
+        }
     },
 
 };

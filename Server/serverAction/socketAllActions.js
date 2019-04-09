@@ -33,7 +33,6 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionPlayerMail'),
     require('./../socketActionModule/socketActionReport'),
     require('./../socketActionModule/socketActionTestRewardEvent'),
-    require('./../socketActionModule/socketActionQuickPayGroup'),
     require('./../socketActionModule/socketActionUtility'),
     require('./../socketActionModule/socketActionPromoCode'),
     require('./../socketActionModule/socketActionCsOfficer'),
@@ -51,6 +50,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionLargeWithdrawal'),
     require('./../socketActionModule/socketActionWCGroupControl'),
     require('./../socketActionModule/socketActionAuction'),
+    require('./../socketActionModule/socketActionWinnerMonitor'),
 ];
 
 var socketActions = [

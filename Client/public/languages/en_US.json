@@ -1268,6 +1268,12 @@
   "AuctionRewardPromotion": "Auction Reward Promotion",
   "AuctionRealPrize": "Auction Real Prize",
   "AuctionRewardPointChange": "Auction Reward Point Change",
+  "PRODUCT_NAME": "Product Name",
+  "ADD_REASON_CANCEL_PROPOSAL": "Add reason to cancel this proposal",
+  "ADD_REASON_REJECT_PROPOSAL": "Add reason to reject this proposal",
+  "ADD_REASON_REJECT_MULTIPLE_PROPOSAL": "Add reason to reject multiple proposal",
+  "cancelRemark": "Reason to cancel proposal",
+  "rejectRemark": "Reason to reject proposal",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",
@@ -1670,6 +1676,10 @@
   "IP_DOMAIN_UNIQUE_ANALYSIS_EXPLAIN": "",
 
   "DOMAIN_VISIT_AMOUNT": "Domain Visit Rate",
+  "WINNING_AMOUNT": "Winning Amount",
+
+  "WINNER_MONITOR": "Winner Monitor",
+  "WITHIN_N_HOURS": "Within N Hours",
 
   "CALL_PERMISSION": "Call Permission",
   "SMS_CHANNEL": "SMS Channel",
@@ -1779,5 +1789,8 @@
   "SUBMIT_TO_APPROVED": "（SUBMIT ～ APPROVED）",
   "APPROVED_TO_SUCCESS": "（APPROVED ～ SUCCESS）",
   "SUBMIT_TO_SUCCESS": "（SUBMIT ～ SUCCESS）",
-  "topUpSystemName": "Financial（Settlement）System"
+  "topUpSystemName": "Financial（Settlement）System",
+  "PAYMENT_MONITOR_REPORT": "Payment Monitor Report",
+  "LOCKED_ADMIN": "Locked Admin",
+  "WEBSITE_MULTI_SELECTION": "Website（Multiple Selection）"
 }

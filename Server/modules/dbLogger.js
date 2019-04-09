@@ -16,6 +16,7 @@ const constSMSPurpose = require('../const/constSMSPurpose');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var localization = require("../modules/localization");
 const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
+const RESTUtils = require('../modules/RESTUtils');
 
 var dbLogger = {
 
@@ -140,10 +141,11 @@ var dbLogger = {
                     return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[1]}, {name: 1});
                 }else if(adminActionRecordData.action == 'applyRewardEvent' && adminActionRecordData.data[1] && adminActionRecordData.data[2]){
                     let returnedData = {};
-                    return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[1]}, {name: 1}).then(
+                    return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[1]}, {name: 1, platform: 1}).then(
                         playerName => {
                             if(playerName && playerName.name){
                                 returnedData.playerName = playerName.name;
+                                returnedData.platformObjId = playerName.platform;
                             }
 
                             return dbconfig.collection_rewardEvent.findOne({code: adminActionRecordData.data[2]}, {name: 1});
@@ -392,9 +394,7 @@ var dbLogger = {
                     let action = adminActionRecordData.data[1].status == 1 ? "启用" : "维护";
                     adminActionRecordData.error = "设置" + data.provider.name + action;
                     adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platform ? adminActionRecordData.data[0].platform : adminActionRecordData.platforms;
-                }else if (logAction == 'requestClearProposalLimit' && adminActionRecordData.data[0] && adminActionRecordData.data[0].username){
-                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].username;
-                }else if ((logAction == 'updatePlayerPermission' || logAction == 'updatePartnerPermission')
+                } else if ((logAction == 'updatePlayerPermission' || logAction == 'updatePartnerPermission')
                     && data && (data.name || data.partnerName) && Object.keys(adminActionRecordData.data[2]).length){
                     let permissionChange = '';
                     let name = logAction == 'updatePlayerPermission' ? data.name : data.partnerName;
@@ -718,7 +718,7 @@ var dbLogger = {
                     adminActionRecordData.platforms = adminActionRecordData.data[7] ? adminActionRecordData.data[7] : adminActionRecordData.platforms;
                 }else if(logAction == 'applyRewardEvent'){
                     adminActionRecordData.error = '优惠: ' + data.rewardName+ ' 会员帐号： ' + data.playerName;
-                    adminActionRecordData.platforms = adminActionRecordData.data[6] ? adminActionRecordData.data[6] : adminActionRecordData.platforms;
+                    adminActionRecordData.platforms = data.platformObjId ? data.platformObjId : adminActionRecordData.platforms;
                 }else if(logAction == 'createPlayerRewardTask' && adminActionRecordData.data[0].playerName && adminActionRecordData.data[0].platformId){
                     adminActionRecordData.error = ' 会员帐号： ' + adminActionRecordData.data[0].playerName + "; 提案号： " + resultData.proposalId || "";
                     adminActionRecordData.platforms = adminActionRecordData.data[0].platformId ? adminActionRecordData.data[0].platformId : adminActionRecordData.platforms;
@@ -888,12 +888,14 @@ var dbLogger = {
         index = index || 0;
         limit = Math.min(limit, constSystemParam.MAX_RECORD_NUM);
         sortCol = sortCol || {};
-        var a = dbconfig.collection_creditChangeLog
+
+        let a = dbconfig.collection_creditChangeLog
             .find(query)
             .populate({path: "playerId", model: dbconfig.collection_players})
-            .sort(sortCol).skip(index).limit(limit).exec();
-        var b = dbconfig.collection_creditChangeLog.find(query).count();
-        var c = dbconfig.collection_creditChangeLog.aggregate(
+            .populate({path: "platformId", model: dbconfig.collection_platform})
+            .sort(sortCol).skip(index).limit(limit).lean();
+        let b = dbconfig.collection_creditChangeLog.find(query).count();
+        let c = dbconfig.collection_creditChangeLog.aggregate(
             {
                 $match: query
             },
@@ -1172,6 +1174,15 @@ var dbLogger = {
         var finalResult = [];
 
         function getAddr(each) {
+            if (each.bankAccountProvince2 || each.bankAccountProvince3) {
+                each.bankAccountProvince = each.bankAccountProvince2 || each.bankAccountProvince3;
+            }
+            if (each.bankAccountCity2 || each.bankAccountCity3) {
+                each.bankAccountCity = each.bankAccountCity2 || each.bankAccountCity3;
+            }
+            if (each.bankAccountDistrict2 || each.bankAccountDistrict3) {
+                each.bankAccountDistrict = each.bankAccountDistrict2 || each.bankAccountDistrict3;
+            }
             var collectionName = '';
             var returnData = Object.assign({}, each);
             if (each.creatorType == constProposalUserType.PLAYERS) {
@@ -1180,14 +1191,23 @@ var dbLogger = {
                 collectionName = "collection_admin";
             }
             var a = collectionName ? dbconfig[collectionName].findOne({_id: each.creatorObjId}) : null;
-            var b = each.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: each.bankAccountProvince}).then(data => {
-                return data && data.province ? data.province.name : each.bankAccountProvince;
+            // var b = each.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: each.bankAccountProvince}).then(data => {
+            //     return data && data.province ? data.province.name : each.bankAccountProvince;
+            // }) : null;
+            var b = each.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: each.bankAccountProvince}).then(data => {
+                return data && data.data ? data.data.name : each.bankAccountProvince;
             }) : null;
-            var c = each.bankAccountCity ? pmsAPI.foundation_getCity({cityId: each.bankAccountCity}).then(data => {
-                return data && data.city ? data.city.name : each.bankAccountCity;
+            // var c = each.bankAccountCity ? pmsAPI.foundation_getCity({cityId: each.bankAccountCity}).then(data => {
+            //     return data && data.city ? data.city.name : each.bankAccountCity;
+            // }) : null;
+            var c = each.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: each.bankAccountCity}).then(data => {
+                return data && data.data ? data.data.name : each.bankAccountCity;
             }) : null;
-            var d = each.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: each.bankAccountDistrict}).then(data => {
-                return data && data.district ? data.district.name : each.bankAccountDistrict;
+            // var d = each.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: each.bankAccountDistrict}).then(data => {
+            //     return data && data.district ? data.district.name : each.bankAccountDistrict;
+            // }) : null;
+            var d = each.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: each.bankAccountDistrict}).then(data => {
+                return data && data.data ? data.data.name : each.bankAccountDistrict;
             }) : null;
             return Q.all([a, b, c, d]).then(newData => {
                 if (each.source == constProposalEntryType.ADMIN) {

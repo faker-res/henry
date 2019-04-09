@@ -759,10 +759,40 @@
         this.playerService.getReceiveTransferList.once(callback);
     };
 
+    proto.updateDeviceId = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updateDeviceId.request(data);
+        this.playerService.updateDeviceId.once(callback);
+    };
+
+    proto.generateUpdatePasswordToken = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.generateUpdatePasswordToken.request(data);
+        this.playerService.generateUpdatePasswordToken.once(callback);
+    };
+
+    proto.updatePasswordWithToken = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePasswordWithToken.request(data);
+        this.playerService.updatePasswordWithToken.once(callback);
+    };
+
     proto.playerLoginOrRegisterWithSMS = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.playerLoginOrRegisterWithSMS.request(data);
         this.playerService.playerLoginOrRegisterWithSMS.once(callback);
+    };
+
+    proto.phoneNumberLoginWithPassword = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.phoneNumberLoginWithPassword.request(data);
+        this.playerService.phoneNumberLoginWithPassword.once(callback);
+    };
+
+    proto.getBindBankCardList = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.getBindBankCardList.request(data);
+        this.playerService.getBindBankCardList.once(callback);
     };
 
     if (isNode) {

@@ -1,5 +1,5 @@
 .row.padding-left-right-5(ng-show="checkViewPermission('TeleMarketing')")
-    #marketingContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
+    #marketingContent(style="padding-left:0;" ng-class='vm.rightPanelClass')
         .col-md-12
             button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'phoneNumFilter', 'Read')" ng-class='{active: vm.selectedTab === "NEW_PHONE_LIST"}', ng-click='vm.loadTab("NEW_PHONE_LIST")' title='过滤，导入白名单到系统当中')
                 span {{"NEW_PHONE_LIST" | translate}}
@@ -261,7 +261,7 @@
                                             td(colspan=2)
                                                 .text-center
                                                     button.btn.btn-danger.margin-right-5(ng-click='vm.tsPhoneAddFeedback.content="";vm.tsPhoneAddFeedback.result="";vm.tsPhoneAddFeedback.topic="";') {{'Reset' | translate}}
-                                                    button.btn.btn-success(data-dismiss='modal' ng-disabled="!vm.tsPhoneAddFeedback.result || !vm.tsPhoneAddFeedback.topic || !vm.tsPhoneAddFeedback.content", ng-click='vm.addTsPhoneFeedback(vm.tsPhoneAddFeedback)') {{'CONFIRM' | translate}}
+                                                    button.btn.btn-success(data-dismiss='modal' ng-disabled="!vm.tsPhoneAddFeedback.result || !vm.tsPhoneAddFeedback.topic", ng-click='vm.addTsPhoneFeedback(vm.tsPhoneAddFeedback)') {{'CONFIRM' | translate}}
 
 #modalTsPhoneFeedbackHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:65%')
@@ -506,7 +506,7 @@
                                         td
                                             i.fa.fa-plus(ng-click="vm.addAssignee();vm.checkUpdateTsAssignee()")
                                         td
-                                            select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.adminList' ng-model='vm.selectedAssignees' multiple data-actions-box='true')
+                                            select.spicker.form-control(ng-options='admin.adminName as admin.adminName group by admin.departmentName for admin in vm.adminList' ng-model='vm.selectedAssignees' multiple data-actions-box='true')
                                         td
                                             input(id="new-execute-distribute-on" type="radio", name="new-execute-distribution", value="1" ng-model="vm.newAssigneesExecuteStatus")
                                             label.radio-space(for="new-execute-distribute-on" style="font-weight: normal;") {{"Open" | translate}}

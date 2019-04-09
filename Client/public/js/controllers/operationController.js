@@ -2,9 +2,9 @@
 
 define(['js/app'], function (myApp) {
 
-    var injectParams = ['$sce', '$scope', '$filter', '$compile', '$location', '$log', 'socketService', 'authService', 'utilService', '$translate', 'CONFIG', "$cookies","commonService"];
+    var injectParams = ['$sce', '$scope', '$filter', '$compile', '$location', '$log', 'socketService', 'authService', 'utilService', '$translate', 'CONFIG', "$cookies","$timeout","commonService"];
 
-    var operationController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, $translate, CONFIG, $cookies, commonService) {
+    var operationController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, $translate, CONFIG, $cookies, $timeout, commonService) {
         var $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let $fixTwoDecimalStr = (value) => {
@@ -102,8 +102,9 @@ define(['js/app'], function (myApp) {
         //get all operation data from server
         vm.selectPlatform = function (id) {
             vm.newProposalNum = 0;
-            vm.operSelPlatform = false;
             vm.allPlatformId = [];
+            vm.queryProposalSelectedPlatform = [];
+            vm.queryProposalAuditSelectedPlatform = [];
 
             $.each(vm.platformList, function (i, v) {
                 if (v._id == id) {
@@ -133,6 +134,7 @@ define(['js/app'], function (myApp) {
             // vm.getNewAccountProposal().done();
             vm.getProposalTypeByPlatformId(vm.allPlatformId).then(() => {
                 vm.renderMultipleSelectDropDownList('select#selectProposalType');
+                vm.proposalTypeClicked("total");
                 vm.renderMultipleSelectDropDownList('select#selectProposalAuditType');
             });
             vm.getPlatformProviderGroup();
@@ -167,7 +169,6 @@ define(['js/app'], function (myApp) {
             });
             dropDownElement.multipleSelect("refresh");
             dropDownElement.multipleSelect("checkAll");
-            vm.proposalTypeClicked("total");
         };
 
         vm.setUpRewardMultiSelect = () => {
@@ -214,18 +215,37 @@ define(['js/app'], function (myApp) {
 
             vm.queryProposalIdUpdate();
 
+            vm.queryProposalSelectedPlatform = [];
+            vm.queryProposalAuditSelectedPlatform = [];
+            vm.queryProposalAuditId = "";
             vm.queryProposalEntryType = "";
             vm.queryProposalMinCredit = "";
             vm.queryProposalMaxCredit = "";
             vm.queryProposalRelatedUser = "";
 
-            let platformId = vm.selectedPlatform === "_allPlatform" ? "_allPlatform" : vm.selectedPlatform._id;
-            vm.selectPlatform(platformId);
+            // let platformId = vm.selectedPlatform === "_allPlatform" ? "_allPlatform" : vm.selectedPlatform._id;
+            // vm.selectPlatform(platformId);
 
+            vm.allTopUpIntentionString = null;
+            vm.allNewAccountString = null;
+            vm.allProposalString = null;
             vm.initQueryPara();
             vm.dateRange = "";
 
-            $scope.safeApply();
+            Promise.resolve()
+                .then(vm.setUpRewardMultiSelect)
+                .then(vm.setUpPromoCodeMultiSelect)
+                .then(
+                    () => {
+                        if (vm.rightPanelTitle == "APPROVAL_PROPOSAL") {
+                            vm.renderMultipleSelectDropDownList('select#selectProposalAuditType');
+                        } else{
+                            vm.renderMultipleSelectDropDownList('select#selectProposalType');
+                        }
+                        vm.refreshSPicker();
+                    }
+                )
+                .then(vm.proposalTypeClicked(vm.rightPanelTitle == "APPROVAL_PROPOSAL" ? "approval" : "total"));
         };
 
         vm.proposalTypeClicked = function (i, v) {
@@ -469,6 +489,14 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
+            vm.allPlatformId = [];
+            if(!vm.queryProposalSelectedPlatform || vm.queryProposalSelectedPlatform.length < 1){
+                vm.platformList.forEach(platform=>{
+                    vm.allPlatformId.push(platform._id);
+                });
+            } else {
+                vm.allPlatformId = vm.queryProposalSelectedPlatform;
+            }
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
@@ -486,12 +514,15 @@ define(['js/app'], function (myApp) {
                 sortCol: vm.queryProposal.sortCol
             };
 
+            vm.promoTypeListUniqueName = [...new Set(vm.promoTypeList.map(x => x.name))];
+
             let promoType = $('select#selectPromoType').multipleSelect("getSelects");
 
-            if (vm.promoTypeList.length != promoType.length) {
-                vm.promoTypeList.filter(item => {
-                    if (promoType.indexOf(item.name) > -1) {
-                        sendData.promoTypeName.push(item.name);
+            console.log('promoType===', promoType);
+            if (vm.promoTypeListUniqueName.length != promoType.length) {
+                vm.promoTypeListUniqueName.filter(item => {
+                    if (promoType.indexOf(item) > -1) {
+                        sendData.promoTypeName.push(item);
                     }
                 });
             }
@@ -565,6 +596,14 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.allPlatformId = [];
+            if(!vm.queryProposalAuditSelectedPlatform || vm.queryProposalAuditSelectedPlatform.length < 1){
+                vm.platformList.forEach(platform=>{
+                    vm.allPlatformId.push(platform._id);
+                });
+            } else {
+                vm.allPlatformId = vm.queryProposalAuditSelectedPlatform;
+            }
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
@@ -1089,7 +1128,7 @@ define(['js/app'], function (myApp) {
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
-                    if (v.mainType == 'Reward' && !(v.data && v.type && v.type.name && (v.type.name == "PlayerBonusDoubledRewardGroup" || v.type.name == "BaccaratRewardGroup"))) {
+                    if (v.mainType == 'Reward' && !(v.data && v.type && v.type.name && (v.type.name == "PlayerRandomRewardGroup" || v.type.name == "PlayerPromoCodeReward" || v.type.name == "PlayerBonusDoubledRewardGroup" || v.type.name == "BaccaratRewardGroup"))) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     if (v.mainType == 'Others')
@@ -1193,12 +1232,16 @@ define(['js/app'], function (myApp) {
                 // filterProposalType: true,
                 "aaSorting": vm.queryProposal.aaSorting || [],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [9]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {
+                        "title": $translate('PRODUCT_NAME'),
+                        "data": "data.platformId.name"
+                    },
                     {
                         "title": $translate('PROPOSAL_NO'),
                         "data": "proposalId",
@@ -1631,13 +1674,13 @@ define(['js/app'], function (myApp) {
                 "bProcessing": true,
                 bDeferRender: true,
                 // filterProposalType: true,
-                "aaSorting": vm.queryAuditProposal.aaSorting || [[18, 'asc']],
+                "aaSorting": vm.queryAuditProposal.aaSorting || [[19, 'asc']],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'priority', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [11]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [16]},
-                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [18]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'priority', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [12]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [17]},
+                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [19]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -1656,6 +1699,10 @@ define(['js/app'], function (myApp) {
                             } else return null;
                         },
                         visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                    {
+                        "title": $translate('PRODUCT_NAME'),
+                        "data": "data.platformId.name"
                     },
                     {
                         "title": $translate('PROPOSAL_NO'),
@@ -1955,7 +2002,8 @@ define(['js/app'], function (myApp) {
                 memo: $translate(bApprove ? "Approved" : "Rejected") + " " + $('#proposalRemark').val(),
                 bApprove: bApprove,
                 remark: $('#proposalRemark').val(),
-                platform: vm.selectedPlatform._id
+                platform: vm.selectedPlatform._id,
+                rejectRemark: vm.rejectMultipleRemark || ""
             }, function (data) {
                 deferred.resolve(true);
             }, function (error) {
@@ -2212,28 +2260,28 @@ define(['js/app'], function (myApp) {
                     provinceField = 'RECEIVE_BANK_ACC_PROVINCE'
                 }
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay[provinceField]}, function (data) {
-                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay[provinceField];
+                    var text = data.data.data ? data.data.data.name : vm.selectedProposalDetailForDisplay[provinceField];
                     vm.selectedProposalDetailForDisplay[provinceField] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountProvince']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince']}, function (data) {
-                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay['bankAccountProvince'];
+                    var text = data.data.data ? data.data.data.name : vm.selectedProposalDetailForDisplay['bankAccountProvince'];
                     vm.selectedProposalDetailForDisplay['bankAccountProvince'] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountProvince2']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince2']}, function (data) {
-                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay['bankAccountProvince2'];
+                    var text = data.data.data ? data.data.data.name : vm.selectedProposalDetailForDisplay['bankAccountProvince2'];
                     vm.selectedProposalDetailForDisplay['bankAccountProvince2'] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountProvince3']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince3']}, function (data) {
-                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay['bankAccountProvince3'];
+                    var text = data.data.data ? data.data.data.name : vm.selectedProposalDetailForDisplay['bankAccountProvince3'];
                     vm.selectedProposalDetailForDisplay['bankAccountProvince3'] = text;
                     $scope.$evalAsync();
                 });
@@ -2241,7 +2289,7 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedProposalDetailForDisplay['atmProvince']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['atmProvince']}, function (data) {
-                    var text = data.data.province ? data.data.province.name : vm.selectedProposalDetailForDisplay['atmProvince'];
+                    var text = data.data.data ? data.data.data.name : vm.selectedProposalDetailForDisplay['atmProvince'];
                     vm.selectedProposalDetailForDisplay['atmProvince'] = text;
                     $scope.$evalAsync();
                 });
@@ -2250,7 +2298,7 @@ define(['js/app'], function (myApp) {
             if (vm.selectedProposalDetailForDisplay['atmCity']) {
 
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['atmCity']}, function (data) {
-                    var text = data.data.city ? data.data.city.name : vm.selectedProposalDetailForDisplay['atmCity'];
+                    var text = data.data.data ? data.data.data.name : vm.selectedProposalDetailForDisplay['atmCity'];
                     vm.selectedProposalDetailForDisplay['atmCity'] = text;
                     $scope.$evalAsync();
                 });
@@ -2262,28 +2310,28 @@ define(['js/app'], function (myApp) {
                     provinceField = "RECEIVE_BANK_ACC_CITY";
                 }
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay[provinceField]}, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay[provinceField] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountCity']) {
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['bankAccountCity']}, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountCity'] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountCity2']) {
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['bankAccountCity2']}, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountCity2'] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountCity3']) {
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['bankAccountCity3']}, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountCity3'] = text;
                     $scope.$evalAsync();
                 });
@@ -2291,28 +2339,28 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedProposalDetailForDisplay['districtId']) {
                 socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposalDetailForDisplay['districtId']}, function (data) {
-                    var text = data.data.district ? data.data.district.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['districtId'] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountDistrict']) {
                 socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposalDetailForDisplay['bankAccountDistrict']}, function (data) {
-                    var text = data.data.district ? data.data.district.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountDistrict'] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountDistrict2']) {
                 socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposalDetailForDisplay['bankAccountDistrict2']}, function (data) {
-                    var text = data.data.district ? data.data.district.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountDistrict2'] = text;
                     $scope.$evalAsync();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountDistrict3']) {
                 socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposalDetailForDisplay['bankAccountDistrict3']}, function (data) {
-                    var text = data.data.district ? data.data.district.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountDistrict3'] = text;
                     $scope.$evalAsync();
                 });
@@ -2437,7 +2485,8 @@ define(['js/app'], function (myApp) {
             vm.selectedProposal.showCancel = false;
             socketService.$socket($scope.AppSocket, 'cancelProposal', {
                 proposalId: proposal._id,
-                remark: $('#proposalRemark').val()
+                remark: $('#proposalRemark').val(),
+                cancelRemark: vm.selectedProposal.cancelRemark || ""
             }, function (data) {
                 vm.selectedProposal.cancelling = false;
                 vm.selectedProposal.cancelled = true;
@@ -2453,7 +2502,8 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 memo: $translate(bApprove ? "Approved" : "Rejected") + " " + $('#proposalRemark').val(),
                 bApprove: bApprove,
-                platform: vm.selectedPlatform._id
+                platform: vm.selectedPlatform._id,
+                rejectRemark: vm.rejectRemark || ""
             }, function (data) {
                 console.log(data.data);
                 vm.loadProposalQueryData();
@@ -2622,7 +2672,7 @@ define(['js/app'], function (myApp) {
                     content: function () {
                         var data = JSON.parse(this.dataset.player);
                         vm.activePlayerData = data;
-                        $scope.safeApply();
+                        $scope.$evalAsync();
                         return $('#activePlayerPopover').html();
                     },
                     onClick: undefined,
@@ -2768,6 +2818,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                 vm.platformList = data.data;
                 console.log("vm.getAllPlatforms", data);
+                commonService.sortAndAddPlatformDisplayName(vm.platformList);
                 if (vm.platformList.length == 0) {
                     return;
                 }
@@ -3129,6 +3180,13 @@ define(['js/app'], function (myApp) {
         vm.forcePairingWithReferenceNumber = function() {
             commonService.forcePairingWithReferenceNumber($scope, $translate, socketService, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
             vm.forcePairingReferenceNumber = '';
+        };
+
+        vm.refreshSPicker = () => {
+            // without this timeout, 'selectpicker refresh' might done before the DOM able to refresh, which evalAsync doesn't help
+            $timeout(function () {
+                $('.spicker').selectpicker('refresh');
+            }, 0);
         };
 
         function loadPlatform () {

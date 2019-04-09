@@ -74,7 +74,7 @@ const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus"
 
 // db_common
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
-const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+let dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const dbUtil = require('./../modules/dbutility');
 const constPlayerLevelUpPeriod = require('./../const/constPlayerLevelUpPeriod');
@@ -109,6 +109,9 @@ let dbAutoProposal = require('../db_modules/dbAutoProposal');
 let dbDemoPlayer = require('../db_modules/dbDemoPlayer');
 let dbApiLog = require("../db_modules/dbApiLog");
 let dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
+
+// modules
+const RESTUtils = require('../modules/RESTUtils');
 
 // Others
 const paymentChannelPermission = ['topupOnline', 'topupManual', 'alipayTransaction', 'disableWechatPay'];
@@ -425,12 +428,27 @@ let dbPlayerInfo = {
                 }
                 platform = platformData;
 
-                return dbconfig.collection_players.findOne({platform: platform._id, guestDeviceId: String(inputData.guestDeviceId)}).populate({
+                let playerQuery = {
+                    platform: platform._id,
+                    $or: [
+                        {guestDeviceId: String(inputData.guestDeviceId)},
+                        {guestDeviceId: rsaCrypto.encrypt(String(inputData.guestDeviceId))},
+                        {guestDeviceId: rsaCrypto.oldEncrypt(String(inputData.guestDeviceId))}
+                    ]
+                }
+
+                if (inputData.phoneNumber) {
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
+                    playerQuery.$or.push({phoneNumber: encryptedPhoneNumber});
+                    playerQuery.$or.push({phoneNumber: enOldPhoneNumber});
+                }
+
+                return dbconfig.collection_players.findOne(playerQuery).populate({
                     path: "playerLevel",
                     model: dbconfig.collection_playerLevel
                 }).lean().then(
                     guestPlayer => {
-
                         if (guestPlayer) {
                             guestPlayer.password = String(inputData.guestDeviceId);
                             guestPlayer.inputDevice = inputData.inputDevice ? inputData.inputDevice : (guestPlayer.inputDevice || "");
@@ -463,6 +481,10 @@ let dbPlayerInfo = {
                                         isRealPlayer: true,
                                         guestDeviceId: inputData.guestDeviceId
                                     };
+
+                                    if (inputData.phoneNumber) {
+                                        guestPlayerData.phoneNumber = inputData.phoneNumber
+                                    }
 
                                 }
                             ).then(
@@ -581,7 +603,7 @@ let dbPlayerInfo = {
                     if (!platformData) {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
-                    if(inputData.phoneNumber && inputData.phoneNumber.toString().length != 11){
+                    if (platformData.requireSMSVerification && inputData.phoneNumber && inputData.phoneNumber.toString().length != 11) {
                         return Q.reject({
                             name: "DataError",
                             message: localization.localization.translate("phone number is invalid")
@@ -858,24 +880,27 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    let checktsPhoneFeedback = Promise.resolve();
-                    if (!(inputData && inputData.tsPhone)) {
-                        checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
-                    }
-                    return checktsPhoneFeedback.then(
-                        tsPhoneFeedbackData => {
-                            if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
-                                inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
-                                inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
-                                if (tsPhoneFeedbackData.tsPhone) {
-                                    inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
-                                    inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
-                                    inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
-                                }
-                            }
-                            return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
-                        }
-                    )
+                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+
+                    // /* new reqeust from Yuki: the csOfficer is only binded by domain */
+                    // let checktsPhoneFeedback = Promise.resolve();
+                    // if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
+                    //     checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
+                    // }
+                    // return checktsPhoneFeedback.then(
+                    //     tsPhoneFeedbackData => {
+                    //         if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
+                    //             inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
+                    //             inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
+                    //             if (tsPhoneFeedbackData.tsPhone) {
+                    //                 inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
+                    //                 inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
+                    //                 inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
+                    //             }
+                    //         }
+                    //         return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                    //     }
+                    // )
                 }
             ).then(
                 data => {
@@ -988,6 +1013,9 @@ let dbPlayerInfo = {
                         domain: {$exists: true}
                     }).sort({createTime: -1}).lean().then(
                         data => {
+                            if (!data || !data.domain) {
+                                return;
+                            }
                             return dbconfig.collection_csOfficerUrl.findOne({
                                 domain: data.domain,
                                 platform: platformObjId
@@ -1039,6 +1067,14 @@ let dbPlayerInfo = {
                 }
             )
         }
+    },
+
+    checkPlayerIsBindedToPartner: (platformObjId, playerObjId) => {
+        return dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
+            fixedCredibilityRemarks => {
+                return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, '代理开户')
+            }
+        );
     },
 
     checkPlayerIsIDCIp: (platformObjId, playerObjId, ipAddress) => {
@@ -1691,21 +1727,10 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerNameValid) {
-                    // check player name must start with prefix
-                    if (!pPrefix || pName.indexOf(pPrefix) === 0) {
-                        return {isPlayerPrefixValid: true};
-                    } else {
-                        if (playerdata.guestDeviceId) {
-                            return {isPlayerPrefixValid: true};
-                        }
-                        if (isDxMission) {
-                            return {isPlayerPrefixValid: true};
-                        }
-                        if (playerdata.isTestPlayer && pName.indexOf(pPrefix) === 1) {
-                            return {isPlayerPrefixValid: true};
-                        }
-                        return {isPlayerPrefixValid: false};
+                    if (playerdata.guestDeviceId) {
+                        return dbPlayerInfo.checkDeviceIdRegistered(platformData._id, playerdata.guestDeviceId);
                     }
+                    return 0;
                 } else {
                     return Promise.reject({
                         name: "DBError",
@@ -1724,54 +1749,26 @@ let dbPlayerInfo = {
                 return Promise.reject(error);
             }
         ).then(
-            data => {
-                if (data.isPlayerPrefixValid) {
-                    if (playerdata.guestDeviceId) {
-                        return {isPlayerPasswordValid: true};
+            isRepeat => {
+                if (playerdata.guestDeviceId) {
+                    if (isRepeat) {
+                        return Promise.reject({status: constServerCode.DEVICE_ID_ERROR, message: "Your device has registered. Use your original phone number to login."})
                     }
-                    if ((platformData.playerPasswordMaxLength > 0 && playerdata.password.length > platformData.playerPasswordMaxLength) || (platformData.playerPasswordMinLength > 0 && playerdata.password.length < platformData.playerPasswordMinLength)) {
-                        return {isPlayerPasswordValid: false};
-                    } else {
-                        return {isPlayerPasswordValid: true};
-                    }
-                } else {
-                    // check if player is created by partner
-                    if (playerdata.partnerId) {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: localization.localization.translate("Player name created by partner should use ") + pPrefix + localization.localization.translate(" as prefix.")
-                        });
-                    } else {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: localization.localization.translate("Player name should use ") + pPrefix + localization.localization.translate(" as prefix.")
-                        });
-                    }
+                    return {isPlayerPasswordValid: true};
                 }
+
+                if ((platformData.playerPasswordMaxLength > 0 && playerdata.password.length > platformData.playerPasswordMaxLength) || (platformData.playerPasswordMinLength > 0 && playerdata.password.length < platformData.playerPasswordMinLength)) {
+                    return {isPlayerPasswordValid: false};
+                }
+                return {isPlayerPasswordValid: true};
             },
             error => {
-                if (!error.message) {
-                    // check if player is created by partner
-                    if (playerdata.partnerId) {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: "Player name created by partner should use " + pPrefix + " as prefix.",
-                            error: error
-                        });
-                    } else {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: "Player name should use " + pPrefix + " as prefix.",
-                            error: error
-                        });
-                    }
-                }
                 return Promise.reject(error);
             }
         ).then(
             data => {
                 if (data.isPlayerPasswordValid) {
-                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent || playerdata.guestDeviceId) {
+                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent || (playerdata.guestDeviceId && !playerdata.phoneNumber)) {
                         return {isPhoneNumberValid: true};
                     }
 
@@ -1842,6 +1839,11 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
+                    // Save deviceId as guestDeviceId as binding on registration
+                    if (playerdata.deviceId) {
+                        playerdata.guestDeviceId = playerdata.deviceId
+                    }
+
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -2270,7 +2272,9 @@ let dbPlayerInfo = {
         }).lean().then(
             function (data) {
                 // data.fullPhoneNumber = data.phoneNumber;
-                data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
+                if (data.phoneNumber) {
+                    data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
+                }
                 data.email = dbUtility.encodeEmail(data.email);
                 if (data.bankAccount) {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
@@ -2310,18 +2314,23 @@ let dbPlayerInfo = {
                 // apiData.name = apiData.name.replace(platformData.prefix, "");
                 delete apiData.platform;
                 var a, b, c;
-                a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
-                    provinceId: apiData.bankAccountProvince,
-                    queryId: serverInstance.getQueryId()
-                }) : true;
-                b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
-                    cityId: apiData.bankAccountCity,
-                    queryId: serverInstance.getQueryId()
-                }) : true;
-                c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
-                    districtId: apiData.bankAccountDistrict,
-                    queryId: serverInstance.getQueryId()
-                }) : true;
+                // a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
+                //     provinceId: apiData.bankAccountProvince,
+                //     queryId: serverInstance.getQueryId()
+                // }) : true;
+                // b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
+                //     cityId: apiData.bankAccountCity,
+                //     queryId: serverInstance.getQueryId()
+                // }) : true;
+                // c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
+                //     districtId: apiData.bankAccountDistrict,
+                //     queryId: serverInstance.getQueryId()
+                // }) : true;
+
+                a = apiData.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: apiData.bankAccountProvince}) : true;
+                b = apiData.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: apiData.bankAccountCity}) : true;
+                c = apiData.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: apiData.bankAccountDistrict}) : true;
+
                 var creditProm = dbPlayerInfo.getPlayerCredit(apiData.playerId);
                 let convertedRewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(apiData.rewardPointsObjId);
                 let appliedRewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyAppliedPoints(apiData.rewardPointsObjId);
@@ -2336,9 +2345,9 @@ let dbPlayerInfo = {
                 apiData.bankAccountCityId = apiData.bankAccountCity;
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
                 if (zoneData && zoneData[0]) {
-                    apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
-                    apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
-                    apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
+                    apiData.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : apiData.bankAccountProvince;
+                    apiData.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : apiData.bankAccountCity;
+                    apiData.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : apiData.bankAccountDistrict;
                     apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                     apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
                     apiData.preDailyAppliedPoint = zoneData[5] ? zoneData[5] : 0;
@@ -2423,7 +2432,7 @@ let dbPlayerInfo = {
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
             .populate({path: "csOfficer", model: dbconfig.collection_admin})
-            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo})
+            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean()
             .then(data => {
                 if (data) {
                     playerData = data;
@@ -3024,7 +3033,7 @@ let dbPlayerInfo = {
                 }
 
                 if (isGetQuestion) {
-                    return  pmsAPI.bankcard_getBankTypeList({}).then(
+                    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
                         bankTypeData => {
                             returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
                             returnData.questionList = [];
@@ -3300,6 +3309,9 @@ let dbPlayerInfo = {
         let smsLogData;
         let duplicatedRealNameCount = 0;
         let sameBankAccountCount = 0;
+        let isfirstTimeRegistration = false;
+
+        console.log('updatePlayerPayment updateData:', updateData);
 
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
@@ -3375,6 +3387,7 @@ let dbPlayerInfo = {
                 sameBankAccountCount = data[1] || 0;
 
                 if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
+                    isfirstTimeRegistration = true;
                     if (updateData && updateData.bankAccountName) {
                         updateData.realName = updateData.bankAccountName;
                     }
@@ -3440,6 +3453,16 @@ let dbPlayerInfo = {
                             code: constServerCode.INVALID_DATA,
                             message: "The name has been registered, please change a new bank card or contact our cs."
                         });
+                    }
+
+                    // check require sms code if bank card registration at first time
+                    if (isfirstTimeRegistration){
+                        if(platformData.requireSMSCodeForBankRegistrationAtFirstTime){
+                            platformData.requireSMSVerificationForPaymentUpdate = true;
+                        }
+                        else{
+                            platformData.requireSMSVerificationForPaymentUpdate = false;
+                        }
                     }
 
                     // Check if platform sms verification is required
@@ -3760,12 +3783,22 @@ let dbPlayerInfo = {
      */
     getPlayersByPlatform: function (platformObjId, count) {
         var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
-        return dbconfig.collection_players.find({"platform": platformObjId}, {similarPlayers: 0}).sort({lastAccessTime: -1}).limit(count)
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().exec();
+        let query = {};
+
+        if (platformObjId) {
+            query = { "platform": platformObjId };
+        }
+
+        return dbconfig.collection_players.find(query, {similarPlayers: 0}).sort({lastAccessTime: -1}).limit(count)
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().exec();
     },
 
     getPlayersCountByPlatform: function (platformObjId) {
-        return dbconfig.collection_players.find({"platform": platformObjId}).count();
+        if(typeof platformObjId == "string"){
+            platformObjId = [platformObjId];
+        }
+        return dbconfig.collection_players.find({"platform": {$in: platformObjId}}).count();
     },
 
     /**
@@ -5427,7 +5460,7 @@ let dbPlayerInfo = {
             let tempEmail = data.email;
             delete data.email;
             advancedQuery = {
-                platform: platformId,
+                platform: {$in: platformId},
                 $and: [
                     data,
                     {$or: [{email: tempEmail}, {qq: tempEmail}]}
@@ -5435,13 +5468,13 @@ let dbPlayerInfo = {
             }
         } else {
             advancedQuery = {
-                platform: platformId,
+                platform: {$in: platformId},
                 $and: [data]
             }
         }
 
         return dbconfig.collection_platform.findOne({
-            _id: platformId
+            _id: {$in: platformId}
         }).lean().then(
             platform => {
                 isProviderGroup = Boolean(platform.useProviderGroup);
@@ -5555,6 +5588,9 @@ let dbPlayerInfo = {
 
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
+                                    }
+                                    if (playerData[ind].partner && playerData[ind].partner._id) {
+                                        dbPlayerInfo.checkPlayerIsBindedToPartner(platformId, playerId);
                                     }
                                 }
                             }
@@ -5814,7 +5850,7 @@ let dbPlayerInfo = {
                 };
 
                 if (playerData.deviceId) {
-                    updateData.deviceId = playerData.deviceId;
+                    updateData.deviceId = rsaCrypto.encrypt(playerData.deviceId);
                 }
 
                 if (playerData.lastLoginIp && playerData.lastLoginIp != "undefined") {
@@ -5924,20 +5960,24 @@ let dbPlayerInfo = {
                     retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
                 }
 
-                let a = retObj.bankAccountProvince ?
-                    pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
-                let b = retObj.bankAccountCity ?
-                    pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
-                let c = retObj.bankAccountDistrict ?
-                    pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+                // let a = retObj.bankAccountProvince ?
+                //     pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                // let b = retObj.bankAccountCity ?
+                //     pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                // let c = retObj.bankAccountDistrict ?
+                //     pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+
+                let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
 
                 return Promise.all([a, b, c]);
             }
         ).then(
             zoneData => {
-                retObj.bankAccountProvince = zoneData[0] && zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
-                retObj.bankAccountCity = zoneData[1] && zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
-                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                retObj.bankAccountProvince = zoneData[0] && zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
+                retObj.bankAccountCity = zoneData[1] && zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
+                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
                 console.log('rt playerLogin end');
@@ -6053,8 +6093,12 @@ let dbPlayerInfo = {
                     retentionRecord.forEach(
                         record => {
                             if (record && record.lastReceivedDate && record.rewardEventObjId && record.rewardEventObjId.condition && record.rewardEventObjId.condition.interval
-                                && record.rewardEventObjId.validStartTime && record.rewardEventObjId.validEndTime){
+                                && record.rewardEventObjId.validStartTime && record.rewardEventObjId.validEndTime && record.rewardEventObjId.condition.hasOwnProperty('definePlayerLoginMode')){
                                 let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId, true);
+                                // if the applied mode is 3, the interval is start counting from the application date
+                                if (record.rewardEventObjId.condition.definePlayerLoginMode == 3){
+                                    intervalTime = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(record.lastApplyDate, record.rewardEventObjId);
+                                }
                                 let isRewardValid = true;
                                 let hasReceived = false;
                                 let isForbidden = false;
@@ -6068,7 +6112,7 @@ let dbPlayerInfo = {
                                 }
 
                                 // check if the applyDate is expired
-                                if (intervalTime.startTime > record.lastApplyDate){
+                                if (intervalTime.startTime > record.lastApplyDate || intervalTime.endTime < curTime){
                                     isOutOfAppliedInterval = true;
                                 }
 
@@ -6176,12 +6220,25 @@ let dbPlayerInfo = {
                                 if (player) {
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
                                 } else {
+                                    if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
+                                        platformPrefix = loginData.accountPrefix;
+                                    }
+
+                                    let userNameProp = {
+                                        length: 8,
+                                        pool: 'abcdefghijklmnopqrstuvwxyz0123456789'
+                                    };
+
                                     let newPlayerData = {
                                         platformId: loginData.platformId,
-                                        name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
+                                        name: platformPrefix+(chance.string(userNameProp).replace(/\s+/g, '').toLowerCase()),
                                         password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
-                                        phoneNumber: loginData.phoneNumber,
+                                        phoneNumber: loginData.phoneNumber
                                     };
+
+                                    if (loginData.deviceId) {
+                                        newPlayerData.guestDeviceId = loginData.deviceId;
+                                    }
 
                                     return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
                                         .then(() => dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified));
@@ -6209,8 +6266,573 @@ let dbPlayerInfo = {
                     }
                 }
                 else {
-                    return Q.reject(rejectMsg);
+                    return Promise.reject(rejectMsg);
                 }
+            }
+        )
+    },
+
+    phoneNumberLoginWithPassword: function (playerData, userAgent, inputDevice, mobileDetect) {
+        let db_password = null;
+        let newAgentArray = [];
+        let platformId = null;
+        let uaObj = null;
+        let playerObj = null;
+        let retObj = {};
+        let platformPrefix = "";
+        let requireLogInCaptcha = null;
+        let platformObj = {};
+        let bUpdateIp = false;
+        let geoInfo = {};
+
+        return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+                    requireLogInCaptcha = platformData.requireLogInCaptcha || false;
+                    platformId = platformData._id;
+
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(playerData.phoneNumber);
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(playerData.phoneNumber);
+
+                    let playerQuery = {
+                        platform: platformData._id,
+                        $or: [
+                            {phoneNumber: encryptedPhoneNumber},
+                            {phoneNumber: playerData.phoneNumber},
+                            {phoneNumber: enOldPhoneNumber}
+                        ]
+                    };
+
+                    // if (playerData.name && playerData.name[0] === "f") {
+                    //     playerQuery.$or.push({
+                    //         name: playerData.name,
+                    //         platform: platformData._id,
+                    //         isRealPlayer: false
+                    //     });
+                    // }
+
+                    return dbconfig.collection_players.findOne(playerQuery).lean();
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
+            data => {
+                if (data) {
+                    playerObj = data;
+
+                    if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Only new system user can login",
+                            code: constServerCode.NO_USER_FOUND
+                        });
+                    }
+                    db_password = String(data.password); // hashedPassword from db
+                    if (dbUtility.isMd5(db_password)) {
+                        console.log('rt playerLogin 2.1');
+                        if (md5(playerData.password) == db_password) {
+                            return Promise.resolve(true);
+                        }
+                        else {
+                            return Promise.resolve(false);
+                        }
+                    }
+                    else {
+                        return new Promise((resolve, reject) => {
+                            try {
+                                let bcrypt = require('bcrypt');
+
+                                bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
+                                    console.log('rt playerLogin 2.2.2', err, isMatch);
+                                    if (err) {
+                                        reject({
+                                            name: "DataError",
+                                            message: "Error in matching password",
+                                            error: err
+                                        });
+                                    }
+                                    resolve(isMatch);
+                                });
+                            } catch (err) {
+                                console.log('err', err);
+                                throw err;
+                            }
+
+                        })
+                    }
+                }
+                else {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cannot find player",
+                        code: constServerCode.PLAYER_NAME_INVALID
+                    });
+                }
+            }
+        ).then(
+            isMatch => {
+                if (!isMatch) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "User name and password don't match",
+                        code: constServerCode.INVALID_USER_PASSWORD
+                    });
+                }
+
+                if (playerObj.permission.forbidPlayerFromLogin) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player is forbidden to login",
+                        code: constServerCode.PLAYER_IS_FORBIDDEN
+                    });
+                }
+
+                if (playerObj.isTestPlayer && isDemoPlayerExpire(playerObj, platformObj.demoPlayerValidDays)) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player is not enable",
+                        code: constServerCode.PLAYER_IS_FORBIDDEN
+                    });
+                }
+
+                newAgentArray = playerObj.userAgent || [];
+                uaObj = {
+                    browser: userAgent && userAgent.browser && userAgent.browser.name || '',
+                    device: userAgent && userAgent.device && userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
+                    os: userAgent && userAgent.os && userAgent.os.name || '',
+                };
+
+                let bExit = false;
+                if (newAgentArray && typeof newAgentArray.forEach == "function") {
+                    newAgentArray.forEach(
+                        agent => {
+                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                bExit = true;
+                            }
+                        }
+                    );
+                }
+                else {
+                    newAgentArray = [];
+                    bExit = true;
+                }
+
+                if (!bExit) {
+                    newAgentArray.push(uaObj);
+                }
+
+                if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp && playerData.lastLoginIp != "undefined") {
+                    bUpdateIp = true;
+                }
+
+                let updateData = {
+                    isLogin: true,
+                    lastLoginIp: playerData.lastLoginIp,
+                    userAgent: newAgentArray,
+                    lastAccessTime: new Date().getTime(),
+                    $inc: {loginTimes: 1}
+                };
+
+                if (playerData.deviceId) {
+                    updateData.deviceId = rsaCrypto.encrypt(playerData.deviceId);
+                }
+
+                if (playerData.lastLoginIp && playerData.lastLoginIp != "undefined") {
+                    let ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
+                    if (ipData) {
+                        geoInfo.ipArea = ipData;
+                        geoInfo.country = ipData.country || null;
+                        geoInfo.city = ipData.city || null;
+                        geoInfo.province = ipData.province || null;
+                    } else {
+                        geoInfo.ipArea = {'province': '', 'city': ''};
+                        geoInfo.country = "";
+                        geoInfo.city = "";
+                        geoInfo.province = "";
+                    }
+                }
+
+                if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
+                    updateData.$push = {loginIps: playerData.lastLoginIp};
+                }
+
+                return dbconfig.collection_players.findOneAndUpdate({
+                    _id: playerObj._id,
+                    platform: playerObj.platform
+                }, updateData).populate({
+                    path: "playerLevel",
+                    model: dbconfig.collection_playerLevel
+                })
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Error in getting player data", error: error});
+            }
+        ).then(
+            data => {
+                // Geo and ip related update
+                if (bUpdateIp) {
+                    dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
+                    dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
+                }
+
+                //add player login record
+                let recordData = {
+                    player: data._id,
+                    platform: platformId,
+                    loginIP: playerData.lastLoginIp,
+                    clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
+                    userAgent: uaObj,
+                    isRealPlayer: playerObj.isRealPlayer,
+                    isTestPlayer: playerObj.isTestPlayer,
+                    partner: playerObj.partner ? playerObj.partner : null,
+                    deviceId: playerData.deviceId
+                };
+
+                if (platformObj.usePointSystem) {
+                    dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
+                }
+
+                if (recordData.userAgent) {
+                    recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                }
+                Object.assign(recordData, geoInfo);
+
+                let record = new dbconfig.collection_playerLoginRecord(recordData);
+
+                return record.save();
+            },
+            error => {
+                return Promise.reject({
+                    name: "DBError",
+                    message: "Error in updating player",
+                    error: error
+                });
+            }
+        ).then(
+            record => {
+                updateAutoFeedbackLoginCount(record).catch(errorUtils.reportError);
+                dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
+                    err => {
+                        if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                            // Ignore concurrent request for now
+                        } else {
+                            // Set BState back to false
+                            dbPlayerUtil.setPlayerBState(playerObj._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                        }
+                        console.log('playerRetentionRewardGroup error when login', playerObj.playerId, err);
+                    }
+                );
+
+                return dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                    path: "platform",
+                    model: dbconfig.collection_platform
+                }).populate({
+                    path: "playerLevel",
+                    model: dbconfig.collection_playerLevel
+                }).populate({
+                    path: "rewardPointsObjId",
+                    model: dbconfig.collection_rewardPoints
+                }).lean()
+            }
+        ).then(
+            res => {
+                res.name = res.name.replace(platformPrefix, "");
+                retObj = res;
+
+                if (retObj.rewardPointsObjId) {
+                    retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
+                    retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
+                }
+
+                // let a = retObj.bankAccountProvince ?
+                //     pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                // let b = retObj.bankAccountCity ?
+                //     pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                // let c = retObj.bankAccountDistrict ?
+                //     pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+
+                let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+
+                return Promise.all([a, b, c]);
+            }
+        ).then(
+            zoneData => {
+                retObj.bankAccountProvince = zoneData[0] && zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
+                retObj.bankAccountCity = zoneData[1] && zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
+                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
+                retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
+
+                console.log('rt playerLogin end');
+                return retObj;
+            }
+        );
+
+        function updateAutoFeedbackLoginCount (record) {
+            console.log('updateAutoFeedbackLoginCount time log start', record.platform, record.player);
+            return dbconfig.collection_promoCode.aggregate([
+                {$match: {
+                        platformObjId: record.platform,
+                        playerObjId: record.player,
+                        promoCodeTemplateObjId: {$exists: true},
+                        autoFeedbackMissionObjId: {$exists: true},
+                        autoFeedbackMissionLogin: {$exists: false}
+                    }},
+                {$sort: {createTime: -1}},
+                {
+                    $group: {
+                        _id: "$autoFeedbackMissionObjId",
+                        autoFeedbackMissionScheduleNumber: {$first: "$autoFeedbackMissionScheduleNumber"},
+                        createTime: {$first: "$createTime"}
+                    }
+                }
+            ]).read("secondaryPreferred").exec().then(
+                promoCodes => {
+                    promoCodes.forEach(
+                        promoCode => {
+                            if(
+                                promoCode.autoFeedbackMissionScheduleNumber < 3
+                                || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()
+                            ) {
+                                dbconfig.collection_promoCode.findOneAndUpdate({
+                                    autoFeedbackMissionObjId: promoCode._id,
+                                    autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
+                                    createTime: promoCode.createTime
+                                }, {
+                                    autoFeedbackMissionLogin: true
+                                }).exec();
+                            }
+
+                            console.log('updateAutoFeedbackLoginCount time log end', record.platform, record.player);
+                        }
+                    )
+                }
+            );
+        }
+    },
+
+    getBankZoneData: function (query) {
+        let province1 = null;
+        let province2 = null;
+        let province3 = null;
+        let city1 = null;
+        let city2 = null;
+        let city3 = null;
+        let district1 = null;
+        let district2 = null;
+        let district3 = null;
+
+        // let provinceProm1 = query.province1 ? pmsAPI.foundation_getProvince({provinceId: query.province1}) : true;
+        // let cityProm1 = query.city1 ? pmsAPI.foundation_getCity({cityId: query.city1}) : true;
+        // let districtProm1 = query.district1 ? pmsAPI.foundation_getDistrict({districtId: query.district1}) : true;
+
+        let provinceProm1 = query.province1 ? RESTUtils.getPMS2Services("postProvince", {provinceId: query.province1}) : true;
+        let cityProm1 = query.city1 ? RESTUtils.getPMS2Services("postCity", {cityId: query.city1}) : true;
+        let districtProm1 = query.district1 ? RESTUtils.getPMS2Services("postDistrict", {districtId: query.district1}) : true;
+
+        // let provinceProm2 = query.province2 ? pmsAPI.foundation_getProvince({provinceId: query.province2}) : true;
+        // let cityProm2 = query.city2 ? pmsAPI.foundation_getCity({cityId: query.city2}) : true;
+        // let districtProm2 = query.district2 ? pmsAPI.foundation_getDistrict({districtId: query.district2}) : true;
+
+        let provinceProm2 = query.province2 ? RESTUtils.getPMS2Services("postProvince", {provinceId: query.province2}) : true;
+        let cityProm2 = query.city2 ? RESTUtils.getPMS2Services("postCity", {cityId: query.city2}) : true;
+        let districtProm2 = query.district2 ? RESTUtils.getPMS2Services("postDistrict", {districtId: query.district2}) : true;
+
+        // let provinceProm3 = query.province3 ? pmsAPI.foundation_getProvince({provinceId: query.province3}) : true;
+        // let cityProm3 = query.city3 ? pmsAPI.foundation_getCity({cityId: query.city3}) : true;
+        // let districtProm3 = query.district3 ? pmsAPI.foundation_getDistrict({districtId: query.district3}) : true;
+
+        let provinceProm3 = query.province3 ? RESTUtils.getPMS2Services("postProvince", {provinceId: query.province3}) : true;
+        let cityProm3 = query.city3 ? RESTUtils.getPMS2Services("postCity", {cityId: query.city3}) : true;
+        let districtProm3 = query.district3 ? RESTUtils.getPMS2Services("postDistrict", {districtId: query.district3}) : true;
+
+        return Promise.all([provinceProm1, cityProm1, districtProm1, provinceProm2, cityProm2, districtProm2, provinceProm3, cityProm3, districtProm3]).then(
+            zoneData => {
+                province1 = zoneData[0].data ? zoneData[0].data.name : null;
+                city1 = zoneData[1].data ? zoneData[1].data.name : null;
+                district1 = zoneData[2].data ? zoneData[2].data.name : null;
+
+                province2 = zoneData[3].data ? zoneData[3].data.name : null;
+                city2 = zoneData[4].data ? zoneData[4].data.name : null;
+                district2 = zoneData[5].data ? zoneData[5].data.name : null;
+
+                province3 = zoneData[6].data ? zoneData[6].data.name : null;
+                city3 = zoneData[7].data ? zoneData[7].data.name : null;
+                district3 = zoneData[8].data ? zoneData[8].data.name : null;
+
+                return {
+                    province1: province1,
+                    province2: province2,
+                    province3: province3,
+                    city1: city1,
+                    city2: city2,
+                    city3: city3,
+                    district1: district1,
+                    district2: district2,
+                    district3: district3,
+                }
+            },
+        )
+    },
+
+    getBindBankCardList: function (playerId, platformId) {
+        let platformObj;
+        let returnData = {};
+        let listData = [];
+        let bank1 = {};
+        let bank2 = {};
+        let bank3 = {};
+        let allBankTypeList = {};
+        let isFirstBankBinded = true;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                platformObj = platformData;
+
+                return dbconfig.collection_players.findOne({
+                    platform: platformObj._id,
+                    playerId: playerId
+                }).populate({
+                    path: "multipleBankDetailInfo",
+                    model: dbconfig.collection_playerMultipleBankDetailInfo
+                }).lean();
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DBError", message: "Cannot find player"})
+                }
+                if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccount) {
+                    // return Promise.reject({
+                    //     status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                    //     name: "DataError",
+                    //     errorMessage: "Player does not have valid payment information"
+                    // });
+                    isFirstBankBinded = false;
+                }
+                bank1.id = '1';
+                bank1.isDefault = true;
+                bank1.bankName = playerData.bankName || null;
+                bank1.bankAccount = playerData.bankAccount || null;
+                bank1.bankAccountName = playerData.bankAccountName || null;
+                bank1.bankAccountProvince = playerData.bankAccountProvince || null;
+                bank1.bankAccountCity = playerData.bankAccountCity || null;
+                bank1.bankAccountDistrict = playerData.bankAccountDistrict || null;
+                bank1.bankAddress = playerData.bankAddress || null;
+
+                if (playerData.multipleBankDetailInfo) {
+                    bank2.id = '2';
+                    bank2.isDefault = false;
+                    bank2.bankName = playerData.multipleBankDetailInfo.bankName2 || null;
+                    bank2.bankAccount = playerData.multipleBankDetailInfo.bankAccount2 || null;
+                    bank2.bankAccountName = playerData.multipleBankDetailInfo.bankAccountName2 || null;
+                    bank2.bankAccountProvince = playerData.multipleBankDetailInfo.bankAccountProvince2 || null;
+                    bank2.bankAccountCity = playerData.multipleBankDetailInfo.bankAccountCity2 || null;
+                    bank2.bankAccountDistrict = playerData.multipleBankDetailInfo.bankAccountDistrict2 || null;
+                    bank2.bankAddress = playerData.multipleBankDetailInfo.bankAddress2 || null;
+
+                    bank3.id = '3';
+                    bank3.isDefault = false;
+                    bank3.bankName = playerData.multipleBankDetailInfo.bankName3 || null;
+                    bank3.bankAccount = playerData.multipleBankDetailInfo.bankAccount3 || null;
+                    bank3.bankAccountName = playerData.multipleBankDetailInfo.bankAccountName3 || null;
+                    bank3.bankAccountProvince = playerData.multipleBankDetailInfo.bankAccountProvince3 || null;
+                    bank3.bankAccountCity = playerData.multipleBankDetailInfo.bankAccountCity3 || null;
+                    bank3.bankAccountDistrict = playerData.multipleBankDetailInfo.bankAccountDistrict3 || null;
+                    bank3.bankAddress = playerData.multipleBankDetailInfo.bankAddress3 || null;
+                }
+
+                // let provinceProm1 = bank1.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank1.bankAccountProvince}) : true;
+                // let cityProm1 = bank1.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank1.bankAccountCity}) : true;
+                // let districtProm1 = bank1.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank1.bankAccountDistrict}) : true;
+
+                let provinceProm1 = bank1.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: bank1.bankAccountProvince}) : true;
+                let cityProm1 = bank1.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: bank1.bankAccountCity}) : true;
+                let districtProm1 = bank1.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: bank1.bankAccountDistrict}) : true;
+
+                // let provinceProm2 = bank2.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank2.bankAccountProvince}) : true;
+                // let cityProm2 = bank2.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank2.bankAccountCity}) : true;
+                // let districtProm2 = bank2.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank2.bankAccountDistrict}) : true;
+
+                let provinceProm2 = bank2.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: bank2.bankAccountProvince}) : true;
+                let cityProm2 = bank2.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: bank2.bankAccountCity}) : true;
+                let districtProm2 = bank2.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: bank2.bankAccountDistrict}) : true;
+
+                // let provinceProm3 = bank3.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank3.bankAccountProvince}) : true;
+                // let cityProm3 = bank3.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank3.bankAccountCity}) : true;
+                // let districtProm3 = bank3.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank3.bankAccountDistrict}) : true;
+
+                let provinceProm3 = bank3.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: bank3.bankAccountProvince}) : true;
+                let cityProm3 = bank3.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: bank3.bankAccountCity}) : true;
+                let districtProm3 = bank3.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: bank3.bankAccountDistrict}) : true;
+
+                return Promise.all([provinceProm1, cityProm1, districtProm1, provinceProm2, cityProm2, districtProm2, provinceProm3, cityProm3, districtProm3])
+            }
+        ).then(
+            zoneData => {
+                bank1.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : bank1.bankAccountProvince;
+                bank1.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : bank1.bankAccountCity;
+                bank1.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : bank1.bankAccountDistrict;
+
+                bank2.bankAccountProvince = zoneData[3].data ? zoneData[3].data.name : bank2.bankAccountProvince;
+                bank2.bankAccountCity = zoneData[4].data ? zoneData[4].data.name : bank2.bankAccountCity;
+                bank2.bankAccountDistrict = zoneData[5].data ? zoneData[5].data.name : bank2.bankAccountDistrict;
+
+                bank3.bankAccountProvince = zoneData[6].data ? zoneData[6].data.name : bank3.bankAccountProvince;
+                bank3.bankAccountCity = zoneData[7].data ? zoneData[7].data.name : bank3.bankAccountCity;
+                bank3.bankAccountDistrict = zoneData[8].data ? zoneData[8].data.name : bank3.bankAccountDistrict;
+
+                if (bank1.bankName || bank1.bankAccountName || bank1.bankAccount) {
+                    listData.push(bank1);
+                }
+                if (bank2.bankName || bank2.bankAccountName || bank2.bankAccount) {
+                    listData.push(bank2);
+                }
+                if (bank3.bankName || bank3.bankAccountName || bank3.bankAccount) {
+                    listData.push(bank3);
+                }
+                return RESTUtils.getPMS2Services("postBankTypeList", {});
+            },
+        ).then(
+            bankTypeList => {
+                allBankTypeList = bankTypeList && bankTypeList.data && bankTypeList.data.length ? bankTypeList.data : null;
+
+                listData.map(bank => {
+                    bank.bankAccount =
+                        bank.bankAccount ?
+                            bank.bankAccount.slice(0, 6) + "**********" + bank.bankAccount.slice(-4)
+                            : null;
+
+                    if (allBankTypeList && allBankTypeList.length && bank.bankName) {
+                        allBankTypeList.forEach(type => {
+                            if (bank.bankName.toString() === type.id.toString()) {
+                                bank.bankName = type.name;
+                                bank.bankTypeId = type.bankTypeId;
+                            }
+                        });
+                    }
+                });
+
+                if (!isFirstBankBinded) {
+                    listData = [];
+                    return returnData = {
+                        list: listData
+                    };
+                }
+
+                return returnData = {
+                    list: listData
+                };
             }
         )
     },
@@ -6354,18 +6976,23 @@ let dbPlayerInfo = {
                                         res => {
                                             // res.name = res.name.replace(platformPrefix, "");
                                             retObj = res;
-                                            let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
-                                            let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
-                                            let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+                                            // let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                                            // let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                                            // let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+
+                                            let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}) : true;
+                                            let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}) : true;
+                                            let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}) : true;
+
                                             let creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
 
                                             return Q.all([a, b, c, creditProm]);
                                         }
                                     ).then(
                                         zoneData => {
-                                            retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
-                                            retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
-                                            retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                                            retObj.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
+                                            retObj.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
+                                            retObj.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                                             return retObj;
                                         },
@@ -8411,7 +9038,7 @@ let dbPlayerInfo = {
     },
 
     isExceedPhoneNumberValidToRegister: function (query, count) {
-        return dbconfig.collection_players.findOne(query).count().then(
+        return dbconfig.collection_players.find(query).count().then(
             playerDataCount => {
                 if (playerDataCount >= count) {
                     return {isPhoneNumberValid: false};
@@ -9025,7 +9652,7 @@ let dbPlayerInfo = {
                         // Perform the level up
                         return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
                             platformData => {
-                                console.log("player level up checkpoint 1")
+                                console.log("ZM, player level up checkpoint 1 ", playerObj.name);
                                 let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                                 let platformPeriodTime;
                                 if (platformPeriod) {
@@ -9077,7 +9704,7 @@ let dbPlayerInfo = {
 
                                 return Promise.all([topUpProm, consumptionProm]).then(
                                     recordData => {
-                                        console.log("player level up checkpoint 2")
+                                        console.log("ZM player level up checkpoint 2 ", playerObj.name);
                                         let topUpSummary = recordData[0];
                                         let consumptionSummary = recordData[1];
                                         let topUpSumPeriod = {};
@@ -9087,7 +9714,7 @@ let dbPlayerInfo = {
 
                                         if (checkLevelUp) {
                                             let checkLevelUpEnd = false;
-                                            console.log("player level up checkpoint 3", levelUpObjArr.length)
+                                            console.log("ZM player level up checkpoint 3 ", playerObj.name, levelUpObjArr.length);
                                             for (let a = 0; a < levelUpObjArr.length; a++) {
                                                 const conditionSets = levelUpObjArr[a].levelUpConfig;
 
@@ -9148,7 +9775,7 @@ let dbPlayerInfo = {
                                                     }
                                                 }
                                             }
-                                            console.log("player level up checkpoint 4", consumptionSumPeriod, topUpSumPeriod)
+                                            console.log("ZM player level up checkpoint 4", playerObj.name, consumptionSumPeriod, topUpSumPeriod);
                                         } else {
                                             const conditionSet = levelDownLevel.levelDownConfig[0];
                                             const topupPeriod = conditionSet.topupPeriod;
@@ -9183,7 +9810,7 @@ let dbPlayerInfo = {
                                                 playerId: playerObj.playerId,
                                                 platformObjId: playerObj.platform
                                             };
-                                            console.log("player level up checkpoint 5")
+                                            console.log("ZM player level up checkpoint 5", playerObj.name);
                                             let inputDevice = dbUtility.getInputDevice(userAgent, false);
                                             let promResolve = Promise.resolve();
 
@@ -9219,9 +9846,11 @@ let dbPlayerInfo = {
                                             //         }
                                             //     }
                                             // )
+
+                                            dbPlayerUtil = require("../db_common/dbPlayerUtility");
                                             return dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", true, "lastApplyLevelUp").then(
                                                 playerState => {
-                                                    console.log("player level up checkpoint 6")
+                                                    console.log("ZM player level up checkpoint 6", playerObj.name);
                                                     if (playerState) {
                                                         if (checkLevelUp) {
                                                             for (let i = 0; i < levelUpCounter; i++) {
@@ -9234,7 +9863,7 @@ let dbPlayerInfo = {
                                                                     tempProposal.levelName = levelUpObjArr[i].name;
                                                                     tempProposal.levelObjId = levelUpObjId[i];
                                                                     let proposalProm = function () {
-                                                                        return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i);
+                                                                        return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i, platformData.disableAutoPlayerLevelUpReward);
                                                                     };
                                                                     promResolve = promResolve.then(proposalProm);
                                                                 }
@@ -9261,12 +9890,13 @@ let dbPlayerInfo = {
                                                 }
                                             ).then(
                                                 function (data) {
-                                                    console.log("player level up checkpoint 7")
+                                                    console.log("ZM player level up checkpoint 7", playerObj.name);
                                                     dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false, "lastApplyLevelUp").catch(errorUtils.reportError);
                                                     return data;
                                                 }
                                             ).catch(
                                                 err => {
+                                                    console.log("dbPlayerUtil.setPlayerBState not a function catch", dbPlayerUtil);
                                                     if (err.status === constServerCode.CONCURRENT_DETECTED) {
                                                         // Ignore concurrent request for now
                                                     } else {
@@ -9618,7 +10248,7 @@ let dbPlayerInfo = {
                                                             tempProposal.levelName = levelUpObjArr[i].name;
                                                             tempProposal.levelObjId = levelUpObjId[i];
                                                             let proposalProm = function () {
-                                                                return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i);
+                                                                return createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, tempProposal, inputDevice, i, platformData.disableAutoPlayerLevelUpReward);
                                                             };
                                                             promResolve = promResolve.then(proposalProm);
                                                         }
@@ -9707,9 +10337,11 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerAlmostLevelupReport: function (platform, percentage, skip, limit, sortCol, newSummary) {
-        var resultArr = [];
-        var playerLevelData = {};
+    getPlayerAlmostLevelupReport: function (platformList, percentage, skip, limit, sortCol, newSummary) {
+        let resultArr = [];
+        let playerLevelData = {};
+        let platformListQuery;
+        let query = {};
         const topupFieldsByPeriod = {
             DAY: 'dailyTopUpSum',
             WEEK: 'weeklyTopUpSum',
@@ -9723,12 +10355,21 @@ let dbPlayerInfo = {
         skip = skip || 0;
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {percentage: -1};
-        return dbPlayerLevel.getPlayerLevel({platform: platform})
+
+        if(platformList && platformList.length > 0) {
+            platformListQuery = {$in: platformList.map(item=>{return ObjectId(item)})};
+        }
+
+        if (platformListQuery) {
+            query = {platform: platformListQuery};
+        }
+
+        return dbPlayerLevel.getPlayerLevel(query)
             .then(playerLevel => {
                 playerLevel.map(level => {
                     playerLevelData[level.value] = level;
                 })
-                return dbPlayerInfo.getPlayersByPlatform(platform, 0)
+                return dbPlayerInfo.getPlayersByPlatform(platformListQuery, 0)
             })
             .then(
                 players => {
@@ -11275,12 +11916,13 @@ let dbPlayerInfo = {
                 (onlineTopupType) => {
                     if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                     let getMerchantListProm = Promise.resolve([]);
+
                     // only when analysis category is thirdPartyPlatform need get merchantList from pms
-                    if (analysisCategory === 'thirdPartyPlatform')
-                        getMerchantListProm = pmsAPI.merchant_getMerchantList({
-                            platformId: onlineTopupType.platformId.platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
+                    if (analysisCategory === 'thirdPartyPlatform') {
+                        getMerchantListProm = RESTUtils.getPMS2Services("postMerchantList", {platformId: onlineTopupType.platformId.platformId});
+                    }
+
+
                     return getMerchantListProm.then(
                         responseData => {
                             let merchantList = responseData.merchants || [];
@@ -11570,7 +12212,7 @@ let dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank) {
+    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank, bankId) {
         let ximaWithdrawUsed = 0;
         if (amount < 100 && !adminInfo) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
@@ -11608,7 +12250,8 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean().then(
+            .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider})
+            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean().then(
                 playerData => {
                     //check if player has pending proposal to update bank info
                     if (playerData) {
@@ -11617,6 +12260,76 @@ let dbPlayerInfo = {
                         };
 
                         platform = playerData.platform;
+
+                        // if no withdrawal bank was selected, use default first bank in player data
+                        if (!withdrawalBank && !bankId) {
+                            withdrawalBank = {
+                                bankName: playerData.bankName || null,
+                                bankAccount: playerData.bankAccount || null,
+                                bankAccountName: playerData.bankAccountName || null,
+                                bankAccountType: playerData.bankAccountType || null,
+                                bankAccountProvince: playerData.bankAccountProvince || null,
+                                bankAccountCity: playerData.bankAccountCity || null,
+                                bankAccountDistrict: playerData.bankAccountDistrict || null,
+                                bankAddress: playerData.bankAddress || null,
+                                bankBranch: playerData.bankBranch || null,
+                            }
+                        } else {
+                            // if a withdrawal bank was selected, match the bank input and player existing bank data
+                            // compare with first bank info
+                            if ((withdrawalBank && withdrawalBank.bankName === playerData.bankName
+                                && withdrawalBank.bankAccount === playerData.bankAccount
+                                && withdrawalBank.bankAccountName === playerData.bankAccountName) || bankId === '1') {
+                                withdrawalBank = {
+                                    bankName: playerData.bankName || null,
+                                    bankAccount: playerData.bankAccount || null,
+                                    bankAccountName: playerData.bankAccountName || null,
+                                    bankAccountType: playerData.bankAccountType || null,
+                                    bankAccountProvince: playerData.bankAccountProvince || null,
+                                    bankAccountCity: playerData.bankAccountCity || null,
+                                    bankAccountDistrict: playerData.bankAccountDistrict || null,
+                                    bankAddress: playerData.bankAddress || null,
+                                    bankBranch: playerData.bankBranch || null,
+                                }
+                            } else if (playerData.multipleBankDetailInfo) {
+                                // compare with second and third bank info
+                                if ((withdrawalBank && withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName2
+                                    && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount2
+                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName2) || bankId === '2') {
+                                    withdrawalBank = {
+                                        bankName: playerData.multipleBankDetailInfo.bankName2 || null,
+                                        bankAccount: playerData.multipleBankDetailInfo.bankAccount2 || null,
+                                        bankAccountName: playerData.multipleBankDetailInfo.bankAccountName2 || null,
+                                        bankAccountType: playerData.multipleBankDetailInfo.bankAccountType2 || null,
+                                        bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince2 || null,
+                                        bankAccountCity: playerData.multipleBankDetailInfo.bankAccountCity2 || null,
+                                        bankAccountDistrict: playerData.multipleBankDetailInfo.bankAccountDistrict2 || null,
+                                        bankAddress: playerData.multipleBankDetailInfo.bankAddress2 || null,
+                                        bankBranch: playerData.multipleBankDetailInfo.bankBranch2 || null,
+                                    }
+                                }
+                                if ((withdrawalBank && withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName3
+                                    && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount3
+                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName3) || bankId === '3') {
+                                    withdrawalBank = {
+                                        bankName: playerData.multipleBankDetailInfo.bankName3 || null,
+                                        bankAccount: playerData.multipleBankDetailInfo.bankAccount3 || null,
+                                        bankAccountName: playerData.multipleBankDetailInfo.bankAccountName3 || null,
+                                        bankAccountType: playerData.multipleBankDetailInfo.bankAccountType3 || null,
+                                        bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince3 || null,
+                                        bankAccountCity: playerData.multipleBankDetailInfo.bankAccountCity3 || null,
+                                        bankAccountDistrict: playerData.multipleBankDetailInfo.bankAccountDistrict3 || null,
+                                        bankAddress: playerData.multipleBankDetailInfo.bankAddress3 || null,
+                                        bankBranch: playerData.multipleBankDetailInfo.bankBranch3 || null,
+                                    }
+                                }
+                            } else {
+                                return Promise.reject({
+                                    name: "DataError",
+                                    errorMessage: localization.localization.translate("Player does not have matching bank info")
+                                });
+                            }
+                        }
 
                         return dbPropUtil.getProposalDataOfType(playerData.platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, propQ).then(
                             proposals => {
@@ -11755,7 +12468,7 @@ let dbPlayerInfo = {
             ).then(
                 RTGs => {
                     if (!RTGs || isUsingXima) {
-                        if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
+                        if (!withdrawalBank.bankName || !withdrawalBank.bankAccountName || !withdrawalBank.bankAccount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                                 name: "DataError",
@@ -11900,7 +12613,7 @@ let dbPlayerInfo = {
                                                 bonusId: bonusId,
                                                 platformId: player.platform._id,
                                                 platform: player.platform.platformId,
-                                                bankTypeId: player.bankName,
+                                                bankTypeId: withdrawalBank.bankName,
                                                 amount: finalAmount,
                                                 // bonusCredit: bonusDetail.credit,
                                                 curAmount: player.validCredit,
@@ -11911,9 +12624,10 @@ let dbPlayerInfo = {
                                                 oriCreditCharge: creditCharge,
                                                 ximaWithdrawUsed: ximaWithdrawUsed,
                                                 isAutoApproval: player.platform.enableAutoApplyBonus,
-                                                bankAccountWhenSubmit: player && player.bankAccount ? dbUtil.encodeBankAcc(player.bankAccount) : "",
-                                                bankNameWhenSubmit: player && player.bankName ? player.bankName : ""
+                                                bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
+                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : "",
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
+                                                changeCredit: changeCredit
                                             };
                                             if (!player.permission.applyBonus) {
                                                 proposalData.remark = "禁用提款: " + lastBonusRemark;
@@ -11982,7 +12696,7 @@ let dbPlayerInfo = {
                             if (platform && platform.useProviderGroup && proposal.status == constProposalStatus.AUTOAUDIT) {
                                 let proposals = [];
                                 proposals.push(proposal);
-                                dbAutoProposal.processAutoProposals(proposals, platform);
+                                dbAutoProposal.processAutoProposals(proposals, platform, withdrawalBank);
                             }
                             return data;
                         },
@@ -12808,7 +13522,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent, tableCode) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent, tableCode, closeMusic) {
         let providerData = null;
         let playerData = null;
         let platform = null;
@@ -13059,9 +13773,9 @@ let dbPlayerInfo = {
                     clientDomainName: clientDomainName || "Can not find domain",
                     lang: lang || localization.lang.ch_SP,
                     ip: ip,
-                    clientType: clientType || 1
+                    clientType: clientType || 1,
+                    closeMusic: closeMusic || false
                 };
-
                 if (tableCode) {
                     sendData.tableCode = tableCode
                 }
@@ -13310,7 +14024,7 @@ let dbPlayerInfo = {
                             pmsQuery.clientType = clientType;
                             return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
                         }
-                        return pmsAPI.merchant_getMerchantList(pmsQuery);
+                        return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
                     // }
                     // else {
                     //     return pmsAPI.bankcard_getBankcardList(pmsQuery);
@@ -18471,7 +19185,7 @@ let dbPlayerInfo = {
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
-                                endTime: moment(query.start).add(query.days, "day"),
+                                endTime: query.days? moment(query.start).add(query.days, "day"): new Date(),
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     playerData = playerIdObjs;
@@ -18643,12 +19357,7 @@ let dbPlayerInfo = {
             platformData => {
                 console.log('getConsumptionDetailOfPlayers - 1');
                 if (platformData && platformData.platformId) {
-                    return pmsAPI.merchant_getMerchantList(
-                        {
-                            platformId: platformData.platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    ).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
@@ -18676,7 +19385,7 @@ let dbPlayerInfo = {
                                 }, 'registrationTime domain').lean().then(
                                     playerData => {
                                         let qStartTime = new Date(playerData.registrationTime);
-                                        let qEndTime = moment(qStartTime).add(query.days, 'day');
+                                        let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
 
                                         return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain, true);
                                     }
@@ -18693,7 +19402,7 @@ let dbPlayerInfo = {
                                         data => {
                                             feedbackData = JSON.parse(JSON.stringify(data));
                                             let qStartTime = new Date(feedbackData.createTime);
-                                            let qEndTime = moment(qStartTime).add(query.days, 'day');
+                                            let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
                                             return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime, null, true);
                                         }
                                     ).then(
@@ -20144,13 +20853,17 @@ let dbPlayerInfo = {
                 message: "Generate dian xiao code failure."
             })
         }
-        let randomString = Math.random().toString(36).substring(4, 9); // generate random String
+        let randomString = Math.random().toString(36).substring(4, 8); // generate random String
         let index = 0;
         // prevent infinite loop
         // prevent randomString all numbers
         while (!isNaN(randomString) && index < 5) {
-            randomString = Math.random().toString(36).substring(4, 9);
+            randomString = Math.random().toString(36).substring(4, 8);
             index++;
+        }
+        if (tries >= 3 && tries <= 5) {
+            // if it over 3 times, which means 4 digits very easy to duplicate, so we give it five.
+            randomString = Math.random().toString(36).substring(4, 9);
         }
         if (randomString && randomString.charAt(0) == "p") {
             let text = "";
@@ -20161,23 +20874,38 @@ let dbPlayerInfo = {
 
         let dxCode = "";
 
-        let platformProm = Promise.resolve({platform: {platformId: platformId}});
-        if (!platformId) {
-            platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
+        let dxMissionDetail;
+        let platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
                 path: "platform", model: dbconfig.collection_platform
             }).lean();
-        }
 
         return platformProm.then(
             function (missionProm) {
-                platformId = missionProm.platform.platformId;
-                dxCode = missionProm.platform.platformId + randomString;
-                return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
+                dxMissionDetail = missionProm;
+                dxCode = randomString;
+                return dbconfig.collection_dxPhone.find({code: dxCode}).populate({path: "dxMission", model: dbconfig.collection_dxMission}).lean();
             }
         ).then(
             function (dxPhoneExist) {
                 if (dxPhoneExist) {
-                    return dbPlayerInfo.generateDXCode(dxMission, platformId);
+                    let countSameDomain = 0;
+                    // calculate if "code" exist in same domain , we treat it as duplicate, then we generate new "code" , purpose: avoid 4 digits easy duplicate
+                    // if different domain , is fine,
+                    if ( dxPhoneExist && dxPhoneExist.length > 0 ) {
+                        dxPhoneExist.forEach( item => {
+                            if ( item.dxMission && item.dxMission.domain && item.dxMission.domain == dxMissionDetail.domain ) {
+                                countSameDomain += 1;
+                            }
+                        })
+                    }
+
+                    if (countSameDomain > 0 ) {
+                        console.log('MT --checking generateDXCode', tries, countSameDomain)
+                        return dbPlayerInfo.generateDXCode(dxMission, platformId, tries);
+                    } else {
+                        return dxCode;
+                    }
+
                 }
                 else {
                     return dxCode;
@@ -20442,6 +21170,7 @@ let dbPlayerInfo = {
                             providerId: platformData.gameProviders[i].providerId,
                             // nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                             nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
+                            chName: platformData.gameProviders[i].chName ? platformData.gameProviders[i].chName : '',
                             status: status
                         };
                     }
@@ -20516,7 +21245,8 @@ let dbPlayerInfo = {
                                     providerObjId: providerList.gameCreditList[i].providerObjId,
                                     providerId: creditData.providerId,
                                     gameCredit: parseFloat(creditData.credit).toFixed(2) || 0,
-                                    nickName: providerList.gameCreditList[i].nickName ? providerList.gameCreditList[i].nickName : "",
+                                    nickName: providerList.gameCreditList[i].nickName ? providerList.gameCreditList[i].nickName : '',
+                                    chName: providerList.gameCreditList[i].chName ? providerList.gameCreditList[i].chName : '',
                                     status: providerList.gameCreditList[i].status
                                 };
                             },
@@ -20526,7 +21256,8 @@ let dbPlayerInfo = {
                                     providerObjId: providerList.gameCreditList[i].providerObjId,
                                     providerId: providerList.gameCreditList[i].providerId,
                                     gameCredit: 'unknown',
-                                    nickName: providerList.gameCreditList[i].nickName ? providerList.gameCreditList[i].nickName : "",
+                                    nickName: providerList.gameCreditList[i].nickName ? providerList.gameCreditList[i].nickName : '',
+                                    chName: providerList.gameCreditList[i].chName ? providerList.gameCreditList[i].chName : '',
                                     reason: err,
                                     status: providerList.gameCreditList[i].status
                                 };
@@ -20546,7 +21277,8 @@ let dbPlayerInfo = {
                             nickName: gameCreditList[i].nickName ? gameCreditList[i].nickName : "",
                             validCredit: gameCreditList[i].gameCredit ? gameCreditList[i].gameCredit : "",
                             status: gameCreditList[i].status,
-                            providerId: gameCreditList[i].providerId
+                            providerId: gameCreditList[i].providerId,
+                            chName: gameCreditList[i].chName ? gameCreditList[i].chName : ''
                         };
                         // check the game credit from the same platform
                     }
@@ -20617,7 +21349,8 @@ let dbPlayerInfo = {
                                         providerId: gameItem.providerId,
                                         nickName: gameItem.nickName,
                                         validCredit: gameItem.gameCredit,
-                                        status: gameItem.status
+                                        status: gameItem.status,
+                                        chName: allGroup.chName ? allGroup.chName : '',
                                     });
                                 }
                             })
@@ -22217,6 +22950,116 @@ let dbPlayerInfo = {
 
     },
 
+    updateDeviceId: function (playerId, deviceId) {
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"})
+                }
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {
+                        _id: playerData._id,
+                        guestDeviceId: {$ne: deviceId}
+                    },
+                    {
+                        guestDeviceId: deviceId
+                    }).lean()
+            }
+        ).then(
+            updatedPlayer => {
+                if (!updatedPlayer) {
+                    return Promise.resolve(false); // deviceId same with db, no update
+                } else {
+                    return Promise.resolve(true)
+                }
+            }
+        );
+    },
+
+    generateUpdatePasswordToken: function (platformId, playerName, phoneNumber, smsCode) {
+        let platformObj;
+        let playerObj;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+                platformObj = platformData;
+
+                let playerQuery = {
+                    platform: platformData._id,
+                    name: playerName,
+                    $or: [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+                };
+
+                return dbconfig.collection_players.findOne(playerQuery).lean()
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+                playerObj = playerData;
+                return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformObj, smsCode, playerData.name);
+            }
+        ).then(
+            () => {
+                let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(playerObj.phoneNumber)};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 5});
+                return {token: token};
+            }
+        )
+
+
+    },
+
+    updatePasswordWithToken: function (token, newPassword) {
+        var deferred = Q.defer();
+        jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
+            if (err || !decoded) {
+                // Jwt token error
+                return deferred.reject({name: "DataError", message: "Token is not authenticated"});
+            }
+
+            let isValidToken = Boolean(decoded && decoded.platform && decoded.name && decoded.password && decoded.phoneNumber);
+            if (!isValidToken) {
+                return deferred.reject({name: "DataError", message: "Invalid token"});
+            }
+
+            let decryptedPhoneNumber = rsaCrypto.decrypt(decoded.phoneNumber)
+            let encryptedPhoneNumber = rsaCrypto.encrypt(decryptedPhoneNumber);
+            let enOldPhoneNumber = rsaCrypto.oldEncrypt(decryptedPhoneNumber);
+
+            return dbconfig.collection_players.findOne(
+                {
+                    platform: decoded.platform,
+                    name: decoded.name,
+                    password: decoded.password,
+                    $or: [
+                        {phoneNumber: encryptedPhoneNumber},
+                        {phoneNumber: enOldPhoneNumber}
+                    ]
+                }
+            ).lean().then(
+                playerData => {
+                    if (!playerData) {
+                        return deferred.reject({name: "DataError", message: "Cannot find player"});
+                    }
+
+                    dbPlayerInfo.resetPlayerPassword(playerData._id, newPassword, playerData.platform, false, null).catch(errorUtils.reportError);
+                    deferred.resolve(true);
+                }
+            )
+        })
+        return deferred.promise;
+    },
+
     getClientData: function (playerId) {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
@@ -22758,6 +23601,18 @@ let dbPlayerInfo = {
         })
     },
 
+    unbindPhoneDeviceId: function (playerObjId) {
+        return dbconfig.collection_players.findOneAndUpdate(
+            {_id: playerObjId},
+            {
+                phoneNumber: null,
+                guestDeviceId: null,
+                phoneProvince: null,
+                phoneCity: null,
+                phoneType: null,
+            }).lean()
+    },
+
     creditTransferedFromPartner: function (proposalId, platformId) {
         let partnerProposal;
         let proposalTypeObj;
@@ -23221,46 +24076,12 @@ let dbPlayerInfo = {
 
         });
 
-        if (sendObjArr.length) {
-            if (topUpSystemName === 'PMS') {
-                return pmsAPI.foundation_userDepositSettings(
-                    {
-                        queryId: +new Date() + serverInstance.getQueryId(),
-                        data: sendObjArr
-                    }
-                ).then(
-                    updateStatus => {
-                        console.log('foundation_userDepositSettings success', updateStatus);
-                        return updateStatus;
-                    },
-                    error => {
-                        console.log('foundation_userDepositSettings failed', error);
-                        throw error;
-                    }
-                )
+        if (sendObjArr.length && topUpSystemName === 'PMS2') {
+            let data = {
+                requests: sendObjArr
+            };
 
-            } else if (topUpSystemName === 'PMS2') {
-                let data = {
-                    requests: sendObjArr
-                };
-
-                let options = {
-                    method: 'POST',
-                    uri: extConfig[topUpSystemType].batchTopUpStatusAPIAddr,
-                    body: data,
-                    json: true
-                };
-
-                console.log("batchTopUpStatusAPIAddr check request before sent - ", data);
-                return rp(options)
-                    .then(function (updateStatus) {
-                        console.log('batch playerDepositStatus success', updateStatus);
-                        return updateStatus;
-                    }, error => {
-                        console.log('batch playerDepositStatus failed', error);
-                        throw error;
-                    })
-            }
+            return RESTUtils.getPMS2Services("postBatchTopupStatus", data);
         }
 
         function getPlayerTopupChannelPermission (player) {
@@ -23272,46 +24093,11 @@ let dbPlayerInfo = {
         return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
             sendObj => {
                 console.log('getPlayerTopupChannelPermission sendObj :', sendObj);
-                if (sendObj) {
-                    if (topUpSystemName === 'PMS') {
-                        return pmsAPI.foundation_userDepositSettings(
-                            {
-                                queryId: +new Date() + serverInstance.getQueryId(),
-                                data: [sendObj]
-                            }
-                        ).then(
-                            updateStatus => {
-                                console.log('foundation_userDepositSettings success', updateStatus);
-                                return updateStatus;
-                            },
-                            error => {
-                                console.log('foundation_userDepositSettings failed', error);
-                                throw error;
-                            }
-                        )
+                if (sendObj && topUpSystemName === 'PMS2') {
+                    sendObj.timestamp = Date.now();
 
-                    } else if (topUpSystemName === 'PMS2') {
-                        sendObj.timestamp = Date.now();
-
-                        let options = {
-                            method: 'PATCH',
-                            uri: extConfig[topUpSystemType].topUpStatusAPIAddr,
-                            body: sendObj,
-                            json: true
-                        };
-
-                        console.log("topUpStatusAPIAddr check request before sent - ", sendObj);
-                        return rp(options)
-                            .then(function (updateStatus) {
-                                console.log('playerDepositStatus success', updateStatus);
-                                return updateStatus;
-                            }, error => {
-                                console.log('playerDepositStatus failed', error);
-                                throw error;
-                            })
-                    }
+                    return RESTUtils.getPMS2Services("patchTopupStatus", sendObj)
                 }
-
             }
         );
 
@@ -23322,7 +24108,78 @@ let dbPlayerInfo = {
                 }
             )
         }
-    }
+    },
+
+    setPhoneNumber: (playerId, phoneNumber, smsCode) => {
+        let player, platform, encryptedPhoneNumber;
+        return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
+            playerData => {
+                player = playerData;
+
+                if (!player) {
+                    return Promise.reject({message: "User not found OR Invalid Password"});
+                }
+
+                platform = playerData.platform;
+
+                if (player.phoneNumber) {
+                    return Promise.reject({message: "Phone number already set"}); // translate needed
+                }
+
+                return dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode);
+            }
+        ).then(
+            () => {
+                encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+
+                let query = {
+                    phoneNumber: {$in: [encryptedPhoneNumber, rsaCrypto.oldEncrypt(phoneNumber.toString())]},
+                    platform: platform._id,
+                    isRealPlayer: true,
+                    'permission.forbidPlayerFromLogin': false
+                };
+
+                if (platform.allowSamePhoneNumberToRegister) {
+                    return dbPlayerInfo.isExceedPhoneNumberValidToRegister(query, platform.samePhoneNumberRegisterCount);
+                } else {
+                    return dbPlayerInfo.isPhoneNumberValidToRegister(query);
+                }
+            }
+        ).then(
+            ({isPhoneNumberValid}) => {
+                if (!isPhoneNumberValid) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        message: "This phone number is already used. Please insert other phone number."
+                    });
+                }
+
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: player._id}, {phoneNumber: encryptedPhoneNumber}, constShardKeys.collection_players);
+            }
+        ).then(
+            () => {
+                return {number: phoneNumber};
+            }
+        )
+    },
+
+    checkDeviceIdRegistered: (platformObjId, deviceId) => {
+        let query = {
+            guestDeviceId: deviceId,
+            platform: platformObjId,
+            $or: [
+                {guestDeviceId: deviceId},
+                {guestDeviceId: rsaCrypto.encrypt(deviceId)},
+                {guestDeviceId: rsaCrypto.oldEncrypt(deviceId)}
+            ]
+        };
+
+        return dbconfig.collection_players.find(query, {_id: 1}).lean().then(
+            players => {
+                return players && players.length || 0;
+            }
+        );
+    },
 };
 
 function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {
@@ -23967,7 +24824,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
     return recordSum;
 }
 
-function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, proposal, inputDevice, index) {
+function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, proposal, inputDevice, index, isDisableAutoLevelUpReward) {
     let isSkipAudit = false;
     let isRewardAssign = false;
     return dbconfig.collection_players.findOne({_id: ObjectId(playerObj._id)}).lean().then(
@@ -24024,7 +24881,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
         }
     ).then(
         proposalTypeData => {
-            if (!checkLevelUp) {
+            if (!checkLevelUp || isDisableAutoLevelUpReward) {
                 return Promise.resolve();
             }
             // check if player has level up to this level previously
@@ -24038,7 +24895,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
         }
     ).then(
         rewardProp => {
-            if (!checkLevelUp) {
+            if (!checkLevelUp || isDisableAutoLevelUpReward) {
                 return Promise.resolve();
             }
             if (!rewardProp) {
@@ -24073,7 +24930,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
     ).then(
         proposalResult => {
 
-            if (!checkLevelUp) {
+            if (!checkLevelUp || isDisableAutoLevelUpReward) {
                 return Promise.resolve();
             }
 

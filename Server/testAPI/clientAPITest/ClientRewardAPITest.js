@@ -203,6 +203,19 @@
         this.rewardService.getPromoCode.once(callback);
     };
 
+    proto.getOpenPromoCode = function (callback, requestData) {
+        let data = requestData || {};
+
+        if (data.noLogin === "false") {
+            data.noLogin = false;
+        } else {
+            data.noLogin = Boolean(data.noLogin)
+        }
+
+        this.rewardService.getOpenPromoCode.request(data);
+        this.rewardService.getOpenPromoCode.once(callback);
+    };
+
     proto.applyPromoCode = function (callback, requestData) {
         let data = requestData || {};
         this.rewardService.applyPromoCode.request(data);

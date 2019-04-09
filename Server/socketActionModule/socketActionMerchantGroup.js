@@ -3,8 +3,8 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
 var socketUtil = require('./../modules/socketutility');
-var pmsAPI = require('../externalAPI/pmsAPI');
-var serverInstance = require("../modules/serverInstance");
+
+let RESTUtils = require('./../modules/RESTUtils');
 
 function socketActionMerchantGroup(socketIO, socket) {
 
@@ -118,7 +118,7 @@ function socketActionMerchantGroup(socketIO, socket) {
 
         getMerchantList: function getMerchantList(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.merchant_getMerchantList, [{platformId: data.platformId,queryId: serverInstance.getQueryId()}], actionName, true);
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postMerchantList", {platformId: data.platformId}], actionName, true);
         },
 
         getMerchantNBankCard: function getMerchantNBankCard(data){
@@ -162,6 +162,24 @@ function socketActionMerchantGroup(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getPlatformMerchantList, [data.platformId], actionName, isValidData);
+        },
+
+        getPMSMerchantGroup: function getPMSMerchantGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getPMSMerchantGroup, [data.platformId, data.topUpSystemType], actionName, isValidData);
+        },
+
+        getServiceChargeSetting: function getServiceChargeSetting(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getServiceChargeSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        updateServiceChargeSetting: function updateServiceChargeSetting(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.updateServiceChargeSetting, [data.platformObjId, data.pmsServiceCharge, data.fpmsServiceCharge], actionName, isValidData);
         }
     };
     socketActionMerchantGroup.actions = this.actions;

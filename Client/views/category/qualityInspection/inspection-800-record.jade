@@ -42,6 +42,14 @@ form(name='form_800Record')
                     select.form-control(ng-model='vm.inspection800.qiUser')
                         option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v._id}}') {{v.name | translate}}
                         option(value='all') {{'NONE' | translate}}
+                .search-filters-item
+                    label {{"DISPLAY_WAY" | translate}}
+                    select.form-control(ng-model='vm.inspection800.displayWay')
+                        option(value='true') {{'EXTEND_CONVERSATION' | translate}}
+                        option(value='false') {{'COLLAPSE_CONVERSATION' | translate}}
+                .search-filters-item
+                    input.symbol(type="checkbox", ng-model='vm.inspection800.searchBySummaryData')
+                    label {{'测试数据'}}
                 .text-right.widthto100(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'Read')")
                     button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0;vm.getWorkingCSName();' ng-disabled="form_800Record.$invalid") {{"SEARCH" | translate}}
                     span.collapse
@@ -50,9 +58,10 @@ form(name='form_800Record')
                     i.searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
 
     div
-        label {{'Total' | translate}}：{{vm.pgn.count}} {{'COUNT1' | translate}}{{'VALID_INVALID_CONVERSATION' | translate}}
+        label(ng-if="!vm.inspection800.searchBySummaryData") {{'Total' | translate}}：{{vm.pgn.count}} {{'COUNT1' | translate}}{{'VALID_INVALID_CONVERSATION' | translate}}
+        label(ng-if="vm.inspection800.searchBySummaryData") {{'Total' | translate}}：{{vm.pgn.count}} {{'records' | translate}}
         br
-        label(ng-show="vm.workingCSName") {{'当天工作客服' | translate}} : {{vm.workingCSName}}
+        label(ng-if="vm.workingCSName") {{'当天工作客服' | translate}} : {{vm.workingCSName}}
     div(style='height:50px')
         table#800RecordTable(style="width: 100%; text-align: center; border: 1px solid;")
             thead(style='background-color:#337ab7;')
@@ -85,14 +94,24 @@ form(name='form_800Record')
                     td.col-md-7(style="padding: 0px; border: 1px solid black;", colspan=6)
                         table(style="width: 100%; table-layout: fixed;")
                             tbody
-                                tr(style="text-align:center;color:red")
+                                tr(style="text-align:center;")
                                     td(style="width: 40px;")
                                     td(style="width: 77.27px;")
-                                    td(style="width: 350px;") **** 新的对话开始 ****
+                                    td(style="width: 350px;")
                                     td(style="width: 50.27px;")
                                     td(style="width: 50.27px;")
                                     td(style="width: 300px;")
-                                tr(ng-repeat="convert in conversationform.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{convert.colors}};")
+                                tr(style="text-align:center;")
+                                    td(colspan=6, ng-click="conversationform.displayWay = !conversationform.displayWay") {{'Start date' | translate}}: {{conversationform.conversation && conversationform.conversation[0] && conversationform.conversation[0].displayTime ? conversationform.conversation[0].displayTime : null | date:"yyyy-MM-dd hh:mm:ss"}} ~ {{'End date' | translate}}: {{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}} ({{"Click To Extend/Collapse" | translate}})
+                                tr(style="text-align:center;color:red", ng-if="conversationform.displayWay")
+                                    td(colspan=6) **** 新的对话开始 ****
+                                    //td(style="width: 40px;")
+                                    //td(style="width: 77.27px;")
+                                    //td(style="width: 350px;") **** 新的对话开始 ****
+                                    //td(style="width: 50.27px;")
+                                    //td(style="width: 50.27px;")
+                                    //td(style="width: 300px;")
+                                tr(ng-repeat="convert in conversationform.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{convert.colors}};", ng-if="conversationform.displayWay")
                                     td(style="width: 40px; border: 1px solid black;") {{convert.roleName}}
                                     td(style="width: 77.27px; border: 1px solid black;") {{convert.displayTime}}
                                     td(style="width: 350px; border: 1px solid black; text-align: left; font-weight: bold", ng-if="convert.roleName == '访客'") {{convert.content}}
@@ -110,13 +129,14 @@ form(name='form_800Record')
                                                 textarea.form-control(ng-model="convert.review", rows="3")
                                         div(ng-if='!conversationform.editable')
                                             div(style='text-align:center') {{convert.review}}
-                                tr(style="text-align:center;color:red")
-                                    td(style="width: 40px;")
-                                    td(style="width: 77.27px;")
-                                    td(style="width: 350px;") 結束對話:{{ conversationform.closeName$ }}关闭对话 ({{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
-                                    td(style="width: 50.27px;")
-                                    td(style="width: 50.27px;")
-                                    td(style="width: 300px;")
+                                tr(style="text-align:center;color:red", ng-if="conversationform.displayWay")
+                                    td(colspan=6) 結束對話:{{ conversationform.closeName$ }}关闭对话 ({{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                    //td(style="width: 40px;")
+                                    //td(style="width: 77.27px;")
+                                    //td(style="width: 350px;") 結束對話:{{ conversationform.closeName$ }}关闭对话 ({{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                    //td(style="width: 50.27px;")
+                                    //td(style="width: 50.27px;")
+                                    //td(style="width: 300px;")
                     td(style="border: 1px solid black; width: 78.18px;") {{conversationform.qualityAssessor.adminName}}
                     td(style="border: 1px solid black; width: 77.27px;") {{conversationform.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
                     td(style="border: 1px solid black; width: 90px;") {{conversationform.appealReason}}
