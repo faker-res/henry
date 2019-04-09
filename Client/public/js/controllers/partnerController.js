@@ -16443,7 +16443,8 @@ define(['js/app'], function (myApp) {
             vm.financialSettlementSystemTableEdit = false;
             vm.newBlacklistIpConfig = [];
             vm.delayDurationGroupProviderEdit = false;
-            vm.getPlatformInSetting()
+            vm.getPlatformInSetting();
+            vm.partnerAdvertisementList();
         };
 
         vm.getPlatformInSetting = () => {
@@ -16731,6 +16732,124 @@ define(['js/app'], function (myApp) {
                 console.log("updateLargeWithdrawalPartnerSetting complete")
             });
         }
+
+        vm.initPartnerDisplayDataModal();
+
+
+        vm.updatePlatformAction = function () {
+            if (vm.showPlatform.department && vm.showPlatform.department.hasOwnProperty('_id')) {
+                vm.showPlatform.department = vm.showPlatform.department._id;
+            }
+
+            if (vm.presetModuleSettingData){
+                vm.showPlatform.presetModuleSetting =  vm.presetModuleSettingData;
+            }
+
+            if(vm.specialModuleSettingData){
+                vm.showPlatform.specialModuleSetting =  vm.specialModuleSettingData;
+            }
+
+            if (vm.updatePlayerThemeData && vm.updatePlayerThemeData._id && vm.updatePlayerThemeData.themeId) {
+
+                if (!vm.showPlatform.playerThemeSetting) {
+                    vm.showPlatform.playerThemeSetting = {};
+                }
+
+                vm.showPlatform.playerThemeSetting.themeStyleId = vm.updatePlayerThemeData._id;
+                vm.showPlatform.playerThemeSetting.themeId = vm.updatePlayerThemeData.themeId;
+                vm.showPlatform.playerThemeSetting.themeIdObjId = vm.updatePlayerThemeData.themeIdObjId;
+            }
+
+            if (vm.updatePartnerThemeData && vm.updatePartnerThemeData._id && vm.updatePartnerThemeData.themeId) {
+
+                if (!vm.showPlatform.partnerThemeSetting) {
+                    vm.showPlatform.partnerThemeSetting = {};
+                }
+
+                vm.showPlatform.partnerThemeSetting.themeStyleId = vm.updatePartnerThemeData._id;
+                vm.showPlatform.partnerThemeSetting.themeId = vm.updatePartnerThemeData.themeId;
+                vm.showPlatform.partnerThemeSetting.themeIdObjId = vm.updatePartnerThemeData.themeIdObjId;
+            }
+
+            socketService.$socket($scope.AppSocket, 'updatePlatform',
+                {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: vm.showPlatform,
+                    isUpdatePlatform: true
+                },
+                function (data) {
+                    vm.curPlatformText = vm.showPlatform.name;
+                    loadPlatformData({loadAll: false});
+                    vm.editFrontEndDisplay = false;
+                    vm.getFrontEndPresetModuleSetting();
+                    vm.getFrontEndSpecialModuleSetting(data);
+                    vm.syncPlatform();
+                });
+        };
+
+        vm.getFrontEndPresetModuleSetting = function() {
+            vm.presetModuleSettingData = [];
+
+            if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
+                vm.showPlatform.presetModuleSetting.forEach(p => {
+                    if (p && p.hasOwnProperty('displayStatus')){
+                        p.displayStatus = ( p.displayStatus == 0 || p.displayStatus == 1 )? p.displayStatus.toString() : null ;
+                    }
+
+                    vm.presetModuleSettingData.push($.extend({}, p));
+                })
+            }
+        };
+
+        vm.getFrontEndSpecialModuleSetting = function(platformData) {
+            vm.addNewSpecialModule = false;
+            vm.specialModuleSettingData = [];
+            vm.newDomainName = [];
+            vm.newFunctionName = [];
+            vm.newFunctionId = [];
+            vm.newDisplayable = [];
+            vm.newSpecialModuleSetting = {content:[], domainName:[]};
+
+            if (platformData && platformData.data){
+                if (platformData.data.specialModuleSetting && platformData.data.specialModuleSetting.length > 0){
+                    platformData.data.specialModuleSetting.forEach(p => {
+
+                        if (p && p.content && p.content.length > 0){
+                            p.content.forEach( q => {
+                                if (q && q.hasOwnProperty('displayStatus')) {
+                                    q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                }
+                            })
+                        }
+
+                        vm.specialModuleSettingData.push($.extend(true,{}, p));
+
+                    })
+                }
+            }
+            else{
+                if(vm.showPlatform.specialModuleSetting && vm.showPlatform.specialModuleSetting.length > 0){
+                    vm.showPlatform.specialModuleSetting.forEach(p => {
+
+                        if (p && p.content && p.content.length > 0){
+                            p.content.forEach( q => {
+                                if (q && q.hasOwnProperty('displayStatus')) {
+                                    q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                }
+                            })
+                        }
+
+                        vm.specialModuleSettingData.push($.extend(true,{}, p));
+
+                    })
+                }
+            }
+
+        };
+
+
+
+
 
 
 
