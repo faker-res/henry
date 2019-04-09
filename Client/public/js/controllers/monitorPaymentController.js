@@ -2313,9 +2313,7 @@ define(['js/app'], function (myApp) {
         vm.prepareCreatePlayer = function () {
             vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {
                 language: 'en',
-                format: 'yyyy/MM/dd',
-                endDate: new Date(),
-                maxDate: new Date()
+                format: 'yyyy/MM/dd'
             });
 
             vm.existPhone = false;
@@ -2682,8 +2680,6 @@ define(['js/app'], function (myApp) {
         vm.createNewPlayer = function () {
             vm.newPlayer.platform = vm.selectedPlatform._id;
             vm.newPlayer.platformId = vm.selectedPlatform.platformId;
-            vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
-            vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
 
             console.log('newPlayer', vm.newPlayer);
@@ -3363,21 +3359,21 @@ define(['js/app'], function (myApp) {
             vm.merchantCloneList = angular.copy(vm.merchants);
         }
         // function for new topup report
-        vm.getProvinceName = function (provinceId) {
-            socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-                var text = data.data.province ? data.data.province.name : '';
-                vm.selectedProposal.data.provinceName = text;
-                $scope.safeApply();
-            });
-        }
+        // vm.getProvinceName = function (provinceId) {
+            // socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
+            //     var text = data.data.data ? data.data.data.name : '';
+            //     vm.selectedProposal.data.provinceName = text;
+            //     $scope.safeApply();
+            // });
+        // }
 
-        vm.getCityName = function (cityId) {
-            socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-                var text = data.data.city ? data.data.city.name : '';
-                vm.selectedProposal.data.cityName = text;
-                $scope.safeApply();
-            });
-        }
+        // vm.getCityName = function (cityId) {
+            // socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
+            //     var text = data.data.data ? data.data.data.name : '';
+            //     vm.selectedProposal.data.cityName = text;
+            //     $scope.safeApply();
+            // });
+        // }
         vm.getMerchantTypeName = function () {
             vm.merchants.map(item => {
                 let merchantTypeId = item.merchantTypeId;
@@ -4073,10 +4069,16 @@ define(['js/app'], function (myApp) {
 
                     if (vm.selectedProposal.data.inputData) {
                         if (vm.selectedProposal.data.inputData.provinceId) {
-                            vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                            //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                            commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data.provinceName = data;
+                            });
                         }
                         if (vm.selectedProposal.data.inputData.cityId) {
-                            vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                            //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                            commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data.cityName = data;
+                            });
                         }
                     }
 
@@ -4801,14 +4803,14 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedProposalDetailForDisplay['provinceId']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['provinceId']}, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['provinceId'] = text;
                     $scope.safeApply();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountProvince']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince']}, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountProvince'] = text;
                     $scope.safeApply();
                 });
@@ -4816,14 +4818,14 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedProposalDetailForDisplay['cityId']) {
                 socketService.$socket($scope.AppSocket, "getCity", {provinceId: vm.selectedProposalDetailForDisplay['cityId']}, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['cityId'] = text;
                     $scope.safeApply();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountCity']) {
                 socketService.$socket($scope.AppSocket, "getCity", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountCity']}, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountCity'] = text;
                     $scope.safeApply();
                 });
@@ -4831,14 +4833,14 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedProposalDetailForDisplay['districtId']) {
                 socketService.$socket($scope.AppSocket, "getDistrict", {provinceId: vm.selectedProposalDetailForDisplay['districtId']}, function (data) {
-                    var text = data.data.district ? data.data.district.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['districtId'] = text;
                     $scope.safeApply();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountDistrict']) {
                 socketService.$socket($scope.AppSocket, "getDistrict", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountDistrict']}, function (data) {
-                    var text = data.data.district ? data.data.district.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountDistrict'] = text;
                     $scope.safeApply();
                 });

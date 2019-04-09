@@ -2849,10 +2849,10 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 if (data) {
                     // vm.cityList = data.data.cities;
-                    if (data.data.cities) {
+                    if (data.data.data) {
                         vm.cityList.length = 0;
-                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
-                            let city = data.data.cities[i];
+                        for (let i = 0, len = data.data.data.length; i < len; i++) {
+                            let city = data.data.data[i];
                             city.id = city.id.toString();
                             vm.cityList.push(city);
                         }
@@ -2872,10 +2872,10 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 if (data) {
                     // vm.districtList = data.data.districts;
-                    if (data.data.districts) {
+                    if (data.data.data) {
                         vm.districtList.length = 0;
-                        for (let i = 0, len = data.data.districts.length; i < len; i++) {
-                            let district = data.data.districts[i];
+                        for (let i = 0, len = data.data.data.length; i < len; i++) {
+                            let district = data.data.data[i];
                             district.id = district.id.toString();
                             vm.districtList.push(district);
                         }
@@ -4620,15 +4620,15 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getZoneList', sendQuery, function (data) {
                 console.log(data.data);
                 if (!provinceId && !cityId) {
-                    vm.provinceList = data.data.provinces || [];
+                    vm.provinceList = data.data.data || [];
                     vm.playerManualTopUp.provinceId = vm.provinceList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId);
                 } else if (provinceId && !cityId) {
-                    vm.cityList = data.data.cities || [];
+                    vm.cityList = data.data.data || [];
                     // vm.playerManualTopUp.cityId = vm.cityList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId, vm.cityList[0].id);
                 } else if (provinceId && cityId) {
-                    vm.districtList = data.data.districts || [];
+                    vm.districtList = data.data.data || [];
                     vm.playerManualTopUp.districtId = '';
                 }
                 vm.freezeZoneSelection = false;
@@ -6883,7 +6883,7 @@ define(['js/app'], function (myApp) {
             vm.showProvinceStr = '';
             let province = curProvince ? curProvince : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountProvince ? vm.selectedSinglePartner.bankAccountProvince : '';
             $scope.getProvinceStr(province).then(data => {
-                vm.showProvinceStr = data.data.province ? data.data.province.name : province;
+                vm.showProvinceStr = data.data.data ? data.data.data.name : province;
                 $scope.safeApply();
             }, err => {
                 vm.showProvinceStr = province || $translate("Unknown");
@@ -6895,7 +6895,7 @@ define(['js/app'], function (myApp) {
             vm.showCityStr = '';
             let city = curCity ? curCity : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountCity ? vm.selectedSinglePartner.bankAccountCity : '';
             $scope.getCityStr(city).then(data => {
-                vm.showCityStr = data.data.city ? data.data.city.name : city;
+                vm.showCityStr = data.data.data ? data.data.data.name : city;
                 $scope.safeApply();
             }, err => {
                 vm.showCityStr = city || $translate("Unknown");
@@ -6907,7 +6907,7 @@ define(['js/app'], function (myApp) {
             vm.showDistrictStr = '';
             let district = curDistrict ? curDistrict : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountDistrict ? vm.selectedSinglePartner.bankAccountDistrict : '';
             $scope.getDistrictStr(district).then(data => {
-                vm.showDistrictStr = data.data.district ? data.data.district.name : district;
+                vm.showDistrictStr = data.data.data ? data.data.data.name : district;
                 $scope.safeApply();
             }, err => {
                 vm.showProvinceStr = district || $translate("Unknown");
@@ -7717,8 +7717,8 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
                     if (data) {
                         vm.provinceList.length = 0;
-                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
-                            let province = data.data.provinces[i];
+                        for (let i = 0, len = data.data.data.length; i < len; i++) {
+                            let province = data.data.data[i];
                             province.id = province.id.toString();
                             vm.provinceList.push(province);
                         }
@@ -10065,17 +10065,29 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
-                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.provinceName = data;
+                        });
                     }
                     if (vm.selectedProposal.data.inputData.cityId) {
-                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.cityName = data;
+                        });
                     }
                 } else {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                        vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                        //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                        commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                        });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                        vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                        });
                     }
                 }
 
@@ -10124,17 +10136,29 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
-                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.provinceName = data;
+                        });
                     }
                     if (vm.selectedProposal.data.inputData.cityId) {
-                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.cityName = data;
+                        });
                     }
                 } else {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                        vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                        //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                        commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                        });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                        vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                        });
                     }
                 }
 
@@ -10156,7 +10180,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, "getProvince", {
                 provinceId: provinceId
             }, function (data) {
-                let text = data.data.province ? data.data.province.name : '';
+                let text = data.data.data ? data.data.data.name : '';
                 if (text) {
                     if (fieldName) {
                         vm.selectedProposal.data[fieldName] = text;
@@ -10171,7 +10195,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, "getCity", {
                 cityId: cityId
             }, function (data) {
-                let text = data.data.city ? data.data.city.name : '';
+                let text = data.data.data ? data.data.data.name : '';
                 if (text) {
                     if (fieldName) {
                         vm.selectedProposal.data[fieldName] = text;
@@ -16425,7 +16449,7 @@ define(['js/app'], function (myApp) {
         vm.getPlatformInSetting = () => {
             if (vm.platformIdInSetting) {
                 let selectedPlatform = vm.platformList.find(platformData => {
-                    return platformData && platformData.data && platformData.data.platformId;
+                    return platformData && platformData.data && platformData.data.platformId && (vm.platformIdInSetting == platformData.data.platformId);
                 });
                 vm.platformInSetting = selectedPlatform.data;
 
@@ -16451,6 +16475,8 @@ define(['js/app'], function (myApp) {
                 case 'autoApproval':
                     vm.getAutoApprovalBasic();
                     break;
+                case 'largeWithdrawalPartnerSetting':
+                    vm.getLargeWithdrawalPartnerSetting();
 
             }
 
@@ -16510,6 +16536,112 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.firstWithdrawDifferentIPCheck = vm.platformInSetting.autoAudit.firstWithdrawDifferentIPCheck;
         };
 
+
+        vm.initModalLargeWithdrawalPartner = function () {
+            vm.largeWithdrawPartnerCheckReviewer = {};
+            vm.largeWithdrawPartnerCheckRecipient = {};
+            // to remove duplicate
+            [...new Set(vm.adminList.map(item => item._id))].forEach((admin, index) => {
+                vm.largeWithdrawPartnerCheckRecipient[index] = vm.getLargeWithdrawPartnerIsRecipient(admin);
+                vm.largeWithdrawPartnerCheckReviewer[index] = vm.getLargeWithdrawPartnerIsReviewer(admin);
+                $('#largeWithdrawPartnerRow' + index).removeAttr('style');
+                if (vm.largeWithdrawPartnerCheckReviewer[index]) {
+                    $('#largeWithdrawPartnerRow' + index).css('background-color', 'pink');
+                }
+            })
+        };
+
+        vm.getLargeWithdrawPartnerIsRecipient = function (adminObjId) {
+            // largeWithdrawalPartnerSetting
+            let isRecipient = false;
+            if (adminObjId && vm.largeWithdrawalPartnerSetting && vm.largeWithdrawalPartnerSetting.recipient &&
+                vm.largeWithdrawalPartnerSetting.recipient.length && vm.largeWithdrawalPartnerSetting.recipient.indexOf(String(adminObjId)) > -1) {
+                isRecipient = true;
+            }
+            return isRecipient;
+        };
+
+        vm.getLargeWithdrawPartnerIsReviewer = function (adminObjId) {
+            // largeWithdrawalSetting
+            let isReviewer = false;
+            if (adminObjId && vm.largeWithdrawalPartnerSetting && vm.largeWithdrawalPartnerSetting.reviewer &&
+                vm.largeWithdrawalPartnerSetting.reviewer && vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId)) > -1) {
+                isReviewer = true;
+            }
+            return isReviewer;
+        };
+
+        vm.setLargeWithdrawPartnerRecipient = function (adminObjId, isAdd, index) {
+            if (isAdd) {
+                if (vm.largeWithdrawalPartnerSetting.recipient.indexOf(String(adminObjId)) < 0) {
+                    vm.largeWithdrawalPartnerSetting.recipient.push(String(adminObjId));
+                }
+            } else {
+                let indexRecipient = vm.largeWithdrawalPartnerSetting.recipient.indexOf(String(adminObjId));
+                if (indexRecipient > -1) {
+                    vm.largeWithdrawalPartnerSetting.recipient.splice(indexRecipient, 1);
+                    let indexReviewer = vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId));
+                    if (indexReviewer > -1) {
+                        $('#largeWithdrawPartnerRow' + index).removeAttr('style');
+                        vm.largeWithdrawalPartnerSetting.reviewer.splice(indexReviewer, 1);
+                        vm.largeWithdrawPartnerCheckReviewer[index] = false;
+                    }
+                }
+            }
+        };
+
+        vm.setLargeWithdrawPartnerReviewer = function (adminObjId, isAdd, index) {
+            if (isAdd) {
+                if (vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId)) < 0) {
+                    vm.largeWithdrawalPartnerSetting.reviewer.push(String(adminObjId));
+                    $('#largeWithdrawPartnerRow' + index).css('background-color', 'pink');
+                }
+            } else {
+                let indexReviewer = vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId));
+                if (indexReviewer > -1) {
+                    vm.largeWithdrawalPartnerSetting.reviewer.splice(indexReviewer, 1);
+                    $('#largeWithdrawPartnerRow' + index).removeAttr('style');
+                }
+            }
+        };
+
+        vm.updateLargeWithdrawalPartnerRecipient = function () {
+            let sendData = {
+                query: {platform: vm.platformInSetting._id},
+                updateData: {
+                    recipient: vm.largeWithdrawalPartnerSetting.recipient,
+                    reviewer: vm.largeWithdrawalPartnerSetting.reviewer
+                }
+            }
+            socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
+                console.log("updateLargeWithdrawalPartnerRecipient complete", data)
+            });
+        };
+
+
+        vm.getLargeWithdrawalPartnerSetting = function () {
+            vm.largeWithdrawalPartnerSetting = vm.largeWithdrawalPartnerSetting || {};
+            let sendData = {platform: vm.platformInSetting._id};
+
+            // partner large withdrawal
+            socketService.$socket($scope.AppSocket, 'getLargeWithdrawalPartnerSetting', sendData, function (data) {
+                console.log('getLargeWithdrawalPartnerSetting');
+                $scope.$evalAsync(() => {
+                    vm.largeWithdrawalPartnerSetting = {}
+                    if (data && data.data) {
+                        vm.largeWithdrawalPartnerSetting = data.data;
+                    }
+                    if (!vm.largeWithdrawalPartnerSetting.recipient) {
+                        vm.largeWithdrawalPartnerSetting.recipient = [];
+                    }
+                    if (!vm.largeWithdrawalPartnerSetting.reviewer) {
+                        vm.largeWithdrawalPartnerSetting.reviewer = [];
+                    }
+                });
+            });
+
+        };
+
         vm.configSubmitUpdate = function (choice) {
             switch (choice) {
                 // case 'partner':
@@ -16520,6 +16652,9 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'autoApproval':
                     updateAutoApprovalConfig(vm.autoApprovalBasic);
+                    break;
+                case 'largeWithdrawalPartnerSetting':
+                    updateLargeWithdrawalPartnerSetting(vm.largeWithdrawalPartnerSetting);
             }
         };
 
@@ -16557,34 +16692,45 @@ define(['js/app'], function (myApp) {
 
         function updateAutoApprovalConfig(srcData) {
             let sendData = {
-                query: {
-                    _id: vm.platformInSetting._id
-                },
+                query: {_id: vm.platformInSetting._id},
                 updateData: {
-                    enableAutoApplyBonus: srcData.enableAutoApplyBonus,
-                    manualAuditFirstWithdrawal: srcData.manualAuditFirstWithdrawal,
-                    manualAuditAfterBankChanged: srcData.manualAuditAfterBankChanged,
-                    manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
-                    autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
-                    autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                    autoApproveLostThreshold: srcData.lostThreshold,
-                    autoApproveConsumptionOffset: srcData.consumptionOffset,
-                    autoApproveProfitTimes: srcData.profitTimes,
-                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                    autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
-                    autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
+                    partnerEnableAutoApplyBonus: srcData.partnerEnableAutoApplyBonus,
+                    partnerAutoApproveWhenSingleBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleBonusApplyLessThan,
+                    partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan,
+                    partnerWithdrawalCommissionDifference: srcData.partnerWithdrawalCommissionDifference
                 }
             };
             console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));
 
             socketService.$socket($scope.AppSocket, 'updateAutoApprovalConfig', sendData, function (data) {
                 console.log('update auto approval socket', JSON.stringify(data));
-                loadPlatformData({
-                    loadAll: false
-                });
+                loadPlatformData({loadAll: false});
             });
         }
 
+        function updateLargeWithdrawalPartnerSetting(srcData) {
+            let sendData = {
+                query: {platform: vm.platformInSetting._id},
+                updateData: {
+                    emailNameExtension: srcData.emailNameExtension,
+                    showRealName: srcData.showRealName,
+                    showCommissionType: srcData.showCommissionType,
+                    showBankCity: srcData.showBankCity,
+                    showRegisterTime: srcData.showRegisterTime,
+                    showCurrentWithdrawalTime: srcData.showCurrentWithdrawalTime,
+                    showLastWithdrawalTime: srcData.showLastWithdrawalTime,
+                    showCurrentCredit: srcData.showCurrentCredit,
+                    showTotalDownlinePlayersCount: srcData.showTotalDownlinePlayersCount,
+                    showTotalDownlinePartnersCount: srcData.showTotalDownlinePartnersCount,
+                    showProposalId: srcData.showProposalId,
+                    showAllPartnerRelatedProposal: srcData.showAllPartnerRelatedProposal,
+                    domain: srcData.domain,
+                }
+            };
+            socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
+                console.log("updateLargeWithdrawalPartnerSetting complete")
+            });
+        }
 
 
 

@@ -3102,6 +3102,7 @@ var proposalExecutor = {
                                             })
                                         }
                                         promoCodeTemplate = retPromoCodeTemplate;
+                                        console.log("checking promoCodeTemplate", promoCodeTemplate)
                                         return dbconfig.collection_players.findOne({
                                             platform: platformObjId,
                                             name: playerName
@@ -3172,24 +3173,25 @@ var proposalExecutor = {
                                         }
 
                                         if (proposalData.data && proposalData.data.rewardType && (proposalData.data.rewardType == constRandomRewardType.PROMOCODE_B_DEPOSIT || proposalData.data.rewardType == constRandomRewardType.PROMOCODE_B_NO_DEPOSIT)){
-                                            if (promoCodeTemplate.amount){
-                                                updateData['data.rewardAmount'] = promoCodeTemplate.amount;
-                                            }
+                                            // if (promoCodeTemplate.amount){
+                                            //     updateData['data.rewardAmount'] = promoCodeTemplate.amount;
+                                            // }
 
                                             if (promoCodeTemplate.requiredConsumption){
                                                 updateData['data.spendingAmount'] = promoCodeTemplate.requiredConsumption;
                                             }
                                         }
                                         else if (proposalData.data && proposalData.data.rewardType && proposalData.data.rewardType == constRandomRewardType.PROMOCODE_C){
-                                            if (promoCodeTemplate.amount){
-                                                updateData['data.rewardPercentage'] = promoCodeTemplate.amount;
-                                            }
+                                            // if (promoCodeTemplate.amount){
+                                            //     updateData['data.rewardPercentage'] = promoCodeTemplate.amount;
+                                            // }
 
                                             if (promoCodeTemplate.requiredConsumption){
                                                 updateData['data.spendingTimes'] = promoCodeTemplate.requiredConsumption;
                                             }
                                         }
 
+                                        console.log("checking newPromoCodeEntry", newPromoCodeEntry)
                                         let promoCodeProm = new dbconfig.collection_promoCode(newPromoCodeEntry).save();
                                         let updateProposalProm = dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(proposalData._id)}, updateData, {new: true}).lean();
                                         return Promise.all([promoCodeProm, updateProposalProm])

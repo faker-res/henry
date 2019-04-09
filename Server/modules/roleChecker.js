@@ -302,6 +302,8 @@ var roleChecker = {
             },
             "Config": {
                 PartnerBasic: [],
+                AutoApproval: [],
+                largeWithdrawalSetting: [],
             },
         },
         Platform: {
@@ -482,6 +484,7 @@ var roleChecker = {
                 DecomposeAfterNDays: [],
                 AutoExportListOrMaxNumOfTxnEveryday: [],
                 WinnerMonitor: ['setWinnerMonitorConfig'],
+                defaultFeedbackConfig: ['updatePlatform'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],

@@ -943,10 +943,10 @@ db.rewardParam.update({
                     type: "number",
                     des: "Required consumption amount"
                 },
-                repetitiveRewardInPeriod: {
+                noRepetitiveRewardInPeriod: {
                     index: 46,
                     type: "checkbox",
-                    des: "Repetitive Reward In Period",
+                    des: "No Repetitive Reward In Period",
                     detail: "Same reward will not be selected in the period"
                 },
                 sameRewardOnTheNextTrial: {
