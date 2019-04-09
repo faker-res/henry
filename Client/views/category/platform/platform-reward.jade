@@ -2,7 +2,7 @@
     .well.col-xs-12
         .search-filters-item
             label {{'PRODUCT_NAME' | translate}}
-            select.form-control(ng-model='vm.filterRewardPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.rewardTabClicked("", vm.filterRewardPlatform)')
+            select.form-control(ng-model='vm.filterRewardPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getAllPlayerLevels(vm.filterRewardPlatform);vm.rewardTabClicked("", vm.filterRewardPlatform)')
 .text-center
     p(ng-if="!vm.filterRewardPlatform")
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
