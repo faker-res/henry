@@ -5,16 +5,11 @@ let crypto = require('crypto');
 let jwt = require('jsonwebtoken');
 let constSystemParam = require('./../const/constSystemParam');
 
-let fs = require('fs')
-    , crt
-    , key
-    , replKey
-    , replCrt
-    ;
+let fs = require('fs'), crt, key, replKey, replCrt;
 
 // SSL preparation - comment after SSL online
-key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+// key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
+// crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 
 let oldKey, oldCert;
 
@@ -23,9 +18,9 @@ oldKey = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
 oldCert = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 
 // 3rd party payment system key
-let fkpKey, fkpCert;
-fkpKey = fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.key.pem');
-fkpCert = fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.pub');
+// let fkpKey, fkpCert;
+// fkpKey = fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.key.pem');
+// fkpCert = fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.pub');
 
 let token = jwt.sign('Fr0m_FPM$!', constSystemParam.API_AUTH_SECRET_KEY);
 let host = "http://" + env.redisUrl;
@@ -135,12 +130,15 @@ module.exports = {
         try {
             decrypted = crypto.publicDecrypt(crt, Buffer.from(msg, 'base64'))
         } catch (e) {
+            console.log('crt decrypt failed');
             try {
                 decrypted = crypto.publicDecrypt(replCrt, Buffer.from(msg, 'base64'))
             } catch (e) {
+                console.log('replCrt decrypt failed');
                 try {
                     decrypted = crypto.publicDecrypt(oldCert, Buffer.from(msg, 'base64'))
                 } catch (e) {
+                    console.log('oldCert decrypt failed');
                     decrypted = msg;
                 }
             }
