@@ -422,7 +422,7 @@ var PaymentServiceImplement = function () {
         }
 
         let lastLoginIp = dbUtility.getIpAddress(conn);
-        let isValidData = Boolean(data && data.clientType);
+        let isValidData = Boolean(data && data.clientType && conn && conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getMinMaxCommonTopupAmount, [conn.playerId, data.clientType, lastLoginIp], isValidData);
     };
 
