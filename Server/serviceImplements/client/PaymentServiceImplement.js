@@ -68,7 +68,7 @@ var PaymentServiceImplement = function () {
 
     this.getOnlineTopupType.expectsData = 'clientType: ?';
     this.getOnlineTopupType.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data && data.clientType);
+        var isValidData = Boolean(conn && conn.playerId && data && data.clientType);
         let userIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
