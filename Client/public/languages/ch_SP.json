@@ -2719,6 +2719,8 @@
   "Platform Basic": "平台基础数据",
   "Partner Basic": "代理基础数据",
   "PartnerBasic": "代理基础数据",
+  "PartnerDisplay":"代理前端展示",
+  "PartnerAdvertisement":"代理前端广告",
   "Apply without charge": "免手续费次数",
   "Percentage Charge %": "提款手续费 %",
   "Auto Check Player Level Up": "玩家瞬间自动升级",
