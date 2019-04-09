@@ -3109,7 +3109,8 @@ var dbRewardEvent = {
                                     randomReward: randomReward.rewardName,
                                     creator: creator ? creator : {},
                                     playerId: data._id,
-                                    status: randomReward.status
+                                    status: randomReward.status,
+                                    lastEditTime: new Date()
                                 };
                                 return dbconfig.collection_playerRandomReward.findOneAndUpdate( searchQuery, rewardData, { new:true }).lean()
                             }
