@@ -97,7 +97,7 @@ proposalSchema.index({"data.topUpRecordId": 1});
 proposalSchema.index({"data.accountNo": 1});
 proposalSchema.index({"data.wechatAccount": 1});
 proposalSchema.index({"data.weChatAccount": 1});
-proposalSchema.index({"data.requestId": 1});
+// proposalSchema.index({"data.requestId": 1});
 proposalSchema.index({"data.followUpContent": 1});
 proposalSchema.index({"data.bankTypeId": 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1});
