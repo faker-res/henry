@@ -1069,6 +1069,14 @@ let dbPlayerInfo = {
         }
     },
 
+    checkPlayerIsBindedToPartner: (platformObjId, playerObjId) => {
+        return dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
+            fixedCredibilityRemarks => {
+                return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, '代理开户')
+            }
+        );
+    },
+
     checkPlayerIsIDCIp: (platformObjId, playerObjId, ipAddress) => {
         return dbUtility.getIDCIpDetail(ipAddress).then(
             idcDetail => {
@@ -5578,6 +5586,9 @@ let dbPlayerInfo = {
 
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
+                                    }
+                                    if (playerData[ind].partner && playerData[ind].partner._id) {
+                                        dbPlayerInfo.checkPlayerIsBindedToPartner(platformId, playerId);
                                     }
                                 }
                             }
