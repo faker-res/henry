@@ -21490,6 +21490,16 @@ define(['js/app'], function (myApp) {
                                         break;
                                     case "depositMethod":
                                         result = vm.depositMethod;
+                                        break;
+                                    case "playerLevel":
+                                        if (!vm.allPlayerLvl) break;
+                                        let playerLevels = {};
+                                        for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                                            let level = vm.allPlayerLvl[i];
+                                            playerLevels[level._id] = level.name;
+                                        }
+                                        result = playerLevels;
+                                        break;
                                     default:
                                         result = $scope[cond.options];
                                         if (result) {
@@ -21532,6 +21542,21 @@ define(['js/app'], function (myApp) {
                                         vm.rewardDisabledParam.push("consumptionProvider");
                                     }
 
+                                }
+
+                                if(el == "visibleFromHomePage" || el == "visibleFromRewardEntry" || el == "visibleFromRewardList"){
+                                    if(!(vm.showReward && vm.showReward.condition &&
+                                        (vm.showReward.condition["visibleFromHomePage"] || vm.showReward.condition["visibleFromRewardEntry"]
+                                        || vm.showReward.condition["visibleFromRewardList"]))){
+                                        vm.rewardDisabledParam.push("visibleForPhoneNumberBinding");
+                                        vm.rewardDisabledParam.push("visibleForNewPlayer");
+                                        vm.rewardDisabledParam.push("visibleForFirstLogin");
+                                        vm.rewardDisabledParam.push("visibleForPlayerLevel");
+                                        vm.rewardDisabledParam.push("visibleIfCreditLessThan");
+                                        vm.rewardDisabledParam.push("visibleIfAppliedFollowingReward");
+                                        vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
+                                        vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
+                                    }
                                 }
 
                                 // Get value
@@ -22036,6 +22061,55 @@ define(['js/app'], function (myApp) {
                     vm.isPlayerLevelDiff = model.value;
                     isResetLayout = true;
                 }
+
+
+                if(model && (model.name == "visibleFromHomePage" || model.name == "visibleFromRewardEntry" || model.name == "visibleFromRewardList")){
+                    if(vm.rewardMainCondition && ((vm.rewardMainCondition["4.1"] && vm.rewardMainCondition["4.1"].value) ||
+                        (vm.rewardMainCondition["4.11"] && vm.rewardMainCondition["4.11"].value)
+                    || (vm.rewardMainCondition["4.12"] && vm.rewardMainCondition["4.12"].value))){
+                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name =>
+                            name !== "visibleForPhoneNumberBinding" &&
+                            name !== "visibleForNewPlayer" &&
+                            name !== "visibleForFirstLogin" &&
+                            name !== "visibleForPlayerLevel" &&
+                            name !== "visibleIfCreditLessThan" &&
+                            name !== "visibleIfAppliedFollowingReward" &&
+                            name !== "visibleIfTopUpCountMoreThan" &&
+                            name !== "invisibleIfApplyCurrentReward"
+                        );
+                    }else{
+                        vm.rewardDisabledParam.push("visibleForPhoneNumberBinding");
+                        vm.rewardDisabledParam.push("visibleForNewPlayer");
+                        vm.rewardDisabledParam.push("visibleForFirstLogin");
+                        vm.rewardDisabledParam.push("visibleForPlayerLevel");
+                        vm.rewardDisabledParam.push("visibleIfCreditLessThan");
+                        vm.rewardDisabledParam.push("visibleIfAppliedFollowingReward");
+                        vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
+                        vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
+                    }
+                    // if (model.value == true) {
+                    //     vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name =>
+                    //         name !== "visibleForPhoneNumberBinding" &&
+                    //         name !== "visibleForNewPlayer" &&
+                    //         name !== "visibleForFirstLogin" &&
+                    //         name !== "visibleForPlayerLevel" &&
+                    //         name !== "visibleIfCreditLessThan" &&
+                    //         name !== "visibleIfAppliedFollowingReward" &&
+                    //         name !== "visibleIfTopUpCountMoreThan" &&
+                    //         name !== "invisibleIfApplyCurrentReward"
+                    //     );
+                    // } else {
+                    //     vm.rewardDisabledParam.push("visibleForPhoneNumberBinding");
+                    //     vm.rewardDisabledParam.push("visibleForNewPlayer");
+                    //     vm.rewardDisabledParam.push("visibleForFirstLogin");
+                    //     vm.rewardDisabledParam.push("visibleForPlayerLevel");
+                    //     vm.rewardDisabledParam.push("visibleIfCreditLessThan");
+                    //     vm.rewardDisabledParam.push("visibleIfAppliedFollowingReward");
+                    //     vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
+                    //     vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
+                    // }
+                }
+
 
                 if (isResetLayout) {
                     vm.rewardMainParamTable = [];
@@ -27358,11 +27432,15 @@ define(['js/app'], function (myApp) {
                 return providerString;
             }
 
-            vm.getAllPlayerLevels = function () {
+            vm.getAllPlayerLevels = function (platformObjId) {
                 vm.playerIDArr = [];
                 vm.autoCheckPlayerLevelUp = null;
                 vm.manualPlayerLevelUp = null;
                 vm.playerLevelDisplayList = [];
+
+                if(platformObjId){
+                    vm.selectedPlatform.id = platformObjId;
+                }
                 return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
                     .then(function (data) {
                         $scope.$evalAsync(() => {
