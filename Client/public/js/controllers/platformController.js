@@ -22133,27 +22133,6 @@ define(['js/app'], function (myApp) {
                         vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
                         vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
                     }
-                    // if (model.value == true) {
-                    //     vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name =>
-                    //         name !== "visibleForPhoneNumberBinding" &&
-                    //         name !== "visibleForNewPlayer" &&
-                    //         name !== "visibleForFirstLogin" &&
-                    //         name !== "visibleForPlayerLevel" &&
-                    //         name !== "visibleIfCreditLessThan" &&
-                    //         name !== "visibleIfAppliedFollowingReward" &&
-                    //         name !== "visibleIfTopUpCountMoreThan" &&
-                    //         name !== "invisibleIfApplyCurrentReward"
-                    //     );
-                    // } else {
-                    //     vm.rewardDisabledParam.push("visibleForPhoneNumberBinding");
-                    //     vm.rewardDisabledParam.push("visibleForNewPlayer");
-                    //     vm.rewardDisabledParam.push("visibleForFirstLogin");
-                    //     vm.rewardDisabledParam.push("visibleForPlayerLevel");
-                    //     vm.rewardDisabledParam.push("visibleIfCreditLessThan");
-                    //     vm.rewardDisabledParam.push("visibleIfAppliedFollowingReward");
-                    //     vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
-                    //     vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
-                    // }
                 }
 
 
