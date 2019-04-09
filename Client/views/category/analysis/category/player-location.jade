@@ -57,7 +57,7 @@ link(rel='stylesheet', href='https://www.amcharts.com/lib/3/ammap.css', type='te
                             tbody
                                 tr(ng-repeat='(i,v) in vm.playerLocationCountries')
                                     td
-                                        a(ng-click='vm.locationCountryClicked(v._id.country)',ng-mouseover="vm.locationCountryHover(v._id.country, 'in')" ng-mouseleave="vm.locationCountryHover(v._id.country,'out')")
+                                        a(ng-click='vm.locationCountryClicked(v._id.countryCode)',ng-mouseover="vm.locationCountryHover(v._id.countryCode, 'in')" ng-mouseleave="vm.locationCountryHover(v._id.countryCode,'out')")
                                             text {{vm.getCountryTitle(v._id.country) || 'Unknown' | translate}}
                                     td {{v.amount}}
                                 tr(ng-show='vm.playerLocationCountries.length > 0')
