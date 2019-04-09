@@ -24,7 +24,7 @@ const dbPlayerConsumptionHourSummary = {
                         return Promise.reject({message: "provider not found"});
                     }
 
-                    platformObjId = data._id;
+                    providerObjId = data._id;
                 }
             )
         }
