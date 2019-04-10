@@ -13067,7 +13067,14 @@ let dbPlayerInfo = {
                     ).lean();
                 }
                 else {
-                    return Promise.reject({name: "DataError", message: "Invalid proposal id or status"});
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Invalid proposal id or status",
+                        data: {
+                            proposalId: proposalId,
+                            fpmsStatus: data && data.status ? data.status : ''
+                        }
+                    });
                 }
             }
         ).then(
