@@ -3313,6 +3313,8 @@ define(['js/app'], function (myApp) {
             vm.paymentMonitorTotalQuery = {};
             vm.paymentMonitorTotalCompletedQuery = {};
             vm.paymentMonitorTotalQuery.totalCount = 0;
+            vm.paymentMonitorTotalQuery.querySearchTime = 0;
+            vm.paymentMonitorTotalQuery.querySearchTime2 = 0;
             vm.getAllPaymentAcc();
 
             Promise.all([getMerchantList(), getMerchantTypeList()]).then(
@@ -3845,8 +3847,10 @@ define(['js/app'], function (myApp) {
             }
             console.log('sendObj', sendObj);
 
+            let searchStartTime = new Date().getTime();
             return $scope.$socketPromise('getPaymentMonitorTotalResult', sendObj).then(
                 data => {
+                    vm.paymentMonitorTotalQuery.querySearchTime = findQuerySearchTime(searchStartTime);
                     $('#paymentMonitorTableASpin').hide();
                     $scope.$evalAsync(() => {
                         console.log('Payment Monitor Total Result', data);
@@ -3978,8 +3982,10 @@ define(['js/app'], function (myApp) {
             }
             console.log('sendObj', sendObj);
 
+            let searchStartTime = new Date().getTime();
             return $scope.$socketPromise('getPaymentMonitorTotalCompletedResult', sendObj).then(
                 data => {
+                    vm.paymentMonitorTotalQuery.querySearchTime2 = findQuerySearchTime(searchStartTime);
                     $scope.$evalAsync(() => {
                         $('#paymentMonitorTableSpin').hide();
                         $('#paymentMonitorTableBSpin').hide();
@@ -5012,6 +5018,11 @@ define(['js/app'], function (myApp) {
 
         // vm.showProposalDetailField
 
+        function findQuerySearchTime (startTime) {
+            let monitorSearchTimeEnd = new Date().getTime();
+            let searchTime = (monitorSearchTimeEnd - startTime) / 1000;
+            return searchTime;
+        }
 
         function getMerchantList() {
             return new Promise(function (resolve) {

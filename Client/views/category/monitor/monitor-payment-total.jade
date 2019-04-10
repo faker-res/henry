@@ -85,7 +85,7 @@ div
                         text {{"Time left until next refresh" | translate}} :&nbsp;
                         text#timeLeftRefreshOperation
                         text s
-            label {{"Total" | translate}} {{vm.paymentMonitorTotalQuery.totalCount}} {{"records" | translate}}
+            label {{"Total" | translate}} {{vm.paymentMonitorTotalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.paymentMonitorTotalQuery.querySearchTime}} {{"Seconds" | translate}}
             table#paymentMonitorTotalTable.common-table.display(style="min-width:100% ;overflow: scroll")
             #paymentMonitorTotalTablePage
         br
@@ -95,7 +95,7 @@ div
             span#paymentMonitorTableBSpin.collapse
                 i.fa.fa-spinner.fa-spin
         .penal_body
-            label {{"Total" | translate}} {{vm.paymentMonitorTotalQuery.totalCompletedCount}} {{"records" | translate}}
+            label {{"Total" | translate}} {{vm.paymentMonitorTotalQuery.totalCompletedCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.paymentMonitorTotalQuery.querySearchTime2}} {{"Seconds" | translate}}
             table#paymentMonitorTotalCompletedTable.common-table.display(style="min-width:100% ;overflow: scroll")
             #paymentMonitorTotalCompletedTablePage
 #modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
