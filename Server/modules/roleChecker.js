@@ -307,6 +307,9 @@ var roleChecker = {
                 PartnerDisplay: [],
                 PartnerAdvertisement: [],
             },
+            "Report": {
+                PLAYERPARTNER_REPORT: [],
+            },
         },
         Platform: {
             "PlatformSetting": {
