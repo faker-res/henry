@@ -12097,8 +12097,8 @@ define(['js/app'], function (myApp) {
                         // });
                         vm.provinceList.length = 0;
 
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let province = data.data.data[i];
+                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                            let province = data.data.provinces[i];
                             province.id = province.id.toString();
                             vm.provinceList.push(province);
                         }
@@ -12153,8 +12153,8 @@ define(['js/app'], function (myApp) {
                         // });
                         vm.provinceList2.length = 0;
 
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let province = data.data.data[i];
+                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                            let province = data.data.provinces[i];
                             province.id = province.id.toString();
                             vm.provinceList2.push(province);
                         }
@@ -12209,8 +12209,8 @@ define(['js/app'], function (myApp) {
                         // });
                         vm.provinceList3.length = 0;
 
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let province = data.data.data[i];
+                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                            let province = data.data.provinces[i];
                             province.id = province.id.toString();
                             vm.provinceList3.push(province);
                         }
@@ -12230,10 +12230,10 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince.province}, function (data) {
                 if (data) {
                     // vm.cityList = data.data.cities;
-                    if (data.data.data) {
+                    if (data.data.cities) {
                         vm.cityList.length = 0;
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let city = data.data.data[i];
+                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                            let city = data.data.cities[i];
                             city.id = city.id.toString();
                             vm.cityList.push(city);
                         }
@@ -12250,10 +12250,10 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince2.province}, function (data) {
                 if (data) {
                     // vm.cityList = data.data.cities;
-                    if (data.data.data) {
+                    if (data.data.cities) {
                         vm.cityList2.length = 0;
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let city = data.data.data[i];
+                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                            let city = data.data.cities[i];
                             city.id = city.id.toString();
                             vm.cityList2.push(city);
                         }
@@ -12270,10 +12270,10 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince3.province}, function (data) {
                 if (data) {
                     // vm.cityList = data.data.cities;
-                    if (data.data.data) {
+                    if (data.data.cities) {
                         vm.cityList3.length = 0;
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let city = data.data.data[i];
+                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                            let city = data.data.cities[i];
                             city.id = city.id.toString();
                             vm.cityList3.push(city);
                         }
@@ -12293,10 +12293,10 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 if (data) {
                     // vm.districtList = data.data.districts;
-                    if (data.data.data) {
+                    if (data.data.districts) {
                         vm.districtList.length = 0;
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let district = data.data.data[i];
+                        for (let i = 0, len = data.data.districts.length; i < len; i++) {
+                            let district = data.data.districts[i];
                             district.id = district.id.toString();
                             vm.districtList.push(district);
                         }
@@ -12316,10 +12316,10 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 if (data) {
                     // vm.districtList = data.data.districts;
-                    if (data.data.data) {
+                    if (data.data.districts) {
                         vm.districtList2.length = 0;
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let district = data.data.data[i];
+                        for (let i = 0, len = data.data.districts.length; i < len; i++) {
+                            let district = data.data.districts[i];
                             district.id = district.id.toString();
                             vm.districtList2.push(district);
                         }
@@ -12339,10 +12339,10 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 if (data) {
                     // vm.districtList = data.data.districts;
-                    if (data.data.data) {
+                    if (data.data.districts) {
                         vm.districtList3.length = 0;
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let district = data.data.data[i];
+                        for (let i = 0, len = data.data.districts.length; i < len; i++) {
+                            let district = data.data.districts[i];
                             district.id = district.id.toString();
                             vm.districtList3.push(district);
                         }
@@ -15391,15 +15391,15 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getZoneList', sendQuery, function (data) {
                 console.log(data.data);
                 if (!provinceId && !cityId) {
-                    vm.provinceList = data.data.data || [];
+                    vm.provinceList = data.data.provinces || [];
                     vm.playerManualTopUp.provinceId = vm.provinceList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId);
                 } else if (provinceId && !cityId) {
-                    vm.cityList = data.data.data || [];
+                    vm.cityList = data.data.cities || [];
                     // vm.playerManualTopUp.cityId = vm.cityList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId, vm.cityList[0].id);
                 } else if (provinceId && cityId) {
-                    vm.districtList = data.data.data || [];
+                    vm.districtList = data.data.districts || [];
                     vm.playerManualTopUp.districtId = '';
                 }
                 vm.freezeZoneSelection = false;
@@ -19212,29 +19212,17 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
-                        //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
-                        commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data.provinceName = data;
-                        });
+                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
                     }
                     if (vm.selectedProposal.data.inputData.cityId) {
-                        //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
-                        commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data.cityName = data;
-                        });
+                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
                     }
                 } else {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                        //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
-                        commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
-                        });
+                        vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                        //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
-                        commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
-                        });
+                        vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                     }
                 }
 

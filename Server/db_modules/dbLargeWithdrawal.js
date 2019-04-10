@@ -20,7 +20,6 @@ const cpmsAPI = require("../externalAPI/cpmsAPI");
 const constProposalMainType = require('../const/constProposalMainType');
 const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
 const proposalExecutor = require('./../modules/proposalExecutor');
-const RESTUtils = require('./../modules/RESTUtils');
 
 
 const dbLargeWithdrawal = {
@@ -106,8 +105,7 @@ const dbLargeWithdrawal = {
                     },
                 }).count();
 
-                //let bankCityProm = pmsAPI.foundation_getCityList({provinceId: player.bankAccountProvince}).catch(err => {return traceError("foundation_getCityList", err)});
-                let bankCityProm = RESTUtils.getPMS2Services("postCityList", {provinceId: player.bankAccountProvince}).catch(err => {return traceError("postCityList", err)});
+                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: player.bankAccountProvince}).catch(err => {return traceError("foundation_getCityList", err)});
                 let gameCreditProm = getTotalUniqueProviderCredit(player).catch(err => {return traceError("getTotalUniqueProviderCredit", err)});
 
                 let totalTopUpFromLastWithdrawal = Promise.resolve(0); //default amount
@@ -185,10 +183,10 @@ const dbLargeWithdrawal = {
                     withdrawalAmount = proposal.data.amount;
                 }
 
-                if (bankCity && bankCity.data && bankCity.data.length && player.bankAccountCity) {
-                    for (let i = 0; i < bankCity.data.length; i++) {
-                        if (bankCity.data[i].id == player.bankAccountCity) {
-                            bankCityName = bankCity.data[i].name;
+                if (bankCity && bankCity.cities && bankCity.cities.length && player.bankAccountCity) {
+                    for (let i = 0; i < bankCity.cities.length; i++) {
+                        if (bankCity.cities[i].id == player.bankAccountCity) {
+                            bankCityName = bankCity.cities[i].name;
                             break;
                         }
                     }
@@ -383,8 +381,7 @@ const dbLargeWithdrawal = {
                     },
                 }).read("secondaryPreferred").count();
 
-                //let bankCityProm = pmsAPI.foundation_getCityList({provinceId: partner.bankAccountProvince});
-                let bankCityProm = RESTUtils.getPMS2Services("postCityList", {provinceId: partner.bankAccountProvince});
+                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: partner.bankAccountProvince});
                 let lastWithdrawalProm = dbconfig.collection_proposal.findOne({
                     'data.partnerObjId': proposal.data.partnerObjId,
                     mainType: constProposalType.PLAYER_BONUS,
@@ -402,10 +399,10 @@ const dbLargeWithdrawal = {
                 todayLargeAmount = (todayLargeAmountData || 0) + 1;
 
                 bankCityName = "";
-                if (bankCityData && bankCityData.data && bankCityData.data.length && partner.bankAccountCity) {
-                    for (let i = 0; i < bankCityData.data.length; i++) {
-                        if (bankCityData.data[i].id == partner.bankAccountCity) {
-                            bankCityName = bankCityData.data[i].name;
+                if (bankCityData && bankCityData.cities && bankCityData.cities.length && partner.bankAccountCity) {
+                    for (let i = 0; i < bankCityData.cities.length; i++) {
+                        if (bankCityData.cities[i].id == partner.bankAccountCity) {
+                            bankCityName = bankCityData.cities[i].name;
                             break;
                         }
                     }

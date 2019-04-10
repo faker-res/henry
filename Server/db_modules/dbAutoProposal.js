@@ -19,7 +19,6 @@ const errorUtils = require("../modules/errorUtils.js");
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const proposalExecutor = require('../modules/proposalExecutor');
-const RESTUtils = require('../modules/RESTUtils');
 
 let dbAutoProposal = {
     applyBonus: (platformObjId) => {
@@ -346,8 +345,7 @@ function checkRewardTaskGroup(proposal, platformObj, withdrawalBank) {
                 }
             });
 
-            //let provinceListProm = pmsAPI.foundation_getProvinceList({});
-            let provinceListProm = RESTUtils.getPMS2Services("postProvinceList", {});
+            let provinceListProm = pmsAPI.foundation_getProvinceList({});
 
             let promises = [
                 RTGPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise, creditLogPromise,
@@ -425,8 +423,8 @@ function checkRewardTaskGroup(proposal, platformObj, withdrawalBank) {
                 }
             }
 
-            if (data && data[6] && data[6].data && playerData && playerData.bankAccountProvince) {
-                let allProvinces = data[6].data;
+            if (data && data[6] && data[6].provinces && playerData && playerData.bankAccountProvince) {
+                let allProvinces = data[6].provinces;
                 let pIdx = allProvinces.findIndex(d => d.id == playerData.bankAccountProvince);
                 if (allProvinces[pIdx] && allProvinces[pIdx].name) {
                     bankProvince = allProvinces[pIdx].name.replace("省", "")

@@ -34,7 +34,6 @@ const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 // db_common
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const extConfig = require('../config/externalPayment/paymentSystems');
-const RESTUtils = require('../modules/RESTUtils');
 
 let env = require('../config/env').config();
 
@@ -695,22 +694,18 @@ let dbPartner = {
 
                     var a, b, c;
 
-                    // a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
-                    //     provinceId: apiData.bankAccountProvince,
-                    //     queryId: serverInstance.getQueryId()
-                    // }) : true;
-                    // b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
-                    //     cityId: apiData.bankAccountCity,
-                    //     queryId: serverInstance.getQueryId()
-                    // }) : true;
-                    // c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
-                    //     districtId: apiData.bankAccountDistrict,
-                    //     queryId: serverInstance.getQueryId()
-                    // }) : true;
-
-                    a = apiData.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: apiData.bankAccountProvince}) : true;
-                    b = apiData.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: apiData.bankAccountCity}) : true;
-                    c = apiData.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: apiData.bankAccountDistrict}) : true;
+                    a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
+                        provinceId: apiData.bankAccountProvince,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+                    b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
+                        cityId: apiData.bankAccountCity,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+                    c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
+                        districtId: apiData.bankAccountDistrict,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
 
                     return Q.all([a, b, c]);
                 }
@@ -725,9 +720,9 @@ let dbPartner = {
                 apiData.bankAccountCityId = apiData.bankAccountCity;
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
                 if (zoneData && zoneData[0]) {
-                    apiData.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : apiData.bankAccountProvince;
-                    apiData.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : apiData.bankAccountCity;
-                    apiData.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : apiData.bankAccountDistrict;
+                    apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
+                    apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
+                    apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
                 }
                 deferred.resolve(apiData);
             },
@@ -1640,21 +1635,16 @@ let dbPartner = {
                                     }).lean().then(
                                         res => {
                                             retObj = res;
-                                            // let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
-                                            // let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
-                                            // let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
-
-                                            let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}) : true;
-                                            let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}) : true;
-                                            let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}) : true;
-
+                                            let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                                            let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                                            let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
                                             return Q.all([a, b, c]);
                                         }
                                     ).then(
                                         zoneData => {
-                                            retObj.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
-                                            retObj.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
-                                            retObj.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
+                                            retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                                            retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                                            retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                                             retObj.platform.partnerRequireLogInCaptcha = requireLogInCaptcha;
                                             return Q.resolve(retObj);
                                         },
