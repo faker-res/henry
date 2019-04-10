@@ -514,12 +514,15 @@ define(['js/app'], function (myApp) {
                 sortCol: vm.queryProposal.sortCol
             };
 
+            vm.promoTypeListUniqueName = [...new Set(vm.promoTypeList.map(x => x.name))];
+
             let promoType = $('select#selectPromoType').multipleSelect("getSelects");
 
-            if (vm.promoTypeList.length != promoType.length) {
-                vm.promoTypeList.filter(item => {
-                    if (promoType.indexOf(item.name) > -1) {
-                        sendData.promoTypeName.push(item.name);
+            console.log('promoType===', promoType);
+            if (vm.promoTypeListUniqueName.length != promoType.length) {
+                vm.promoTypeListUniqueName.filter(item => {
+                    if (promoType.indexOf(item) > -1) {
+                        sendData.promoTypeName.push(item);
                     }
                 });
             }

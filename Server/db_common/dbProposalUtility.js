@@ -1,5 +1,5 @@
 const constProposalStatus = require('./../const/constProposalStatus');
-var dbUtility = require('./../modules/dbUtility');
+var dbUtility = require('./../modules/dbutility');
 var constRewardType = require("./../const/constRewardType");
 const dbConfig = require('./../modules/dbproperties');
 const rsaCrypto = require('./../modules/rsaCrypto');

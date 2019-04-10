@@ -2965,6 +2965,8 @@ var dbPlatform = {
                         }
                     });
 
+                    returnedObj.requireSMSCodeForBankRegistrationAtFirstTime = platformData.requireSMSCodeForBankRegistrationAtFirstTime ? 1 : 0;
+
                     if (subject === 'player') {
                         returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength : 0;
                         returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength : 0;
@@ -3028,7 +3030,6 @@ var dbPlatform = {
                         returnedObj.twoStepsForModifyPhoneNumber = platformData.partnerUsePhoneNumberTwoStepsVerification ? 1 : 0;
                         returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
                         returnedObj.cndOrFtpLink = platformData.partnerRouteSetting ? platformData.partnerRouteSetting : "";
-                        returnedObj.requireSMSCodeForBankRegistrationAtFirstTime = platformData.requireSMSCodeForBankRegistrationAtFirstTime ? platformData.requireSMSCodeForBankRegistrationAtFirstTime : "";
                         // returnedObj.themeStyle = platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeStyleId.themeStyle ? platformData.partnerThemeSetting.themeStyleId.themeStyle : "";
                         console.log("checking --- yH platformData.partnerThemeSetting", platformData.partnerThemeSetting)
                         if (platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeIdObjId) {

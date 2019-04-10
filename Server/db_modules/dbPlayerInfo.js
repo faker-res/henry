@@ -3311,6 +3311,8 @@ let dbPlayerInfo = {
         let sameBankAccountCount = 0;
         let isfirstTimeRegistration = false;
 
+        console.log('updatePlayerPayment updateData:', updateData);
+
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 if (!playerData) {
@@ -13993,6 +13995,7 @@ let dbPlayerInfo = {
         // merchantUse - 1: merchant, 2: bankcard
         // clientType: 1: browser, 2: mobileApp
         var playerData = null;
+        let topUpSystemConfig;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -14005,6 +14008,8 @@ let dbPlayerInfo = {
                     return [];
                 }
                 if (data && data.platform) {
+                    topUpSystemConfig = extConfig && data.platform && data.platform.topUpSystemType && extConfig[data.platform.topUpSystemType];
+
                     if (data.platform.merchantGroupIsPMS) {
                         bPMSGroup = true
                     } else {
@@ -14016,12 +14021,21 @@ let dbPlayerInfo = {
                     };
                     playerData = data;
                     //if (merchantUse == 1) {
-                        if (bPMSGroup == true || bPMSGroup == "true") {
-                            pmsQuery.username = data.name;
-                            pmsQuery.ip = userIp;
-                            pmsQuery.clientType = clientType;
-                            return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            let query = {
+                                username: data.name,
+                                platformId: data.platform.platformId,
+                                clientType: clientType
+                            };
+
+                            return RESTUtils.getPMS2Services("postOnlineTopupType", query);
                         }
+                        // if (bPMSGroup == true || bPMSGroup == "true") {
+                        //     pmsQuery.username = data.name;
+                        //     pmsQuery.ip = userIp;
+                        //     pmsQuery.clientType = clientType;
+                        //     return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+                        // }
                         return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
                     // }
                     // else {
@@ -14037,7 +14051,35 @@ let dbPlayerInfo = {
                     var resData = [];
                     // if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
                     if (paymentData.merchants || paymentData.topupTypes) {
-                        if (paymentData.topupTypes) {
+                        if (paymentData.merchants && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            resData = paymentData.merchants;
+                            resData.forEach(merchant => {
+                                let minAmt = Number.POSITIVE_INFINITY;
+                                let maxAmt = Number.NEGATIVE_INFINITY;
+
+                                if (Number(merchant.minDepositAmount) < minAmt) {
+                                    minAmt = Number(merchant.minDepositAmount);
+                                }
+
+                                if (Number(merchant.maxDepositAmount) > maxAmt) {
+                                    maxAmt = Number(merchant.maxDepositAmount);
+                                }
+
+                                merchant.minDepositAmount = minAmt;
+                                merchant.maxDepositAmount = maxAmt;
+                            });
+
+                            if (playerData.forbidTopUpType && playerData.forbidTopUpType.length){
+                                playerData.forbidTopUpType.forEach(
+                                    topupType => {
+                                        let index = resData.findIndex( p => Number(p.type) == Number(topupType));
+                                        if (index != -1){
+                                            resData.splice(index, 1)
+                                        }
+                                    }
+                                )
+                            }
+                        } else if (paymentData.topupTypes) {
                             resData = paymentData.topupTypes;
                             resData.forEach(merchant => {
                                 merchant.type = Number(merchant.type);
