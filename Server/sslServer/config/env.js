@@ -58,12 +58,21 @@ var env = {
         let selfUrl = this.config().redisUrl;
         let selfPort = this.config().redisPort;
 
+        console.log('selfMode', selfMode);
+        console.log('selfUrl', selfUrl);
+        console.log('selfUrl', selfUrl);
+
         return Object.keys(envConf).filter(isTheOtherConfig).map(o => envConf[o]);
 
         function isTheOtherConfig (o) {
-            return envConf[o].mode === selfMode
+            if (
+                envConf[o].mode === selfMode
                 && envConf[o].redisUrl === selfUrl
                 && envConf[o].redisPort !== selfPort
+            ) {
+                console.log('envConf[o]', envConf[o]);
+                return true;
+            }
         }
 
     }
