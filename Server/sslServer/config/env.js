@@ -62,7 +62,8 @@ var env = {
 
         function isTheOtherConfig (o) {
             return envConf[o].mode === selfMode
-                && (envConf[o].redisUrl !== selfUrl || envConf[o].redisPort !== selfPort)
+                && envConf[o].redisUrl === selfUrl
+                && envConf[o].redisPort !== selfPort
         }
 
     }
