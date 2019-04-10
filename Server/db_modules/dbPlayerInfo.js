@@ -14017,9 +14017,7 @@ let dbPlayerInfo = {
                 if (data && data.platform) {
                     topUpSystemConfig = extConfig && data.platform && data.platform.topUpSystemType && extConfig[data.platform.topUpSystemType];
 
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        bPMSGroup = false;
-                    } else if (data.platform.merchantGroupIsPMS) {
+                    if (data.platform.merchantGroupIsPMS) {
                         bPMSGroup = true
                     } else {
                         bPMSGroup = false;

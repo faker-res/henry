@@ -1656,9 +1656,7 @@ var dbPlayerTopUpRecord = {
                 player = playerData;
                 topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
 
-                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    bPMSGroup = false;
-                } else if (player && player.platform && player.platform.merchantGroupIsPMS) {
+                if (player && player.platform && player.platform.merchantGroupIsPMS) {
                     bPMSGroup = true
                 } else {
                     bPMSGroup = false;
@@ -1686,25 +1684,15 @@ var dbPlayerTopUpRecord = {
                     let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId});
 
                     let merchantTypeProm = Promise.resolve(false);
-                    // if (bPMSGroup === true || bPMSGroup === "true") {
-                    //     let pmsQuery = {
-                    //         platformId: player.platform.platformId,
-                    //         queryId: serverInstance.getQueryId(),
-                    //         username: player.name,
-                    //         ip: lastLoginIp,
-                    //         clientType: clientType
-                    //     };
-                    //     merchantTypeProm = pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
-                    // }
-
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let query = {
-                            username: player.name,
+                    if (bPMSGroup === true || bPMSGroup === "true") {
+                        let pmsQuery = {
                             platformId: player.platform.platformId,
+                            queryId: serverInstance.getQueryId(),
+                            username: player.name,
+                            ip: lastLoginIp,
                             clientType: clientType
                         };
-
-                        merchantTypeProm = RESTUtils.getPMS2Services("postOnlineTopupType", query);
+                        merchantTypeProm = pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
                     }
 
                     let proms = [limitedOfferProm, merchantGroupProm(), merchantTypeProm];
@@ -1775,64 +1763,34 @@ var dbPlayerTopUpRecord = {
                 }
 
                 // Check segregated merchant min max amount
-                // if (bPMSGroup && merchantType && merchantType.topupTypes.some(el => el.type == topupRequest.topupType)) {
-                //     let quotaScopes = merchantType.topupTypes.find(el => el.type == topupRequest.topupType).quotaScopes;
-                //     let isPassed = false;
-                //     let amtArr = [];
-                //
-                //     if (quotaScopes) {
-                //         quotaScopes.forEach(scope => {
-                //             if (topupRequest.amount >= scope.minDepositAmount && topupRequest.amount <= scope.maxDepositAmount) {
-                //                 isPassed = true;
-                //             }
-                //
-                //             amtArr.push(scope.minDepositAmount);
-                //             amtArr.push(scope.maxDepositAmount);
-                //         });
-                //
-                //         if (!isPassed) {
-                //             let errorMsg = "暂时不支持您输入的金额，请填入";
-                //
-                //             for (let i = 0; i <= amtArr.length && Number.isFinite(amtArr[i]); i++) {
-                //                 errorMsg += String(amtArr[i]);
-                //                 errorMsg += "~";
-                //                 i++;
-                //                 errorMsg += String(amtArr[i]);
-                //                 errorMsg += "元; ";
-                //             }
-                //
-                //             return Promise.reject({name: "DataError", message: errorMsg})
-                //         }
-                //     }
-                // }
-
-                if (merchantType.merchants && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                if (bPMSGroup && merchantType && merchantType.topupTypes.some(el => el.type == topupRequest.topupType)) {
+                    let quotaScopes = merchantType.topupTypes.find(el => el.type == topupRequest.topupType).quotaScopes;
                     let isPassed = false;
                     let amtArr = [];
 
-                    merchantType.merchants.forEach(merchant => {
-                        if (merchant.name == topupRequest.merchantName && merchant.type == topupRequest.topupType && topupRequest.amount >= merchant.minDepositAmount && topupRequest.amount <= merchant.maxDepositAmount) {
-                            isPassed = true;
+                    if (quotaScopes) {
+                        quotaScopes.forEach(scope => {
+                            if (topupRequest.amount >= scope.minDepositAmount && topupRequest.amount <= scope.maxDepositAmount) {
+                                isPassed = true;
+                            }
+
+                            amtArr.push(scope.minDepositAmount);
+                            amtArr.push(scope.maxDepositAmount);
+                        });
+
+                        if (!isPassed) {
+                            let errorMsg = "暂时不支持您输入的金额，请填入";
+
+                            for (let i = 0; i <= amtArr.length && Number.isFinite(amtArr[i]); i++) {
+                                errorMsg += String(amtArr[i]);
+                                errorMsg += "~";
+                                i++;
+                                errorMsg += String(amtArr[i]);
+                                errorMsg += "元; ";
+                            }
+
+                            return Promise.reject({name: "DataError", message: errorMsg})
                         }
-
-                        if (merchant.name == topupRequest.merchantName && merchant.type == topupRequest.topupType) {
-                            amtArr.push(merchant.minDepositAmount);
-                            amtArr.push(merchant.maxDepositAmount);
-                        }
-                    });
-
-                    if (!isPassed) {
-                        let errorMsg = "暂时不支持您输入的金额，请填入";
-
-                        for (let i = 0; i <= amtArr.length && Number.isFinite(amtArr[i]); i++) {
-                            errorMsg += String(amtArr[i]);
-                            errorMsg += "~";
-                            i++;
-                            errorMsg += String(amtArr[i]);
-                            errorMsg += "元; ";
-                        }
-
-                        return Promise.reject({name: "DataError", message: errorMsg})
                     }
                 }
 
@@ -1947,7 +1905,7 @@ var dbPlayerTopUpRecord = {
                         userName: player.name,
                         realName: player.realName ? player.realName.replace(/\s/g, '') : "",
                         ip: ip,
-                        topupType: topupRequest.topupType,
+                        //topupType: topupRequest.topupType,
                         merchantName: topupRequest.merchantName,
                         amount: topupRequest.amount,
                         //merchantUseType: merchantUseType,
@@ -3854,7 +3812,6 @@ var dbPlayerTopUpRecord = {
     },
 
     getPlayerWechatPayStatus: (playerId, bPMSGroup, userIp) => {
-        let topUpSystemConfig;
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
@@ -3862,15 +3819,8 @@ var dbPlayerTopUpRecord = {
                     if (playerData && playerData.permission && playerData.permission.disableWechatPay) {
                         return [];
                     }
-
-                    topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
-
-                    if ((playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) || bPMSGroup
-                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
-
-                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                            bPMSGroup = false;
-                        } else if (playerData.platform.wechatPayGroupIsPMS) {
+                    if ((playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) || bPMSGroup) {
+                        if (playerData.platform.wechatPayGroupIsPMS) {
                             bPMSGroup = true
                         } else {
                             bPMSGroup = false;
@@ -3889,24 +3839,13 @@ var dbPlayerTopUpRecord = {
                                 }
                             )
                         } else {
-
-                            // if (String(bPMSGroup) == "true") {
-                            //     pmsQuery.ip = userIp;
-                            //     pmsQuery.username = playerData.name;
-                            //     prom = pmsAPI.foundation_requestWechatpayByUsername(pmsQuery);
-                            // }
-                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            if (String(bPMSGroup) == "true") {
+                                pmsQuery.ip = userIp;
+                                pmsQuery.username = playerData.name;
+                                prom = pmsAPI.foundation_requestWechatpayByUsername(pmsQuery);
+                            } else {
                                 let reqData = {
-                                    platformId: playerData.platform.platformId,
-                                    username: playerData.name,
-                                    depositType: constAccountType.WECHAT
-                                };
-
-                                prom = RESTUtils.getPMS2Services("postDepositTypeByUsername", reqData);
-                            }
-                            else {
-                                let reqData = {
-                                    platformId: playerData.platform.platformId,
+                                    platformId: platformId,
                                     accountType: constAccountType.WECHAT
                                 };
 
@@ -3918,27 +3857,16 @@ var dbPlayerTopUpRecord = {
                             wechats => {
                                 let bValid = false;
                                 let maxDeposit = 0;
-                                // if (String(bPMSGroup) == "true") {
-                                //     if (wechats.data) {
-                                //         if (!playerData.permission.disableWechatPay && wechats.data.valid) {
-                                //             bValid = true;
-                                //         }
-                                //         if (wechats.data.hasOwnProperty("maxDepositAmount")) {
-                                //             maxDeposit = wechats.data.maxDepositAmount;
-                                //         }
-                                //     }
-                                // }
-                                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                                    if (wechats) {
-                                        if (!playerData.permission.disableWechatPay && wechats.valid) {
+                                if (String(bPMSGroup) == "true") {
+                                    if (wechats.data) {
+                                        if (!playerData.permission.disableWechatPay && wechats.data.valid) {
                                             bValid = true;
                                         }
-                                        if (wechats.hasOwnProperty("maxDepositAmount")) {
-                                            maxDeposit = wechats.maxDepositAmount;
+                                        if (wechats.data.hasOwnProperty("maxDepositAmount")) {
+                                            maxDeposit = wechats.data.maxDepositAmount;
                                         }
                                     }
-                                }
-                                else {
+                                } else {
                                     if (wechats.data && wechats.data.length > 0) {
                                         wechats.data.forEach(
                                             wechat => {
@@ -3970,7 +3898,6 @@ var dbPlayerTopUpRecord = {
     },
 
     getPlayerAliPayStatus: (playerId, bPMSGroup, userIp) => {
-        let topUpSystemConfig;
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
@@ -3978,19 +3905,13 @@ var dbPlayerTopUpRecord = {
                     if (playerData && playerData.permission && !playerData.permission.alipayTransaction) {
                         return [];
                     }
-
-                    topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
-
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        bPMSGroup = false;
-                    } else if (playerData && playerData.platform && playerData.platform.aliPayGroupIsPMS) {
+                    if (playerData && playerData.platform && playerData.platform.aliPayGroupIsPMS) {
                         bPMSGroup = true
                     } else {
                         bPMSGroup = false;
                     }
 
-                    if ((playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) || bPMSGroup
-                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
+                    if ((playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) || bPMSGroup) {
                         let aliPayProm;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
@@ -4005,19 +3926,10 @@ var dbPlayerTopUpRecord = {
                                 }
                             )
                         } else {
-                            // if (String(bPMSGroup) == "true") {
-                            //     pmsQuery.ip = userIp;
-                            //     pmsQuery.username = playerData.name;
-                            //     aliPayProm = pmsAPI.foundation_requestAlipayByUsername(pmsQuery);
-                            // }
-                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                                let reqData = {
-                                    platformId: playerData.platform.platformId,
-                                    username: playerData.name,
-                                    depositType: constAccountType.ALIPAY
-                                };
-
-                                aliPayProm = RESTUtils.getPMS2Services("postDepositTypeByUsername", reqData);
+                            if (String(bPMSGroup) == "true") {
+                                pmsQuery.ip = userIp;
+                                pmsQuery.username = playerData.name;
+                                aliPayProm = pmsAPI.foundation_requestAlipayByUsername(pmsQuery);
                             } else {
                                 let reqData = {
                                     platformId: playerData.platform.platformId,
@@ -4051,33 +3963,19 @@ var dbPlayerTopUpRecord = {
                                 let maxDeposit = 0;
                                 let minDeposit;
 
-                                // if (String(bPMSGroup) == "true") {
-                                //     if (alipays.data) {
-                                //         if (playerData.permission.alipayTransaction && alipays.data.valid) {
-                                //             bValid = true;
-                                //         }
-                                //         if (alipays.data.hasOwnProperty("maxDepositAmount")) {
-                                //             maxDeposit = alipays.data.maxDepositAmount;
-                                //         }
-                                //         if (alipays.data.hasOwnProperty("minDepositAmount")) {
-                                //             minDeposit = alipays.data.minDepositAmount;
-                                //         }
-                                //     }
-                                // }
-                                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                                    if (alipays) {
-                                        if (playerData.permission.alipayTransaction && alipays.valid) {
+                                if (String(bPMSGroup) == "true") {
+                                    if (alipays.data) {
+                                        if (playerData.permission.alipayTransaction && alipays.data.valid) {
                                             bValid = true;
                                         }
-                                        if (alipays.hasOwnProperty("maxDepositAmount")) {
-                                            maxDeposit = alipays.maxDepositAmount;
+                                        if (alipays.data.hasOwnProperty("maxDepositAmount")) {
+                                            maxDeposit = alipays.data.maxDepositAmount;
                                         }
-                                        if (alipays.hasOwnProperty("minDepositAmount")) {
-                                            minDeposit = alipays.minDepositAmount;
+                                        if (alipays.data.hasOwnProperty("minDepositAmount")) {
+                                            minDeposit = alipays.data.minDepositAmount;
                                         }
                                     }
-                                }
-                                else {
+                                } else {
                                     if (alipays.data && alipays.data.length > 0) {
                                         alipays.data.forEach(
                                             alipay => {
