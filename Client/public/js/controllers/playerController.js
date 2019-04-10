@@ -11741,13 +11741,13 @@ define(['js/app'], function (myApp) {
                 vm.playerManualTopUp.remark = "";
             }
 
-            vm.listBankByDepositMethod = vm.depositMethodType[depositMethod];
-            vm.listBankByDepositMethod.forEach(bank => {
-                let bankStatus = $translate(bank.status == 'DISABLED' ? 'DISABLE' : bank.status);
-                bank.displayText = bank.name
-                    + ' ('+bank.bankTypeId+') - ' + $translate('SINGLE_LIMIT') + ':' +bank.maxDepositAmount;
-                return bank;
-            });
+            // vm.listBankByDepositMethod = vm.depositMethodType[depositMethod];
+            // vm.listBankByDepositMethod.forEach(bank => {
+            //     let bankStatus = $translate(bank.status == 'DISABLED' ? 'DISABLE' : bank.status);
+            //     bank.displayText = bank.name
+            //         + ' ('+bank.bankTypeId+') - ' + $translate('SINGLE_LIMIT') + ':' +bank.maxDepositAmount;
+            //     return bank;
+            // });
         };
         vm.applyPlayerManualTopUp = function () {
             var sendData = {
@@ -15114,13 +15114,13 @@ define(['js/app'], function (myApp) {
             vm.existingManualTopup = null;
             vm.chosenBankAcc = {};
 
-            socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
-                $scope.$evalAsync(() => {
-                    if (data && data.data && data.data.data) {
-                        vm.depositMethodType = vm.getDepositMethod(data.data.data);
-                    }
-                })
-            })
+            // socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
+            //     $scope.$evalAsync(() => {
+            //         if (data && data.data && data.data.data) {
+            //             vm.depositMethodType = vm.getDepositMethod(data.data.data);
+            //         }
+            //     })
+            // })
 
             socketService.$socket($scope.AppSocket, 'getManualTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 vm.existingManualTopup = data.data ? data.data : false;
