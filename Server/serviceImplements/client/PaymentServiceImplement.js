@@ -31,7 +31,7 @@ var PaymentServiceImplement = function () {
         }
 
         let lastLoginIp = dbUtility.getIpAddress(conn);
-        var isValidData = Boolean(data && data.hasOwnProperty("merchantName") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
+        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [data.userAgent, conn.playerId, data, merchantUseType, clientType, data.topUpReturnCode, data.bPMSGroup, lastLoginIp], isValidData);
