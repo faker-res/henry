@@ -193,30 +193,6 @@ function postPaymentGroupByPlayer (reqData) {
     return postRequest(reqData, 'getPlayerRankByPlayer', 'POST')
 }
 
-function postProvince (reqData) {
-    return postRequest(reqData, 'getProvince', 'POST')
-}
-
-function postProvinceList (reqData) {
-    return postRequest(reqData, 'getProvinceList', 'POST')
-}
-
-function postCity (reqData) {
-    return postRequest(reqData, 'getCity', 'POST')
-}
-
-function postCityList (reqData) {
-    return postRequest(reqData, 'getCityList', 'POST')
-}
-
-function postDistrict (reqData) {
-    return postRequest(reqData, 'getDistrict', 'POST')
-}
-
-function postDistrictList (reqData) {
-    return postRequest(reqData, 'getDistrictList', 'POST')
-}
-
 module.exports = {
     getMinMax: getMinMax,
     getTopupLobbyAddress: getTopupLobbyAddress,
@@ -235,11 +211,5 @@ module.exports = {
     postMerchantList: postMerchantList,
     postMerchantTypeList: postMerchantTypeList,
     postPaymentGroup: postPaymentGroup,
-    postPaymentGroupByPlayer: postPaymentGroupByPlayer,
-    postProvince: postProvince,
-    postProvinceList: postProvinceList,
-    postCity: postCity,
-    postCityList: postCityList,
-    postDistrict: postDistrict,
-    postDistrictList: postDistrictList,
+    postPaymentGroupByPlayer: postPaymentGroupByPlayer
 };
