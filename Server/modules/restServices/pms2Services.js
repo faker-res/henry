@@ -241,10 +241,6 @@ function postCreateOnlineTopup (reqData) {
     return postRequest(reqData, 'requestOnlineMerchant', 'POST')
 }
 
-function postDepositTypeByUsername (reqData) {
-    return postRequest(reqData, 'requestDepositTypeByUsername', 'POST')
-}
-
 module.exports = {
     getMinMax: getMinMax,
     getTopupLobbyAddress: getTopupLobbyAddress,
@@ -276,5 +272,4 @@ module.exports = {
     postOnlineTopupType: postOnlineTopupType,
     postMerchantInfo: postMerchantInfo,
     postCreateOnlineTopup: postCreateOnlineTopup,
-    postDepositTypeByUsername: postDepositTypeByUsername,
 };
