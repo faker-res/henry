@@ -4,10 +4,8 @@
             .search-filters-item
                 label {{'PRODUCT_NAME' | translate}}
                 select.form-control(ng-model='vm.filterAnnouncementPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformAnnouncements(vm.filterAnnouncementPlatform)')
-
 .text-center(ng-if="!vm.filterAnnouncementPlatform")
-    p
-        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
 div(style="height:265px;overflow:auto;margin-bottom:5px", ng-if="vm.filterAnnouncementPlatform")
     form(name="platformAnnouncementsForm")
