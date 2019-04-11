@@ -19134,6 +19134,13 @@ let dbPlayerInfo = {
             }
         }
 
+        let consumptionStartTime;
+        let consumptionEndTime;
+        if (query.queryStart && query.queryEnd) {
+            consumptionStartTime = new Date(query.queryStart);
+            consumptionEndTime = new Date(query.queryEnd);
+        }
+
         let stream = dbconfig.collection_players.aggregate({
             $match: matchObj
         }).cursor({batchSize: 10}).allowDiskUse(true).exec();
@@ -19151,6 +19158,8 @@ let dbPlayerInfo = {
                                 platformId: platform,
                                 startTime: query.start,
                                 endTime: query.days? moment(query.start).add(query.days, "day"): new Date(),
+                                customStartTime: consumptionStartTime,
+                                customEndTime: consumptionEndTime,
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     playerData = playerIdObjs;
@@ -19311,7 +19320,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay, customStartTime, customEndTime) {
         console.log('getConsumptionDetailOfPlayers - start');
         option = option || {};
         let proms = [];
@@ -19351,6 +19360,10 @@ let dbPlayerInfo = {
                                     playerData => {
                                         let qStartTime = new Date(playerData.registrationTime);
                                         let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
+                                        if (customStartTime && customEndTime) {
+                                            qStartTime = customStartTime;
+                                            qEndTime = customEndTime;
+                                        }
 
                                         return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain, true);
                                     }
