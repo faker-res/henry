@@ -1,11 +1,12 @@
-.col-md-12
-    .well.col-xs-12
-        .search-filters-item
-            label {{'PRODUCT_NAME' | translate}}
-            select.form-control(ng-model='vm.filterGameGroupPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadGameGroupData(vm.filterGameGroupPlatform)')
-.col-sm-12(ng-if='!vm.filterGameGroupPlatform')
-    .text-center
-        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.row
+    .col-md-12
+        .well.col-xs-12
+            .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.filterGameGroupPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadGameGroupData(vm.filterGameGroupPlatform)')
+.text-center(ng-if='!vm.filterGameGroupPlatform')
+    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
 .row(ng-if='vm.filterGameGroupPlatform')
     .col-md-4
         .panel.panel-primary(style="min-height:610px")
