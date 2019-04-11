@@ -648,6 +648,7 @@ define(['js/app'], function (myApp) {
                         data.show$ = true;
                         data.included = true;
                         data.status = bankCard.status ? bankCard.status : "DISABLED";
+                        data.depositMethod = bankCard && bankCard.paymentMethod && bankCard.paymentMethod.length > 0 ? bankCard.paymentMethod.join(', ') : "";
 
                         groupData.cards.push(data);
                     });
