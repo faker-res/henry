@@ -13069,7 +13069,14 @@ let dbPlayerInfo = {
                     ).lean();
                 }
                 else {
-                    return Promise.reject({name: "DataError", message: "Invalid proposal id or status"});
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Invalid proposal id or status",
+                        data: {
+                            proposalId: proposalId,
+                            fpmsStatus: data && data.status ? data.status : ''
+                        }
+                    });
                 }
             }
         ).then(
@@ -14012,7 +14019,9 @@ let dbPlayerInfo = {
                 if (data && data.platform) {
                     topUpSystemConfig = extConfig && data.platform && data.platform.topUpSystemType && extConfig[data.platform.topUpSystemType];
 
-                    if (data.platform.merchantGroupIsPMS) {
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        bPMSGroup = false;
+                    } else if (data.platform.merchantGroupIsPMS) {
                         bPMSGroup = true
                     } else {
                         bPMSGroup = false;
@@ -19211,6 +19220,13 @@ let dbPlayerInfo = {
             }
         }
 
+        let consumptionStartTime;
+        let consumptionEndTime;
+        if (query.queryStart && query.queryEnd) {
+            consumptionStartTime = new Date(query.queryStart);
+            consumptionEndTime = new Date(query.queryEnd);
+        }
+
         let stream = dbconfig.collection_players.aggregate({
             $match: matchObj
         }).cursor({batchSize: 10}).allowDiskUse(true).exec();
@@ -19228,6 +19244,8 @@ let dbPlayerInfo = {
                                 platformId: platform,
                                 startTime: query.start,
                                 endTime: query.days? moment(query.start).add(query.days, "day"): new Date(),
+                                customStartTime: consumptionStartTime,
+                                customEndTime: consumptionEndTime,
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     playerData = playerIdObjs;
@@ -19388,7 +19406,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay, customStartTime, customEndTime) {
         console.log('getConsumptionDetailOfPlayers - start');
         option = option || {};
         let proms = [];
@@ -19428,6 +19446,10 @@ let dbPlayerInfo = {
                                     playerData => {
                                         let qStartTime = new Date(playerData.registrationTime);
                                         let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
+                                        if (customStartTime && customEndTime) {
+                                            qStartTime = customStartTime;
+                                            qEndTime = customEndTime;
+                                        }
 
                                         return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain, true);
                                     }

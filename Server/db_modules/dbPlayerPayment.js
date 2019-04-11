@@ -752,6 +752,25 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
 
     url += "?";
 
+    // url += playerData.platform.platformId + delimiter;
+    // url += playerData.name + delimiter;
+    // url += playerData.realName + delimiter;
+    // url += paymentCallbackUrl + "/notifyPayment" + delimiter;
+    // url += clientType + delimiter;
+    // url += ipAddress + delimiter;
+    // url += amount + delimiter;
+    //
+    // if (playerData && playerData.platform && playerData.platform.topUpSystemType && extConfig &&
+    //     extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].name && extConfig[playerData.platform.topUpSystemType].name === 'PMS2') {
+    //     url += proposalData.proposalId + delimiter;
+    //     url += proposalData.entryType + delimiter;
+    //     url += proposalData.createTime.getTime()
+    // } else {
+    //     url += proposalData.proposalId
+    // }
+    //
+    // return url;
+
     let paramString = "";
     paramString += playerData.platform.platformId + delimiter;
     paramString += playerData.name + delimiter;

@@ -425,7 +425,7 @@ function socketActionReport(socketIO, socket) {
 
         getDXNewPlayerReport: function getDXNewPlayerReport(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.query && data.platformId);
+            let isValidData = Boolean(data && data.query && data.platformId && ((!data.query.queryStart && !data.query.queryEnd) || (data.query.queryStart && data.query.queryEnd && !data.query.days)));
             let platformId = ObjectId(data.platformId);
 
             socketUtil.emitter(self.socket, dbPlayerInfo.getDXNewPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
