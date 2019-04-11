@@ -648,6 +648,7 @@ define(['js/app'], function (myApp) {
                         data.show$ = true;
                         data.included = true;
                         data.status = bankCard.status ? bankCard.status : "DISABLED";
+                        data.depositMethod = bankCard && bankCard.paymentMethod && bankCard.paymentMethod.length > 0 ? bankCard.paymentMethod.join(', ') : "";
 
                         groupData.cards.push(data);
                     });
@@ -841,8 +842,8 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         vm.provinceList.length = 0;
 
-                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
-                            let province = data.data.provinces[i];
+                        for (let i = 0, len = data.data.data.length; i < len; i++) {
+                            let province = data.data.data[i];
                             province.id = province.id.toString();
                             vm.provinceList.push(province);
                         }
@@ -859,10 +860,10 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: modal.provinceId}, function (data) {
                     if (data) {
                         $scope.$evalAsync(() => {
-                            if (data.data.cities) {
+                            if (data.data.data) {
                                 vm.cityList.length = 0;
-                                for (let i = 0, len = data.data.cities.length; i < len; i++) {
-                                    let city = data.data.cities[i];
+                                for (let i = 0, len = data.data.data.length; i < len; i++) {
+                                    let city = data.data.data[i];
                                     city.id = city.id.toString();
                                     vm.cityList.push(city);
                                 }

@@ -26,9 +26,5 @@ var playerConsumptionSummarySchema = new Schema({
     nonXIMAAmt: {type: Number, default: 0}
 });
 
-// the unique key here is defined in shard key config, the index here is for non-shard config
-// record is not unique because we will have many dirty and one non-dirty per "key"
-playerConsumptionSummarySchema.index({ platformId: 1, playerId: 1, gameType: 1, summaryDay: 1, bDirty: 1 }, { unique: true });
-
 module.exports = playerConsumptionSummarySchema;
 
