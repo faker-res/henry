@@ -229,6 +229,18 @@ function patchPlatformUpdate (reqData) {
     return postRequest(reqData, 'platform', 'PATCH')
 }
 
+function postOnlineTopupType (reqData) {
+    return postRequest(reqData, 'getOnlineTopupType', 'POST')
+}
+
+function postMerchantInfo (reqData) {
+    return postRequest(reqData, 'getMerchantInfo', 'POST')
+}
+
+function postCreateOnlineTopup (reqData) {
+    return postRequest(reqData, 'requestOnlineMerchant', 'POST')
+}
+
 module.exports = {
     getMinMax: getMinMax,
     getTopupLobbyAddress: getTopupLobbyAddress,
@@ -257,4 +269,7 @@ module.exports = {
     postPlatformAdd: postPlatformAdd,
     deletePlatformDelete: deletePlatformDelete,
     patchPlatformUpdate: patchPlatformUpdate,
+    postOnlineTopupType: postOnlineTopupType,
+    postMerchantInfo: postMerchantInfo,
+    postCreateOnlineTopup: postCreateOnlineTopup,
 };

@@ -1634,7 +1634,7 @@ var dbPlayerTopUpRecord = {
         let merchantGroupList = [];
         let rewardEvent;
         let newProposal;
-        let serviceChargeRate = 0;
+        let serviceCharge = 0;
         let topUpSystemConfig;
 
         if (topupRequest.bonusCode && topUpReturnCode) {
@@ -1905,21 +1905,26 @@ var dbPlayerTopUpRecord = {
                         userName: player.name,
                         realName: player.realName ? player.realName.replace(/\s/g, '') : "",
                         ip: ip,
-                        topupType: topupRequest.topupType,
+                        //topupType: topupRequest.topupType,
+                        merchantName: topupRequest.merchantName,
                         amount: topupRequest.amount,
-                        merchantUseType: merchantUseType,
-                        clientType: clientType
+                        //merchantUseType: merchantUseType,
+                        clientType: clientType,
+                        fpmsTime: proposalData.createTime.getTime()
                     };
                     // console.log("requestData:", requestData);
                     let groupMerchantList = dbPlayerTopUpRecord.isMerchantValid(player.merchantGroup.merchantNames, merchantGroupList, topupRequest.topupType, clientType);
-                    if (groupMerchantList.length > 0 || bPMSGroup) {
-                        if(!bPMSGroup){
-                            requestData.groupMerchantList = groupMerchantList;
-                        }
-                        else{
-                            requestData.groupMerchantList = [];
-                        }
-                        return pmsAPI.payment_requestOnlineMerchant(requestData);
+                    // if (groupMerchantList.length > 0 || bPMSGroup) {
+                    //     if(!bPMSGroup){
+                    //         requestData.groupMerchantList = groupMerchantList;
+                    //     }
+                    //     else{
+                    //         requestData.groupMerchantList = [];
+                    //     }
+                    //     return pmsAPI.payment_requestOnlineMerchant(requestData);
+                    // }
+                    if (topupRequest && topupRequest.merchantName) {
+                        return RESTUtils.getPMS2Services("postCreateOnlineTopup", requestData);
                     } else {
                         let errorMsg = "No Any MerchantNo Are Available, Please Change TopUp Method";
                         updateProposalRemark(proposalData, localization.localization.translate(errorMsg)).catch(errorUtils.reportError);
@@ -1960,6 +1965,15 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$gte"] = start;
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        queryObj["data.topUpSystemName"] = topUpSystemConfig.name;
+                    } else {
+                        if (!queryObj.$and) {
+                            queryObj.$and = [];
+                        }
+
+                        queryObj.$and.push({$or: [{"data.topUpSystemName": {$ne: 'PMS2'}}, {"data.topUpSystemName": {$exists: false}}]});
+                    }
                     // calculate this card/acc total usage at today
                     return dbconfig.collection_proposal.aggregate(
                         {$match: queryObj},
@@ -1993,10 +2007,11 @@ var dbPlayerTopUpRecord = {
                     status: constProposalStatus.PENDING
                 };
                 let merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
-                let getRateProm;
+                let getRateProm = Promise.resolve(false);
+                let sysCustomMerchantRateProm = Promise.resolve();
 
                 updateData.data = Object.assign({}, proposal.data);
-                updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
+                // updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
                 updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
                 updateData.data.merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
                 if (res[0]) {
@@ -2009,14 +2024,23 @@ var dbPlayerTopUpRecord = {
 
                 if(updateData.data.merchantNo && player.platform._id && merchantName != ""){
                     getRateProm = getMerchantRate(updateData.data.merchantNo , player.platform.platformId, merchantName);
+                    sysCustomMerchantRateProm = dbconfig.collection_platform.findOne({_id: player.platform._id}, {pmsServiceCharge: 1, fpmsServiceCharge: 1}).lean();
                 }
 
-                return Promise.all([getRateProm]).then(
-                    rate => {
-                        if(rate && rate.length > 0 && typeof rate[0] != "undefined"){
-                            serviceCharge = rate[0];
-                            updateData.data.rate = rate[0];
-                            updateData.data.actualAmountReceived = Number((topupRequest.amount - (topupRequest.amount * Number(rate[0]))).toFixed(2));
+                return Promise.all([getRateProm, sysCustomMerchantRateProm]).then(
+                    ([merchantRate, sysCustomMerchantRate]) => {
+                        serviceCharge = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
+                        updateData.data.rate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
+                        updateData.data.actualAmountReceived = merchantRate && merchantRate.customizeRate ?
+                            (Number(topupRequest.amount) - Number(topupRequest.amount) * Number(merchantRate.customizeRate)).toFixed(2)
+                            : topupRequest.amount;
+
+                        // use system custom rate when there is pms's rate greater than system setting and no customizeRate
+                        if (merchantRate && !merchantRate.customizeRate && merchantRate.rate
+                            && sysCustomMerchantRate && sysCustomMerchantRate.pmsServiceCharge && sysCustomMerchantRate.fpmsServiceCharge
+                            && (merchantRate.rate > sysCustomMerchantRate.pmsServiceCharge)) {
+                            updateData.data.rate = sysCustomMerchantRate.fpmsServiceCharge;
+                            updateData.data.actualAmountReceived = (Number(topupRequest.amount) - Number(topupRequest.amount) * Number(sysCustomMerchantRate.fpmsServiceCharge)).toFixed(2);
                         }
 
                         return updateData;
@@ -2027,12 +2051,31 @@ var dbPlayerTopUpRecord = {
             updateData => {
                 let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
-                updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo, merchantUseType).catch(errorUtils.reportError);
+                // updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo).catch(errorUtils.reportError);
+                updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantName).catch(errorUtils.reportError);
 
-                return dbconfig.collection_proposal.findOneAndUpdate(
-                    {_id: proposal._id, createTime: proposal.createTime},
-                    updateData,
-                    {new: true}
+                let checkProposalStatus = Promise.resolve();
+                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    // to check if proposal status already update to Success, sometimes PMS 2 update proposal status too fast
+                    checkProposalStatus = dbconfig.collection_proposal.findOneAndUpdate(
+                        {
+                            _id: proposal._id,
+                            createTime: proposal.createTime,
+                            status: constProposalStatus.PREPENDING
+                        },
+                        {status: constProposalStatus.PENDING}).lean();
+                } else {
+                    updateData.status = constProposalStatus.PENDING;
+                }
+
+                return checkProposalStatus.then(
+                    () => {
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            proposalQuery,
+                            updateData,
+                            {new: true}
+                        ).lean();
+                    }
                 );
             }
         ).then(
@@ -5085,21 +5128,33 @@ function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, p
 }
 
 function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo) {
-    let merchantObj;
-    return pmsAPI.merchant_getMerchant({merchantNo: merchantNo}).then(
+    // let merchantObj;
+    // return pmsAPI.merchant_getMerchant({merchantNo: merchantNo}).then(
+    //     merchantData => {
+    //         merchantObj = merchantData;
+    //         if (merchantData && merchantData.merchant && merchantData.merchant.merchantTypeId) {
+    //             return pmsAPI.merchant_getMerchantType({merchantTypeId: merchantData.merchant.merchantTypeId})
+    //         }
+    //     }
+    // ).then(
+    //     merchantType => {
+    //         if (merchantObj && merchantObj.merchant && (merchantObj.merchant.permerchantLimits || merchantObj.merchant.transactionForPlayerOneDay)) {
+    //             return dbconfig.collection_proposal.update(proposalQuery, {
+    //                 "data.permerchantLimits": merchantObj.merchant.permerchantLimits ? merchantObj.merchant.permerchantLimits : 0,
+    //                 "data.transactionForPlayerOneDay": merchantObj.merchant.transactionForPlayerOneDay ? merchantObj.merchant.transactionForPlayerOneDay : 0,
+    //                 "data.merchantUseName": merchantType && merchantType.merchantType && merchantType.merchantType.name ? merchantType.merchantType.name : ""
+    //             });
+    //         }
+    //     }
+    // )
+
+    return RESTUtils.getPMS2Services("postMerchantInfo", {merchantName: merchantNo}).then(
         merchantData => {
-            merchantObj = merchantData;
-            if (merchantData && merchantData.merchant && merchantData.merchant.merchantTypeId) {
-                return pmsAPI.merchant_getMerchantType({merchantTypeId: merchantData.merchant.merchantTypeId})
-            }
-        }
-    ).then(
-        merchantType => {
-            if (merchantObj && merchantObj.merchant && (merchantObj.merchant.permerchantLimits || merchantObj.merchant.transactionForPlayerOneDay)) {
+            if (merchantData) {
                 return dbconfig.collection_proposal.update(proposalQuery, {
-                    "data.permerchantLimits": merchantObj.merchant.permerchantLimits ? merchantObj.merchant.permerchantLimits : 0,
-                    "data.transactionForPlayerOneDay": merchantObj.merchant.transactionForPlayerOneDay ? merchantObj.merchant.transactionForPlayerOneDay : 0,
-                    "data.merchantUseName": merchantType && merchantType.merchantType && merchantType.merchantType.name ? merchantType.merchantType.name : ""
+                    "data.permerchantLimits": merchantData.permerchantLimits ? merchantData.permerchantLimits : 0,
+                    "data.transactionForPlayerOneDay": merchantData.transactionForPlayerOneDay ? merchantData.transactionForPlayerOneDay : 0,
+                    "data.merchantUseName": merchantData.merchantTypeName ? merchantData.merchantTypeName : ""
                 });
             }
         }
@@ -5117,26 +5172,12 @@ function updateProposalRemark (proposalData, remark) {
 }
 
 function getMerchantRate(merchantNo, platformId, merchantName){
-    if(!merchantName || merchantName == "")
-    {
-        return 0;
-    }
-
     let query = {
         merchantNo: merchantNo,
         name: merchantName,
         platformId: platformId,
+        isPMS2: {$exists: true}
     };
 
-    return dbconfig.collection_platformMerchantList.findOne(query).then(
-        platformMerchantList => {
-            if(platformMerchantList){
-                if(typeof platformMerchantList.customizeRate != "undefined"){
-                    return platformMerchantList.customizeRate;
-                }
-            }
-
-            return 0;
-        }
-    );
+    return dbconfig.collection_platformMerchantList.findOne(query, {rate: 1, customizeRate: 1});
 }
