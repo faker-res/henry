@@ -28,6 +28,8 @@ function createConnection(dbURL, callback) {
         }
     };
 
+    console.log('CONNECTING TO MONGODB: ', dbURL);
+
     var db = mongoose.createConnection(dbURL, options);
 
     db.on('error', function (err) {
