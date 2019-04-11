@@ -983,18 +983,11 @@ var proposal = {
                 }
 
                 if (callbackData.merchantNo && proposalObj.data.platform) {
-                    // let merchantQuery = {
-                    //     platformId: proposalObj.data.platform,
-                    //     merchantNo: callbackData.merchantNo,
-                    //     topupType: callbackData.depositMethod,
-                    //     name: callbackData.merchantName
-                    // };
-
                     let merchantQuery = {
                         platformId: proposalObj.data.platform,
                         merchantNo: callbackData.merchantNo,
                         topupType: callbackData.depositMethod,
-                        customizeRate: {$exists: true}
+                        name: callbackData.merchantName
                     };
 
                     if (proposalObj.data && proposalObj.data.topUpSystemName && proposalObj.data.topUpSystemName === 'PMS2') {
@@ -1088,12 +1081,12 @@ var proposal = {
                             : proposalObj.data.amount;
 
                         // use system custom rate when there is pms's rate greater than system setting and no customizeRate
-                        // if (merchantRate && !merchantRate.customizeRate && merchantRate.rate
-                        //     && sysCustomMerchantRate && sysCustomMerchantRate.pmsServiceCharge && sysCustomMerchantRate.fpmsServiceCharge
-                        //     && (merchantRate.rate > sysCustomMerchantRate.pmsServiceCharge)) {
-                        //     topupRate = sysCustomMerchantRate.fpmsServiceCharge;
-                        //     topupActualAmt = (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(sysCustomMerchantRate.fpmsServiceCharge)).toFixed(2);
-                        // }
+                        if (merchantRate && !merchantRate.customizeRate && merchantRate.rate
+                            && sysCustomMerchantRate && sysCustomMerchantRate.pmsServiceCharge && sysCustomMerchantRate.fpmsServiceCharge
+                            && (merchantRate.rate > sysCustomMerchantRate.pmsServiceCharge)) {
+                            topupRate = sysCustomMerchantRate.fpmsServiceCharge;
+                            topupActualAmt = (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(sysCustomMerchantRate.fpmsServiceCharge)).toFixed(2);
+                        }
 
                         if (updObj && updObj.data && updObj.data.amount) {
                             topupActualAmt = (Number(updObj.data.amount) - Number(updObj.data.amount) * Number(topupRate)).toFixed(2);

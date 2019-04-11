@@ -1634,7 +1634,7 @@ var dbPlayerTopUpRecord = {
         let merchantGroupList = [];
         let rewardEvent;
         let newProposal;
-        let serviceChargeRate = 0;
+        let serviceCharge = 0;
         let topUpSystemConfig;
 
         if (topupRequest.bonusCode && topUpReturnCode) {
@@ -1656,7 +1656,9 @@ var dbPlayerTopUpRecord = {
                 player = playerData;
                 topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
 
-                if (player && player.platform && player.platform.merchantGroupIsPMS) {
+                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    bPMSGroup = false;
+                } else if (player && player.platform && player.platform.merchantGroupIsPMS) {
                     bPMSGroup = true
                 } else {
                     bPMSGroup = false;
@@ -1684,15 +1686,25 @@ var dbPlayerTopUpRecord = {
                     let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId});
 
                     let merchantTypeProm = Promise.resolve(false);
-                    if (bPMSGroup === true || bPMSGroup === "true") {
-                        let pmsQuery = {
-                            platformId: player.platform.platformId,
-                            queryId: serverInstance.getQueryId(),
+                    // if (bPMSGroup === true || bPMSGroup === "true") {
+                    //     let pmsQuery = {
+                    //         platformId: player.platform.platformId,
+                    //         queryId: serverInstance.getQueryId(),
+                    //         username: player.name,
+                    //         ip: lastLoginIp,
+                    //         clientType: clientType
+                    //     };
+                    //     merchantTypeProm = pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+                    // }
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        let query = {
                             username: player.name,
-                            ip: lastLoginIp,
+                            platformId: player.platform.platformId,
                             clientType: clientType
                         };
-                        merchantTypeProm = pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+
+                        merchantTypeProm = RESTUtils.getPMS2Services("postOnlineTopupType", query);
                     }
 
                     let proms = [limitedOfferProm, merchantGroupProm(), merchantTypeProm];
@@ -1763,34 +1775,64 @@ var dbPlayerTopUpRecord = {
                 }
 
                 // Check segregated merchant min max amount
-                if (bPMSGroup && merchantType && merchantType.topupTypes.some(el => el.type == topupRequest.topupType)) {
-                    let quotaScopes = merchantType.topupTypes.find(el => el.type == topupRequest.topupType).quotaScopes;
+                // if (bPMSGroup && merchantType && merchantType.topupTypes.some(el => el.type == topupRequest.topupType)) {
+                //     let quotaScopes = merchantType.topupTypes.find(el => el.type == topupRequest.topupType).quotaScopes;
+                //     let isPassed = false;
+                //     let amtArr = [];
+                //
+                //     if (quotaScopes) {
+                //         quotaScopes.forEach(scope => {
+                //             if (topupRequest.amount >= scope.minDepositAmount && topupRequest.amount <= scope.maxDepositAmount) {
+                //                 isPassed = true;
+                //             }
+                //
+                //             amtArr.push(scope.minDepositAmount);
+                //             amtArr.push(scope.maxDepositAmount);
+                //         });
+                //
+                //         if (!isPassed) {
+                //             let errorMsg = "暂时不支持您输入的金额，请填入";
+                //
+                //             for (let i = 0; i <= amtArr.length && Number.isFinite(amtArr[i]); i++) {
+                //                 errorMsg += String(amtArr[i]);
+                //                 errorMsg += "~";
+                //                 i++;
+                //                 errorMsg += String(amtArr[i]);
+                //                 errorMsg += "元; ";
+                //             }
+                //
+                //             return Promise.reject({name: "DataError", message: errorMsg})
+                //         }
+                //     }
+                // }
+
+                if (merchantType.merchants && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                     let isPassed = false;
                     let amtArr = [];
 
-                    if (quotaScopes) {
-                        quotaScopes.forEach(scope => {
-                            if (topupRequest.amount >= scope.minDepositAmount && topupRequest.amount <= scope.maxDepositAmount) {
-                                isPassed = true;
-                            }
-
-                            amtArr.push(scope.minDepositAmount);
-                            amtArr.push(scope.maxDepositAmount);
-                        });
-
-                        if (!isPassed) {
-                            let errorMsg = "暂时不支持您输入的金额，请填入";
-
-                            for (let i = 0; i <= amtArr.length && Number.isFinite(amtArr[i]); i++) {
-                                errorMsg += String(amtArr[i]);
-                                errorMsg += "~";
-                                i++;
-                                errorMsg += String(amtArr[i]);
-                                errorMsg += "元; ";
-                            }
-
-                            return Promise.reject({name: "DataError", message: errorMsg})
+                    merchantType.merchants.forEach(merchant => {
+                        if (merchant.name == topupRequest.merchantName && merchant.type == topupRequest.topupType && topupRequest.amount >= merchant.minDepositAmount && topupRequest.amount <= merchant.maxDepositAmount) {
+                            isPassed = true;
                         }
+
+                        if (merchant.name == topupRequest.merchantName && merchant.type == topupRequest.topupType) {
+                            amtArr.push(merchant.minDepositAmount);
+                            amtArr.push(merchant.maxDepositAmount);
+                        }
+                    });
+
+                    if (!isPassed) {
+                        let errorMsg = "暂时不支持您输入的金额，请填入";
+
+                        for (let i = 0; i <= amtArr.length && Number.isFinite(amtArr[i]); i++) {
+                            errorMsg += String(amtArr[i]);
+                            errorMsg += "~";
+                            i++;
+                            errorMsg += String(amtArr[i]);
+                            errorMsg += "元; ";
+                        }
+
+                        return Promise.reject({name: "DataError", message: errorMsg})
                     }
                 }
 
@@ -1906,20 +1948,25 @@ var dbPlayerTopUpRecord = {
                         realName: player.realName ? player.realName.replace(/\s/g, '') : "",
                         ip: ip,
                         topupType: topupRequest.topupType,
+                        merchantName: topupRequest.merchantName,
                         amount: topupRequest.amount,
-                        merchantUseType: merchantUseType,
-                        clientType: clientType
+                        //merchantUseType: merchantUseType,
+                        clientType: clientType,
+                        fpmsTime: proposalData.createTime.getTime()
                     };
                     // console.log("requestData:", requestData);
                     let groupMerchantList = dbPlayerTopUpRecord.isMerchantValid(player.merchantGroup.merchantNames, merchantGroupList, topupRequest.topupType, clientType);
-                    if (groupMerchantList.length > 0 || bPMSGroup) {
-                        if(!bPMSGroup){
-                            requestData.groupMerchantList = groupMerchantList;
-                        }
-                        else{
-                            requestData.groupMerchantList = [];
-                        }
-                        return pmsAPI.payment_requestOnlineMerchant(requestData);
+                    // if (groupMerchantList.length > 0 || bPMSGroup) {
+                    //     if(!bPMSGroup){
+                    //         requestData.groupMerchantList = groupMerchantList;
+                    //     }
+                    //     else{
+                    //         requestData.groupMerchantList = [];
+                    //     }
+                    //     return pmsAPI.payment_requestOnlineMerchant(requestData);
+                    // }
+                    if (topupRequest && topupRequest.merchantName) {
+                        return RESTUtils.getPMS2Services("postCreateOnlineTopup", requestData);
                     } else {
                         let errorMsg = "No Any MerchantNo Are Available, Please Change TopUp Method";
                         updateProposalRemark(proposalData, localization.localization.translate(errorMsg)).catch(errorUtils.reportError);
@@ -1960,6 +2007,15 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$gte"] = start;
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        queryObj["data.topUpSystemName"] = topUpSystemConfig.name;
+                    } else {
+                        if (!queryObj.$and) {
+                            queryObj.$and = [];
+                        }
+
+                        queryObj.$and.push({$or: [{"data.topUpSystemName": {$ne: 'PMS2'}}, {"data.topUpSystemName": {$exists: false}}]});
+                    }
                     // calculate this card/acc total usage at today
                     return dbconfig.collection_proposal.aggregate(
                         {$match: queryObj},
@@ -1993,10 +2049,11 @@ var dbPlayerTopUpRecord = {
                     status: constProposalStatus.PENDING
                 };
                 let merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
-                let getRateProm;
+                let getRateProm = Promise.resolve(false);
+                let sysCustomMerchantRateProm = Promise.resolve();
 
                 updateData.data = Object.assign({}, proposal.data);
-                updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
+                // updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
                 updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
                 updateData.data.merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
                 if (res[0]) {
@@ -2009,14 +2066,23 @@ var dbPlayerTopUpRecord = {
 
                 if(updateData.data.merchantNo && player.platform._id && merchantName != ""){
                     getRateProm = getMerchantRate(updateData.data.merchantNo , player.platform.platformId, merchantName);
+                    sysCustomMerchantRateProm = dbconfig.collection_platform.findOne({_id: player.platform._id}, {pmsServiceCharge: 1, fpmsServiceCharge: 1}).lean();
                 }
 
-                return Promise.all([getRateProm]).then(
-                    rate => {
-                        if(rate && rate.length > 0 && typeof rate[0] != "undefined"){
-                            serviceCharge = rate[0];
-                            updateData.data.rate = rate[0];
-                            updateData.data.actualAmountReceived = Number((topupRequest.amount - (topupRequest.amount * Number(rate[0]))).toFixed(2));
+                return Promise.all([getRateProm, sysCustomMerchantRateProm]).then(
+                    ([merchantRate, sysCustomMerchantRate]) => {
+                        serviceCharge = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
+                        updateData.data.rate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
+                        updateData.data.actualAmountReceived = merchantRate && merchantRate.customizeRate ?
+                            (Number(topupRequest.amount) - Number(topupRequest.amount) * Number(merchantRate.customizeRate)).toFixed(2)
+                            : topupRequest.amount;
+
+                        // use system custom rate when there is pms's rate greater than system setting and no customizeRate
+                        if (merchantRate && !merchantRate.customizeRate && merchantRate.rate
+                            && sysCustomMerchantRate && sysCustomMerchantRate.pmsServiceCharge && sysCustomMerchantRate.fpmsServiceCharge
+                            && (merchantRate.rate > sysCustomMerchantRate.pmsServiceCharge)) {
+                            updateData.data.rate = sysCustomMerchantRate.fpmsServiceCharge;
+                            updateData.data.actualAmountReceived = (Number(topupRequest.amount) - Number(topupRequest.amount) * Number(sysCustomMerchantRate.fpmsServiceCharge)).toFixed(2);
                         }
 
                         return updateData;
@@ -2027,12 +2093,31 @@ var dbPlayerTopUpRecord = {
             updateData => {
                 let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
-                updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo, merchantUseType).catch(errorUtils.reportError);
+                // updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo).catch(errorUtils.reportError);
+                updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantName).catch(errorUtils.reportError);
 
-                return dbconfig.collection_proposal.findOneAndUpdate(
-                    {_id: proposal._id, createTime: proposal.createTime},
-                    updateData,
-                    {new: true}
+                let checkProposalStatus = Promise.resolve();
+                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    // to check if proposal status already update to Success, sometimes PMS 2 update proposal status too fast
+                    checkProposalStatus = dbconfig.collection_proposal.findOneAndUpdate(
+                        {
+                            _id: proposal._id,
+                            createTime: proposal.createTime,
+                            status: constProposalStatus.PREPENDING
+                        },
+                        {status: constProposalStatus.PENDING}).lean();
+                } else {
+                    updateData.status = constProposalStatus.PENDING;
+                }
+
+                return checkProposalStatus.then(
+                    () => {
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            proposalQuery,
+                            updateData,
+                            {new: true}
+                        ).lean();
+                    }
                 );
             }
         ).then(
@@ -3769,6 +3854,7 @@ var dbPlayerTopUpRecord = {
     },
 
     getPlayerWechatPayStatus: (playerId, bPMSGroup, userIp) => {
+        let topUpSystemConfig;
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
@@ -3776,8 +3862,15 @@ var dbPlayerTopUpRecord = {
                     if (playerData && playerData.permission && playerData.permission.disableWechatPay) {
                         return [];
                     }
-                    if ((playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) || bPMSGroup) {
-                        if (playerData.platform.wechatPayGroupIsPMS) {
+
+                    topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
+
+                    if ((playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) || bPMSGroup
+                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
+
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            bPMSGroup = false;
+                        } else if (playerData.platform.wechatPayGroupIsPMS) {
                             bPMSGroup = true
                         } else {
                             bPMSGroup = false;
@@ -3796,13 +3889,24 @@ var dbPlayerTopUpRecord = {
                                 }
                             )
                         } else {
-                            if (String(bPMSGroup) == "true") {
-                                pmsQuery.ip = userIp;
-                                pmsQuery.username = playerData.name;
-                                prom = pmsAPI.foundation_requestWechatpayByUsername(pmsQuery);
-                            } else {
+
+                            // if (String(bPMSGroup) == "true") {
+                            //     pmsQuery.ip = userIp;
+                            //     pmsQuery.username = playerData.name;
+                            //     prom = pmsAPI.foundation_requestWechatpayByUsername(pmsQuery);
+                            // }
+                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                                 let reqData = {
-                                    platformId: platformId,
+                                    platformId: playerData.platform.platformId,
+                                    username: playerData.name,
+                                    depositType: constAccountType.WECHAT
+                                };
+
+                                prom = RESTUtils.getPMS2Services("postDepositTypeByUsername", reqData);
+                            }
+                            else {
+                                let reqData = {
+                                    platformId: playerData.platform.platformId,
                                     accountType: constAccountType.WECHAT
                                 };
 
@@ -3814,16 +3918,27 @@ var dbPlayerTopUpRecord = {
                             wechats => {
                                 let bValid = false;
                                 let maxDeposit = 0;
-                                if (String(bPMSGroup) == "true") {
-                                    if (wechats.data) {
-                                        if (!playerData.permission.disableWechatPay && wechats.data.valid) {
+                                // if (String(bPMSGroup) == "true") {
+                                //     if (wechats.data) {
+                                //         if (!playerData.permission.disableWechatPay && wechats.data.valid) {
+                                //             bValid = true;
+                                //         }
+                                //         if (wechats.data.hasOwnProperty("maxDepositAmount")) {
+                                //             maxDeposit = wechats.data.maxDepositAmount;
+                                //         }
+                                //     }
+                                // }
+                                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                                    if (wechats) {
+                                        if (!playerData.permission.disableWechatPay && wechats.valid) {
                                             bValid = true;
                                         }
-                                        if (wechats.data.hasOwnProperty("maxDepositAmount")) {
-                                            maxDeposit = wechats.data.maxDepositAmount;
+                                        if (wechats.hasOwnProperty("maxDepositAmount")) {
+                                            maxDeposit = wechats.maxDepositAmount;
                                         }
                                     }
-                                } else {
+                                }
+                                else {
                                     if (wechats.data && wechats.data.length > 0) {
                                         wechats.data.forEach(
                                             wechat => {
@@ -3855,6 +3970,7 @@ var dbPlayerTopUpRecord = {
     },
 
     getPlayerAliPayStatus: (playerId, bPMSGroup, userIp) => {
+        let topUpSystemConfig;
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
@@ -3862,13 +3978,19 @@ var dbPlayerTopUpRecord = {
                     if (playerData && playerData.permission && !playerData.permission.alipayTransaction) {
                         return [];
                     }
-                    if (playerData && playerData.platform && playerData.platform.aliPayGroupIsPMS) {
+
+                    topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        bPMSGroup = false;
+                    } else if (playerData && playerData.platform && playerData.platform.aliPayGroupIsPMS) {
                         bPMSGroup = true
                     } else {
                         bPMSGroup = false;
                     }
 
-                    if ((playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) || bPMSGroup) {
+                    if ((playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) || bPMSGroup
+                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
                         let aliPayProm;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
@@ -3883,10 +4005,19 @@ var dbPlayerTopUpRecord = {
                                 }
                             )
                         } else {
-                            if (String(bPMSGroup) == "true") {
-                                pmsQuery.ip = userIp;
-                                pmsQuery.username = playerData.name;
-                                aliPayProm = pmsAPI.foundation_requestAlipayByUsername(pmsQuery);
+                            // if (String(bPMSGroup) == "true") {
+                            //     pmsQuery.ip = userIp;
+                            //     pmsQuery.username = playerData.name;
+                            //     aliPayProm = pmsAPI.foundation_requestAlipayByUsername(pmsQuery);
+                            // }
+                            if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                                let reqData = {
+                                    platformId: playerData.platform.platformId,
+                                    username: playerData.name,
+                                    depositType: constAccountType.ALIPAY
+                                };
+
+                                aliPayProm = RESTUtils.getPMS2Services("postDepositTypeByUsername", reqData);
                             } else {
                                 let reqData = {
                                     platformId: playerData.platform.platformId,
@@ -3920,19 +4051,33 @@ var dbPlayerTopUpRecord = {
                                 let maxDeposit = 0;
                                 let minDeposit;
 
-                                if (String(bPMSGroup) == "true") {
-                                    if (alipays.data) {
-                                        if (playerData.permission.alipayTransaction && alipays.data.valid) {
+                                // if (String(bPMSGroup) == "true") {
+                                //     if (alipays.data) {
+                                //         if (playerData.permission.alipayTransaction && alipays.data.valid) {
+                                //             bValid = true;
+                                //         }
+                                //         if (alipays.data.hasOwnProperty("maxDepositAmount")) {
+                                //             maxDeposit = alipays.data.maxDepositAmount;
+                                //         }
+                                //         if (alipays.data.hasOwnProperty("minDepositAmount")) {
+                                //             minDeposit = alipays.data.minDepositAmount;
+                                //         }
+                                //     }
+                                // }
+                                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                                    if (alipays) {
+                                        if (playerData.permission.alipayTransaction && alipays.valid) {
                                             bValid = true;
                                         }
-                                        if (alipays.data.hasOwnProperty("maxDepositAmount")) {
-                                            maxDeposit = alipays.data.maxDepositAmount;
+                                        if (alipays.hasOwnProperty("maxDepositAmount")) {
+                                            maxDeposit = alipays.maxDepositAmount;
                                         }
-                                        if (alipays.data.hasOwnProperty("minDepositAmount")) {
-                                            minDeposit = alipays.data.minDepositAmount;
+                                        if (alipays.hasOwnProperty("minDepositAmount")) {
+                                            minDeposit = alipays.minDepositAmount;
                                         }
                                     }
-                                } else {
+                                }
+                                else {
                                     if (alipays.data && alipays.data.length > 0) {
                                         alipays.data.forEach(
                                             alipay => {
@@ -5085,21 +5230,33 @@ function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, p
 }
 
 function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo) {
-    let merchantObj;
-    return pmsAPI.merchant_getMerchant({merchantNo: merchantNo}).then(
+    // let merchantObj;
+    // return pmsAPI.merchant_getMerchant({merchantNo: merchantNo}).then(
+    //     merchantData => {
+    //         merchantObj = merchantData;
+    //         if (merchantData && merchantData.merchant && merchantData.merchant.merchantTypeId) {
+    //             return pmsAPI.merchant_getMerchantType({merchantTypeId: merchantData.merchant.merchantTypeId})
+    //         }
+    //     }
+    // ).then(
+    //     merchantType => {
+    //         if (merchantObj && merchantObj.merchant && (merchantObj.merchant.permerchantLimits || merchantObj.merchant.transactionForPlayerOneDay)) {
+    //             return dbconfig.collection_proposal.update(proposalQuery, {
+    //                 "data.permerchantLimits": merchantObj.merchant.permerchantLimits ? merchantObj.merchant.permerchantLimits : 0,
+    //                 "data.transactionForPlayerOneDay": merchantObj.merchant.transactionForPlayerOneDay ? merchantObj.merchant.transactionForPlayerOneDay : 0,
+    //                 "data.merchantUseName": merchantType && merchantType.merchantType && merchantType.merchantType.name ? merchantType.merchantType.name : ""
+    //             });
+    //         }
+    //     }
+    // )
+
+    return RESTUtils.getPMS2Services("postMerchantInfo", {merchantName: merchantNo}).then(
         merchantData => {
-            merchantObj = merchantData;
-            if (merchantData && merchantData.merchant && merchantData.merchant.merchantTypeId) {
-                return pmsAPI.merchant_getMerchantType({merchantTypeId: merchantData.merchant.merchantTypeId})
-            }
-        }
-    ).then(
-        merchantType => {
-            if (merchantObj && merchantObj.merchant && (merchantObj.merchant.permerchantLimits || merchantObj.merchant.transactionForPlayerOneDay)) {
+            if (merchantData) {
                 return dbconfig.collection_proposal.update(proposalQuery, {
-                    "data.permerchantLimits": merchantObj.merchant.permerchantLimits ? merchantObj.merchant.permerchantLimits : 0,
-                    "data.transactionForPlayerOneDay": merchantObj.merchant.transactionForPlayerOneDay ? merchantObj.merchant.transactionForPlayerOneDay : 0,
-                    "data.merchantUseName": merchantType && merchantType.merchantType && merchantType.merchantType.name ? merchantType.merchantType.name : ""
+                    "data.permerchantLimits": merchantData.permerchantLimits ? merchantData.permerchantLimits : 0,
+                    "data.transactionForPlayerOneDay": merchantData.transactionForPlayerOneDay ? merchantData.transactionForPlayerOneDay : 0,
+                    "data.merchantUseName": merchantData.merchantTypeName ? merchantData.merchantTypeName : ""
                 });
             }
         }
@@ -5117,26 +5274,12 @@ function updateProposalRemark (proposalData, remark) {
 }
 
 function getMerchantRate(merchantNo, platformId, merchantName){
-    if(!merchantName || merchantName == "")
-    {
-        return 0;
-    }
-
     let query = {
         merchantNo: merchantNo,
         name: merchantName,
         platformId: platformId,
+        isPMS2: {$exists: true}
     };
 
-    return dbconfig.collection_platformMerchantList.findOne(query).then(
-        platformMerchantList => {
-            if(platformMerchantList){
-                if(typeof platformMerchantList.customizeRate != "undefined"){
-                    return platformMerchantList.customizeRate;
-                }
-            }
-
-            return 0;
-        }
-    );
+    return dbconfig.collection_platformMerchantList.findOne(query, {rate: 1, customizeRate: 1});
 }

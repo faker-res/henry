@@ -456,7 +456,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, "getProvince", {
                     provinceId: vm.selectedProposalDetailForDisplay['provinceId']
                 }, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['provinceId'] = text;
                     $scope.safeApply();
                 });
@@ -465,7 +465,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, "getProvince", {
                     provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince']
                 }, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountProvince'] = text;
                     $scope.safeApply();
                 });
@@ -475,7 +475,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, "getCity", {
                     provinceId: vm.selectedProposalDetailForDisplay['cityId']
                 }, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['cityId'] = text;
                     $scope.safeApply();
                 });
@@ -484,7 +484,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, "getCity", {
                     provinceId: vm.selectedProposalDetailForDisplay['bankAccountCity']
                 }, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
+                    var text = data.data.data ? data.data.data.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountCity'] = text;
                     $scope.safeApply();
                 });
