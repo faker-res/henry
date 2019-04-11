@@ -3164,8 +3164,18 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('playerLevel'), data: 'playerLevel.name'},
                         {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
                         {'title': $translate('topUpTimes'), data: 'topUpTimes', bSortable: true},
-                        {'title': $translate('lastAccessTime'), data: 'lastAccessTime$'},
-                        {'title': $translate('registrationTime'), data: 'registrationTime$'},
+                        {
+                            'title': $translate('lastAccessTime'), data: 'lastAccessTime$',
+                            render: function (data, type, row) {
+                                return data;
+                            }
+                        },
+                        {
+                            'title': $translate('registrationTime'), data: 'registrationTime$',
+                            render: function (data, type, row) {
+                                return data;
+                            }
+                        },
                         {
                             title: '<div><input type="checkbox" class="toggleCheckAll"> </div>', advSearch:false, orderable: false,// $translate('All'), data: "playerId", "sClass": "",
                             render: function (data, type, row) {
