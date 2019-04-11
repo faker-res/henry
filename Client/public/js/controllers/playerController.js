@@ -11062,12 +11062,15 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.promoTypeListUniqueName = [...new Set(vm.promoTypeList.map(x => x.name))];
+
             var promoType = $('select#selectPromoType').multipleSelect("getSelects");
+            console.log('promoType===', promoType);
             newproposalQuery.promoTypeName = [];
-            if (vm.promoTypeList.length != promoType.length) {
-                vm.promoTypeList.filter(item => {
-                    if (promoType.indexOf(item.name) > -1) {
-                        newproposalQuery.promoTypeName.push(item.name);
+            if (vm.promoTypeListUniqueName.length != promoType.length) {
+                vm.promoTypeListUniqueName.filter(item => {
+                    if (promoType.indexOf(item) > -1) {
+                        newproposalQuery.promoTypeName.push(item);
                     }
                 });
             }
