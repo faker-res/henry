@@ -930,7 +930,8 @@ var proposal = {
                             data: {
                                 proposalId: proposalId,
                                 orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
-                                depositId: requestId
+                                depositId: requestId,
+                                fpmsStatus: proposalData && proposalData.status ? proposalData.status : ''
                             }
                         });
                     }
@@ -943,7 +944,8 @@ var proposal = {
                             proposalId: proposalId,
                             orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
                             depositId: requestId,
-                            type: type
+                            type: type,
+                            fpmsStatus: ''
                         }
                     })
                 }
@@ -1143,7 +1145,8 @@ var proposal = {
                             proposalId: proposalId,
                             orderStatus: orderStatus,
                             depositId: requestId,
-                            type: type
+                            type: type,
+                            fpmsStatus: ''
                         }
                     });
                 }
