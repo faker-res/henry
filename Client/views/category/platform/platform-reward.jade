@@ -1,11 +1,12 @@
-.col-md-12
-    .well.col-xs-12
-        .search-filters-item
-            label {{'PRODUCT_NAME' | translate}}
-            select.form-control(ng-model='vm.filterRewardPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getAllPlayerLevels(vm.filterRewardPlatform);vm.rewardTabClicked("", vm.filterRewardPlatform)')
-.text-center
-    p(ng-if="!vm.filterRewardPlatform")
-        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.row
+    .col-md-12
+        .well.col-xs-12
+            .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.filterRewardPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getAllPlayerLevels(vm.filterRewardPlatform);vm.rewardTabClicked("", vm.filterRewardPlatform)')
+.text-center(ng-if="!vm.filterRewardPlatform")
+    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
 .col-sm-2(ng-if="vm.filterRewardPlatform", style='padding-left:0')
     .panel.panel-primary
         .panel-heading.panel-heading-sm
