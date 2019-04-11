@@ -12080,18 +12080,6 @@ define(['js/app'], function (myApp) {
                 if (!vm.currentDistrict) {
                     vm.currentDistrict = {};
                 }
-                vm.correctVerifyBankAccount = undefined;
-                vm.isEditingPlayerPayment = false;
-                vm.isEditingPlayerPaymentShowVerify = false;
-                vm.playerPayment = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys);
-                vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
-                vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
-                vm.playerPayment.showNewAccountNo = false;
-                vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
-                vm.filterBankName = '';
-                vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
-                vm.currentCity.city = vm.playerPayment.bankAccountCity;
-                vm.currentDistrict.district = vm.playerPayment.bankAccountDistrict;
                 socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
                     if (data) {
                         // vm.provinceList = data.data.provinces.map(item => {
@@ -12113,6 +12101,20 @@ define(['js/app'], function (myApp) {
                         resolve(vm.provinceList);
                     }
                 }, null, true);
+                vm.correctVerifyBankAccount = undefined;
+                vm.isEditingPlayerPayment = false;
+                vm.isEditingPlayerPaymentShowVerify = false;
+                vm.playerPayment = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys);
+                vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
+                vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
+                vm.playerPayment.showNewAccountNo = false;
+                vm.filteredBankTypeList = $.extend({}, vm.allActiveBankTypeList);
+                vm.filterBankName = '';
+                $scope.$evalAsync(() => {
+                    vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
+                    vm.currentCity.city = vm.playerPayment.bankAccountCity;
+                    vm.currentDistrict.district = vm.playerPayment.bankAccountDistrict;
+                })
                 $scope.safeApply();
             })
         }
