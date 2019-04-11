@@ -414,6 +414,24 @@ define([], () => {
 
             return inputDevice;
         };
+
+        self.getProvinceName = function($scope, provinceId) {
+            return $scope.$socketPromise('getProvince', {provinceId: provinceId})
+                .then(data => {
+                    let text = data.data.data ? data.data.data.name : '';
+
+                    return text;
+                });
+        };
+
+        self.getCityName = function($scope, cityId) {
+            return $scope.$socketPromise('getCity', {cityId: cityId})
+                .then(data => {
+                    let text = data.data.data ? data.data.data.name : '';
+
+                    return text;
+                });
+        };
         // endregion
 
 
