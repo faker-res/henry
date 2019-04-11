@@ -3309,6 +3309,8 @@ define(['js/app'], function (myApp) {
             vm.paymentMonitorTotalQuery = {};
             vm.paymentMonitorTotalCompletedQuery = {};
             vm.paymentMonitorTotalQuery.totalCount = 0;
+            vm.paymentMonitorTotalQuery.querySearchTime = 0;
+            vm.paymentMonitorTotalQuery.querySearchTime2 = 0;
             vm.getAllPaymentAcc();
 
             Promise.all([getMerchantList(), getMerchantTypeList()]).then(
@@ -3359,21 +3361,21 @@ define(['js/app'], function (myApp) {
             vm.merchantCloneList = angular.copy(vm.merchants);
         }
         // function for new topup report
-        // vm.getProvinceName = function (provinceId) {
-            // socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-            //     var text = data.data.data ? data.data.data.name : '';
-            //     vm.selectedProposal.data.provinceName = text;
-            //     $scope.safeApply();
-            // });
-        // }
+        vm.getProvinceName = function (provinceId) {
+            socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
+                var text = data.data.province ? data.data.province.name : '';
+                vm.selectedProposal.data.provinceName = text;
+                $scope.safeApply();
+            });
+        }
 
-        // vm.getCityName = function (cityId) {
-            // socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-            //     var text = data.data.data ? data.data.data.name : '';
-            //     vm.selectedProposal.data.cityName = text;
-            //     $scope.safeApply();
-            // });
-        // }
+        vm.getCityName = function (cityId) {
+            socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
+                var text = data.data.city ? data.data.city.name : '';
+                vm.selectedProposal.data.cityName = text;
+                $scope.safeApply();
+            });
+        }
         vm.getMerchantTypeName = function () {
             vm.merchants.map(item => {
                 let merchantTypeId = item.merchantTypeId;
@@ -3841,8 +3843,10 @@ define(['js/app'], function (myApp) {
             }
             console.log('sendObj', sendObj);
 
+            let searchStartTime = new Date().getTime();
             return $scope.$socketPromise('getPaymentMonitorTotalResult', sendObj).then(
                 data => {
+                    vm.paymentMonitorTotalQuery.querySearchTime = findQuerySearchTime(searchStartTime);
                     $('#paymentMonitorTableASpin').hide();
                     $scope.$evalAsync(() => {
                         console.log('Payment Monitor Total Result', data);
@@ -3860,6 +3864,7 @@ define(['js/app'], function (myApp) {
                                                         : item.data.accountNo ? item.data.accountNo : null;
                                     item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                                     item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                                    item.playerCommonTopUpCount$ = item.$playerCurrentCommonTopUpCount + "/" + item.$playerAllCommonTopUpCount;
                                     item.status$ = $translate(item.status);
                                     item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
                                     item.website = item && item.data && item.data.platform && item.data.platformId ?
@@ -3973,8 +3978,10 @@ define(['js/app'], function (myApp) {
             }
             console.log('sendObj', sendObj);
 
+            let searchStartTime = new Date().getTime();
             return $scope.$socketPromise('getPaymentMonitorTotalCompletedResult', sendObj).then(
                 data => {
+                    vm.paymentMonitorTotalQuery.querySearchTime2 = findQuerySearchTime(searchStartTime);
                     $scope.$evalAsync(() => {
                         $('#paymentMonitorTableSpin').hide();
                         $('#paymentMonitorTableBSpin').hide();
@@ -4001,6 +4008,7 @@ define(['js/app'], function (myApp) {
 
                                     item.merchantCount$ = item.merchantCurrentCount + "/" + item.merchantTotalCount + " (" + item.merchantGapTime + ")";
                                     item.playerCount$ = item.playerCurrentCount + "/" + item.playerTotalCount + " (" + item.playerGapTime + ")";
+                                    item.playerCommonTopUpCount$ = item.playerCurrentCommonTopUpCount + "/" + item.playerCommonTopUpTotalCount;
                                     item.status$ = $translate(item.status);
                                     item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.proposalCreateTime));
                                     return item;
@@ -4069,16 +4077,10 @@ define(['js/app'], function (myApp) {
 
                     if (vm.selectedProposal.data.inputData) {
                         if (vm.selectedProposal.data.inputData.provinceId) {
-                            //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
-                            commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data.provinceName = data;
-                            });
+                            vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
                         }
                         if (vm.selectedProposal.data.inputData.cityId) {
-                            //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
-                            commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data.cityName = data;
-                            });
+                            vm.getCityName(vm.selectedProposal.data.inputData.cityId)
                         }
                     }
 
@@ -4354,6 +4356,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "playerCount"},
                     {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText playerCount"},
                     {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount"},
+                    {title: $translate('Total Members Common Top up'), data: "playerCommonTopUpCount$", sClass: "sumText playerCount"},
                     {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight playerCount"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
@@ -4535,6 +4538,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "playerObjId.name", sClass: "playerCount"},
                     {title: $translate('Real Name'), data: "playerObjId.realName", sClass: "sumText playerCount"},
                     {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount"},
+                    {title: $translate('Total Members Common Top up'), data: "playerCommonTopUpCount$", sClass: "sumText playerCount"},
                     {title: $translate('TopUp Amount'), data: "amount", sClass: "sumFloat alignRight playerCount"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
@@ -4695,6 +4699,8 @@ define(['js/app'], function (myApp) {
                     playerName: rowData.data.playerObjId.name,
                     playerCurrentCount: rowData.$playerCurrentCount,
                     playerTotalCount: rowData.$playerAllCount,
+                    playerCurrentCommonTopUpCount: rowData.$playerCurrentCommonTopUpCount,
+                    playerCommonTopUpTotalCount: rowData.$playerAllCommonTopUpCount,
                     playerGapTime: rowData.$playerGapTime,
                     amount: rowData.amount$,
                     proposalCreateTime: rowData.createTime,
@@ -4803,14 +4809,14 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedProposalDetailForDisplay['provinceId']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['provinceId']}, function (data) {
-                    var text = data.data.data ? data.data.data.name : val;
+                    var text = data.data.province ? data.data.province.name : val;
                     vm.selectedProposalDetailForDisplay['provinceId'] = text;
                     $scope.safeApply();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountProvince']) {
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince']}, function (data) {
-                    var text = data.data.data ? data.data.data.name : val;
+                    var text = data.data.province ? data.data.province.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountProvince'] = text;
                     $scope.safeApply();
                 });
@@ -4818,14 +4824,14 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedProposalDetailForDisplay['cityId']) {
                 socketService.$socket($scope.AppSocket, "getCity", {provinceId: vm.selectedProposalDetailForDisplay['cityId']}, function (data) {
-                    var text = data.data.data ? data.data.data.name : val;
+                    var text = data.data.city ? data.data.city.name : val;
                     vm.selectedProposalDetailForDisplay['cityId'] = text;
                     $scope.safeApply();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountCity']) {
                 socketService.$socket($scope.AppSocket, "getCity", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountCity']}, function (data) {
-                    var text = data.data.data ? data.data.data.name : val;
+                    var text = data.data.city ? data.data.city.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountCity'] = text;
                     $scope.safeApply();
                 });
@@ -4833,14 +4839,14 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedProposalDetailForDisplay['districtId']) {
                 socketService.$socket($scope.AppSocket, "getDistrict", {provinceId: vm.selectedProposalDetailForDisplay['districtId']}, function (data) {
-                    var text = data.data.data ? data.data.data.name : val;
+                    var text = data.data.district ? data.data.district.name : val;
                     vm.selectedProposalDetailForDisplay['districtId'] = text;
                     $scope.safeApply();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountDistrict']) {
                 socketService.$socket($scope.AppSocket, "getDistrict", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountDistrict']}, function (data) {
-                    var text = data.data.data ? data.data.data.name : val;
+                    var text = data.data.district ? data.data.district.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountDistrict'] = text;
                     $scope.safeApply();
                 });
@@ -5008,6 +5014,11 @@ define(['js/app'], function (myApp) {
 
         // vm.showProposalDetailField
 
+        function findQuerySearchTime (startTime) {
+            let monitorSearchTimeEnd = new Date().getTime();
+            let searchTime = (monitorSearchTimeEnd - startTime) / 1000;
+            return searchTime;
+        }
 
         function getMerchantList() {
             return new Promise(function (resolve) {

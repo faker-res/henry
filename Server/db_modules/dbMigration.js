@@ -29,7 +29,6 @@ const md5 = require('md5');
 const dbUtility = require('./../modules/dbutility');
 const mobileDetect = require('mobile-detect');
 const rsaCrypto = require("../modules/rsaCrypto");
-const RESTUtils = require('../modules/RESTUtils');
 
 var dbMigration = {
 
@@ -947,39 +946,34 @@ var dbMigration = {
         var cityId = null;
         var districtId = null;
 
-        //return pmsAPI.foundation_getProvinceList({}).then(
-        return RESTUtils.getPMS2Services("postProvinceList", {}).then(
+        return pmsAPI.foundation_getProvinceList({}).then(
             pList => {
-                if (pList && pList.data && pList.data.length > 0) {
-                    for (var i = 0; i < pList.data.length > 0; i++) {
-                        if (pList.data[i].name == proposalData.province) {
-                            provinceId = pList.data[i].id;
-
-                            //return pmsAPI.foundation_getCityList({provinceId: provinceId});
-                            return RESTUtils.getPMS2Services("postCityList", {provinceId: provinceId});
+                if (pList && pList.provinces && pList.provinces.length > 0) {
+                    for (var i = 0; i < pList.provinces.length > 0; i++) {
+                        if (pList.provinces[i].name == proposalData.province) {
+                            provinceId = pList.provinces[i].id;
+                            return pmsAPI.foundation_getCityList({provinceId: provinceId});
                         }
                     }
                 }
             }
         ).then(
             cList => {
-                if (cList && cList.data && cList.data.length > 0) {
-                    for (var i = 0; i < cList.data.length > 0; i++) {
-                        if (cList.data[i].name == proposalData.city) {
-                            cityId = cList.data[i].id;
-
-                            //return pmsAPI.foundation_getDistrictList({provinceId: provinceId, cityId: cityId});
-                            return RESTUtils.getPMS2Services("postDistrictList", {provinceId: provinceId, cityId: cityId});
+                if (cList && cList.cities && cList.cities.length > 0) {
+                    for (var i = 0; i < cList.cities.length > 0; i++) {
+                        if (cList.cities[i].name == proposalData.city) {
+                            cityId = cList.cities[i].id;
+                            return pmsAPI.foundation_getDistrictList({provinceId: provinceId, cityId: cityId});
                         }
                     }
                 }
             }
         ).then(
             dList => {
-                if (dList && dList.data && dList.data.length > 0) {
-                    for (var i = 0; i < dList.data.length > 0; i++) {
-                        if (dList.data[i].name == proposalData.country) {
-                            districtId = dList.data[i].id;
+                if (dList && dList.districts && dList.districts.length > 0) {
+                    for (var i = 0; i < dList.districts.length > 0; i++) {
+                        if (dList.districts[i].name == proposalData.country) {
+                            districtId = dList.districts[i].id;
                         }
                     }
                 }

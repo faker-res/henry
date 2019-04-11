@@ -249,7 +249,7 @@ function getKeyFromOtherInstance () {
         }).then(
             data => {
                 if (data) {
-                    console.log('SETTING PRIVATE KEY FROM ANOTHER INSTANCE');
+                    console.log('SETTING PRIVATE KEY FROM ANOTHER INSTANCE', data);
                     privateKey = data;
                 }
             }
@@ -265,7 +265,7 @@ function getKeyFromOtherInstance () {
         }).then(
             data => {
                 if (data) {
-                    console.log('SETTING REPL PRIVATE KEY FROM ANOTHER INSTANCE');
+                    console.log('SETTING REPL PRIVATE KEY FROM ANOTHER INSTANCE', data);
                     replacedPrivateKey = data;
                 }
             }
@@ -281,7 +281,7 @@ function getKeyFromOtherInstance () {
         }).then(
             data => {
                 if (data) {
-                    console.log('SETTING PUBLIC KEY FROM ANOTHER INSTANCE');
+                    console.log('SETTING PUBLIC KEY FROM ANOTHER INSTANCE', data);
                     publicKey = data;
                 }
             }
@@ -297,7 +297,7 @@ function getKeyFromOtherInstance () {
         }).then(
             data => {
                 if (data) {
-                    console.log('SETTING REPL PUBLIC KEY FROM ANOTHER INSTANCE');
+                    console.log('SETTING REPL PUBLIC KEY FROM ANOTHER INSTANCE', data);
                     replacedPublicKey = data;
                 }
             }

@@ -6,7 +6,7 @@ define(['js/app'], function (myApp) {
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let vm = this;
 
-        //<editor-fold desc="Old Code">
+        //<editor-fold desc="Fold temp">
 
         // For debugging:
         window.VM = vm;
@@ -2849,10 +2849,10 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 if (data) {
                     // vm.cityList = data.data.cities;
-                    if (data.data.data) {
+                    if (data.data.cities) {
                         vm.cityList.length = 0;
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let city = data.data.data[i];
+                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                            let city = data.data.cities[i];
                             city.id = city.id.toString();
                             vm.cityList.push(city);
                         }
@@ -2872,10 +2872,10 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 if (data) {
                     // vm.districtList = data.data.districts;
-                    if (data.data.data) {
+                    if (data.data.districts) {
                         vm.districtList.length = 0;
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let district = data.data.data[i];
+                        for (let i = 0, len = data.data.districts.length; i < len; i++) {
+                            let district = data.data.districts[i];
                             district.id = district.id.toString();
                             vm.districtList.push(district);
                         }
@@ -4620,15 +4620,15 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getZoneList', sendQuery, function (data) {
                 console.log(data.data);
                 if (!provinceId && !cityId) {
-                    vm.provinceList = data.data.data || [];
+                    vm.provinceList = data.data.provinces || [];
                     vm.playerManualTopUp.provinceId = vm.provinceList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId);
                 } else if (provinceId && !cityId) {
-                    vm.cityList = data.data.data || [];
+                    vm.cityList = data.data.cities || [];
                     // vm.playerManualTopUp.cityId = vm.cityList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId, vm.cityList[0].id);
                 } else if (provinceId && cityId) {
-                    vm.districtList = data.data.data || [];
+                    vm.districtList = data.data.districts || [];
                     vm.playerManualTopUp.districtId = '';
                 }
                 vm.freezeZoneSelection = false;
@@ -6883,7 +6883,7 @@ define(['js/app'], function (myApp) {
             vm.showProvinceStr = '';
             let province = curProvince ? curProvince : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountProvince ? vm.selectedSinglePartner.bankAccountProvince : '';
             $scope.getProvinceStr(province).then(data => {
-                vm.showProvinceStr = data.data.data ? data.data.data.name : province;
+                vm.showProvinceStr = data.data.province ? data.data.province.name : province;
                 $scope.safeApply();
             }, err => {
                 vm.showProvinceStr = province || $translate("Unknown");
@@ -6895,7 +6895,7 @@ define(['js/app'], function (myApp) {
             vm.showCityStr = '';
             let city = curCity ? curCity : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountCity ? vm.selectedSinglePartner.bankAccountCity : '';
             $scope.getCityStr(city).then(data => {
-                vm.showCityStr = data.data.data ? data.data.data.name : city;
+                vm.showCityStr = data.data.city ? data.data.city.name : city;
                 $scope.safeApply();
             }, err => {
                 vm.showCityStr = city || $translate("Unknown");
@@ -6907,7 +6907,7 @@ define(['js/app'], function (myApp) {
             vm.showDistrictStr = '';
             let district = curDistrict ? curDistrict : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountDistrict ? vm.selectedSinglePartner.bankAccountDistrict : '';
             $scope.getDistrictStr(district).then(data => {
-                vm.showDistrictStr = data.data.data ? data.data.data.name : district;
+                vm.showDistrictStr = data.data.district ? data.data.district.name : district;
                 $scope.safeApply();
             }, err => {
                 vm.showProvinceStr = district || $translate("Unknown");
@@ -7717,8 +7717,8 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
                     if (data) {
                         vm.provinceList.length = 0;
-                        for (let i = 0, len = data.data.data.length; i < len; i++) {
-                            let province = data.data.data[i];
+                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                            let province = data.data.provinces[i];
                             province.id = province.id.toString();
                             vm.provinceList.push(province);
                         }
@@ -10065,29 +10065,17 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
-                        //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
-                        commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data.provinceName = data;
-                        });
+                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
                     }
                     if (vm.selectedProposal.data.inputData.cityId) {
-                        //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
-                        commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data.cityName = data;
-                        });
+                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
                     }
                 } else {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                        //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
-                        commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
-                        });
+                        vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                        //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
-                        commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
-                        });
+                        vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                     }
                 }
 
@@ -10136,29 +10124,17 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
-                        //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
-                        commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data.provinceName = data;
-                        });
+                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
                     }
                     if (vm.selectedProposal.data.inputData.cityId) {
-                        //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
-                        commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data.cityName = data;
-                        });
+                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
                     }
                 } else {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                        //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
-                        commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
-                        });
+                        vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                        //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
-                        commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
-                        });
+                        vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                     }
                 }
 
@@ -10180,7 +10156,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, "getProvince", {
                 provinceId: provinceId
             }, function (data) {
-                let text = data.data.data ? data.data.data.name : '';
+                let text = data.data.province ? data.data.province.name : '';
                 if (text) {
                     if (fieldName) {
                         vm.selectedProposal.data[fieldName] = text;
@@ -10195,7 +10171,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, "getCity", {
                 cityId: cityId
             }, function (data) {
-                let text = data.data.data ? data.data.data.name : '';
+                let text = data.data.city ? data.data.city.name : '';
                 if (text) {
                     if (fieldName) {
                         vm.selectedProposal.data[fieldName] = text;
@@ -16431,10 +16407,6 @@ define(['js/app'], function (myApp) {
         };
         // end of Partner Permission Log
 
-
-        //</editor-fold>
-
-
         // region config
         vm.configTabClicked = function (choice) {
             vm.selectedConfigTab = choice;
@@ -16443,7 +16415,8 @@ define(['js/app'], function (myApp) {
             vm.financialSettlementSystemTableEdit = false;
             vm.newBlacklistIpConfig = [];
             vm.delayDurationGroupProviderEdit = false;
-            vm.getPlatformInSetting()
+            vm.getPlatformInSetting();
+            vm.partnerAdvertisementList();
         };
 
         vm.getPlatformInSetting = () => {
@@ -16731,12 +16704,393 @@ define(['js/app'], function (myApp) {
                 console.log("updateLargeWithdrawalPartnerSetting complete")
             });
         }
+        //endregion config
+        //</editor-fold>
+
+        vm.loadTab = (tab) => {
+            switch (tab) {
+                case 'Report':
+
+                    break;
+            }
+        }
+
+        // region report
+        vm.loadPage = function (choice, pageName, code, eventObjId, isReset) {
+            socketService.clearValue();
+            console.log('reward', choice, pageName, code);
+            vm.seleDataType = {};
+            if (pageName) {
+                vm.seleDataType[pageName] = 'bg-bright';
+            } else {
+                vm.seleDataType[choice] = 'bg-bright';
+            }
+            vm.showPageName = choice;
+            vm.currentRewardCode = code;
+            vm.currentRewardTaskName = null;
+            vm.currentEventId = eventObjId;
+            if (vm.generalRewardProposalQuery && vm.generalRewardProposalQuery.table) {
+                vm.generalRewardProposalQuery.table.destroy();
+                $('#generalRewardProposalTable').prop('innerHTML', "");
+            }
+            if (vm.generalRewardTaskQuery && vm.generalRewardTaskQuery.table) {
+                vm.generalRewardTaskQuery.table.destroy();
+                $('#generalRewardTaskTable').prop('innerHTML', "");
+            }
+            if (code) {
+                $('#generalRewardProposalTableSpin').hide();
+            }
+            vm.generalRewardProposalQuery = {};
+            vm.generalRewardReportTableProp = {};
+            vm.operationReportLoadingStatus = '';
+            vm.refreshSPicker();
+
+            drawReportQuery(choice, isReset);
+
+            if (VM.showPageName == 'RewardReport' && vm.currentRewardCode == 'ALL') {
+                vm.rewardProposalQuery = vm.rewardProposalQuery || {};
+                vm.rewardProposalQuery.totalCount = 0;
+                vm.reportSearchTime = 0;
+                utilService.actionAfterLoaded("#rewardProposalPage", function () {
+                    vm.commonInitTime(vm.rewardProposalQuery, '#rewardProposalQuery', true);
+                })
+            }
+            $scope.$evalAsync();
+        }
+
+        vm.commonInitTime = function (obj, queryId, reuseDateTime=false) {
+            if (!obj) return;
+
+            let startTime, endTime;
+            if(reuseDateTime === true && vm[queryId]) {
+                startTime = vm[queryId].startTime;
+                endTime = vm[queryId].endTime;
+            } else {
+                let lastMonth = utilService.setNDaysAgo(new Date(), 1);
+                startTime = utilService.setThisDayStartTime(new Date(lastMonth));
+                endTime = (obj == vm.generalRewardProposalQuery || obj == vm.generalRewardTaskQuery)
+                    ? utilService.getTodayStartTime() : utilService.getTodayEndTime();
+            }
+
+            obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
+            obj.startTime.data('datetimepicker').setLocalDate(new Date(startTime));
+            obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
+                language: 'en',
+                format: 'yyyy/MM/dd hh:mm:ss'
+            });
+            obj.endTime.data('datetimepicker').setLocalDate(new Date(endTime));
+        };
+
+        function drawReportQuery (choice, isReset) {
+            vm.merchantNoNameObj = {};
+            vm.merchantGroupObj = [];
+
+            vm.merchantTypes = $scope.merchantTypes;
+            vm.merchantGroupObj = $scope.merchantGroupObj;
+            vm.merchantLists = $scope.merchantLists;
+            // vm.merchantNoList = vm.getAliPayGroup($scope.merchantNoList);
+            // vm.merchantCloneList = vm.getAliPayGroup($scope.merchantCloneList);
+            vm.merchantGroupObj = $scope.merchantGroupObj;
+            vm.merchantGroupCloneList = $scope.merchantGroupCloneList;
+
+            socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform._id}, function (data) {
+                $scope.$evalAsync(() => {
+                    if (data && data.data && data.data.data) {
+                        vm.allBankTypeList = {};
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                vm.allBankTypeList[item.id] = item.name;
+                            }
+                        })
+                    }
+                })
+            });
+
+            switch (choice) {
+                case "PLAYERPARTNER_REPORT":
+                    vm.partnerQuery = {};
+
+                    if (vm.platformList && vm.platformList[0] && vm.platformList[0].id) {
+                        vm.partnerQuery.platformObjId = vm.platformList[0].id;
+                    }
+                    vm.partnerQuery.totalCount = 0;
+                    vm.reportSearchTime = 0;
+                    utilService.actionAfterLoaded("#playerPartnerTable", function () {
+                        vm.commonInitTime(vm.partnerQuery, '#playerPartnerReportQuery');
+                        vm.partnerQuery.pageObj = utilService.createPageForPagingTable("#playerPartnerTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "partnerQuery", vm.searchPlayerPartnerRecord)
+                        });
+                        $scope.$evalAsync();
+                    });
+                    break;
+            }
+        }
+
+        vm.searchPlayerPartnerRecord = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
+
+            utilService.getDataTablePageSize("#playerPartnerTablePage", vm.partnerQuery, 30);
+            vm.newPartnerQuery = $.extend(true, {}, vm.partnerQuery);
+            $('#playerPartnerTableSpin').show();
+            //$('#playerPartnerTable').hide();
+            $('#playerPartnerSummaryTable').hide();
+
+            console.log("vm.newPartnerQuery", vm.newPartnerQuery);
+            var sendData = {
+                platformId: vm.newPartnerQuery.platformObjId,
+                partnerName: vm.newPartnerQuery.partnerName,
+                startTime: vm.newPartnerQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.newPartnerQuery.endTime.data('datetimepicker').getLocalDate(),
+                index: isExport ? 0 : (newSearch ? 0 : vm.newPartnerQuery.index),
+                limit: isExport ? 5000 : (vm.newPartnerQuery.limit || 10)
+            }
+            if (vm.newPartnerQuery.playerType == "Real Player") {
+                sendData.isRealPlayer = true
+            }
+            if (vm.newPartnerQuery.playerType == "Test Player") {
+                sendData.isTestPlayer = true
+            }
+            console.log("vm.newPartnerQuery:sendData", sendData);
+            socketService.$socket($scope.AppSocket, 'getPartnerSummaryReport', sendData, function (data) {
+                vm.playerPartnerSummaryData = data.data;
+                console.log('playerPartnerSummaryData', data.data);
+                $('#playerPartnerSummaryTable').show();
+                $scope.safeApply();
+            }, function (err) {
+                $scope.safeApply();
+            }, true);
+
+            socketService.$socket($scope.AppSocket, 'getPartnerPlayers', sendData, function (data) {
+                findReportSearchTime();
+                $('#playerPartnerTableSpin').hide();
+                console.log('getPartnerPlayers:res:data', data);
+                console.log('player data', data.data);
+
+                var resultData = data.data.data || [];
+                console.log('result', resultData);
+
+                vm.partnerQuery.totalCount = data.data.size;
+
+                // For Summary at the table footer, Grab data from Summary Socket
+                var summary = {};
+                summary.totalTopUpTimes = 0;
+                summary.totalPlayers = 0;
+                var summaryData = vm.playerPartnerSummaryData;
+                if (summaryData && summaryData.length > 0) {
+                    for (var j = 0; j < summaryData.length; j++) {
+                        summary.totalTopUpTimes += summaryData[j].total_topup_times;
+                        summary.totalPlayers += summaryData[j].total_players
+                    }
+                }
+                console.log("summary.totalPlayers", summary.totalPlayers);
+                console.log("summary.totalTopUpTimes", summary.totalTopUpTimes);
+                vm.drawPlayerPartnerReport(resultData, data.data.size, summary, isExport);
+                $scope.safeApply();
+            }, function (err) {
+                $('#playerPartnerTableSpin').hide();
+                // vm.operationReportLoadingStatus = settlementResult.failureReportMessage;
+            }, true);
+        };
+
+        function findReportSearchTime () {
+            vm.reportSearchTimeEnd = new Date().getTime();
+            vm.reportSearchTime = (vm.reportSearchTimeEnd - vm.reportSearchTimeStart) / 1000;
+        }
+
+        vm.drawPlayerPartnerReport = function (data, size, summary, isExport) {
+            console.log("vm.drawPlayerPartnerReport", data);
+
+            var tableOptions = {
+                data: data,
+                // "order": vm.partnerQuery.aaSorting,
+                columns: [
+                    {title: $translate('PARTNER_NAME'), data: "partner.partnerName"},
+                    {title: $translate('PLAYER_ID'), data: "playerId"},
+                    {title: $translate('PLAYERNAME'), data: "name", sClass: "sumText"},
+                    {title: $translate('LAST_LOGIN_IP'), data: "lastLoginIp",},
+                    {title: $translate('PLAYER_DOMAIN'), data: "domain"},
+                    {title: $translate('COUNTRY'), data: "country"},
+                    {title: $translate('PROVINCE'), data: "province"},
+                    {title: $translate('CITY'), data: "city"},
+                    {title: $translate('TOTAL_TOPUP_TIMES'), data: "topUpTimes", sClass: 'sumInt alignRight'}
+                ],
+                "paging": false,
+                // "dom": '<"top">rt<"bottom"ilp><"clear">',
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                },
+                "fnDrawCallback": function (nFoot, aData, iStart, iEnd, aiDisplay) {
+                    var api = this.api();
+                }
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            vm.partnerQuery.pageObj.init({maxCount: size});
+
+            if(isExport){
+                vm.playerPartnerTable = utilService.createDatatableWithFooter('#playerPartnerExcelTable', tableOptions, {
+                    8: summary.totalTopUpTimes,
+                });
+
+                $('#playerPartnerExcelTable_wrapper').hide();
+                vm.exportToExcel('playerPartnerExcelTable', 'PLAYERPARTNER_REPORT');
+            }else{
+                vm.playerPartnerTable = utilService.createDatatableWithFooter('#playerPartnerTable', tableOptions, {
+                    8: summary.totalTopUpTimes,
+                    // 5: summary.totalPlayers
+                });
+                utilService.setDataTablePageInput('playerPartnerTable', vm.playerPartnerTable, $translate);
+
+
+                $('#playerPartnerTable').off('order.dt');
+                $('#playerPartnerTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'partnerQuery', vm.searchPlayerPartnerRecord);
+                });
+
+                $('#playerPartnerTable').resize();
+                $('#playerPartnerTable tbody').unbind('click');
+            }
+        }
 
 
 
 
 
-        // endregion config
+
+
+
+
+
+
+
+
+
+
+
+
+        vm.initPartnerDisplayDataModal();
+
+
+        vm.updatePlatformAction = function () {
+            if (vm.showPlatform.department && vm.showPlatform.department.hasOwnProperty('_id')) {
+                vm.showPlatform.department = vm.showPlatform.department._id;
+            }
+
+            if (vm.presetModuleSettingData){
+                vm.showPlatform.presetModuleSetting =  vm.presetModuleSettingData;
+            }
+
+            if(vm.specialModuleSettingData){
+                vm.showPlatform.specialModuleSetting =  vm.specialModuleSettingData;
+            }
+
+            if (vm.updatePlayerThemeData && vm.updatePlayerThemeData._id && vm.updatePlayerThemeData.themeId) {
+
+                if (!vm.showPlatform.playerThemeSetting) {
+                    vm.showPlatform.playerThemeSetting = {};
+                }
+
+                vm.showPlatform.playerThemeSetting.themeStyleId = vm.updatePlayerThemeData._id;
+                vm.showPlatform.playerThemeSetting.themeId = vm.updatePlayerThemeData.themeId;
+                vm.showPlatform.playerThemeSetting.themeIdObjId = vm.updatePlayerThemeData.themeIdObjId;
+            }
+
+            if (vm.updatePartnerThemeData && vm.updatePartnerThemeData._id && vm.updatePartnerThemeData.themeId) {
+
+                if (!vm.showPlatform.partnerThemeSetting) {
+                    vm.showPlatform.partnerThemeSetting = {};
+                }
+
+                vm.showPlatform.partnerThemeSetting.themeStyleId = vm.updatePartnerThemeData._id;
+                vm.showPlatform.partnerThemeSetting.themeId = vm.updatePartnerThemeData.themeId;
+                vm.showPlatform.partnerThemeSetting.themeIdObjId = vm.updatePartnerThemeData.themeIdObjId;
+            }
+
+            socketService.$socket($scope.AppSocket, 'updatePlatform',
+                {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: vm.showPlatform,
+                    isUpdatePlatform: true
+                },
+                function (data) {
+                    vm.curPlatformText = vm.showPlatform.name;
+                    loadPlatformData({loadAll: false});
+                    vm.editFrontEndDisplay = false;
+                    vm.getFrontEndPresetModuleSetting();
+                    vm.getFrontEndSpecialModuleSetting(data);
+                    vm.syncPlatform();
+                });
+        };
+
+        vm.getFrontEndPresetModuleSetting = function() {
+            vm.presetModuleSettingData = [];
+
+            if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
+                vm.showPlatform.presetModuleSetting.forEach(p => {
+                    if (p && p.hasOwnProperty('displayStatus')){
+                        p.displayStatus = ( p.displayStatus == 0 || p.displayStatus == 1 )? p.displayStatus.toString() : null ;
+                    }
+
+                    vm.presetModuleSettingData.push($.extend({}, p));
+                })
+            }
+        };
+
+        vm.getFrontEndSpecialModuleSetting = function(platformData) {
+            vm.addNewSpecialModule = false;
+            vm.specialModuleSettingData = [];
+            vm.newDomainName = [];
+            vm.newFunctionName = [];
+            vm.newFunctionId = [];
+            vm.newDisplayable = [];
+            vm.newSpecialModuleSetting = {content:[], domainName:[]};
+
+            if (platformData && platformData.data){
+                if (platformData.data.specialModuleSetting && platformData.data.specialModuleSetting.length > 0){
+                    platformData.data.specialModuleSetting.forEach(p => {
+
+                        if (p && p.content && p.content.length > 0){
+                            p.content.forEach( q => {
+                                if (q && q.hasOwnProperty('displayStatus')) {
+                                    q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                }
+                            })
+                        }
+
+                        vm.specialModuleSettingData.push($.extend(true,{}, p));
+
+                    })
+                }
+            }
+            else{
+                if(vm.showPlatform.specialModuleSetting && vm.showPlatform.specialModuleSetting.length > 0){
+                    vm.showPlatform.specialModuleSetting.forEach(p => {
+
+                        if (p && p.content && p.content.length > 0){
+                            p.content.forEach( q => {
+                                if (q && q.hasOwnProperty('displayStatus')) {
+                                    q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                }
+                            })
+                        }
+
+                        vm.specialModuleSettingData.push($.extend(true,{}, p));
+
+                    })
+                }
+            }
+
+        };
+
+
+
+
+
+
+
+
+
+        // endregion report
     };
 
     let injectParams = [

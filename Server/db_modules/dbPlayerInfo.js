@@ -2314,23 +2314,18 @@ let dbPlayerInfo = {
                 // apiData.name = apiData.name.replace(platformData.prefix, "");
                 delete apiData.platform;
                 var a, b, c;
-                // a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
-                //     provinceId: apiData.bankAccountProvince,
-                //     queryId: serverInstance.getQueryId()
-                // }) : true;
-                // b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
-                //     cityId: apiData.bankAccountCity,
-                //     queryId: serverInstance.getQueryId()
-                // }) : true;
-                // c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
-                //     districtId: apiData.bankAccountDistrict,
-                //     queryId: serverInstance.getQueryId()
-                // }) : true;
-
-                a = apiData.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: apiData.bankAccountProvince}) : true;
-                b = apiData.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: apiData.bankAccountCity}) : true;
-                c = apiData.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: apiData.bankAccountDistrict}) : true;
-
+                a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
+                    provinceId: apiData.bankAccountProvince,
+                    queryId: serverInstance.getQueryId()
+                }) : true;
+                b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
+                    cityId: apiData.bankAccountCity,
+                    queryId: serverInstance.getQueryId()
+                }) : true;
+                c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
+                    districtId: apiData.bankAccountDistrict,
+                    queryId: serverInstance.getQueryId()
+                }) : true;
                 var creditProm = dbPlayerInfo.getPlayerCredit(apiData.playerId);
                 let convertedRewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(apiData.rewardPointsObjId);
                 let appliedRewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyAppliedPoints(apiData.rewardPointsObjId);
@@ -2345,9 +2340,9 @@ let dbPlayerInfo = {
                 apiData.bankAccountCityId = apiData.bankAccountCity;
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
                 if (zoneData && zoneData[0]) {
-                    apiData.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : apiData.bankAccountProvince;
-                    apiData.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : apiData.bankAccountCity;
-                    apiData.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : apiData.bankAccountDistrict;
+                    apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
+                    apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
+                    apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
                     apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                     apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
                     apiData.preDailyAppliedPoint = zoneData[5] ? zoneData[5] : 0;
@@ -5960,24 +5955,20 @@ let dbPlayerInfo = {
                     retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
                 }
 
-                // let a = retObj.bankAccountProvince ?
-                //     pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
-                // let b = retObj.bankAccountCity ?
-                //     pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
-                // let c = retObj.bankAccountDistrict ?
-                //     pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
-
-                let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
-                let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}).catch(() => {}) : true;
-                let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+                let a = retObj.bankAccountProvince ?
+                    pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                let b = retObj.bankAccountCity ?
+                    pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                let c = retObj.bankAccountDistrict ?
+                    pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
 
                 return Promise.all([a, b, c]);
             }
         ).then(
             zoneData => {
-                retObj.bankAccountProvince = zoneData[0] && zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
-                retObj.bankAccountCity = zoneData[1] && zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
-                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
+                retObj.bankAccountProvince = zoneData[0] && zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                retObj.bankAccountCity = zoneData[1] && zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
                 console.log('rt playerLogin end');
@@ -6550,24 +6541,20 @@ let dbPlayerInfo = {
                     retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
                 }
 
-                // let a = retObj.bankAccountProvince ?
-                //     pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
-                // let b = retObj.bankAccountCity ?
-                //     pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
-                // let c = retObj.bankAccountDistrict ?
-                //     pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
-
-                let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
-                let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}).catch(() => {}) : true;
-                let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+                let a = retObj.bankAccountProvince ?
+                    pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                let b = retObj.bankAccountCity ?
+                    pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                let c = retObj.bankAccountDistrict ?
+                    pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
 
                 return Promise.all([a, b, c]);
             }
         ).then(
             zoneData => {
-                retObj.bankAccountProvince = zoneData[0] && zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
-                retObj.bankAccountCity = zoneData[1] && zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
-                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
+                retObj.bankAccountProvince = zoneData[0] && zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                retObj.bankAccountCity = zoneData[1] && zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
                 console.log('rt playerLogin end');
@@ -6629,43 +6616,31 @@ let dbPlayerInfo = {
         let district2 = null;
         let district3 = null;
 
-        // let provinceProm1 = query.province1 ? pmsAPI.foundation_getProvince({provinceId: query.province1}) : true;
-        // let cityProm1 = query.city1 ? pmsAPI.foundation_getCity({cityId: query.city1}) : true;
-        // let districtProm1 = query.district1 ? pmsAPI.foundation_getDistrict({districtId: query.district1}) : true;
+        let provinceProm1 = query.province1 ? pmsAPI.foundation_getProvince({provinceId: query.province1}) : true;
+        let cityProm1 = query.city1 ? pmsAPI.foundation_getCity({cityId: query.city1}) : true;
+        let districtProm1 = query.district1 ? pmsAPI.foundation_getDistrict({districtId: query.district1}) : true;
 
-        let provinceProm1 = query.province1 ? RESTUtils.getPMS2Services("postProvince", {provinceId: query.province1}) : true;
-        let cityProm1 = query.city1 ? RESTUtils.getPMS2Services("postCity", {cityId: query.city1}) : true;
-        let districtProm1 = query.district1 ? RESTUtils.getPMS2Services("postDistrict", {districtId: query.district1}) : true;
+        let provinceProm2 = query.province2 ? pmsAPI.foundation_getProvince({provinceId: query.province2}) : true;
+        let cityProm2 = query.city2 ? pmsAPI.foundation_getCity({cityId: query.city2}) : true;
+        let districtProm2 = query.district2 ? pmsAPI.foundation_getDistrict({districtId: query.district2}) : true;
 
-        // let provinceProm2 = query.province2 ? pmsAPI.foundation_getProvince({provinceId: query.province2}) : true;
-        // let cityProm2 = query.city2 ? pmsAPI.foundation_getCity({cityId: query.city2}) : true;
-        // let districtProm2 = query.district2 ? pmsAPI.foundation_getDistrict({districtId: query.district2}) : true;
-
-        let provinceProm2 = query.province2 ? RESTUtils.getPMS2Services("postProvince", {provinceId: query.province2}) : true;
-        let cityProm2 = query.city2 ? RESTUtils.getPMS2Services("postCity", {cityId: query.city2}) : true;
-        let districtProm2 = query.district2 ? RESTUtils.getPMS2Services("postDistrict", {districtId: query.district2}) : true;
-
-        // let provinceProm3 = query.province3 ? pmsAPI.foundation_getProvince({provinceId: query.province3}) : true;
-        // let cityProm3 = query.city3 ? pmsAPI.foundation_getCity({cityId: query.city3}) : true;
-        // let districtProm3 = query.district3 ? pmsAPI.foundation_getDistrict({districtId: query.district3}) : true;
-
-        let provinceProm3 = query.province3 ? RESTUtils.getPMS2Services("postProvince", {provinceId: query.province3}) : true;
-        let cityProm3 = query.city3 ? RESTUtils.getPMS2Services("postCity", {cityId: query.city3}) : true;
-        let districtProm3 = query.district3 ? RESTUtils.getPMS2Services("postDistrict", {districtId: query.district3}) : true;
+        let provinceProm3 = query.province3 ? pmsAPI.foundation_getProvince({provinceId: query.province3}) : true;
+        let cityProm3 = query.city3 ? pmsAPI.foundation_getCity({cityId: query.city3}) : true;
+        let districtProm3 = query.district3 ? pmsAPI.foundation_getDistrict({districtId: query.district3}) : true;
 
         return Promise.all([provinceProm1, cityProm1, districtProm1, provinceProm2, cityProm2, districtProm2, provinceProm3, cityProm3, districtProm3]).then(
             zoneData => {
-                province1 = zoneData[0].data ? zoneData[0].data.name : null;
-                city1 = zoneData[1].data ? zoneData[1].data.name : null;
-                district1 = zoneData[2].data ? zoneData[2].data.name : null;
+                province1 = zoneData[0].province ? zoneData[0].province.name : null;
+                city1 = zoneData[1].city ? zoneData[1].city.name : null;
+                district1 = zoneData[2].district ? zoneData[2].district.name : null;
 
-                province2 = zoneData[3].data ? zoneData[3].data.name : null;
-                city2 = zoneData[4].data ? zoneData[4].data.name : null;
-                district2 = zoneData[5].data ? zoneData[5].data.name : null;
+                province2 = zoneData[3].province ? zoneData[3].province.name : null;
+                city2 = zoneData[4].city ? zoneData[4].city.name : null;
+                district2 = zoneData[5].district ? zoneData[5].district.name : null;
 
-                province3 = zoneData[6].data ? zoneData[6].data.name : null;
-                city3 = zoneData[7].data ? zoneData[7].data.name : null;
-                district3 = zoneData[8].data ? zoneData[8].data.name : null;
+                province3 = zoneData[6].province ? zoneData[6].province.name : null;
+                city3 = zoneData[7].city ? zoneData[7].city.name : null;
+                district3 = zoneData[8].district ? zoneData[8].district.name : null;
 
                 return {
                     province1: province1,
@@ -6752,45 +6727,33 @@ let dbPlayerInfo = {
                     bank3.bankAddress = playerData.multipleBankDetailInfo.bankAddress3 || null;
                 }
 
-                // let provinceProm1 = bank1.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank1.bankAccountProvince}) : true;
-                // let cityProm1 = bank1.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank1.bankAccountCity}) : true;
-                // let districtProm1 = bank1.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank1.bankAccountDistrict}) : true;
+                let provinceProm1 = bank1.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank1.bankAccountProvince}) : true;
+                let cityProm1 = bank1.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank1.bankAccountCity}) : true;
+                let districtProm1 = bank1.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank1.bankAccountDistrict}) : true;
 
-                let provinceProm1 = bank1.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: bank1.bankAccountProvince}) : true;
-                let cityProm1 = bank1.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: bank1.bankAccountCity}) : true;
-                let districtProm1 = bank1.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: bank1.bankAccountDistrict}) : true;
+                let provinceProm2 = bank2.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank2.bankAccountProvince}) : true;
+                let cityProm2 = bank2.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank2.bankAccountCity}) : true;
+                let districtProm2 = bank2.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank2.bankAccountDistrict}) : true;
 
-                // let provinceProm2 = bank2.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank2.bankAccountProvince}) : true;
-                // let cityProm2 = bank2.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank2.bankAccountCity}) : true;
-                // let districtProm2 = bank2.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank2.bankAccountDistrict}) : true;
-
-                let provinceProm2 = bank2.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: bank2.bankAccountProvince}) : true;
-                let cityProm2 = bank2.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: bank2.bankAccountCity}) : true;
-                let districtProm2 = bank2.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: bank2.bankAccountDistrict}) : true;
-
-                // let provinceProm3 = bank3.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank3.bankAccountProvince}) : true;
-                // let cityProm3 = bank3.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank3.bankAccountCity}) : true;
-                // let districtProm3 = bank3.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank3.bankAccountDistrict}) : true;
-
-                let provinceProm3 = bank3.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: bank3.bankAccountProvince}) : true;
-                let cityProm3 = bank3.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: bank3.bankAccountCity}) : true;
-                let districtProm3 = bank3.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: bank3.bankAccountDistrict}) : true;
+                let provinceProm3 = bank3.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank3.bankAccountProvince}) : true;
+                let cityProm3 = bank3.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank3.bankAccountCity}) : true;
+                let districtProm3 = bank3.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank3.bankAccountDistrict}) : true;
 
                 return Promise.all([provinceProm1, cityProm1, districtProm1, provinceProm2, cityProm2, districtProm2, provinceProm3, cityProm3, districtProm3])
             }
         ).then(
             zoneData => {
-                bank1.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : bank1.bankAccountProvince;
-                bank1.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : bank1.bankAccountCity;
-                bank1.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : bank1.bankAccountDistrict;
+                bank1.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : bank1.bankAccountProvince;
+                bank1.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : bank1.bankAccountCity;
+                bank1.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : bank1.bankAccountDistrict;
 
-                bank2.bankAccountProvince = zoneData[3].data ? zoneData[3].data.name : bank2.bankAccountProvince;
-                bank2.bankAccountCity = zoneData[4].data ? zoneData[4].data.name : bank2.bankAccountCity;
-                bank2.bankAccountDistrict = zoneData[5].data ? zoneData[5].data.name : bank2.bankAccountDistrict;
+                bank2.bankAccountProvince = zoneData[3].province ? zoneData[3].province.name : bank2.bankAccountProvince;
+                bank2.bankAccountCity = zoneData[4].city ? zoneData[4].city.name : bank2.bankAccountCity;
+                bank2.bankAccountDistrict = zoneData[5].district ? zoneData[5].district.name : bank2.bankAccountDistrict;
 
-                bank3.bankAccountProvince = zoneData[6].data ? zoneData[6].data.name : bank3.bankAccountProvince;
-                bank3.bankAccountCity = zoneData[7].data ? zoneData[7].data.name : bank3.bankAccountCity;
-                bank3.bankAccountDistrict = zoneData[8].data ? zoneData[8].data.name : bank3.bankAccountDistrict;
+                bank3.bankAccountProvince = zoneData[6].province ? zoneData[6].province.name : bank3.bankAccountProvince;
+                bank3.bankAccountCity = zoneData[7].city ? zoneData[7].city.name : bank3.bankAccountCity;
+                bank3.bankAccountDistrict = zoneData[8].district ? zoneData[8].district.name : bank3.bankAccountDistrict;
 
                 if (bank1.bankName || bank1.bankAccountName || bank1.bankAccount) {
                     listData.push(bank1);
@@ -6976,23 +6939,18 @@ let dbPlayerInfo = {
                                         res => {
                                             // res.name = res.name.replace(platformPrefix, "");
                                             retObj = res;
-                                            // let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
-                                            // let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
-                                            // let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
-
-                                            let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}) : true;
-                                            let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}) : true;
-                                            let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}) : true;
-
+                                            let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                                            let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                                            let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
                                             let creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
 
                                             return Q.all([a, b, c, creditProm]);
                                         }
                                     ).then(
                                         zoneData => {
-                                            retObj.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
-                                            retObj.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
-                                            retObj.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
+                                            retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                                            retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                                            retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                                             return retObj;
                                         },
@@ -13067,7 +13025,14 @@ let dbPlayerInfo = {
                     ).lean();
                 }
                 else {
-                    return Promise.reject({name: "DataError", message: "Invalid proposal id or status"});
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Invalid proposal id or status",
+                        data: {
+                            proposalId: proposalId,
+                            fpmsStatus: data && data.status ? data.status : ''
+                        }
+                    });
                 }
             }
         ).then(

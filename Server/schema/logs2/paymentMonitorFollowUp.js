@@ -24,6 +24,8 @@ var paymentMonitorFollowUpSchema = new Schema({
     playerName: {type: String, index: true},
     playerCurrentCount: {type: Number},
     playerTotalCount: {type: Number},
+    playerCurrentCommonTopUpCount: {type: Number},
+    playerCommonTopUpTotalCount: {type: Number},
     playerGapTime: {type: Number},
     amount: {type: Number, required: true, default: 0},
     proposalCreateTime: {type: Date, default: Date.now, index: true},

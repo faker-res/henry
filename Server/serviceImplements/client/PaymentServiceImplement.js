@@ -68,7 +68,7 @@ var PaymentServiceImplement = function () {
 
     this.getOnlineTopupType.expectsData = 'clientType: ?';
     this.getOnlineTopupType.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data && data.clientType);
+        var isValidData = Boolean(conn && conn.playerId && data && data.clientType);
         let userIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -258,8 +258,7 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getProvinceList, [], isValidData, false, false, true);
 
         function getProvinceList() {
-            return RESTUtils.getPMS2Services("postProvinceList", {}).then(data => data.data);
-            //return pmsAPI.foundation_getProvinceList({}).then(data => data.provinces);
+            return pmsAPI.foundation_getProvinceList({}).then(data => data.provinces);
         }
     };
 
@@ -269,8 +268,7 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getCityList, [data.provinceId], isValidData, false, false, true);
 
         function getCityList(provinceId) {
-            return RESTUtils.getPMS2Services("postCityList", {provinceId: provinceId}).then(data => data.data);
-            //return pmsAPI.foundation_getCityList({provinceId: provinceId}).then(data => data.cities);
+            return pmsAPI.foundation_getCityList({provinceId: provinceId}).then(data => data.cities);
         }
     };
 
@@ -280,8 +278,10 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getDistrictList, [data.provinceId, data.cityId], isValidData, false, false, true);
 
         function getDistrictList(provinceId, cityId) {
-            return RESTUtils.getPMS2Services("postDistrictList", {provinceId: provinceId, cityId: cityId}).then(data => data.data);
-            // return pmsAPI.foundation_getDistrictList({provinceId: provinceId, cityId: cityId}).then(data => data.districts);
+            return pmsAPI.foundation_getDistrictList({
+                provinceId: provinceId,
+                cityId: cityId
+            }).then(data => data.districts);
         }
     };
 
@@ -422,7 +422,7 @@ var PaymentServiceImplement = function () {
         }
 
         let lastLoginIp = dbUtility.getIpAddress(conn);
-        let isValidData = Boolean(data && data.clientType);
+        let isValidData = Boolean(data && data.clientType && conn && conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getMinMaxCommonTopupAmount, [conn.playerId, data.clientType, lastLoginIp], isValidData);
     };
 

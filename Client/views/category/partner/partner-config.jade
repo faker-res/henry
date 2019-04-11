@@ -14,6 +14,10 @@
                         span {{"Auto Approval Setting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "largeWithdrawalPartnerSetting"}', ng-click='vm.configTabClicked("largeWithdrawalPartnerSetting")', ng-if="checkViewPermission('Partner', 'Config', 'largeWithdrawalSetting')" )
                         span {{"largeWithdrawalSetting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerDisplay"}', ng-click='vm.configTabClicked("partnerDisplay")', ng-if="checkViewPermission('Partner', 'Config', 'PartnerDisplay')")
+                        span {{"PartnerDisplay" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerAdvert"}', ng-click='vm.configTabClicked("partnerAdvert")', ng-if="checkViewPermission('Partner', 'Config', 'PartnerAdvertisement')")
+                        span {{"PartnerAdvertisement" | translate}}
 
 
     .col-md-9(style="padding-left:0;padding-right:15px")
@@ -32,3 +36,7 @@
                     include ./setting/partner-setting-auto-approval
                 div(ng-if='vm.selectedConfigTab=="largeWithdrawalPartnerSetting"')
                     include ./setting/partner-setting-large-withdrawal
+                div(ng-if='vm.selectedConfigTab=="partnerDisplay"')
+                    include ./setting/partner-setting-display
+                div(ng-if='vm.selectedConfigTab=="partnerAdvert"')
+                    include ./setting/partner-setting-advert

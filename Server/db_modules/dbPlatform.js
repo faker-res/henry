@@ -193,21 +193,14 @@ var dbPlatform = {
                     function (data) {
                         //add platform to PMS
                         if (env.mode != "local" && env.mode != "qa") {
-                            // externalUtil.request(pmsAPI.platform_add(
-                            //     {
-                            //         platformId: platformData.platformId,
-                            //         name: platformData.name,
-                            //         code: platformData.code,
-                            //         description: platformData.description || ""
-                            //     }
-                            // ));
-                            let data = {
-                                platformId: platformData.platformId,
-                                name: platformData.name,
-                                code: platformData.code
-                            };
-
-                            RESTUtils.getPMS2Services("postPlatformAdd", data);
+                            externalUtil.request(pmsAPI.platform_add(
+                                {
+                                    platformId: platformData.platformId,
+                                    name: platformData.name,
+                                    code: platformData.code,
+                                    description: platformData.description || ""
+                                }
+                            ));
                         }
                         deferred.resolve(platformData);
                     },
@@ -409,14 +402,13 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
                 if (env.mode != "local" && env.mode != "qa") {
-                    let platformData = {
+                    var platformData = {
                         platformId: data.platformId,
                         name: data.name,
                         code: data.code,
                         description: data.description
                     };
-                    //externalUtil.request(pmsAPI.platform_update(platformData));
-                    RESTUtils.getPMS2Services("patchPlatformUpdate", platformData);
+                    externalUtil.request(pmsAPI.platform_update(platformData));
                 }
                 return data;
             }
@@ -549,8 +541,7 @@ var dbPlatform = {
             .then(
                 data => {
                     if (platformId && env.mode != "local" && env.mode != "qa") {
-                        //externalUtil.request(pmsAPI.platform_delete({platformId: platformId}));
-                        RESTUtils.getPMS2Services("deletePlatformDelete", {platformId: platformId});
+                        externalUtil.request(pmsAPI.platform_delete({platformId: platformId}));
                     }
                     return data;
                 }
@@ -2965,6 +2956,8 @@ var dbPlatform = {
                         }
                     });
 
+                    returnedObj.requireSMSCodeForBankRegistrationAtFirstTime = platformData.requireSMSCodeForBankRegistrationAtFirstTime ? 1 : 0;
+
                     if (subject === 'player') {
                         returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength : 0;
                         returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength : 0;
@@ -3028,7 +3021,6 @@ var dbPlatform = {
                         returnedObj.twoStepsForModifyPhoneNumber = platformData.partnerUsePhoneNumberTwoStepsVerification ? 1 : 0;
                         returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
                         returnedObj.cndOrFtpLink = platformData.partnerRouteSetting ? platformData.partnerRouteSetting : "";
-                        returnedObj.requireSMSCodeForBankRegistrationAtFirstTime = platformData.requireSMSCodeForBankRegistrationAtFirstTime ? platformData.requireSMSCodeForBankRegistrationAtFirstTime : "";
                         // returnedObj.themeStyle = platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeStyleId.themeStyle ? platformData.partnerThemeSetting.themeStyleId.themeStyle : "";
                         console.log("checking --- yH platformData.partnerThemeSetting", platformData.partnerThemeSetting)
                         if (platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeIdObjId) {

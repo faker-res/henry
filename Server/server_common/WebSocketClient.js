@@ -91,7 +91,7 @@
 
         var self = this;
         conn.onclose = function(event){
-            //console.log("Web socket client connection closed!", event.target._events);
+            // console.log("Web socket client connection closed!", event.target._events);
             if (self._heartBeatInterval) {
                 clearInterval(self._heartBeatInterval);
             }
@@ -103,7 +103,7 @@
         };
 
         conn.onerror = function (error) {
-            //console.error("Web socket client connection error!", error);
+            console.error("Web socket client connection error!", error);
             // self._connection = null;
             // self.reconnect.bind(self)();
             if (self._heartBeatInterval) {
