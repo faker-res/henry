@@ -23646,6 +23646,7 @@ define(['js/app'], function (myApp) {
             vm.configTabClicked = function (choice) {
                 vm.selectedConfigTab = choice;
                 vm.configTableEdit = false;
+                vm.reminderConfigTableEdit = false;
                 vm.blacklistIpConfigTableEdit = false;
                 vm.financialSettlementSystemTableEdit = false;
                 vm.newBlacklistIpConfig = [];
