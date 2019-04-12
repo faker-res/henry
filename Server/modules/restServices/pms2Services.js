@@ -71,7 +71,7 @@ function postRequest (reqData, urlName, method) {
 
     return rp(options).then(
         data => {
-            console.log(`${urlName} SUCCESS: ${data}`);
+            console.log(`${urlName} SUCCESS: ${data ? JSON.stringify(data) : data}`);
             return data;
         }
     ).catch(
@@ -245,6 +245,18 @@ function postDepositTypeByUsername (reqData) {
     return postRequest(reqData, 'requestDepositTypeByUsername', 'POST')
 }
 
+function postOnlineCashinList (reqData) {
+    return postRequest(reqData, 'getOnlineCashinList', 'POST')
+}
+
+function postCashinList (reqData) {
+    return postRequest(reqData, 'getCashinList', 'POST')
+}
+
+function postCashoutList (reqData) {
+    return postRequest(reqData, 'getCashoutList', 'POST')
+}
+
 module.exports = {
     getMinMax: getMinMax,
     getTopupLobbyAddress: getTopupLobbyAddress,
@@ -277,4 +289,7 @@ module.exports = {
     postMerchantInfo: postMerchantInfo,
     postCreateOnlineTopup: postCreateOnlineTopup,
     postDepositTypeByUsername: postDepositTypeByUsername,
+    postOnlineCashinList: postOnlineCashinList,
+    postCashinList: postCashinList,
+    postCashoutList: postCashoutList
 };
