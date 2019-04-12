@@ -735,7 +735,7 @@ async function checkFailTopUp (player) {
         mainType: "TopUp",
         type: commonTopUpType._id,
         "data.playerObjId": player._id,
-        status: {$in: [constProposalStatus.PREPENDING, constProposalStatus.FAIL, constProposalStatus.REJECTED, constProposalStatus.CANCEL]},
+        status: {$nin: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
         createTime: {$gte: new Date(yesterdayTime), $lt: currentTime}
     }
 
