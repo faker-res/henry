@@ -2001,6 +2001,7 @@ let dbPlayerInfo = {
                     let todayTime = dbUtility.getTodaySGTime();
 
                     console.log("checking player's lastLoginIP", playerData.lastLoginIp, playerData.name)
+                    console.log("checking player's sourceUrl", playerData.sourceUrl || null, playerData.name)
                     return dbconfig.collection_ipDomainLog.find({
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
@@ -2013,6 +2014,7 @@ let dbPlayerInfo = {
                                 ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
 
                                 console.log("checking ipDomainLog", ipDomainLog[0])
+                                console.log("checking ipDomainSourceUrl", ipDomainSourceUrl || null)
                                 // force using csOfficerUrl admin and way
                                 return dbconfig.collection_csOfficerUrl.findOne({
                                     domain: ipDomain,
@@ -2087,6 +2089,7 @@ let dbPlayerInfo = {
 
                     // add ip domain to sourceUrl
                     if (ipDomainSourceUrl) {
+                        console.log("checking 2nd ipDomainSourceUrl", ipDomainSourceUrl)
                         playerUpdateData.sourceUrl = ipDomainSourceUrl
                     }
 

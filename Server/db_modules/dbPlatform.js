@@ -5236,6 +5236,9 @@ var dbPlatform = {
                     if (sourceUrl) {
                         logQ.sourceUrl = sourceUrl;
                     }
+                    else{
+                        logQ.sourceUrl = {$exists: false}
+                    }
 
                     return dbconfig.collection_ipDomainLog.findOne(logQ).lean();
                 }
@@ -5251,7 +5254,12 @@ var dbPlatform = {
                         updateQuery.partnerId = partnerId;
                     }
 
-                    dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, updateQuery)
+                    return dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, updateQuery).then(
+                        () => {
+                            // hide the detail in the return msg
+                            return;
+                        }
+                    )
                 } else {
                     let newLog = {
                         platform: platformObjId,
@@ -5268,7 +5276,12 @@ var dbPlatform = {
                         newLog.sourceUrl = sourceUrl;
                     }
 
-                    dbconfig.collection_ipDomainLog(newLog).save().catch(errorUtils.reportError);
+                    return dbconfig.collection_ipDomainLog(newLog).save().then(
+                        () => {
+                            // hide the detail in the return msg
+                            return;
+                        }
+                    ).catch(errorUtils.reportError);
                 }
             }
         )
