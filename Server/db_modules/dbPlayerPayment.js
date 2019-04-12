@@ -15,6 +15,7 @@ const serverInstance = require("../modules/serverInstance");
 const RESTUtils = require("../modules/RESTUtils");
 const rsaCrypto = require('./../modules/rsaCrypto');
 
+const constProposalStatus = require('../const/constProposalStatus');
 const constAccountType = require('./../const/constAccountType');
 const constDepositMethod = require('./../const/constDepositMethod');
 const constPlayerTopUpType = require("../const/constPlayerTopUpType.js");
@@ -630,7 +631,10 @@ const dbPlayerPayment = {
                     newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
                 }
 
-                return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
+                return checkFailTopUp(player).then(
+                    () => dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal)
+                )
+                // return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(
             async proposalObj => {
@@ -701,6 +705,83 @@ const dbPlayerPayment = {
     // endregion
 
 };
+
+async function checkFailTopUp (player) {
+    let checkMonitorTopUpCond = Boolean(player.platform && player.platform.monitorTopUpNotify && player.platform.monitorTopUpCount);
+    let checkMonitorCommonTopUpCond = Boolean(player.platform && player.platform.monitorCommonTopUpCountNotify && player.platform.monitorCommonTopUpCount);
+    if (!checkMonitorTopUpCond && !checkMonitorCommonTopUpCond) {
+        return true; // does not need to check
+    }
+
+    let commonTopUpType = await dbconfig.collection_proposalType.findOne({
+        platformId: player.platform,
+        name: constProposalType.PLAYER_COMMON_TOP_UP
+    }).lean();
+
+    if (!commonTopUpType) {
+        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+    }
+
+    let lastSuccessTopUp = await dbconfig.collection_proposal.findOne({
+        // createTime: {$gte: new Date(player.registrationTime)},
+        "data.playerObjId": player._id,
+        mainType: "TopUp",
+        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+    }, {createTime: 1}).sort({createTime: -1}).lean();
+
+    let currentTime = new Date();
+    let yesterdayTime = new Date().setDate(currentTime.getDate() - 1);
+
+    let checkCommonTopUpQuery = {
+        mainType: "TopUp",
+        type: commonTopUpType._id,
+        "data.playerObjId": player._id,
+        status: {$in: [constProposalStatus.PREPENDING, constProposalStatus.FAIL, constProposalStatus.REJECTED, constProposalStatus.CANCEL]},
+        createTime: {$gte: new Date(yesterdayTime), $lt: currentTime}
+    }
+
+    let lastSuccessTime = lastSuccessTopUp && lastSuccessTopUp.createTime && new Date(lastSuccessTopUp.createTime);
+
+    if (lastSuccessTime && lastSuccessTime.getTime() > new Date(yesterdayTime).getTime()) {
+        checkCommonTopUpQuery.createTime = {$gte: lastSuccessTime, $lt: currentTime};
+    }
+
+    let checkOtherTopUpQuery = Object.assign({}, checkCommonTopUpQuery)
+    checkOtherTopUpQuery.type = {$ne: checkCommonTopUpQuery.type};
+    let commonTopUpProm = Promise.resolve(0);
+    let otherTopUpProm = Promise.resolve(0);
+
+    if (checkMonitorTopUpCond) {
+        commonTopUpProm = dbconfig.collection_proposal.find(checkCommonTopUpQuery).count();
+    }
+
+    if (checkMonitorCommonTopUpCond) {
+        otherTopUpProm = dbconfig.collection_proposal.find(checkOtherTopUpQuery).count();
+    }
+
+    let failedProposalsCount = await Promise.all([commonTopUpProm, otherTopUpProm]);
+
+    let commonTopUpCount = failedProposalsCount[0];
+    let otherTopUpCount = failedProposalsCount[1];
+
+    if (checkMonitorTopUpCond && checkMonitorCommonTopUpCond) {
+        if (otherTopUpCount >= player.platform.monitorTopUpCount && commonTopUpCount >= player.platform.monitorCommonTopUpCount) {
+            return Promise.reject({name: "DataError", message: "Common top up and top up type exceed number of failures"});
+        } else if (commonTopUpCount >= player.platform.monitorCommonTopUpCount) {
+            return Promise.reject({name: "DataError", message: "Common top up exceed number of failures"});
+        } else if (otherTopUpCount >= player.platform.monitorTopUpCount) {
+            return Promise.reject({name: "DataError", message: "Top up type exceed number of failures"});
+        }
+    } else if (checkMonitorTopUpCond){
+        if (otherTopUpCount >= player.platform.monitorTopUpCount) {
+            return Promise.reject({name: "DataError", message: "Top up type exceed number of failures"});
+        }
+    } else if (checkMonitorCommonTopUpCond) {
+        if (commonTopUpCount >= player.platform.monitorCommonTopUpCount) {
+            return Promise.reject({name: "DataError", message: "Common top up exceed number of failures"});
+        }
+    }
+}
 
 function getBankTypeNameArr (bankCardFilterList, maxDeposit) {
     let bankListArr = [];
