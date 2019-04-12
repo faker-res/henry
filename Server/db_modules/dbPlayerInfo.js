@@ -5838,7 +5838,6 @@ let dbPlayerInfo = {
                 if (!bExit) {
                     newAgentArray.push(uaObj);
                 }
-
                 if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp && playerData.lastLoginIp != "undefined") {
                     bUpdateIp = true;
                 }
@@ -5889,7 +5888,6 @@ let dbPlayerInfo = {
             data => {
                 // Geo and ip related update
                 if (bUpdateIp) {
-                    dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                 }
 
@@ -6296,7 +6294,6 @@ let dbPlayerInfo = {
         let platformObj = {};
         let bUpdateIp = false;
         let geoInfo = {};
-
         return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
                 if (platformData) {
@@ -6489,7 +6486,6 @@ let dbPlayerInfo = {
             data => {
                 // Geo and ip related update
                 if (bUpdateIp) {
-                    dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                 }
 
@@ -6970,13 +6966,8 @@ let dbPlayerInfo = {
                             //Object.assign(recordData, geoInfo);
 
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
-                            return record.save().then(
-                                function () {
-                                    if (bUpdateIp) {
-                                        dbPlayerInfo.updateGeoipws(data._id, platformId, loginData.lastLoginIp);
-                                    }
-                                }
-                            ).then(
+                            return record.save()
+                            .then(
                                 () => {
                                     return dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "platform",
