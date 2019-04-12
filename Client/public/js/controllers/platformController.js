@@ -29595,6 +29595,10 @@ define(['js/app'], function (myApp) {
                 vm.monitorBasic.monitorPlayerUseSound = vm.selectedPlatform.data.monitorPlayerUseSound;
                 vm.monitorBasic.monitorMerchantSoundChoice = vm.selectedPlatform.data.monitorMerchantSoundChoice;
                 vm.monitorBasic.monitorPlayerSoundChoice = vm.selectedPlatform.data.monitorPlayerSoundChoice;
+                vm.monitorBasic.monitorTopUpCount = vm.selectedPlatform.data.monitorTopUpCount;
+                vm.monitorBasic.monitorCommonTopUpCount = vm.selectedPlatform.data.monitorCommonTopUpCount;
+                vm.monitorBasic.monitorTopUpNotify = vm.selectedPlatform.data.monitorTopUpNotify;
+                vm.monitorBasic.monitorCommonTopUpCountNotify = vm.selectedPlatform.data.monitorCommonTopUpCountNotify;
                 $scope.safeApply();
             };
 
@@ -31366,7 +31370,11 @@ define(['js/app'], function (myApp) {
                         monitorMerchantUseSound: srcData.monitorMerchantUseSound,
                         monitorPlayerUseSound: srcData.monitorPlayerUseSound,
                         monitorMerchantSoundChoice: srcData.monitorMerchantSoundChoice,
-                        monitorPlayerSoundChoice: srcData.monitorPlayerSoundChoice
+                        monitorPlayerSoundChoice: srcData.monitorPlayerSoundChoice,
+                        monitorTopUpCount: srcData.monitorTopUpCount,
+                        monitorCommonTopUpCount: srcData.monitorCommonTopUpCount,
+                        monitorTopUpNotify: srcData.monitorTopUpNotify,
+                        monitorCommonTopUpCountNotify: srcData.monitorCommonTopUpCountNotify
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

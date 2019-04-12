@@ -6246,7 +6246,17 @@ let dbPlayerInfo = {
                                     }
 
                                     return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
-                                        .then(() => dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified));
+                                        .then(
+                                            () => {
+                                                return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
+                                            },
+                                            err => {
+                                                if (err && err.message) {
+                                                    err.isRegisterError = true;
+                                                }
+                                                return Promise.reject(err);
+                                            }
+                                        );
                                 }
                             }
                         );
@@ -24232,7 +24242,6 @@ let dbPlayerInfo = {
 
     checkDeviceIdRegistered: (platformObjId, deviceId) => {
         let query = {
-            guestDeviceId: deviceId,
             platform: platformObjId,
             $or: [
                 {guestDeviceId: deviceId},

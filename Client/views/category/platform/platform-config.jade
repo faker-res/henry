@@ -1604,23 +1604,23 @@
                             tr
                                 td {{'Topup Method Front End reminder' | translate}}
                                 td
-                                    text(ng-show='!vm.reminderConfigTableEdit') {{vm.monitorBasic.monitorMerchantCount}}
-                                    input(type='number', ng-show='vm.reminderConfigTableEdit', min=0, ng-model='vm.monitorBasic.monitorPlayerUseSound')
+                                    text(ng-show='!vm.reminderConfigTableEdit') {{vm.monitorBasic.monitorTopUpCount}}
+                                    input(type='number', ng-show='vm.reminderConfigTableEdit', min=0, ng-model='vm.monitorBasic.monitorTopUpCount')
                                 td
-                                    input(type='checkbox', ng-disabled="!vm.reminderConfigTableEdit" ng-model='vm.monitorBasic.monitorPlayerUseSound')
+                                    input(type='checkbox', ng-disabled="!vm.reminderConfigTableEdit" ng-model='vm.monitorBasic.monitorTopUpNotify')
                             tr
                                 td {{'General Topup Front End reminder' | translate}}
                                 td
-                                    text(ng-show='!vm.reminderConfigTableEdit') {{vm.monitorBasic.monitorMerchantCount}}
-                                    input(type='number', ng-show='vm.reminderConfigTableEdit', min=0, ng-model='vm.monitorBasic.monitorPlayerUseSound')
+                                    text(ng-show='!vm.reminderConfigTableEdit') {{vm.monitorBasic.monitorCommonTopUpCount}}
+                                    input(type='number', ng-show='vm.reminderConfigTableEdit', min=0, ng-model='vm.monitorBasic.monitorCommonTopUpCount')
                                 td
-                                    input(type='checkbox', ng-disabled="!vm.reminderConfigTableEdit" ng-model='vm.monitorBasic.monitorPlayerUseSound')
+                                    input(type='checkbox', ng-disabled="!vm.reminderConfigTableEdit" ng-model='vm.monitorBasic.monitorCommonTopUpCountNotify')
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.reminderConfigTableEdit && checkViewPermission('Platform', 'Config', 'Monitor')", ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
-                    button.btn.btn-danger.common-button(ng-if='vm.reminderConfigTableEdit', ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit;') {{"CANCEL" | translate}}
-                    button.btn.btn-primary.common-button(ng-if='vm.reminderConfigTableEdit', ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit;') {{"CONFIRM" | translate}}
+                    button.btn.btn-danger.common-button(ng-if='vm.reminderConfigTableEdit', ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit;vm.configTabClicked("monitor")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.reminderConfigTableEdit', ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit;vm.configSubmitUpdate("monitor")') {{"CONFIRM" | translate}}
                     
                 div(ng-if='vm.selectedConfigTab=="playerValue"')
                     h4 {{'General Settings' | translate}}
