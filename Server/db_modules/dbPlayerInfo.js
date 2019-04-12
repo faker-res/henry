@@ -1752,7 +1752,8 @@ let dbPlayerInfo = {
             isRepeat => {
                 if (playerdata.guestDeviceId) {
                     if (isRepeat) {
-                        return Promise.reject({status: constServerCode.DEVICE_ID_ERROR, message: "Your device has registered. Use your original phone number to login."})
+                        // return Promise.reject({status: constServerCode.DEVICE_ID_ERROR, message: "Your device has registered. Use your original phone number to login."});
+                        delete playerdata.guestDeviceId;
                     }
                     return {isPlayerPasswordValid: true};
                 }
@@ -6186,7 +6187,7 @@ let dbPlayerInfo = {
                 if (verificationSMS && verificationSMS.code) {
                     if (verificationSMS.code == loginData.smsCode) {
                         // Verified
-                        let platformId, platformPrefix;
+                        let platformId, platformPrefix, platformObjId;
 
                         return dbconfig.collection_smsVerificationLog.remove(
                             {_id: verificationSMS._id}
@@ -6195,13 +6196,14 @@ let dbPlayerInfo = {
                                 dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                 isSMSVerified = true;
 
-                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId})
+                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId}).lean();
                             }
                         ).then(
                             platformData => {
                                 if (platformData) {
                                     platformId = platformData.platformId;
                                     platformPrefix = platformData.prefix;
+                                    platformObjId = platformData._id;
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
@@ -6238,22 +6240,43 @@ let dbPlayerInfo = {
                                         phoneNumber: loginData.phoneNumber
                                     };
 
+                                    let checkDeviceIdProm = Promise.resolve();
+
                                     if (loginData.deviceId) {
                                         newPlayerData.guestDeviceId = loginData.deviceId;
+
+                                        let query = {
+                                            platform: platformObjId,
+                                            $or: [
+                                                {guestDeviceId: loginData.deviceId},
+                                                {guestDeviceId: rsaCrypto.encrypt(loginData.deviceId)},
+                                                {guestDeviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
+                                            ],
+                                            phoneNumber: null
+                                        };
+                                        checkDeviceIdProm = dbconfig.collection_players.findOne(query).lean();
                                     }
 
-                                    return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
-                                        .then(
-                                            () => {
-                                                return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
-                                            },
-                                            err => {
-                                                if (err && err.message) {
-                                                    err.isRegisterError = true;
-                                                }
-                                                return Promise.reject(err);
+                                    return checkDeviceIdProm.then(
+                                        registeredPlayer => {
+                                            if (registeredPlayer) {
+                                                return dbconfig.collection_players.update({_id: registeredPlayer._id, platform: registeredPlayer.platform}, {phoneNumber: rsaCrypto.encrypt(loginData.phoneNumber)});
                                             }
-                                        );
+                                            else {
+                                                return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                            }
+                                        }
+                                    ).then(
+                                        () => {
+                                            return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
+                                        },
+                                        err => {
+                                            if (err && err.message) {
+                                                err.isRegisterError = true;
+                                            }
+                                            return Promise.reject(err);
+                                        }
+                                    );
                                 }
                             }
                         );
