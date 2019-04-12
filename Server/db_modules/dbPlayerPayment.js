@@ -634,7 +634,6 @@ const dbPlayerPayment = {
                 return checkFailTopUp(player).then(
                     () => dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal)
                 )
-                // return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(
             async proposalObj => {
