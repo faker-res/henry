@@ -5236,6 +5236,9 @@ var dbPlatform = {
                     if (sourceUrl) {
                         logQ.sourceUrl = sourceUrl;
                     }
+                    else{
+                        logQ.sourceUrl = {$exists: false}
+                    }
 
                     return dbconfig.collection_ipDomainLog.findOne(logQ).lean();
                 }
