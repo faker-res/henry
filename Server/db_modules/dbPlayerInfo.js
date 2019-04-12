@@ -2000,6 +2000,7 @@ let dbPlayerInfo = {
                 if (playerData.lastLoginIp && !promoteWay && !playerData.partner) {
                     let todayTime = dbUtility.getTodaySGTime();
 
+                    console.log("checking player's lastLoginIP", playerData.lastLoginIp, playerData.name)
                     return dbconfig.collection_ipDomainLog.find({
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
@@ -2011,6 +2012,7 @@ let dbPlayerInfo = {
                                 ipDomain = ipDomainLog[0].domain;
                                 ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
 
+                                console.log("checking ipDomainLog", ipDomainLog[0])
                                 // force using csOfficerUrl admin and way
                                 return dbconfig.collection_csOfficerUrl.findOne({
                                     domain: ipDomain,
@@ -6241,7 +6243,17 @@ let dbPlayerInfo = {
                                     }
 
                                     return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
-                                        .then(() => dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified));
+                                        .then(
+                                            () => {
+                                                return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
+                                            },
+                                            err => {
+                                                if (err && err.message) {
+                                                    err.isRegisterError = true;
+                                                }
+                                                return Promise.reject(err);
+                                            }
+                                        );
                                 }
                             }
                         );
@@ -24227,7 +24239,6 @@ let dbPlayerInfo = {
 
     checkDeviceIdRegistered: (platformObjId, deviceId) => {
         let query = {
-            guestDeviceId: deviceId,
             platform: platformObjId,
             $or: [
                 {guestDeviceId: deviceId},

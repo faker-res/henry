@@ -29595,6 +29595,10 @@ define(['js/app'], function (myApp) {
                 vm.monitorBasic.monitorPlayerUseSound = vm.selectedPlatform.data.monitorPlayerUseSound;
                 vm.monitorBasic.monitorMerchantSoundChoice = vm.selectedPlatform.data.monitorMerchantSoundChoice;
                 vm.monitorBasic.monitorPlayerSoundChoice = vm.selectedPlatform.data.monitorPlayerSoundChoice;
+                vm.monitorBasic.monitorTopUpCount = vm.selectedPlatform.data.monitorTopUpCount;
+                vm.monitorBasic.monitorCommonTopUpCount = vm.selectedPlatform.data.monitorCommonTopUpCount;
+                vm.monitorBasic.monitorTopUpNotify = vm.selectedPlatform.data.monitorTopUpNotify;
+                vm.monitorBasic.monitorCommonTopUpCountNotify = vm.selectedPlatform.data.monitorCommonTopUpCountNotify;
                 $scope.safeApply();
             };
 
@@ -31366,7 +31370,11 @@ define(['js/app'], function (myApp) {
                         monitorMerchantUseSound: srcData.monitorMerchantUseSound,
                         monitorPlayerUseSound: srcData.monitorPlayerUseSound,
                         monitorMerchantSoundChoice: srcData.monitorMerchantSoundChoice,
-                        monitorPlayerSoundChoice: srcData.monitorPlayerSoundChoice
+                        monitorPlayerSoundChoice: srcData.monitorPlayerSoundChoice,
+                        monitorTopUpCount: srcData.monitorTopUpCount,
+                        monitorCommonTopUpCount: srcData.monitorCommonTopUpCount,
+                        monitorTopUpNotify: srcData.monitorTopUpNotify,
+                        monitorCommonTopUpCountNotify: srcData.monitorCommonTopUpCountNotify
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -35001,10 +35009,11 @@ define(['js/app'], function (myApp) {
 
             // Batch Permit Edit
             vm.initBatchPermit = function () {
-                vm.prepareCredibilityConfig();
-                vm.initBatchParams();
-                vm.drawBatchPermitTable();
-
+                setTimeout(() => {
+                    vm.prepareCredibilityConfig();
+                    vm.initBatchParams();
+                    vm.drawBatchPermitTable();
+                }, 0);
             };
 
             vm.initBatchParams = function(){
@@ -35060,16 +35069,24 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, "updateBatchPlayerCredibilityRemark", sendQuery, function (data) {
-                    vm.playerCredibilityRemarksUpdated = true;
-                    vm.credibilityRemarkUpdateMessage = "SUCCESS";
-                    vm.getPlatformPlayersData();
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        vm.playerCredibilityRemarksUpdated = true;
+                        vm.credibilityRemarkUpdateMessage = "SUCCESS";
+                        vm.getPlatformPlayersData();
+                        vm.prepareCredibilityConfig();
+                    })
                 }, function (error) {
-                    vm.playerCredibilityRemarksUpdated = true;
-                    vm.credibilityRemarkUpdateMessage = error.error.message;
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        vm.playerCredibilityRemarksUpdated = true;
+                        vm.credibilityRemarkUpdateMessage = error.error.message;
+                    })
                 });
                 vm.drawBatchPermitTable();
+            };
+            vm.resetCredibilityOption = function () {
+                // reset credibitlity checkbox
+                vm.playerCredibilityRemarksUpdated = false;
+                vm.credibilityRemarkUpdateMessage="";
             };
             vm.resetBatchEditData = function () {
                 //generate a sample to render in datatable, only using for edit multi purpose.
@@ -35132,11 +35149,11 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                             sClass: "remarkCol text-center",
                             render: (data, type, row) => {
-                                let emptyOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
+                                let emptyOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks' ng-click='vm.resetCredibilityOption()'> - </a>";
                                 if (!data || data.length === 0) {
                                     return emptyOutput;
                                 }
-                                let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'>";
+                                let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks' ng-click='vm.resetCredibilityOption()'>";
                                 let output = initOutput;
                                 let remarkMatches = false;
                                 data.map(function (remarkId) {
