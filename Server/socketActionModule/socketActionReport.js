@@ -625,10 +625,10 @@ function socketActionReport(socketIO, socket) {
             let actionName = arguments.callee.name;
             let startTime = new Date(data.startTime);
             let endTime = new Date(data.endTime);
-            let isValidData = Boolean(data && data.platform && data.platformId && data.type && data.startTime && data.endTime && (endTime > startTime));
+            let isValidData = Boolean(data && data.type && data.startTime && data.endTime && (endTime > startTime));
 
             if (data.type === 'bonus') {
-                socketUtil.emitter(self.socket, dbPaymentReconciliation.getBonusReport, [ObjectId(data.platform), data.platformId, data.type, startTime, endTime], actionName, isValidData);
+                socketUtil.emitter(self.socket, dbPaymentReconciliation.getBonusReport, [data.platformList, data.type, startTime, endTime], actionName, isValidData);
             }
             else {
                 socketUtil.emitter(self.socket, dbPaymentReconciliation.getOnlinePaymentProposalMismatchReport, [ObjectId(data.platform), data.platformId, data.type, startTime, endTime], actionName, isValidData);

@@ -2892,6 +2892,7 @@ define(['js/app'], function (myApp) {
             let sendQuery = {
                 platform: vm.selectedPlatform._id,
                 platformId: vm.selectedPlatform.platformId,
+                platformList: vm.onlinePaymentMismatchQuery.platformList,
                 startTime: vm.onlinePaymentMismatchQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.onlinePaymentMismatchQuery.endTime.data('datetimepicker').getLocalDate(),
                 type: vm.onlinePaymentMismatchQuery.type
