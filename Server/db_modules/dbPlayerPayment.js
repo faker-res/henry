@@ -631,9 +631,7 @@ const dbPlayerPayment = {
                     newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
                 }
 
-                return checkFailTopUp(player).then(
-                    () => dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal)
-                )
+                return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(
             async proposalObj => {
@@ -673,12 +671,17 @@ const dbPlayerPayment = {
                             paymentUrl = await RESTUtils.getPMS2Services("getTopupLobbyAddress");
                         }
 
-                        return {
+                        let returnData = {
                             url: generatePMSHTTPUrl(player, proposal, paymentUrl, topupRequest.clientType, ipAddress, topupRequest.amount),
                             proposalId: proposal.proposalId,
                             amount: proposal.data.amount,
-                            createTime: proposal.createTime
+                            createTime: proposal.createTime,
+                            isExceedTopUpFailCount: false,
+                            isExceedCommonTopUpFailCount: false,
                         };
+
+                        return checkFailTopUp(player, returnData);
+
                     }
                 }
             }
@@ -705,7 +708,7 @@ const dbPlayerPayment = {
 
 };
 
-async function checkFailTopUp (player) {
+async function checkFailTopUp (player, returnData) {
     let checkMonitorTopUpCond = Boolean(player.platform && player.platform.monitorTopUpNotify && player.platform.monitorTopUpCount);
     let checkMonitorCommonTopUpCond = Boolean(player.platform && player.platform.monitorCommonTopUpCountNotify && player.platform.monitorCommonTopUpCount);
     if (!checkMonitorTopUpCond && !checkMonitorCommonTopUpCond) {
@@ -765,21 +768,24 @@ async function checkFailTopUp (player) {
 
     if (checkMonitorTopUpCond && checkMonitorCommonTopUpCond) {
         if (otherTopUpCount >= player.platform.monitorTopUpCount && commonTopUpCount >= player.platform.monitorCommonTopUpCount) {
-            return Promise.reject({name: "DataError", message: "Common top up and top up type exceed number of failures"});
+            returnData.isExceedTopUpFailCount = true;
+            returnData.isExceedCommonTopUpFailCount = true;
         } else if (commonTopUpCount >= player.platform.monitorCommonTopUpCount) {
-            return Promise.reject({name: "DataError", message: "Common top up exceed number of failures"});
+            returnData.isExceedCommonTopUpFailCount = true;
         } else if (otherTopUpCount >= player.platform.monitorTopUpCount) {
-            return Promise.reject({name: "DataError", message: "Top up type exceed number of failures"});
+            returnData.isExceedTopUpFailCount = true;
         }
     } else if (checkMonitorTopUpCond){
         if (otherTopUpCount >= player.platform.monitorTopUpCount) {
-            return Promise.reject({name: "DataError", message: "Top up type exceed number of failures"});
+            returnData.isExceedTopUpFailCount = true;
         }
     } else if (checkMonitorCommonTopUpCond) {
         if (commonTopUpCount >= player.platform.monitorCommonTopUpCount) {
-            return Promise.reject({name: "DataError", message: "Common top up exceed number of failures"});
+            returnData.isExceedCommonTopUpFailCount = true;
         }
     }
+
+    return returnData;
 }
 
 function getBankTypeNameArr (bankCardFilterList, maxDeposit) {
