@@ -57,6 +57,8 @@ http.createServer(function (req, res) {
 
                     switch(pathname) {
                         case publicKeyPath:
+                            console.log('SAVING IN EFFECT KEY PAIR');
+
                             req.on('data', data => {
                                 inputData.push(data);
                             }).on('end', () => {
@@ -88,6 +90,8 @@ http.createServer(function (req, res) {
                             });
                             break;
                         case replacedPublicKeyPath:
+                            console.log('SAVING REPLACED KEY PAIR');
+
                             req.on('data', data => {
                                 inputData.push(data);
                             }).on('end', () => {
@@ -119,6 +123,7 @@ http.createServer(function (req, res) {
                             });
                             break;
                         case restartFPMSPath:
+                            console.log('REQUEST TO RESTART FPMS');
                             rp({
                                 method: 'POST',
                                 uri: fpmsRestartAddress,
