@@ -9680,7 +9680,7 @@ let dbPlayerInfo = {
                     if (levelObjId) {
                         // Perform the level up
                         return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
-                            platformData => {
+                            async (platformData) => {
                                 console.log("ZM, player level up checkpoint 1 ", playerObj.name);
                                 let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                                 let platformPeriodTime;
@@ -9720,7 +9720,9 @@ let dbPlayerInfo = {
                                     }
                                 ).lean();
 
-                                let consumptionProm = dbconfig.collection_playerConsumptionRecord.find(
+
+                                let consumptionArr = [];
+                                let consumptionProm = await dbconfig.collection_playerConsumptionRecord.find(
                                     {
                                         platformId: ObjectId(playerObj.platform),
                                         createTime: {
@@ -9729,9 +9731,13 @@ let dbPlayerInfo = {
                                         },
                                         playerId: ObjectId(playerObj._id)
                                     }
-                                ).lean();
+                                ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
+                                    if (doc._doc) {
+                                        consumptionArr.push(doc._doc);
+                                    }
+                                });
 
-                                return Promise.all([topUpProm, consumptionProm]).then(
+                                return Promise.all([topUpProm, consumptionArr]).then(
                                     recordData => {
                                         console.log("ZM player level up checkpoint 2 ", playerObj.name);
                                         let topUpSummary = recordData[0];
@@ -10059,7 +10065,7 @@ let dbPlayerInfo = {
                 if (levels && levels.length > 0) {
                     // Perform the level up
                     return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
-                        platformData => {
+                        async (platformData) => {
                             let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                             let platformPeriodTime;
                             if (platformPeriod) {
@@ -10087,7 +10093,8 @@ let dbPlayerInfo = {
                                 }
                             ).lean();
 
-                            let consumptionProm = dbconfig.collection_playerConsumptionRecord.find(
+                            let consumptionArr = [];
+                            let consumptionProm = await dbconfig.collection_playerConsumptionRecord.find(
                                 {
                                     platformId: ObjectId(playerObj.platform),
                                     createTime: {
@@ -10096,10 +10103,17 @@ let dbPlayerInfo = {
                                     },
                                     playerId: ObjectId(playerObj._id)
                                 }
-                            ).lean();
+                            ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
+                                if (doc._doc) {
+                                    consumptionArr.push(doc._doc);
+                                }
+                            });
 
-                            return Promise.all([topUpProm, consumptionProm]).then(
+                            console.log("ZM, player manual level up checkpoint 1 ", playerObj.name);
+
+                            return Promise.all([topUpProm, consumptionArr]).then(
                                 recordData => {
+                                    console.log("ZM, player manual level up checkpoint 2 ", playerObj.name);
                                     let topUpSummary = recordData[0];
                                     let consumptionSummary = recordData[1];
                                     let topUpSumPeriod = {};
