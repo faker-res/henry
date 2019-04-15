@@ -1752,7 +1752,8 @@ let dbPlayerInfo = {
             isRepeat => {
                 if (playerdata.guestDeviceId) {
                     if (isRepeat) {
-                        return Promise.reject({status: constServerCode.DEVICE_ID_ERROR, message: "Your device has registered. Use your original phone number to login."})
+                        // return Promise.reject({status: constServerCode.DEVICE_ID_ERROR, message: "Your device has registered. Use your original phone number to login."});
+                        delete playerdata.guestDeviceId;
                     }
                     return {isPlayerPasswordValid: true};
                 }
@@ -2001,6 +2002,7 @@ let dbPlayerInfo = {
                     let todayTime = dbUtility.getTodaySGTime();
 
                     console.log("checking player's lastLoginIP", playerData.lastLoginIp, playerData.name)
+                    console.log("checking player's sourceUrl", playerData.sourceUrl || null, playerData.name)
                     return dbconfig.collection_ipDomainLog.find({
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
@@ -2013,6 +2015,7 @@ let dbPlayerInfo = {
                                 ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
 
                                 console.log("checking ipDomainLog", ipDomainLog[0])
+                                console.log("checking ipDomainSourceUrl", ipDomainSourceUrl || null)
                                 // force using csOfficerUrl admin and way
                                 return dbconfig.collection_csOfficerUrl.findOne({
                                     domain: ipDomain,
@@ -2087,6 +2090,7 @@ let dbPlayerInfo = {
 
                     // add ip domain to sourceUrl
                     if (ipDomainSourceUrl) {
+                        console.log("checking 2nd ipDomainSourceUrl", ipDomainSourceUrl)
                         playerUpdateData.sourceUrl = ipDomainSourceUrl
                     }
 
@@ -5838,7 +5842,6 @@ let dbPlayerInfo = {
                 if (!bExit) {
                     newAgentArray.push(uaObj);
                 }
-
                 if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp && playerData.lastLoginIp != "undefined") {
                     bUpdateIp = true;
                 }
@@ -5889,7 +5892,6 @@ let dbPlayerInfo = {
             data => {
                 // Geo and ip related update
                 if (bUpdateIp) {
-                    dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                 }
 
@@ -6186,7 +6188,7 @@ let dbPlayerInfo = {
                 if (verificationSMS && verificationSMS.code) {
                     if (verificationSMS.code == loginData.smsCode) {
                         // Verified
-                        let platformId, platformPrefix;
+                        let platformId, platformPrefix, platformObjId;
 
                         return dbconfig.collection_smsVerificationLog.remove(
                             {_id: verificationSMS._id}
@@ -6195,13 +6197,14 @@ let dbPlayerInfo = {
                                 dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                 isSMSVerified = true;
 
-                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId})
+                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId}).lean();
                             }
                         ).then(
                             platformData => {
                                 if (platformData) {
                                     platformId = platformData.platformId;
                                     platformPrefix = platformData.prefix;
+                                    platformObjId = platformData._id;
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
@@ -6238,22 +6241,43 @@ let dbPlayerInfo = {
                                         phoneNumber: loginData.phoneNumber
                                     };
 
+                                    let checkDeviceIdProm = Promise.resolve();
+
                                     if (loginData.deviceId) {
                                         newPlayerData.guestDeviceId = loginData.deviceId;
+
+                                        let query = {
+                                            platform: platformObjId,
+                                            $or: [
+                                                {guestDeviceId: loginData.deviceId},
+                                                {guestDeviceId: rsaCrypto.encrypt(loginData.deviceId)},
+                                                {guestDeviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
+                                            ],
+                                            phoneNumber: null
+                                        };
+                                        checkDeviceIdProm = dbconfig.collection_players.findOne(query).lean();
                                     }
 
-                                    return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
-                                        .then(
-                                            () => {
-                                                return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
-                                            },
-                                            err => {
-                                                if (err && err.message) {
-                                                    err.isRegisterError = true;
-                                                }
-                                                return Promise.reject(err);
+                                    return checkDeviceIdProm.then(
+                                        registeredPlayer => {
+                                            if (registeredPlayer) {
+                                                return dbconfig.collection_players.update({_id: registeredPlayer._id, platform: registeredPlayer.platform}, {phoneNumber: rsaCrypto.encrypt(loginData.phoneNumber)});
                                             }
-                                        );
+                                            else {
+                                                return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                            }
+                                        }
+                                    ).then(
+                                        () => {
+                                            return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
+                                        },
+                                        err => {
+                                            if (err && err.message) {
+                                                err.isRegisterError = true;
+                                            }
+                                            return Promise.reject(err);
+                                        }
+                                    );
                                 }
                             }
                         );
@@ -6296,7 +6320,6 @@ let dbPlayerInfo = {
         let platformObj = {};
         let bUpdateIp = false;
         let geoInfo = {};
-
         return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
                 if (platformData) {
@@ -6489,7 +6512,6 @@ let dbPlayerInfo = {
             data => {
                 // Geo and ip related update
                 if (bUpdateIp) {
-                    dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                 }
 
@@ -6970,13 +6992,8 @@ let dbPlayerInfo = {
                             //Object.assign(recordData, geoInfo);
 
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
-                            return record.save().then(
-                                function () {
-                                    if (bUpdateIp) {
-                                        dbPlayerInfo.updateGeoipws(data._id, platformId, loginData.lastLoginIp);
-                                    }
-                                }
-                            ).then(
+                            return record.save()
+                            .then(
                                 () => {
                                     return dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "platform",
