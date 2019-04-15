@@ -280,6 +280,9 @@ let dbPlayerCredibility = {
     getCredibilityRemarks: platformObjId => {
         return dbconfig.collection_playerCredibilityRemark.find({platform: platformObjId}).lean().exec();
     },
+    getAllCredibilityRemarks: () => {
+        return dbconfig.collection_playerCredibilityRemark.find({}).lean().exec();
+    },
 
     addCredibilityRemark: (platformObjId, name, score) => {
         let remark = dbconfig.collection_playerCredibilityRemark({
