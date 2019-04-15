@@ -712,7 +712,7 @@ async function checkFailTopUp (player, returnData) {
     let checkMonitorTopUpCond = Boolean(player.platform && player.platform.monitorTopUpNotify && player.platform.monitorTopUpCount);
     let checkMonitorCommonTopUpCond = Boolean(player.platform && player.platform.monitorCommonTopUpCountNotify && player.platform.monitorCommonTopUpCount);
     if (!checkMonitorTopUpCond && !checkMonitorCommonTopUpCond) {
-        return true; // does not need to check
+        return returnData; // does not need to check
     }
 
     let commonTopUpType = await dbconfig.collection_proposalType.findOne({
