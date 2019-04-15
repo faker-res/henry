@@ -631,7 +631,7 @@ function socketActionReport(socketIO, socket) {
                 socketUtil.emitter(self.socket, dbPaymentReconciliation.getBonusReport, [data.platformList, data.type, startTime, endTime], actionName, isValidData);
             }
             else {
-                socketUtil.emitter(self.socket, dbPaymentReconciliation.getOnlinePaymentProposalMismatchReport, [ObjectId(data.platform), data.platformId, data.type, startTime, endTime], actionName, isValidData);
+                socketUtil.emitter(self.socket, dbPaymentReconciliation.getOnlinePaymentProposalMismatchReport, [data.platformList, data.type, startTime, endTime], actionName, isValidData);
             }
 
         },
