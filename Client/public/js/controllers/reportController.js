@@ -4342,7 +4342,6 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            console.log("wahahaha")
             utilService.getDataTablePageSize("#playerReportTablePage", vm.playerQuery, 5000);
             var sendquery = {
                 platformId: vm.curPlatformId,
