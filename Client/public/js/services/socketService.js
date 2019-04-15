@@ -151,7 +151,17 @@ define([], function () {
                 } else {
                     if (data.error && (data.error.message || data.error.errorMessage)) {
                         console.error(retKey, data.error);
-                        self.showErrorMessage($trans(data.error.message || data.error.errorMessage));
+                        let errMessage = data.error.message || data.error.errorMessage;
+
+                        let startIndex = errMessage.indexOf("connection");
+                        let endIndex = errMessage.indexOf("timed out");
+                        if (errMessage && startIndex > -1 && endIndex > -1) {
+                            let str1 = errMessage.substr(0,startIndex + ("connection").length);
+                            let str2 = errMessage.substr(endIndex);
+                            errMessage = str1 + " " + str2;
+                        }
+
+                        self.showErrorMessage($trans(errMessage));
                         if (data.error.message) {
                             data.error.originalMessage = data.error.message;
                             data.error.message = $trans(data.error.message);
