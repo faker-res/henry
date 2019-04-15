@@ -3,7 +3,10 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 const env = require("./config/env").config();
+const cred = require("./config/cred");
 const theOtherEnv = require("./config/env").getAnotherConfig()[0];
+const fpmsRestartAddress = require('./config/env').getFPMSRestartAddress();
+const fpmsUpdateAddress = require("./config/env").getFPMSUpdateAddress();
 const webEnv = require('./public/js/webEnv');
 const nodeUrl = env.redisUrl || 'localhost';
 const port = env.redisPort || 1802;
@@ -16,6 +19,7 @@ const privateKeyPath = "./public/playerPhone.key.pem";
 const replacedPrivateKeyPath = "./public/playerPhone.key.pem.bak";
 const publicKeyPath = "./public/playerPhone.pub";
 const replacedPublicKeyPath = "./public/playerPhone.pub.bak";
+const restartFPMSPath = "./public/restartFPMS";
 const fpmsKey = "Fr0m_FPM$!";
 const testKeyPairText = 'TEST ENCRYPTION';
 
@@ -77,8 +81,6 @@ http.createServer(function (req, res) {
                                             res.end('Invalid RSA Key Pair!')
                                         }
                                     }
-
-
                                 } catch (err) {
                                     console.log('error', err);
                                     res.end('Invalid RSA Key Pair!')
@@ -116,9 +118,88 @@ http.createServer(function (req, res) {
                                 }
                             });
                             break;
+                        case restartFPMSPath:
+                            rp({
+                                method: 'POST',
+                                uri: fpmsRestartAddress,
+                                body: {
+                                    token: jwt.sign("Restart server", env.socketSecret),
+                                    privateKey: Boolean(privateKey),
+                                    publicKey: Boolean(publicKey),
+                                    replPrivateKey: Boolean(replacedPrivateKey),
+                                    replPublicKey: Boolean(replacedPublicKey)
+                                },
+                                json: true
+                            });
+
+                            if (privateKey && publicKey && replacedPrivateKey && replacedPublicKey) {
+                                setTimeout(() => {
+                                    console.log('RE-ENCRYPTING PLAYER PHONE NUMBER');
+                                    rp({
+                                        method: 'POST',
+                                        uri: fpmsUpdateAddress,
+                                        body: {
+                                            token: jwt.sign("Update Key", env.socketSecret),
+                                            privateKey: Boolean(privateKey),
+                                            publicKey: Boolean(publicKey),
+                                            replPrivateKey: Boolean(replacedPrivateKey),
+                                            replPublicKey: Boolean(replacedPublicKey)
+                                        },
+                                        json: true
+                                    })
+                                }, 30000)
+                            }
+                            break;
                     }
                 }
             });
+        } else {
+            // login verification
+            let inputData = [];
+            let buffer;
+
+            req.on('data', data => {
+                inputData.push(data);
+            }).on('end', () => {
+                buffer = Buffer.concat(inputData);
+
+                try {
+                    let loginInfo = JSON.parse(buffer.toString());
+
+                    if (loginInfo.username && loginInfo.password) {
+                        let adminInfo = cred.getAdmin(loginInfo.username.toLowerCase());
+
+                        if (!adminInfo) {
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: {name: "InvalidPassword", message: 'Wrong credential!'}
+                            }));
+                        } else if (!validateHash(adminInfo.password, loginInfo.password)) {
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: {name: "InvalidPassword", message: 'Password or user name is not correct!'}
+                            }));
+                        } else {
+                            // Valid credential
+                            let payload = {
+                                adminInfo: adminInfo,
+                                loginTime: new Date()
+                            };
+
+                            res.end(JSON.stringify({
+                                success: true,
+                                token: jwt.sign(payload, env.socketSecret)
+                            }));
+                        }
+                    }
+                } catch (err) {
+                    console.log('error', err);
+                    res.end(JSON.stringify({
+                        success: false,
+                        error: {name: "InvalidPassword", message: 'Error occured!'}
+                    }));
+                }
+            })
         }
     } else if (req.method === 'GET') {
         // GET
@@ -320,6 +401,12 @@ function getKeyFromOtherInstance () {
 
         return keyUrl;
     }
+}
+
+function validateHash (hashed, plain) {
+    let hashingPlain = crypto.createHash('md5').update(plain).digest('hex');
+
+    return hashed === hashingPlain;
 }
 
 console.log(`Server listening on port ${port}`);

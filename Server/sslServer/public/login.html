@@ -31,8 +31,8 @@
         };
 
         $.ajax({
-            url: fpmsAddress,
-            data: sendData,
+            url: window.location.origin,
+            data: JSON.stringify(sendData),
             method: "POST",
             success: (data, status, xhr) => {
                 let response = JSON.parse(xhr.responseText);

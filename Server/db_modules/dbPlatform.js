@@ -6179,6 +6179,51 @@ var dbPlatform = {
             }
         ).lean();
     },
+
+    reEncryptPlayerPhoneNumber: () => {
+        let promArr = [];
+
+        return dbconfig.collection_platform.find({}, {_id: 1, name: 1}).lean().then(
+            platforms => {
+                if (platforms && platforms.length) {
+                    platforms.forEach(platformData => {
+                        promArr.push(reEncryptByPlaform(platformData));
+                    });
+
+                    return Promise.all(promArr);
+                }
+            }
+        );
+
+        function reEncryptByPlaform (platformData) {
+            console.log('start re-encrypt', platformData.name);
+            let cursor = dbconfig.collection_players.find({platform: platformData._id}, {_id: 1, platform: 1, phoneNumber: 1}).cursor();
+
+            let i = 0;
+
+            return cursor.eachAsync(
+                playerData => {
+                    if (playerData && playerData.phoneNumber) {
+                        //encrypt player phone number
+                        let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+                        let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
+
+                        // Make sure it's encrypted
+                        if (reEncPhoneNumber && reEncPhoneNumber.length > 20) {
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: playerData._id, platform: playerData.platform},
+                                {phoneNumber: reEncPhoneNumber}
+                            ).then();
+                        }
+
+                        console.log("index", platformData.name, i);
+                        i++;
+                    }
+                }
+            );
+        }
+
+    }
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {
