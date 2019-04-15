@@ -129,7 +129,8 @@ function socketActionBankCardGroup(socketIO, socket) {
 
         getBankCardList: function getBankCardList(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.bankcard_getBankcardList, [{platformId: data.platformId}], actionName, true);
+            // socketUtil.emitter(self.socket, pmsAPI.bankcard_getBankcardList, [{platformId: data.platformId}], actionName, true);
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postBankCardList", {platformId: data.platformId, accountType: "BANK"}], actionName, true);
         },
 
         getZoneList: function getZoneList(data) {

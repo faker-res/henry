@@ -221,21 +221,7 @@ var dbPlatformBankCardGroup = {
     },
 
     getBankTypeList: function(platformObjId) {
-        let topUpSystemConfig;
-
-        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1}).lean().then(
-            platformData => {
-                if (!platformData) {
-                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
-                }
-
-                topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
-
-                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    return RESTUtils.getPMS2Services("postBankTypeList", {});
-                }
-            }
-        );
+        return RESTUtils.getPMS2Services("postBankTypeList", {});
     },
 
     /**
@@ -623,7 +609,7 @@ var dbPlatformBankCardGroup = {
                 break;
         }
 
-        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+        // if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
             let options = {
                 platformId: platformId,
                 userName: playerName,
@@ -631,13 +617,14 @@ var dbPlatformBankCardGroup = {
             };
 
             return RESTUtils.getPMS2Services("postPaymentGroupByPlayer", options);
-        } else {
-            return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
-                data => {
-                    return data;
-                }
-            );
-        }
+        // }
+        // else {
+        //     return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
+        //         data => {
+        //             return data;
+        //         }
+        //     );
+        // }
     },
 
     getPMSBankCardGroup: function (platformId, topUpSystemType) {
