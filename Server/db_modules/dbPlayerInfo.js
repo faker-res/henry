@@ -20438,6 +20438,9 @@ let dbPlayerInfo = {
 
                     let csOfficerDetail = data[6];
 
+                    console.log('csOfficerDetail JY', csOfficerDetail);
+                    console.log('playerDetail JY', playerDetail);
+
                     // related admin
                     if (playerDetail.accAdmin) {
                         result.csOfficer = playerDetail.accAdmin;
