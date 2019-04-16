@@ -5253,6 +5253,7 @@
   "platformFeeEstimateSetting": "平台费估算设置",
   "platformFeeEstimateSetting (show in report)": "平台费估算设置（报表中呈现）",
   "WeChatGroupControlSetting":"微信群控设置",
+  "WECHAT_GROUP_CONTROL_MONITOR":"微信群控监控",
   "WeChatGroupControlMonitor":"微信群控监控",
   "WECHAT_GROUP_REPORT":"微信群控监控报表",
   "WECHAT_CONVERSATION_RECORD":"微信对话记录",
