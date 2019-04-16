@@ -294,3 +294,114 @@ div
                 //button.btn.btn-primary.common-button(ng-if='form_new_partner.$invalid', disabled='true') {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="form_player_export.$invalid", ng-click="vm.createExportPlayerProposal();") {{"Export" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#playerPermissionPopover.hide(style="width: 600px")
+    #playerPermissionTable
+        table.paddingTbl
+            tbody
+                tr(ng-repeat='(key,v) in vm.playerPermissionTypes',
+                ng-if="vm.permissionPlayer.isRealPlayer || vm.permissionPlayer.isTestPlayer && v.testPlayer")
+                    td
+                        i.text-primary(ng-show='v.imgType=="i"', ng-class='v.iconClass+" fa-2x"')
+                        img(async=on ng-show='v.imgType=="img"', ng-src='{{v.src}}', width='{{v.width}}', height='{{v.height}}')
+                    td {{key | translate}}
+                    td.permitOn(ng-class='vm.permissionPlayer.permission[key] === false  ? "hide":""', class='{{key}}')
+                        i.fa.fa-toggle-on.text-primary.margin-right-5.togglePlayer(data-which='{{key}}', data-on=true)
+                        a.text-primary.togglePlayer(data-which='{{key}}', data-on=true) {{"ON" | translate}}
+                    td.permitOff(ng-class='vm.permissionPlayer.permission[key] === false ? "":"hide"', class='{{key}}')
+                        i.fa.fa-toggle-off.text-danger.margin-right-5.togglePlayer(data-which='{{key}}', data-on=false)
+                        a.text-danger.togglePlayer(data-which='{{key}}', data-on=false) {{"OFF" | translate}}
+                    td
+                        div(id="{{key}}")
+        .textareaDetail.margin-top-bottom-small
+            textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
+        .text-left(style="position:relative;")
+            button.btn.btn-primary.submit {{'CONFIRM' | translate}}
+            button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Player', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog', ng-show="vm.platformPageName!='batchPermit'")
+                text {{"Permission History" | translate}}
+        div(ng-show="vm.platformPageName=='batchPermit'") * 若要开启/解除某权限设置，请
+        div(ng-show="vm.platformPageName=='batchPermit'") 关闭->开启->再按确定按钮。
+
+#prohibitGamePopover.hide(style="width: 600px", ng-non-bindable)
+    table.simple-table
+        tr
+            td(style='text-align:left')
+                label {{"BANNED_FROM_THESE_PROVIDERS" | translate}}
+                div(ng-repeat='(i,v) in vm.showPlatform.gameProviders')
+                    label {{vm.getProviderText(v)}}
+                        input.playerStatusProviderForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v}}',ng-change='vm.forbidModification(v, isTrue, "forbidGameAddList", "forbidGameRemoveList")', ng-model="isTrue", ng-checked='vm.prohibitGamePopover.forbidProviders.indexOf(v)>-1')
+                        span(id="{{'c-'+v}}")
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardRemark(ng-model='vm.forbidGameRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidGameConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidProviders') && vm.platformPageName!='batchPermit'", ng-disabled='vm.forbidGameDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchGameConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidProviders') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+
+                button.common-button.margin-right-5.btn.btn-warning.forbidGameCancel {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidGame(data-toggle="modal", data-target="#modalForbidGameLog", ng-click="vm.getForbidGame();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
+#forbidRewardEventPopover.hide(style="width: 600px", ng-non-bindable)
+    table.simple-table
+        tr
+            td(style='text-align:left')
+
+                label {{"FORBID_REWARD" | translate}}
+                div
+                    label {{"优惠代码" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode')
+                        span(id="{{'c-promoCode'}}" ng-if='vm.forbidPromoCode != undefined') {{"ModifyIt" | translate}}
+                div(ng-repeat='(i,v) in vm.allRewardEvent')
+                    label {{v.name}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1')
+                        span(id="{{'c-'+v._id}}")
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardRemark(ng-model='vm.forbidRewardRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidRewardEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewards') && vm.platformPageName!='batchPermit'", ng-disabled='vm.forbidRewardDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewards') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+
+                button.common-button.margin-right-5.btn.btn-warning.forbidRewardEventCancel(data-dismiss='popover') {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidreward(data-toggle="modal", data-target="#modalForbidRewardLog", ng-click="vm.getForbidReward();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
+#forbidTopUpPopover.hide(style="width: 600px", ng-non-bindable)
+    table.simple-table
+        tr
+            td(style='text-align:left')
+                label {{"ForbidTopupTypes" | translate}}
+                div(ng-repeat='(i,v) in merchantTopupTypeJson')
+                    label {{v}}
+                        input.playerTopUpTypeForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{i}}',ng-change='vm.forbidModification(i, isTrue, "forbidTopUpAddList", "forbidTopUpRemoveList")', ng-model="isTrue", ng-checked='vm.forbidTopUpPopover.forbidTopUpType.indexOf(i)>-1')
+                        span(id="{{'c-'+i}}")
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardRemark(ng-model='vm.forbidTopUpRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidTopUpConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidTopupTypes') && vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidTopUpDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchTopUpConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidTopupTypes') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning.forbidTopUpCancel {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidTopUp(data-toggle="modal", data-target="#modalForbidTopUpLog", ng-click="vm.getForbidTopUp();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
+#forbidRewardPointsEventPopover.hide(style="width: 600px", ng-non-bindable)
+    table.simple-table
+        tr
+            td(style='text-align:left')
+                label {{"LOGIN_REWARD_POINTS" | translate}}
+                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS}")
+                    label {{v.rewardTitle}}
+                        input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
+                        span(id="{{'c-'+v._id}}")
+                .textareaDetail.margin-top-bottom-small
+                label {{"TOPUP_REWARD_POINTS" | translate}}
+                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS}")
+                    label {{v.rewardTitle}}
+                        input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
+                        span(id="{{'c-'+v._id}}")
+                .textareaDetail.margin-top-bottom-small
+                .textareaDetail.margin-top-bottom-small
+                label {{"GAME_REWARD_POINTS" | translate}}
+                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.GAME_REWARD_POINTS}")
+                    label {{v.rewardTitle}}
+                        input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
+                        span(id="{{'c-'+v._id}}")
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidRewardPointsEventRemark(ng-model='vm.forbidRewardPointsEventRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidRewardPointsEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewardPointsEvent') && vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidRewardPointsEventDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardPointsEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewardPointsEvent') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning.forbidRewardPointsEventCancel {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidRewardPointsEvent(data-toggle="modal", data-target="#modalForbidRewardPointsEventLog", ng-click="vm.getForbidRewardPointsEvent();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
