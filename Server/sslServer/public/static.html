@@ -58,6 +58,7 @@
 </ul>
 <div>
     <button onclick="updateFPMS()">Restart FPMS and update key</button>
+    <text id="update" color="red"></text>
 </div>
 
 </body>
@@ -122,7 +123,7 @@
             },
             success: (data) => {
                 console.log(serv.nodeUrl, serv.nodePort, data);
-                $(statusId).text(data.toString());
+                $(update).text(data.toString());
             }
         })
 

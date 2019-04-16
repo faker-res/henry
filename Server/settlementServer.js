@@ -2,6 +2,7 @@ var env = require("./config/env").config();
 var settlementEnv = require("./config/settlementEnv").config();
 var WebSocketServer = require("./server_common/WebSocketServer");
 var SettlementServiceImplement = require("./serviceImplements/settlement/SettlementServiceImplement");
+var PlatformServiceImplement = require('./serviceImplements/settlement/PlatformServiceImplement');
 
 // require("../modules/promiseDebugging").setDefaults();
 var WebSocketMessageClient = require("./server_common/WebSocketMessageClient");
@@ -13,7 +14,7 @@ var SettlementAPIServer = function(port){
     WebSocketServer.call(this, port);
 
     //todo::move server to function module
-    var services = [SettlementServiceImplement];
+    var services = [SettlementServiceImplement, PlatformServiceImplement];
 
     for( var i = 0; i < services.length; i++ ){
         var service = new services[i]();

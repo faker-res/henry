@@ -5,8 +5,6 @@ const path = require('path');
 const env = require("./config/env").config();
 const cred = require("./config/cred");
 const theOtherEnv = require("./config/env").getAnotherConfig()[0];
-const fpmsRestartAddress = require('./config/env').getFPMSRestartAddress();
-const fpmsUpdateAddress = require("./config/env").getFPMSUpdateAddress();
 const webEnv = require('./public/js/webEnv');
 const nodeUrl = env.redisUrl || 'localhost';
 const port = env.redisPort || 1802;
@@ -126,7 +124,7 @@ http.createServer(function (req, res) {
                             console.log('REQUEST TO RESTART FPMS');
                             rp({
                                 method: 'POST',
-                                uri: fpmsRestartAddress,
+                                uri: env.fpmsUpdateKeyAddress,
                                 body: {
                                     token: jwt.sign("Restart server", env.socketSecret),
                                     privateKey: Boolean(privateKey),
@@ -135,25 +133,11 @@ http.createServer(function (req, res) {
                                     replPublicKey: Boolean(replacedPublicKey)
                                 },
                                 json: true
-                            });
-
-                            if (privateKey && publicKey && replacedPrivateKey && replacedPublicKey) {
-                                setTimeout(() => {
-                                    console.log('RE-ENCRYPTING PLAYER PHONE NUMBER');
-                                    rp({
-                                        method: 'POST',
-                                        uri: fpmsUpdateAddress,
-                                        body: {
-                                            token: jwt.sign("Update Key", env.socketSecret),
-                                            privateKey: Boolean(privateKey),
-                                            publicKey: Boolean(publicKey),
-                                            replPrivateKey: Boolean(replacedPrivateKey),
-                                            replPublicKey: Boolean(replacedPublicKey)
-                                        },
-                                        json: true
-                                    })
-                                }, 30000)
-                            }
+                            }).then(
+                                () => {
+                                    res.end('Success');
+                                }
+                            );
                             break;
                     }
                 }

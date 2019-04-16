@@ -8,8 +8,8 @@ let constSystemParam = require('./../const/constSystemParam');
 let fs = require('fs'), crt, key, replKey, replCrt;
 
 // SSL preparation - comment after SSL online
-key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+// key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
+// crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 
 let oldKey, oldCert;
 
@@ -101,10 +101,20 @@ module.exports = {
         return sign.sign(fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.key.pem'), 'base64');
     },
 
-    refreshKeys: () => {
+    refreshKeys: (isReEncrypt) => {
         console.log('REFRESHING KEYS FROM KEY SERVICE');
-        getPrivateKeyFromService();
-        getPublicKeyFromService();
+
+        return Promise.all([
+            getPrivateKeyFromService(), getPublicKeyFromService(),
+            getReplPrivateKeyFromService(), getReplPublicKeyFromService()
+        ]).then(
+            ([a, b, c, d]) => {
+                if (isReEncrypt && a && b && c && d) {
+                    let dbPlatform = require('./../db_modules/dbPlatform');
+                    dbPlatform.reEncryptPlayerPhoneNumber();
+                }
+            }
+        )
     }
 };
 
@@ -131,54 +141,62 @@ function getKey (options, dirPath, fbPath) {
 }
 
 function getPrivateKeyFromService () {
-    getKey(options, "/playerPhone.key.pem", "/../ssl/playerPhone.key.pem").then(
+    return getKey(options, "/playerPhone.key.pem", "/../ssl/playerPhone.key.pem").then(
         data => {
             if (data) {
                 console.log(`RT - Got key from ${options.hostname}`);
                 key = data;
+                return true;
             } else {
                 console.log('getPrivateKeyFromService no data', host);
+                return false;
             }
         }
     );
 }
 
 function getPublicKeyFromService () {
-    getKey(options, "/playerPhone.pub", "/../ssl/playerPhone.pub").then(
+    return getKey(options, "/playerPhone.pub", "/../ssl/playerPhone.pub").then(
         data => {
             if (data) {
                 console.log(`RT - Got cert from ${options.hostname}`);
                 crt = data;
+                return true;
             } else {
                 console.log('getPublicKeyFromService no data', host);
+                return false;
             }
         }
     )
 }
 
 function getReplPrivateKeyFromService () {
-    getKey(options, "/playerPhone.key.pem.bak", "/../ssl/playerPhone.key.pem").then(
+    return getKey(options, "/playerPhone.key.pem.bak", "/../ssl/playerPhone.key.pem").then(
         data => {
             if (data) {
                 console.log(`RT - Got repl key from ${options.hostname}`);
                 replKey = data;
+                return true;
             } else {
                 console.log('getReplPrivateKeyFromService no data', host);
-                replKey = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
+                // replKey = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
+                return false;
             }
         }
     );
 }
 
 function getReplPublicKeyFromService () {
-    getKey(options, "/playerPhone.pub.bak", "/../ssl/playerPhone.pub").then(
+    return getKey(options, "/playerPhone.pub.bak", "/../ssl/playerPhone.pub").then(
         data => {
             if (data) {
                 console.log(`RT - Got repl cert from ${options.hostname}`);
                 replCrt = data;
+                return true;
             } else {
                 console.log('getReplPublicKeyFromService no data', host);
-                replCrt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+                // replCrt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+                return false;
             }
         }
     );
