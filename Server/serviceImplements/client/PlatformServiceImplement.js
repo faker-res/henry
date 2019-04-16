@@ -10,6 +10,7 @@ const constSystemParam = require('../../const/constSystemParam');
 const constPlayerRegistrationInterface = require('../../const/constPlayerRegistrationInterface');
 const dbSmsGroup = require('./../../db_modules/dbSmsGroup');
 const dbWCGroupControl = require('./../../db_modules/dbWCGroupControl');
+const rsaCrypto = require('./../../modules/rsaCrypto');
 
 var PlatformServiceImplement = function () {
     PlatformService.call(this);
@@ -178,6 +179,8 @@ var PlatformServiceImplement = function () {
         let isValidData = Boolean(data.platformId && data.token && data.fileName && data.fileStream);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.sendFileFTP, [data.platformId, data.token, data.fileStream, data.fileName], isValidData, null, null, true);
     };
+
+    this.updateRSAKeys.addListener(() => rsaCrypto.refreshKeys());
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

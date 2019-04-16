@@ -1,11 +1,16 @@
 const express = require('express');
 const router = express.Router();
 
+const serverInstance = require("../modules/serverInstance");
+
+const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constProposalStatus = require('../const/constProposalStatus');
 const constServerCode = require("../const/constServerCode");
 
 const dbProposal = require('./../db_modules/dbProposal');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+
+const rsaCrypto = require('./../modules/rsaCrypto');
 
 router.get('/notifyPayment', (req, res, next) => {
     res.end('Success');
@@ -294,6 +299,41 @@ router.post('/getProposalStatusList', function(req, res, next) {
             res.end();
         }
     });
+});
+
+router.post('/updateKeyPair', function (req, res, next) {
+    console.log(`updateKeyPair requested`);
+
+    let wsMessageClient = serverInstance.getWebSocketMessageClient();
+    if (wsMessageClient) {
+        wsMessageClient.sendMessage(constMessageClientTypes.MANAGEMENT, "general", "updateRSAKeys");
+        wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "platform", "updateRSAKeys", {});
+        wsMessageClient.sendMessage(constMessageClientTypes.PROVIDER, "platform", "updateRSAKeys", {});
+        wsMessageClient.sendMessage(constMessageClientTypes.SETTLEMENT, "platform", "updateRSAKeys", {});
+        wsMessageClient.sendMessage(constMessageClientTypes.EXTERNAL_REST, "general", "updateRSAKeys");
+    }
+
+    rsaCrypto.refreshKeys(true);
+    res.end('Success');
+
+    // let inputData = [];
+    //
+    // req.on('data', data => {
+    //     inputData.push(data);
+    // }).on('end', () => {
+    //
+    // });
+    //
+    // let data = req.body;
+    // let isValidData = Boolean(data && data.privateKey && data.publicKey);
+    //
+    // if (!data || !isValidData) {
+    //     return;
+    // }
+    //
+    // if (data.privateKey && data.publicKey) {
+    //     rsaCrypto.restartServices();
+    // }
 });
 
 module.exports = router;
