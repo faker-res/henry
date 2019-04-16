@@ -9,6 +9,7 @@ const localization = require("../modules/localization").localization;
 const lang = require("../modules/localization").lang;
 const mongoose = require('mongoose');
 let dbApiLog = require("../db_modules/dbApiLog");
+const dbconfig = require('./../modules/dbproperties');
 
 var WebSocketUtility = {
 
@@ -27,8 +28,9 @@ var WebSocketUtility = {
      *
      * If you *do* need to 'then' the promise, then you will need to use WebSocketUtil.responsePromise().
      */
-    performAction: function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth) {
-        WebSocketUtility.responsePromise(
+    performAction: async function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth) {
+        let startTime = new Date().getTime();
+        await WebSocketUtility.responsePromise(
             conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth
         ).catch(
             function (error) {
@@ -44,6 +46,22 @@ var WebSocketUtility = {
                 }
             }
         ).done();
+
+        let serviceName = wsFunc && wsFunc._service && wsFunc._service.name;
+        let functionName = wsFunc && wsFunc.name;
+        let totalSecond = (new Date().getTime() - startTime) / 1000;
+        if (totalSecond > 1) {
+
+        }
+
+        dbconfig.collection_apiResponseLog({
+            serviceName: serviceName,
+            functionName: functionName,
+            totalSecond: totalSecond
+        }).save().catch(errorUtils.reportError);
+
+        console.log("Slow response time from service " + serviceName + ", function " + String(functionName) + ": " + totalSecond + " sec");
+
     },
 
     /**
