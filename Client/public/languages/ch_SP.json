@@ -5473,5 +5473,9 @@
   "FPMS Service Charge": "FPMS手续费",
   "disableWithdraw": "領取后禁用提款",
   "ServiceChangeSetting": "手续费设置",
-  "Deposit Method": "专用方式"
+  "Deposit Method": "专用方式",
+  "frontEndVisiblePosition": "前端可见位置",
+  "visibleFromHomePage": "首页弹屏可见",
+  "visibleFromRewardEntry": "优惠入口可见",
+  "visibleFromRewardList": "优惠列表可见"
 }

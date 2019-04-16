@@ -21427,6 +21427,8 @@ define(['js/app'], function (myApp) {
                     if (vm.showRewardTypeData && vm.showRewardTypeData.isGrouped) {
                         vm.rewardMainTask = [];
                         vm.rewardMainCondition = {};
+                        vm.rewardVisibleCondition = [];
+                        vm.rewardVisible = [];
                         vm.rewardMainParam = {};
                         vm.isPlayerLevelDiff = false;
                         vm.isDynamicRewardAmt = false;
@@ -21601,18 +21603,32 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if(el == "visibleFromHomePage" || el == "visibleFromRewardEntry" || el == "visibleFromRewardList"){
-                                    if(!(vm.showReward && vm.showReward.condition &&
-                                        (vm.showReward.condition["visibleFromHomePage"] || vm.showReward.condition["visibleFromRewardEntry"]
-                                        || vm.showReward.condition["visibleFromRewardList"]))){
-                                        vm.rewardDisabledParam.push("visibleForPhoneNumberBinding");
-                                        vm.rewardDisabledParam.push("visibleForNewPlayer");
-                                        vm.rewardDisabledParam.push("visibleForFirstLogin");
-                                        vm.rewardDisabledParam.push("visibleForPlayerLevel");
-                                        vm.rewardDisabledParam.push("visibleIfCreditLessThan");
-                                        vm.rewardDisabledParam.push("visibleIfAppliedFollowingReward");
-                                        vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
-                                        vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
+                                    //get Player Level
+                                    let playerLevels = {};
+                                    if(vm.allPlayerLvl){
+                                        for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                                            let level = vm.allPlayerLvl[i];
+                                            playerLevels[level._id] = level.name;
+                                        }
                                     }
+
+                                    //get reward event
+                                    let rewardEvents = {};
+                                    if (vm.allRewardEvent){
+                                        for (let i = 0; i < vm.allRewardEvent.length; i++) {
+                                            let event = vm.allRewardEvent[i];
+                                            rewardEvents[event._id] = event.name;
+                                        }
+                                    }
+
+                                    cond.visibleForPlayerLevel.options = playerLevels;
+                                    cond.visibleIfAppliedFollowingReward.options = rewardEvents;
+
+                                    if(vm.showReward && vm.showReward.condition && vm.showReward.condition[el]){
+                                        vm.rewardVisible[el] = vm.showReward.condition[el];
+                                    }
+
+                                    vm.rewardVisibleCondition.push(cond);
                                 }
 
                                 // Get value
@@ -22117,34 +22133,6 @@ define(['js/app'], function (myApp) {
                     vm.isPlayerLevelDiff = model.value;
                     isResetLayout = true;
                 }
-
-
-                if(model && (model.name == "visibleFromHomePage" || model.name == "visibleFromRewardEntry" || model.name == "visibleFromRewardList")){
-                    if(vm.rewardMainCondition && ((vm.rewardMainCondition["4.1"] && vm.rewardMainCondition["4.1"].value) ||
-                        (vm.rewardMainCondition["4.11"] && vm.rewardMainCondition["4.11"].value)
-                    || (vm.rewardMainCondition["4.12"] && vm.rewardMainCondition["4.12"].value))){
-                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name =>
-                            name !== "visibleForPhoneNumberBinding" &&
-                            name !== "visibleForNewPlayer" &&
-                            name !== "visibleForFirstLogin" &&
-                            name !== "visibleForPlayerLevel" &&
-                            name !== "visibleIfCreditLessThan" &&
-                            name !== "visibleIfAppliedFollowingReward" &&
-                            name !== "visibleIfTopUpCountMoreThan" &&
-                            name !== "invisibleIfApplyCurrentReward"
-                        );
-                    }else{
-                        vm.rewardDisabledParam.push("visibleForPhoneNumberBinding");
-                        vm.rewardDisabledParam.push("visibleForNewPlayer");
-                        vm.rewardDisabledParam.push("visibleForFirstLogin");
-                        vm.rewardDisabledParam.push("visibleForPlayerLevel");
-                        vm.rewardDisabledParam.push("visibleIfCreditLessThan");
-                        vm.rewardDisabledParam.push("visibleIfAppliedFollowingReward");
-                        vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
-                        vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
-                    }
-                }
-
 
                 if (isResetLayout) {
                     vm.rewardMainParamTable = [];
@@ -23363,6 +23351,10 @@ define(['js/app'], function (myApp) {
                     isValid = false;
                 }
 
+                if(curReward && curReward.condition){
+                    curReward.condition = Object.assign(curReward.condition, vm.rewardVisible);
+                }
+
                 var sendData = {
                     query: {_id: vm.showReward._id},
                     updateData: curReward
@@ -23606,6 +23598,10 @@ define(['js/app'], function (myApp) {
 
                 if (!isPeriodResultValid && !isApplyTypeValid) {
                     isValid = false;
+                }
+
+                if(vm.rewardVisible){
+                    sendData.condition = Object.assign(sendData.condition , vm.rewardVisible);
                 }
 
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
