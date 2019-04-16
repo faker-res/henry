@@ -14,10 +14,10 @@ var dbQualityInspection = {
     connectMysql: function(){
         var connection = mysql.createConnection({
             host     : 'live800.fpms8.me',
-            user     : 'devselect',
-            password : '!Q&US3lcT18',
+            user     : 'devuse',
+            password : 'devuse@321',
             database : 'live800_im',
-            port: '3320',
+            port: '33060',
             queueLimit: 100,
             connectionLimit: 100
         });
