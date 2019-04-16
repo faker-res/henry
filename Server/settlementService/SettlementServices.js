@@ -77,10 +77,28 @@
         rootObj.PlayerService = PlayerService;
     };
 
+    var definePlatformService = function(sinonet){
+        var PlatformService = function(connection){
+            sinonet.WebSocketService.call(this, "platform", connection);
+
+            //define functions
+            var functionNames = [
+                "updateRSAKeys"
+            ];
+            addServiceFunctions(sinonet, this, functionNames);
+        };
+
+        PlatformService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        PlatformService.prototype.constructor = PlatformService;
+
+        rootObj.PlatformService = PlatformService;
+    };
+
 
     // Individual services should be declared above, and called in here
     var defineServices = function(sinonet){
         definePlayerService(sinonet);
+        definePlatformService(sinonet);
     };
 
     if(isNode){

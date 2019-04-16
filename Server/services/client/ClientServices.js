@@ -148,7 +148,8 @@
                 "getLockedLobbyConfig",
                 "saveFrontEndData",
                 "getFrontEndData",
-                "sendFileFTP"
+                "sendFileFTP",
+                "updateRSAKeys"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

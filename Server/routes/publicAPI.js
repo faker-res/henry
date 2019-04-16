@@ -187,39 +187,6 @@ router.post('/login', function (req, res, next) {
     }
 });
 
-router.post('/restartFPMS', function (req, res, next) {
-    console.log('restartFPMS');
-    let data = req.body;
-    let isValidData = Boolean(data && data.privateKey && data.publicKey);
-
-    if (!data || !isValidData) {
-        return;
-    }
-
-    if (data.privateKey && data.publicKey) {
-        rsaCrypto.restartServices();
-    }
-});
-
-router.post('/updateKeyPair', function (req, res, next) {
-    console.log('updateKeyPair');
-    let data = req.body;
-    let isValidData = Boolean(data && data.privateKey && data.publicKey && data.replPrivateKey && data.replPublicKey);
-
-    if (!data || !isValidData) {
-        return;
-    }
-
-    if (data.replPrivateKey && data.replPublicKey && data.privateKey && data.publicKey) {
-        console.log('data', data);
-        dbPlatform.reEncryptPlayerPhoneNumber().then(
-            () => {
-                console.log('done');
-            }
-        )
-    }
-});
-
 //PLATFORM
 router.post('/getPlatformByAdminId', function (req, res, next) {
     let data = req.body;

@@ -7,6 +7,10 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const env = require('./config/env');
 const jwtSecret = env.config().socketSecret;
+const WebSocketMessageClient = require("./server_common/WebSocketMessageClient");
+const socketActionMessage = require("./socketActionModule/socketActionMessage");
+
+const constMessageClientTypes = require("./const/constMessageClientTypes");
 
 const skipTokenVerificationPaths = [
     "fkpNotify",
@@ -67,4 +71,16 @@ app.use(function(req, res, next) {
 });
 app.use('/', publicRoutes);
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+let http = require('http');
+let server = http.createServer(app);
+let socketIO = require('socket.io').listen(server);
+
+server.listen(port, () => console.log(`EXTERNAL REST app listening on port ${port}!`));
+
+let url = env.config().messageServerUrl + "/" + constMessageClientTypes.EXTERNAL_REST;
+let messageClient = new WebSocketMessageClient(url, socketIO);
+socketIO.messageClient = messageClient;
+let actionMessage = new socketActionMessage(socketIO);
+socketIO.messageHandler = actionMessage.messageDispatcher.bind(actionMessage);
+//
+// app.listen(port, () => console.log(`Example app listening on port ${port}!`));

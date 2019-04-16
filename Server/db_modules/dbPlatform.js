@@ -6216,7 +6216,7 @@ var dbPlatform = {
 
         function reEncryptByPlaform (platformData) {
             console.log('start re-encrypt', platformData.name);
-            let cursor = dbconfig.collection_players.find({platform: platformData._id}, {_id: 1, platform: 1, phoneNumber: 1}).cursor();
+            let cursor = dbconfig.collection_players.find({platform: platformData._id}, {_id: 1, platform: 1, phoneNumber: 1, name: 1}).cursor();
 
             let i = 0;
 
@@ -6224,19 +6224,26 @@ var dbPlatform = {
                 playerData => {
                     if (playerData && playerData.phoneNumber) {
                         //encrypt player phone number
-                        let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
-                        let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
+                        try {
+                            let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
 
-                        // Make sure it's encrypted
-                        if (reEncPhoneNumber && reEncPhoneNumber.length > 20) {
-                            dbconfig.collection_players.findOneAndUpdate(
-                                {_id: playerData._id, platform: playerData.platform},
-                                {phoneNumber: reEncPhoneNumber}
-                            ).then();
+                            if (decPhoneNumber && decPhoneNumber.length < 20) {
+                                let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
+
+                                // Make sure it's encrypted
+                                if (reEncPhoneNumber && reEncPhoneNumber.length > 20) {
+                                    dbconfig.collection_players.findOneAndUpdate(
+                                        {_id: playerData._id, platform: playerData.platform},
+                                        {phoneNumber: reEncPhoneNumber}
+                                    ).then();
+                                }
+                            }
+                            console.log("index", platformData.name, i);
+                            i++;
+                        } catch (err) {
+                            console.log(`Failed to re-encrypt ${playerData.name}`);
                         }
 
-                        console.log("index", platformData.name, i);
-                        i++;
                     }
                 }
             );

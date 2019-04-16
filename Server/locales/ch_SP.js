@@ -54,9 +54,6 @@ var simplifiedChinese = {
     "Currently no available wechatpay": "目前无可用微信支付",
     "Guest ID cannot update password": "游客不可更改密码",
     "This game has been added before": "该游戏已经收藏",
-    "Common top up and top up type exceed number of failures": "充值方式，通用充值连续失败",
-    "Common top up exceed number of failures": "通用充值连续失败",
-    "Top up type exceed number of failures": "充值方式连续失败",
 
     "Birthday only can be set once": "生日绑定之后不可更改",
     "Reset password failed": "找回密码失败",

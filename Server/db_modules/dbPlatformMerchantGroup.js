@@ -765,9 +765,9 @@ var dbPlatformMerchantGroup = {
 };
 
 function getMerchantList(topUpSystemConfig, platformId) {
-    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+    //if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
         return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
-    }
+    //}
 }
 
 module.exports = dbPlatformMerchantGroup;
