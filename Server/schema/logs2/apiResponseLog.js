@@ -8,7 +8,7 @@ var apiResponseLog = new Schema({
     functionName: {type: String, required: true},
     // create time
     createTime: {type: Date, default: Date.now},
-    // whether this code is used
+    // total second used
     totalSecond: {type: Number, required: true},
 
 });
