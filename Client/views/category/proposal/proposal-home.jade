@@ -4,9 +4,9 @@
             .search-filters-item
                 label {{'PRODUCT_NAME' | translate}}
                 select.form-control(ng-model='vm.filterProposalProcessPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadProposalTypeData(vm.filterProposalProcessPlatform)')
-    .text-center
-        p(ng-if="!vm.filterProposalProcessPlatform")
-            label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+    .text-center(ng-if="!vm.filterProposalProcessPlatform")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
     .col-sm-3(ng-if="vm.filterProposalProcessPlatform")
         include ./proposal-left-panel
     .col-md-9(ng-if="vm.filterProposalProcessPlatform", style='padding-left:0')

@@ -497,7 +497,6 @@ var dbPlatformMerchantGroup = {
     },
 
     getMerchantNBankCard:function(platformId){
-        let topUpSystemConfig;
         let merchantsList;
         let bankCardList;
         let weChatList;
@@ -506,29 +505,26 @@ var dbPlatformMerchantGroup = {
         return dbconfig.collection_platform.findOne({platformId: platformId}, {topUpSystemType: 1, platformId: 1}).lean().then(
             platformData => {
                 if (platformData) {
-                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let bankcardListOptions = {
-                            platformId: platformId,
-                            accountType: constAccountType.BANK_CARD
-                        };
+                    let bankcardListOptions = {
+                        platformId: platformId,
+                        accountType: constAccountType.BANK_CARD
+                    };
 
-                        let alipayListOptions = {
-                            platformId: platformId,
-                            accountType: constAccountType.ALIPAY
-                        };
+                    let alipayListOptions = {
+                        platformId: platformId,
+                        accountType: constAccountType.ALIPAY
+                    };
 
-                        let wechatpayListOptions = {
-                            platformId: platformId,
-                            accountType: constAccountType.WECHAT
-                        };
+                    let wechatpayListOptions = {
+                        platformId: platformId,
+                        accountType: constAccountType.WECHAT
+                    };
 
-                        merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
-                        bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions);
-                        aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions);
-                        weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions);
-                    }
+                    merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
+                    bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions);
+                    aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions);
+                    weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions);
 
                     return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
                         data=>{
@@ -722,19 +718,7 @@ var dbPlatformMerchantGroup = {
     },
 
     getMerchantTypeList: function (platformObjId) {
-        let topUpSystemConfig;
-
-        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1, platformId: 1}).lean().then(
-            platformData => {
-                if (platformData) {
-                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
-
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        return RESTUtils.getPMS2Services("postMerchantTypeList", {});
-                    }
-                }
-            }
-        );
+        return RESTUtils.getPMS2Services("postMerchantTypeList", {});
     },
 
     getPMSMerchantGroup: function (platformId, topUpSystemType) {
@@ -781,9 +765,9 @@ var dbPlatformMerchantGroup = {
 };
 
 function getMerchantList(topUpSystemConfig, platformId) {
-    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+    //if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
         return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
-    }
+    //}
 }
 
 module.exports = dbPlatformMerchantGroup;

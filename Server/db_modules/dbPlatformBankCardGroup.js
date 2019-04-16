@@ -201,41 +201,28 @@ var dbPlatformBankCardGroup = {
                             return {data: bankCardListData} // to match existing code format
                         }
                     )
-                } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                } else {
                     let reqData = {
                         platformId: platformId,
                         accountType: constAccountType.BANK_CARD
                     };
 
                     return RESTUtils.getPMS2Services("postBankCardList", reqData);
-                } else {
-                    return pmsAPI.bankcard_getBankcardList(
-                        {
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    );
                 }
+                // else {
+                    // return pmsAPI.bankcard_getBankcardList(
+                    //     {
+                    //         platformId: platformId,
+                    //         queryId: serverInstance.getQueryId()
+                    //     }
+                    // );
+                // }
             }
         );
     },
 
     getBankTypeList: function(platformObjId) {
-        let topUpSystemConfig;
-
-        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1}).lean().then(
-            platformData => {
-                if (!platformData) {
-                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
-                }
-
-                topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
-
-                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                    return RESTUtils.getPMS2Services("postBankTypeList", {});
-                }
-            }
-        );
+        return RESTUtils.getPMS2Services("postBankTypeList", {});
     },
 
     /**
@@ -271,12 +258,16 @@ var dbPlatformBankCardGroup = {
 
     getIncludedBankCardByBankCardGroup: function (platformId, bankCardGroupId) {
         var allBankCards = [];
-        return pmsAPI.bankcard_getBankcardList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        // return pmsAPI.bankcard_getBankcardList(
+        //     {
+        //         platformId: platformId,
+        //         queryId: serverInstance.getQueryId()
+        //     }
+        // )
+        return RESTUtils.getPMS2Services("postBankCardList", {
+            platformId: platformId,
+            accountType: constAccountType.BANK_CARD
+        }).then(
             data => {
                 allBankCards = data.data || [];
                 return dbconfig.collection_platformBankCardGroup.findOne({_id: bankCardGroupId})
@@ -292,12 +283,16 @@ var dbPlatformBankCardGroup = {
 
     getExcludedBankCardByBankCardGroup: function (platformId, bankCardGroupId) {
         var allBankCards = [];
-        return pmsAPI.bankcard_getBankcardList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        // return pmsAPI.bankcard_getBankcardList(
+        //     {
+        //         platformId: platformId,
+        //         queryId: serverInstance.getQueryId()
+        //     }
+        // )
+        return RESTUtils.getPMS2Services("postBankCardList", {
+            platformId: platformId,
+            accountType: constAccountType.BANK_CARD
+        }).then(
             data => {
                 allBankCards = data.data;
                 return dbconfig.collection_platformBankCardGroup.findOne({_id: bankCardGroupId})
@@ -397,22 +392,22 @@ var dbPlatformBankCardGroup = {
 
                     topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
 
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    // if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
                         let reqData = {
                             platformId: platformId,
                             accountType: constAccountType.BANK_CARD
                         };
 
                         return RESTUtils.getPMS2Services("postBankCardList", reqData);
-                    }
-                    else {
-                        return pmsAPI.bankcard_getBankcardList(
-                            {
-                                platformId: platform.platformId,
-                                queryId: serverInstance.getQueryId()
-                            }
-                        )
-                    }
+                    // }
+                    // else {
+                    //     return pmsAPI.bankcard_getBankcardList(
+                    //         {
+                    //             platformId: platform.platformId,
+                    //             queryId: serverInstance.getQueryId()
+                    //         }
+                    //     )
+                    // }
                 }
             }
         ).then(
@@ -623,7 +618,7 @@ var dbPlatformBankCardGroup = {
                 break;
         }
 
-        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+        // if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
             let options = {
                 platformId: platformId,
                 userName: playerName,
@@ -631,13 +626,14 @@ var dbPlatformBankCardGroup = {
             };
 
             return RESTUtils.getPMS2Services("postPaymentGroupByPlayer", options);
-        } else {
-            return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
-                data => {
-                    return data;
-                }
-            );
-        }
+        // }
+        // else {
+        //     return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
+        //         data => {
+        //             return data;
+        //         }
+        //     );
+        // }
     },
 
     getPMSBankCardGroup: function (platformId, topUpSystemType) {

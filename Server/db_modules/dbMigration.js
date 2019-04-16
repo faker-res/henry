@@ -204,7 +204,8 @@ var dbMigration = {
             //find bank name id based on code
             playerData => {
                 if (playerData.bankName != null) {
-                    return pmsAPI.bankcard_getBankTypeList({}).then(
+                    // return pmsAPI.bankcard_getBankTypeList({}).then(
+                    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
                         list => {
                             if (list && list.data && list.data.length > 0) {
                                 var type = list.data.find(bankType => bankType.bankTypeId == data.bankName);
@@ -904,10 +905,11 @@ var dbMigration = {
                         convertData.cityId = cityData.cityId;
                         convertData.districtId = cityData.districtId;
 
-                        return pmsAPI.bankcard_getBankTypeList({
-                            platformId: proposalData.platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
+                        // return pmsAPI.bankcard_getBankTypeList({
+                        //     platformId: proposalData.platformId,
+                        //     queryId: serverInstance.getQueryId()
+                        // });
+                        return RESTUtils.getPMS2Services("postBankTypeList", {})
                     }
                 ).then(
                     cList => {

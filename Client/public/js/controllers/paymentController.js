@@ -648,6 +648,7 @@ define(['js/app'], function (myApp) {
                         data.show$ = true;
                         data.included = true;
                         data.status = bankCard.status ? bankCard.status : "DISABLED";
+                        data.depositMethod = bankCard && bankCard.paymentMethod && bankCard.paymentMethod.length > 0 ? bankCard.paymentMethod.join(', ') : "";
 
                         groupData.cards.push(data);
                     });
@@ -1579,14 +1580,16 @@ define(['js/app'], function (myApp) {
                 let serviceName;
                 let query;
 
-                if (vm.paymentSystemName === 'PMS2') {
-                    serviceName = 'getPMSMerchantGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
-                } else {
-                    serviceName = 'getPMSPaymentGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, type: "4"};
-                }
+                // if (vm.paymentSystemName === 'PMS2') {
+                //     serviceName = 'getPMSMerchantGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
+                // } else {
+                //     serviceName = 'getPMSPaymentGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, type: "4"};
+                // }
 
+                serviceName = 'getPMSMerchantGroup';
+                query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
 
                 return $scope.$socketPromise(serviceName, query).then(data => {
                     console.log(serviceName, data);
@@ -2224,13 +2227,16 @@ define(['js/app'], function (myApp) {
                 let serviceName;
                 let query;
 
-                if (vm.paymentSystemName === 'PMS2') {
-                    serviceName = 'getPMSAlipayGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
-                } else {
-                    serviceName = 'getPMSPaymentGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, type: "2"};
-                }
+                // if (vm.paymentSystemName === 'PMS2') {
+                //     serviceName = 'getPMSAlipayGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
+                // } else {
+                //     serviceName = 'getPMSPaymentGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, type: "2"};
+                // }
+
+                serviceName = 'getPMSAlipayGroup';
+                query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
 
                 return $scope.$socketPromise(serviceName, query).then(data => {
                     console.log(serviceName, data);
@@ -2938,13 +2944,16 @@ define(['js/app'], function (myApp) {
                 let serviceName;
                 let query;
 
-                if (vm.paymentSystemName === 'PMS2') {
-                    serviceName = 'getPMSWechatPayGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
-                } else {
-                    serviceName = 'getPMSPaymentGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, type: "3"};
-                }
+                // if (vm.paymentSystemName === 'PMS2') {
+                //     serviceName = 'getPMSWechatPayGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
+                // } else {
+                //     serviceName = 'getPMSPaymentGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, type: "3"};
+                // }
+
+                serviceName = 'getPMSWechatPayGroup';
+                query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
 
                 return $scope.$socketPromise(serviceName, query).then(data => {
                     console.log(serviceName, data);

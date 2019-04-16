@@ -193,14 +193,21 @@ var dbPlatform = {
                     function (data) {
                         //add platform to PMS
                         if (env.mode != "local" && env.mode != "qa") {
-                            externalUtil.request(pmsAPI.platform_add(
-                                {
-                                    platformId: platformData.platformId,
-                                    name: platformData.name,
-                                    code: platformData.code,
-                                    description: platformData.description || ""
-                                }
-                            ));
+                            // externalUtil.request(pmsAPI.platform_add(
+                            //     {
+                            //         platformId: platformData.platformId,
+                            //         name: platformData.name,
+                            //         code: platformData.code,
+                            //         description: platformData.description || ""
+                            //     }
+                            // ));
+                            let data = {
+                                platformId: platformData.platformId,
+                                name: platformData.name,
+                                code: platformData.code
+                            };
+
+                            RESTUtils.getPMS2Services("postPlatformAdd", data);
                         }
                         deferred.resolve(platformData);
                     },
@@ -402,13 +409,14 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
                 if (env.mode != "local" && env.mode != "qa") {
-                    var platformData = {
+                    let platformData = {
                         platformId: data.platformId,
                         name: data.name,
                         code: data.code,
                         description: data.description
                     };
-                    externalUtil.request(pmsAPI.platform_update(platformData));
+                    //externalUtil.request(pmsAPI.platform_update(platformData));
+                    RESTUtils.getPMS2Services("patchPlatformUpdate", platformData);
                 }
                 return data;
             }
@@ -541,7 +549,8 @@ var dbPlatform = {
             .then(
                 data => {
                     if (platformId && env.mode != "local" && env.mode != "qa") {
-                        externalUtil.request(pmsAPI.platform_delete({platformId: platformId}));
+                        //externalUtil.request(pmsAPI.platform_delete({platformId: platformId}));
+                        RESTUtils.getPMS2Services("deletePlatformDelete", {platformId: platformId});
                     }
                     return data;
                 }
@@ -2956,6 +2965,8 @@ var dbPlatform = {
                         }
                     });
 
+                    returnedObj.requireSMSCodeForBankRegistrationAtFirstTime = platformData.requireSMSCodeForBankRegistrationAtFirstTime ? 1 : 0;
+
                     if (subject === 'player') {
                         returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength : 0;
                         returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength : 0;
@@ -3019,7 +3030,6 @@ var dbPlatform = {
                         returnedObj.twoStepsForModifyPhoneNumber = platformData.partnerUsePhoneNumberTwoStepsVerification ? 1 : 0;
                         returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
                         returnedObj.cndOrFtpLink = platformData.partnerRouteSetting ? platformData.partnerRouteSetting : "";
-                        returnedObj.requireSMSCodeForBankRegistrationAtFirstTime = platformData.requireSMSCodeForBankRegistrationAtFirstTime ? platformData.requireSMSCodeForBankRegistrationAtFirstTime : "";
                         // returnedObj.themeStyle = platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeStyleId.themeStyle ? platformData.partnerThemeSetting.themeStyleId.themeStyle : "";
                         console.log("checking --- yH platformData.partnerThemeSetting", platformData.partnerThemeSetting)
                         if (platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeIdObjId) {
@@ -5226,6 +5236,9 @@ var dbPlatform = {
                     if (sourceUrl) {
                         logQ.sourceUrl = sourceUrl;
                     }
+                    else{
+                        logQ.sourceUrl = {$exists: false}
+                    }
 
                     return dbconfig.collection_ipDomainLog.findOne(logQ).lean();
                 }
@@ -5241,7 +5254,12 @@ var dbPlatform = {
                         updateQuery.partnerId = partnerId;
                     }
 
-                    dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, updateQuery)
+                    return dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, updateQuery).then(
+                        () => {
+                            // hide the detail in the return msg
+                            return;
+                        }
+                    )
                 } else {
                     let newLog = {
                         platform: platformObjId,
@@ -5258,7 +5276,12 @@ var dbPlatform = {
                         newLog.sourceUrl = sourceUrl;
                     }
 
-                    dbconfig.collection_ipDomainLog(newLog).save().catch(errorUtils.reportError);
+                    return dbconfig.collection_ipDomainLog(newLog).save().then(
+                        () => {
+                            // hide the detail in the return msg
+                            return;
+                        }
+                    ).catch(errorUtils.reportError);
                 }
             }
         )
@@ -5853,41 +5876,44 @@ var dbPlatform = {
 
                 return paymentSystemConfig;
             }
-        ).then(
-            paymentSystemConfig => {
-
-                if (paymentSystemConfig && paymentSystemConfig.length > 0) {
-                    let indexNo = paymentSystemConfig.findIndex(x => x && x.name && x.name === 'PMS');
-
-                    if (indexNo != -1) {
-                        let requestData = {
-                            platformIds: [platformId]
-                        };
-
-                        return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
-                            data => {
-                                let curFinancialSettlementPoint;
-
-                                if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
-                                    let pointIndexNo = data.networkPlatforms.findIndex(y => y && y.platformId && y.platformId == platformId);
-
-                                    if (pointIndexNo != -1) {
-                                        curFinancialSettlementPoint = data.networkPlatforms[pointIndexNo].quota;
-                                        paymentSystemConfig[indexNo].curFinancialSettlementPoint = curFinancialSettlementPoint;
-                                    }
-
-                                    return paymentSystemConfig;
-                                } else {
-                                    return paymentSystemConfig;
-                                }
-                            }
-                        );
-                    }
-                }
-
-                return paymentSystemConfig;
-            }
         )
+
+        // temporary comment this part as PMS2 does not have financial points
+        // .then(
+        //     paymentSystemConfig => {
+        //
+        //         if (paymentSystemConfig && paymentSystemConfig.length > 0) {
+        //             let indexNo = paymentSystemConfig.findIndex(x => x && x.name && x.name === 'PMS');
+        //
+        //             if (indexNo != -1) {
+        //                 let requestData = {
+        //                     platformIds: [platformId]
+        //                 };
+        //
+        //                 return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
+        //                     data => {
+        //                         let curFinancialSettlementPoint;
+        //
+        //                         if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
+        //                             let pointIndexNo = data.networkPlatforms.findIndex(y => y && y.platformId && y.platformId == platformId);
+        //
+        //                             if (pointIndexNo != -1) {
+        //                                 curFinancialSettlementPoint = data.networkPlatforms[pointIndexNo].quota;
+        //                                 paymentSystemConfig[indexNo].curFinancialSettlementPoint = curFinancialSettlementPoint;
+        //                             }
+        //
+        //                             return paymentSystemConfig;
+        //                         } else {
+        //                             return paymentSystemConfig;
+        //                         }
+        //                     }
+        //                 );
+        //             }
+        //         }
+        //
+        //         return paymentSystemConfig;
+        //     }
+        // )
     },
 
     updatePaymentSystemConfigByPlatform: function (query, data) {
@@ -6170,6 +6196,51 @@ var dbPlatform = {
             }
         ).lean();
     },
+
+    reEncryptPlayerPhoneNumber: () => {
+        let promArr = [];
+
+        return dbconfig.collection_platform.find({}, {_id: 1, name: 1}).lean().then(
+            platforms => {
+                if (platforms && platforms.length) {
+                    platforms.forEach(platformData => {
+                        promArr.push(reEncryptByPlaform(platformData));
+                    });
+
+                    return Promise.all(promArr);
+                }
+            }
+        );
+
+        function reEncryptByPlaform (platformData) {
+            console.log('start re-encrypt', platformData.name);
+            let cursor = dbconfig.collection_players.find({platform: platformData._id}, {_id: 1, platform: 1, phoneNumber: 1}).cursor();
+
+            let i = 0;
+
+            return cursor.eachAsync(
+                playerData => {
+                    if (playerData && playerData.phoneNumber) {
+                        //encrypt player phone number
+                        let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+                        let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
+
+                        // Make sure it's encrypted
+                        if (reEncPhoneNumber && reEncPhoneNumber.length > 20) {
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: playerData._id, platform: playerData.platform},
+                                {phoneNumber: reEncPhoneNumber}
+                            ).then();
+                        }
+
+                        console.log("index", platformData.name, i);
+                        i++;
+                    }
+                }
+            );
+        }
+
+    }
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {
@@ -6514,52 +6585,53 @@ function getFinancialSettlementPointFromPMSAndSendEmail(tempPlatforms, paymentSy
         platformIds: tempPlatforms
     };
 
-    return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
-        data => {
-            if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
-                let financialPointPlatforms = data.networkPlatforms;
-                let proms = [];
-
-                financialPointPlatforms.forEach(platform => {
-                    let indexNo = paymentSystemConfig.findIndex(x => x && x.systemType && x.platform && x.platform.platformId && platform.platformId
-                        && (x.platform.platformId.toString() == platform.platformId.toString()));
-
-                    if (indexNo != -1 && paymentSystemConfig && paymentSystemConfig[indexNo] && paymentSystemConfig[indexNo].minPointNotification
-                        && platform && platform.quota != 'undefined' && platform.quota != null && (platform.quota <= paymentSystemConfig[indexNo].minPointNotification)) {
-
-                        proms.push(getPlatformNotificationRecipient(paymentSystemConfig[indexNo], platform.quota));
-
-                    } else {
-                        if (extConfig && Object.keys(extConfig)) {
-                            Object.keys(extConfig).forEach(key => {
-                                if (key && extConfig[key] && extConfig[key].name === 'PMS' && platform && platform.quota != 'undefined' && platform.quota != null
-                                    && extConfig[key].minPointNotification && (platform.quota <= extConfig[key].minPointNotification)) {
-                                    let platformIndexNo = platfromRecord.findIndex(x => x && x.platformId && platform && platform.platformId && x.platformId == platform.platformId);
-
-                                    if (platformIndexNo != -1) {
-                                        let data = {
-                                            platform: platfromRecord[platformIndexNo]._id,
-                                            systemType: Number(key)
-                                        }
-
-                                        proms.push(getPlatformNotificationRecipient(data, platform.quota));
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-
-                return Promise.all(proms).then(
-                    data => {
-                        if (data) {
-                            sendMinFinancialPointNotification(data, currentDate);
-                        }
-                    }
-                );
-            }
-        }
-    );
+    // temporary comment this part as PMS2 does not have financial points
+    // return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
+    //     data => {
+    //         if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
+    //             let financialPointPlatforms = data.networkPlatforms;
+    //             let proms = [];
+    //
+    //             financialPointPlatforms.forEach(platform => {
+    //                 let indexNo = paymentSystemConfig.findIndex(x => x && x.systemType && x.platform && x.platform.platformId && platform.platformId
+    //                     && (x.platform.platformId.toString() == platform.platformId.toString()));
+    //
+    //                 if (indexNo != -1 && paymentSystemConfig && paymentSystemConfig[indexNo] && paymentSystemConfig[indexNo].minPointNotification
+    //                     && platform && platform.quota != 'undefined' && platform.quota != null && (platform.quota <= paymentSystemConfig[indexNo].minPointNotification)) {
+    //
+    //                     proms.push(getPlatformNotificationRecipient(paymentSystemConfig[indexNo], platform.quota));
+    //
+    //                 } else {
+    //                     if (extConfig && Object.keys(extConfig)) {
+    //                         Object.keys(extConfig).forEach(key => {
+    //                             if (key && extConfig[key] && extConfig[key].name === 'PMS' && platform && platform.quota != 'undefined' && platform.quota != null
+    //                                 && extConfig[key].minPointNotification && (platform.quota <= extConfig[key].minPointNotification)) {
+    //                                 let platformIndexNo = platfromRecord.findIndex(x => x && x.platformId && platform && platform.platformId && x.platformId == platform.platformId);
+    //
+    //                                 if (platformIndexNo != -1) {
+    //                                     let data = {
+    //                                         platform: platfromRecord[platformIndexNo]._id,
+    //                                         systemType: Number(key)
+    //                                     }
+    //
+    //                                     proms.push(getPlatformNotificationRecipient(data, platform.quota));
+    //                                 }
+    //                             }
+    //                         });
+    //                     }
+    //                 }
+    //             });
+    //
+    //             return Promise.all(proms).then(
+    //                 data => {
+    //                     if (data) {
+    //                         sendMinFinancialPointNotification(data, currentDate);
+    //                     }
+    //                 }
+    //             );
+    //         }
+    //     }
+    // );
 }
 
 var proto = dbPlatformFunc.prototype;

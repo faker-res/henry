@@ -31,7 +31,7 @@ var PaymentServiceImplement = function () {
         }
 
         let lastLoginIp = dbUtility.getIpAddress(conn);
-        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
+        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.hasOwnProperty("merchantName") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [data.userAgent, conn.playerId, data, merchantUseType, clientType, data.topUpReturnCode, data.bPMSGroup, lastLoginIp], isValidData);
@@ -68,7 +68,7 @@ var PaymentServiceImplement = function () {
 
     this.getOnlineTopupType.expectsData = 'clientType: ?';
     this.getOnlineTopupType.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data && data.clientType);
+        var isValidData = Boolean(conn && conn.playerId && data && data.clientType);
         let userIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -422,7 +422,7 @@ var PaymentServiceImplement = function () {
         }
 
         let lastLoginIp = dbUtility.getIpAddress(conn);
-        let isValidData = Boolean(data && data.clientType);
+        let isValidData = Boolean(data && data.clientType && conn && conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getMinMaxCommonTopupAmount, [conn.playerId, data.clientType, lastLoginIp], isValidData);
     };
 

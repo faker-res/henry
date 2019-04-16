@@ -7353,7 +7353,7 @@ let dbPlayerReward = {
                         selectedRewardParam = selectedRewardParam.filter( p => Number.isFinite(p.possibility));
                         // check if the player is first time and if there is pre-set reward for first time player
                         console.log("checking applyRewardTimes", applyRewardTimes)
-                        if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
+                        if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
                             selectedRewardParam = selectedRewardParam.filter( p => p.rewardType == eventData.condition.defaultRewardTypeInTheFirstTime && Number.isFinite(p.possibility))
                         }
                         // check if the player has been pre-set
@@ -7849,6 +7849,8 @@ let dbPlayerReward = {
                             proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
                             if (eventData.condition.definePlayerLoginMode == 3){
                                 proposalData.data.rewardPeriod = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(null, eventData);
+                                // the date when applying this reward with login mode 3;
+                                proposalData.data.retentionApplicationDate = new Date();
                             }
                         }
 

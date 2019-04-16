@@ -425,7 +425,7 @@ function socketActionReport(socketIO, socket) {
 
         getDXNewPlayerReport: function getDXNewPlayerReport(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.query && data.platformId);
+            let isValidData = Boolean(data && data.query && data.platformId && ((!data.query.queryStart && !data.query.queryEnd) || (data.query.queryStart && data.query.queryEnd && !data.query.days)));
             let platformId = ObjectId(data.platformId);
 
             socketUtil.emitter(self.socket, dbPlayerInfo.getDXNewPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
@@ -625,13 +625,13 @@ function socketActionReport(socketIO, socket) {
             let actionName = arguments.callee.name;
             let startTime = new Date(data.startTime);
             let endTime = new Date(data.endTime);
-            let isValidData = Boolean(data && data.platform && data.platformId && data.type && data.startTime && data.endTime && (endTime > startTime));
+            let isValidData = Boolean(data && data.type && data.startTime && data.endTime && (endTime > startTime));
 
             if (data.type === 'bonus') {
-                socketUtil.emitter(self.socket, dbPaymentReconciliation.getBonusReport, [ObjectId(data.platform), data.platformId, data.type, startTime, endTime], actionName, isValidData);
+                socketUtil.emitter(self.socket, dbPaymentReconciliation.getBonusReport, [data.platformList, data.type, startTime, endTime], actionName, isValidData);
             }
             else {
-                socketUtil.emitter(self.socket, dbPaymentReconciliation.getOnlinePaymentProposalMismatchReport, [ObjectId(data.platform), data.platformId, data.type, startTime, endTime], actionName, isValidData);
+                socketUtil.emitter(self.socket, dbPaymentReconciliation.getOnlinePaymentProposalMismatchReport, [data.platformList, data.type, startTime, endTime], actionName, isValidData);
             }
 
         },

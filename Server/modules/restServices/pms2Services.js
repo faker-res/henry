@@ -71,7 +71,7 @@ function postRequest (reqData, urlName, method) {
 
     return rp(options).then(
         data => {
-            console.log(`${urlName} SUCCESS: ${data}`);
+            console.log(`${urlName} SUCCESS: ${data ? JSON.stringify(data) : data}`);
             return data;
         }
     ).catch(
@@ -217,6 +217,46 @@ function postDistrictList (reqData) {
     return postRequest(reqData, 'getDistrictList', 'POST')
 }
 
+function postPlatformAdd (reqData) {
+    return postRequest(reqData, 'platform', 'POST')
+}
+
+function deletePlatformDelete (reqData) {
+    return postRequest(reqData, 'platform', 'DELETE')
+}
+
+function patchPlatformUpdate (reqData) {
+    return postRequest(reqData, 'platform', 'PATCH')
+}
+
+function postOnlineTopupType (reqData) {
+    return postRequest(reqData, 'getOnlineTopupType', 'POST')
+}
+
+function postMerchantInfo (reqData) {
+    return postRequest(reqData, 'getMerchantInfo', 'POST')
+}
+
+function postCreateOnlineTopup (reqData) {
+    return postRequest(reqData, 'requestOnlineMerchant', 'POST')
+}
+
+function postDepositTypeByUsername (reqData) {
+    return postRequest(reqData, 'requestDepositTypeByUsername', 'POST')
+}
+
+function postOnlineCashinList (reqData) {
+    return postRequest(reqData, 'getOnlineCashinList', 'POST')
+}
+
+function postCashinList (reqData) {
+    return postRequest(reqData, 'getCashinList', 'POST')
+}
+
+function postCashoutList (reqData) {
+    return postRequest(reqData, 'getCashoutList', 'POST')
+}
+
 module.exports = {
     getMinMax: getMinMax,
     getTopupLobbyAddress: getTopupLobbyAddress,
@@ -242,4 +282,14 @@ module.exports = {
     postCityList: postCityList,
     postDistrict: postDistrict,
     postDistrictList: postDistrictList,
+    postPlatformAdd: postPlatformAdd,
+    deletePlatformDelete: deletePlatformDelete,
+    patchPlatformUpdate: patchPlatformUpdate,
+    postOnlineTopupType: postOnlineTopupType,
+    postMerchantInfo: postMerchantInfo,
+    postCreateOnlineTopup: postCreateOnlineTopup,
+    postDepositTypeByUsername: postDepositTypeByUsername,
+    postOnlineCashinList: postOnlineCashinList,
+    postCashinList: postCashinList,
+    postCashoutList: postCashoutList
 };

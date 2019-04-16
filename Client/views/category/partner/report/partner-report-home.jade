@@ -1,0 +1,70 @@
+div(ng-if="checkViewPermission('Partner', 'Report')")
+    .col-md-3(ng-if='!vm.hideLeftPanel')
+        .panel.panel-primary
+            .panel-body.common-left-panel-body.leftPanel-vlist
+                #reportCategory.panel-group
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#reportCategory", href='#generalReport')
+                            h4.panel-title
+                                label.text-success {{'GENERAL_REPORT' | translate}}
+                        #generalReport.panel-collapse.collapse.in
+                            .panel-body
+                                div
+                                    li.list-group-item(class="{{vm.seleDataType.PLAYERPARTNER_REPORT}}" ng-click='vm.loadPage("PLAYERPARTNER_REPORT")', ng-if="checkViewPermission('Partner', 'Report', 'PLAYERPARTNER_REPORT')")
+                                        text {{'PLAYERPARTNER_REPORT' | translate}}
+
+
+    div(ng-class='vm.hideLeftPanel ? "col-md-12" : "col-md-9"', style='padding-left:5px')
+        #reportRightTable.panel.panel-danger.widthto100.inline-block
+            .panel-heading
+                .pull-left(style='margin-top: -5px;')
+                    a.fa.fa-chevron-circle-left.contractIcon(ng-show='!vm.hideLeftPanel', ng-click='vm.setPanel(true)')
+                    a.fa.fa-chevron-circle-right.contractIcon(ng-show='vm.hideLeftPanel', ng-click='vm.setPanel(false)')
+                label {{vm.showPageName | translate}}
+            .panel-body
+                div(ng-if='vm.showPageName=="PLAYERPARTNER_REPORT"')
+                    #playerPartnerReportQuery.col-md-12.well
+                        .search-filters-item
+                            label {{"PLATFORM" | translate}}
+                            select.form-control(ng-model='vm.partnerQuery.platformObjId')
+                                option(ng-repeat='(i,v) in vm.platformList', value='{{v.id}}') {{v.text}}
+                        .search-filters-item
+                            label {{"PARTNER_NAME"|translate}}
+                            input.form-control(type="text", ng-model="vm.partnerQuery.partnerName")
+                        .search-filters-item
+                            label {{"REGISTRATION_TIME_START"|translate}}
+                            .startTime
+                        .search-filters-item
+                            label {{"REGISTRATION_TIME_END"|translate}}
+                            .endTime
+                        .search-filters-item
+                            label {{"PLAYER_TYPE"|translate}}
+                            select.form-control(ng-model="vm.partnerQuery.playerType")
+                                option(value='all') {{'all' | translate}}
+                                option(value='Real Player') {{'REAL_PLAYER' | translate}}
+                                option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                        .text-right.widthto100
+                            button.btn.btn-success.btn-space(ng-click='vm.searchPlayerPartnerRecord(true)') {{'SEARCH' | translate}}
+                            button.btn.btn-info.btn-space(ng-click="vm.searchPlayerPartnerRecord(true,true)") {{'EXPORT_EXCEL' | translate}}
+                            span#playerParnterTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                            span.margin-left-5 {{vm.operationReportLoadingStatus}}
+                    .clearfix
+                    table#playerPartnerTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                        label {{"Total" | translate}} {{vm.partnerQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+                    #playerPartnerTablePage
+                    table#playerPartnerExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                    table.common-table.simple-table#playerPartnerSummaryTable.collapse(style='margin-top:10px;font-size:12px')
+                        thead
+                            tr
+                                th {{'PARTNER_NAME' | translate}}
+                                th {{'TOTAL_PLAYER' | translate}}
+                                th {{'TOTAL_TOPUP_TIMES' | translate}}
+                                th {{'TOTAL_CONSUMPTION_TIMES' | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.playerPartnerSummaryData')
+                                td {{v._id.partnerName}}
+                                td {{v.total_players}}
+                                td {{v.total_topup_times}}
+                                td {{v.total_consumption_times}}
+link(rel='stylesheet', href='css/analysis.css')

@@ -59,6 +59,9 @@ var simplifiedChinese = {
     "Invalid top up amount": "充值额度无效",
     "The requirement is not fulfilled": "您的申请不符合要求",
     "This game has been added before": "该游戏已经收藏",
+    "Common top up and top up type exceed number of failures": "充值方式，通用充值连续失败",
+    "Common top up exceed number of failures": "通用充值连续失败",
+    "Top up type exceed number of failures": "充值方式连续失败",
 
     "Birthday only can be set once": "生日绑定之后不可更改",
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",

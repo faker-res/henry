@@ -304,6 +304,11 @@ var roleChecker = {
                 PartnerBasic: [],
                 AutoApproval: [],
                 largeWithdrawalSetting: [],
+                PartnerDisplay: [],
+                PartnerAdvertisement: [],
+            },
+            "Report": {
+                PLAYERPARTNER_REPORT: [],
             },
         },
         Platform: {

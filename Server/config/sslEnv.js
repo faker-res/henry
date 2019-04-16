@@ -1,8 +1,8 @@
 // local
 var localConfig = {
     mode: "local",
-    redisUrl : 'fpms_sslserver_dev.neweb.me',
-    redisPort : '80',
+    redisUrl : 'localhost',
+    redisPort : '1802',
 };
 
 // dev-test

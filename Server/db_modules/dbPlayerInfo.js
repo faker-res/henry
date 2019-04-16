@@ -1069,6 +1069,14 @@ let dbPlayerInfo = {
         }
     },
 
+    checkPlayerIsBindedToPartner: (platformObjId, playerObjId) => {
+        return dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
+            fixedCredibilityRemarks => {
+                return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, '代理开户')
+            }
+        );
+    },
+
     checkPlayerIsIDCIp: (platformObjId, playerObjId, ipAddress) => {
         return dbUtility.getIDCIpDetail(ipAddress).then(
             idcDetail => {
@@ -1744,7 +1752,8 @@ let dbPlayerInfo = {
             isRepeat => {
                 if (playerdata.guestDeviceId) {
                     if (isRepeat) {
-                        return Promise.reject({status: constServerCode.DEVICE_ID_ERROR, message: "Your device has registered. Use your original phone number to login."})
+                        // return Promise.reject({status: constServerCode.DEVICE_ID_ERROR, message: "Your device has registered. Use your original phone number to login."});
+                        delete playerdata.guestDeviceId;
                     }
                     return {isPlayerPasswordValid: true};
                 }
@@ -1992,6 +2001,8 @@ let dbPlayerInfo = {
                 if (playerData.lastLoginIp && !promoteWay && !playerData.partner) {
                     let todayTime = dbUtility.getTodaySGTime();
 
+                    console.log("checking player's lastLoginIP", playerData.lastLoginIp, playerData.name)
+                    console.log("checking player's sourceUrl", playerData.sourceUrl || null, playerData.name)
                     return dbconfig.collection_ipDomainLog.find({
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
@@ -2003,6 +2014,8 @@ let dbPlayerInfo = {
                                 ipDomain = ipDomainLog[0].domain;
                                 ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
 
+                                console.log("checking ipDomainLog", ipDomainLog[0])
+                                console.log("checking ipDomainSourceUrl", ipDomainSourceUrl || null)
                                 // force using csOfficerUrl admin and way
                                 return dbconfig.collection_csOfficerUrl.findOne({
                                     domain: ipDomain,
@@ -2077,6 +2090,7 @@ let dbPlayerInfo = {
 
                     // add ip domain to sourceUrl
                     if (ipDomainSourceUrl) {
+                        console.log("checking 2nd ipDomainSourceUrl", ipDomainSourceUrl)
                         playerUpdateData.sourceUrl = ipDomainSourceUrl
                     }
 
@@ -3302,6 +3316,8 @@ let dbPlayerInfo = {
         let duplicatedRealNameCount = 0;
         let sameBankAccountCount = 0;
         let isfirstTimeRegistration = false;
+
+        console.log('updatePlayerPayment updateData:', updateData);
 
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
@@ -5579,6 +5595,9 @@ let dbPlayerInfo = {
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
                                     }
+                                    if (playerData[ind].partner && playerData[ind].partner._id) {
+                                        dbPlayerInfo.checkPlayerIsBindedToPartner(platformId, playerId);
+                                    }
                                 }
                             }
                             return Q.all(players)
@@ -5823,7 +5842,6 @@ let dbPlayerInfo = {
                 if (!bExit) {
                     newAgentArray.push(uaObj);
                 }
-
                 if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp && playerData.lastLoginIp != "undefined") {
                     bUpdateIp = true;
                 }
@@ -5874,7 +5892,6 @@ let dbPlayerInfo = {
             data => {
                 // Geo and ip related update
                 if (bUpdateIp) {
-                    dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                 }
 
@@ -6171,7 +6188,7 @@ let dbPlayerInfo = {
                 if (verificationSMS && verificationSMS.code) {
                     if (verificationSMS.code == loginData.smsCode) {
                         // Verified
-                        let platformId, platformPrefix;
+                        let platformId, platformPrefix, platformObjId;
 
                         return dbconfig.collection_smsVerificationLog.remove(
                             {_id: verificationSMS._id}
@@ -6180,13 +6197,14 @@ let dbPlayerInfo = {
                                 dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                 isSMSVerified = true;
 
-                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId})
+                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId}).lean();
                             }
                         ).then(
                             platformData => {
                                 if (platformData) {
                                     platformId = platformData.platformId;
                                     platformPrefix = platformData.prefix;
+                                    platformObjId = platformData._id;
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
@@ -6223,12 +6241,43 @@ let dbPlayerInfo = {
                                         phoneNumber: loginData.phoneNumber
                                     };
 
+                                    let checkDeviceIdProm = Promise.resolve();
+
                                     if (loginData.deviceId) {
                                         newPlayerData.guestDeviceId = loginData.deviceId;
+
+                                        let query = {
+                                            platform: platformObjId,
+                                            $or: [
+                                                {guestDeviceId: loginData.deviceId},
+                                                {guestDeviceId: rsaCrypto.encrypt(loginData.deviceId)},
+                                                {guestDeviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
+                                            ],
+                                            phoneNumber: null
+                                        };
+                                        checkDeviceIdProm = dbconfig.collection_players.findOne(query).lean();
                                     }
 
-                                    return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
-                                        .then(() => dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified));
+                                    return checkDeviceIdProm.then(
+                                        registeredPlayer => {
+                                            if (registeredPlayer) {
+                                                return dbconfig.collection_players.update({_id: registeredPlayer._id, platform: registeredPlayer.platform}, {phoneNumber: rsaCrypto.encrypt(loginData.phoneNumber)});
+                                            }
+                                            else {
+                                                return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                            }
+                                        }
+                                    ).then(
+                                        () => {
+                                            return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
+                                        },
+                                        err => {
+                                            if (err && err.message) {
+                                                err.isRegisterError = true;
+                                            }
+                                            return Promise.reject(err);
+                                        }
+                                    );
                                 }
                             }
                         );
@@ -6271,7 +6320,6 @@ let dbPlayerInfo = {
         let platformObj = {};
         let bUpdateIp = false;
         let geoInfo = {};
-
         return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
                 if (platformData) {
@@ -6464,7 +6512,6 @@ let dbPlayerInfo = {
             data => {
                 // Geo and ip related update
                 if (bUpdateIp) {
-                    dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                 }
 
@@ -6945,13 +6992,8 @@ let dbPlayerInfo = {
                             //Object.assign(recordData, geoInfo);
 
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
-                            return record.save().then(
-                                function () {
-                                    if (bUpdateIp) {
-                                        dbPlayerInfo.updateGeoipws(data._id, platformId, loginData.lastLoginIp);
-                                    }
-                                }
-                            ).then(
+                            return record.save()
+                            .then(
                                 () => {
                                     return dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "platform",
@@ -10010,7 +10052,7 @@ let dbPlayerInfo = {
                     if (levelObjId) {
                         // Perform the level up
                         return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
-                            platformData => {
+                            async (platformData) => {
                                 console.log("ZM, player level up checkpoint 1 ", playerObj.name);
                                 let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                                 let platformPeriodTime;
@@ -10050,7 +10092,9 @@ let dbPlayerInfo = {
                                     }
                                 ).lean();
 
-                                let consumptionProm = dbconfig.collection_playerConsumptionRecord.find(
+
+                                let consumptionArr = [];
+                                let consumptionProm = await dbconfig.collection_playerConsumptionRecord.find(
                                     {
                                         platformId: ObjectId(playerObj.platform),
                                         createTime: {
@@ -10059,9 +10103,13 @@ let dbPlayerInfo = {
                                         },
                                         playerId: ObjectId(playerObj._id)
                                     }
-                                ).lean();
+                                ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
+                                    if (doc._doc) {
+                                        consumptionArr.push(doc._doc);
+                                    }
+                                });
 
-                                return Promise.all([topUpProm, consumptionProm]).then(
+                                return Promise.all([topUpProm, consumptionArr]).then(
                                     recordData => {
                                         console.log("ZM player level up checkpoint 2 ", playerObj.name);
                                         let topUpSummary = recordData[0];
@@ -10389,7 +10437,7 @@ let dbPlayerInfo = {
                 if (levels && levels.length > 0) {
                     // Perform the level up
                     return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
-                        platformData => {
+                        async (platformData) => {
                             let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                             let platformPeriodTime;
                             if (platformPeriod) {
@@ -10417,7 +10465,8 @@ let dbPlayerInfo = {
                                 }
                             ).lean();
 
-                            let consumptionProm = dbconfig.collection_playerConsumptionRecord.find(
+                            let consumptionArr = [];
+                            let consumptionProm = await dbconfig.collection_playerConsumptionRecord.find(
                                 {
                                     platformId: ObjectId(playerObj.platform),
                                     createTime: {
@@ -10426,10 +10475,17 @@ let dbPlayerInfo = {
                                     },
                                     playerId: ObjectId(playerObj._id)
                                 }
-                            ).lean();
+                            ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
+                                if (doc._doc) {
+                                    consumptionArr.push(doc._doc);
+                                }
+                            });
 
-                            return Promise.all([topUpProm, consumptionProm]).then(
+                            console.log("ZM, player manual level up checkpoint 1 ", playerObj.name);
+
+                            return Promise.all([topUpProm, consumptionArr]).then(
                                 recordData => {
+                                    console.log("ZM, player manual level up checkpoint 2 ", playerObj.name);
                                     let topUpSummary = recordData[0];
                                     let consumptionSummary = recordData[1];
                                     let topUpSumPeriod = {};
@@ -13426,7 +13482,14 @@ let dbPlayerInfo = {
                     ).lean();
                 }
                 else {
-                    return Promise.reject({name: "DataError", message: "Invalid proposal id or status"});
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Invalid proposal id or status",
+                        data: {
+                            proposalId: proposalId,
+                            fpmsStatus: data && data.status ? data.status : ''
+                        }
+                    });
                 }
             }
         ).then(
@@ -14354,6 +14417,7 @@ let dbPlayerInfo = {
         // merchantUse - 1: merchant, 2: bankcard
         // clientType: 1: browser, 2: mobileApp
         var playerData = null;
+        let topUpSystemConfig;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -14366,7 +14430,11 @@ let dbPlayerInfo = {
                     return [];
                 }
                 if (data && data.platform) {
-                    if (data.platform.merchantGroupIsPMS) {
+                    topUpSystemConfig = extConfig && data.platform && data.platform.topUpSystemType && extConfig[data.platform.topUpSystemType];
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        bPMSGroup = false;
+                    } else if (data.platform.merchantGroupIsPMS) {
                         bPMSGroup = true
                     } else {
                         bPMSGroup = false;
@@ -14377,12 +14445,21 @@ let dbPlayerInfo = {
                     };
                     playerData = data;
                     //if (merchantUse == 1) {
-                        if (bPMSGroup == true || bPMSGroup == "true") {
-                            pmsQuery.username = data.name;
-                            pmsQuery.ip = userIp;
-                            pmsQuery.clientType = clientType;
-                            return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            let query = {
+                                username: data.name,
+                                platformId: data.platform.platformId,
+                                clientType: clientType
+                            };
+
+                            return RESTUtils.getPMS2Services("postOnlineTopupType", query);
                         }
+                        // if (bPMSGroup == true || bPMSGroup == "true") {
+                        //     pmsQuery.username = data.name;
+                        //     pmsQuery.ip = userIp;
+                        //     pmsQuery.clientType = clientType;
+                        //     return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+                        // }
                         return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
                     // }
                     // else {
@@ -14398,7 +14475,35 @@ let dbPlayerInfo = {
                     var resData = [];
                     // if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
                     if (paymentData.merchants || paymentData.topupTypes) {
-                        if (paymentData.topupTypes) {
+                        if (paymentData.merchants && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            resData = paymentData.merchants;
+                            resData.forEach(merchant => {
+                                let minAmt = Number.POSITIVE_INFINITY;
+                                let maxAmt = Number.NEGATIVE_INFINITY;
+
+                                if (Number(merchant.minDepositAmount) < minAmt) {
+                                    minAmt = Number(merchant.minDepositAmount);
+                                }
+
+                                if (Number(merchant.maxDepositAmount) > maxAmt) {
+                                    maxAmt = Number(merchant.maxDepositAmount);
+                                }
+
+                                merchant.minDepositAmount = minAmt;
+                                merchant.maxDepositAmount = maxAmt;
+                            });
+
+                            if (playerData.forbidTopUpType && playerData.forbidTopUpType.length){
+                                playerData.forbidTopUpType.forEach(
+                                    topupType => {
+                                        let index = resData.findIndex( p => Number(p.type) == Number(topupType));
+                                        if (index != -1){
+                                            resData.splice(index, 1)
+                                        }
+                                    }
+                                )
+                            }
+                        } else if (paymentData.topupTypes) {
                             resData = paymentData.topupTypes;
                             resData.forEach(merchant => {
                                 merchant.type = Number(merchant.type);
@@ -19528,6 +19633,13 @@ let dbPlayerInfo = {
             }
         }
 
+        let consumptionStartTime;
+        let consumptionEndTime;
+        if (query.queryStart && query.queryEnd) {
+            consumptionStartTime = new Date(query.queryStart);
+            consumptionEndTime = new Date(query.queryEnd);
+        }
+
         let stream = dbconfig.collection_players.aggregate({
             $match: matchObj
         }).cursor({batchSize: 10}).allowDiskUse(true).exec();
@@ -19545,6 +19657,8 @@ let dbPlayerInfo = {
                                 platformId: platform,
                                 startTime: query.start,
                                 endTime: query.days? moment(query.start).add(query.days, "day"): new Date(),
+                                customStartTime: consumptionStartTime,
+                                customEndTime: consumptionEndTime,
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     playerData = playerIdObjs;
@@ -19705,7 +19819,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay, customStartTime, customEndTime) {
         console.log('getConsumptionDetailOfPlayers - start');
         option = option || {};
         let proms = [];
@@ -19745,6 +19859,10 @@ let dbPlayerInfo = {
                                     playerData => {
                                         let qStartTime = new Date(playerData.registrationTime);
                                         let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
+                                        if (customStartTime && customEndTime) {
+                                            qStartTime = customStartTime;
+                                            qEndTime = customEndTime;
+                                        }
 
                                         return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain, true);
                                     }
@@ -24524,7 +24642,6 @@ let dbPlayerInfo = {
 
     checkDeviceIdRegistered: (platformObjId, deviceId) => {
         let query = {
-            guestDeviceId: deviceId,
             platform: platformObjId,
             $or: [
                 {guestDeviceId: deviceId},

@@ -930,7 +930,8 @@ var proposal = {
                             data: {
                                 proposalId: proposalId,
                                 orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
-                                depositId: requestId
+                                depositId: requestId,
+                                fpmsStatus: proposalData && proposalData.status ? proposalData.status : ''
                             }
                         });
                     }
@@ -943,7 +944,8 @@ var proposal = {
                             proposalId: proposalId,
                             orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
                             depositId: requestId,
-                            type: type
+                            type: type,
+                            fpmsStatus: ''
                         }
                     })
                 }
@@ -1143,7 +1145,8 @@ var proposal = {
                             proposalId: proposalId,
                             orderStatus: orderStatus,
                             depositId: requestId,
-                            type: type
+                            type: type,
+                            fpmsStatus: ''
                         }
                     });
                 }
@@ -6270,7 +6273,7 @@ var proposal = {
 
                 return dbconfig.collection_proposal.find(query).lean().sort(sort).limit(1000)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
-                    .populate({path: "data.playerObjId", model: dbconfig.collection_players});
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players}).lean();
             }
         ).then(
             proposalData => {
@@ -6346,7 +6349,7 @@ var proposal = {
 
     checkIfProposalIsFollowUp: (proposal, createTimeQuery) => {
         if(proposal && proposal.proposalId){
-            return dbconfig.collection_paymentMonitorFollowUp.findOne({proposalId: proposal.proposalId}).then(
+            return dbconfig.collection_paymentMonitorFollowUp.findOne({proposalId: proposal.proposalId}, {createTime: 1}).then(
                 followUpRecord => {
                     if(followUpRecord && followUpRecord.createTime){
                         let hoursSinceLastFollowUp = Math.abs(new Date() - followUpRecord.createTime) / 36e5;
@@ -8073,6 +8076,8 @@ var proposal = {
             playerName: followUpData.playerName,
             playerCurrentCount: followUpData.playerCurrentCount,
             playerTotalCount: followUpData.playerTotalCount,
+            playerCurrentCommonTopUpCount: followUpData.playerCurrentCommonTopUpCount,
+            playerCommonTopUpTotalCount: followUpData.playerCommonTopUpTotalCount,
             playerGapTime: followUpData.playerGapTime,
             amount: followUpData.amount,
             proposalCreateTime: followUpData.proposalCreateTime,
@@ -8404,7 +8409,9 @@ var proposal = {
 function insertRepeatCount(proposals, platformList) {
     return new Promise(function (resolve) {
         let typeIds = null;
+        let commonTopUpTypeIds;
         let getProposalTypesIdProm = typeIds ? Promise.resolve(typeIds) : getTopUpProposalTypeIds(platformList);
+        let getCommonTopUpTypeIdProm = commonTopUpTypeIds ? Promise.resolve(commonTopUpTypeIds) : getCommonTopUpProposalTypeIds(platformList);
         let insertedProposals = [];
 
         if (!proposals || proposals.length === 0) {
@@ -8420,9 +8427,10 @@ function insertRepeatCount(proposals, platformList) {
                     insertedProposals[i] = handleSuccessProposal(proposal);
                     res();
                 } else {
-                    getProposalTypesIdProm.then(
+                    Promise.all([getProposalTypesIdProm, getCommonTopUpTypeIdProm]).then(
                         typeIdData => {
-                            typeIds = typeIdData;
+                            typeIds = typeIdData[0] || null;
+                            commonTopUpTypeIds = typeIdData[1] || null;
                             return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
                         }
                     ).then(
@@ -8532,8 +8540,8 @@ function insertRepeatCount(proposals, platformList) {
                 nextSuccessQuery["$and"] = bankCardNoRegExp;
             }
 
-            let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).read("secondaryPreferred").sort({createTime: -1}).limit(1);
-            let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).read("secondaryPreferred").sort({createTime: 1}).limit(1);
+            let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery, {createTime: 1}).read("secondaryPreferred").sort({createTime: -1}).limit(1).lean();
+            let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery, {createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).limit(1).lean();
 
             // for debug usage
             // let pS, nS, fISQ;
@@ -8595,7 +8603,7 @@ function insertRepeatCount(proposals, platformList) {
 
                     let allCountProm = dbconfig.collection_proposal.find(allCountQuery).read("secondaryPreferred").count();
                     let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).read("secondaryPreferred").count();
-                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).read("secondaryPreferred").sort({createTime: 1}).limit(1);
+                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).limit(1).lean();
 
                     return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
                 }
@@ -8638,13 +8646,13 @@ function insertRepeatCount(proposals, platformList) {
                 createTime: {$lte: proposal.createTime},
                 "data.playerName": playerName,
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-            }).sort({createTime: -1}).limit(1);
+            }, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
             let nextSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
                 createTime: {$gte: proposal.createTime},
                 "data.playerName": playerName,
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-            }).sort({createTime: 1}).limit(1);
+            }, {createTime: 1}).sort({createTime: 1}).limit(1).lean();
 
             return Promise.all([prevSuccessProm, nextSuccessProm]).then(
                 successData => {
@@ -8681,20 +8689,31 @@ function insertRepeatCount(proposals, platformList) {
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
                     }
 
+                    let allCommonTopUpCountQuery = JSON.parse(JSON.stringify(allCountQuery));
+                    allCommonTopUpCountQuery.type = {$in: commonTopUpTypeIds};
+                    let currentCommonTopUpCountQuery = JSON.parse(JSON.stringify(currentCountQuery));
+                    currentCommonTopUpCountQuery.type = {$in: commonTopUpTypeIds};
+
                     let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
                     let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
-                    let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery);
+                    let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery, {proposalId: 1, createTime: 1}).lean();
+                    let allCommonTopUpCountProm = dbconfig.collection_proposal.find(allCommonTopUpCountQuery).count();
+                    let currentCommonTopUpCountProm = dbconfig.collection_proposal.find(currentCommonTopUpCountQuery).count();
 
-                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
+                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm, allCommonTopUpCountProm, currentCommonTopUpCountProm]);
                 }
             ).then(
                 countData => {
                     let allCount = countData[0];
                     let currentCount = countData[1];
                     let firstFailure = countData[2];
+                    let allCommonTopUpCount = countData[3];
+                    let currentCommonTopUpCount = countData[4];
 
                     proposal.$playerAllCount = allCount;
                     proposal.$playerCurrentCount = currentCount;
+                    proposal.$playerAllCommonTopUpCount = allCommonTopUpCount;
+                    proposal.$playerCurrentCommonTopUpCount = currentCommonTopUpCount;
 
                     if (!firstFailure || String(firstFailure.proposalId) === String(proposal.proposalId)) {
                         proposal.$playerGapTime = 0;
@@ -8712,6 +8731,8 @@ function insertRepeatCount(proposals, platformList) {
             proposal['$merchantGapTime'] = '-';
             proposal['$playerAllCount'] = '-';
             proposal['$playerCurrentCount'] = '-';
+            proposal['$playerAllCommonTopUpCount'] = '-';
+            proposal['$playerCurrentCommonTopUpCount'] = '-';
             proposal['$playerGapTime'] = '-';
             return proposal;
         }
@@ -8912,7 +8933,25 @@ function getTopUpProposalTypeIds(platformList) {
         proposalTypeQuery.platformId = {$in: platformList}
     }
 
-    return dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(
+    return dbconfig.collection_proposalType.find(proposalTypeQuery, {_id: 1}).lean().then(
+        proposalTypes => {
+            return proposalTypes.map(type => {
+                return type._id;
+            });
+        }
+    );
+}
+
+function getCommonTopUpProposalTypeIds(platformList) {
+    let proposalTypeQuery = {
+        name: constProposalType.PLAYER_COMMON_TOP_UP
+    };
+
+    if(platformList && platformList.length > 0){
+        proposalTypeQuery.platformId = {$in: platformList}
+    }
+
+    return dbconfig.collection_proposalType.find(proposalTypeQuery, {_id: 1}).lean().then(
         proposalTypes => {
             return proposalTypes.map(type => {
                 return type._id;

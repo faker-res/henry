@@ -2890,8 +2890,9 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             $('#onlinePaymentMismatchTableSpin').show();
             let sendQuery = {
-                platform: vm.selectedPlatform._id,
-                platformId: vm.selectedPlatform.platformId,
+                // platform: vm.selectedPlatform._id,
+                // platformId: vm.selectedPlatform.platformId,
+                platformList: vm.onlinePaymentMismatchQuery.platformList,
                 startTime: vm.onlinePaymentMismatchQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.onlinePaymentMismatchQuery.endTime.data('datetimepicker').getLocalDate(),
                 type: vm.onlinePaymentMismatchQuery.type
@@ -4342,7 +4343,6 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            console.log("wahahaha")
             utilService.getDataTablePageSize("#playerReportTablePage", vm.playerQuery, 5000);
             var sendquery = {
                 platformId: vm.curPlatformId,
@@ -5397,6 +5397,8 @@ define(['js/app'], function (myApp) {
                 query: {
                     start: vm.dxNewPlayerQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.dxNewPlayerQuery.end.data('datetimepicker').getLocalDate(),
+                    queryStart: vm.dxNewPlayerQuery.queryStart.data('datetimepicker').getLocalDate(),
+                    queryEnd: vm.dxNewPlayerQuery.queryEnd.data('datetimepicker').getLocalDate(),
                     days: vm.dxNewPlayerQuery.days,
                     userType: vm.dxNewPlayerQuery.userType,
                     csPromoteWay: vm.dxNewPlayerQuery.csPromoteWay,
@@ -6353,10 +6355,13 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            if (vm.promoTypeList.length != promoType.length) {
-                vm.promoTypeList.filter(item => {
-                    if (promoType.indexOf(item.name) > -1) {
-                        newproposalQuery.promoTypeName.push(item.name);
+            vm.promoTypeListUniqueName = [...new Set(vm.promoTypeList.map(x => x.name))];
+
+            console.log('promoType===', promoType);
+            if (vm.promoTypeListUniqueName.length != promoType.length) {
+                vm.promoTypeListUniqueName.filter(item => {
+                    if (promoType.indexOf(item) > -1) {
+                        newproposalQuery.promoTypeName.push(item);
                     }
                 });
             }
@@ -9791,7 +9796,7 @@ define(['js/app'], function (myApp) {
                         );
 
                         vm.dxNewPlayerQuery = {
-                            days: 1,
+                            // days: 1,
                             valueScoreOperator: ">=",
                             topUpTimesOperator: ">=",
                             bonusTimesOperator: ">=",
@@ -9802,6 +9807,10 @@ define(['js/app'], function (myApp) {
                         vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
                         vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                        vm.dxNewPlayerQuery.queryStart = utilService.createDatePicker('#dxNewPlayerReportQuery .queryStartTime');
+                        vm.dxNewPlayerQuery.queryStart.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.dxNewPlayerQuery.queryEnd = utilService.createDatePicker('#dxNewPlayerReportQuery .queryEndTime');
+                        vm.dxNewPlayerQuery.queryEnd.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                     });
                     break;
                 case "PLAYERDOMAIN_REPORT":
