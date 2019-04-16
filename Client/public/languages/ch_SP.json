@@ -5465,5 +5465,9 @@
   "PMS Service Charge": "PMS手续费",
   "FPMS Service Charge": "FPMS手续费",
   "disableWithdraw": "領取后禁用提款",
-  "ServiceChangeSetting": "手续费设置"
+  "ServiceChangeSetting": "手续费设置",
+  "frontEndVisiblePosition": "前端可见位置",
+  "visibleFromHomePage": "首页弹屏可见",
+  "visibleFromRewardEntry": "优惠入口可见",
+  "visibleFromRewardList": "优惠列表可见"
 }
