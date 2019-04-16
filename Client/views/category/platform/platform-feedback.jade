@@ -405,3 +405,53 @@ div
                 button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardPointsEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewardPointsEvent') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning.forbidRewardPointsEventCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidRewardPointsEvent(data-toggle="modal", data-target="#modalForbidRewardPointsEventLog", ng-click="vm.getForbidRewardPointsEvent();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
+#dialogEditPlayer.dialog-dialog.hidden(ng-non-bindable style='width:60%;max-width:800px;')
+    .dialog-content(style="overflow: scroll;height:600px;")
+        .dialog-header
+            a.fa.fa-times.close.btn.btn-sm(type='button', data-dismiss='dialog')
+            a.fa.fa-minus.close.btn.btn-sm(type='button', data-toggle='minimize')
+            h4.dialog-title {{"EDIT_PLAYER" | translate}} : {{playerBeforeEditing.name}}
+        .dialog-body
+            .panel
+                .panel-body
+                    //here
+                    .padding-all-5
+                        .panel.panel-primary
+                            .panel-heading.common-left-panel-heading
+                                ul.nav.nav-tabs.common-nav-tabs
+                                    li(ng-show="editPlayerPermission",ng-class="selectedTab=='basicInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='basicInfo';")
+                                            text.span {{"Basic" | translate}}
+                                    li(ng-show="editContactPermission",ng-class="selectedTab=='contactInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='contactInfo';prepareEditCritical('player');")
+                                            text.span {{"CONTACT_INFO" | translate}}
+                                    li(ng-show="editWithdrawPermission",ng-class="selectedTab=='withdrawInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPlayerPayment();")
+                                            text.span {{"WITHDRAW_INFO" | translate}}
+                                    li(ng-show="editPlayerPermission",ng-class="selectedTab=='topUpInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='topUpInfo';initTopUpGroupChangeLog()")
+                                            text.span {{"Topup Group" | translate}}
+                            .panel-body.common-right-panel-body
+                                div.tab-content
+                                    #basicGroup.tab-pane.fade(ng-class="selectedTab =='basicInfo'?'in active':''")
+                                        include player-edit-form
+                                        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_editing_player.$invalid', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                    #contactGroup.tab-pane.fade(ng-class="selectedTab =='contactInfo'?'in active':''")
+                                        include player-edit-contact
+                                    #withdrawGroup.tab-pane.fade(ng-class="selectedTab =='withdrawInfo'?'in active':''")
+                                        include player-edit-withdraw
+                                    #topUpGroup.tab-pane.fade(ng-class="selectedTab =='topUpInfo'?'in active':''")
+                                        include player-edit-payment-form
+                                        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                    #adminNameGroup.tab-pane.fade(ng-class="selectedTab =='adminNameAdjunction'?'in active':''")
+                                        include player-edit-adjunction-form
+                                        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='(form_edit_player_admin.$invalid || form_edit_player_admin.$pristine) || checkAdminNameValidity()', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                div(ng-show="selectedTab =='topUpInfo'")
+                                    hr
+                                    .btn.btn-success(ng-click="getPlayerTopUpGroupChangeLog(0,10)") {{'TOPUP_GROUP_RECORD' | translate}}
+                                    table.topupGroupRecordTable.common-table.display(style="width:100%")
+                                    .topupGroupRecordTablePage
