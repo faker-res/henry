@@ -20438,19 +20438,16 @@ let dbPlayerInfo = {
 
                     let csOfficerDetail = data[6];
 
-                    console.log('csOfficerDetail JY', csOfficerDetail);
-                    console.log('playerDetail JY', playerDetail);
-
                     // related admin
                     if (playerDetail.accAdmin) {
                         result.csOfficer = playerDetail.accAdmin;
                     }
+                    else if (playerDetail.csOfficer) {
+                        result.csOfficer = playerDetail.csOfficer.adminName || "";
+                    }
                     else if (csOfficerDetail) {
                         result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
                         // result.csPromoteWay = csOfficerDetail.way;
-                    }
-                    else if (playerDetail.csOfficer) {
-                        result.csOfficer = playerDetail.csOfficer.adminName || "";
                     }
 
                     if (playerDetail && playerDetail.promoteWay) {
