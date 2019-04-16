@@ -648,6 +648,7 @@ define(['js/app'], function (myApp) {
                         data.show$ = true;
                         data.included = true;
                         data.status = bankCard.status ? bankCard.status : "DISABLED";
+                        data.depositMethod = bankCard && bankCard.paymentMethod && bankCard.paymentMethod.length > 0 ? bankCard.paymentMethod.join(', ') : "";
 
                         groupData.cards.push(data);
                     });
@@ -841,8 +842,8 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         vm.provinceList.length = 0;
 
-                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
-                            let province = data.data.provinces[i];
+                        for (let i = 0, len = data.data.data.length; i < len; i++) {
+                            let province = data.data.data[i];
                             province.id = province.id.toString();
                             vm.provinceList.push(province);
                         }
@@ -859,10 +860,10 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: modal.provinceId}, function (data) {
                     if (data) {
                         $scope.$evalAsync(() => {
-                            if (data.data.cities) {
+                            if (data.data.data) {
                                 vm.cityList.length = 0;
-                                for (let i = 0, len = data.data.cities.length; i < len; i++) {
-                                    let city = data.data.cities[i];
+                                for (let i = 0, len = data.data.data.length; i < len; i++) {
+                                    let city = data.data.data[i];
                                     city.id = city.id.toString();
                                     vm.cityList.push(city);
                                 }
@@ -1566,6 +1567,7 @@ define(['js/app'], function (myApp) {
 
         vm.loadMerchantGroupData = function (keepSelected, selectGroupId, selectGroupName) {
             if (vm.merchantGroupUsed == "PMS" || vm.paymentSystemName === 'PMS2') {
+                vm.getServiceChargeSetting();
                 vm.pmsGroupPlayerName = "";
                 vm.platformMerchantList = [];
                 socketService.$socket($scope.AppSocket, 'getPlatformMerchantList', {platformId: vm.selectedPlatform.id}, function (data) {
@@ -1578,14 +1580,16 @@ define(['js/app'], function (myApp) {
                 let serviceName;
                 let query;
 
-                if (vm.paymentSystemName === 'PMS2') {
-                    serviceName = 'getPMSMerchantGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
-                } else {
-                    serviceName = 'getPMSPaymentGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, type: "4"};
-                }
+                // if (vm.paymentSystemName === 'PMS2') {
+                //     serviceName = 'getPMSMerchantGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
+                // } else {
+                //     serviceName = 'getPMSPaymentGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, type: "4"};
+                // }
 
+                serviceName = 'getPMSMerchantGroup';
+                query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
 
                 return $scope.$socketPromise(serviceName, query).then(data => {
                     console.log(serviceName, data);
@@ -1680,6 +1684,15 @@ define(['js/app'], function (myApp) {
 
                                 if (vm.platformMerchantList[index] && vm.platformMerchantList[index].customizeRate) {
                                     merchant.customizeRate = vm.platformMerchantList[index].customizeRate;
+                                }
+
+                                if (vm.pmsServiceChargeRate && vm.fpmsServiceChargeRate && !vm.platformMerchantList[index].customizeRate) {
+                                    let pmsServiceCharge = vm.pmsServiceChargeRate/100;
+                                    let fpmsServiceCharge = vm.fpmsServiceChargeRate/100;
+
+                                    if (vm.platformMerchantList[index].rate > pmsServiceCharge) {
+                                        merchant.systemCustomRate = fpmsServiceCharge;
+                                    }
                                 }
                             }
                             return merchant;
@@ -2214,13 +2227,16 @@ define(['js/app'], function (myApp) {
                 let serviceName;
                 let query;
 
-                if (vm.paymentSystemName === 'PMS2') {
-                    serviceName = 'getPMSAlipayGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
-                } else {
-                    serviceName = 'getPMSPaymentGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, type: "2"};
-                }
+                // if (vm.paymentSystemName === 'PMS2') {
+                //     serviceName = 'getPMSAlipayGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
+                // } else {
+                //     serviceName = 'getPMSPaymentGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, type: "2"};
+                // }
+
+                serviceName = 'getPMSAlipayGroup';
+                query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
 
                 return $scope.$socketPromise(serviceName, query).then(data => {
                     console.log(serviceName, data);
@@ -2928,13 +2944,16 @@ define(['js/app'], function (myApp) {
                 let serviceName;
                 let query;
 
-                if (vm.paymentSystemName === 'PMS2') {
-                    serviceName = 'getPMSWechatPayGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
-                } else {
-                    serviceName = 'getPMSPaymentGroup';
-                    query = {platformId: vm.selectedPlatform.data.platformId, type: "3"};
-                }
+                // if (vm.paymentSystemName === 'PMS2') {
+                //     serviceName = 'getPMSWechatPayGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
+                // } else {
+                //     serviceName = 'getPMSPaymentGroup';
+                //     query = {platformId: vm.selectedPlatform.data.platformId, type: "3"};
+                // }
+
+                serviceName = 'getPMSWechatPayGroup';
+                query = {platformId: vm.selectedPlatform.data.platformId, topUpSystemType: vm.selectedPlatform.data.topUpSystemType};
 
                 return $scope.$socketPromise(serviceName, query).then(data => {
                     console.log(serviceName, data);
@@ -3511,6 +3530,57 @@ define(['js/app'], function (myApp) {
                 }
             }
         }
+
+
+        // region Service Charge Setting
+        vm.getServiceChargeSetting = function () {
+            vm.isServiceChargeEditingDisable = true;
+
+            socketService.$socket($scope.AppSocket, 'getServiceChargeSetting', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                console.log(data);
+                vm.pmsServiceChargeRate = data && data.data && data.data.pmsServiceCharge ? parseFloat((data.data.pmsServiceCharge * 100).toFixed(2)) : null;
+                vm.fpmsServiceChargeRate = data && data.data && data.data.fpmsServiceCharge ? parseFloat((data.data.fpmsServiceCharge * 100).toFixed(2)) : null;
+                vm.oriPMSServiceChargeRate = vm.pmsServiceChargeRate ? JSON.parse(JSON.stringify(vm.pmsServiceChargeRate)) : null;
+                vm.oriFPMSServiceChargeRate = vm.fpmsServiceChargeRate ? JSON.parse(JSON.stringify(vm.fpmsServiceChargeRate)) : null;
+
+                $scope.$evalAsync();
+            })
+        };
+
+        vm.serviceChargeShowEdit = function (type) {
+            if (type === "CANCEL") {
+                vm.isServiceChargeEditingDisable = true;
+                vm.pmsServiceChargeRate = vm.oriPMSServiceChargeRate;
+                vm.fpmsServiceChargeRate = vm.oriFPMSServiceChargeRate;
+            };
+            if (type === "EDIT") vm.isServiceChargeEditingDisable = false;
+            if (type === "UPDATE") vm.isServiceChargeEditingDisable = true;
+        };
+
+        vm.updateServiceChargeSetting = function () {
+            let sendData = {
+                platformObjId: vm.selectedPlatform.id,
+                pmsServiceCharge: Number(vm.pmsServiceChargeRate) / 100,
+                fpmsServiceCharge: Number(vm.fpmsServiceChargeRate) / 100,
+            };
+
+            console.log('sendData sent', sendData);
+
+            socketService.$socket($scope.AppSocket, 'updateServiceChargeSetting', sendData, function (data) {
+                console.log(data.data);
+
+                if (vm.merchantGroupUsed === "PMS" || vm.paymentSystemName === 'PMS2') {
+                    vm.loadMerchantGroupData(true, null, data.data.name);
+                }
+                if (vm.merchantGroupUsed === "FPMS") {
+                    let selectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
+                    vm.loadMerchantGroupData(true, selectedMerchantGroupId);
+                }
+                $scope.$evalAsync();
+            })
+        };
+        // end region Service Charge Setting
+
         //////////////////////////initial socket actions//////////////////////////////////
         // vm.getPlayerStatusList = function () {
         //     return $scope.$socketPromise('getPlayerStatusList')

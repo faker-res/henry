@@ -16,6 +16,7 @@ const constSMSPurpose = require('../const/constSMSPurpose');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var localization = require("../modules/localization");
 const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
+const RESTUtils = require('../modules/RESTUtils');
 
 var dbLogger = {
 
@@ -393,9 +394,7 @@ var dbLogger = {
                     let action = adminActionRecordData.data[1].status == 1 ? "启用" : "维护";
                     adminActionRecordData.error = "设置" + data.provider.name + action;
                     adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platform ? adminActionRecordData.data[0].platform : adminActionRecordData.platforms;
-                }else if (logAction == 'requestClearProposalLimit' && adminActionRecordData.data[0] && adminActionRecordData.data[0].username){
-                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].username;
-                }else if ((logAction == 'updatePlayerPermission' || logAction == 'updatePartnerPermission')
+                } else if ((logAction == 'updatePlayerPermission' || logAction == 'updatePartnerPermission')
                     && data && (data.name || data.partnerName) && Object.keys(adminActionRecordData.data[2]).length){
                     let permissionChange = '';
                     let name = logAction == 'updatePlayerPermission' ? data.name : data.partnerName;
@@ -1192,14 +1191,23 @@ var dbLogger = {
                 collectionName = "collection_admin";
             }
             var a = collectionName ? dbconfig[collectionName].findOne({_id: each.creatorObjId}) : null;
-            var b = each.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: each.bankAccountProvince}).then(data => {
-                return data && data.province ? data.province.name : each.bankAccountProvince;
+            // var b = each.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: each.bankAccountProvince}).then(data => {
+            //     return data && data.province ? data.province.name : each.bankAccountProvince;
+            // }) : null;
+            var b = each.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: each.bankAccountProvince}).then(data => {
+                return data && data.data ? data.data.name : each.bankAccountProvince;
             }) : null;
-            var c = each.bankAccountCity ? pmsAPI.foundation_getCity({cityId: each.bankAccountCity}).then(data => {
-                return data && data.city ? data.city.name : each.bankAccountCity;
+            // var c = each.bankAccountCity ? pmsAPI.foundation_getCity({cityId: each.bankAccountCity}).then(data => {
+            //     return data && data.city ? data.city.name : each.bankAccountCity;
+            // }) : null;
+            var c = each.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: each.bankAccountCity}).then(data => {
+                return data && data.data ? data.data.name : each.bankAccountCity;
             }) : null;
-            var d = each.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: each.bankAccountDistrict}).then(data => {
-                return data && data.district ? data.district.name : each.bankAccountDistrict;
+            // var d = each.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: each.bankAccountDistrict}).then(data => {
+            //     return data && data.district ? data.district.name : each.bankAccountDistrict;
+            // }) : null;
+            var d = each.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: each.bankAccountDistrict}).then(data => {
+                return data && data.data ? data.data.name : each.bankAccountDistrict;
             }) : null;
             return Q.all([a, b, c, d]).then(newData => {
                 if (each.source == constProposalEntryType.ADMIN) {

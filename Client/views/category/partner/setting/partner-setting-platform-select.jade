@@ -1,0 +1,4 @@
+div
+    text.inline-block.margin-right-5 {{'PLATFORM' | translate}}
+    select.inline-block( ng-model="vm.platformIdInSetting" ng-change="vm.getPlatformInSetting()")
+        option(ng-repeat='(i,j) in vm.platformList', value= '{{j.data && j.data.platformId}}') {{j.data && j.data.platformId || ""}} - {{j.text | translate}}

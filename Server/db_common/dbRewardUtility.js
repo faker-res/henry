@@ -45,6 +45,9 @@ const dbRewardUtility = {
                 case "4":
                     intervalTime = rewardData.applyTargetDate ? dbUtil.getMonthSGTIme(rewardData.applyTargetDate) : dbUtil.getCurrentMonthSGTIme();
                     break;
+                case "6":
+                    intervalTime = rewardData.applyTargetDate ? dbUtil.getLastMonthSGTImeFromDate(rewardData.applyTargetDate) : dbUtil.getLastMonthSGTime();
+                    break;
                 default:
                     if (eventData.validStartTime && eventData.validEndTime) {
                         intervalTime = {startTime: eventData.validStartTime, endTime: eventData.validEndTime};
@@ -508,9 +511,31 @@ const dbRewardUtility = {
         }
 
         // check reward apply restriction on ip, phone and IMEI
-        let checkHasReceivedProm = dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, player, rewardEvent);
+        let checkHasReceivedProm;
 
-        return Promise.all([pendingCount, eventInPeriodProm, topupInPeriodProm, checkHasReceivedProm]).then(
+        // get the last applied reward proposal to get the retentionApplicationDate for loginMode 3
+        let lastAppliedRewardProposalProm = Promise.resolve();
+        if (rewardEvent.condition && rewardEvent.condition.definePlayerLoginMode && rewardEvent.condition.definePlayerLoginMode == 3) {
+
+            let query = {
+                'data.eventId': rewardEvent._id,
+                'data.platformId': player.platform._id,
+                'data.playerObjId': player._id,
+                'data.retentionApplicationDate': {$exists: true}
+            };
+            lastAppliedRewardProposalProm = dbConfig.collection_proposal.findOne(query).sort({createTime: -1}).lean()
+        }
+
+        return lastAppliedRewardProposalProm.then(
+            lastProposal => {
+                console.log("checking last proposal", lastProposal)
+                let retentionApplicationDate = lastProposal && lastProposal.data && lastProposal.data.retentionApplicationDate ? lastProposal.data.retentionApplicationDate : null
+                console.log("checking retentionApplicationDate", retentionApplicationDate)
+                checkHasReceivedProm = dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, player, rewardEvent, retentionApplicationDate);
+
+                return Promise.all([pendingCount, eventInPeriodProm, topupInPeriodProm, checkHasReceivedProm])
+            }
+        ).then(
             checkList => {
 
                 let rewardPendingCount = checkList[0]

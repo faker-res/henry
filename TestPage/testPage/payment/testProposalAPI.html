@@ -29,6 +29,24 @@
             <input name="depositId">
         </label>
     </div>
+    <div>
+        <label>Fill in 在线充值类型(eg. 1,2,3,..15), 商户号 and 后台商户ID if is online topup</label>
+    </div>
+    <div>
+        <label>在线充值类型
+            <input name="depositMethod">
+        </label>
+    </div>
+    <div>
+        <label>商户号
+            <input name="merchantNo">
+        </label>
+    </div>
+    <div>
+        <label>后台商户ID
+            <input name="merchantName">
+        </label>
+    </div>
     <p>
         <button data-api-name="setTopupProposalStatus">setTopupProposalStatus</button>
     <div>
@@ -247,6 +265,10 @@
     </label>
     </div>
 
+    <div><label>Online top up merchant name
+        <input name="merchantName">
+    </label></div>
+
     <div><label>Online top up type
         <input name="topupType">
     </label></div>
@@ -307,30 +329,7 @@
         <textarea></textarea>
     </div>
 </div>
-
-<h3>Request proposal success (通过PMS支付提案)</h3>
-<div class="test-container">
-    <div>
-        <label>*Proposal Id
-            <input name="proposalId">
-        </label>
-    </div>
-    <div>
-        <label>*status  1:在线 0：其他
-            <input name="status",  type="number">
-        </label>
-    </div>
-    <p>
-        <button id="requestProposalSuccessPMS" data-api-name="requestProposalSuccessPMS">Request</button>
-    <div>
-        <textarea></textarea>
-    </div>
-</div>
-
-
-
 <body>
-
 
 <script>
     require(['services/payment/PaymentServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/paymentAPITest/ProposalAPITest', 'testAPI/paymentAPITest/ConnectionAPITest'],

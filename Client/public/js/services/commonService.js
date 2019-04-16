@@ -23,7 +23,17 @@ define([], () => {
                 return allBankTypeList[id];
             }
         }
+        function getIntervalTime ($scope, $translate, rewardAppearPeriod) {
+            // display time interval of reward (week)
+            let startDate = ( rewardAppearPeriod && rewardAppearPeriod.startDate ) ? $scope.weekDay [rewardAppearPeriod.startDate] : '';
+            let endDate = ( rewardAppearPeriod && rewardAppearPeriod.endDate ) ? $scope.weekDay [rewardAppearPeriod.endDate] : '';
+            let startTime = ( rewardAppearPeriod && rewardAppearPeriod.startTime ) ? pad(rewardAppearPeriod.startTime) : '';
+            let endTime = ( rewardAppearPeriod && rewardAppearPeriod.endTime ) ? pad(rewardAppearPeriod.endTime) : '';
 
+            let fullDate = $translate(startDate) + startTime + ':00' + ' - ' + $translate(endDate) + endTime + ':00';
+            return fullDate
+        }
+        function pad(n){ return n < 10 ? '0' + n : n}
         // region General get functions
 
         self.getRewardList = ($scope, platformObjId) => {
@@ -404,6 +414,24 @@ define([], () => {
 
             return inputDevice;
         };
+
+        self.getProvinceName = function($scope, provinceId) {
+            return $scope.$socketPromise('getProvince', {provinceId: provinceId})
+                .then(data => {
+                    let text = data.data.data ? data.data.data.name : '';
+
+                    return text;
+                });
+        };
+
+        self.getCityName = function($scope, cityId) {
+            return $scope.$socketPromise('getCity', {cityId: cityId})
+                .then(data => {
+                    let text = data.data.data ? data.data.data.name : '';
+
+                    return text;
+                });
+        };
         // endregion
 
 
@@ -747,7 +775,6 @@ define([], () => {
                 }
             }
         };
-
         this.setFixedPropDetail = ($scope, $translate, $noRoundTwoDecimalPlaces, vm, $fixTwoDecimalStr) => {
             let proposalDetail = {};
             if(vm && vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.platformId && vm.selectedProposal.data.platformId.name
@@ -1275,6 +1302,34 @@ define([], () => {
             }
             // end region
 
+            // region Parent Partner Commission Proposal
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerPromoCodeReward") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["proposalPlayerLevelValue"] = vm.selectedProposal.data.proposalPlayerLevelValue;
+                proposalDetail["REWARD_NAME"] = vm.selectedProposal.data.rewardName;
+                proposalDetail["topUpAmount"] = vm.selectedProposal.data.topUpAmount;
+                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
+                proposalDetail["applyAmount"] = vm.selectedProposal.data.applyAmount;
+                proposalDetail["PROMO_CODE_TYPE"] = vm.selectedProposal.data.PROMO_CODE_TYPE;
+                proposalDetail["disableWithdraw"] = vm.selectedProposal.data.disableWithdraw;
+                proposalDetail["promoCode"] = vm.selectedProposal.data.promoCode;
+                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+            }
+
+            // end region
+
             // region Partner Credit Transfer To Downline Proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PartnerCreditTransferToDownline") {
                 proposalDetail = {};
@@ -1665,6 +1720,47 @@ define([], () => {
             }
             // end region
 
+            // region random reward Proposal
+            if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "PlayerRandomRewardGroup")) {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                let rewardType = vm.selectedProposal.data.rewardType;
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+                proposalDetail["MAIN_TYPE"] = $translate("PlayerRandomRewardGroup");
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                // proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
+                // proposalDetail["proposalPlayerLevelValue"] = vm.selectedProposal.data.proposalPlayerLevelValue;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realName || " ";
+                proposalDetail["lastLoginIp"] = vm.selectedProposal.data.lastLoginIp || " ";
+                proposalDetail["phoneNumber"] = vm.selectedProposal.data.phoneNumber || " ";
+                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                proposalDetail["eventId"] = vm.selectedProposal.data.eventId;
+                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                proposalDetail["rewardInterval"] = vm.selectedProposal.data.intervalType;
+                proposalDetail["rewardAppearPeriod"] = getIntervalTime($scope, $translate, vm.selectedProposal.data.rewardAppearPeriod);
+                proposalDetail["rewardType"] = $translate($scope.randomRewardType[rewardType]);
+                proposalDetail["rewardName"] = vm.selectedProposal.data.rewardName;
+                proposalDetail["applyTargetDate"] = vm.selectedProposal.data.applyTargetDate;
+                proposalDetail["forbidWithdrawAfterApply"] = vm.selectedProposal.data.forbidWithdrawAfterApply;
+                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                proposalDetail["isDynamicRewardAmount"] = vm.selectedProposal.data.isDynamicRewardAmount;
+                proposalDetail["isGroupReward"] = vm.selectedProposal.data.isGroupReward;
+                proposalDetail["isIgnoreAudit"] = vm.selectedProposal.data.isIgnoreAudit;
+                proposalDetail["providerGroup"] = vm.selectedProposal.data.providerGroup;
+                // proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
+                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
+                proposalDetail["useConsumptionAmount"] = vm.selectedProposal.data.useConsumptionAmount;
+                proposalDetail["useTopUpAmount"] = vm.selectedProposal.data.useTopUpAmount;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+            }
+            // end region
+
             // region auction product Proposal
             if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "AuctionPromoCode" || vm.selectedProposal.type.name === "AuctionOpenPromoCode" ||
                 vm.selectedProposal.type.name === "AuctionRewardPromotion" || vm.selectedProposal.type.name === "AuctionRealPrize" || vm.selectedProposal.type.name === "AuctionRewardPointChange")) {
@@ -1687,8 +1783,15 @@ define([], () => {
             }
             // end region
 
+
             if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.rewardPeriod){
                 proposalDetail["rewardPeriod"] =  $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.startTime) + ' ~ ' + $scope.timeReformat(vm.selectedProposal.data.rewardPeriod.endTime);
+            }
+            if (vm.selectedProposal.data.hasOwnProperty("cancelRemark")) {
+                proposalDetail["cancelRemark"] = vm.selectedProposal.data.cancelRemark;
+            }
+            if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
+                proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
             }
 
             return proposalDetail;

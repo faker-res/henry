@@ -71,6 +71,12 @@ function socketActionRewardEvent(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardEvent.updateRewardEventGroup, [data.query, data.updateData], actionName, isValidData);
         },
 
+        updateExpiredRewardEventToGroup: function updateExpiredRewardEventToGroup(data) {
+        var actionName = arguments.callee.name;
+        var isValidData = Boolean(data && data.query && data.updateData);
+        socketUtil.emitter(self.socket, dbRewardEvent.updateExpiredRewardEventToGroup, [data.query, data.updateData], actionName, isValidData);
+        },
+
         /**
          * delete Reward events by id
          * @param {json} data - data has to contain _ids
@@ -119,6 +125,26 @@ function socketActionRewardEvent(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId && data.eventCode);
             socketUtil.emitter(self.socket, dbRewardEvent.startPlatformRTGEventSettlement, [data.platformId, data.eventCode], actionName, isValidData);
         },
+        /**
+        * Assign Random Reward to Specific Player
+        */
+        assignRandomRewardToUser: function assignRandomRewardToUser(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.reward && data.randomRewards);
+            socketUtil.emitter(self.socket, dbRewardEvent.assignRandomRewardToUser, [data.randomRewards, data.platformId, data.reward, data.creator], actionName, isValidData);
+        },
+
+        editRandomRewardToUser: function editRandomRewardToUser(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.reward && data.randomRewards);
+            socketUtil.emitter(self.socket, dbRewardEvent.editRandomRewardToUser, [data.randomRewards, data.platformId, data.reward, data.creator], actionName, isValidData);
+        },
+
+        getRandomRewardDetail: function getRandomRewardDetail(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbRewardEvent.getRandomRewardDetail, [data], actionName, isValidData);
+        }
     };
     socketActionRewardEvent.actions = this.actions;
 };

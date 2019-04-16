@@ -400,6 +400,18 @@ var generalCond = {
     },
     // Is player manually applicable
     canApplyFromClient: {index: 4, type: "checkbox", des: "Is player manually applicable", detail: "REWARD_CLIENT_APPLY_DETAIL"},
+    // Display in home page popup
+    visibleFromHomePage: {index: 4.10, type: "checkbox", des: "Is visible in home page"},
+    visibleFromRewardEntry: {index: 4.11, type: "checkbox", des: "Is visible in reward entry"},
+    visibleFromRewardList: {index: 4.12, type: "checkbox", des: "Is visible in reward list"},
+    visibleForPhoneNumberBinding: {index: 4.13, type: "checkbox", des: "Is visible for phone number binding player"},
+    visibleForNewPlayer: {index: 4.14, type: "checkbox", des: "Is visible for new player", detail: "REWARD_CLIENT_NEW_PLAYER"},
+    visibleForFirstLogin: {index: 4.15, type: "checkbox", des: "Is visible for first login player", detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"},
+    visibleForPlayerLevel: {index: 4.16, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
+    visibleIfCreditLessThan: {index: 4.17, type: "number", des: "Is visible if credit less than"},
+    visibleIfAppliedFollowingReward: {index: 4.18, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
+    visibleIfTopUpCountMoreThan: {index: 4.19, type: "number", des: "Is visible if topup count more than"},
+    invisibleIfApplyCurrentReward: {index: 4.20, type: "checkbox", des: "Is invisible if apply current reward"},
     // Is show in production server
     showInRealServer: {index: 5, type: "checkbox", des: "Is show in production server", detail: "REWARD_SERVER_SHOW_DETAIL", default: true},
     // Is ignore audit
@@ -931,17 +943,17 @@ db.rewardParam.update({
                     type: "number",
                     des: "Required consumption amount"
                 },
-                repetitiveRewardInPeriod: {
+                noRepetitiveRewardInPeriod: {
                     index: 46,
                     type: "checkbox",
-                    des: "Repetitive Reward In Period",
+                    des: "No Repetitive Reward In Period",
                     detail: "Same reward will not be selected in the period"
                 },
-                sameRewardOnTheNextDay: {
+                sameRewardOnTheNextTrial: {
                     index: 47,
                     type: "checkbox",
-                    des: "Same Reward On The Next Day",
-                    detail: "The selected reward will be different for the next day"
+                    des: "Same Reward On The Next Trial",
+                    detail: "The selected reward will be different for the next trial"
                 },
                 defaultRewardTypeInTheFirstTime: {
                     index: 48,

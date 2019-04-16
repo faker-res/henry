@@ -429,11 +429,26 @@ function getCalleeList (query, sortCol, selectedPlayers) {
     }
 
     if (query.csOfficer && query.csOfficer.length) {
-        query.csOfficer.map(item => {
-            return ObjectId(item);
+        let noneCSOfficerQuery = {}, csOfficerArr = [];
+
+        query.csOfficer.forEach(item => {
+            if (item == "") {
+                noneCSOfficerQuery = {csOfficer: {$exists: false}};
+            } else {
+                csOfficerArr.push(ObjectId(item));
+            }
         });
-        query.csOfficer = {
-            $in: query.csOfficer
+
+        if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0 && csOfficerArr.length > 0) {
+            query.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
+            delete query.csOfficer;
+
+        } else if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && !csOfficerArr.length) {
+            query.csOfficer = {$exists: false};
+
+        } else if (csOfficerArr.length > 0 && !Object.keys(noneCSOfficerQuery).length){
+            query.csOfficer = {$in: csOfficerArr};
+
         }
     }
 

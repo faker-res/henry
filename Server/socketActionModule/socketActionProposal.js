@@ -317,7 +317,7 @@ function socketActionProposal(socketIO, socket) {
         updateProposalProcessStep: function updateProposalProcessStep(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.proposalId && data.adminId && data.memo);
-            socketUtil.emitter(self.socket, dbProposal.updateProposalProcessStep, [data.proposalId, data.adminId, data.memo, data.bApprove, data.remark, data.platform], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.updateProposalProcessStep, [data.proposalId, data.adminId, data.memo, data.bApprove, data.remark, data.platform, data.rejectRemark], actionName, isValidData);
         },
 
         updatePlayerProposalRemarks: function updatePlayerProposalRemarks(data) {
@@ -342,7 +342,7 @@ function socketActionProposal(socketIO, socket) {
         cancelProposal: function cancelProposal(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.proposalId);
-            socketUtil.emitter(self.socket, dbProposal.cancelProposal, [data.proposalId, getAdminName(), data.remark, getAdminId()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.cancelProposal, [data.proposalId, getAdminName(), data.remark, getAdminId(), data.cancelRemark], actionName, isValidData);
         },
 
         /**

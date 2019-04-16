@@ -3150,7 +3150,7 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
         }
     }, {
         new: true
-    }).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).then(
+    }).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).lean().then(
         updatedRTG => {
             let rewardTaskUnlockedProgress = Promise.resolve();
 
@@ -3270,6 +3270,11 @@ function findRTGToUpdate (oldData, newData) {
     if (oldData && newData && (oldData.bonusAmount != newData.bonusAmount || oldData.validAmount != newData.validAmount)) {
         incBonusAmt = newData.bonusAmount - oldData.bonusAmount || 0;
         incValidAmt = newData.validAmount - oldData.validAmount || 0;
+
+        if (incValidAmt < 0){
+            console.log("checking for negative consumption (newValidAmount, oldValidAmount, incValidAmt, playerObjId)", newData.validAmount, oldData.validAmount, incValidAmt, oldData.playerId)
+            incValidAmt = 0
+        }
 
         return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: oldData.playerId}, newData.updateTime).then(
             RTGs => {

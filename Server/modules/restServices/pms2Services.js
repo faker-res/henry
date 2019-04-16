@@ -12,10 +12,38 @@ function getSubDomain () {
     return extConfig[paymentSystemId].subDomain;
 }
 
+function getMainTopupLobbyAddress () {
+    return extConfig[paymentSystemId].topUpAPIAddr;
+}
+
+function getSubTopupLobbyAddress () {
+    return extConfig[paymentSystemId].topUpAPIAddr2;
+}
+
+function get3rdTopupLobbyAddress () {
+    return extConfig[paymentSystemId].topUpAPIAddr3;
+}
+
 function requestWithPromise (domain, paramStr) {
     let url = domain.concat(paramStr);
 
     return rp(url);
+}
+
+function pingDomain (domain) {
+    if (!domain) {
+        return false;
+    }
+
+    let options = {
+        method: 'GET',
+        uri: domain.concat('fpms-test.txt')
+    };
+
+    return rp(options).then(
+        () => true,
+        () => false
+    );
 }
 
 function sendRequest (paramStr) {
@@ -43,7 +71,7 @@ function postRequest (reqData, urlName, method) {
 
     return rp(options).then(
         data => {
-            console.log(`${urlName} SUCCESS: ${data}`);
+            console.log(`${urlName} SUCCESS: ${data ? JSON.stringify(data) : data}`);
             return data;
         }
     ).catch(
@@ -82,6 +110,23 @@ function getMinMax (reqData) {
     console.log('getMinMaxCommonTopupAmount url', paramStr);
 
     return sendRequest(paramStr);
+}
+
+async function getTopupLobbyAddress () {
+    if (await pingDomain(getMainTopupLobbyAddress())) {
+        return getMainTopupLobbyAddress();
+    }
+
+    if (await pingDomain(getSubTopupLobbyAddress())) {
+        return getSubTopupLobbyAddress();
+    }
+
+    if (await pingDomain(get3rdTopupLobbyAddress())) {
+        return get3rdTopupLobbyAddress();
+    }
+
+    // If things goes wrong, just return main address
+    return getMainTopupLobbyAddress();
 }
 
 function postWithdraw (reqData) {
@@ -148,8 +193,73 @@ function postPaymentGroupByPlayer (reqData) {
     return postRequest(reqData, 'getPlayerRankByPlayer', 'POST')
 }
 
+function postProvince (reqData) {
+    return postRequest(reqData, 'getProvince', 'POST')
+}
+
+function postProvinceList (reqData) {
+    return postRequest(reqData, 'getProvinceList', 'POST')
+}
+
+function postCity (reqData) {
+    return postRequest(reqData, 'getCity', 'POST')
+}
+
+function postCityList (reqData) {
+    return postRequest(reqData, 'getCityList', 'POST')
+}
+
+function postDistrict (reqData) {
+    return postRequest(reqData, 'getDistrict', 'POST')
+}
+
+function postDistrictList (reqData) {
+    return postRequest(reqData, 'getDistrictList', 'POST')
+}
+
+function postPlatformAdd (reqData) {
+    return postRequest(reqData, 'platform', 'POST')
+}
+
+function deletePlatformDelete (reqData) {
+    return postRequest(reqData, 'platform', 'DELETE')
+}
+
+function patchPlatformUpdate (reqData) {
+    return postRequest(reqData, 'platform', 'PATCH')
+}
+
+function postOnlineTopupType (reqData) {
+    return postRequest(reqData, 'getOnlineTopupType', 'POST')
+}
+
+function postMerchantInfo (reqData) {
+    return postRequest(reqData, 'getMerchantInfo', 'POST')
+}
+
+function postCreateOnlineTopup (reqData) {
+    return postRequest(reqData, 'requestOnlineMerchant', 'POST')
+}
+
+function postDepositTypeByUsername (reqData) {
+    return postRequest(reqData, 'requestDepositTypeByUsername', 'POST')
+}
+
+function postOnlineCashinList (reqData) {
+    return postRequest(reqData, 'getOnlineCashinList', 'POST')
+}
+
+function postCashinList (reqData) {
+    return postRequest(reqData, 'getCashinList', 'POST')
+}
+
+function postCashoutList (reqData) {
+    return postRequest(reqData, 'getCashoutList', 'POST')
+}
+
 module.exports = {
     getMinMax: getMinMax,
+    getTopupLobbyAddress: getTopupLobbyAddress,
     postWithdraw: postWithdraw,
     patchTopupStatus: patchTopupStatus,
     postBatchTopupStatus: postBatchTopupStatus,
@@ -165,5 +275,21 @@ module.exports = {
     postMerchantList: postMerchantList,
     postMerchantTypeList: postMerchantTypeList,
     postPaymentGroup: postPaymentGroup,
-    postPaymentGroupByPlayer: postPaymentGroupByPlayer
+    postPaymentGroupByPlayer: postPaymentGroupByPlayer,
+    postProvince: postProvince,
+    postProvinceList: postProvinceList,
+    postCity: postCity,
+    postCityList: postCityList,
+    postDistrict: postDistrict,
+    postDistrictList: postDistrictList,
+    postPlatformAdd: postPlatformAdd,
+    deletePlatformDelete: deletePlatformDelete,
+    patchPlatformUpdate: patchPlatformUpdate,
+    postOnlineTopupType: postOnlineTopupType,
+    postMerchantInfo: postMerchantInfo,
+    postCreateOnlineTopup: postCreateOnlineTopup,
+    postDepositTypeByUsername: postDepositTypeByUsername,
+    postOnlineCashinList: postOnlineCashinList,
+    postCashinList: postCashinList,
+    postCashoutList: postCashoutList
 };

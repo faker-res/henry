@@ -15,11 +15,29 @@ const dbPlayerConsumptionHourSummary = {
         startTime.setMinutes(0);
         startTime.setSeconds(0);
         startTime.setMilliseconds(0);
-        return dbconfig.collection_playerConsumptionHourSummary.findOneAndUpdate(
-            {platform: platformObjId, player: playerObjId, provider: providerObjId, startTime: startTime},
-            {$inc: {consumptionAmount: amount, consumptionValidAmount: validAmount, consumptionBonusAmount: bonusAmount, consumptionTimes: times}},
-            {upsert: true, new: true}
-        ).lean().then(
+
+        let providerObjIdProm = Promise.resolve(providerObjId);
+        if (String(providerObjId).length !== 24) {
+            providerObjIdProm = dbconfig.collection_gameProvider.findOne({providerId: providerObjId}, {_id: 1}).lean().then(
+                data => {
+                    if (!data || !data._id) {
+                        return Promise.reject({message: "provider not found"});
+                    }
+
+                    providerObjId = data._id;
+                }
+            )
+        }
+
+        return providerObjIdProm.then(
+            () => {
+                return dbconfig.collection_playerConsumptionHourSummary.findOneAndUpdate(
+                    {platform: platformObjId, player: playerObjId, provider: providerObjId, startTime: startTime},
+                    {$inc: {consumptionAmount: amount, consumptionValidAmount: validAmount, consumptionBonusAmount: bonusAmount, consumptionTimes: times}},
+                    {upsert: true, new: true}
+                ).lean();
+            }
+        ).then(
             summary => {
                 // console.log('playerConsumptionHourSummary', summary.playerObjId, summary.createTime, summary.amount, summary.validAmount, summary.bonusAmount, summary.times);
                 return summary;

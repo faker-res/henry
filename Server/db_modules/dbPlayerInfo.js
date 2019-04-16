@@ -1013,6 +1013,9 @@ let dbPlayerInfo = {
                         domain: {$exists: true}
                     }).sort({createTime: -1}).lean().then(
                         data => {
+                            if (!data || !data.domain) {
+                                return;
+                            }
                             return dbconfig.collection_csOfficerUrl.findOne({
                                 domain: data.domain,
                                 platform: platformObjId
@@ -1064,6 +1067,14 @@ let dbPlayerInfo = {
                 }
             )
         }
+    },
+
+    checkPlayerIsBindedToPartner: (platformObjId, playerObjId) => {
+        return dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
+            fixedCredibilityRemarks => {
+                return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, '代理开户')
+            }
+        );
     },
 
     checkPlayerIsIDCIp: (platformObjId, playerObjId, ipAddress) => {
@@ -1741,7 +1752,8 @@ let dbPlayerInfo = {
             isRepeat => {
                 if (playerdata.guestDeviceId) {
                     if (isRepeat) {
-                        return Promise.reject({status: constServerCode.DEVICE_ID_ERROR, message: "Your device has registered. Use your original phone number to login."})
+                        // return Promise.reject({status: constServerCode.DEVICE_ID_ERROR, message: "Your device has registered. Use your original phone number to login."});
+                        delete playerdata.guestDeviceId;
                     }
                     return {isPlayerPasswordValid: true};
                 }
@@ -1989,6 +2001,8 @@ let dbPlayerInfo = {
                 if (playerData.lastLoginIp && !promoteWay && !playerData.partner) {
                     let todayTime = dbUtility.getTodaySGTime();
 
+                    console.log("checking player's lastLoginIP", playerData.lastLoginIp, playerData.name)
+                    console.log("checking player's sourceUrl", playerData.sourceUrl || null, playerData.name)
                     return dbconfig.collection_ipDomainLog.find({
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
@@ -2000,6 +2014,8 @@ let dbPlayerInfo = {
                                 ipDomain = ipDomainLog[0].domain;
                                 ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
 
+                                console.log("checking ipDomainLog", ipDomainLog[0])
+                                console.log("checking ipDomainSourceUrl", ipDomainSourceUrl || null)
                                 // force using csOfficerUrl admin and way
                                 return dbconfig.collection_csOfficerUrl.findOne({
                                     domain: ipDomain,
@@ -2074,6 +2090,7 @@ let dbPlayerInfo = {
 
                     // add ip domain to sourceUrl
                     if (ipDomainSourceUrl) {
+                        console.log("checking 2nd ipDomainSourceUrl", ipDomainSourceUrl)
                         playerUpdateData.sourceUrl = ipDomainSourceUrl
                     }
 
@@ -2303,18 +2320,23 @@ let dbPlayerInfo = {
                 // apiData.name = apiData.name.replace(platformData.prefix, "");
                 delete apiData.platform;
                 var a, b, c;
-                a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
-                    provinceId: apiData.bankAccountProvince,
-                    queryId: serverInstance.getQueryId()
-                }) : true;
-                b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
-                    cityId: apiData.bankAccountCity,
-                    queryId: serverInstance.getQueryId()
-                }) : true;
-                c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
-                    districtId: apiData.bankAccountDistrict,
-                    queryId: serverInstance.getQueryId()
-                }) : true;
+                // a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
+                //     provinceId: apiData.bankAccountProvince,
+                //     queryId: serverInstance.getQueryId()
+                // }) : true;
+                // b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
+                //     cityId: apiData.bankAccountCity,
+                //     queryId: serverInstance.getQueryId()
+                // }) : true;
+                // c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
+                //     districtId: apiData.bankAccountDistrict,
+                //     queryId: serverInstance.getQueryId()
+                // }) : true;
+
+                a = apiData.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: apiData.bankAccountProvince}) : true;
+                b = apiData.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: apiData.bankAccountCity}) : true;
+                c = apiData.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: apiData.bankAccountDistrict}) : true;
+
                 var creditProm = dbPlayerInfo.getPlayerCredit(apiData.playerId);
                 let convertedRewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(apiData.rewardPointsObjId);
                 let appliedRewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyAppliedPoints(apiData.rewardPointsObjId);
@@ -2329,9 +2351,9 @@ let dbPlayerInfo = {
                 apiData.bankAccountCityId = apiData.bankAccountCity;
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
                 if (zoneData && zoneData[0]) {
-                    apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
-                    apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
-                    apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
+                    apiData.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : apiData.bankAccountProvince;
+                    apiData.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : apiData.bankAccountCity;
+                    apiData.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : apiData.bankAccountDistrict;
                     apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                     apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
                     apiData.preDailyAppliedPoint = zoneData[5] ? zoneData[5] : 0;
@@ -3017,7 +3039,7 @@ let dbPlayerInfo = {
                 }
 
                 if (isGetQuestion) {
-                    return  pmsAPI.bankcard_getBankTypeList({}).then(
+                    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
                         bankTypeData => {
                             returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
                             returnData.questionList = [];
@@ -3294,6 +3316,8 @@ let dbPlayerInfo = {
         let duplicatedRealNameCount = 0;
         let sameBankAccountCount = 0;
         let isfirstTimeRegistration = false;
+
+        console.log('updatePlayerPayment updateData:', updateData);
 
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
@@ -5571,6 +5595,9 @@ let dbPlayerInfo = {
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
                                     }
+                                    if (playerData[ind].partner && playerData[ind].partner._id) {
+                                        dbPlayerInfo.checkPlayerIsBindedToPartner(platformId, playerId);
+                                    }
                                 }
                             }
                             return Q.all(players)
@@ -5815,7 +5842,6 @@ let dbPlayerInfo = {
                 if (!bExit) {
                     newAgentArray.push(uaObj);
                 }
-
                 if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp && playerData.lastLoginIp != "undefined") {
                     bUpdateIp = true;
                 }
@@ -5866,7 +5892,6 @@ let dbPlayerInfo = {
             data => {
                 // Geo and ip related update
                 if (bUpdateIp) {
-                    dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                 }
 
@@ -5939,20 +5964,24 @@ let dbPlayerInfo = {
                     retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
                 }
 
-                let a = retObj.bankAccountProvince ?
-                    pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
-                let b = retObj.bankAccountCity ?
-                    pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
-                let c = retObj.bankAccountDistrict ?
-                    pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+                // let a = retObj.bankAccountProvince ?
+                //     pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                // let b = retObj.bankAccountCity ?
+                //     pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                // let c = retObj.bankAccountDistrict ?
+                //     pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+
+                let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
 
                 return Promise.all([a, b, c]);
             }
         ).then(
             zoneData => {
-                retObj.bankAccountProvince = zoneData[0] && zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
-                retObj.bankAccountCity = zoneData[1] && zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
-                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                retObj.bankAccountProvince = zoneData[0] && zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
+                retObj.bankAccountCity = zoneData[1] && zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
+                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
                 console.log('rt playerLogin end');
@@ -6159,7 +6188,7 @@ let dbPlayerInfo = {
                 if (verificationSMS && verificationSMS.code) {
                     if (verificationSMS.code == loginData.smsCode) {
                         // Verified
-                        let platformId, platformPrefix;
+                        let platformId, platformPrefix, platformObjId;
 
                         return dbconfig.collection_smsVerificationLog.remove(
                             {_id: verificationSMS._id}
@@ -6168,13 +6197,14 @@ let dbPlayerInfo = {
                                 dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                 isSMSVerified = true;
 
-                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId})
+                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId}).lean();
                             }
                         ).then(
                             platformData => {
                                 if (platformData) {
                                     platformId = platformData.platformId;
                                     platformPrefix = platformData.prefix;
+                                    platformObjId = platformData._id;
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
@@ -6211,12 +6241,43 @@ let dbPlayerInfo = {
                                         phoneNumber: loginData.phoneNumber
                                     };
 
+                                    let checkDeviceIdProm = Promise.resolve();
+
                                     if (loginData.deviceId) {
                                         newPlayerData.guestDeviceId = loginData.deviceId;
+
+                                        let query = {
+                                            platform: platformObjId,
+                                            $or: [
+                                                {guestDeviceId: loginData.deviceId},
+                                                {guestDeviceId: rsaCrypto.encrypt(loginData.deviceId)},
+                                                {guestDeviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
+                                            ],
+                                            phoneNumber: null
+                                        };
+                                        checkDeviceIdProm = dbconfig.collection_players.findOne(query).lean();
                                     }
 
-                                    return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true)
-                                        .then(() => dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified));
+                                    return checkDeviceIdProm.then(
+                                        registeredPlayer => {
+                                            if (registeredPlayer) {
+                                                return dbconfig.collection_players.update({_id: registeredPlayer._id, platform: registeredPlayer.platform}, {phoneNumber: rsaCrypto.encrypt(loginData.phoneNumber)});
+                                            }
+                                            else {
+                                                return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                            }
+                                        }
+                                    ).then(
+                                        () => {
+                                            return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
+                                        },
+                                        err => {
+                                            if (err && err.message) {
+                                                err.isRegisterError = true;
+                                            }
+                                            return Promise.reject(err);
+                                        }
+                                    );
                                 }
                             }
                         );
@@ -6259,7 +6320,6 @@ let dbPlayerInfo = {
         let platformObj = {};
         let bUpdateIp = false;
         let geoInfo = {};
-
         return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
                 if (platformData) {
@@ -6452,7 +6512,6 @@ let dbPlayerInfo = {
             data => {
                 // Geo and ip related update
                 if (bUpdateIp) {
-                    dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                 }
 
@@ -6525,20 +6584,24 @@ let dbPlayerInfo = {
                     retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
                 }
 
-                let a = retObj.bankAccountProvince ?
-                    pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
-                let b = retObj.bankAccountCity ?
-                    pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
-                let c = retObj.bankAccountDistrict ?
-                    pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+                // let a = retObj.bankAccountProvince ?
+                //     pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                // let b = retObj.bankAccountCity ?
+                //     pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                // let c = retObj.bankAccountDistrict ?
+                //     pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+
+                let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
 
                 return Promise.all([a, b, c]);
             }
         ).then(
             zoneData => {
-                retObj.bankAccountProvince = zoneData[0] && zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
-                retObj.bankAccountCity = zoneData[1] && zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
-                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                retObj.bankAccountProvince = zoneData[0] && zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
+                retObj.bankAccountCity = zoneData[1] && zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
+                retObj.bankAccountDistrict = zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
                 console.log('rt playerLogin end');
@@ -6600,31 +6663,43 @@ let dbPlayerInfo = {
         let district2 = null;
         let district3 = null;
 
-        let provinceProm1 = query.province1 ? pmsAPI.foundation_getProvince({provinceId: query.province1}) : true;
-        let cityProm1 = query.city1 ? pmsAPI.foundation_getCity({cityId: query.city1}) : true;
-        let districtProm1 = query.district1 ? pmsAPI.foundation_getDistrict({districtId: query.district1}) : true;
+        // let provinceProm1 = query.province1 ? pmsAPI.foundation_getProvince({provinceId: query.province1}) : true;
+        // let cityProm1 = query.city1 ? pmsAPI.foundation_getCity({cityId: query.city1}) : true;
+        // let districtProm1 = query.district1 ? pmsAPI.foundation_getDistrict({districtId: query.district1}) : true;
 
-        let provinceProm2 = query.province2 ? pmsAPI.foundation_getProvince({provinceId: query.province2}) : true;
-        let cityProm2 = query.city2 ? pmsAPI.foundation_getCity({cityId: query.city2}) : true;
-        let districtProm2 = query.district2 ? pmsAPI.foundation_getDistrict({districtId: query.district2}) : true;
+        let provinceProm1 = query.province1 ? RESTUtils.getPMS2Services("postProvince", {provinceId: query.province1}) : true;
+        let cityProm1 = query.city1 ? RESTUtils.getPMS2Services("postCity", {cityId: query.city1}) : true;
+        let districtProm1 = query.district1 ? RESTUtils.getPMS2Services("postDistrict", {districtId: query.district1}) : true;
 
-        let provinceProm3 = query.province3 ? pmsAPI.foundation_getProvince({provinceId: query.province3}) : true;
-        let cityProm3 = query.city3 ? pmsAPI.foundation_getCity({cityId: query.city3}) : true;
-        let districtProm3 = query.district3 ? pmsAPI.foundation_getDistrict({districtId: query.district3}) : true;
+        // let provinceProm2 = query.province2 ? pmsAPI.foundation_getProvince({provinceId: query.province2}) : true;
+        // let cityProm2 = query.city2 ? pmsAPI.foundation_getCity({cityId: query.city2}) : true;
+        // let districtProm2 = query.district2 ? pmsAPI.foundation_getDistrict({districtId: query.district2}) : true;
+
+        let provinceProm2 = query.province2 ? RESTUtils.getPMS2Services("postProvince", {provinceId: query.province2}) : true;
+        let cityProm2 = query.city2 ? RESTUtils.getPMS2Services("postCity", {cityId: query.city2}) : true;
+        let districtProm2 = query.district2 ? RESTUtils.getPMS2Services("postDistrict", {districtId: query.district2}) : true;
+
+        // let provinceProm3 = query.province3 ? pmsAPI.foundation_getProvince({provinceId: query.province3}) : true;
+        // let cityProm3 = query.city3 ? pmsAPI.foundation_getCity({cityId: query.city3}) : true;
+        // let districtProm3 = query.district3 ? pmsAPI.foundation_getDistrict({districtId: query.district3}) : true;
+
+        let provinceProm3 = query.province3 ? RESTUtils.getPMS2Services("postProvince", {provinceId: query.province3}) : true;
+        let cityProm3 = query.city3 ? RESTUtils.getPMS2Services("postCity", {cityId: query.city3}) : true;
+        let districtProm3 = query.district3 ? RESTUtils.getPMS2Services("postDistrict", {districtId: query.district3}) : true;
 
         return Promise.all([provinceProm1, cityProm1, districtProm1, provinceProm2, cityProm2, districtProm2, provinceProm3, cityProm3, districtProm3]).then(
             zoneData => {
-                province1 = zoneData[0].province ? zoneData[0].province.name : null;
-                city1 = zoneData[1].city ? zoneData[1].city.name : null;
-                district1 = zoneData[2].district ? zoneData[2].district.name : null;
+                province1 = zoneData[0].data ? zoneData[0].data.name : null;
+                city1 = zoneData[1].data ? zoneData[1].data.name : null;
+                district1 = zoneData[2].data ? zoneData[2].data.name : null;
 
-                province2 = zoneData[3].province ? zoneData[3].province.name : null;
-                city2 = zoneData[4].city ? zoneData[4].city.name : null;
-                district2 = zoneData[5].district ? zoneData[5].district.name : null;
+                province2 = zoneData[3].data ? zoneData[3].data.name : null;
+                city2 = zoneData[4].data ? zoneData[4].data.name : null;
+                district2 = zoneData[5].data ? zoneData[5].data.name : null;
 
-                province3 = zoneData[6].province ? zoneData[6].province.name : null;
-                city3 = zoneData[7].city ? zoneData[7].city.name : null;
-                district3 = zoneData[8].district ? zoneData[8].district.name : null;
+                province3 = zoneData[6].data ? zoneData[6].data.name : null;
+                city3 = zoneData[7].data ? zoneData[7].data.name : null;
+                district3 = zoneData[8].data ? zoneData[8].data.name : null;
 
                 return {
                     province1: province1,
@@ -6711,33 +6786,45 @@ let dbPlayerInfo = {
                     bank3.bankAddress = playerData.multipleBankDetailInfo.bankAddress3 || null;
                 }
 
-                let provinceProm1 = bank1.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank1.bankAccountProvince}) : true;
-                let cityProm1 = bank1.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank1.bankAccountCity}) : true;
-                let districtProm1 = bank1.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank1.bankAccountDistrict}) : true;
+                // let provinceProm1 = bank1.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank1.bankAccountProvince}) : true;
+                // let cityProm1 = bank1.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank1.bankAccountCity}) : true;
+                // let districtProm1 = bank1.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank1.bankAccountDistrict}) : true;
 
-                let provinceProm2 = bank2.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank2.bankAccountProvince}) : true;
-                let cityProm2 = bank2.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank2.bankAccountCity}) : true;
-                let districtProm2 = bank2.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank2.bankAccountDistrict}) : true;
+                let provinceProm1 = bank1.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: bank1.bankAccountProvince}) : true;
+                let cityProm1 = bank1.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: bank1.bankAccountCity}) : true;
+                let districtProm1 = bank1.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: bank1.bankAccountDistrict}) : true;
 
-                let provinceProm3 = bank3.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank3.bankAccountProvince}) : true;
-                let cityProm3 = bank3.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank3.bankAccountCity}) : true;
-                let districtProm3 = bank3.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank3.bankAccountDistrict}) : true;
+                // let provinceProm2 = bank2.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank2.bankAccountProvince}) : true;
+                // let cityProm2 = bank2.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank2.bankAccountCity}) : true;
+                // let districtProm2 = bank2.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank2.bankAccountDistrict}) : true;
+
+                let provinceProm2 = bank2.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: bank2.bankAccountProvince}) : true;
+                let cityProm2 = bank2.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: bank2.bankAccountCity}) : true;
+                let districtProm2 = bank2.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: bank2.bankAccountDistrict}) : true;
+
+                // let provinceProm3 = bank3.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: bank3.bankAccountProvince}) : true;
+                // let cityProm3 = bank3.bankAccountCity ? pmsAPI.foundation_getCity({cityId: bank3.bankAccountCity}) : true;
+                // let districtProm3 = bank3.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: bank3.bankAccountDistrict}) : true;
+
+                let provinceProm3 = bank3.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: bank3.bankAccountProvince}) : true;
+                let cityProm3 = bank3.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: bank3.bankAccountCity}) : true;
+                let districtProm3 = bank3.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: bank3.bankAccountDistrict}) : true;
 
                 return Promise.all([provinceProm1, cityProm1, districtProm1, provinceProm2, cityProm2, districtProm2, provinceProm3, cityProm3, districtProm3])
             }
         ).then(
             zoneData => {
-                bank1.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : bank1.bankAccountProvince;
-                bank1.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : bank1.bankAccountCity;
-                bank1.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : bank1.bankAccountDistrict;
+                bank1.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : bank1.bankAccountProvince;
+                bank1.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : bank1.bankAccountCity;
+                bank1.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : bank1.bankAccountDistrict;
 
-                bank2.bankAccountProvince = zoneData[3].province ? zoneData[3].province.name : bank2.bankAccountProvince;
-                bank2.bankAccountCity = zoneData[4].city ? zoneData[4].city.name : bank2.bankAccountCity;
-                bank2.bankAccountDistrict = zoneData[5].district ? zoneData[5].district.name : bank2.bankAccountDistrict;
+                bank2.bankAccountProvince = zoneData[3].data ? zoneData[3].data.name : bank2.bankAccountProvince;
+                bank2.bankAccountCity = zoneData[4].data ? zoneData[4].data.name : bank2.bankAccountCity;
+                bank2.bankAccountDistrict = zoneData[5].data ? zoneData[5].data.name : bank2.bankAccountDistrict;
 
-                bank3.bankAccountProvince = zoneData[6].province ? zoneData[6].province.name : bank3.bankAccountProvince;
-                bank3.bankAccountCity = zoneData[7].city ? zoneData[7].city.name : bank3.bankAccountCity;
-                bank3.bankAccountDistrict = zoneData[8].district ? zoneData[8].district.name : bank3.bankAccountDistrict;
+                bank3.bankAccountProvince = zoneData[6].data ? zoneData[6].data.name : bank3.bankAccountProvince;
+                bank3.bankAccountCity = zoneData[7].data ? zoneData[7].data.name : bank3.bankAccountCity;
+                bank3.bankAccountDistrict = zoneData[8].data ? zoneData[8].data.name : bank3.bankAccountDistrict;
 
                 if (bank1.bankName || bank1.bankAccountName || bank1.bankAccount) {
                     listData.push(bank1);
@@ -6748,7 +6835,7 @@ let dbPlayerInfo = {
                 if (bank3.bankName || bank3.bankAccountName || bank3.bankAccount) {
                     listData.push(bank3);
                 }
-                return pmsAPI.bankcard_getBankTypeList({});
+                return RESTUtils.getPMS2Services("postBankTypeList", {});
             },
         ).then(
             bankTypeList => {
@@ -6905,13 +6992,8 @@ let dbPlayerInfo = {
                             //Object.assign(recordData, geoInfo);
 
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
-                            return record.save().then(
-                                function () {
-                                    if (bUpdateIp) {
-                                        dbPlayerInfo.updateGeoipws(data._id, platformId, loginData.lastLoginIp);
-                                    }
-                                }
-                            ).then(
+                            return record.save()
+                            .then(
                                 () => {
                                     return dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "platform",
@@ -6923,18 +7005,23 @@ let dbPlayerInfo = {
                                         res => {
                                             // res.name = res.name.replace(platformPrefix, "");
                                             retObj = res;
-                                            let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
-                                            let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
-                                            let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+                                            // let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                                            // let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                                            // let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+
+                                            let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}) : true;
+                                            let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}) : true;
+                                            let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}) : true;
+
                                             let creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
 
                                             return Q.all([a, b, c, creditProm]);
                                         }
                                     ).then(
                                         zoneData => {
-                                            retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
-                                            retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
-                                            retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                                            retObj.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
+                                            retObj.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
+                                            retObj.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                                             return retObj;
                                         },
@@ -9593,7 +9680,7 @@ let dbPlayerInfo = {
                     if (levelObjId) {
                         // Perform the level up
                         return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
-                            platformData => {
+                            async (platformData) => {
                                 console.log("ZM, player level up checkpoint 1 ", playerObj.name);
                                 let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                                 let platformPeriodTime;
@@ -9633,7 +9720,9 @@ let dbPlayerInfo = {
                                     }
                                 ).lean();
 
-                                let consumptionProm = dbconfig.collection_playerConsumptionRecord.find(
+
+                                let consumptionArr = [];
+                                let consumptionProm = await dbconfig.collection_playerConsumptionRecord.find(
                                     {
                                         platformId: ObjectId(playerObj.platform),
                                         createTime: {
@@ -9642,9 +9731,13 @@ let dbPlayerInfo = {
                                         },
                                         playerId: ObjectId(playerObj._id)
                                     }
-                                ).lean();
+                                ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
+                                    if (doc._doc) {
+                                        consumptionArr.push(doc._doc);
+                                    }
+                                });
 
-                                return Promise.all([topUpProm, consumptionProm]).then(
+                                return Promise.all([topUpProm, consumptionArr]).then(
                                     recordData => {
                                         console.log("ZM player level up checkpoint 2 ", playerObj.name);
                                         let topUpSummary = recordData[0];
@@ -9972,7 +10065,7 @@ let dbPlayerInfo = {
                 if (levels && levels.length > 0) {
                     // Perform the level up
                     return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
-                        platformData => {
+                        async (platformData) => {
                             let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                             let platformPeriodTime;
                             if (platformPeriod) {
@@ -10000,7 +10093,8 @@ let dbPlayerInfo = {
                                 }
                             ).lean();
 
-                            let consumptionProm = dbconfig.collection_playerConsumptionRecord.find(
+                            let consumptionArr = [];
+                            let consumptionProm = await dbconfig.collection_playerConsumptionRecord.find(
                                 {
                                     platformId: ObjectId(playerObj.platform),
                                     createTime: {
@@ -10009,10 +10103,17 @@ let dbPlayerInfo = {
                                     },
                                     playerId: ObjectId(playerObj._id)
                                 }
-                            ).lean();
+                            ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
+                                if (doc._doc) {
+                                    consumptionArr.push(doc._doc);
+                                }
+                            });
 
-                            return Promise.all([topUpProm, consumptionProm]).then(
+                            console.log("ZM, player manual level up checkpoint 1 ", playerObj.name);
+
+                            return Promise.all([topUpProm, consumptionArr]).then(
                                 recordData => {
+                                    console.log("ZM, player manual level up checkpoint 2 ", playerObj.name);
                                     let topUpSummary = recordData[0];
                                     let consumptionSummary = recordData[1];
                                     let topUpSumPeriod = {};
@@ -11858,12 +11959,13 @@ let dbPlayerInfo = {
                 (onlineTopupType) => {
                     if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                     let getMerchantListProm = Promise.resolve([]);
+
                     // only when analysis category is thirdPartyPlatform need get merchantList from pms
-                    if (analysisCategory === 'thirdPartyPlatform')
-                        getMerchantListProm = pmsAPI.merchant_getMerchantList({
-                            platformId: onlineTopupType.platformId.platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
+                    if (analysisCategory === 'thirdPartyPlatform') {
+                        getMerchantListProm = RESTUtils.getPMS2Services("postMerchantList", {platformId: onlineTopupType.platformId.platformId});
+                    }
+
+
                     return getMerchantListProm.then(
                         responseData => {
                             let merchantList = responseData.merchants || [];
@@ -13008,7 +13110,14 @@ let dbPlayerInfo = {
                     ).lean();
                 }
                 else {
-                    return Promise.reject({name: "DataError", message: "Invalid proposal id or status"});
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Invalid proposal id or status",
+                        data: {
+                            proposalId: proposalId,
+                            fpmsStatus: data && data.status ? data.status : ''
+                        }
+                    });
                 }
             }
         ).then(
@@ -13936,6 +14045,7 @@ let dbPlayerInfo = {
         // merchantUse - 1: merchant, 2: bankcard
         // clientType: 1: browser, 2: mobileApp
         var playerData = null;
+        let topUpSystemConfig;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -13948,7 +14058,11 @@ let dbPlayerInfo = {
                     return [];
                 }
                 if (data && data.platform) {
-                    if (data.platform.merchantGroupIsPMS) {
+                    topUpSystemConfig = extConfig && data.platform && data.platform.topUpSystemType && extConfig[data.platform.topUpSystemType];
+
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        bPMSGroup = false;
+                    } else if (data.platform.merchantGroupIsPMS) {
                         bPMSGroup = true
                     } else {
                         bPMSGroup = false;
@@ -13959,13 +14073,22 @@ let dbPlayerInfo = {
                     };
                     playerData = data;
                     //if (merchantUse == 1) {
-                        if (bPMSGroup == true || bPMSGroup == "true") {
-                            pmsQuery.username = data.name;
-                            pmsQuery.ip = userIp;
-                            pmsQuery.clientType = clientType;
-                            return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            let query = {
+                                username: data.name,
+                                platformId: data.platform.platformId,
+                                clientType: clientType
+                            };
+
+                            return RESTUtils.getPMS2Services("postOnlineTopupType", query);
                         }
-                        return pmsAPI.merchant_getMerchantList(pmsQuery);
+                        // if (bPMSGroup == true || bPMSGroup == "true") {
+                        //     pmsQuery.username = data.name;
+                        //     pmsQuery.ip = userIp;
+                        //     pmsQuery.clientType = clientType;
+                        //     return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+                        // }
+                        return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
                     // }
                     // else {
                     //     return pmsAPI.bankcard_getBankcardList(pmsQuery);
@@ -13980,7 +14103,35 @@ let dbPlayerInfo = {
                     var resData = [];
                     // if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
                     if (paymentData.merchants || paymentData.topupTypes) {
-                        if (paymentData.topupTypes) {
+                        if (paymentData.merchants && topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                            resData = paymentData.merchants;
+                            resData.forEach(merchant => {
+                                let minAmt = Number.POSITIVE_INFINITY;
+                                let maxAmt = Number.NEGATIVE_INFINITY;
+
+                                if (Number(merchant.minDepositAmount) < minAmt) {
+                                    minAmt = Number(merchant.minDepositAmount);
+                                }
+
+                                if (Number(merchant.maxDepositAmount) > maxAmt) {
+                                    maxAmt = Number(merchant.maxDepositAmount);
+                                }
+
+                                merchant.minDepositAmount = minAmt;
+                                merchant.maxDepositAmount = maxAmt;
+                            });
+
+                            if (playerData.forbidTopUpType && playerData.forbidTopUpType.length){
+                                playerData.forbidTopUpType.forEach(
+                                    topupType => {
+                                        let index = resData.findIndex( p => Number(p.type) == Number(topupType));
+                                        if (index != -1){
+                                            resData.splice(index, 1)
+                                        }
+                                    }
+                                )
+                            }
+                        } else if (paymentData.topupTypes) {
                             resData = paymentData.topupTypes;
                             resData.forEach(merchant => {
                                 merchant.type = Number(merchant.type);
@@ -19110,6 +19261,13 @@ let dbPlayerInfo = {
             }
         }
 
+        let consumptionStartTime;
+        let consumptionEndTime;
+        if (query.queryStart && query.queryEnd) {
+            consumptionStartTime = new Date(query.queryStart);
+            consumptionEndTime = new Date(query.queryEnd);
+        }
+
         let stream = dbconfig.collection_players.aggregate({
             $match: matchObj
         }).cursor({batchSize: 10}).allowDiskUse(true).exec();
@@ -19126,7 +19284,9 @@ let dbPlayerInfo = {
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
-                                endTime: moment(query.start).add(query.days, "day"),
+                                endTime: query.days? moment(query.start).add(query.days, "day"): new Date(),
+                                customStartTime: consumptionStartTime,
+                                customEndTime: consumptionEndTime,
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     playerData = playerIdObjs;
@@ -19287,7 +19447,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay, customStartTime, customEndTime) {
         console.log('getConsumptionDetailOfPlayers - start');
         option = option || {};
         let proms = [];
@@ -19298,12 +19458,7 @@ let dbPlayerInfo = {
             platformData => {
                 console.log('getConsumptionDetailOfPlayers - 1');
                 if (platformData && platformData.platformId) {
-                    return pmsAPI.merchant_getMerchantList(
-                        {
-                            platformId: platformData.platformId,
-                            queryId: serverInstance.getQueryId()
-                        }
-                    ).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
@@ -19331,7 +19486,11 @@ let dbPlayerInfo = {
                                 }, 'registrationTime domain').lean().then(
                                     playerData => {
                                         let qStartTime = new Date(playerData.registrationTime);
-                                        let qEndTime = moment(qStartTime).add(query.days, 'day');
+                                        let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
+                                        if (customStartTime && customEndTime) {
+                                            qStartTime = customStartTime;
+                                            qEndTime = customEndTime;
+                                        }
 
                                         return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain, true);
                                     }
@@ -19348,7 +19507,7 @@ let dbPlayerInfo = {
                                         data => {
                                             feedbackData = JSON.parse(JSON.stringify(data));
                                             let qStartTime = new Date(feedbackData.createTime);
-                                            let qEndTime = moment(qStartTime).add(query.days, 'day');
+                                            let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
                                             return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime, null, true);
                                         }
                                     ).then(
@@ -24022,31 +24181,12 @@ let dbPlayerInfo = {
 
         });
 
-        if (sendObjArr.length) {
-            if (topUpSystemName === 'PMS') {
-                return pmsAPI.foundation_userDepositSettings(
-                    {
-                        queryId: +new Date() + serverInstance.getQueryId(),
-                        data: sendObjArr
-                    }
-                ).then(
-                    updateStatus => {
-                        console.log('foundation_userDepositSettings success', updateStatus);
-                        return updateStatus;
-                    },
-                    error => {
-                        console.log('foundation_userDepositSettings failed', error);
-                        throw error;
-                    }
-                )
+        if (sendObjArr.length && topUpSystemName === 'PMS2') {
+            let data = {
+                requests: sendObjArr
+            };
 
-            } else if (topUpSystemName === 'PMS2') {
-                let data = {
-                    requests: sendObjArr
-                };
-
-                return RESTUtils.getPMS2Services("postBatchTopupStatus", data);
-            }
+            return RESTUtils.getPMS2Services("postBatchTopupStatus", data);
         }
 
         function getPlayerTopupChannelPermission (player) {
@@ -24058,31 +24198,11 @@ let dbPlayerInfo = {
         return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
             sendObj => {
                 console.log('getPlayerTopupChannelPermission sendObj :', sendObj);
-                if (sendObj) {
-                    if (topUpSystemName === 'PMS') {
-                        return pmsAPI.foundation_userDepositSettings(
-                            {
-                                queryId: +new Date() + serverInstance.getQueryId(),
-                                data: [sendObj]
-                            }
-                        ).then(
-                            updateStatus => {
-                                console.log('foundation_userDepositSettings success', updateStatus);
-                                return updateStatus;
-                            },
-                            error => {
-                                console.log('foundation_userDepositSettings failed', error);
-                                throw error;
-                            }
-                        )
+                if (sendObj && topUpSystemName === 'PMS2') {
+                    sendObj.timestamp = Date.now();
 
-                    } else if (topUpSystemName === 'PMS2') {
-                        sendObj.timestamp = Date.now();
-
-                        return RESTUtils.getPMS2Services("patchTopupStatus", sendObj)
-                    }
+                    return RESTUtils.getPMS2Services("patchTopupStatus", sendObj)
                 }
-
             }
         );
 
@@ -24150,7 +24270,6 @@ let dbPlayerInfo = {
 
     checkDeviceIdRegistered: (platformObjId, deviceId) => {
         let query = {
-            guestDeviceId: deviceId,
             platform: platformObjId,
             $or: [
                 {guestDeviceId: deviceId},

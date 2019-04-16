@@ -494,6 +494,9 @@ let callBackToUserLogModel = dbLogs2.model('callBackToUserLog', callBackToUserLo
 let auctionSystemSchema = require('./../schema/auctionSystem');
 let auctionSystemModel = dbLogs2.model('auctionSystem', auctionSystemSchema, 'auctionSystem');
 
+let playerRandomRewardSchemaSchema = require('./../schema/playerRandomReward');
+let playerRandomRewardSchemaModel = dbLogs2.model('playerRandomReward', playerRandomRewardSchemaSchema, 'playerRandomReward');
+
 let playerReportDataDaySummarySchema = require('../schema/playerReportDataDaySummary');
 let playerReportDataDaySummaryModel = dbLogs2.model('playerReportDataDaySummary', playerReportDataDaySummarySchema, 'playerReportDataDaySummary');
 
@@ -687,7 +690,7 @@ var dbProperties = {
     collection_advertisementPageXBET: advertisementPageXBETModel,
 
     collection_playerMultipleBankDetailInfo: playerMultipleBankDetailInfoModel,
-    
+
     collection_idcIp: idcIpModel,
     collection_smsGroup: smsGroupModel,
     collection_promoCodeTemplate: promoCodeTemplateModel,
@@ -791,6 +794,7 @@ var dbProperties = {
     collection_live800RecordDayRecord: scheduledLive800DailyRecordModel,
     collection_playerDataFromExternalSource: playerInfoFromExternalSourceModel,
     collection_queryCreditTimeout: queryCreditTimeoutModel,
+    collection_playerRandomReward: playerRandomRewardSchemaModel,
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,

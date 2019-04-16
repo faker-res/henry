@@ -42,6 +42,9 @@ var envConf = {
     }
 };
 
+let fpmsRestartAddress = 'http://localhost:7000/restartFPMS';
+let fpmsUpdateKeyAddress = 'http://localhost:7000/updateKeyPair';
+
 //env parameters
 var env = {
     //cur server message client
@@ -51,7 +54,33 @@ var env = {
 
     config : function() {
         return envConf[this.mode];
-    }
+    },
+
+    getAnotherConfig: function () {
+        let selfMode = this.config().mode;
+        let selfUrl = this.config().redisUrl;
+        let selfPort = this.config().redisPort;
+
+        console.log('selfMode', selfMode);
+        console.log('selfUrl', selfUrl);
+        console.log('selfUrl', selfUrl);
+
+        return Object.keys(envConf).filter(isTheOtherConfig).map(o => envConf[o]);
+
+        function isTheOtherConfig (o) {
+            if (
+                envConf[o].mode === selfMode
+                && envConf[o].redisUrl === selfUrl
+                && envConf[o].redisPort !== selfPort
+            ) {
+                console.log('envConf[o]', envConf[o]);
+                return true;
+            }
+        }
+    },
+
+    getFPMSRestartAddress: () => fpmsRestartAddress,
+    getFPMSUpdateAddress: () => fpmsUpdateKeyAddress
 };
 
 module.exports = env;

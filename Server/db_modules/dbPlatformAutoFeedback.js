@@ -362,11 +362,12 @@ let dbPlatformAutoFeedback = {
                             arr.push(lastFeedbackTimeExist);
                             arr.push(lastFeedbackTime);
                         }
-                        if(feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
-                            let filterFeedbackTopic = {lastFeedbackTopic: {$nin: feedback.filterFeedbackTopic}};
-                            arr.push(filterFeedbackTopic);
-                        }
+
                         addMultipleOr(arr);
+                    }
+
+                    if(feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
+                        playerQuery.lastFeedbackTopic = {$nin: feedback.filterFeedbackTopic};
                     }
 
                     if (feedback.callPermission == 'true') {

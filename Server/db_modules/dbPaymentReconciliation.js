@@ -4,36 +4,110 @@ const dbUtility = require("../modules/dbutility");
 const constProposalType = require("../const/constProposalType");
 const constProposalStatus = require("../const/constProposalStatus");
 const moment = require('moment-timezone');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+const RESTUtils = require('../modules/RESTUtils');
 
 const dbPaymentReconciliation = {
-    getBonusReport: function (platform, platformId, option, startTime, endTime) {
+    getBonusReport: function (platformList, option, startTime, endTime) {
         let timeFrames = sliceTimeFrameToDaily(startTime, endTime);
-
         let name = constProposalType.PLAYER_BONUS;
+        let platformObjIds;
+        let platformListQuery;
+        let proposalTypeQuery;
+        let platformIds = [];
+        let platformRecord = [];
 
-        return dbconfig.collection_proposalType.findOne({platformId: platform, name: name}).lean().then(
+        if(platformList && platformList.length > 0) {
+            platformObjIds = {$in: platformList.map(item=>{return ObjectId(item)})};
+            platformListQuery = {_id: platformObjIds};
+            proposalTypeQuery = {platformId: platformObjIds, name: name};
+        } else {
+            platformListQuery = {};
+            proposalTypeQuery = {name: name};
+        }
+
+        return dbconfig.collection_platform.find(platformListQuery, {platformId: 1, name: 1}).then(
+            platformData => {
+                if (platformData && platformData.length > 0) {
+                    for (let i = 0, len = platformData.length; i < len; i++) {
+                        platformIds.push(platformData[i].platformId);
+                        platformRecord.push({platformId: platformData[i].platformId, platformName: platformData[i].name});
+                    }
+
+                    return dbconfig.collection_proposalType.find(proposalTypeQuery).lean();
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
             proposalTypeData => {
-                let proposalTypeId = proposalTypeData._id;
+                let proposalType = proposalTypeData;
                 let allProm = [];
+                let proposalTypeIds = [];
+
+                for (let i = 0, len = proposalType.length; i < len; i++) {
+                    proposalTypeIds.push(proposalType[i]._id);
+                }
 
                 for (let t = 0, tLength = timeFrames.length; t < tLength; t++) {
+                    let promises = [];
                     let start = timeFrames[t].startTime;
                     let end = timeFrames[t].endTime;
 
-                    let pmsProm = pmsAPI.reconciliation_getCashoutList({
-                        platformId: platformId,
-                        starttime: getPMSTimeFormat(start),
-                        endtime: getPMSTimeFormat(end)
-                    });
+                    let reqData = {
+                        platformIds: platformIds,
+                        startTime: getPMSTimeFormat(start),
+                        endTime: getPMSTimeFormat(end)
+                    };
+
+                    let pmsProm = RESTUtils.getPMS2Services("postCashoutList", reqData).then(
+                        data => {
+                            if (data && data.data && data.data.length > 0) {
+                                data.data.forEach(proposal => {
+                                    if (proposal && proposal.platformId && platformRecord && platformRecord.length > 0) {
+                                        let index = platformRecord.map(e => e.plaformId).indexOf(proposal.plaformId);
+
+                                        if (index != -1) {
+                                            proposal.platformName = platformRecord[index].platformName;
+                                        }
+                                    }
+                                });
+
+                                return data.data;
+
+                            } else {
+                                return [];
+                            }
+                        }
+                    );
+
+                    promises.push(pmsProm);
 
                     let proposalQuery = {
-                        type: proposalTypeId,
+                        type: {$in: proposalTypeIds},
                         status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                         createTime: {$gte: start, $lte: end},
                         from_old_system: {$exists: false}
                     };
 
-                    let proposalProm = dbconfig.collection_proposal.find(proposalQuery, {proposalId: 1, "data.amount": 1, createTime: 1, amount:1}).lean();
+                    let proposalProm = dbconfig.collection_proposal.find(proposalQuery, {proposalId: 1, "data.amount": 1, createTime: 1, amount:1, "data.platformId": 1})
+                        .populate({path: "data.platformId", model: dbconfig.collection_platform, select: "_id platformId name"}).lean().then(
+                            proposalData => {
+                                if (proposalData && proposalData.length > 0) {
+                                    proposalData.forEach(proposal => {
+                                        proposal.platformId = proposal && proposal.data && proposal.data.platformId && proposal.data.platformId.platformId ? proposal.data.platformId.platformId : '';
+                                        proposal.platformName = proposal && proposal.data && proposal.data.platformId && proposal.data.platformId.name ? proposal.data.platformId.name : '';
+                                        delete proposal.data.platformId;
+                                    });
+
+                                    return proposalData;
+                                } else {
+                                    return [];
+                                }
+                            }
+                        );
 
                     allProm.push(Promise.all([pmsProm, proposalProm]));
                 }
@@ -87,20 +161,16 @@ const dbPaymentReconciliation = {
         )
     },
 
-    getOnlinePaymentProposalMismatchReport: function (platform, platformId, option, startTime, endTime) {
+    getOnlinePaymentProposalMismatchReport: function (platformList, option, startTime, endTime) {
         // since PMS does not allow having more than 24hr between time frame,
         // FPMS will do the time slicing internally
         let timeFrames = sliceTimeFrameToDaily(startTime, endTime);
-
-        let name = {
-            $in: [
-                constProposalType.PLAYER_TOP_UP,
-                constProposalType.PLAYER_ALIPAY_TOP_UP,
-                constProposalType.PLAYER_WECHAT_TOP_UP,
-                constProposalType.PLAYER_MANUAL_TOP_UP,
-                constProposalType.PLAYER_QUICKPAY_TOP_UP
-            ]
-        };
+        let platformObjIds;
+        let platformListQuery;
+        let proposalTypeQuery;
+        let platformIds = [];
+        let platformRecord = [];
+        let name;
 
         if (option === 'online') {
             name = constProposalType.PLAYER_TOP_UP;
@@ -116,11 +186,33 @@ const dbPaymentReconciliation = {
             };
         }
 
-        return dbconfig.collection_proposalType.find({platformId: platform, name: name}).lean().then(
+        if(platformList && platformList.length > 0) {
+            platformObjIds = {$in: platformList.map(item=>{return ObjectId(item)})};
+            platformListQuery = {_id: platformObjIds};
+            proposalTypeQuery = {platformId: platformObjIds, name: name};
+        } else {
+            platformListQuery = {};
+            proposalTypeQuery = {name: name};
+        }
+
+        return dbconfig.collection_platform.find(platformListQuery, {platformId: 1, name: 1}).then(
+            platformData => {
+                if (platformData && platformData.length > 0) {
+                    for (let i = 0, len = platformData.length; i < len; i++) {
+                        platformIds.push(platformData[i].platformId);
+                        platformRecord.push({platformId: platformData[i].platformId, platformName: platformData[i].name});
+                    }
+
+                    return dbconfig.collection_proposalType.find(proposalTypeQuery).lean();
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
             proposalTypeData => {
                 let proposalType = proposalTypeData;
                 let allProm = [];
-
                 let proposalTypeIds = [];
 
                 for (let i = 0, len = proposalType.length; i < len; i++) {
@@ -132,19 +224,37 @@ const dbPaymentReconciliation = {
                     let start = timeFrames[t].startTime;
                     let end = timeFrames[t].endTime;
 
-                    let pmsProm = pmsAPI.reconciliation_getCashinList({
-                        platformId: platformId,
-                        starttime: getPMSTimeFormat(start),
-                        endtime: getPMSTimeFormat(end)
-                    });
+                    let reqData = {
+                        platformIds: platformIds,
+                        startTime: getPMSTimeFormat(start),
+                        endTime: getPMSTimeFormat(end)
+                    };
 
+                    let serviceName = "postCashinList";
                     if (option === 'online') {
-                        pmsProm = pmsAPI.reconciliation_getOnlineCashinList({
-                            platformId: platformId,
-                            starttime: getPMSTimeFormat(start),
-                            endtime: getPMSTimeFormat(end)
-                        });
+                        serviceName = "postOnlineCashinList";
                     }
+
+                    let pmsProm = RESTUtils.getPMS2Services(serviceName, reqData).then(
+                        data => {
+                            if (data && data.data && data.data.length > 0) {
+                                data.data.forEach(proposal => {
+                                    if (proposal && proposal.platformId && platformRecord && platformRecord.length > 0) {
+                                        let index = platformRecord.map(e => e.plaformId).indexOf(proposal.plaformId);
+
+                                        if (index != -1) {
+                                            proposal.platformName = platformRecord[index].platformName;
+                                        }
+                                    }
+                                });
+
+                                return data.data;
+
+                            } else {
+                                return [];
+                            }
+                        }
+                    );
 
                     promises.push(pmsProm);
 
@@ -155,19 +265,24 @@ const dbPaymentReconciliation = {
                         from_old_system: {$exists: false}
                     };
 
-                    let proposalProm = dbconfig.collection_proposal.find(proposalQuery, {proposalId: 1, "data.amount": 1, createTime: 1, amount:1}).lean();
+                    let proposalProm = dbconfig.collection_proposal.find(proposalQuery, {proposalId: 1, "data.amount": 1, createTime: 1, amount:1, "data.platformId": 1})
+                        .populate({path: "data.platformId", model: dbconfig.collection_platform, select: "_id platformId name"}).lean().then(
+                            proposalData => {
+                                if (proposalData && proposalData.length > 0) {
+                                    proposalData.forEach(proposal => {
+                                        proposal.platformId = proposal && proposal.data && proposal.data.platformId && proposal.data.platformId.platformId ? proposal.data.platformId.platformId : '';
+                                        proposal.platformName = proposal && proposal.data && proposal.data.platformId && proposal.data.platformId.name ? proposal.data.platformId.name : '';
+                                        delete proposal.data.platformId;
+                                    });
+
+                                    return proposalData;
+                                } else {
+                                    return [];
+                                }
+                            }
+                        );
 
                     promises.push(proposalProm);
-
-                    if (option === 'manual') {
-                        let pmsOnlineCashinProm = pmsAPI.reconciliation_getCashinList({
-                            platformId: platformId,
-                            starttime: getPMSTimeFormat(start),
-                            endtime: getPMSTimeFormat(end)
-                        });
-
-                        promises.push(pmsOnlineCashinProm);
-                    }
 
                     allProm.push(Promise.all(promises));
                 }
@@ -176,7 +291,6 @@ const dbPaymentReconciliation = {
             }
         ).then(
             proposalGroup => {
-                // console.log(proposalGroup[0])
                 let mismatches = [];
                 let pmsMismatchCount = 0;
                 let pmsMismatchAmount = 0;
@@ -257,30 +371,16 @@ function getMismatchFromProposalGroup(proposals, option) {
     }
 
     if (option === 'online') {
-        pmsProposals = proposals[0].onlineCashinList || [];
+        pmsProposals = proposals[0] || [];
+    }
+    else if (option === 'bonus') {
+        pmsProposals = proposals[0] || [];
     }
     else {
-        pmsProposals = proposals[0].cashinList || proposals[0].cashoutList || [];
+        pmsProposals = proposals[0] || [];
     }
 
     let localProposals = proposals[1] || [];
-    let pmsOnlineProposals = option === 'manual' && proposals[2] ? proposals[2].onlineCashinList : [];
-
-    if (option === 'manual') {
-        pmsOnlineProposals = pmsOnlineProposals || [];
-        for (let i = 0, iLength = pmsOnlineProposals.length; i < iLength; i++) {
-            for (let j = 0, jLength = pmsProposals.length; j < jLength; j++) {
-                let pmsOnlineProposal = pmsOnlineProposals[i];
-                let pmsProposal = pmsProposals[j];
-
-                if (pmsProposal.proposalId && pmsOnlineProposal.proposalId && pmsProposal.proposalId.toString() === pmsOnlineProposal.proposalId.toString()) {
-                    pmsProposal.matched = true;
-                    pmsOnlineProposal.matched = true;
-                    break;
-                }
-            }
-        }
-    }
 
     for (let i = 0, iLength = pmsProposals.length; i < iLength; i++) {
         for (let j = 0, jLength = localProposals.length; j < jLength; j++) {
@@ -303,7 +403,14 @@ function getMismatchFromProposalGroup(proposals, option) {
     for (let i = 0, iLength = pmsProposals.length; i < iLength; i++) {
         let pmsProposal = pmsProposals[i];
         if (!pmsProposal.matched) {
-            mismatches.push({proposalId: pmsProposal.proposalId, missing: "FPMS", createTime: pmsProposal.createTime, amount: pmsProposal.amount});
+            mismatches.push({
+                proposalId: pmsProposal.proposalId,
+                missing: "FPMS",
+                createTime: pmsProposal.createTime,
+                amount: pmsProposal.amount,
+                platformId: pmsProposal.platformId,
+                platformName: pmsProposal.platformName
+            });
             pmsMismatchCount++;
             pmsMismatchAmount += pmsProposal.amount;
         }
@@ -319,7 +426,14 @@ function getMismatchFromProposalGroup(proposals, option) {
         let localProposal = localProposals[i];
         localProposal.createTime = getPMSTimeFormat(localProposal.createTime);
         if (!localProposal.matched) {
-            mismatches.push({proposalId: localProposal.proposalId, missing: "PMS", createTime: localProposal.createTime, amount: localProposal.data.amount});
+            mismatches.push({
+                proposalId: localProposal.proposalId,
+                missing: "PMS",
+                createTime: localProposal.createTime,
+                amount: localProposal.data.amount,
+                platformId: localProposal.platformId,
+                platformName: localProposal.platformName
+            });
             localMismatchCount++;
             localMismatchAmount += localProposal.data.amount;
         }

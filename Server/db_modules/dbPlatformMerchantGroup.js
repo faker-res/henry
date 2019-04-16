@@ -187,13 +187,9 @@ var dbPlatformMerchantGroup = {
         )
     },
     getIncludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
-        var allMerchants = [];
-        return pmsAPI.merchant_getMerchantList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        let allMerchants = [];
+
+        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}).then(
             data=> {
                 allMerchants = data.merchants || [];
                 return dbconfig.collection_platformMerchantGroup.findOne({_id: merchantGroupId})
@@ -275,14 +271,10 @@ var dbPlatformMerchantGroup = {
 
     getExcludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
         var allMerchants = [];
-        return pmsAPI.merchant_getMerchantList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        ).then(
+        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}).then(
             data=> {
                 allMerchants = data.merchants || [];
+
                 return dbconfig.collection_platformMerchantGroup.findOne({_id: merchantGroupId})
             }
         ).then(
@@ -505,7 +497,6 @@ var dbPlatformMerchantGroup = {
     },
 
     getMerchantNBankCard:function(platformId){
-        let topUpSystemConfig;
         let merchantsList;
         let bankCardList;
         let weChatList;
@@ -514,40 +505,26 @@ var dbPlatformMerchantGroup = {
         return dbconfig.collection_platform.findOne({platformId: platformId}, {topUpSystemType: 1, platformId: 1}).lean().then(
             platformData => {
                 if (platformData) {
-                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let bankcardListOptions = {
-                            platformId: platformId,
-                            accountType: constAccountType.BANK_CARD
-                        };
+                    let bankcardListOptions = {
+                        platformId: platformId,
+                        accountType: constAccountType.BANK_CARD
+                    };
 
-                        let alipayListOptions = {
-                            platformId: platformId,
-                            accountType: constAccountType.ALIPAY
-                        };
+                    let alipayListOptions = {
+                        platformId: platformId,
+                        accountType: constAccountType.ALIPAY
+                    };
 
-                        let wechatpayListOptions = {
-                            platformId: platformId,
-                            accountType: constAccountType.WECHAT
-                        };
+                    let wechatpayListOptions = {
+                        platformId: platformId,
+                        accountType: constAccountType.WECHAT
+                    };
 
-                        merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
-                        bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions);
-                        aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions);
-                        weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions);
-                    } else {
-                        merchantsList = pmsAPI.merchant_getMerchantList({
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
-                        bankCardList = pmsAPI.bankcard_getBankcardList({
-                            platformId: platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
-                        weChatList = pmsAPI.weChat_getWechatList({platformId: platformId, queryId: serverInstance.getQueryId()});
-                        aliPayList = pmsAPI.alipay_getAlipayList({platformId: platformId, queryId: serverInstance.getQueryId()});
-                    }
+                    merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
+                    bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions);
+                    aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions);
+                    weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions);
 
                     return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
                         data=>{
@@ -647,11 +624,7 @@ var dbPlatformMerchantGroup = {
         var allMerchants = [];
         return dbconfig.collection_platform.findOne({'_id': platformObjId}).then(
             platformData => {
-                return pmsAPI.merchant_getMerchantList(
-                    {
-                        platformId: platformData.platformId,
-                        queryId: serverInstance.getQueryId()
-                    })
+                return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId});
             }
         ).then(
             data => {
@@ -745,25 +718,7 @@ var dbPlatformMerchantGroup = {
     },
 
     getMerchantTypeList: function (platformObjId) {
-        let topUpSystemConfig;
-
-        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1, platformId: 1}).lean().then(
-            platformData => {
-                if (platformData) {
-                    topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
-
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        return RESTUtils.getPMS2Services("postMerchantTypeList", {});
-                    } else {
-                        return pmsAPI.merchant_getMerchantTypeList(
-                            {
-                                queryId: serverInstance.getQueryId()
-                            }
-                        )
-                    }
-                }
-            }
-        );
+        return RESTUtils.getPMS2Services("postMerchantTypeList", {});
     },
 
     getPMSMerchantGroup: function (platformId, topUpSystemType) {
@@ -781,19 +736,37 @@ var dbPlatformMerchantGroup = {
 
             return RESTUtils.getPMS2Services("postPaymentGroup", options);
         }
+    },
+
+    getServiceChargeSetting: function (platformObjId) {
+        return dbconfig.collection_platform.findOne(
+            {
+                _id: platformObjId
+            },
+            {
+                pmsServiceCharge: 1,
+                fpmsServiceCharge: 1
+            }
+        ).lean();
+    },
+
+    updateServiceChargeSetting: function (platformObjId, pmsServiceChargeRate, fpmsServiceChargeRate) {
+        return dbconfig.collection_platform.findOneAndUpdate(
+            {
+                _id: platformObjId
+            },
+            {
+                pmsServiceCharge: pmsServiceChargeRate,
+                fpmsServiceCharge: fpmsServiceChargeRate
+            },
+            {new: true}
+        );
     }
 };
 
 function getMerchantList(topUpSystemConfig, platformId) {
     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
         return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
-    } else {
-        return pmsAPI.merchant_getMerchantList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        )
     }
 }
 

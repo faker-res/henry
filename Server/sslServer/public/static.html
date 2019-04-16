@@ -51,6 +51,14 @@
         </form>
     </div>
 </div>
+<br>
+<h1>If key is changed:</h1>
+<ul>
+    <li>If completed with both current and replaced key pair, will trigger FPMS script to update player's info encryption.</li>
+</ul>
+<div>
+    <button onclick="updateFPMS()">Restart FPMS and update key</button>
+</div>
 
 </body>
 </html>
@@ -93,6 +101,33 @@
     function migrateKey(e, targetId, originId) {
         e.preventDefault();
         $(targetId).val($(originId).val());
+    }
+
+    function updateFPMS() {
+        let serv = webEnv[0];
+        let url = 'restartFPMS';
+        let ajaxUrl = 'http://' + serv.nodeUrl;
+
+        if (serv.nodePort) {
+            ajaxUrl += ':' + serv.nodePort + '/' + url;
+        } else {
+            ajaxUrl += '/' + url;
+        }
+
+        $.ajax({
+            url: ajaxUrl,
+            method: "POST",
+            beforeSend: (request) => {
+                request.setRequestHeader("x-token", sessionStorage.getItem('tkn'));
+            },
+            success: (data) => {
+                console.log(serv.nodeUrl, serv.nodePort, data);
+                $(statusId).text(data.toString());
+            }
+        })
+
+
+
     }
 </script>
 

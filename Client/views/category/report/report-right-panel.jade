@@ -18,9 +18,6 @@
                     label {{'PLAYER_NAME' | translate}}
                     input.form-control(type='text', ng-model='vm.queryTopup.playerName')
                 .search-filters-item
-                    label {{'Proposal No' | translate}}
-                    input.form-control(type='text', ng-model='vm.queryTopup.proposalID')
-                .search-filters-item
                     label {{'topupType' | translate}}
                     select.form-control(ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.mainTopupType', required)
                         option(value='') {{"any" | translate}}
@@ -67,6 +64,9 @@
                 .search-filters-item
                     label.control-label {{'End date' | translate}}
                     .endTime
+                .search-filters-item
+                    label {{"Proposal No"|translate}}
+                    input.noGrey.form-control(ng-model="vm.queryTopup.proposalId", ng-change='vm.hideOtherConditions("#topUpReportQuery",vm.queryTopup.proposalId,".noGrey")')
                 .text-right.widthto100
                     label &nbsp;
                     button.btn.btn-success.btn-space(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
@@ -1095,6 +1095,12 @@
                     label {{'REGISTRATION_TIME_END' | translate}}
                     .endTime
                 .search-filters-item
+                    label {{'Start date' | translate}}
+                    .queryStartTime
+                .search-filters-item
+                    label {{'End date' | translate}}
+                    .queryEndTime
+                .search-filters-item
                     label {{"ACCUMULATE_DAYS" | translate}}
                     input.form-control.span.input-sm(type="Number" ng-model="vm.dxNewPlayerQuery.days")
                 .search-filters-item
@@ -1949,6 +1955,9 @@
             // 输赢报表
             #onlinePaymentMismatchQuery.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                    select.form-control.spicker(ng-model='vm.onlinePaymentMismatchQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                .search-filters-item
                     label {{'Topup Type' | translate}}
                     select.form-control(ng-model='vm.onlinePaymentMismatchQuery.type')
                         //option(value='all') {{'any' | translate}}
@@ -1971,12 +1980,14 @@
             table#onlinePaymentMismatchTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 thead
                     tr
+                        th {{'PRODUCT_NAME'| translate}}
                         th {{'PROPOSAL_ID' | translate}}
                         th {{'CREATE_TIME' | translate}}
                         th {{'SYSTEM_THAT_MISSING' | translate}}
                         th {{'CREDIT' | translate}}
                 tbody
                     tr(ng-repeat='(i,v) in vm.proposalMismatchDetail.mismatches')
+                        td {{v.platformName}}
                         td {{v.proposalId}}
                         td {{v.createTime}}
                         td {{v.missing}}

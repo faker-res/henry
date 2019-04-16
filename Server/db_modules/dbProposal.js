@@ -681,7 +681,15 @@ var proposal = {
                     if (bExecute) {
                         proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, data)
                             .then(
-                                () => deferred.resolve(data),
+                                updatedProposalData => {
+                                    // get the promo code from the updated proposal and pass it to the current one to return back
+                                    // for the usage in PlayerRandomRewardGroup
+                                    if (updatedProposalData && updatedProposalData.data && updatedProposalData.data.promoCode){
+                                        data.promoCode = updatedProposalData.data.promoCode;
+                                    }
+
+                                    deferred.resolve(data)
+                                },
                                 err => deferred.reject(err)
                             );
                     }
@@ -922,7 +930,8 @@ var proposal = {
                             data: {
                                 proposalId: proposalId,
                                 orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
-                                depositId: requestId
+                                depositId: requestId,
+                                fpmsStatus: proposalData && proposalData.status ? proposalData.status : ''
                             }
                         });
                     }
@@ -935,7 +944,8 @@ var proposal = {
                             proposalId: proposalId,
                             orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
                             depositId: requestId,
-                            type: type
+                            type: type,
+                            fpmsStatus: ''
                         }
                     })
                 }
@@ -947,6 +957,7 @@ var proposal = {
                 let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
                 let isCommonTopUp = false;
                 let merchantProm = Promise.resolve(false);
+                let sysCustomMerchantRateProm = Promise.resolve();
 
                 if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
                     switch (Number(callbackData.topUpType)) {
@@ -976,7 +987,7 @@ var proposal = {
                         platformId: proposalObj.data.platform,
                         merchantNo: callbackData.merchantNo,
                         topupType: callbackData.depositMethod,
-                        customizeRate: {$exists: true}
+                        name: callbackData.merchantName
                     };
 
                     if (proposalObj.data && proposalObj.data.topUpSystemName && proposalObj.data.topUpSystemName === 'PMS2') {
@@ -985,11 +996,12 @@ var proposal = {
                         merchantQuery.isPMS2 = {$exists: false};
                     }
 
-                    merchantProm = dbconfig.collection_platformMerchantList.findOne(merchantQuery, 'customizeRate').lean();
+                    merchantProm = dbconfig.collection_platformMerchantList.findOne(merchantQuery, {rate: 1, customizeRate: 1}).lean();
+                    sysCustomMerchantRateProm = dbconfig.collection_platform.findOne({_id: proposalObj.data.platformId}, {pmsServiceCharge: 1, fpmsServiceCharge: 1}).lean();
                 };
 
-                return Promise.all([propTypeProm, merchantProm]).then(
-                    ([propType, merchantRate]) => {
+                return Promise.all([propTypeProm, merchantProm, sysCustomMerchantRateProm]).then(
+                    ([propType, merchantRate, sysCustomMerchantRate]) => {
                         let updStatus = status || constProposalStatus.PREPENDING;
                         updObj = {};
 
@@ -1068,6 +1080,14 @@ var proposal = {
                             (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
                             : proposalObj.data.amount;
 
+                        // use system custom rate when there is pms's rate greater than system setting and no customizeRate
+                        if (merchantRate && !merchantRate.customizeRate && merchantRate.rate
+                            && sysCustomMerchantRate && sysCustomMerchantRate.pmsServiceCharge && sysCustomMerchantRate.fpmsServiceCharge
+                            && (merchantRate.rate > sysCustomMerchantRate.pmsServiceCharge)) {
+                            topupRate = sysCustomMerchantRate.fpmsServiceCharge;
+                            topupActualAmt = (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(sysCustomMerchantRate.fpmsServiceCharge)).toFixed(2);
+                        }
+
                         if (updObj && updObj.data && updObj.data.amount) {
                             topupActualAmt = (Number(updObj.data.amount) - Number(updObj.data.amount) * Number(topupRate)).toFixed(2);
                         }
@@ -1125,7 +1145,8 @@ var proposal = {
                             proposalId: proposalId,
                             orderStatus: orderStatus,
                             depositId: requestId,
-                            type: type
+                            type: type,
+                            fpmsStatus: ''
                         }
                     });
                 }
@@ -1240,7 +1261,7 @@ var proposal = {
      * @param {String} memo - memo of the step
      * @param {Boolean} bApprove - memo of the step
      */
-    updateProposalProcessStep: function (proposalId, adminId, memo, bApprove) {
+    updateProposalProcessStep: function (proposalId, adminId, memo, bApprove, remark, platform, rejectRemark) {
         var deferred = Q.defer();
         var nextStepId = null;
         var proposalData = null;
@@ -1450,7 +1471,11 @@ var proposal = {
                                         return Promise.resolve();
                                     }
 
-                                    let updateData = {status: status, isLocked: null};
+                                    let updateData = {
+                                        status: status,
+                                        isLocked: null,
+                                        "data.rejectRemark": rejectRemark,
+                                    };
                                     console.log("LH Check Proposal Reject 3------------", updateData);
                                     console.log("LH Check Proposal Reject 3.1------------", proposalData.status);
 
@@ -1558,7 +1583,7 @@ var proposal = {
         return deferred.promise;
     },
 
-    cancelProposal: function (proposalId, adminId, remark, adminObjId) {
+    cancelProposal: function (proposalId, adminId, remark, adminObjId, cancelRemark) {
         let proposalData;
         return dbconfig.collection_proposal.findOne({_id: proposalId})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
@@ -1603,7 +1628,8 @@ var proposal = {
                     noSteps: true,
                     process: null,
                     status: constProposalStatus.CANCEL,
-                    "data.cancelBy": "客服：" + adminId
+                    "data.cancelBy": "客服：" + adminId,
+                    "data.cancelRemark": cancelRemark,
                 };
                 if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
                     dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
@@ -6247,7 +6273,7 @@ var proposal = {
 
                 return dbconfig.collection_proposal.find(query).lean().sort(sort).limit(1000)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
-                    .populate({path: "data.playerObjId", model: dbconfig.collection_players});
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players}).lean();
             }
         ).then(
             proposalData => {
@@ -6323,7 +6349,7 @@ var proposal = {
 
     checkIfProposalIsFollowUp: (proposal, createTimeQuery) => {
         if(proposal && proposal.proposalId){
-            return dbconfig.collection_paymentMonitorFollowUp.findOne({proposalId: proposal.proposalId}).then(
+            return dbconfig.collection_paymentMonitorFollowUp.findOne({proposalId: proposal.proposalId}, {createTime: 1}).then(
                 followUpRecord => {
                     if(followUpRecord && followUpRecord.createTime){
                         let hoursSinceLastFollowUp = Math.abs(new Date() - followUpRecord.createTime) / 36e5;
@@ -8050,6 +8076,8 @@ var proposal = {
             playerName: followUpData.playerName,
             playerCurrentCount: followUpData.playerCurrentCount,
             playerTotalCount: followUpData.playerTotalCount,
+            playerCurrentCommonTopUpCount: followUpData.playerCurrentCommonTopUpCount,
+            playerCommonTopUpTotalCount: followUpData.playerCommonTopUpTotalCount,
             playerGapTime: followUpData.playerGapTime,
             amount: followUpData.amount,
             proposalCreateTime: followUpData.proposalCreateTime,
@@ -8381,7 +8409,9 @@ var proposal = {
 function insertRepeatCount(proposals, platformList) {
     return new Promise(function (resolve) {
         let typeIds = null;
+        let commonTopUpTypeIds;
         let getProposalTypesIdProm = typeIds ? Promise.resolve(typeIds) : getTopUpProposalTypeIds(platformList);
+        let getCommonTopUpTypeIdProm = commonTopUpTypeIds ? Promise.resolve(commonTopUpTypeIds) : getCommonTopUpProposalTypeIds(platformList);
         let insertedProposals = [];
 
         if (!proposals || proposals.length === 0) {
@@ -8397,9 +8427,10 @@ function insertRepeatCount(proposals, platformList) {
                     insertedProposals[i] = handleSuccessProposal(proposal);
                     res();
                 } else {
-                    getProposalTypesIdProm.then(
+                    Promise.all([getProposalTypesIdProm, getCommonTopUpTypeIdProm]).then(
                         typeIdData => {
-                            typeIds = typeIdData;
+                            typeIds = typeIdData[0] || null;
+                            commonTopUpTypeIds = typeIdData[1] || null;
                             return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
                         }
                     ).then(
@@ -8509,8 +8540,8 @@ function insertRepeatCount(proposals, platformList) {
                 nextSuccessQuery["$and"] = bankCardNoRegExp;
             }
 
-            let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).read("secondaryPreferred").sort({createTime: -1}).limit(1);
-            let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).read("secondaryPreferred").sort({createTime: 1}).limit(1);
+            let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery, {createTime: 1}).read("secondaryPreferred").sort({createTime: -1}).limit(1).lean();
+            let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery, {createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).limit(1).lean();
 
             // for debug usage
             // let pS, nS, fISQ;
@@ -8572,7 +8603,7 @@ function insertRepeatCount(proposals, platformList) {
 
                     let allCountProm = dbconfig.collection_proposal.find(allCountQuery).read("secondaryPreferred").count();
                     let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).read("secondaryPreferred").count();
-                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).read("secondaryPreferred").sort({createTime: 1}).limit(1);
+                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).limit(1).lean();
 
                     return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
                 }
@@ -8615,13 +8646,13 @@ function insertRepeatCount(proposals, platformList) {
                 createTime: {$lte: proposal.createTime},
                 "data.playerName": playerName,
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-            }).sort({createTime: -1}).limit(1);
+            }, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
             let nextSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
                 createTime: {$gte: proposal.createTime},
                 "data.playerName": playerName,
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-            }).sort({createTime: 1}).limit(1);
+            }, {createTime: 1}).sort({createTime: 1}).limit(1).lean();
 
             return Promise.all([prevSuccessProm, nextSuccessProm]).then(
                 successData => {
@@ -8658,20 +8689,31 @@ function insertRepeatCount(proposals, platformList) {
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
                     }
 
+                    let allCommonTopUpCountQuery = JSON.parse(JSON.stringify(allCountQuery));
+                    allCommonTopUpCountQuery.type = {$in: commonTopUpTypeIds};
+                    let currentCommonTopUpCountQuery = JSON.parse(JSON.stringify(currentCountQuery));
+                    currentCommonTopUpCountQuery.type = {$in: commonTopUpTypeIds};
+
                     let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
                     let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
-                    let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery);
+                    let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery, {proposalId: 1, createTime: 1}).lean();
+                    let allCommonTopUpCountProm = dbconfig.collection_proposal.find(allCommonTopUpCountQuery).count();
+                    let currentCommonTopUpCountProm = dbconfig.collection_proposal.find(currentCommonTopUpCountQuery).count();
 
-                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
+                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm, allCommonTopUpCountProm, currentCommonTopUpCountProm]);
                 }
             ).then(
                 countData => {
                     let allCount = countData[0];
                     let currentCount = countData[1];
                     let firstFailure = countData[2];
+                    let allCommonTopUpCount = countData[3];
+                    let currentCommonTopUpCount = countData[4];
 
                     proposal.$playerAllCount = allCount;
                     proposal.$playerCurrentCount = currentCount;
+                    proposal.$playerAllCommonTopUpCount = allCommonTopUpCount;
+                    proposal.$playerCurrentCommonTopUpCount = currentCommonTopUpCount;
 
                     if (!firstFailure || String(firstFailure.proposalId) === String(proposal.proposalId)) {
                         proposal.$playerGapTime = 0;
@@ -8689,6 +8731,8 @@ function insertRepeatCount(proposals, platformList) {
             proposal['$merchantGapTime'] = '-';
             proposal['$playerAllCount'] = '-';
             proposal['$playerCurrentCount'] = '-';
+            proposal['$playerAllCommonTopUpCount'] = '-';
+            proposal['$playerCurrentCommonTopUpCount'] = '-';
             proposal['$playerGapTime'] = '-';
             return proposal;
         }
@@ -8889,7 +8933,25 @@ function getTopUpProposalTypeIds(platformList) {
         proposalTypeQuery.platformId = {$in: platformList}
     }
 
-    return dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(
+    return dbconfig.collection_proposalType.find(proposalTypeQuery, {_id: 1}).lean().then(
+        proposalTypes => {
+            return proposalTypes.map(type => {
+                return type._id;
+            });
+        }
+    );
+}
+
+function getCommonTopUpProposalTypeIds(platformList) {
+    let proposalTypeQuery = {
+        name: constProposalType.PLAYER_COMMON_TOP_UP
+    };
+
+    if(platformList && platformList.length > 0){
+        proposalTypeQuery.platformId = {$in: platformList}
+    }
+
+    return dbconfig.collection_proposalType.find(proposalTypeQuery, {_id: 1}).lean().then(
         proposalTypes => {
             return proposalTypes.map(type => {
                 return type._id;

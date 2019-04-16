@@ -350,6 +350,14 @@ var platformSchema = new Schema({
     monitorMerchantSoundChoice: {type: String, default: '1.wav'},
     // select the sound notification that use for player count alert
     monitorPlayerSoundChoice: {type: String, default: '1.wav'},
+    // the count that trigger the error msg when create top up proposal
+    monitorTopUpCount: {type: Number, min: 0},
+    // the count that trigger the error msg when create common top up proposal
+    monitorCommonTopUpCount: {type: Number, min: 0},
+    // the switch that trigger the error msg when create top up proposal
+    monitorTopUpNotify: {type: Boolean, default: false},
+    // the switch that trigger the error msg when create common top up proposal
+    monitorCommonTopUpCountNotify: {type: Boolean, default: false},
     // player value score relevant settings
     playerValueConfig: {
         // criteria score criteria ratio
@@ -500,10 +508,16 @@ var platformSchema = new Schema({
     teleMarketingIdleAgentMultiple: {type: Number},
     // Definition of Answered Phone Call
     definitionOfAnsweredPhone: {type: JSON},
-    // default feedback result for tsPhone (key)
-    defaultFeedbackResult: {type: String},
-    // default feedback topic for tsPhone (key)
-    defaultFeedbackTopic: {type: String},
+    // default feedback result
+    defaultFeedback: {
+        defaultTsFeedbackResult: {type: String},
+        defaultTsFeedbackTopic: {type: String},
+        defaultPlayerFeedbackResult: {type: String},
+        defaultPlayerFeedbackTopic: {type: String},
+        defaultFeedbackResult: {type: String},
+        defaultFeedbackTopic: {type: String}
+    },
+
     // Decompose after N days
     decomposeAfterNDays: {type: Number},
     // Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday
@@ -520,6 +534,10 @@ var platformSchema = new Schema({
     providerConsecutiveTimeoutSearchTimeFrame: {type: Number},
     // disable auto player level up reward switch
     disableAutoPlayerLevelUpReward: {type: Boolean, default: false},
+    // service charge rate setting
+    pmsServiceCharge: {type: Number},
+    // service charge rate setting
+    fpmsServiceCharge: {type: Number},
 });
 
 //add platform id before save
