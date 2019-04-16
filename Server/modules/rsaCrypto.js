@@ -3,14 +3,13 @@ let http = require('http');
 let env = require('./../config/sslEnv').config();
 let crypto = require('crypto');
 let jwt = require('jsonwebtoken');
-let shell = require('shelljs');
 let constSystemParam = require('./../const/constSystemParam');
 
 let fs = require('fs'), crt, key, replKey, replCrt;
 
 // SSL preparation - comment after SSL online
-// key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-// crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
+crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 
 let oldKey, oldCert;
 
@@ -102,8 +101,10 @@ module.exports = {
         return sign.sign(fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.key.pem'), 'base64');
     },
 
-    restartServices: () => {
-        shell.exec('pm2 reload all');
+    refreshKeys: () => {
+        console.log('REFRESHING KEYS FROM KEY SERVICE');
+        getPrivateKeyFromService();
+        getPublicKeyFromService();
     }
 };
 
@@ -133,7 +134,7 @@ function getPrivateKeyFromService () {
     getKey(options, "/playerPhone.key.pem", "/../ssl/playerPhone.key.pem").then(
         data => {
             if (data) {
-                console.log(`RT - Got key from ${options.hostname}, ${data}`);
+                console.log(`RT - Got key from ${options.hostname}`);
                 key = data;
             } else {
                 console.log('getPrivateKeyFromService no data', host);
@@ -146,7 +147,7 @@ function getPublicKeyFromService () {
     getKey(options, "/playerPhone.pub", "/../ssl/playerPhone.pub").then(
         data => {
             if (data) {
-                console.log(`RT - Got cert from ${options.hostname}, ${data}`);
+                console.log(`RT - Got cert from ${options.hostname}`);
                 crt = data;
             } else {
                 console.log('getPublicKeyFromService no data', host);
