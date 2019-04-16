@@ -51,16 +51,14 @@ var WebSocketUtility = {
         let functionName = wsFunc && wsFunc.name;
         let totalSecond = (new Date().getTime() - startTime) / 1000;
         if (totalSecond > 1) {
+            dbconfig.collection_apiResponseLog({
+                serviceName: serviceName,
+                functionName: functionName,
+                totalSecond: totalSecond
+            }).save().catch(errorUtils.reportError);
 
+            console.log("Slow response time from service " + serviceName + ", function " + String(functionName) + ": " + totalSecond + " sec");
         }
-
-        dbconfig.collection_apiResponseLog({
-            serviceName: serviceName,
-            functionName: functionName,
-            totalSecond: totalSecond
-        }).save().catch(errorUtils.reportError);
-
-        console.log("Slow response time from service " + serviceName + ", function " + String(functionName) + ": " + totalSecond + " sec");
 
     },
 
