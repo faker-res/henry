@@ -1,5 +1,7 @@
 "use strict";
 
+let rsaCrypto = require('./../modules/rsaCrypto');
+
 class socketActionMessage {
 
     /*
@@ -13,7 +15,8 @@ class socketActionMessage {
         this.messageHandlers = {
             "notifyTopUpIntentionUpdate": this.notifyTopUpIntentionUpdate,
             "notifyRegistrationIntentionUpdate": this.notifyRegistrationIntentionUpdate,
-            "notifyNewProposal": this.notifyNewProposal
+            "notifyNewProposal": this.notifyNewProposal,
+            "updateRSAKeys": this.updateRSAKeys
         };
     }
 
@@ -81,6 +84,9 @@ class socketActionMessage {
         this.notifySocketByPlatform.bind(this)(message);
     }
 
+    updateRSAKeys (message) {
+        rsaCrypto.refreshKeys();
+    }
 }
 
 module.exports = socketActionMessage;
