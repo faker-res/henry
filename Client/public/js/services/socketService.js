@@ -152,13 +152,16 @@ define([], function () {
                     if (data.error && (data.error.message || data.error.errorMessage)) {
                         console.error(retKey, data.error);
                         let errMessage = data.error.message || data.error.errorMessage;
+                        let ipPattern = new RegExp(/(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])(:[0-9]+)?/gm);
+                        let ipStrings = errMessage.match(ipPattern);
 
-                        let startIndex = errMessage.indexOf("connection");
-                        let endIndex = errMessage.indexOf("timed out");
-                        if (errMessage && startIndex > -1 && endIndex > -1) {
-                            let str1 = errMessage.substr(0,startIndex + ("connection").length);
-                            let str2 = errMessage.substr(endIndex);
-                            errMessage = str1 + " " + str2;
+                        if (ipStrings && ipStrings.length) {
+                            ipStrings.forEach(
+                                ipText => {
+                                    let replaceString = ipText.replace(new RegExp("[0-9]", "g"), "X");
+                                    errMessage = errMessage.replace(ipText, replaceString);
+                                }
+                            )
                         }
 
                         self.showErrorMessage($trans(errMessage));
