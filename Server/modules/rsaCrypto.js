@@ -95,6 +95,18 @@ module.exports = {
         return decrypted;
     },
 
+    legacyEncrypt: (msg) => {
+        let encrypted = msg;
+
+        try {
+            encrypted = crypto.privateEncrypt(oldKey, Buffer.from(msg, 'base64'));
+        } catch (e) {
+            encrypted = msg;
+        }
+
+        return Buffer.from(encrypted).toString('base64');
+    },
+
     signFKP: (msg) => {
         let sign = crypto.createSign('sha1');
         sign.update(msg);
