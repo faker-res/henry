@@ -9,15 +9,18 @@ const constQualityInspectionRoleName = require('./../const/constQualityInspectio
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const ObjectId = mongoose.Types.ObjectId;
+let env = require("../config/env").config();
 
 var dbQualityInspection = {
     connectMysql: function(){
+        console.log("checking env.live800Port", env.live800Port)
         var connection = mysql.createConnection({
             host     : 'live800.fpms8.me',
             user     : 'devuse',
             password : 'devuse@321',
             database : 'live800_im',
-            port: '33060',
+            // port: '33060',
+            port: env.live800Port,
             queueLimit: 100,
             connectionLimit: 100
         });
