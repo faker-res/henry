@@ -58,6 +58,8 @@ var simplifiedChinese = {
     "Guest ID cannot update password": "游客不可更改密码",
     "Invalid top up amount": "充值额度无效",
     "This game has been added before": "该游戏已经收藏",
+    "defaultRewardEventGroup*": "默认组别*",
+    "endedRewardEventGroup*": "已结束优惠组*",
 
     "Birthday only can be set once": "生日绑定之后不可更改",
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",

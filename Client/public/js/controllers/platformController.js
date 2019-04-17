@@ -37,6 +37,11 @@ define(['js/app'], function (myApp) {
                 OPTIONAL_REGISTRATION: 6
             };
 
+            vm.constSystemRewardEventGroup = {
+                DEFAULT: "defaultRewardEventGroup*",
+                ENDED: "endedRewardEventGroup*",
+            };
+
             vm.constXBETAdvertisementType = {
                 MAIN_PAGE_AD: 1,
                 FIRST_TIME_AD: 2,
@@ -21280,9 +21285,9 @@ define(['js/app'], function (myApp) {
                 if (rewardEventObj && rewardEventObj._id && vm.showRewardEventGroup) {
                     if (!vm.showRewardEventGroup._id && vm.groupedRewardEvent.indexOf(String(rewardEventObj._id)) == -1) {
                         let isExpiredRewardEvent = vm.expiredRewardEventList.includes(String(rewardEventObj._id));
-                        if (isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == "已结束优惠组*") {
+                        if (isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == vm.constSystemRewardEventGroup.ENDED) {
                             isShow = true;
-                        } else if (!isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == "默认组别*"){
+                        } else if (!isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == vm.constSystemRewardEventGroup.DEFAULT){
                             isShow = true;
                         }
                     } else if (vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.indexOf(String(rewardEventObj._id)) > -1) {
