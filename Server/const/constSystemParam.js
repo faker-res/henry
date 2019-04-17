@@ -10,8 +10,11 @@ const constSystemParam = {
     //TODO::update this value later
     VALID_PLAYER_TOP_UP_AMOUNT: 100,
     PASSWORD_LENGTH: 6,
+
     API_AUTH_SECRET_KEY : "$ap1U5eR$", // JWT Secret,
     PMS2_AUTH_SECRET_KEY : "FpM$t0pM$2",
+    DAYOU_AUTH_SECRET_KEY: "ec12ef84a1439714d7c3e047c19abd9c",
+
     NO_OF_LOGIN_ATTEMPT: 3 , // minimum no of login attempts failed per connection
 
     BATCH_SIZE: 500,
