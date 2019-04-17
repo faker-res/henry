@@ -1979,6 +1979,10 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.initAddRemarkRejectMultipleProposal = function () {
+            vm.rejectMultipleRemark = ""
+        };
+
         vm.updateMultiselectProposal = function () {
             var allClicked = $("#proposalAuditDataTable tr input:checked[type='checkbox']");
             vm.multiProposalSelected = [];

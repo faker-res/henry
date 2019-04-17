@@ -5,12 +5,14 @@ var envConf = {
         redisUrl : 'localhost',
         redisPort : '1802',
         socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
+        fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair'
     },
     local_2: {
         mode: "local",
         redisUrl : 'localhost',
         redisPort : '1804',
         socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
+        fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair'
     },
 
     // Development
@@ -19,12 +21,14 @@ var envConf = {
         redisUrl : 'fpms_sslserver.neweb.me',
         redisPort : '1802',
         socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
+        fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair'
     },
     development_2:{
         mode: "development",
         redisUrl : 'fpms_sslserver.neweb.me',
         redisPort : '1804',
         socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
+        fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair'
     },
 
     // Production
@@ -33,12 +37,14 @@ var envConf = {
         redisUrl : '',
         redisPort : '',
         socketSecret : '',
+        fpmsUpdateKeyAddress: ''
     },
     production_2: {
         mode: "production",
         redisUrl : '',
         redisPort : '',
         socketSecret : '',
+        fpmsUpdateKeyAddress: ''
     }
 };
 
@@ -74,8 +80,7 @@ var env = {
                 return true;
             }
         }
-
-    }
+    },
 };
 
 module.exports = env;

@@ -1049,7 +1049,7 @@ var dbPlatform = {
                                         platformProm.push(dbconfig.collection_platform.find({_id: {$in: department.platforms}})
                                             .populate({path: "csDepartment", model: dbconfig.collection_department})
                                             .populate({path: "qiDepartment", model: dbconfig.collection_department})
-                                            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).exec().then(
+                                            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().exec().then(
                                                 platformData => {
                                                     if (platformData && platformData.length > 0) {
                                                         platformData.forEach(platform => {
@@ -1059,6 +1059,7 @@ var dbPlatform = {
                                                                     gameProviderIdList.push(provider._id)
                                                                 });
 
+                                                                platform.gameProviderDetails = platform.gameProviders;
                                                                 // only populate providers' ObjectId
                                                                 platform.gameProviders = gameProviderIdList;
                                                             }
@@ -1104,7 +1105,7 @@ var dbPlatform = {
                             }).populate({
                                 path: "gameProviders",
                                 model: dbconfig.collection_gameProvider
-                            }).exec().then(
+                            }).lean().exec().then(
                                 platformData => {
                                     if (platformData && platformData.length > 0) {
                                         platformData.forEach(platform => {
@@ -1114,6 +1115,7 @@ var dbPlatform = {
                                                     gameProviderIdList.push(provider._id)
                                                 });
 
+                                                platform.gameProviderDetails = platform.gameProviders;
                                                 // only populate providers' ObjectId
                                                 platform.gameProviders = gameProviderIdList;
                                             }
@@ -5876,41 +5878,44 @@ var dbPlatform = {
 
                 return paymentSystemConfig;
             }
-        ).then(
-            paymentSystemConfig => {
-
-                if (paymentSystemConfig && paymentSystemConfig.length > 0) {
-                    let indexNo = paymentSystemConfig.findIndex(x => x && x.name && x.name === 'PMS');
-
-                    if (indexNo != -1) {
-                        let requestData = {
-                            platformIds: [platformId]
-                        };
-
-                        return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
-                            data => {
-                                let curFinancialSettlementPoint;
-
-                                if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
-                                    let pointIndexNo = data.networkPlatforms.findIndex(y => y && y.platformId && y.platformId == platformId);
-
-                                    if (pointIndexNo != -1) {
-                                        curFinancialSettlementPoint = data.networkPlatforms[pointIndexNo].quota;
-                                        paymentSystemConfig[indexNo].curFinancialSettlementPoint = curFinancialSettlementPoint;
-                                    }
-
-                                    return paymentSystemConfig;
-                                } else {
-                                    return paymentSystemConfig;
-                                }
-                            }
-                        );
-                    }
-                }
-
-                return paymentSystemConfig;
-            }
         )
+
+        // temporary comment this part as PMS2 does not have financial points
+        // .then(
+        //     paymentSystemConfig => {
+        //
+        //         if (paymentSystemConfig && paymentSystemConfig.length > 0) {
+        //             let indexNo = paymentSystemConfig.findIndex(x => x && x.name && x.name === 'PMS');
+        //
+        //             if (indexNo != -1) {
+        //                 let requestData = {
+        //                     platformIds: [platformId]
+        //                 };
+        //
+        //                 return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
+        //                     data => {
+        //                         let curFinancialSettlementPoint;
+        //
+        //                         if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
+        //                             let pointIndexNo = data.networkPlatforms.findIndex(y => y && y.platformId && y.platformId == platformId);
+        //
+        //                             if (pointIndexNo != -1) {
+        //                                 curFinancialSettlementPoint = data.networkPlatforms[pointIndexNo].quota;
+        //                                 paymentSystemConfig[indexNo].curFinancialSettlementPoint = curFinancialSettlementPoint;
+        //                             }
+        //
+        //                             return paymentSystemConfig;
+        //                         } else {
+        //                             return paymentSystemConfig;
+        //                         }
+        //                     }
+        //                 );
+        //             }
+        //         }
+        //
+        //         return paymentSystemConfig;
+        //     }
+        // )
     },
 
     updatePaymentSystemConfigByPlatform: function (query, data) {
@@ -6193,6 +6198,58 @@ var dbPlatform = {
             }
         ).lean();
     },
+
+    reEncryptPlayerPhoneNumber: () => {
+        let promArr = [];
+
+        return dbconfig.collection_platform.find({}, {_id: 1, name: 1}).lean().then(
+            platforms => {
+                if (platforms && platforms.length) {
+                    platforms.forEach(platformData => {
+                        promArr.push(reEncryptByPlaform(platformData));
+                    });
+
+                    return Promise.all(promArr);
+                }
+            }
+        );
+
+        function reEncryptByPlaform (platformData) {
+            console.log('start re-encrypt', platformData.name);
+            let cursor = dbconfig.collection_players.find({platform: platformData._id}, {_id: 1, platform: 1, phoneNumber: 1, name: 1}).cursor();
+
+            let i = 0;
+
+            return cursor.eachAsync(
+                playerData => {
+                    if (playerData && playerData.phoneNumber) {
+                        //encrypt player phone number
+                        try {
+                            let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+
+                            if (decPhoneNumber && decPhoneNumber.length < 20) {
+                                let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
+
+                                // Make sure it's encrypted
+                                if (reEncPhoneNumber && reEncPhoneNumber.length > 20) {
+                                    dbconfig.collection_players.findOneAndUpdate(
+                                        {_id: playerData._id, platform: playerData.platform},
+                                        {phoneNumber: reEncPhoneNumber}
+                                    ).then();
+                                }
+                            }
+                            console.log("index", platformData.name, i);
+                            i++;
+                        } catch (err) {
+                            console.log(`Failed to re-encrypt ${playerData.name}`);
+                        }
+
+                    }
+                }
+            );
+        }
+
+    }
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {
@@ -6537,52 +6594,53 @@ function getFinancialSettlementPointFromPMSAndSendEmail(tempPlatforms, paymentSy
         platformIds: tempPlatforms
     };
 
-    return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
-        data => {
-            if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
-                let financialPointPlatforms = data.networkPlatforms;
-                let proms = [];
-
-                financialPointPlatforms.forEach(platform => {
-                    let indexNo = paymentSystemConfig.findIndex(x => x && x.systemType && x.platform && x.platform.platformId && platform.platformId
-                        && (x.platform.platformId.toString() == platform.platformId.toString()));
-
-                    if (indexNo != -1 && paymentSystemConfig && paymentSystemConfig[indexNo] && paymentSystemConfig[indexNo].minPointNotification
-                        && platform && platform.quota != 'undefined' && platform.quota != null && (platform.quota <= paymentSystemConfig[indexNo].minPointNotification)) {
-
-                        proms.push(getPlatformNotificationRecipient(paymentSystemConfig[indexNo], platform.quota));
-
-                    } else {
-                        if (extConfig && Object.keys(extConfig)) {
-                            Object.keys(extConfig).forEach(key => {
-                                if (key && extConfig[key] && extConfig[key].name === 'PMS' && platform && platform.quota != 'undefined' && platform.quota != null
-                                    && extConfig[key].minPointNotification && (platform.quota <= extConfig[key].minPointNotification)) {
-                                    let platformIndexNo = platfromRecord.findIndex(x => x && x.platformId && platform && platform.platformId && x.platformId == platform.platformId);
-
-                                    if (platformIndexNo != -1) {
-                                        let data = {
-                                            platform: platfromRecord[platformIndexNo]._id,
-                                            systemType: Number(key)
-                                        }
-
-                                        proms.push(getPlatformNotificationRecipient(data, platform.quota));
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-
-                return Promise.all(proms).then(
-                    data => {
-                        if (data) {
-                            sendMinFinancialPointNotification(data, currentDate);
-                        }
-                    }
-                );
-            }
-        }
-    );
+    // temporary comment this part as PMS2 does not have financial points
+    // return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
+    //     data => {
+    //         if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
+    //             let financialPointPlatforms = data.networkPlatforms;
+    //             let proms = [];
+    //
+    //             financialPointPlatforms.forEach(platform => {
+    //                 let indexNo = paymentSystemConfig.findIndex(x => x && x.systemType && x.platform && x.platform.platformId && platform.platformId
+    //                     && (x.platform.platformId.toString() == platform.platformId.toString()));
+    //
+    //                 if (indexNo != -1 && paymentSystemConfig && paymentSystemConfig[indexNo] && paymentSystemConfig[indexNo].minPointNotification
+    //                     && platform && platform.quota != 'undefined' && platform.quota != null && (platform.quota <= paymentSystemConfig[indexNo].minPointNotification)) {
+    //
+    //                     proms.push(getPlatformNotificationRecipient(paymentSystemConfig[indexNo], platform.quota));
+    //
+    //                 } else {
+    //                     if (extConfig && Object.keys(extConfig)) {
+    //                         Object.keys(extConfig).forEach(key => {
+    //                             if (key && extConfig[key] && extConfig[key].name === 'PMS' && platform && platform.quota != 'undefined' && platform.quota != null
+    //                                 && extConfig[key].minPointNotification && (platform.quota <= extConfig[key].minPointNotification)) {
+    //                                 let platformIndexNo = platfromRecord.findIndex(x => x && x.platformId && platform && platform.platformId && x.platformId == platform.platformId);
+    //
+    //                                 if (platformIndexNo != -1) {
+    //                                     let data = {
+    //                                         platform: platfromRecord[platformIndexNo]._id,
+    //                                         systemType: Number(key)
+    //                                     }
+    //
+    //                                     proms.push(getPlatformNotificationRecipient(data, platform.quota));
+    //                                 }
+    //                             }
+    //                         });
+    //                     }
+    //                 }
+    //             });
+    //
+    //             return Promise.all(proms).then(
+    //                 data => {
+    //                     if (data) {
+    //                         sendMinFinancialPointNotification(data, currentDate);
+    //                     }
+    //                 }
+    //             );
+    //         }
+    //     }
+    // );
 }
 
 var proto = dbPlatformFunc.prototype;

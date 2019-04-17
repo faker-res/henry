@@ -210,23 +210,28 @@ const dbPlayerPayment = {
                         )
                     } else {
                         if (playerData.permission.topupManual) {
-                            if (playerData && playerData.platform && playerData.platform.bankCardGroupIsPMS) {
-                                return pmsAPI.foundation_requestBankTypeByUsername(
-                                    {
-                                        queryId: serverInstance.getQueryId(),
-                                        platformId: playerData.platform.platformId,
-                                        username: playerData.name,
-                                        ip: userIp,
-                                        supportMode: supportMode
-                                    }
-                                );
-                            } else {
-                                return pmsAPI.bankcard_getBankcardList(
-                                    {
-                                        platformId: platformData.platformId,
-                                        queryId: serverInstance.getQueryId()
-                                    }
-                                ).then(
+                            // if (playerData && playerData.platform && playerData.platform.bankCardGroupIsPMS) {
+                            //     return pmsAPI.foundation_requestBankTypeByUsername(
+                            //         {
+                            //             queryId: serverInstance.getQueryId(),
+                            //             platformId: playerData.platform.platformId,
+                            //             username: playerData.name,
+                            //             ip: userIp,
+                            //             supportMode: supportMode
+                            //         }
+                            //     );
+                            // } else {
+
+                                // return pmsAPI.bankcard_getBankcardList(
+                                //     {
+                                //         platformId: platformData.platformId,
+                                //         queryId: serverInstance.getQueryId()
+                                //     }
+                                // )
+                                return RESTUtils.getPMS2Services("postBankCardList", {
+                                    platformId: platformData.platformId,
+                                    accountType: constAccountType.BANK_CARD
+                                }).then(
                                     bankCardListData => {
                                         if (bankCardListData && bankCardListData.data && bankCardListData.data.length
                                             && playerObj.bankCardGroup && playerObj.bankCardGroup.banks && playerObj.bankCardGroup.banks.length) {
@@ -266,7 +271,7 @@ const dbPlayerPayment = {
                                         return {data: []};
                                     }
                                 );
-                            }
+                            // }
 
                         }
                         else {
@@ -712,7 +717,7 @@ async function checkFailTopUp (player, returnData) {
     let checkMonitorTopUpCond = Boolean(player.platform && player.platform.monitorTopUpNotify && player.platform.monitorTopUpCount);
     let checkMonitorCommonTopUpCond = Boolean(player.platform && player.platform.monitorCommonTopUpCountNotify && player.platform.monitorCommonTopUpCount);
     if (!checkMonitorTopUpCond && !checkMonitorCommonTopUpCond) {
-        return true; // does not need to check
+        return returnData; // does not need to check
     }
 
     let commonTopUpType = await dbconfig.collection_proposalType.findOne({

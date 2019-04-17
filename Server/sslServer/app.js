@@ -3,6 +3,7 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 const env = require("./config/env").config();
+const cred = require("./config/cred");
 const theOtherEnv = require("./config/env").getAnotherConfig()[0];
 const webEnv = require('./public/js/webEnv');
 const nodeUrl = env.redisUrl || 'localhost';
@@ -16,6 +17,7 @@ const privateKeyPath = "./public/playerPhone.key.pem";
 const replacedPrivateKeyPath = "./public/playerPhone.key.pem.bak";
 const publicKeyPath = "./public/playerPhone.pub";
 const replacedPublicKeyPath = "./public/playerPhone.pub.bak";
+const restartFPMSPath = "./public/restartFPMS";
 const fpmsKey = "Fr0m_FPM$!";
 const testKeyPairText = 'TEST ENCRYPTION';
 
@@ -53,6 +55,8 @@ http.createServer(function (req, res) {
 
                     switch(pathname) {
                         case publicKeyPath:
+                            console.log('SAVING IN EFFECT KEY PAIR');
+
                             req.on('data', data => {
                                 inputData.push(data);
                             }).on('end', () => {
@@ -77,8 +81,6 @@ http.createServer(function (req, res) {
                                             res.end('Invalid RSA Key Pair!')
                                         }
                                     }
-
-
                                 } catch (err) {
                                     console.log('error', err);
                                     res.end('Invalid RSA Key Pair!')
@@ -86,6 +88,8 @@ http.createServer(function (req, res) {
                             });
                             break;
                         case replacedPublicKeyPath:
+                            console.log('SAVING REPLACED KEY PAIR');
+
                             req.on('data', data => {
                                 inputData.push(data);
                             }).on('end', () => {
@@ -116,9 +120,75 @@ http.createServer(function (req, res) {
                                 }
                             });
                             break;
+                        case restartFPMSPath:
+                            console.log('REQUEST TO RESTART FPMS');
+                            rp({
+                                method: 'POST',
+                                uri: env.fpmsUpdateKeyAddress,
+                                body: {
+                                    token: jwt.sign("Restart server", env.socketSecret),
+                                    privateKey: Boolean(privateKey),
+                                    publicKey: Boolean(publicKey),
+                                    replPrivateKey: Boolean(replacedPrivateKey),
+                                    replPublicKey: Boolean(replacedPublicKey)
+                                },
+                                json: true
+                            }).then(
+                                () => {
+                                    res.end('Success');
+                                }
+                            );
+                            break;
                     }
                 }
             });
+        } else {
+            // login verification
+            let inputData = [];
+            let buffer;
+
+            req.on('data', data => {
+                inputData.push(data);
+            }).on('end', () => {
+                buffer = Buffer.concat(inputData);
+
+                try {
+                    let loginInfo = JSON.parse(buffer.toString());
+
+                    if (loginInfo.username && loginInfo.password) {
+                        let adminInfo = cred.getAdmin(loginInfo.username.toLowerCase());
+
+                        if (!adminInfo) {
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: {name: "InvalidPassword", message: 'Wrong credential!'}
+                            }));
+                        } else if (!validateHash(adminInfo.password, loginInfo.password)) {
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: {name: "InvalidPassword", message: 'Password or user name is not correct!'}
+                            }));
+                        } else {
+                            // Valid credential
+                            let payload = {
+                                adminInfo: adminInfo,
+                                loginTime: new Date()
+                            };
+
+                            res.end(JSON.stringify({
+                                success: true,
+                                token: jwt.sign(payload, env.socketSecret)
+                            }));
+                        }
+                    }
+                } catch (err) {
+                    console.log('error', err);
+                    res.end(JSON.stringify({
+                        success: false,
+                        error: {name: "InvalidPassword", message: 'Error occured!'}
+                    }));
+                }
+            })
         }
     } else if (req.method === 'GET') {
         // GET
@@ -320,6 +390,12 @@ function getKeyFromOtherInstance () {
 
         return keyUrl;
     }
+}
+
+function validateHash (hashed, plain) {
+    let hashingPlain = crypto.createHash('md5').update(plain).digest('hex');
+
+    return hashed === hashingPlain;
 }
 
 console.log(`Server listening on port ${port}`);

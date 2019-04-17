@@ -8677,7 +8677,7 @@ let dbPlayerInfo = {
     },
 
 
-    getRewardEventForPlatform: function (platformId) {
+    getRewardEventForPlatform: function (platformId, playerObjId) {
         var playerPlatformId = null;
         let routeSetting;
         return dbconfig.collection_platform.findOne({platformId: platformId}).then(
@@ -8796,6 +8796,127 @@ let dbPlayerInfo = {
             function (error) {
                 return Q.reject({name: "DBError", message: "Error in getting rewardEvent", error: error});
             }
+        ).then(
+            rewardEventList => {
+                if(playerObjId){
+                    let homePopupProm = [];
+                    let rewardEntryProm = [];
+                    let rewardListProm = [];
+
+                    //check homePopupShow, rewardEntryShow, and rewardListShow for each reward event
+                    if(rewardEventList && rewardEventList.length){
+                        rewardEventList.forEach(
+                            rewardEvent => {
+                                if(rewardEvent && rewardEvent.condition){
+                                    if(rewardEvent.condition.visibleFromHomePage && rewardEvent.condition.visibleFromHomePage.visible){
+                                        homePopupProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, rewardEvent._id, rewardEvent.condition.visibleFromHomePage));
+                                    }
+
+                                    if(rewardEvent.condition.visibleFromRewardEntry && rewardEvent.condition.visibleFromRewardEntry.visible){
+                                        rewardEntryProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, rewardEvent._id, rewardEvent.condition.visibleFromRewardEntry));
+                                    }
+
+                                    if(rewardEvent.condition.visibleFromRewardList && rewardEvent.condition.visibleFromRewardList.visible){
+                                        rewardListProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, rewardEvent._id, rewardEvent.condition.visibleFromRewardList));
+                                    }
+                                }
+
+                                rewardEvent.homePopupShow = false;
+                                rewardEvent.rewardEntryShow = false;
+                                rewardEvent.rewardListShow = false;
+                            }
+                        )
+                    }
+
+                    let homePopupPromiseAll = Promise.all(homePopupProm);
+
+                    let rewardEntryPromiseAll = Promise.all(rewardEntryProm);
+
+                    let rewardListPromiseAll = Promise.all(rewardListProm);
+
+                    return Promise.all([homePopupPromiseAll, rewardEntryPromiseAll, rewardListPromiseAll]).then(
+                        finalResult => {
+                            if(finalResult && finalResult.length){
+                                let homePopup = finalResult[0];
+                                let rewardEntry = finalResult[1];
+                                let rewardList = finalResult[2];
+
+                                if(homePopup && homePopup.length){
+                                    homePopup.forEach(
+                                        visibleResult => {
+                                            if(visibleResult && visibleResult.rewardEventId){
+                                                rewardEventList.map(
+                                                    reward => {
+                                                        if(reward && reward._id && reward._id.toString() == visibleResult.rewardEventId.toString()){
+                                                            reward.homePopupShow = visibleResult.isVisible;
+
+                                                            return reward;
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+
+                                if(rewardEntry && rewardEntry.length){
+                                    rewardEntry.forEach(
+                                        visibleResult => {
+                                            if(visibleResult && visibleResult.rewardEventId){
+                                                rewardEventList.map(
+                                                    reward => {
+                                                        if(reward && reward._id && reward._id.toString() == visibleResult.rewardEventId.toString()){
+                                                            reward.rewardEntryShow = visibleResult.isVisible;
+
+                                                            return reward;
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+
+                                if(rewardList && rewardList.length){
+                                    rewardList.forEach(
+                                        visibleResult => {
+                                            if(visibleResult && visibleResult.rewardEventId){
+                                                rewardEventList.map(
+                                                    reward => {
+                                                        if(reward && reward._id && reward._id.toString() == visibleResult.rewardEventId.toString()){
+                                                            reward.rewardListShow = visibleResult.isVisible;
+
+                                                            return reward;
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+
+                            }
+
+                            return rewardEventList;
+                        }
+                    )
+                }else{
+                    if(rewardEventList && rewardEventList.length) {
+                        rewardEventList.forEach(
+                            rewardEvent => {
+                                if(rewardEvent){
+                                    rewardEvent.homePopupShow = false;
+                                    rewardEvent.rewardEntryShow = false;
+                                    rewardEvent.rewardListShow = false;
+                                }
+                            }
+                        )
+                    }
+
+                    return rewardEventList;
+                }
+
+            }
         );
 
         function getExactLoginDateBasedOnInterval (value, eventData, loginMode, intervalMode) {
@@ -8839,6 +8960,257 @@ let dbPlayerInfo = {
                 }
             )
         }
+    },
+
+    checkIfClientCanSee: function(playerObjId, rewardEventId, rewardEventCondition) {
+        let phoneNumberBindingProm;
+        let newPlayerProm;
+        let firstLoginProm;
+        let playerLevelProm;
+        let creditLessThanProm ;
+        let appliedFollowingRewardProm;
+        let topUpCountMoreThanProm;
+        let appliedCurrentRewardProm;
+
+        if(rewardEventCondition){
+            if(rewardEventCondition.visibleForPhoneNumberBinding){
+                phoneNumberBindingProm = dbPlayerInfo.checkVisibleForPhoneNumber(playerObjId);
+            }
+
+            if(rewardEventCondition.visibleForNewPlayer){
+                newPlayerProm = dbPlayerInfo.checkVisibleForNewPlayer(playerObjId);
+            }
+
+            if(rewardEventCondition.visibleForFirstLogin){
+                firstLoginProm = dbPlayerInfo.checkVisibleForFirstLogin(playerObjId);
+            }
+
+            if(rewardEventCondition.visibleForPlayerLevel){
+                playerLevelProm = dbPlayerInfo.checkVisibleForPlayerLevel(playerObjId, rewardEventCondition.visibleForPlayerLevel);
+            }
+
+            if(typeof rewardEventCondition.visibleIfCreditLessThan != "undefined" && rewardEventCondition.visibleIfCreditLessThan != null){
+                creditLessThanProm = dbPlayerInfo.checkVisibleIfCreditLessThan(playerObjId, rewardEventCondition.visibleIfCreditLessThan);
+            }
+
+            if(rewardEventCondition.visibleIfAppliedFollowingReward && rewardEventCondition.visibleIfAppliedFollowingReward.length){
+                appliedFollowingRewardProm = dbPlayerInfo.checkVisibleIfAppliedFollowingReward(playerObjId, rewardEventCondition.visibleIfAppliedFollowingReward);
+            }
+
+            if(typeof rewardEventCondition.visibleIfTopUpCountMoreThan != "undefined" && rewardEventCondition.visibleIfTopUpCountMoreThan != null){
+                topUpCountMoreThanProm = dbPlayerInfo.checkVisibleIfTopUpCountMoreThan(playerObjId, rewardEventCondition.visibleIfTopUpCountMoreThan);
+            }
+
+            if(rewardEventCondition.invisibleIfApplyCurrentReward){
+                appliedCurrentRewardProm = dbPlayerInfo.checkVisibleIfApplyCurrentReward(playerObjId, rewardEventId);
+            }
+        }
+
+        return Promise.all([phoneNumberBindingProm, newPlayerProm, firstLoginProm, playerLevelProm, creditLessThanProm, appliedFollowingRewardProm, topUpCountMoreThanProm, appliedCurrentRewardProm]).then(
+            visibleResult => {
+                let isVisible = true;
+                if(visibleResult && visibleResult.length){
+                    visibleResult.forEach(
+                        result => {
+                            if(typeof result != "undefined" && !result){
+                                isVisible = false;
+                            }
+                        }
+                    )
+                }
+                return {rewardEventId: rewardEventId, isVisible: isVisible};
+            }
+        )
+    },
+
+    checkVisibleForPhoneNumber: function(playerObjId){
+        return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+            playerDetails => {
+                if(playerDetails && playerDetails.phoneNumber){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        );
+    },
+
+    checkVisibleForNewPlayer: function(playerObjId){
+        let twentyFourHoursBefore = new Date();
+        twentyFourHoursBefore.setHours(twentyFourHoursBefore.getHours() - 24);
+        let query = {
+            _id: playerObjId,
+            registrationTime: {
+                $gte: twentyFourHoursBefore,
+            }
+        };
+
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerDetails => {
+                if(playerDetails){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        );
+    },
+
+    checkVisibleForFirstLogin: function(playerObjId){
+        return dbconfig.collection_playerLoginRecord.find({player: playerObjId}).count().then(
+            loginRecordCount => {
+                if(loginRecordCount == 1){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        );
+    },
+
+    checkVisibleForPlayerLevel: function(playerObjId, visibleForPlayerLevel){
+        return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+            playerDetails => {
+                if(playerDetails && playerDetails.playerLevel && visibleForPlayerLevel.length){
+                    let returnedResult = false;
+
+                    visibleForPlayerLevel.forEach(
+                        rewardPlayerLevel => {
+                            if(rewardPlayerLevel && rewardPlayerLevel.toString() == playerDetails.playerLevel.toString()){
+                                returnedResult = true;
+                            }
+                        }
+                    )
+
+                    return returnedResult;
+                }else{
+                    return false;
+                }
+            }
+        );
+    },
+
+    checkVisibleIfCreditLessThan: function (playerObjId, visibleIfCreditLessThan){
+        let platformId;
+        let providerObjIdList;
+        let playerName;
+        let playerCredit = 0;
+
+
+        return dbconfig.collection_players.findOne({_id: playerObjId}).lean()
+        .populate({path: "platform", model: dbconfig.collection_platform})
+        .then(
+            playerDetails => {
+                if(playerDetails){
+                    platformId = playerDetails.platform && playerDetails.platform.platformId ? playerDetails.platform.platformId : null;
+                    providerObjIdList = playerDetails.platform && playerDetails.platform.gameProviders ? playerDetails.platform.gameProviders : [];
+                    playerName = playerDetails.name ? playerDetails.name : "";
+                    playerCredit = playerDetails.validCredit ? playerDetails.validCredit : 0;
+
+                    return dbconfig.collection_gameProvider.find({_id: {$in: providerObjIdList}}).lean();
+                }
+
+                return;
+            }
+        ).then(
+            gameProviderDetails => {
+                let gameProviderProm= [];
+                if(gameProviderDetails && gameProviderDetails.length){
+                    gameProviderDetails.forEach(
+                        provider => {
+
+                            if(provider && provider.providerId){
+                                let creditQuery = {
+                                    username: playerName,
+                                    platformId: platformId,
+                                    providerId: provider.providerId,
+                                };
+
+                                gameProviderProm.push(
+                                    cpmsAPI.player_queryCredit(
+                                        creditQuery
+                                    ).then(
+                                        data => data,
+                                        error => {
+                                            return {credit: 0};
+                                        }
+                                    )
+                                );
+                            }
+                        }
+                    )
+                }
+
+                return Promise.all(gameProviderProm).then(
+                    gameProviderCredits => {
+                        if(gameProviderCredits && gameProviderCredits.length){
+                            gameProviderCredits.forEach(
+                                providerCredit => {
+                                    if(providerCredit && providerCredit.credit){
+                                        playerCredit += parseFloat(providerCredit.credit);
+                                    }
+                                }
+                            )
+                        }
+
+                        if(typeof visibleIfCreditLessThan != "undefined" && playerCredit < visibleIfCreditLessThan){
+                            return true;
+                        }else{
+                            return false;
+                        }
+                    }
+                );
+            },
+        );
+    },
+
+    checkVisibleIfAppliedFollowingReward: function(playerObjId, visibleIfAppliedFollowingReward){
+        let rewardObjIdList = visibleIfAppliedFollowingReward.map(v => ObjectId(v));
+        let query = {
+            "data.playerObjId": playerObjId,
+            "data.eventId": {$in: rewardObjIdList},
+            "status": constProposalStatus.APPROVED
+        };
+
+        return dbconfig.collection_proposal.find(query).count().then(
+            appliedRewardCount => {
+                if(appliedRewardCount){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        );
+    },
+
+    checkVisibleIfTopUpCountMoreThan: function(playerObjId, visibleIfTopUpCountMoreThan){
+
+        return dbconfig.collection_playerTopUpRecord.find({playerId: playerObjId}).count().then(
+            playerTopUpRecordCount => {
+                if(typeof playerTopUpRecordCount != "undefined" && typeof visibleIfTopUpCountMoreThan != "undefined" && playerTopUpRecordCount >= visibleIfTopUpCountMoreThan){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        );
+    },
+
+    checkVisibleIfApplyCurrentReward: function(playerObjId, rewardEventId){
+        let query = {
+            "data.playerObjId": playerObjId,
+            "data.eventId": rewardEventId,
+            "status": constProposalStatus.APPROVED
+        };
+        return dbconfig.collection_proposal.find(query).count().then(
+            appliedRewardCount => {
+                if(appliedRewardCount){
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        );
     },
 
     getLevelRewardForPlayer: function (query) {
@@ -9680,7 +10052,7 @@ let dbPlayerInfo = {
                     if (levelObjId) {
                         // Perform the level up
                         return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
-                            platformData => {
+                            async (platformData) => {
                                 console.log("ZM, player level up checkpoint 1 ", playerObj.name);
                                 let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                                 let platformPeriodTime;
@@ -9720,7 +10092,9 @@ let dbPlayerInfo = {
                                     }
                                 ).lean();
 
-                                let consumptionProm = dbconfig.collection_playerConsumptionRecord.find(
+
+                                let consumptionArr = [];
+                                let consumptionProm = await dbconfig.collection_playerConsumptionRecord.find(
                                     {
                                         platformId: ObjectId(playerObj.platform),
                                         createTime: {
@@ -9729,9 +10103,13 @@ let dbPlayerInfo = {
                                         },
                                         playerId: ObjectId(playerObj._id)
                                     }
-                                ).lean();
+                                ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
+                                    if (doc._doc) {
+                                        consumptionArr.push(doc._doc);
+                                    }
+                                });
 
-                                return Promise.all([topUpProm, consumptionProm]).then(
+                                return Promise.all([topUpProm, consumptionArr]).then(
                                     recordData => {
                                         console.log("ZM player level up checkpoint 2 ", playerObj.name);
                                         let topUpSummary = recordData[0];
@@ -10059,7 +10437,7 @@ let dbPlayerInfo = {
                 if (levels && levels.length > 0) {
                     // Perform the level up
                     return dbconfig.collection_platform.findOne({"_id": playerObj.platform}).then(
-                        platformData => {
+                        async (platformData) => {
                             let platformPeriod = checkLevelUp ? platformData.playerLevelUpPeriod : platformData.playerLevelDownPeriod;
                             let platformPeriodTime;
                             if (platformPeriod) {
@@ -10087,7 +10465,8 @@ let dbPlayerInfo = {
                                 }
                             ).lean();
 
-                            let consumptionProm = dbconfig.collection_playerConsumptionRecord.find(
+                            let consumptionArr = [];
+                            let consumptionProm = await dbconfig.collection_playerConsumptionRecord.find(
                                 {
                                     platformId: ObjectId(playerObj.platform),
                                     createTime: {
@@ -10096,10 +10475,17 @@ let dbPlayerInfo = {
                                     },
                                     playerId: ObjectId(playerObj._id)
                                 }
-                            ).lean();
+                            ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
+                                if (doc._doc) {
+                                    consumptionArr.push(doc._doc);
+                                }
+                            });
 
-                            return Promise.all([topUpProm, consumptionProm]).then(
+                            console.log("ZM, player manual level up checkpoint 1 ", playerObj.name);
+
+                            return Promise.all([topUpProm, consumptionArr]).then(
                                 recordData => {
+                                    console.log("ZM, player manual level up checkpoint 2 ", playerObj.name);
                                     let topUpSummary = recordData[0];
                                     let consumptionSummary = recordData[1];
                                     let topUpSumPeriod = {};
@@ -20056,12 +20442,12 @@ let dbPlayerInfo = {
                     if (playerDetail.accAdmin) {
                         result.csOfficer = playerDetail.accAdmin;
                     }
+                    else if (playerDetail.csOfficer) {
+                        result.csOfficer = playerDetail.csOfficer.adminName || "";
+                    }
                     else if (csOfficerDetail) {
                         result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
                         // result.csPromoteWay = csOfficerDetail.way;
-                    }
-                    else if (playerDetail.csOfficer) {
-                        result.csOfficer = playerDetail.csOfficer.adminName || "";
                     }
 
                     if (playerDetail && playerDetail.promoteWay) {

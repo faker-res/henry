@@ -184,7 +184,7 @@ style.
                             text(ng-show='!vm.showProposalIndicator.approve') ({{vm.multiProposalSelected.length}})
                             i.fa.fa-spin.fa-spinner(ng-show='vm.showProposalIndicator.approve')
                         //button.btn.btn-danger.common-button(ng-show="checkViewPermission('Operation', 'Proposal','RejectProposal')", ng-click="vm.updateMultiProposal();vm.searchProposalByQuery(true)") {{"REJECT" | translate}}
-                        button.btn.btn-danger.common-button(ng-show="checkViewPermission('Operation', 'Proposal','RejectProposal')", ng-click='vm.rejectMultipleRemark = ""', data-toggle="modal", data-target='#modalAddRemarkRejectMultipleProposal') {{"REJECT" | translate}}
+                        button.btn.btn-danger.common-button(ng-show="checkViewPermission('Operation', 'Proposal','RejectProposal')", ng-click='vm.initAddRemarkRejectMultipleProposal()', data-toggle="modal", data-target='#modalAddRemarkRejectMultipleProposal') {{"REJECT" | translate}}
                             text(ng-show='!vm.showProposalIndicator.reject') ({{vm.multiProposalSelected.length}})
                             i.fa.fa-spin.fa-spinner(ng-show='vm.showProposalIndicator.reject')
                 //#topupMonitorTableDiv.tab-pane.fade
@@ -319,7 +319,7 @@ style.
                 .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
                     button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
                     //button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
-                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click='vm.rejectRemark = ""', data-toggle="modal", data-target='#modalAddRemarkRejectProposal') {{"REJECT" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click='vm.initAddRemarkRejectMultipleProposal()', data-toggle="modal", data-target='#modalAddRemarkRejectProposal') {{"REJECT" | translate}}
                 //button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal', ng-if='vm.selectedProposal.showCancel', data-toggle="modal", data-target='#modalAddRemarkCancelProposal') {{"Cancel Proposal" | translate}}
                 .inlineBlk(ng-if='vm.selectedProposal.cancelling')

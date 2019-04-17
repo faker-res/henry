@@ -1186,6 +1186,7 @@ define(['js/app'], function (myApp) {
                 vm.platformSettlement = {};
                 vm.advancedPartnerQueryObj = {limit: 10, index: 0};
                 vm.getCredibilityRemarks();
+                vm.getAllCredibilityRemarks();
                 vm.partnerAdvanceSearchQuery = {
                     creditsOperator: ">=",
                     dailyActivePlayerOperator: ">=",
@@ -1216,7 +1217,7 @@ define(['js/app'], function (myApp) {
                 //     });
                 // })
 
-                Q.all([vm.getAllPlayerLevels(), vm.getAllPartnerLevels()]).then(
+                Q.all([vm.getAllPlayerLevels(), vm.getAllPlayerLevelsAcrossPlatform(), vm.getAllPartnerLevels()]).then(
                     function (data) {
                         $scope.$evalAsync(async () => {
                             // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
@@ -4559,8 +4560,10 @@ define(['js/app'], function (myApp) {
                 vm.platformCreditTransferLog.loading = true;
                 let defaultPlatformCreditTransferStatus;
                 $scope.safeApply();
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                 let sendQuery = {
-                    PlatformObjId: vm.selectedPlatform.id,
+                    PlatformObjId: platformObjId,
                     startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.platformCreditTransferLog.index,
@@ -6093,8 +6096,10 @@ define(['js/app'], function (myApp) {
 
                         let updateAmount = playerTransfer.amount - playerTransfer.lockedAmount;
 
+                        let platform = getSelectedPlatform();
+                        let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                         let sendData = {
-                            platformId: vm.selectedPlatform.id,
+                            platformId: platformObjId,
                             creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                             data: {
                                 playerObjId: playerTransfer.playerObjId,
@@ -6322,8 +6327,9 @@ define(['js/app'], function (myApp) {
             //get all platform players data from server
             vm.getPlatformPlayersData = function (newSearch, initPage) {
 
-                // $('#loadingPlayerTableSpin').show();
-                socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: vm.selectedPlatform.id}, function (playerCount) {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
+                socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: platformObjId}, function (playerCount) {
                     vm.platformPlayerCount = playerCount.data;
                     console.log('playerCount', playerCount);
                 });
@@ -6341,8 +6347,10 @@ define(['js/app'], function (myApp) {
                 if (vm.advancedQueryObj.credibilityRemarks && (vm.advancedQueryObj.credibilityRemarks.constructor !== Array || vm.advancedQueryObj.credibilityRemarks.length === 0)) {
                     delete vm.advancedQueryObj.credibilityRemarks;
                 }
-                var apiQuery = {
-                    platformId: vm.selectedPlatform.id,
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
+                let apiQuery = {
+                    platformId: platformObjId,
                     query: vm.advancedQueryObj,
                     index: newSearch ? 0 : (vm.playerTableQuery.index || 0),
                     limit: vm.playerTableQuery.limit,
@@ -7381,7 +7389,11 @@ define(['js/app'], function (myApp) {
                             }
                         });
 
-                        $(".remarkCol > a").on("click", vm.initPlayerCredibility);
+                        $(".remarkCol > a").on("click", ()=>{
+                            let platform = getSelectedPlatform();
+                            let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
+                            vm.initPlayerCredibility(platformObjId);
+                        });
 
                         $('#selectAllPlayers').on('click', vm.selectAllPlayers);
 
@@ -8335,8 +8347,6 @@ define(['js/app'], function (myApp) {
                 // Row click
                 $(nRow).off('click');
                 $(nRow).on('click', function () {
-                    // vm.selectedPlatform = vm.allPlatformData.filter(platform => platform._id == aData.platform)[0];
-                    // vm.selectedPlatform.id = vm.selectedPlatform._id;
                     $('#playerDataTable tbody tr').removeClass('selected');
                     $('#playerFeedbackDataTable tbody tr').removeClass('selected');
                     $(this).toggleClass('selected');
@@ -8816,12 +8826,14 @@ define(['js/app'], function (myApp) {
                 //vm.getSMSTemplate();
                 var title, text;
                 if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+                    let platform = getSelectedPlatform();
+                    let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                     vm.smstpl = "";
                     vm.smsPlayer = {
                         playerId: playerObjId.playerId,
                         name: playerObjId.name,
                         nickName: playerObjId.nickName,
-                        platformId: vm.selectedPlatform.data.platformId,
+                        platformId: platformObjId,
                         // channel: $scope.channelList[0],
                         hasPhone: playerObjId.phoneNumber
                     }
@@ -10046,12 +10058,12 @@ define(['js/app'], function (myApp) {
                 vm.resetPartnerNewPassword = false;
             };
 
-            vm.initPlayerCredibility = () => {
+            vm.initPlayerCredibility = (platformObjId) => {
                 vm.credibilityRemarkComment = "";
                 vm.credibilityRemarkUpdateMessage = "";
                 vm.somePlayerRemarksRemoved = false;
                 vm.playerCredibilityRemarksUpdated = false;
-                vm.prepareCredibilityConfig().then(
+                vm.prepareCredibilityConfig(platformObjId).then(
                     () => {
                         $scope.$evalAsync(()=>{
                             if (vm.selectedSinglePlayer) {
@@ -10944,8 +10956,11 @@ define(['js/app'], function (myApp) {
                 vm.rewardTotalAmount = 0;
                 vm.creditTransfer.needClose = false;
                 vm.creditTransfer.transferResult = '';
-
-                if (vm.selectedPlatform.data.useProviderGroup) {
+                let platform = getSelectedPlatform();
+                let platformId = platform ? platform.platformId : vm.selectedPlatform.data.platformId;
+                let useProviderGroup = platform ? platform.useProviderGroup : vm.selectedPlatform.data.useProviderGroup;
+                let gameProviderDetails = platform ? platform.gameProviderDetails : vm.platformProviderList;
+                if (useProviderGroup) {
                     vm.creditTransfer.showValidCredit = row.validCredit;
                     vm.creditTransfer.showRewardAmount = row.lockedCredit;
                 } else {
@@ -10962,8 +10977,8 @@ define(['js/app'], function (myApp) {
                     });
                 }
 
-                for (var i in vm.platformProviderList) {
-                    vm.getPlayerCreditInProvider(row.name, vm.platformProviderList[i].providerId, vm.playerCredit)
+                for (var i in gameProviderDetails) {
+                    vm.getPlayerCreditInProvider(row.name, gameProviderDetails[i].providerId, vm.playerCredit, platformId)
                 }
                 vm.showPlayerAccountingDetailTab(null);
             }
@@ -11106,12 +11121,12 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.getPlayerCreditInProvider = function (userName, providerId, targetObj) {
+            vm.getPlayerCreditInProvider = function (userName, providerId, targetObj, platformId) {
                 var sendStr = 'getPlayerCreditInProvider';
                 socketService.$socket($scope.AppSocket, sendStr, {
                     providerId: providerId,
                     userName: userName,
-                    platformId: vm.selectedPlatform.data.platformId
+                    platformId: platformId || vm.selectedPlatform.data.platformId
                 });
                 $scope.AppSocket.removeAllListeners('_' + sendStr);
                 $scope.AppSocket.on('_' + sendStr, function (data) {
@@ -11146,10 +11161,12 @@ define(['js/app'], function (myApp) {
                                 res.data.sort((a, b) => new Date(a.operationTime).getTime() - new Date(b.operationTime).getTime());
 
                                 let p = Promise.resolve();
+                                let platform = getSelectedPlatform();
+                                let platformId = platform && platform.platformId ? platform.platformId : vm.selectedPlatform.data.platformId;
 
                                 for (let i = 0; i < res.data.length; i++) {
                                     let sendData = {
-                                        platform: vm.selectedPlatform.data.platformId,
+                                        platform: platformId,
                                         playerId: vm.selectedSinglePlayer.playerId,
                                         providerId: res.data[i].providerId,
                                         amount: parseInt(vm.playerCredit[res.data[i].providerId].gameCredit),
@@ -11480,8 +11497,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updatePlayerCredit = function () {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                 var sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: platformObjId,
                     creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                     data: {
                         playerObjId: vm.isOneSelectedPlayer()._id,
@@ -11556,8 +11575,10 @@ define(['js/app'], function (myApp) {
 
                         let updateAmount = playerTransfer.amount - playerTransfer.lockedAmount;
 
+                        let platform = getSelectedPlatform();
+                        let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                         let sendData = {
-                            platformId: vm.selectedPlatform.id,
+                            platformId: platformObjId,
                             creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                             data: {
                                 playerObjId: playerTransfer.playerObjId,
@@ -12513,9 +12534,11 @@ define(['js/app'], function (myApp) {
                 vm.repairProposalId = null;
                 vm.submitRepairePayementStep = 0;
                 vm.processDataTableinModal(modalID, '#playerRepairPaymentTbl', null, function () {
+                    let platform = getSelectedPlatform();
+                    let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                     var queryData = {
                         playerId: vm.isOneSelectedPlayer()._id,
-                        platformId: vm.selectedPlatform.data._id
+                        platformId: platformObjId
                     }
                     socketService.$socket($scope.AppSocket, 'getPlayerPendingPaymentProposal', queryData, function (data) {
                         vm.allPendingRequest = data.data ? data.data.map(item => {
@@ -12810,9 +12833,11 @@ define(['js/app'], function (myApp) {
 
                 // retrieve the related rewardTasks
                 if (vm.playerBonus.bForce == true) {
+                    let platform = getSelectedPlatform();
+                    let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                     let sendQuery = {
                         playerObjId: vm.isOneSelectedPlayer()._id,
-                        platformId: vm.selectedPlatform.id,
+                        platformId: platformObjId,
                     };
                     socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposalById', sendQuery, function (data) {
 
@@ -12928,12 +12953,14 @@ define(['js/app'], function (myApp) {
                         vm.playerBonus.resMsg = $translate('Approved');
                         vm.playerBonus.showSubmit = false;
                         vm.getPlatformPlayersData();
+                        let platform = getSelectedPlatform();
+                        let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                         // save the rewardTask that is manually unlocked
                         if (vm.playerBonus.bForce && vm.rewardTaskGroupProposalList && vm.rewardTaskGroupProposalList.length > 0) {
                             vm.rewardTaskGroupProposalList.forEach(listData => {
                                 listData.forEach(rewardTask => {
                                     let sendData = {
-                                        platformId: vm.selectedPlatform.id,
+                                        platformId: platformObjId,
                                         playerId: vm.isOneSelectedPlayer()._id,
                                         unlockTime: new Date().toISOString(),
                                         creator: {
@@ -12987,13 +13014,15 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updatePlayerFeedback = function () {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                 let resultName = vm.allPlayerFeedbackResults.filter(item => {
                     return item.key == vm.playerFeedback.result;
                 });
                 resultName = resultName.length > 0 ? resultName[0].value : "";
                 let sendData = {
                     playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
-                    platform: vm.selectedPlatform.id,
+                    platform: platformObjId,
                     createTime: Date.now(),
                     adminId: authService.adminId,
                     content: vm.playerFeedback.content,
@@ -13043,13 +13072,15 @@ define(['js/app'], function (myApp) {
 
             vm.bulkAddPlayerFeedback = () => {
                 vm.bulkPlayersToAddFeedback = vm.bulkPlayersToAddFeedback || [];
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                 let resultName = vm.allPlayerFeedbackResults.filter(item => {
                     return item.key == vm.playerFeedback.result;
                 });
                 resultName = resultName.length > 0 ? resultName[0].value : "";
                 let sendData = {
                     playerId: vm.bulkPlayersToAddFeedback,
-                    platform: vm.selectedPlatform.id,
+                    platform: platformObjId,
                     createTime: Date.now(),
                     adminId: authService.adminId,
                     content: vm.playerFeedback.content,
@@ -13079,9 +13110,11 @@ define(['js/app'], function (myApp) {
             };
 
             vm.bulkSMSToFailPlayers = () => {
+                let platform = getSelectedPlatform();
+                let platformId = platform && platform.platformId ? platform.platformId : vm.selectedPlatform.data.platformId;
                 let smsObj = {
                     playerIds: vm.bulkPlayersToSendSMS,
-                    platformId: vm.selectedPlatform.data.platformId,
+                    platformId: platformId,
                     channel: vm.smsPlayer.channel,
                     message: vm.smsPlayer.message
                 };
@@ -13680,7 +13713,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.searchSMSLog = function (newSearch) {
-                var platformId = (vm.selectedPlatform.data && vm.selectedPlatform.data.platformId) ? vm.selectedPlatform.data.platformId : null;
+                let platform = getSelectedPlatform();
+                let platformId = platform && platform.platformId ? platform.platformId : vm.selectedPlatform.data.platformId;
                 var requestData = {
                     // playerId: vm.selectedSinglePlayer.playerId,
                     isAdmin: vm.smsLog.query.isAdmin,
@@ -13690,7 +13724,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.smsLog.query.endTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .endTime   input').val() || undefined,
                     index: newSearch ? 0 : vm.smsLog.index,
                     limit: newSearch ? 10 : vm.smsLog.limit,
-                    platformId: platformId
+                    platformId: platformId || null
                 };
 
                 if (vm.smsLog.type == "single") {
@@ -15290,9 +15324,11 @@ define(['js/app'], function (myApp) {
                 }
                 let tempPlayerId = vm.popOverPlayerPermission && vm.popOverPlayerPermission._id ? vm.popOverPlayerPermission._id :
                     vm.selectedSinglePlayer && vm.selectedSinglePlayer._id ? vm.selectedSinglePlayer._id : null;
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                 var sendData = {
                     playerId: tempPlayerId,
-                    platform: vm.selectedPlatform.id,
+                    platform: platformObjId,
                     createTime: {
                         $gte: new Date(vm.playerPermissionQuery.startTime.data('datetimepicker').getLocalDate()),
                         $lt: new Date(vm.playerPermissionQuery.endTime.data('datetimepicker').getLocalDate())
@@ -15574,8 +15610,10 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
                 let sendQuery = {
-                    platform: vm.selectedPlatform.id,
+                    platform: platformObjId,
                     playerObjId: vm.selectedSinglePlayer && vm.selectedSinglePlayer._id || "",
                     playerName: vm.playerApiLog.playerName || "",
                     startDate: vm.playerApiLog.startDate.data('datetimepicker').getLocalDate(),
@@ -16745,7 +16783,15 @@ define(['js/app'], function (myApp) {
                 }
             };
             vm.submitPlayerFeedbackQuery = function (isNewSearch, currentTimeBoolean) {
-                if (!vm.selectedPlatform) return;
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
+                vm.playerFeedbackSelectedPlatform = vm.allPlatformData.filter(platform => {return vm.playerFeedbackQuery.selectedPlatform == platform._id})[0];
+                vm.loadBankCardGroupData(vm.playerFeedbackQuery.selectedPlatform);
+                vm.loadMerchantGroupData(vm.playerFeedbackQuery.selectedPlatform);
+                vm.loadAlipayGroupData(vm.playerFeedbackQuery.selectedPlatform);
+                vm.loadWechatPayGroupData(vm.playerFeedbackQuery.selectedPlatform);
+                vm.getPlatformProviderGroup(vm.playerFeedbackQuery.selectedPlatform);
+                vm.rewardTabClicked(null, vm.playerFeedbackQuery.selectedPlatform);
+
                 if (vm.ctiData.hasOnGoingMission) {
                     if (isNewSearch) {
                         vm.feedbackPlayersPara.index = 1;
@@ -16761,13 +16807,8 @@ define(['js/app'], function (myApp) {
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
-                let sendQuery = {platform: vm.selectedPlatform.id};
-                // let sendQuery = {};
+                let sendQuery = {platform: vm.playerFeedbackQuery.selectedPlatform};
                 let sendQueryOr = [];
-
-                // if(vm.playerFeedbackQuery.selectedPlatform && vm.playerFeedbackQuery.selectedPlatform.length > 0) {
-                //     sendQuery.platform = vm.playerFeedbackQuery.selectedPlatform;
-                // }
 
                 if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
                     sendQuery.playerType = vm.playerFeedbackQuery.playerType;
@@ -17371,8 +17412,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.toggleCallOutMissionStatus = function() {
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
+
                 socketService.$socket($scope.AppSocket, 'toggleCallOutMissionStatus', {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.playerFeedbackQuery.selectedPlatform,
                     missionName: vm.ctiData.missionName
                 }, function (data) {
                     console.log("toggleCallOutMissionStatus ret" , data);
@@ -17390,9 +17433,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.stopCallOutMission = function() {
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                 $('#platformFeedbackSpin').show();
                 socketService.$socket($scope.AppSocket, 'stopCallOutMission', {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.playerFeedbackQuery.selectedPlatform,
                     missionName: vm.ctiData.missionName
                 }, function (data) {
                     console.log("stopCallOutMission ret" , data);
@@ -17410,9 +17454,10 @@ define(['js/app'], function (myApp) {
                     $('#modalYesNo').modal();
                 }
                 else {
+                    if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                     $('#platformFeedbackSpin').show();
                     socketService.$socket($scope.AppSocket, 'forceStopFPMSMission', {
-                        platformObjId: vm.selectedPlatform.id
+                        platformObjId: vm.playerFeedbackQuery.selectedPlatform
                     }, function (data) {
                         console.log("forceStopFPMSMission ret", data);
                         $scope.$evalAsync(function () {
@@ -17423,8 +17468,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.endCallOutMission = function() {
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                 socketService.$socket($scope.AppSocket, 'endCallOutMission', {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.playerFeedbackQuery.selectedPlatform,
                     missionName: vm.ctiData.missionName
                 }, function (data) {
                     console.log("endCallOutMission ret" , data);
@@ -17441,17 +17487,18 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getCtiData = function(isRetry) {
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                 $('#platformFeedbackSpin').show();
 
-                vm.getCtiDataRepeatCount = vm.getCtiDataRepeatCount || 0;
-                if (!vm.selectedPlatform && vm.getCtiDataRepeatCount < 10) {
-                    vm.getCtiDataRepeatCount++;
-                    return setTimeout(vm.getCtiData, 5000);
-                }
-                vm.getCtiDataRepeatCount = 0;
+                // vm.getCtiDataRepeatCount = vm.getCtiDataRepeatCount || 0;
+                // if (!vm.selectedPlatform && vm.getCtiDataRepeatCount < 10) {
+                //     vm.getCtiDataRepeatCount++;
+                //     return setTimeout(vm.getCtiData, 5000);
+                // }
+                // vm.getCtiDataRepeatCount = 0;
 
                 socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.playerFeedbackQuery.selectedPlatform,
                     limit: vm.playerFeedbackQuery.limit || 10,
                     index: vm.playerFeedbackQuery.index || 0,
                 }, function (data) {
@@ -17728,6 +17775,7 @@ define(['js/app'], function (myApp) {
                     $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
                     $('select#selectGameProvider').multipleSelect('refresh');
                     vm.refreshSPicker();
+                    vm.getCredibilityRemarksLocal();
                 });
             };
 
@@ -20914,7 +20962,7 @@ define(['js/app'], function (myApp) {
             };
             /////////////////////////////////////// bank card start  /////////////////////////////////////////////////
 
-            vm.loadBankCardGroupData = function () {
+            vm.loadBankCardGroupData = function (platformObjId) {
                 //init gametab start===============================
                 vm.showBankCate = "include";
                 vm.curGame = null;
@@ -20922,8 +20970,8 @@ define(['js/app'], function (myApp) {
                 if (!vm.selectedPlatform) {
                     return
                 }
-                console.log("getBanks", vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'getPlatformBankCardGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                console.log("getBanks", platformObjId || vm.selectedPlatform.id);
+                socketService.$socket($scope.AppSocket, 'getPlatformBankCardGroup', {platform: platformObjId || vm.selectedPlatform.id}, function (data) {
                     console.log('bankgroup', data);
                     //provider list init
                     vm.platformBankCardGroupList = data.data;
@@ -20944,7 +20992,7 @@ define(['js/app'], function (myApp) {
             /////////////////////////////////////// bank card end  /////////////////////////////////////////////////
 
             /////////////////////////////////////// Merchant Group start  /////////////////////////////////////////////////
-            vm.loadMerchantGroupData = function () {
+            vm.loadMerchantGroupData = function (platformObjId) {
                 //init gametab start===============================
                 vm.showMerchantCate = "include";
                 vm.curGame = null;
@@ -20952,8 +21000,8 @@ define(['js/app'], function (myApp) {
                 if (!vm.selectedPlatform) {
                     return
                 }
-                console.log("getMerchants", vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'getPlatformMerchantGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                console.log("getMerchants", platformObjId || vm.selectedPlatform.id);
+                socketService.$socket($scope.AppSocket, 'getPlatformMerchantGroup', {platform: platformObjId || vm.selectedPlatform.id}, function (data) {
                     console.log('merchantgroup', data);
                     //provider list init
                     vm.platformMerchantGroupList = data.data;
@@ -20968,7 +21016,7 @@ define(['js/app'], function (myApp) {
 
             /////////////////////////////////////// Alipay Group start  /////////////////////////////////////////////////
 
-            vm.loadAlipayGroupData = function () {
+            vm.loadAlipayGroupData = function (platformObjId) {
                 //init gametab start===============================
                 vm.showAlipayCate = "include";
                 vm.curGame = null;
@@ -20976,8 +21024,8 @@ define(['js/app'], function (myApp) {
                 if (!vm.selectedPlatform) {
                     return
                 }
-                console.log("getAlipays", vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'getPlatformAlipayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                console.log("getAlipays", platformObjId || vm.selectedPlatform.id);
+                socketService.$socket($scope.AppSocket, 'getPlatformAlipayGroup', {platform: platformObjId || vm.selectedPlatform.id}, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('Alipaygroup', data);
                         //provider list init
@@ -21006,7 +21054,7 @@ define(['js/app'], function (myApp) {
 
             /////////////////////////////////////// QuickPay Group start  /////////////////////////////////////////////////
 
-            vm.loadQuickPayGroupData = function () {
+            vm.loadQuickPayGroupData = function (platformObjId) {
                 //init gametab start===============================
                 vm.showQuickPayCate = "include";
                 vm.curGame = null;
@@ -21016,7 +21064,7 @@ define(['js/app'], function (myApp) {
                 }
                 console.log("getQuickPay", vm.selectedPlatform.id);
                 //todo::no need quick pay for now
-                // socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                // socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: platformObjId || vm.selectedPlatform.id}, function (data) {
                 //     console.log('QuickPayGroup', data);
                 //     //provider list init
                 //     vm.platformQuickPayGroupList = data.data;
@@ -21031,7 +21079,7 @@ define(['js/app'], function (myApp) {
             /////////////////////////////////////// QuickPay Group end  /////////////////////////////////////////////////
 
             /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
-            vm.loadWechatPayGroupData = function () {
+            vm.loadWechatPayGroupData = function (platformObjId) {
                 //init gametab start===============================
                 vm.showWechatPayCate = "include";
                 vm.curGame = null;
@@ -21039,7 +21087,7 @@ define(['js/app'], function (myApp) {
                 if (!vm.selectedPlatform) {
                     return
                 }
-                socketService.$socket($scope.AppSocket, 'getPlatformWechatPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPlatformWechatPayGroup', {platform: platformObjId || vm.selectedPlatform.id}, function (data) {
                     //provider list init
                     vm.platformWechatPayGroupList = data.data;
                     vm.platformWechatPayGroupListCheck = {};
@@ -21427,6 +21475,8 @@ define(['js/app'], function (myApp) {
                     if (vm.showRewardTypeData && vm.showRewardTypeData.isGrouped) {
                         vm.rewardMainTask = [];
                         vm.rewardMainCondition = {};
+                        vm.rewardVisibleCondition = [];
+                        vm.rewardVisible = [];
                         vm.rewardMainParam = {};
                         vm.isPlayerLevelDiff = false;
                         vm.isDynamicRewardAmt = false;
@@ -21601,18 +21651,32 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if(el == "visibleFromHomePage" || el == "visibleFromRewardEntry" || el == "visibleFromRewardList"){
-                                    if(!(vm.showReward && vm.showReward.condition &&
-                                        (vm.showReward.condition["visibleFromHomePage"] || vm.showReward.condition["visibleFromRewardEntry"]
-                                        || vm.showReward.condition["visibleFromRewardList"]))){
-                                        vm.rewardDisabledParam.push("visibleForPhoneNumberBinding");
-                                        vm.rewardDisabledParam.push("visibleForNewPlayer");
-                                        vm.rewardDisabledParam.push("visibleForFirstLogin");
-                                        vm.rewardDisabledParam.push("visibleForPlayerLevel");
-                                        vm.rewardDisabledParam.push("visibleIfCreditLessThan");
-                                        vm.rewardDisabledParam.push("visibleIfAppliedFollowingReward");
-                                        vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
-                                        vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
+                                    //get Player Level
+                                    let playerLevels = {};
+                                    if(vm.allPlayerLvl){
+                                        for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                                            let level = vm.allPlayerLvl[i];
+                                            playerLevels[level._id] = level.name;
+                                        }
                                     }
+
+                                    //get reward event
+                                    let rewardEvents = {};
+                                    if (vm.allRewardEvent){
+                                        for (let i = 0; i < vm.allRewardEvent.length; i++) {
+                                            let event = vm.allRewardEvent[i];
+                                            rewardEvents[event._id] = event.name;
+                                        }
+                                    }
+
+                                    cond.visibleForPlayerLevel.options = playerLevels;
+                                    cond.visibleIfAppliedFollowingReward.options = rewardEvents;
+
+                                    if(vm.showReward && vm.showReward.condition && vm.showReward.condition[el]){
+                                        vm.rewardVisible[el] = vm.showReward.condition[el];
+                                    }
+
+                                    vm.rewardVisibleCondition.push(cond);
                                 }
 
                                 // Get value
@@ -22117,34 +22181,6 @@ define(['js/app'], function (myApp) {
                     vm.isPlayerLevelDiff = model.value;
                     isResetLayout = true;
                 }
-
-
-                if(model && (model.name == "visibleFromHomePage" || model.name == "visibleFromRewardEntry" || model.name == "visibleFromRewardList")){
-                    if(vm.rewardMainCondition && ((vm.rewardMainCondition["4.1"] && vm.rewardMainCondition["4.1"].value) ||
-                        (vm.rewardMainCondition["4.11"] && vm.rewardMainCondition["4.11"].value)
-                    || (vm.rewardMainCondition["4.12"] && vm.rewardMainCondition["4.12"].value))){
-                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name =>
-                            name !== "visibleForPhoneNumberBinding" &&
-                            name !== "visibleForNewPlayer" &&
-                            name !== "visibleForFirstLogin" &&
-                            name !== "visibleForPlayerLevel" &&
-                            name !== "visibleIfCreditLessThan" &&
-                            name !== "visibleIfAppliedFollowingReward" &&
-                            name !== "visibleIfTopUpCountMoreThan" &&
-                            name !== "invisibleIfApplyCurrentReward"
-                        );
-                    }else{
-                        vm.rewardDisabledParam.push("visibleForPhoneNumberBinding");
-                        vm.rewardDisabledParam.push("visibleForNewPlayer");
-                        vm.rewardDisabledParam.push("visibleForFirstLogin");
-                        vm.rewardDisabledParam.push("visibleForPlayerLevel");
-                        vm.rewardDisabledParam.push("visibleIfCreditLessThan");
-                        vm.rewardDisabledParam.push("visibleIfAppliedFollowingReward");
-                        vm.rewardDisabledParam.push("visibleIfTopUpCountMoreThan");
-                        vm.rewardDisabledParam.push("invisibleIfApplyCurrentReward");
-                    }
-                }
-
 
                 if (isResetLayout) {
                     vm.rewardMainParamTable = [];
@@ -23363,6 +23399,10 @@ define(['js/app'], function (myApp) {
                     isValid = false;
                 }
 
+                if(curReward && curReward.condition){
+                    curReward.condition = Object.assign(curReward.condition, vm.rewardVisible);
+                }
+
                 var sendData = {
                     query: {_id: vm.showReward._id},
                     updateData: curReward
@@ -23606,6 +23646,10 @@ define(['js/app'], function (myApp) {
 
                 if (!isPeriodResultValid && !isApplyTypeValid) {
                     isValid = false;
+                }
+
+                if(vm.rewardVisible){
+                    sendData.condition = Object.assign(sendData.condition , vm.rewardVisible);
                 }
 
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
@@ -27564,6 +27608,26 @@ define(['js/app'], function (myApp) {
                         })
                     });
             };
+            vm.getAllPlayerLevelsLocal = function() {
+                let platformObjId;
+                switch(vm.platformPageName.toLowerCase()) {
+                    case "feedback":
+                        platformObjId = vm.playerFeedbackQuery.selectedPlatform;
+                        break;
+                    case "autofeedback":
+                        // platformObjId = vm.playerFeedbackSelectedPlatform;
+                        break;
+                }
+                vm.allPlayerLvl = vm.allPlayerLvlAcrossPlatform.filter(item => {return item.platform == platformObjId});
+                vm.sortPlayerLevels();
+            };
+            vm.getAllPlayerLevelsAcrossPlatform = function () {
+                return $scope.$socketPromise('getAllPlayerLevels', {}).then(function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.allPlayerLvlAcrossPlatform = data.data;
+                    })
+                });
+            };
 
             vm.getPlayerLevelUpPeriodName = function (value) {
                 let name = '';
@@ -29859,7 +29923,7 @@ define(['js/app'], function (myApp) {
 
             vm.getCredibilityRemarks = (platformObjId) => {
                 let sendData = {
-                    platformObjId: platformObjId || null
+                    platformObjId: platformObjId || vm.selectedPlatform.data._id
                 }
                 return new Promise((resolve, reject) => {
                     socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', sendData, function (data) {
@@ -29876,10 +29940,41 @@ define(['js/app'], function (myApp) {
                     });
                 });
             };
+            vm.getCredibilityRemarksLocal = () => {
+                let platformObjId;
+                switch(vm.platformPageName.toLowerCase()) {
+                    case "feedback":
+                        platformObjId = vm.playerFeedbackQuery.selectedPlatform;
+                        break;
+                    case "autofeedback":
+                        // platformObjId = vm.playerFeedbackSelectedPlatform;
+                        break;
+                }
+                if(vm.allCredibilityRemarks) {
+                    vm.credibilityRemarks = vm.allCredibilityRemarks.filter(item=>{return item.platform == platformObjId});
+                    vm.filterCredibilityRemarks = JSON.parse(JSON.stringify(vm.credibilityRemarks));
+                    vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
+                    setTimeout(()=>{
+                        vm.setupRemarksMultiInputFeedback();
+                        vm.setupRemarksMultiInputFeedbackFilter();
+                    },1);
+                }
+            };
+            vm.getAllCredibilityRemarks = () => {
+                return new Promise((resolve, reject) => {
+                    socketService.$socket($scope.AppSocket, 'getAllCredibilityRemarks', {}, function (data) {
+                        console.log('all credibilityRemarks', data);
+                        vm.allCredibilityRemarks = data.data;
+                        resolve();
+                    }, function (err) {
+                        reject(err);
+                    });
+                });
+            };
 
             vm.getPlatformProviderGroup = (platformObjId) => {
                 let sendData = {
-                    platformObjId: platformObjId || null
+                    platformObjId: platformObjId || vm.selectedPlatform.data._id
                 }
                 vm.getPlatformGameData(platformObjId);
                 return $scope.$socketPromise('getPlatformProviderGroup', sendData).then(
@@ -36720,10 +36815,11 @@ define(['js/app'], function (myApp) {
             }
 
             vm.createCallOutMission = function () {
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                 $('#platformFeedbackSpin').show();
                 let sendQuery = {};
 
-                sendQuery.platformObjId = vm.selectedPlatform.id;
+                sendQuery.platformObjId = vm.playerFeedbackQuery.selectedPlatform;
                 sendQuery.adminObjId = authService.adminId;
                 sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
@@ -36736,12 +36832,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.selectedCallOutMission = function(){
-
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                 $('#platformFeedbackSpin').show();
                 let sendQuery = {};
                 let selectedPlayers = [];
 
-                sendQuery.platformObjId = vm.selectedPlatform.id;
+                sendQuery.platformObjId = vm.playerFeedbackQuery.selectedPlatform;
                 sendQuery.adminObjId = authService.adminId;
                 sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
@@ -37201,7 +37297,7 @@ define(['js/app'], function (myApp) {
                 vm.sendMessageToPlayer = function () {
                     let sendData = {
                         adminName: authService.adminName,
-                        platformId: vm.selectedPlatform.id,
+                        platformId: vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform || vm.selectedPlatform.id,
                         playerId: vm.telphonePlayer._id,
                         title: vm.messageForPlayer.title,
                         content: vm.messageForPlayer.content
@@ -38987,6 +39083,19 @@ define(['js/app'], function (myApp) {
                     ifm.height = document.documentElement.clientHeight;
                 }
             };
+
+            function getSelectedPlatform() {
+                let platform = null;
+                switch(vm.platformPageName.toLowerCase()) {
+                    case "feedback":
+                        platform = vm.playerFeedbackSelectedPlatform;
+                        break;
+                    case "autofeedback":
+                        // platform = vm.playerFeedbackSelectedPlatform;
+                        break;
+                }
+                return platform;
+            }
 
             window.onresize = function() {
                 vm.changeFrameHeight();

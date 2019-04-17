@@ -151,7 +151,20 @@ define([], function () {
                 } else {
                     if (data.error && (data.error.message || data.error.errorMessage)) {
                         console.error(retKey, data.error);
-                        self.showErrorMessage($trans(data.error.message || data.error.errorMessage));
+                        let errMessage = data.error.message || data.error.errorMessage;
+                        let ipPattern = new RegExp(/(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])(:[0-9]+)?/gm);
+                        let ipStrings = errMessage.match(ipPattern);
+
+                        if (ipStrings && ipStrings.length) {
+                            ipStrings.forEach(
+                                ipText => {
+                                    let replaceString = ipText.replace(new RegExp("[0-9]", "g"), "X");
+                                    errMessage = errMessage.replace(ipText, replaceString);
+                                }
+                            )
+                        }
+
+                        self.showErrorMessage($trans(errMessage));
                         if (data.error.message) {
                             data.error.originalMessage = data.error.message;
                             data.error.message = $trans(data.error.message);
