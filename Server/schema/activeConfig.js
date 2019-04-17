@@ -1,11 +1,10 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+let mongoose = require('mongoose');
+let Schema = mongoose.Schema;
 
-// NOTE :: this schema really has nothing to do with partner level,
-// it is use to determine whether a player is 'active' or 'effective'
-// and it isn't even use for partner as that is separated to another
-// schema
-var partnerLevelConfigSchema = new Schema({
+// NOTE :: this schema is use for determine how many partner's downline
+// is active. For the one that use for DX or player report (anything that
+// not related to partner commission), look for partnerLevelConfig
+var activeConfigSchema = new Schema({
     platform: {type: Schema.ObjectId, required: true},
     // This is how we decide if a player is valid
     validPlayerTopUpTimes: {type: Number, required: true},
@@ -51,4 +50,4 @@ var partnerLevelConfigSchema = new Schema({
     seasonActivePlayerValue: {type: Number, required: true, default: 0}
 });
 
-module.exports = partnerLevelConfigSchema;
+module.exports = activeConfigSchema;
