@@ -54,6 +54,8 @@ var simplifiedChinese = {
     "Currently no available wechatpay": "目前无可用微信支付",
     "Guest ID cannot update password": "游客不可更改密码",
     "This game has been added before": "该游戏已经收藏",
+    "defaultRewardEventGroup*": "默认组别*",
+    "endedRewardEventGroup*": "已结束优惠组*",
 
     "Birthday only can be set once": "生日绑定之后不可更改",
     "Reset password failed": "找回密码失败",

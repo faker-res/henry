@@ -386,6 +386,8 @@
   "FILTER_PROPOSAL_TYPE": "筛选提案类型",
   "FILTER_PROPOSAL_CONTENT": "筛选提案内容",
   "CLICK_TO_CHANGE": "点击更改",
+  "defaultRewardEventGroup*": "默认组别*",
+  "endedRewardEventGroup*": "已结束优惠组*",
   "APPROVAL": "通过",
   "APPROVE": "通过",
   "No data was found for current query.": "没有找到数据",
