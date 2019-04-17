@@ -2029,6 +2029,7 @@ function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewar
 }
 
 function checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet) {
+    console.log('--MT --ori-gameProviderGroup', gameProviderGroup);
     let gameProviderGroupProm = gameProviderGroup ? Promise.resolve(gameProviderGroup) :
         dbConfig.collection_gameProviderGroup.findOne({
             platform: platform,
@@ -2042,6 +2043,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 // Search for reward task group of this player on this provider
                 let gameCreditProm = Promise.resolve(false);
                 let rewardTaskGroupProm;
+                console.log('--MT --gameProviderGroup', gameProviderGroup);
                 if(useEbetWallet && gameProviderGroup && !gameProviderGroup._id) {
                     rewardTaskGroupProm = Promise.resolve(null);
                 } else {
@@ -2081,6 +2083,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 let providerPlayerObj = {gameCredit: res[0].credit ? parseInt(res[0].credit) : 0};
                 rewardGroupObj = res[1];
                 if(useEbetWallet === true) {
+                    console.log('--MT --rewardGroupObj', rewardGroupObj);
                     let curWalletCredit = res[0].wallet[gameProviderGroup.ebetWallet];
                     let curWalletCreditRounded = Math.floor(curWalletCredit);
                     eBetWalletObj[gameProviderGroup.ebetWallet] = curWalletCreditRounded;
@@ -2096,6 +2099,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                         amount = curWalletCreditRounded;
                         updateObj.freeAmt = amount;
                     }
+                    console.log('--MT --updateObj', updateObj);
                 } else {
                     // Process transfer amount
                     amount = amount > 0 ? Math.floor(amount) : Math.floor(providerPlayerObj.gameCredit);
