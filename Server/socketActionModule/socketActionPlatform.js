@@ -410,6 +410,12 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerCredibility.getCredibilityRemarks, [data.platformObjId], actionName, isValidData);
         },
 
+        getAllCredibilityRemarks: function getAllCredibilityRemarks(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = true;
+            socketUtil.emitter(self.socket, dbPlayerCredibility.getAllCredibilityRemarks, [], actionName, isValidData);
+        },
+
         setFixedCredibilityRemarks: function setFixedCredibilityRemarks(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.fixedRemarks);

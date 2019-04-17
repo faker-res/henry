@@ -1049,7 +1049,7 @@ var dbPlatform = {
                                         platformProm.push(dbconfig.collection_platform.find({_id: {$in: department.platforms}})
                                             .populate({path: "csDepartment", model: dbconfig.collection_department})
                                             .populate({path: "qiDepartment", model: dbconfig.collection_department})
-                                            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).exec().then(
+                                            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().exec().then(
                                                 platformData => {
                                                     if (platformData && platformData.length > 0) {
                                                         platformData.forEach(platform => {
@@ -1059,6 +1059,7 @@ var dbPlatform = {
                                                                     gameProviderIdList.push(provider._id)
                                                                 });
 
+                                                                platform.gameProviderDetails = platform.gameProviders;
                                                                 // only populate providers' ObjectId
                                                                 platform.gameProviders = gameProviderIdList;
                                                             }
@@ -1104,7 +1105,7 @@ var dbPlatform = {
                             }).populate({
                                 path: "gameProviders",
                                 model: dbconfig.collection_gameProvider
-                            }).exec().then(
+                            }).lean().exec().then(
                                 platformData => {
                                     if (platformData && platformData.length > 0) {
                                         platformData.forEach(platform => {
@@ -1114,6 +1115,7 @@ var dbPlatform = {
                                                     gameProviderIdList.push(provider._id)
                                                 });
 
+                                                platform.gameProviderDetails = platform.gameProviders;
                                                 // only populate providers' ObjectId
                                                 platform.gameProviders = gameProviderIdList;
                                             }

@@ -606,7 +606,7 @@
                                         th {{'CREDIT' | translate}}
                                         th {{'TRANSFER' | translate}}
                                 tbody(style='max-height:500px;overflow-y:auto')
-                                    tr(ng-repeat='(i,v) in vm.platformProviderList')
+                                    tr(ng-repeat='(i,v) in vm.playerFeedbackSelectedPlatform.gameProviderDetails')
                                         td {{v.name}}
                                         td {{v.providerId}}
                                         td
