@@ -16431,6 +16431,7 @@ define(['js/app'], function (myApp) {
         };
         // end of Partner Permission Log
 
+        //</editor-fold>
         // region config
         vm.configTabClicked = function (choice) {
             vm.selectedConfigTab = choice;
@@ -16440,7 +16441,6 @@ define(['js/app'], function (myApp) {
             vm.newBlacklistIpConfig = [];
             vm.delayDurationGroupProviderEdit = false;
             vm.getPlatformInSetting();
-            vm.partnerAdvertisementList();
         };
 
         vm.getPlatformInSetting = () => {
@@ -16466,6 +16466,9 @@ define(['js/app'], function (myApp) {
                 //     vm.getCommissionRateGameProviderGroup();
                 //     vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
                 //     break;
+                case 'validActive':
+                    vm.getActiveConfig();
+                    break;
                 case 'partnerBasic':
                     vm.getPartnerBasic();
                     break;
@@ -16474,6 +16477,11 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'largeWithdrawalPartnerSetting':
                     vm.getLargeWithdrawalPartnerSetting();
+                    break;
+                case 'partnerDisplay':
+                case 'partnerAdvert':
+                    vm.partnerAdvertisementList();
+                    break;
 
             }
 
@@ -16533,6 +16541,14 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.firstWithdrawDifferentIPCheck = vm.platformInSetting.autoAudit.firstWithdrawDifferentIPCheck;
         };
 
+        vm.getActiveConfig = function () {
+            return $scope.$socketPromise('getActiveConfig', {platform: vm.platformInSetting._id})
+                .then(function (data) {
+                    vm.activeConfig = data.data[0] || {};
+                    console.log("vm.activeConfig", vm.activeConfig);
+                    $scope.safeApply();
+                });
+        };
 
         vm.initModalLargeWithdrawalPartner = function () {
             vm.largeWithdrawPartnerCheckReviewer = {};
@@ -16644,6 +16660,9 @@ define(['js/app'], function (myApp) {
                 // case 'partner':
                 //     updatePartnerLevels(vm.partnerIDArr, 0);
                 //     break;
+                case 'validActive':
+                    updateActiveConfig();
+                    break;
                 case 'partnerBasic':
                     updatePartnerBasic(vm.partnerBasic);
                     break;
@@ -16654,6 +16673,20 @@ define(['js/app'], function (myApp) {
                     updateLargeWithdrawalPartnerSetting(vm.largeWithdrawalPartnerSetting);
             }
         };
+
+        function updateActiveConfig () {
+            delete vm.activeConfigEdit._id;
+            var sendData = {
+                query: {platform: vm.platformInSetting._id},
+                updateData: vm.activeConfigEdit
+            };
+            socketService.$socket($scope.AppSocket, 'updateActiveConfig', sendData, function (data) {
+                console.log('updateActiveConfig', data)
+                vm.activeConfig = vm.activeConfigEdit;
+                vm.configTabClicked("validActive");
+                $scope.safeApply();
+            });
+        }
 
         function updatePartnerBasic(srcData) {
             let sendData = {
@@ -16729,7 +16762,6 @@ define(['js/app'], function (myApp) {
             });
         }
         //endregion config
-        //</editor-fold>
 
         vm.loadTab = (tab) => {
             switch (tab) {

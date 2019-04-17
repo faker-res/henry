@@ -1,0 +1,117 @@
+include ./partner-setting-platform-select
+div.margin-top-5(ng-if='vm.selectedConfigTab=="validActive" && vm.platformInSetting')
+    div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
+        form(name="formValidActivePlayer", novalidate)
+            table.simple-table.validActiveTable(style='width:auto;min-width:99.9%')
+                thead
+                    tr
+                        th {{'MIN_REQUIREMENT' | translate}}
+                        th {{'TOP_UP_TIMES' | translate}}
+                        th {{'TOP_UP_AMOUNT' | translate}}
+                        th {{'consumptionTimes' | translate}}
+                        th {{'VALID_CONSUMPTION' | translate}}
+                        th {{'Player Value' | translate}}
+                tbody
+                    tr
+                        td {{'DAILY_ACTIVE_PLAYER' | translate}}
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.dailyActivePlayerTopUpTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.dailyActivePlayerTopUpTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.dailyActivePlayerTopUpAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.dailyActivePlayerTopUpAmount')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.dailyActivePlayerConsumptionTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.dailyActivePlayerConsumptionTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.dailyActivePlayerConsumptionAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.dailyActivePlayerConsumptionAmount')
+                        td
+                            text -
+                    tr
+                        td {{'WEEKLY_ACTIVE_PLAYER' | translate}}
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.weeklyActivePlayerTopUpTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.weeklyActivePlayerTopUpTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.weeklyActivePlayerTopUpAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.weeklyActivePlayerTopUpAmount')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.weeklyActivePlayerConsumptionTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.weeklyActivePlayerConsumptionTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.weeklyActivePlayerConsumptionAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.weeklyActivePlayerConsumptionAmount')
+                        td
+                            text -
+                    tr
+                        td {{'HALFMONTH_ACTIVE_PLAYER' | translate}}
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.halfMonthActivePlayerTopUpTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.halfMonthActivePlayerTopUpTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.halfMonthActivePlayerTopUpAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.halfMonthActivePlayerTopUpAmount')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.halfMonthActivePlayerConsumptionTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.halfMonthActivePlayerConsumptionTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.halfMonthActivePlayerConsumptionAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.halfMonthActivePlayerConsumptionAmount')
+                        td
+                            text -
+                    tr
+                        td {{'MONTHLY_ACTIVE_PLAYER' | translate}}
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.monthlyActivePlayerTopUpTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.monthlyActivePlayerTopUpTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.monthlyActivePlayerTopUpAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.monthlyActivePlayerTopUpAmount')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.monthlyActivePlayerConsumptionTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.monthlyActivePlayerConsumptionTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.monthlyActivePlayerConsumptionAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.monthlyActivePlayerConsumptionAmount')
+                        td
+                            text -
+                    tr
+                        td {{'SEASON_ACTIVE_PLAYER' | translate}}
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.seasonActivePlayerTopUpTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.seasonActivePlayerTopUpTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.seasonActivePlayerTopUpAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.seasonActivePlayerTopUpAmount')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.seasonActivePlayerConsumptionTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.seasonActivePlayerConsumptionTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.seasonActivePlayerConsumptionAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.seasonActivePlayerConsumptionAmount')
+                        td
+                            text -
+                    tr
+                        td {{'VALID_PLAYER' | translate}}
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.validPlayerTopUpTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.validPlayerTopUpTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.validPlayerTopUpAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.validPlayerTopUpAmount')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.validPlayerConsumptionTimes}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.validPlayerConsumptionTimes')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.validPlayerConsumptionAmount}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.validPlayerConsumptionAmount')
+                        td
+                            text(ng-if='!vm.configTableEdit') {{vm.activeConfig.validPlayerValue}}
+                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.validPlayerValue')
+    .pull-right
+        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'ValidActiveUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.activeConfigEdit=vm.activeConfig')
+            text {{'EDIT' | translate}}
+            img.img-edit
+        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;') {{"CANCEL" | translate}}
+        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-disabled="formValidActivePlayer.$invalid", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"CONFIRM" | translate}}

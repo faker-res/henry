@@ -197,6 +197,9 @@ let keywordFilterModel = db_admin.model('keywordFilter', keywordFilterSchema, 'k
 let geoIpSchema = require('./../schema/geoip');
 let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 
+let activeConfigSchema = require('./../schema/activeConfig');
+let activeConfigModel = db_admin.model('activeConfig', activeConfigSchema, 'activeConfig');
+
 let platformQuickPayGroupSchema = require('./../schema/platformQuickPayGroup');
 let platformQuickPayGroupModel = db_admin.model('platformQuickPayGroup', platformQuickPayGroupSchema, 'platformQuickPayGroup');
 
@@ -658,6 +661,7 @@ var dbProperties = {
     collection_promoCodeUserGroup: promoCodeUserGroupModel,
 
     collection_keywordFilter: keywordFilterModel,
+    collection_activeConfig: activeConfigModel,
 
     collection_dxMission: dxMissionModel,
     collection_dxPhone: dxPhoneModel,
