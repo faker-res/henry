@@ -16875,6 +16875,24 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync();
                     });
                     break;
+
+                case "PARTNERPLAYERBOUNS_REPORT":
+                    vm.partnerPlayerBonusQuery = {};
+                    if (vm.platformList && vm.platformList[0] && vm.platformList[0].id) {
+                        vm.partnerPlayerBonusQuery.platformObjId = vm.platformList[0].id;
+                    }
+                    vm.partnerPlayerBonusQuery.status = 'all';
+                    vm.partnerPlayerBonusQuery.totalCount = 0;
+                    vm.partnerPlayerBonusQuery.proposalTypeId = 'all';
+                    vm.reportSearchTime = 0;
+                    utilService.actionAfterLoaded("#partnerPlayerBonusTablePage", function () {
+                        vm.commonInitTime(vm.partnerPlayerBonusQuery, '#partnerPlayerBonusQuery')
+                        vm.partnerPlayerBonusQuery.pageObj = utilService.createPageForPagingTable("#partnerPlayerBonusTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "partnerPlayerBonusQuery", vm.searchPartnerPlayerBonusData)
+                        });
+                        $scope.$evalAsync();
+                    });
+                    break;
             }
         }
 
@@ -17006,13 +17024,142 @@ define(['js/app'], function (myApp) {
 
 
 
+        vm.searchPartnerPlayerBonusData = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            var startTime = vm.partnerPlayerBonusQuery.startTime.data('datetimepicker').getLocalDate();
+            var endTime = vm.partnerPlayerBonusQuery.endTime.data('datetimepicker').getLocalDate();
+
+            utilService.getDataTablePageSize("#partnerPlayerBonusTablePage", vm.partnerPlayerBonusQuery, 30);
+
+            var sendData = {
+                platformId: vm.partnerPlayerBonusQuery.platformObjId,
+                partnerName: vm.partnerPlayerBonusQuery.partnerName,
+                startTime: startTime,
+                endTime: endTime,
+                limit: isExport ? 5000 : (vm.partnerPlayerBonusQuery.limit || 10),
+                index: isExport ? 0 : (newSearch ? 0 : (vm.partnerPlayerBonusQuery.index || 0)),
+                sortCol: vm.partnerPlayerBonusQuery.sortCol || {}
+            }
+            $('#partnerPlayerBonusTableSpin').show();
+            socketService.$socket($scope.AppSocket, 'getPartnerPlayerBonusReport', sendData, function (data) {
+                findReportSearchTime();
+                $('#partnerPlayerBonusTableSpin').hide();
+                console.log('partner player bonus report', data);
+                vm.partnerPlayerBonusQuery.totalCount = data.data.stats ? data.data.stats.totalCount : 0;
+                vm.partnerPlayerBonusQuery.message = data.data.message || '';
+                $scope.safeApply();
+                vm.drawPartnerPlayerBonusTable(data.data.players.map(item => {
+                    item.lastBonusTime$ = item.lastBonusTime ? utilService.$getTimeFromStdTimeFormat(item.lastBonusTime) : $translate('NULL')
+                    item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                    item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                    item.totalTopUpAmount$ = parseFloat(item.totalTopUpAmount).toFixed(2);
+                    item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
+                    item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                    item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                    return item;
+                }), vm.partnerPlayerBonusQuery.totalCount, data.data.summary, newSearch, isExport);
+
+            }, function (err) {
+                $('#partnerPlayerBonusTableSpin').hide();
+            }, true);
+        }
+
+        vm.drawPartnerPlayerBonusTable = function (tableData, size, summary, newSearch, isExport) {
+            console.log("vm.drawPartnerPlayerBonusTable", tableData);
+
+            var tableOptions = {
+                data: tableData,
+                "order": vm.partnerPlayerBonusQuery.aaSorting || [],
+                aoColumnDefs: [
+                    // {'sortCol': 'playerId', 'aTargets': [0]},
+                    // {'sortCol': 'playerId', 'aTargets': [1]},
+                    // {'sortCol': 'operationType', 'aTargets': [2]},
+                    // {'sortCol': 'amount', 'aTargets': [3]},
+                    // {'sortCol': 'operationTime', 'aTargets': [4]},
+                    {targets: '_all', defaultContent: 0, bSortable: false}
+                ],
+                columns: [
+                    {data: "playerName"},
+                    {data: "registrationTime$"},
+                    {data: "lastAccessTime$"},
+                    {data: "lastBonusTime$", sClass: "sumText"},
+                    {data: "totalTopUpTimes", sClass: "sumInt alignRight"},
+                    {data: "totalBonusTimes", sClass: "sumInt alignRight"},
+                    {data: "totalTopUpAmount$", sClass: "sumFloat alignRight"},
+                    {data: "totalBonusAmount$", sClass: "sumFloat alignRight"},
+                    {data: "topUpTimes", sClass: "sumInt alignRight"},
+                    {data: "bonusTimes", sClass: "sumInt alignRight"},
+                    {data: "topUpAmount$", sClass: "sumFloat alignRight"},
+                    {data: "bonusAmount$", sClass: "sumFloat alignRight"},
+                ],
+                "bAutoWidth": true,
+                "paging": false,
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            var sumObj = summary ? {
+                4: summary.totalTopUpTimes,
+                5: summary.totalBonusTimes,
+                6: summary.totalTopUpAmount,
+                7: summary.totalBonusAmount,
+                8: summary.topUpTimes,
+                9: summary.bonusTimes,
+                10: summary.topUpAmount,
+                11: summary.bonusAmount,
+            } : {};
+
+            if(isExport){
+                vm.partnerPlayerBonusTable = utilService.createDatatableWithFooter('#partnerPlayerBonusExcelTable', tableOptions, sumObj);
+
+                $('#partnerPlayerBonusExcelTable_wrapper').hide();
+                vm.exportToExcel('partnerPlayerBonusExcelTable', 'PARTNERPLAYERBOUNS_REPORT');
+            }else{
+                vm.partnerPlayerBonusTable = utilService.createDatatableWithFooter('#partnerPlayerBonusTable', tableOptions, sumObj);
+                vm.partnerPlayerBonusQuery.pageObj.init({maxCount: size}, newSearch);
+                $('#partnerPlayerBonusTable').off('order.dt');
+                $('#partnerPlayerBonusTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'partnerPlayerBonusQuery', vm.searchPartnerPlayerBonusData);
+                });
+                setTimeout(function () {
+                    $('#partnerPlayerBonusTable_wrapper').resize();
+                    console.log('vm.partnerPlayerBonusTable', vm.partnerPlayerBonusTable);
+                }, 500);
+            }
+        }
 
 
+        vm.exportToExcel = function(tableId, reportName) {
+            let tab = "";
+            let htmlContent = "";
 
+            if(reportName == "PARTNERPLAYERBOUNS_REPORT") {
+                tab = document.getElementById(tableId);
+                htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[1].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
+            }else if(reportName == "PLAYERPARTNER_REPORT") {
+                tab = document.getElementById(tableId);
+                htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
 
+                if (document.getElementById("playerPartnerSummaryTable")) {
+                    tab = document.getElementById("playerPartnerSummaryTable");
+                    htmlContent += "<tr></tr>";
+                    htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
+                }
+            }
 
+            var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+            tab_text = tab_text + '<head><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
+            tab_text = tab_text + '<x:Name>Test Sheet</x:Name>';
+            tab_text = tab_text + '<x:WorksheetOptions><x:Panes></x:Panes></x:WorksheetOptions></x:ExcelWorksheet>';
+            tab_text = tab_text + '</x:ExcelWorksheets></x:ExcelWorkbook></xml></head><body>';
+            tab_text = tab_text + "<table border='1px'>";
+            tab_text = tab_text + htmlContent;
+            tab_text = tab_text + '</table></body></html>';
+            var fileName = reportName ? $translate(reportName)+ ".xls": "FPMS report.xls";
 
-
+            //Save the file
+            var blob = new Blob([tab_text], { type: "application/vnd.ms-excel;charset=utf-8" })
+            window.saveAs(blob, fileName);
+        }
 
 
 
