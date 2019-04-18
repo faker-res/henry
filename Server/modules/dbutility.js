@@ -185,6 +185,15 @@ var dbUtility = {
         };
     },
 
+    getLastMonthSGTImeFromDate: function (inputDate) {
+        var startTime = moment(inputDate).tz('Asia/Singapore').subtract(1, 'months').startOf('month').toDate();
+        let endTime = moment(startTime).add(1, 'months').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getQuarterSGTime: function (inputDate) {
         var startTime = moment(inputDate).tz('Asia/Singapore').startOf('quarter').toDate();
         var endTime = moment(inputDate).tz('Asia/Singapore').endOf('quarter').toDate();
@@ -1129,7 +1138,7 @@ var dbUtility = {
 
     encryptMessage: (msg) => {
         return new Promise((resolve, reject) => {
-            let encrypted = rsaCrypto.encrypt(msg);
+            let encrypted = rsaCrypto.legacyEncrypt(msg);
             resolve(encrypted);
         })
     },

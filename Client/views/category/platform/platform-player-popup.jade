@@ -606,7 +606,7 @@
                                         th {{'CREDIT' | translate}}
                                         th {{'TRANSFER' | translate}}
                                 tbody(style='max-height:500px;overflow-y:auto')
-                                    tr(ng-repeat='(i,v) in vm.platformProviderList')
+                                    tr(ng-repeat='(i,v) in vm.playerFeedbackSelectedPlatform.gameProviderDetails')
                                         td {{v.name}}
                                         td {{v.providerId}}
                                         td
@@ -947,7 +947,7 @@
                                 td {{v.topic}}
 
             .modal-footer(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
-                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid', ng-click="vm.updatePlayerFeedback();") {{"ADD" | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid || !vm.isFeedbackValid()', ng-click="vm.updatePlayerFeedback();") {{"ADD" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalBulkAddPlayerFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

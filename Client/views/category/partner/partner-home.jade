@@ -1,0 +1,41 @@
+.row.margin-left-5.margin-right-5(ng-show="checkViewPermission('Partner') && vm.curPlatformText")
+    #partnerContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
+        .padding-all-5
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+
+                        li.active(ng-if="checkViewPermission('Partner', 'Partner')")
+                            a.common-tab(data-toggle="tab", href="#Infolist", ng-click="vm.loadTab('Infolist');")
+                                .fa.fa-volume-control-phone.margin-right-5
+                                text.span {{"Partner Information list" | translate}}
+                        li(ng-if="checkViewPermission('Partner', 'Config')")
+                            a.common-tab(data-toggle="tab", href="#Config", ng-click="vm.loadTab('Config');")
+                                .fa.fa-volume-control-phone.margin-right-5
+                                text.span {{"CONFIG" | translate}}
+                        li(ng-if="checkViewPermission('Partner', 'Report')")
+                            a.common-tab(data-toggle="tab", href="#Report", ng-click="vm.loadTab('Report');")
+                                .fa.fa-volume-control-phone.margin-right-5
+                                text.span {{"REPORT" | translate}}
+
+
+
+                .panel-body(style="position: relative;")
+                    div.tab-content
+
+                        #Infolist.tab-pane.fade.in.active
+                            include ./platform-partner
+                        #Config.tab-pane.fade.in.active
+                            include ./partner-config
+                        #Report.tab-pane.fade.in.active
+                            include ./report/partner-report-home
+
+
+
+
+
+
+
+
+
+

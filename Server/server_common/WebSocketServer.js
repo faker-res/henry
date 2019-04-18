@@ -193,6 +193,12 @@ proto.run = function () {
             self.removeClient(ws);
         });
 
+        //add error message for ws connection
+        ws.on("error", function (error) {
+            console.error("Connection error:", error);
+            self.removeClient(ws);
+        });
+
         //todo::test code
         //self._wss.broadcast(JSON.stringify({test:"broadcast"}));
 

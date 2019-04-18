@@ -237,22 +237,43 @@ var dbPlayerFeedback = {
     },
 
     getPlayerFeedbackReport: function (query, index, limit, sortCol) {
-
         sortCol = sortCol || {createTime: -1};
         index = index || 0;
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        let platformListQuery;
+
         if (query.startTime && query.endTime) {
             query.createTime = {$gte: query.startTime, $lt: query.endTime};
             delete  query.startTime;
             delete  query.endTime;
         }
+
+        if(query.platformList && query.platformList.length > 0) {
+            platformListQuery = {$in: query.platformList.map(item=>{return ObjectId(item)})};
+            query.platform = platformListQuery;
+            delete query.platformList;
+        } else {
+            delete query.platformList;
+        }
+
         return Q.resolve().then(data => {
             if (query.playerName) {
-                return dbconfig.collection_players.findOne({name: query.playerName, platform: query.platform}).then(
+                let playerQuery = {
+                    name: query.playerName
+                };
+
+                if (query.platform) {
+                    playerQuery.platform = query.platform;
+                }
+
+                return dbconfig.collection_players.findOne(playerQuery).then(
                     player => {
                         if (player) {
                             query.playerId = player._id;
-                            query.platform = query.platform;
+
+                            if (query.platform) {
+                                query.platform = query.platform;
+                            }
                             delete  query.playerName;
                             return query;
                         } else {
@@ -264,11 +285,12 @@ var dbPlayerFeedback = {
                 return query;
             }
         }).then(queryData => {
-            var a = dbconfig.collection_playerFeedback.find(queryData)
+            let a = dbconfig.collection_playerFeedback.find(queryData)
                 .sort(sortCol).skip(index).limit(limit)
                 .populate({path: "playerId", model: dbconfig.collection_players})
-                .populate({path: "adminId", model: dbconfig.collection_admin}).exec();
-            var b = dbconfig.collection_playerFeedback.find(queryData).count();
+                .populate({path: "adminId", model: dbconfig.collection_admin})
+                .populate({path: "platform", model: dbconfig.collection_platform}).lean();
+            let b = dbconfig.collection_playerFeedback.find(queryData).count();
             return Q.all([a, b]);
         }).then(
             data => {

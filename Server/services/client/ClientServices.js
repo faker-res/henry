@@ -148,7 +148,8 @@
                 "getLockedLobbyConfig",
                 "saveFrontEndData",
                 "getFrontEndData",
-                "sendFileFTP"
+                "sendFileFTP",
+                "updateRSAKeys"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -195,7 +196,6 @@
                 "getCashRechargeStatus",
                 "cancelManualTopupRequest",
                 "delayManualTopupRequest",
-                "modifyManualTopupRequest",
                 "getManualTopupRequestList",
                 "getAlipayTopupRequestList",
                 "manualTopupStatusNotify",
@@ -315,6 +315,7 @@
                 "getEasterEggPlayerInfo",
                 "getTopUpPromoList",
                 "getPromoCode",
+                "getOpenPromoCode",
                 "applyPromoCode",
                 "markPromoCodeAsViewed",
                 "getLimitedOffers",

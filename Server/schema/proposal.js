@@ -12,7 +12,7 @@ var Schema = mongoose.Schema;
 
 var proposalSchema = new Schema({
     //proposal unique id
-    proposalId: {type: String, index: true},
+    proposalId: {type: String},
     //proposal main type
     mainType: {type: String, index: true},
     //proposal type
@@ -20,7 +20,7 @@ var proposalSchema = new Schema({
     //creator {type(system, player or admin), name, id(shortID for player, longId for admin)
     creator: {type: JSON, default: {}},
     // create Time
-    createTime: {type: Date, default: Date.now, index: true},
+    createTime: {type: Date, default: Date.now},
     //proposal process info
     process: {type: Schema.Types.ObjectId, ref: 'proposalProcess', index: true},
     //proposal data
@@ -50,6 +50,11 @@ var proposalSchema = new Schema({
     // input device
     inputDevice: {type: Number, default: 0, index: true}
 });
+
+// Index for general proposalId (Descending)
+proposalSchema.index({proposalId: -1});
+// Index for top up report without proposalId search
+proposalSchema.index({createTime: -1, proposalId: -1});
 
 proposalSchema.index({"data.playerName": 1});
 proposalSchema.index({"data.playerId": 1});
@@ -104,6 +109,7 @@ proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1,
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.depositMethod": 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.topupType": 1});
 proposalSchema.index({"data.topUpSystemName": 1});
+// proposalSchema.index({"data.retentionApplicationDate": 1});
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId
  proposalSchema.pre('validate', function (next) {

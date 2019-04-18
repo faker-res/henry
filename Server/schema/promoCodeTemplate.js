@@ -53,7 +53,9 @@ let promoCodeTemplateSchema = new Schema({
     // remark
     remark: {type: String},
     // category: 1: general; 2: for auction system
-    genre: {type: Number, index: true}
+    genre: {type: Number, index: true},
+    // Event Object Id
+    rewardEvent : {type: Schema.ObjectId, ref: 'rewardEvent'}
 
 });
 

@@ -177,7 +177,6 @@ define(['js/app'], function (myApp) {
         'transferPlayerCreditToProvider',
         'updatePlayerPermission',
         'createUpdateTopUpGroupLog',
-        'requestClearProposalLimit',
         'updatePlayerCredibilityRemark',
         'applyManualTopUpRequest',
         'applyAlipayTopUpRequest',
@@ -336,17 +335,29 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
-                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        // vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.provinceName = data;
+                        });
                     }
                     if (vm.selectedProposal.data.inputData.cityId) {
-                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        // vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.cityName = data;
+                        });
                     }
                 } else {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                        vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE" )
+                        // vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE" )
+                        commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                        });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                        vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        // vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                        });
                     }
                 }
 
@@ -1630,8 +1641,6 @@ define(['js/app'], function (myApp) {
         vm.searchTopupRecord = function (newSearch, isExport = false) {
             vm.reportSearchTimeStart = new Date().getTime();
 
-            console.log('vm.queryTopup', vm.queryTopup);
-            // vm.queryTopup.platformId = vm.curPlatformId;
             $('#topupTableSpin').show();
 
             var staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
@@ -1647,38 +1656,38 @@ define(['js/app'], function (myApp) {
                 })
             }
             utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup, 30);
-            var sendObj = {
+            let sendObj = vm.queryTopup.proposalId ? {
+                // platformId: vm.curPlatformId,
+                proposalId: vm.queryTopup.proposalId,
+                index: 0,
+                limit: isExport ? 5000 : 1,
+            } : {
                 playerName: vm.queryTopup.playerName,
-                proposalNo: vm.queryTopup.proposalID,
                 mainTopupType: vm.queryTopup.mainTopupType,
                 userAgent: vm.queryTopup.userAgent,
                 topupType: vm.queryTopup.topupType,
                 merchantGroup: angular.fromJson(angular.toJson(vm.queryTopup.merchantGroup)),
                 depositMethod: vm.queryTopup.depositMethod,
-
-                //new
                 bankTypeId: vm.queryTopup.bankTypeId,
-                //new
                 merchantNo: vm.queryTopup.merchantNo,
                 platformList: vm.queryTopup.platformList,
                 status: staArr,
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
-
-                // platformId: vm.curPlatformId,
                 index: isExport ? 0 : (newSearch ? 0 : (vm.queryTopup.index || 0)),
                 limit: isExport ? 5000 : (vm.queryTopup.limit || 10),
                 sortCol: vm.queryTopup.sortCol || {proposalId: -1}
+            };
 
-            }
-            // if (vm.queryTopup.status) {
-            //     sendObj.status = {'$in': staArr}
-            // }
             if ( vm.queryTopup.line && vm.queryTopup.line.length > 0 ) {
-                sendObj.line = vm.queryTopup.line
+                sendObj.line = vm.queryTopup.line;
             }
-            vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : [];
-            // showing data with auto-assign card at pms.
+
+            if (vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length) {
+                sendObj.merchantNo = vm.queryTopup.merchantNo;
+            }
+
+            console.log('searchTopupRecord sendObj', sendObj);
 
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
                 $scope.$evalAsync(() => {
@@ -2881,8 +2890,9 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             $('#onlinePaymentMismatchTableSpin').show();
             let sendQuery = {
-                platform: vm.selectedPlatform._id,
-                platformId: vm.selectedPlatform.platformId,
+                // platform: vm.selectedPlatform._id,
+                // platformId: vm.selectedPlatform.platformId,
+                platformList: vm.onlinePaymentMismatchQuery.platformList,
                 startTime: vm.onlinePaymentMismatchQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.onlinePaymentMismatchQuery.endTime.data('datetimepicker').getLocalDate(),
                 type: vm.onlinePaymentMismatchQuery.type
@@ -3106,7 +3116,8 @@ define(['js/app'], function (myApp) {
             vm.limitedOfferQuery.sortCol = vm.limitedOfferQuery.sortCol || {'applyTime$': -1};
 
             let sendQuery = {
-                platformObjId: vm.selectedPlatform._id,
+                //platformObjId: vm.selectedPlatform._id,
+                platformList: vm.limitedOfferQuery.platformList,
                 startTime: vm.limitedOfferQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.limitedOfferQuery.endTime.data('datetimepicker').getLocalDate(),
                 playerName: vm.limitedOfferQuery.playerName,
@@ -3226,21 +3237,23 @@ define(['js/app'], function (myApp) {
                 data: result,
                 "order": vm.limitedOfferQuery.aaSorting || [[5, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'limitedOfferName$', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'requiredLevel$', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'playerName$', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'applyTime$', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'topUpProposalId$', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'topUpAmount$', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'rewardProposalId$', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'rewardAmount$', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'spendingAmount$', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'inputDevice$', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'data.platformObjId.name', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'proposalId', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'limitedOfferName$', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'requiredLevel$', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'playerName$', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'applyTime$', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'topUpProposalId$', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'topUpAmount$', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'rewardProposalId$', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'rewardAmount$', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'spendingAmount$', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'inputDevice$', 'aTargets': [12], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('ORDER'), sClass: "limitedOfferClaimStatusLabel"},
+                    {title: $translate('PRODUCT_NAME'), data: "data.platformObjId.name"},
                     {title: $translate('Proposal No'), data: "proposalId", sClass: "limitedOfferClaimStatusAmount"},
                     {
                         title: $translate('promoName'),
@@ -4330,7 +4343,6 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            console.log("wahahaha")
             utilService.getDataTablePageSize("#playerReportTablePage", vm.playerQuery, 5000);
             var sendquery = {
                 platformId: vm.curPlatformId,
@@ -5385,6 +5397,8 @@ define(['js/app'], function (myApp) {
                 query: {
                     start: vm.dxNewPlayerQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.dxNewPlayerQuery.end.data('datetimepicker').getLocalDate(),
+                    queryStart: vm.dxNewPlayerQuery.queryStart.data('datetimepicker').getLocalDate(),
+                    queryEnd: vm.dxNewPlayerQuery.queryEnd.data('datetimepicker').getLocalDate(),
                     days: vm.dxNewPlayerQuery.days,
                     userType: vm.dxNewPlayerQuery.userType,
                     csPromoteWay: vm.dxNewPlayerQuery.csPromoteWay,
@@ -6341,10 +6355,13 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            if (vm.promoTypeList.length != promoType.length) {
-                vm.promoTypeList.filter(item => {
-                    if (promoType.indexOf(item.name) > -1) {
-                        newproposalQuery.promoTypeName.push(item.name);
+            vm.promoTypeListUniqueName = [...new Set(vm.promoTypeList.map(x => x.name))];
+
+            console.log('promoType===', promoType);
+            if (vm.promoTypeListUniqueName.length != promoType.length) {
+                vm.promoTypeListUniqueName.filter(item => {
+                    if (promoType.indexOf(item) > -1) {
+                        newproposalQuery.promoTypeName.push(item);
                     }
                 });
             }
@@ -6662,7 +6679,8 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerAlmostLevelUp = function (newSearch) {
             vm.reportSearchTimeStart = new Date().getTime();
             var query = {
-                platform: vm.curPlatformId,
+                // platform: vm.curPlatformId,
+                platformList: vm.playerAlmostLevelUpQuery.platformList,
                 percentage: vm.playerAlmostLevelUpQuery.percentage,
                 // limit: parseInt(vm.playerAlmostLevelUpQuery.limit)
                 index: newSearch ? 0 : vm.playerAlmostLevelUpQuery.index,
@@ -6680,12 +6698,12 @@ define(['js/app'], function (myApp) {
                     vm.playerAlmostLevelUpQuery.totalCount = data.data.size;
                     if (newSearch) {
                         vm.playerAlmostLevelUpQuery.savedSummary = {
-                            3: data.data.summary.topupTotal,
-                            4: data.data.summary.topupDay,
-                            5: data.data.summary.topupWeek,
-                            6: data.data.summary.consumTotal,
-                            7: data.data.summary.consumDay,
-                            8: data.data.summary.weeklyConsumptionSum
+                            4: data.data.summary.topupTotal,
+                            5: data.data.summary.topupDay,
+                            6: data.data.summary.topupWeek,
+                            7: data.data.summary.consumTotal,
+                            8: data.data.summary.consumDay,
+                            9: data.data.summary.weeklyConsumptionSum
                         }
                     }
                     $scope.safeApply();
@@ -6704,19 +6722,21 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.playerAlmostLevelUpQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'playerId', 'aTargets': [0]},
-                    {'sortCol': 'name', 'aTargets': [1]},
-                    {'sortCol': 'playerLevel.name', 'aTargets': [2]},
-                    {'sortCol': 'topUpSum', 'aTargets': [3]},
-                    {'sortCol': 'dailyTopUpSum', 'aTargets': [4]},
-                    {'sortCol': 'weeklyTopUpSum', 'aTargets': [5]},
-                    {'sortCol': 'consumptionSum', 'aTargets': [6]},
-                    {'sortCol': 'dailyConsumptionSum', 'aTargets': [7]},
-                    {'sortCol': 'weeklyConsumptionSum', 'aTargets': [8]},
-                    {'sortCol': 'percentage', 'aTargets': [9]},
+                    {'sortCol': 'platform.name', 'aTargets': [0]},
+                    {'sortCol': 'playerId', 'aTargets': [1]},
+                    {'sortCol': 'name', 'aTargets': [2]},
+                    {'sortCol': 'playerLevel.name', 'aTargets': [3]},
+                    {'sortCol': 'topUpSum', 'aTargets': [4]},
+                    {'sortCol': 'dailyTopUpSum', 'aTargets': [5]},
+                    {'sortCol': 'weeklyTopUpSum', 'aTargets': [6]},
+                    {'sortCol': 'consumptionSum', 'aTargets': [7]},
+                    {'sortCol': 'dailyConsumptionSum', 'aTargets': [8]},
+                    {'sortCol': 'weeklyConsumptionSum', 'aTargets': [9]},
+                    {'sortCol': 'percentage', 'aTargets': [10]},
                     {targets: '_all', defaultContent: ' ', bSortable: true}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform.name"},
                     {title: $translate('PLAYERID'), data: "playerId"},
                     {title: $translate('NAME'), data: "name"},
                     {
@@ -6827,7 +6847,8 @@ define(['js/app'], function (myApp) {
                 query: {
                     startTime: vm.playerFeedbackQuery.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerFeedbackQuery.endTime.data('datetimepicker').getLocalDate(),
-                    platform: vm.curPlatformId
+                    //platform: vm.curPlatformId
+                    platformList: vm.playerFeedbackQuery.platformList
                 },
                 limit: vm.playerFeedbackQuery.limit || 10,
                 index: newSearch ? 0 : (vm.playerFeedbackQuery.index || 0),
@@ -6856,12 +6877,13 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.playerFeedbackQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'adminId', 'aTargets': [0]},
-                    {'sortCol': 'result', 'aTargets': [4]},
-                    {'sortCol': 'createTime', 'aTargets': [5]},
+                    {'sortCol': 'adminId', 'aTargets': [1]},
+                    {'sortCol': 'result', 'aTargets': [5]},
+                    {'sortCol': 'createTime', 'aTargets': [6]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform.name"},
                     {title: $translate('ADMIN'), data: "adminId.adminName", orderable: true},
                     {title: $translate('PLAYER_Id'), data: "playerId.playerId"},
                     {title: $translate('PLAYER_NAME'), data: "playerId.name"},
@@ -6927,7 +6949,8 @@ define(['js/app'], function (myApp) {
 
             var sendData = {
 
-                platformId: vm.curPlatformId,
+                //platformId: vm.curPlatformId,
+                platformList: vm.creditChangeQuery.platformList,
                 operationTime: {
                     startTime: startTime,
                     endTime: endTime
@@ -6959,14 +6982,15 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.creditChangeQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'playerId', 'aTargets': [0]},
                     {'sortCol': 'playerId', 'aTargets': [1]},
-                    {'sortCol': 'operationType', 'aTargets': [2]},
-                    {'sortCol': 'amount', 'aTargets': [3]},
-                    {'sortCol': 'operationTime', 'aTargets': [4]},
+                    {'sortCol': 'playerId', 'aTargets': [2]},
+                    {'sortCol': 'operationType', 'aTargets': [3]},
+                    {'sortCol': 'amount', 'aTargets': [4]},
+                    {'sortCol': 'operationTime', 'aTargets': [5]},
                     {targets: '_all', defaultContent: ' ', bSortable: true}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platformId.name"},
                     {title: $translate('PLAYER_ID'), data: "playerId.playerId"},
                     {title: $translate('PLAYER_NAME'), data: "playerId.name"},
                     {
@@ -8918,7 +8942,7 @@ define(['js/app'], function (myApp) {
 
         vm.getProvinceName = function (provinceId, fieldName) {
             socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-                let text = data.data.province ? data.data.province.name : '';
+                let text = data.data.data ? data.data.data.name : '';
                 if (text) {
                     if (fieldName) {
                         vm.selectedProposal.data[fieldName] = text;
@@ -8931,7 +8955,7 @@ define(['js/app'], function (myApp) {
 
         vm.getCityName = function (cityId, fieldName) {
             socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-                let text = data.data.city ? data.data.city.name : '';
+                let text = data.data.data ? data.data.data.name : '';
                 if (text) {
                     if (fieldName) {
                         vm.selectedProposal.data[fieldName] = text;
@@ -8962,24 +8986,37 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
-                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        // vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.provinceName = data;
+                        });
                     }
                     if (vm.selectedProposal.data.inputData.cityId) {
-                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        // vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.cityName = data;
+                        });
                     }
                 } else {
+                    console.log('vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]', vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"])
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                        vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE" )
+                        // vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE" )
+                        commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                        });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                        vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        // vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                        });
                     }
                 }
 
                 if (vm.selectedProposal.data['bankAccountProvince']) {
                     socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposal.data['bankAccountProvince']}, function (data) {
                         $scope.$evalAsync(() => {
-                            var text = data.data.province ? data.data.province.name : val;
+                            var text = data.data.data ? data.data.data.name : val;
                             vm.selectedProposal.data['bankAccountProvince'] = text;
                         })
                     });
@@ -8988,7 +9025,7 @@ define(['js/app'], function (myApp) {
                 if (vm.selectedProposal.data['bankAccountCity']) {
                     socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposal.data['bankAccountCity']}, function (data) {
                         $scope.$evalAsync(() => {
-                            var text = data.data.city ? data.data.city.name : val;
+                            var text = data.data.data ? data.data.data.name : val;
                             vm.selectedProposal.data['bankAccountCity'] = text;
                         })
                     });
@@ -8997,7 +9034,7 @@ define(['js/app'], function (myApp) {
                 if (vm.selectedProposal.data['districtId']) {
                     socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposal.data['districtId']}, function (data) {
                         $scope.$evalAsync(() => {
-                            var text = data.data.district ? data.data.district.name : val;
+                            var text = data.data.data ? data.data.data.name : val;
                             vm.selectedProposal.data['districtId'] = text;
                         })
                     });
@@ -9005,7 +9042,7 @@ define(['js/app'], function (myApp) {
                 if (vm.selectedProposal.data['bankAccountDistrict']) {
                     socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposal.data['bankAccountDistrict']}, function (data) {
                         $scope.$evalAsync(() => {
-                            var text = data.data.district ? data.data.district.name : val;
+                            var text = data.data.data ? data.data.data.name : val;
                             vm.selectedProposal.data['bankAccountDistrict'] = text;
                         })
                     });
@@ -9759,7 +9796,7 @@ define(['js/app'], function (myApp) {
                         );
 
                         vm.dxNewPlayerQuery = {
-                            days: 1,
+                            // days: 1,
                             valueScoreOperator: ">=",
                             topUpTimesOperator: ">=",
                             bonusTimesOperator: ">=",
@@ -9770,6 +9807,10 @@ define(['js/app'], function (myApp) {
                         vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
                         vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                        vm.dxNewPlayerQuery.queryStart = utilService.createDatePicker('#dxNewPlayerReportQuery .queryStartTime');
+                        vm.dxNewPlayerQuery.queryStart.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.dxNewPlayerQuery.queryEnd = utilService.createDatePicker('#dxNewPlayerReportQuery .queryEndTime');
+                        vm.dxNewPlayerQuery.queryEnd.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                     });
                     break;
                 case "PLAYERDOMAIN_REPORT":
@@ -11003,7 +11044,6 @@ define(['js/app'], function (myApp) {
                     {group: "PLAYER", text: "transferPlayerCreditToProvider", action: "transferPlayerCreditToProvider"},
                     {group: "PLAYER", text: "updatePlayerPermission", action: "updatePlayerPermission"},
                     {group: "PLAYER", text: "createUpdateTopUpGroupLog", action: "createUpdateTopUpGroupLog"},
-                    {group: "PLAYER", text: "requestClearProposalLimit", action: "requestClearProposalLimit"},
                     {group: "PLAYER", text: "modifyPlayerCredibilityRemark", action: "updatePlayerCredibilityRemark"},
 
                     {group: "PLAYER", text: "applyManualTopUpRequest", action: "applyManualTopUpRequest"},

@@ -88,6 +88,193 @@ define(['js/app'], function (myApp) {
             5:'PC-DOWNLOAD',
         }
 
+        vm.countryCode = {
+            '安道尔共和国':'AD',
+            '阿拉伯联合酋长国':'AE',
+            '阿富汗':'AF',
+            '安提瓜和巴布达':'AG',
+            '安圭拉岛':'AI',
+            '阿尔巴尼亚':'AL',
+            '亚美尼亚':'AM',
+            '安哥拉':'AO',
+            '阿根廷':'AR',
+            '奥地利':'AT',
+            '澳大利亚':'AU',
+            '阿塞拜疆':'AZ',
+            '巴巴多斯':'BB',
+            '孟加拉国':'BD',
+            '比利时':'BE',
+            '布基纳法索':'BF',
+            '保加利亚':'BG',
+            '巴林':'BH',
+            '布隆迪':'BI',
+            '贝宁':'BJ',
+            '巴勒斯坦':'BL',
+            '百慕大群岛':'BM',
+            '文莱':'BN',
+            '玻利维亚':'BO',
+            '巴西':'BR',
+            '巴哈马':'BS',
+            '博茨瓦纳':'BW',
+            '白俄罗斯':'BY',
+            '伯利兹':'BZ',
+            '加拿大':'CA',
+            '中非共和国':'CF',
+            '刚果':'CG',
+            '瑞士':'CH',
+            '库克群岛':'CK',
+            '智利':'CL',
+            '喀麦隆':'CM',
+            '中国':'CN',
+            '哥伦比亚':'CO',
+            '哥斯达黎加':'CR',
+            '捷克':'CS',
+            '古巴':'CU',
+            '塞浦路斯':'CY',
+            '捷克':'CZ',
+            '德国':'DE',
+            '吉布提':'DJ',
+            '丹麦':'DK',
+            '多米尼加共和国':'DO',
+            '阿尔及利亚':'DZ',
+            '厄瓜多尔':'EC',
+            '爱沙尼亚':'EE',
+            '埃及':'EG',
+            '西班牙':'ES',
+            '埃塞俄比亚':'ET',
+            '芬兰':'FI',
+            '斐济':'FJ',
+            '法国':'FR',
+            '加蓬':'GA',
+            '英国':'GB',
+            '格林纳达':'GD',
+            '格鲁吉亚':'GE',
+            '法属圭亚那':'GF',
+            '加纳':'GH',
+            '直布罗陀':'GI',
+            '冈比亚':'GM',
+            '几内亚':'GN',
+            '希腊':'GR',
+            '危地马拉':'GT',
+            '关岛':'GU',
+            '圭亚那':'GY',
+            '香港特别行政区':'HK',
+            '洪都拉斯':'HN',
+            '海地':'HT',
+            '匈牙利':'HU',
+            '印度尼西亚':'ID',
+            '爱尔兰':'IE',
+            '以色列':'IL',
+            '印度':'IN',
+            '伊拉克':'IQ',
+            '伊朗':'IR',
+            '冰岛':'IS',
+            '意大利':'IT',
+            '牙买加':'JM',
+            '约旦':'JO',
+            '日本':'JP',
+            '肯尼亚':'KE',
+            '吉尔吉斯坦':'KG',
+            '柬埔寨':'KH',
+            '朝鲜':'KP',
+            '韩国':'KR',
+            '科特迪瓦共和国':'KT',
+            '科威特':'KW',
+            '哈萨克斯坦':'KZ',
+            '老挝':'LA',
+            '黎巴嫩':'LB',
+            '圣卢西亚':'LC',
+            '列支敦士登':'LI',
+            '斯里兰卡':'LK',
+            '利比里亚':'LR',
+            '莱索托':'LS',
+            '立陶宛':'LT',
+            '卢森堡':'LU',
+            '拉脱维亚':'LV',
+            '利比亚':'LY',
+            '摩洛哥':'MA',
+            '摩纳哥':'MC',
+            '摩尔多瓦':'MD',
+            '马达加斯加':'MG',
+            '马里':'ML',
+            '缅甸':'MM',
+            '蒙古':'MN',
+            '澳门':'MO',
+            '蒙特塞拉特岛':'MS',
+            '马耳他':'MT',
+            '毛里求斯':'MU',
+            '马尔代夫':'MV',
+            '马拉维':'MW',
+            '墨西哥':'MX',
+            '马来西亚':'MY',
+            '莫桑比克':'MZ',
+            '纳米比亚':'NA',
+            '尼日尔':'NE',
+            '尼日利亚':'NG',
+            '尼加拉瓜':'NI',
+            '荷兰':'NL',
+            '挪威':'NO',
+            '尼泊尔':'NP',
+            '瑙鲁':'NR',
+            '新西兰':'NZ',
+            '阿曼':'OM',
+            '巴拿马':'PA',
+            '秘鲁':'PE',
+            '法属玻利尼西亚':'PF',
+            '巴布亚新几内亚':'PG',
+            '菲律宾':'PH',
+            '巴基斯坦':'PK',
+            '波兰':'PL',
+            '波多黎各':'PR',
+            '葡萄牙':'PT',
+            '巴拉圭':'PY',
+            '卡塔尔':'QA',
+            '罗马尼亚':'RO',
+            '俄罗斯':'RU',
+            '沙特阿拉伯':'SA',
+            '所罗门群岛':'SB',
+            '塞舌尔':'SC',
+            '苏丹':'SD',
+            '瑞典':'SE',
+            '新加坡':'SG',
+            '斯洛文尼亚':'SI',
+            '斯洛伐克':'SK',
+            '塞拉利昂':'SL',
+            '圣马力诺':'SM',
+            '塞内加尔':'SN',
+            '索马里':'SO',
+            '苏里南':'SR',
+            '圣多美和普林西比':'ST',
+            '萨尔瓦多':'SV',
+            '叙利亚':'SY',
+            '斯威士兰':'SZ',
+            '乍得':'TD',
+            '多哥':'TG',
+            '泰国':'TH',
+            '塔吉克斯坦':'TJ',
+            '土库曼斯坦':'TM',
+            '突尼斯':'TN',
+            '汤加':'TO',
+            '土耳其':'TR',
+            '特立尼达和多巴哥':'TT',
+            '台湾省':'TW',
+            '坦桑尼亚':'TZ',
+            '乌克兰':'UA',
+            '乌干达':'UG',
+            '美国':'US',
+            '乌拉圭':'UY',
+            '乌兹别克斯坦':'UZ',
+            '圣文森特岛':'VC',
+            '委内瑞拉':'VE',
+            '越南':'VN',
+            '也门':'YE',
+            '南斯拉夫':'YU',
+            '南非':'ZA',
+            '赞比亚':'ZM',
+            '扎伊尔':'ZR',
+            '津巴布韦':'ZW'
+        }
+
         vm.avgPlayerLogin = 0;
         // For debugging:
         window.VM = vm;
@@ -1435,17 +1622,29 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
-                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                        commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.provinceName = data;
+                        });
                     }
                     if (vm.selectedProposal.data.inputData.cityId) {
-                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data.cityName = data;
+                        });
                     }
                 } else {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                        vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE" )
+                        //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE" )
+                        commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                        });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                        vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                        commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                        });
                     }
                 }
 
@@ -4159,18 +4358,23 @@ define(['js/app'], function (myApp) {
                 console.log('location', data);
                 if (vm.currentProvince) {
                     vm.playerPhoneInProvince = data.data;
-                    $scope.safeApply();
                     vm.setProvinceData('phoneCity', vm.playerPhoneInProvince, function () {
-                        vm.mapName = "chinaHigh";
-                        vm.drawMap(function (data) {
-                            //this function is to zoom to province immediately after clicking
-                            vm.map.clickMapObject(vm.map.getObjectById(vm.allProvinceId[vm.currentProvince]));
+                        $scope.$evalAsync(() => {
+                            vm.mapName = "chinaHigh";
+                            vm.drawMap(function (data) {
+                                //this function is to zoom to province immediately after clicking
+                                vm.map.clickMapObject(vm.map.getObjectById(vm.allProvinceId[vm.currentProvince]));
+                            });
+                            vm.drawLocationCityGraphByElementId("#playerLocationPie", vm.playerPhoneInProvince, "phoneLocation");
                         });
-                        vm.drawLocationCityGraphByElementId("#playerLocationPie", vm.playerPhoneInProvince, "phoneLocation");
-                        $scope.safeApply();
                     });
                 } else if (vm.showPageName == 'PLAYER_IP_LOCATION') {
                     vm.playerLocationCountries = data.data;
+                    vm.playerLocationCountries.forEach(item => {
+                        // this map libray , only accept country code, like .'CN', 'US', so we do a conversion for it.
+                        item._id.countryCode = ( item._id && item._id.country ) ? vm.countryCode[item._id.country] : '';
+                        return item;
+                    })
                     vm.totalPlayerLocationCountries = vm.playerLocationCountries.map(item => {return item.amount}).reduce((a, b) => {return a + b},0);
                     vm.setAreaData('country', vm.playerLocationCountries, function () {
                         vm.mapName = "worldHigh";
@@ -4335,7 +4539,7 @@ define(['js/app'], function (myApp) {
                         platform: vm.selectedPlatform._id,
                         player: vm.queryPara.playerLocation.player,
                         date: vm.queryPara.playerLocation.date,
-                        country: event.mapObject.id,
+                        country: vm.getMapName(event.mapObject.id),
                         startTime: vm.queryPara.playerLocation.startTime.data('datetimepicker').getLocalDate(),
                         endTime: vm.queryPara.playerLocation.endTime.data('datetimepicker').getLocalDate(),
                     };
@@ -4394,6 +4598,16 @@ define(['js/app'], function (myApp) {
             if (callback) {
                 callback(map);
             }
+        }
+        vm.getMapName = function (id) {
+            // our db country save countryName, ex: '中国' ， so we need to do a conversion from CN -> '中国'
+            let result = id;
+            let mapName = Object.keys(vm.countryCode).forEach( key => {
+                if (vm.countryCode[key] == id) {
+                    result = key;
+                }
+            })
+            return result;
         }
         vm.goWorld = function () {
             vm.showCountryTable = true;

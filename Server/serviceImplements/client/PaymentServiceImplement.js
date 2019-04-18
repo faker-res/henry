@@ -12,6 +12,8 @@ const dbPlayerPayment = require('../../db_modules/dbPlayerPayment');
 const uaParser = require('ua-parser-js');
 const dbUtility = require('./../../modules/dbutility');
 
+const RESTUtils = require('./../../modules/RESTUtils');
+
 const dbOtherPayment = require('./../../db_modules/externalAPI/dbOtherPayment');
 
 var PaymentServiceImplement = function () {
@@ -29,7 +31,7 @@ var PaymentServiceImplement = function () {
         }
 
         let lastLoginIp = dbUtility.getIpAddress(conn);
-        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
+        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.hasOwnProperty("merchantName") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [data.userAgent, conn.playerId, data, merchantUseType, clientType, data.topUpReturnCode, data.bPMSGroup, lastLoginIp], isValidData);
@@ -66,7 +68,7 @@ var PaymentServiceImplement = function () {
 
     this.getOnlineTopupType.expectsData = 'clientType: ?';
     this.getOnlineTopupType.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data && data.clientType);
+        var isValidData = Boolean(conn && conn.playerId && data && data.clientType);
         let userIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -220,12 +222,6 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.delayManualTopupRequest, [conn.playerId, data.proposalId, data.delayTime], isValidData);
     };
 
-    this.modifyManualTopupRequest.expectsData = 'proposalId: String, amount: Number|String, bankTypeId: ?, lastBankcardNo: ?, provinceId, cityId, districtId';
-    this.modifyManualTopupRequest.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data.proposalId && data.amount && data.amount > 0 && data.bankTypeId && data.lastBankcardNo && data.provinceId && data.cityId && data.districtId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.modifyManualTopupRequest, [conn.playerId, data.proposalId, data], isValidData);
-    };
-
     this.getManualTopupRequestList.expectsData = '';
     this.getManualTopupRequestList.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
@@ -262,7 +258,8 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getProvinceList, [], isValidData, false, false, true);
 
         function getProvinceList() {
-            return pmsAPI.foundation_getProvinceList({}).then(data => data.provinces);
+            return RESTUtils.getPMS2Services("postProvinceList", {}).then(data => data.data);
+            //return pmsAPI.foundation_getProvinceList({}).then(data => data.provinces);
         }
     };
 
@@ -272,7 +269,8 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getCityList, [data.provinceId], isValidData, false, false, true);
 
         function getCityList(provinceId) {
-            return pmsAPI.foundation_getCityList({provinceId: provinceId}).then(data => data.cities);
+            return RESTUtils.getPMS2Services("postCityList", {provinceId: provinceId}).then(data => data.data);
+            //return pmsAPI.foundation_getCityList({provinceId: provinceId}).then(data => data.cities);
         }
     };
 
@@ -282,11 +280,15 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getDistrictList, [data.provinceId, data.cityId], isValidData, false, false, true);
 
         function getDistrictList(provinceId, cityId) {
-            return pmsAPI.foundation_getDistrictList({
-                provinceId: provinceId,
-                cityId: cityId
-            }).then(data => data.districts);
+            return RESTUtils.getPMS2Services("postDistrictList", {provinceId: provinceId, cityId: cityId}).then(data => data.data);
+            // return pmsAPI.foundation_getDistrictList({provinceId: provinceId, cityId: cityId}).then(data => data.districts);
         }
+    };
+
+    this.checkExpiredManualTopup.expectsData = 'proposalId: String';
+    this.checkExpiredManualTopup.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId && data && data.proposalId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.checkExpiredManualTopUp, [conn.playerId, data.proposalId], isValidData);
     };
 
     this.getBankTypeList.expectsData = '';
@@ -295,7 +297,7 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getBankTypeList, [], isValidData, false, false, true);
 
         function getBankTypeList() {
-            return pmsAPI.bankcard_getBankTypeList({}).then(data => {
+            return RESTUtils.getPMS2Services("postBankTypeList", {}).then(data => {
                 // bankflag: 1   // 提款银行类型
                 // bankflag: 0   // 存款银行类型
                 // Hank requested to display bankflag 1 only
@@ -305,12 +307,6 @@ var PaymentServiceImplement = function () {
                 }
             });
         }
-    };
-
-    this.checkExpiredManualTopup.expectsData = 'proposalId: String';
-    this.checkExpiredManualTopup.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data && data.proposalId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.checkExpiredManualTopUp, [conn.playerId, data.proposalId], isValidData);
     };
 
     this.getValidFirstTopUpRecordList.expectsData = 'period, [startIndex]: Number, [requestCount]: Number';
@@ -426,7 +422,7 @@ var PaymentServiceImplement = function () {
         }
 
         let lastLoginIp = dbUtility.getIpAddress(conn);
-        let isValidData = Boolean(data && data.clientType);
+        let isValidData = Boolean(data && data.clientType && conn && conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getMinMaxCommonTopupAmount, [conn.playerId, data.clientType, lastLoginIp], isValidData);
     };
 

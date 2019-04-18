@@ -1,6 +1,7 @@
 const Q = require("q");
 const rp = require('request-promise');
 const errorUtils = require('./../modules/errorUtils');
+const jwt = require('jsonwebtoken');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 const env = require('../config/env').config();
@@ -14,6 +15,8 @@ const serverInstance = require("../modules/serverInstance");
 const RESTUtils = require("../modules/RESTUtils");
 const rsaCrypto = require('./../modules/rsaCrypto');
 
+const constProposalStatus = require('../const/constProposalStatus');
+const constAccountType = require('./../const/constAccountType');
 const constDepositMethod = require('./../const/constDepositMethod');
 const constPlayerTopUpType = require("../const/constPlayerTopUpType.js");
 const constProposalEntryType = require("../const/constProposalEntryType");
@@ -21,6 +24,7 @@ const constProposalType = require('./../const/constProposalType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constRewardType = require('../const/constRewardType');
 const constServerCode = require("../const/constServerCode");
+const constSystemParam = require('../const/constSystemParam');
 
 const dbRewardUtil = require("../db_common/dbRewardUtility")
 
@@ -52,10 +56,12 @@ const dbPlayerPayment = {
                             }
                         )
                     } else {
-                        return pmsAPI.alipay_getAlipayList({
+                        let reqData = {
                             platformId: data.platform.platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
+                            accountType: constAccountType.ALIPAY
+                        };
+
+                        return RESTUtils.getPMS2Services("postBankCardList", reqData);
                     }
                 } else {
                     return Promise.reject({name: "DataError", message: "Invalid player data"})
@@ -96,10 +102,8 @@ const dbPlayerPayment = {
             data => {
                 if (data && data.platform && data.merchantGroup) {
                     playerData = data;
-                    return pmsAPI.merchant_getMerchantList({
-                        platformId: data.platform.platformId,
-                        queryId: serverInstance.getQueryId()
-                    });
+
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
                 } else {
                     return Q.reject({name: "DataError", message: "Invalid player data"})
                 }
@@ -136,94 +140,31 @@ const dbPlayerPayment = {
         );
     },
 
-    getAlipayDailyLimit: (playerId, accountNumber) => {
-        let playerData = null;
-        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
-            {path: "platform", model: dbconfig.collection_platform}
-        ).populate(
-            {path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}
-        ).lean().then(
-            data => {
-                if (data && data.platform && data.alipayGroup) {
-                    playerData = data;
-                    return pmsAPI.alipay_getAlipayList({
-                        platformId: data.platform.platformId,
-                        queryId: serverInstance.getQueryId()
-                    });
-                } else {
-                    return Q.reject({name: "DataError", message: "Invalid player data"})
-                }
-            }
-        ).then(
-            alipays => {
-                let bValid = false;
-                let quota = 0;
-                if (alipays && alipays.data && alipays.data.length > 0) {
-                    alipays.data.forEach(
-                        alipay => {
-                            if (accountNumber == alipay.accountNumber) {
-                                bValid = true;
-                                quota = alipay.quota;
-                            }
-                        }
-                    );
-                }
-                return {bValid: bValid, quota: quota};
-            }
-        );
-    },
-
-    getMerchantDailyLimits: (playerId, merchantNo) => {
-        let playerData = null;
-        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
-            {path: "platform", model: dbconfig.collection_platform}
-        ).populate(
-            {path: "merchantGroup", model: dbconfig.collection_platformMerchantGroup}
-        ).lean().then(
-            data => {
-                if (data && data.platform && data.merchantGroup) {
-                    playerData = data;
-                    return pmsAPI.merchant_getMerchantList({
-                        platformId: data.platform.platformId,
-                        queryId: serverInstance.getQueryId()
-                    });
-                } else {
-                    return Q.reject({name: "DataError", message: "Invalid player data"})
-                }
-            }
-        ).then(
-            merchantsFromPms => {
-                let bValid = false;
-                let quota = 0;
-                if (merchantsFromPms && merchantsFromPms.merchants && merchantsFromPms.merchants.length > 0) {
-                    merchantsFromPms.merchants.forEach(
-                        merchantFromPms => {
-                            if (merchantNo == merchantFromPms.merchantNo) {
-                                bValid = true;
-                                quota = merchantFromPms.transactionForPlayerOneDay || 0;
-                            }
-                        }
-                    );
-                }
-                return {bValid: bValid, quota: quota};
-            }
-        );
-    },
-
     requestBankTypeByUserName: function (playerId, clientType, userIp, supportMode) {
         let playerObj;
         let returnData;
+
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
             {path: "bankCardGroup", model: dbconfig.collection_platformBankCardGroup}
         ).lean().then(
             playerData => {
-                if( playerData ){
+                if (playerData) {
                     playerObj = playerData;
                     let platformData = playerData.platform;
-                    if ((platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) || platformData.isFPMSPaymentSystem) {
-                        let accountArr = playerObj.bankCardGroup && playerObj.bankCardGroup.banks && playerObj.bankCardGroup.banks.length? playerObj.bankCardGroup.banks: [];
+
+                    if (
+                        (
+                            platformData.financialSettlement
+                            && platformData.financialSettlement.financialSettlementToggle
+                        )
+                        || platformData.isFPMSPaymentSystem
+                    ) {
+                        let accountArr =
+                            playerObj.bankCardGroup && playerObj.bankCardGroup.banks
+                            && playerObj.bankCardGroup.banks.length? playerObj.bankCardGroup.banks: [];
+
                         return dbconfig.collection_platformBankCardList.find(
                             {
                                 platformId: platformData.platformId,
@@ -231,7 +172,7 @@ const dbPlayerPayment = {
                                 isFPMS: true,
                                 status: "NORMAL"
                             }
-                            ).lean().then(
+                        ).lean().then(
                             bankCardListData => {
                                 let bankCardFilterList = [];
                                 let maxDeposit = 0;
@@ -269,23 +210,28 @@ const dbPlayerPayment = {
                         )
                     } else {
                         if (playerData.permission.topupManual) {
-                            if (playerData && playerData.platform && playerData.platform.bankCardGroupIsPMS) {
-                                return pmsAPI.foundation_requestBankTypeByUsername(
-                                    {
-                                        queryId: serverInstance.getQueryId(),
-                                        platformId: playerData.platform.platformId,
-                                        username: playerData.name,
-                                        ip: userIp,
-                                        supportMode: supportMode
-                                    }
-                                );
-                            } else {
-                                return pmsAPI.bankcard_getBankcardList(
-                                    {
-                                        platformId: platformData.platformId,
-                                        queryId: serverInstance.getQueryId()
-                                    }
-                                ).then(
+                            // if (playerData && playerData.platform && playerData.platform.bankCardGroupIsPMS) {
+                            //     return pmsAPI.foundation_requestBankTypeByUsername(
+                            //         {
+                            //             queryId: serverInstance.getQueryId(),
+                            //             platformId: playerData.platform.platformId,
+                            //             username: playerData.name,
+                            //             ip: userIp,
+                            //             supportMode: supportMode
+                            //         }
+                            //     );
+                            // } else {
+
+                                // return pmsAPI.bankcard_getBankcardList(
+                                //     {
+                                //         platformId: platformData.platformId,
+                                //         queryId: serverInstance.getQueryId()
+                                //     }
+                                // )
+                                return RESTUtils.getPMS2Services("postBankCardList", {
+                                    platformId: platformData.platformId,
+                                    accountType: constAccountType.BANK_CARD
+                                }).then(
                                     bankCardListData => {
                                         if (bankCardListData && bankCardListData.data && bankCardListData.data.length
                                             && playerObj.bankCardGroup && playerObj.bankCardGroup.banks && playerObj.bankCardGroup.banks.length) {
@@ -325,7 +271,7 @@ const dbPlayerPayment = {
                                         return {data: []};
                                     }
                                 );
-                            }
+                            // }
 
                         }
                         else {
@@ -693,7 +639,7 @@ const dbPlayerPayment = {
                 return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(
-            proposalObj => {
+            async proposalObj => {
                 if (proposalObj) {
                     if (topUpSystemConfig && topUpSystemConfig.name === '快付收银台') {
                         proposal = proposalObj;
@@ -726,17 +672,21 @@ const dbPlayerPayment = {
 
                         if (player && player.platform && player.platform.topUpSystemType && extConfig
                             && extConfig[player.platform.topUpSystemType]
-                            && extConfig[player.platform.topUpSystemType].topUpAPIAddr
                         ) {
-                            paymentUrl = extConfig[player.platform.topUpSystemType].topUpAPIAddr;
+                            paymentUrl = await RESTUtils.getPMS2Services("getTopupLobbyAddress");
                         }
 
-                        return {
+                        let returnData = {
                             url: generatePMSHTTPUrl(player, proposal, paymentUrl, topupRequest.clientType, ipAddress, topupRequest.amount),
                             proposalId: proposal.proposalId,
                             amount: proposal.data.amount,
-                            createTime: proposal.createTime
+                            createTime: proposal.createTime,
+                            isExceedTopUpFailCount: false,
+                            isExceedCommonTopUpFailCount: false,
                         };
+
+                        return checkFailTopUp(player, returnData);
+
                     }
                 }
             }
@@ -763,9 +713,89 @@ const dbPlayerPayment = {
 
 };
 
+async function checkFailTopUp (player, returnData) {
+    let checkMonitorTopUpCond = Boolean(player.platform && player.platform.monitorTopUpNotify && player.platform.monitorTopUpCount);
+    let checkMonitorCommonTopUpCond = Boolean(player.platform && player.platform.monitorCommonTopUpCountNotify && player.platform.monitorCommonTopUpCount);
+    if (!checkMonitorTopUpCond && !checkMonitorCommonTopUpCond) {
+        return returnData; // does not need to check
+    }
+
+    let commonTopUpType = await dbconfig.collection_proposalType.findOne({
+        platformId: player.platform,
+        name: constProposalType.PLAYER_COMMON_TOP_UP
+    }).lean();
+
+    if (!commonTopUpType) {
+        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+    }
+
+    let lastSuccessTopUp = await dbconfig.collection_proposal.findOne({
+        // createTime: {$gte: new Date(player.registrationTime)},
+        "data.playerObjId": player._id,
+        mainType: "TopUp",
+        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+    }, {createTime: 1}).sort({createTime: -1}).lean();
+
+    let currentTime = new Date();
+    let yesterdayTime = new Date().setDate(currentTime.getDate() - 1);
+
+    let checkCommonTopUpQuery = {
+        mainType: "TopUp",
+        type: commonTopUpType._id,
+        "data.playerObjId": player._id,
+        status: {$nin: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+        createTime: {$gte: new Date(yesterdayTime), $lt: currentTime}
+    }
+
+    let lastSuccessTime = lastSuccessTopUp && lastSuccessTopUp.createTime && new Date(lastSuccessTopUp.createTime);
+
+    if (lastSuccessTime && lastSuccessTime.getTime() > new Date(yesterdayTime).getTime()) {
+        checkCommonTopUpQuery.createTime = {$gte: lastSuccessTime, $lt: currentTime};
+    }
+
+    let checkOtherTopUpQuery = Object.assign({}, checkCommonTopUpQuery)
+    checkOtherTopUpQuery.type = {$ne: checkCommonTopUpQuery.type};
+    let commonTopUpProm = Promise.resolve(0);
+    let otherTopUpProm = Promise.resolve(0);
+
+    if (checkMonitorTopUpCond) {
+        commonTopUpProm = dbconfig.collection_proposal.find(checkCommonTopUpQuery).count();
+    }
+
+    if (checkMonitorCommonTopUpCond) {
+        otherTopUpProm = dbconfig.collection_proposal.find(checkOtherTopUpQuery).count();
+    }
+
+    let failedProposalsCount = await Promise.all([commonTopUpProm, otherTopUpProm]);
+
+    let commonTopUpCount = failedProposalsCount[0];
+    let otherTopUpCount = failedProposalsCount[1];
+
+    if (checkMonitorTopUpCond && checkMonitorCommonTopUpCond) {
+        if (otherTopUpCount >= player.platform.monitorTopUpCount && commonTopUpCount >= player.platform.monitorCommonTopUpCount) {
+            returnData.isExceedTopUpFailCount = true;
+            returnData.isExceedCommonTopUpFailCount = true;
+        } else if (commonTopUpCount >= player.platform.monitorCommonTopUpCount) {
+            returnData.isExceedCommonTopUpFailCount = true;
+        } else if (otherTopUpCount >= player.platform.monitorTopUpCount) {
+            returnData.isExceedTopUpFailCount = true;
+        }
+    } else if (checkMonitorTopUpCond){
+        if (otherTopUpCount >= player.platform.monitorTopUpCount) {
+            returnData.isExceedTopUpFailCount = true;
+        }
+    } else if (checkMonitorCommonTopUpCond) {
+        if (commonTopUpCount >= player.platform.monitorCommonTopUpCount) {
+            returnData.isExceedCommonTopUpFailCount = true;
+        }
+    }
+
+    return returnData;
+}
+
 function getBankTypeNameArr (bankCardFilterList, maxDeposit) {
     let bankListArr = [];
-    return pmsAPI.bankcard_getBankTypeList({}).then(
+    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
         bankTypeList => {
             if (!(bankTypeList && bankTypeList.data && bankTypeList.data.length)) {
                 return Q.reject({
@@ -812,22 +842,53 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
     }
 
     url += "?";
-    url += playerData.platform.platformId + delimiter;
-    url += playerData.name + delimiter;
-    url += playerData.realName + delimiter;
-    url += paymentCallbackUrl + "/notifyPayment" + delimiter;
-    url += clientType + delimiter;
-    url += ipAddress + delimiter;
-    url += amount + delimiter;
-    if (playerData && playerData.platform && playerData.platform.topUpSystemType && extConfig &&
-        extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].name && extConfig[playerData.platform.topUpSystemType].name === 'PMS2') {
-        url += proposalData.proposalId + delimiter;
-        url += proposalData.entryType
-    } else {
-        url += proposalData.proposalId
-    }
 
-    return url;
+    // url += playerData.platform.platformId + delimiter;
+    // url += playerData.name + delimiter;
+    // url += playerData.realName + delimiter;
+    // url += paymentCallbackUrl + "/notifyPayment" + delimiter;
+    // url += clientType + delimiter;
+    // url += ipAddress + delimiter;
+    // url += amount + delimiter;
+    //
+    // if (playerData && playerData.platform && playerData.platform.topUpSystemType && extConfig &&
+    //     extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].name && extConfig[playerData.platform.topUpSystemType].name === 'PMS2') {
+    //     url += proposalData.proposalId + delimiter;
+    //     url += proposalData.entryType + delimiter;
+    //     url += proposalData.createTime.getTime()
+    // } else {
+    //     url += proposalData.proposalId
+    // }
+    //
+    // return url;
+
+    let paramString = "";
+    paramString += playerData.platform.platformId + delimiter;
+    paramString += playerData.name + delimiter;
+    paramString += playerData.realName + delimiter;
+    paramString += paymentCallbackUrl + "/notifyPayment" + delimiter;
+    paramString += clientType + delimiter;
+    paramString += ipAddress + delimiter;
+    paramString += amount + delimiter;
+    paramString += proposalData.proposalId + delimiter;
+    paramString += proposalData.entryType + delimiter;
+    paramString += proposalData.createTime.getTime();
+
+    let encryptedParamString = "tk=".concat(jwt.sign(paramString, getSecret(playerData, extConfig)));
+
+    return url.concat(encryptedParamString);
+
+    function getSecret (playerData, extConfig) {
+        if (extConfig[playerData.platform.topUpSystemType].name === 'PMS2') {
+            return constSystemParam.PMS2_AUTH_SECRET_KEY;
+        }
+
+        if (extConfig[playerData.platform.topUpSystemType].name === 'DAYOU') {
+            return constSystemParam.DAYOU_AUTH_SECRET_KEY;
+        }
+
+        return constSystemParam.PMS2_AUTH_SECRET_KEY;
+    }
 }
 
 module.exports = dbPlayerPayment;

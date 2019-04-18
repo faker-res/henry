@@ -68,19 +68,6 @@ const dbPlayerUtility = {
         //update time when set flag to false only
         if (lastUpdateTime) {
             if (bFlag) {
-                // matchQ.$or = [];
-                // let searchQ1 = {};
-                // searchQ1[lastUpdateTime] = {$lt: new Date() - 300000};
-                // matchQ.$or.push(searchQ1);
-                //
-                // let searchQ2 = {};
-                // searchQ2[lastUpdateTime] = {$exists: false};
-                // matchQ.$or.push(searchQ2);
-                //
-                // let searchQ3 = {};
-                // searchQ3[stateName] = false;
-                // matchQ.$or.push(searchQ3);
-
                 updateQ.$currentDate = {};
                 updateQ.$currentDate[lastUpdateTime] = true;
             }
@@ -96,8 +83,6 @@ const dbPlayerUtility = {
         }
 
         let allowExec = true;
-        console.log('matchQ===', matchQ);
-        console.log('updateQ===', updateQ);
 
         return dbconfig.collection_playerBState.findOneAndUpdate(
             matchQ,
@@ -108,12 +93,6 @@ const dbPlayerUtility = {
             }
         ).then(
             beforeRec => {
-                console.log('playerObjId===', playerObjId);
-                console.log('lastUpdateTime===', lastUpdateTime);
-                console.log('beforeRec===', beforeRec);
-                console.log('stateName===', stateName);
-                console.log('bFlag===', bFlag);
-                console.log('beforeRec[stateName]===', beforeRec && beforeRec[stateName] ? beforeRec[stateName] : null);
                 if (beforeRec && beforeRec[stateName] === bFlag) {
                     allowExec = false;
                     // if state locked more than 15 minutes, allow execute (prevent state locked forever)
@@ -127,7 +106,6 @@ const dbPlayerUtility = {
                 if (!allowExec) {
                     console.log("Player B state concurrent", playerObjId, stateName);
                 }
-                console.log('allowExec===', allowExec);
                 return allowExec;
             },
             err => {
@@ -137,7 +115,6 @@ const dbPlayerUtility = {
             }
         );
     },
-
 
     //endregion
 
@@ -234,6 +211,9 @@ const dbPlayerUtility = {
         ).then(
             player => {
                 if (player) {
+                    console.log('playerObjId 11::', playerObjId);
+                    console.log('player.validCredit 11::', player.validCredit);
+                    console.log('updateAmount 11::', updateAmount);
                     if (player.validCredit < updateAmount) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -255,6 +235,9 @@ const dbPlayerUtility = {
             () => dbPlayerUtility.changePlayerCredit(playerObjId, platformObjId, -updateAmount, reasonType, data)
         ).then(
             player => {
+                console.log('playerObjId 22::', playerObjId);
+                console.log('player.validCredit 22::', player.validCredit);
+                console.log('playerCreditBeforeDeduct 22::', playerCreditBeforeDeduct);
                 if (player.validCredit < 0) {
                     // First reset the deduction, then report the problem
                     return Q.resolve().then(

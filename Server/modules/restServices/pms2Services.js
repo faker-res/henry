@@ -4,18 +4,50 @@ const extConfig = require('../../config/externalPayment/paymentSystems');
 
 const paymentSystemId = 4;
 
-function getMainDomain () {
-    return extConfig[paymentSystemId].mainDomain;
+function getMainDomain (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].mainDomain;
 }
 
-function getSubDomain () {
-    return extConfig[paymentSystemId].subDomain;
+function getSubDomain (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].subDomain;
+}
+
+function getMainTopupLobbyAddress () {
+    return extConfig[paymentSystemId].topUpAPIAddr;
+}
+
+function getSubTopupLobbyAddress () {
+    return extConfig[paymentSystemId].topUpAPIAddr2;
+}
+
+function get3rdTopupLobbyAddress () {
+    return extConfig[paymentSystemId].topUpAPIAddr3;
 }
 
 function requestWithPromise (domain, paramStr) {
     let url = domain.concat(paramStr);
 
     return rp(url);
+}
+
+function pingDomain (domain) {
+    if (!domain) {
+        return false;
+    }
+
+    let options = {
+        method: 'GET',
+        uri: domain.concat('fpms-test.txt')
+    };
+
+    return rp(options).then(
+        () => true,
+        () => false
+    );
 }
 
 function sendRequest (paramStr) {
@@ -33,25 +65,25 @@ function sendRequest (paramStr) {
     );
 }
 
-function postRequest (reqData, urlName, method) {
+function postRequest (reqData, urlName, method, paymentSystemKey) {
     let options = {
         method: method,
-        uri: getMainDomain().concat(urlName),
+        uri: getMainDomain(paymentSystemKey).concat(urlName),
         body: reqData,
         json: true // Automatically stringifies the body to JSON
     };
 
     return rp(options).then(
         data => {
-            console.log(`${urlName} SUCCESS: ${data}`);
+            console.log(`${urlName} SUCCESS: ${data ? JSON.stringify(data) : data}`);
             return data;
         }
     ).catch(
         err => {
             console.log(`${urlName} 1ST FAILED: ${err}`);
 
-            if (getSubDomain()) {
-                options.uri = getSubDomain().concat(urlName);
+            if (getSubDomain(paymentSystemKey)) {
+                options.uri = getSubDomain(paymentSystemKey).concat(urlName);
 
                 return rp(options).then(
                     data => {
@@ -84,8 +116,25 @@ function getMinMax (reqData) {
     return sendRequest(paramStr);
 }
 
-function postWithdraw (reqData) {
-    return postRequest(reqData, 'withdraw-proposal', 'POST');
+async function getTopupLobbyAddress () {
+    if (await pingDomain(getMainTopupLobbyAddress())) {
+        return getMainTopupLobbyAddress();
+    }
+
+    if (await pingDomain(getSubTopupLobbyAddress())) {
+        return getSubTopupLobbyAddress();
+    }
+
+    if (await pingDomain(get3rdTopupLobbyAddress())) {
+        return get3rdTopupLobbyAddress();
+    }
+
+    // If things goes wrong, just return main address
+    return getMainTopupLobbyAddress();
+}
+
+function postWithdraw (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'withdraw-proposal', 'POST', paymentSystemKey);
 }
 
 function patchTopupStatus (reqData) {
@@ -148,8 +197,73 @@ function postPaymentGroupByPlayer (reqData) {
     return postRequest(reqData, 'getPlayerRankByPlayer', 'POST')
 }
 
+function postProvince (reqData) {
+    return postRequest(reqData, 'getProvince', 'POST')
+}
+
+function postProvinceList (reqData) {
+    return postRequest(reqData, 'getProvinceList', 'POST')
+}
+
+function postCity (reqData) {
+    return postRequest(reqData, 'getCity', 'POST')
+}
+
+function postCityList (reqData) {
+    return postRequest(reqData, 'getCityList', 'POST')
+}
+
+function postDistrict (reqData) {
+    return postRequest(reqData, 'getDistrict', 'POST')
+}
+
+function postDistrictList (reqData) {
+    return postRequest(reqData, 'getDistrictList', 'POST')
+}
+
+function postPlatformAdd (reqData) {
+    return postRequest(reqData, 'platform', 'POST')
+}
+
+function deletePlatformDelete (reqData) {
+    return postRequest(reqData, 'platform', 'DELETE')
+}
+
+function patchPlatformUpdate (reqData) {
+    return postRequest(reqData, 'platform', 'PATCH')
+}
+
+function postOnlineTopupType (reqData) {
+    return postRequest(reqData, 'getOnlineTopupType', 'POST')
+}
+
+function postMerchantInfo (reqData) {
+    return postRequest(reqData, 'getMerchantInfo', 'POST')
+}
+
+function postCreateOnlineTopup (reqData) {
+    return postRequest(reqData, 'requestOnlineMerchant', 'POST')
+}
+
+function postDepositTypeByUsername (reqData) {
+    return postRequest(reqData, 'requestDepositTypeByUsername', 'POST')
+}
+
+function postOnlineCashinList (reqData) {
+    return postRequest(reqData, 'getOnlineCashinList', 'POST')
+}
+
+function postCashinList (reqData) {
+    return postRequest(reqData, 'getCashinList', 'POST')
+}
+
+function postCashoutList (reqData) {
+    return postRequest(reqData, 'getCashoutList', 'POST')
+}
+
 module.exports = {
     getMinMax: getMinMax,
+    getTopupLobbyAddress: getTopupLobbyAddress,
     postWithdraw: postWithdraw,
     patchTopupStatus: patchTopupStatus,
     postBatchTopupStatus: postBatchTopupStatus,
@@ -165,5 +279,21 @@ module.exports = {
     postMerchantList: postMerchantList,
     postMerchantTypeList: postMerchantTypeList,
     postPaymentGroup: postPaymentGroup,
-    postPaymentGroupByPlayer: postPaymentGroupByPlayer
+    postPaymentGroupByPlayer: postPaymentGroupByPlayer,
+    postProvince: postProvince,
+    postProvinceList: postProvinceList,
+    postCity: postCity,
+    postCityList: postCityList,
+    postDistrict: postDistrict,
+    postDistrictList: postDistrictList,
+    postPlatformAdd: postPlatformAdd,
+    deletePlatformDelete: deletePlatformDelete,
+    patchPlatformUpdate: patchPlatformUpdate,
+    postOnlineTopupType: postOnlineTopupType,
+    postMerchantInfo: postMerchantInfo,
+    postCreateOnlineTopup: postCreateOnlineTopup,
+    postDepositTypeByUsername: postDepositTypeByUsername,
+    postOnlineCashinList: postOnlineCashinList,
+    postCashinList: postCashinList,
+    postCashoutList: postCashoutList
 };

@@ -15,5 +15,17 @@ var dbPartnerLevelConfig = {
     updatePartnerLevelConfig: function (query, updateData) {
         return dbconfig.collection_partnerLevelConfig.findOneAndUpdate(query, updateData).exec();
     },
+
+    getActiveConfig: function (query) {
+        return dbconfig.collection_activeConfig.find(query).lean().then(
+            data => {
+                return data;
+            }
+        );
+    },
+
+    updateActiveConfig: function (query, updateData) {
+        return dbconfig.collection_activeConfig.findOneAndUpdate(query, updateData, {new: true, upsert: true}).lean();
+    },
 };
 module.exports = dbPartnerLevelConfig;

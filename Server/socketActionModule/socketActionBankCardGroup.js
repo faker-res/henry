@@ -4,6 +4,7 @@ var ObjectId = mongoose.Types.ObjectId;
 
 var socketUtil = require('./../modules/socketutility');
 var pmsAPI = require('../externalAPI/pmsAPI');
+let RESTUtils = require('./../modules/RESTUtils');
 
 function socketActionBankCardGroup(socketIO, socket) {
 
@@ -128,7 +129,8 @@ function socketActionBankCardGroup(socketIO, socket) {
 
         getBankCardList: function getBankCardList(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.bankcard_getBankcardList, [{platformId: data.platformId}], actionName, true);
+            // socketUtil.emitter(self.socket, pmsAPI.bankcard_getBankcardList, [{platformId: data.platformId}], actionName, true);
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postBankCardList", {platformId: data.platformId, accountType: "BANK"}], actionName, true);
         },
 
         getZoneList: function getZoneList(data) {
@@ -137,30 +139,36 @@ function socketActionBankCardGroup(socketIO, socket) {
         },
         getProvinceList: function getProvinceList(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.foundation_getProvinceList, [{}], actionName, true);
+            //socketUtil.emitter(self.socket, pmsAPI.foundation_getProvinceList, [{}], actionName, true);
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postProvinceList", {}], actionName, true);
         },
         getCityList: function getCityList(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.foundation_getCityList, [{provinceId: data.provinceId}], actionName, true);
+            // socketUtil.emitter(self.socket, pmsAPI.foundation_getCityList, [{provinceId: data.provinceId}], actionName, true);
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postCityList", {provinceId: data.provinceId}], actionName, true);
         },
         getDistrictList: function getDistrictList(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.foundation_getDistrictList, [{
-                provinceId: data.provinceId,
-                cityId: data.cityId
-            }], actionName, true);
+            // socketUtil.emitter(self.socket, pmsAPI.foundation_getDistrictList, [{
+            //     provinceId: data.provinceId,
+            //     cityId: data.cityId
+            // }], actionName, true);
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postDistrictList", {provinceId: data.provinceId, cityId: data.cityId}], actionName, true);
         },
         getProvince: function getProvince(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.foundation_getProvince, [{provinceId: data.provinceId}], actionName, true);
+            // socketUtil.emitter(self.socket, pmsAPI.foundation_getProvince, [{provinceId: data.provinceId}], actionName, true);
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postProvince", {provinceId: data.provinceId}], actionName, true);
         },
         getCity: function getCity(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.foundation_getCity, [{cityId: data.cityId}], actionName, true);
+            // socketUtil.emitter(self.socket, pmsAPI.foundation_getCity, [{cityId: data.cityId}], actionName, true);
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postCity", {cityId: data.cityId}], actionName, true);
         },
         getDistrict: function getDistrict(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, pmsAPI.foundation_getDistrict, [{districtId: data.districtId}], actionName, true);
+            // socketUtil.emitter(self.socket, pmsAPI.foundation_getDistrict, [{districtId: data.districtId}], actionName, true);
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postDistrict", {districtId: data.districtId}], actionName, true);
         },
 
         /**

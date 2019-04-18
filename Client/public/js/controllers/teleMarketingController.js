@@ -1010,12 +1010,12 @@ define(['js/app'], function (myApp) {
         vm.prepareTsPhoneFeedback = function (tsPhoneObj) {
             vm.tsPhoneAddFeedback = {tsPhone: tsPhoneObj}
             if (vm.selectedPlatform && vm.selectedPlatform.data) {
-                if (vm.selectedPlatform.data.defaultFeedbackResult) {
-                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedbackResult
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult) {
+                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult;
                 }
 
-                if (vm.selectedPlatform.data.defaultFeedbackTopic) {
-                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedbackTopic
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic) {
+                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic;
                 }
             }
 
@@ -1027,12 +1027,8 @@ define(['js/app'], function (myApp) {
             vm.tsPhoneAddFeedback = {};
             vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {
                 language: 'en',
-                format: 'yyyy/MM/dd',
-                endDate: new Date(),
-                maxDate: new Date()
+                format: 'yyyy/MM/dd'
             });
-            vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date("January 01, 1990")));
-
             vm.existPhone = false;
             vm.existRealName = false;
             vm.newPlayer = {};
@@ -1318,12 +1314,12 @@ define(['js/app'], function (myApp) {
             // }
 
             if (vm.selectedPlatform && vm.selectedPlatform.data) {
-                if (vm.selectedPlatform.data.defaultFeedbackResult) {
-                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedbackResult
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult) {
+                    vm.tsPhoneAddFeedback.result = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackResult;
                 }
 
-                if (vm.selectedPlatform.data.defaultFeedbackTopic) {
-                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedbackTopic
+                if (vm.selectedPlatform.data.defaultFeedback && vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic) {
+                    vm.tsPhoneAddFeedback.topic = vm.selectedPlatform.data.defaultFeedback.defaultTsFeedbackTopic;
                 }
             }
 
@@ -1426,8 +1422,6 @@ define(['js/app'], function (myApp) {
             }
             vm.newPlayer.platform = vm.selectedPlatform.id;
             vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
-            vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
-            vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
 
             console.log('newPlayer', vm.newPlayer);
@@ -3329,15 +3323,15 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getZoneList', sendQuery, function (data) {
                 console.log(data.data);
                 if (!provinceId && !cityId) {
-                    vm.provinceList = data.data.provinces || [];
+                    vm.provinceList = data.data.data || [];
                     vm.playerManualTopUp.provinceId = vm.provinceList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId);
                 } else if (provinceId && !cityId) {
-                    vm.cityList = data.data.cities || [];
+                    vm.cityList = data.data.data || [];
                     // vm.playerManualTopUp.cityId = vm.cityList[0].id;
                     vm.getZoneList(vm.playerManualTopUp.provinceId, vm.cityList[0].id);
                 } else if (provinceId && cityId) {
-                    vm.districtList = data.data.districts || [];
+                    vm.districtList = data.data.data || [];
                     vm.playerManualTopUp.districtId = '';
                 }
                 vm.freezeZoneSelection = false;

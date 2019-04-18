@@ -197,6 +197,9 @@ let keywordFilterModel = db_admin.model('keywordFilter', keywordFilterSchema, 'k
 let geoIpSchema = require('./../schema/geoip');
 let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 
+let activeConfigSchema = require('./../schema/activeConfig');
+let activeConfigModel = db_admin.model('activeConfig', activeConfigSchema, 'activeConfig');
+
 let platformQuickPayGroupSchema = require('./../schema/platformQuickPayGroup');
 let platformQuickPayGroupModel = db_admin.model('platformQuickPayGroup', platformQuickPayGroupSchema, 'platformQuickPayGroup');
 
@@ -476,6 +479,9 @@ let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openProm
 let dxPhoneSchema = require('./../schema/logs2/dxPhone');
 let dxPhoneModel = dbLogs2.model('dxPhone', dxPhoneSchema, 'dxPhone');
 
+let apiResponseLogSchema = require('./../schema/logs2/apiResponseLog');
+let apiResponseLogModel = dbLogs2.model('apiResponseLog', apiResponseLogSchema, 'apiResponseLog');
+
 let playerConsumptionSlipRewardGroupRecordSchema = require('./../schema/logs2/playerConsumptionSlipRewardGroupRecord');
 let playerConsumptionSlipRewardGroupRecordModel = dbLogs2.model('playerConsumptionSlipRewardGroupRecord', playerConsumptionSlipRewardGroupRecordSchema, 'playerConsumptionSlipRewardGroupRecord');
 
@@ -493,6 +499,9 @@ let callBackToUserLogModel = dbLogs2.model('callBackToUserLog', callBackToUserLo
 
 let auctionSystemSchema = require('./../schema/auctionSystem');
 let auctionSystemModel = dbLogs2.model('auctionSystem', auctionSystemSchema, 'auctionSystem');
+
+let playerRandomRewardSchemaSchema = require('./../schema/playerRandomReward');
+let playerRandomRewardSchemaModel = dbLogs2.model('playerRandomReward', playerRandomRewardSchemaSchema, 'playerRandomReward');
 
 let playerReportDataDaySummarySchema = require('../schema/playerReportDataDaySummary');
 let playerReportDataDaySummaryModel = dbLogs2.model('playerReportDataDaySummary', playerReportDataDaySummarySchema, 'playerReportDataDaySummary');
@@ -652,9 +661,11 @@ var dbProperties = {
     collection_promoCodeUserGroup: promoCodeUserGroupModel,
 
     collection_keywordFilter: keywordFilterModel,
+    collection_activeConfig: activeConfigModel,
 
     collection_dxMission: dxMissionModel,
     collection_dxPhone: dxPhoneModel,
+    collection_apiResponseLog: apiResponseLogModel,
     collection_playerConsumptionSlipRewardGroupRecord: playerConsumptionSlipRewardGroupRecordModel,
     collection_playerRetentionRewardGroupRecord: playerRetentionRewardGroupRecordModel,
     collection_playerBonusDoubledRewardGroupRecord: playerBonusDoubledRewardGroupRecordModel,
@@ -687,7 +698,7 @@ var dbProperties = {
     collection_advertisementPageXBET: advertisementPageXBETModel,
 
     collection_playerMultipleBankDetailInfo: playerMultipleBankDetailInfoModel,
-    
+
     collection_idcIp: idcIpModel,
     collection_smsGroup: smsGroupModel,
     collection_promoCodeTemplate: promoCodeTemplateModel,
@@ -791,6 +802,7 @@ var dbProperties = {
     collection_live800RecordDayRecord: scheduledLive800DailyRecordModel,
     collection_playerDataFromExternalSource: playerInfoFromExternalSourceModel,
     collection_queryCreditTimeout: queryCreditTimeoutModel,
+    collection_playerRandomReward: playerRandomRewardSchemaModel,
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,

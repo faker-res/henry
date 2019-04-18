@@ -1,0 +1,40 @@
+include ./partner-setting-platform-select
+div.margin-top-5
+    div(ng-if='vm.selectedConfigTab=="autoApproval" && vm.platformInSetting')
+        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+            thead
+                tr
+                    th {{'PARTNER_WITHDRAWAL_AUTO_APPROVAL' | translate}}
+                    th {{'VALUE' | translate}}
+                    th {{'REMARK' | translate}}
+            tbody
+                tr
+                    td {{'Partner Bonus Auto Approval' | translate}}
+                    td
+                        input(type='checkbox', ng-model='vm.autoApprovalBasic.partnerEnableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
+                    td
+                tr
+                    td {{'Partner single Withdrawal Limit' | translate}}
+                    td
+                        text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan}}
+                        input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan')
+                    td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}} {{"per transaction limit" | translate }}
+                tr
+                    td {{'Partner single Day Withdrawal Limit' | translate}}
+                    td
+                        text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
+                        input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan')
+                    td(style="text-align: left;")  {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"per day limit" | translate }}
+                tr
+                    td {{'Partner current withdrawal amount minus total commission from the last withdrawal(include first level partner commission) >= X (transfer to manual approval)' | translate}}
+                    td
+                        text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.partnerWithdrawalCommissionDifference}}
+                        input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.partnerWithdrawalCommissionDifference')
+                    td(style="text-align: left;")  {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"The withdrawing amount is larger than the commission" | translate }}
+
+        br
+        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Partner', 'Config', 'AutoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+            text {{'EDIT' | translate}}
+            img.img-edit
+        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("autoApproval")') {{"CANCEL" | translate}}
+        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("autoApproval")') {{"CONFIRM" | translate}}

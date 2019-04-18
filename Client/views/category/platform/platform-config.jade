@@ -1,13 +1,20 @@
 .row
+    .col-md-12
+        .well.col-xs-12
+            .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.filterConfigPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.configTabClicked(vm.selectedConfigTab)')
+.text-center(ng-if='!vm.filterConfigPlatform')
+    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
+.row(ng-if='vm.filterConfigPlatform')
     .col-md-3
         .panel.panel-primary
             .panel-heading.panel-heading-sm
                 .fa.fa-wrench
                 label &nbsp;{{"CONFIGURATION" | translate}}
             .panel-body.common-left-sub-panel-body
-                p(ng-if="!vm.curPlatformText")
-                    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-                ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.curPlatformText")
+                ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.filterConfigPlatform")
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "player"}', ng-click='vm.configTabClicked("player")')
                         span {{"PLAYER_LEVEL" | translate}}
                     //li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partner"}', ng-click='vm.configTabClicked("partner")')
@@ -56,12 +63,15 @@
                         span {{"WeChatGroupControlSetting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "winnerMonitorSetting"}', ng-click='vm.configTabClicked("winnerMonitorSetting")')
                         span {{"Winner Monitor Setting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "defaultFeedbackConfig"}', ng-click='vm.configTabClicked("defaultFeedbackConfig")')
+                        span {{"defaultFeedbackConfig" | translate}}
+
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
             .panel-heading.panel-heading-sm
                 label {{"CONFIGURATION_DETAIL" | translate}}
-            .panel-body.common-right-sub-panel-body(ng-if="!vm.curPlatformText")
-            .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
+            .panel-body.common-right-sub-panel-body(ng-if="!vm.filterConfigPlatform")
+            .panel-body.common-right-sub-panel-body(ng-if="vm.filterConfigPlatform")
                 .text-center(ng-if='!vm.selectedConfigTab')
                     label.text-danger {{'Please select a type' | translate}}
 
@@ -890,7 +900,7 @@
                                                         table.simple-table(style='width:auto;min-width:99.9%')
                                                             thead
                                                                 tr
-                                                                    th(colspan=6) {{gpg.name | translate}}{{'Commission'| translate}}:{{vm.commissionSettingTab | translate}}
+                                                                    th(colspan=6) {{gpg.name | translate}} {{'Commission'| translate}}:{{vm.commissionSettingTab | translate}}
                                                                 tr
                                                                     th(colspan=2) {{vm.playerConsumptionTableHeader | translate}}
                                                                     th(colspan=2) {{vm.activePlayerTableHeader | translate}}
@@ -1589,6 +1599,36 @@
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("monitor")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("monitor")') {{"CONFIRM" | translate}}
 
+                br
+                div(ng-if='vm.selectedConfigTab=="monitor"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                                th {{'Front End Display' | translate}}
+                        tbody
+                            tr
+                                td {{'Topup Method Front End reminder' | translate}}
+                                td
+                                    text(ng-show='!vm.reminderConfigTableEdit') {{vm.monitorBasic.monitorTopUpCount}}
+                                    input(type='number', ng-show='vm.reminderConfigTableEdit', min=0, ng-model='vm.monitorBasic.monitorTopUpCount')
+                                td
+                                    input(type='checkbox', ng-disabled="!vm.reminderConfigTableEdit" ng-model='vm.monitorBasic.monitorTopUpNotify')
+                            tr
+                                td {{'General Topup Front End reminder' | translate}}
+                                td
+                                    text(ng-show='!vm.reminderConfigTableEdit') {{vm.monitorBasic.monitorCommonTopUpCount}}
+                                    input(type='number', ng-show='vm.reminderConfigTableEdit', min=0, ng-model='vm.monitorBasic.monitorCommonTopUpCount')
+                                td
+                                    input(type='checkbox', ng-disabled="!vm.reminderConfigTableEdit" ng-model='vm.monitorBasic.monitorCommonTopUpCountNotify')
+                    br
+                    button.btn.btn-primary.common-button(ng-if="!vm.reminderConfigTableEdit && checkViewPermission('Platform', 'Config', 'Monitor')", ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.reminderConfigTableEdit', ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit;vm.configTabClicked("monitor")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.reminderConfigTableEdit', ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit;vm.configSubmitUpdate("monitor")') {{"CONFIRM" | translate}}
+                    
                 div(ng-if='vm.selectedConfigTab=="playerValue"')
                     h4 {{'General Settings' | translate}}
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
@@ -1976,14 +2016,7 @@
                                 td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
                                 td
                                     input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "AutoExportListOrMaxNumOfTxnEveryday")' type="number" step="1" min="0")
-                            tr
-                                td {{'DEFAULT_FEEDBACK_RESULT' | translate}}
-                                td
-                                    select.form-control(ng-model="vm.bulkCallBasic.defaultFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit")
-                            tr
-                                td {{'DEFAULT_FEEDBACK_TOPIC' | translate}}
-                                td
-                                    select.form-control(ng-model="vm.bulkCallBasic.defaultFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+
                     .margin-small.pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                             text {{'EDIT' | translate}}
@@ -2712,6 +2745,44 @@
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("winnerMonitorSetting")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("winnerMonitorSetting")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="defaultFeedbackConfig"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(style="width:850px;") {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'DEFAULT_FEEDBACK_RESULT' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_FEEDBACK_TOPIC' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_PLAYER_FEEDBACK_RESULT' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultPlayerFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_PLAYER_FEEDBACK_TOPIC' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultPlayerFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_TELESALES_FEEDBACK_RESULT' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultTsFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                            tr
+                                td {{'DEFAULT_TELESALES_FEEDBACK_TOPIC' | translate}}
+                                td
+                                    select.form-control(ng-model="vm.defaultFeedback.defaultTsFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                    .margin-small.pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'defaultFeedbackConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("defaultFeedbackConfig")') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("defaultFeedbackConfig")') {{"CONFIRM" | translate}}
 
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")

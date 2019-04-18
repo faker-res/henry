@@ -19,6 +19,7 @@ const errorUtils = require("../modules/errorUtils.js");
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const proposalExecutor = require('../modules/proposalExecutor');
+const RESTUtils = require('../modules/RESTUtils');
 
 let dbAutoProposal = {
     applyBonus: (platformObjId) => {
@@ -212,20 +213,27 @@ function checkPartnerAutoBonus (proposal, platformObj) {
     return Promise.all([bonusProm, commissionProm]).then(
         ([todayWithdrawal, totalCommission]) => {
 
-            if (withdrawAmount >= platformObj.partnerAutoApproveWhenSingleBonusApplyLessThan) {
+            if (platformObj.partnerAutoApproveWhenSingleBonusApplyLessThan && withdrawAmount >= platformObj.partnerAutoApproveWhenSingleBonusApplyLessThan) {
                 checkMsg += " Denied: Single limit";
                 checkMsgChinese += " 失败：单限;";
                 canApprove = false;
             }
 
-            if (todayWithdrawal && todayWithdrawal[0] && todayWithdrawal[0].amount >= platformObj.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan) {
+            if (
+                platformObj.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan && todayWithdrawal
+                && todayWithdrawal[0]
+                && todayWithdrawal[0].amount >= platformObj.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan
+            ) {
                 checkMsg += " Denied: Daily limit";
                 checkMsgChinese += " 失败：日限;";
                 canApprove = false;
             }
 
             let totalSumCommission = totalCommission && totalCommission[0] && totalCommission[0].amount || 0;
-            if ((withdrawAmount - totalSumCommission) >= platformObj.partnerWithdrawalCommissionDifference) {
+            if (
+                platformObj.partnerWithdrawalCommissionDifference
+                && (withdrawAmount - totalSumCommission) >= platformObj.partnerWithdrawalCommissionDifference
+            ) {
                 checkMsg += " Denied: Withdrawal more than commission amount";
                 checkMsgChinese += " 失败：提款大于佣金;";
                 canApprove = false;
@@ -345,7 +353,8 @@ function checkRewardTaskGroup(proposal, platformObj, withdrawalBank) {
                 }
             });
 
-            let provinceListProm = pmsAPI.foundation_getProvinceList({});
+            //let provinceListProm = pmsAPI.foundation_getProvinceList({});
+            let provinceListProm = RESTUtils.getPMS2Services("postProvinceList", {});
 
             let promises = [
                 RTGPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise, creditLogPromise,
@@ -423,8 +432,8 @@ function checkRewardTaskGroup(proposal, platformObj, withdrawalBank) {
                 }
             }
 
-            if (data && data[6] && data[6].provinces && playerData && playerData.bankAccountProvince) {
-                let allProvinces = data[6].provinces;
+            if (data && data[6] && data[6].data && playerData && playerData.bankAccountProvince) {
+                let allProvinces = data[6].data;
                 let pIdx = allProvinces.findIndex(d => d.id == playerData.bankAccountProvince);
                 if (allProvinces[pIdx] && allProvinces[pIdx].name) {
                     bankProvince = allProvinces[pIdx].name.replace("省", "")

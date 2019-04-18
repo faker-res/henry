@@ -409,7 +409,47 @@ var generalCond = {
     // Reward end time
     validEndTime: {index: 8, type: "date", des: "Reward end time"},
     // Is differentiate reward by player level
-    isPlayerLevelDiff: {index: 9, type: "checkbox", des: "Reward differentiate by player level", default: false}
+    isPlayerLevelDiff: {index: 9, type: "checkbox", des: "Reward differentiate by player level", default: false},
+    // Display in home page popup
+    visibleFromHomePage: {
+        index: 51,
+        name: "visibleFromHomePage",
+        visible: {index: 1, type: "checkbox", des: "Is visible in home page"},
+        visibleForPhoneNumberBinding: {index: 2, type: "checkbox", des: "Is visible for phone number binding player"},
+        visibleForNewPlayer: {index: 3, type: "checkbox", des: "Is visible for new player", detail: "REWARD_CLIENT_NEW_PLAYER"},
+        visibleForFirstLogin: {index: 4, type: "checkbox", des: "Is visible for first login player", detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"},
+        visibleForPlayerLevel: {index: 5, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
+        visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+        visibleIfAppliedFollowingReward: {index: 7, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
+        visibleIfTopUpCountMoreThan: {index: 8, type: "number", des: "Is visible if topup count more than"},
+        invisibleIfApplyCurrentReward: {index: 9, type: "checkbox", des: "Is invisible if apply current reward"},
+    },
+    visibleFromRewardEntry: {
+        index: 52,
+        name: "visibleFromRewardEntry",
+        visible: {index: 1, type: "checkbox", des: "Is visible in reward entry"},
+        visibleForPhoneNumberBinding: {index: 2, type: "checkbox", des: "Is visible for phone number binding player"},
+        visibleForNewPlayer: {index: 3, type: "checkbox", des: "Is visible for new player", detail: "REWARD_CLIENT_NEW_PLAYER"},
+        visibleForFirstLogin: {index: 4, type: "checkbox", des: "Is visible for first login player", detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"},
+        visibleForPlayerLevel: {index: 5, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
+        visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+        visibleIfAppliedFollowingReward: {index: 7, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
+        visibleIfTopUpCountMoreThan: {index: 8, type: "number", des: "Is visible if topup count more than"},
+        invisibleIfApplyCurrentReward: {index: 9, type: "checkbox", des: "Is invisible if apply current reward"},
+    },
+    visibleFromRewardList: {
+        index: 53,
+        name: "visibleFromRewardList",
+        visible: {index: 1, type: "checkbox", des: "Is visible in reward list"},
+        visibleForPhoneNumberBinding: {index: 2, type: "checkbox", des: "Is visible for phone number binding player"},
+        visibleForNewPlayer: {index: 3, type: "checkbox", des: "Is visible for new player", detail: "REWARD_CLIENT_NEW_PLAYER"},
+        visibleForFirstLogin: {index: 4, type: "checkbox", des: "Is visible for first login player", detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"},
+        visibleForPlayerLevel: {index: 5, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
+        visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+        visibleIfAppliedFollowingReward: {index: 7, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
+        visibleIfTopUpCountMoreThan: {index: 8, type: "number", des: "Is visible if topup count more than"},
+        invisibleIfApplyCurrentReward: {index: 9, type: "checkbox", des: "Is invisible if apply current reward"},
+    }
 };
 
 var topUpCond = {
@@ -911,27 +951,67 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Need SMS verification"
                 },
+                numberParticipation: {
+                    index: 42,
+                    type: "number",
+                    des: "Number of participation"
+                },
+                requiredTopUpAmount: {
+                    index: 43,
+                    type: "number",
+                    des: "Required top up amount"
+                },
+                operatorOption: {
+                    index: 44,
+                    type: "checkbox",
+                    des: "Required both"
+                },
+                requiredConsumptionAmount: {
+                    index: 45,
+                    type: "number",
+                    des: "Required consumption amount"
+                },
+                noRepetitiveRewardInPeriod: {
+                    index: 46,
+                    type: "checkbox",
+                    des: "No Repetitive Reward In Period",
+                    detail: "Same reward will not be selected in the period"
+                },
+                sameRewardOnTheNextTrial: {
+                    index: 47,
+                    type: "checkbox",
+                    des: "Same Reward On The Next Trial",
+                    detail: "The selected reward will be different for the next trial"
+                },
+                defaultRewardTypeInTheFirstTime: {
+                    index: 48,
+                    type: "select",
+                    des: "Default Reward Type For The First Time",
+                    detail: "Set the default reward type for the first time; the reward will be randomly selected from the collection of the reward type",
+                    options: "randomRewardType",
+                }
+
             }
         },
         param: {
             tblOptFixed: {
                 rewardParam: {
-                    numberParticipation: {type: "number", des: "Number of participation"},
-                    requiredTopUpAmount: {type: "number", des: "Required top up amount"},
-                    operatorOption: {type: "checkbox", des: "Required both"},
-                    requiredConsumptionAmount: {type: "number", des: "Required consumption amount"},
-                    rewardPercentageAmount: {
-                        type: "PercentageAmount",
-                        des: "Reward percentage and reward amount",
-                        value: [{percentage: "", amount: ""}]
-                    },
-                    spendingTimesOnReward: {type: "number", des: "Spending times on reward"},
-                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
-                    forbidWithdrawIfBalanceAfterUnlock: {
-                        type: "number",
-                        des: "Forbid withdraw if there is balance after unlock"
-                    },
-                    remark: {type: "text", des: "Remark"},
+                    title: {type: "text"},
+                    amount: {type: "number", des: "REWARD_AMOUNT"},
+                    amountPercent: {type: "percentage", des: "REWARD_AMOUNT_PERCENT"},
+                    rewardPoints: {type: "number", des: "Reward Points"},
+                    realPrize: {type: "text", des: "Real Prize"},
+                    possibility: {type: 'percentage', des: 'Possibility'},
+                    minTopUpAmount: {type: "number", des: "PROMO_minTopUpAmount"},
+                    maxRewardAmount: {type: "number", des: "maxRewardAmount"},
+                    requiredConsumptionFixed: {type: "number", des: "PROMO_CONSUMPTION_1"},
+                    requiredConsumption: {type: "number", des: "Spending times on reward"},
+                    requiredConsumptionDynamic: {type: "number", des: "PROMO_CONSUMPTION_3"},
+                    isSharedWithXIMA: {type: "checkbox", des: "SHARE_WITH_XIMA"},
+                    expiredInDay: {type: "number", des: "PROMO_DUE_DATE (IN DAY)"},
+                    disableWithdraw: {type: "checkbox", des: "DISABLE_WITHDRAWAL_AFTER_PROMO"},
+                    forbidWithdrawIfBalanceAfterUnlock: {type: "number", des: "forbidWithdrawIfBalanceAfterUnlock"},
+                    providerGroup: {type: "select", des: "Provider group", options: "providerGroup"}
                 }
             },
             tblOptDynamic: {} // will never reach here

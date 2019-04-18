@@ -42,6 +42,8 @@ const thirdPartyAPIConfig = {
         subDomain: "http://52.221.143.107:9001/v1/",
 
         topUpAPIAddr: "http://52.221.143.107:8182/",
+        topUpAPIAddr2: "http://52.221.143.107:8182/",
+        topUpAPIAddr3: "http://52.221.143.107:8182/",
         topUpAPICallback: "http://devtest.wsweb.me:7100",
         withdrawAPICallback: "http://devtest.wsweb.me:7100",
 
@@ -50,6 +52,20 @@ const thirdPartyAPIConfig = {
         enableTopup: false,
         enableBonus: false,
         description: '我是说明4',
+    },
+    5: {
+        mainDomain: "",
+        subDomain: "",
+
+        topUpAPIAddr: "http://jbet.pay.clh66.com/api/pay.jhtml",
+        topUpAPICallback: "http://devtest.wsweb.me:7000",
+        withdrawAPICallback: "http://devtest.wsweb.me:7000",
+
+        //financial settlement
+        name: 'DAYOU',
+        enableTopup: false,
+        enableBonus: false,
+        description: '大有财务系统 - 嘉博专用第三方财务系统',
     }
 }
 

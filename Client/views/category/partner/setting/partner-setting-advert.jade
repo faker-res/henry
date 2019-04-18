@@ -1,0 +1,241 @@
+include ./partner-setting-platform-select
+#partnerAdvertisementPanel.panel-body(style="background-color: white;" ng-if='vm.platformInSetting')
+    #partnerAdvertisementRecords.adminLogQueryDiv
+        .inlineBlk
+            label {{"WEB" | translate}}
+            input(type="checkbox" ng-model="vm.partnerAdvertisementWebDevice" ng-change="vm.partnerAdvertisementH5Device = !vm.partnerAdvertisementWebDevice; vm.partnerAdvertisementList();" ng-init="vm.partnerAdvertisementWebDevice = true")
+            label {{"H5" | translate}}
+            input(type="checkbox" ng-model="vm.partnerAdvertisementH5Device" ng-change="vm.partnerAdvertisementWebDevice = !vm.partnerAdvertisementH5Device; vm.partnerAdvertisementList();")
+
+    .row(style="overflow:scroll; max-height: 250px;padding-left:2px;padding-right:2px;")
+        table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white;')
+            thead
+                tr
+                    th {{'Display Order' | translate}}
+                    th {{'ADVERTISEMENT CODE (CANNOT REPEAT)' | translate}}
+                    th {{'BANNER TITLE' | translate}}
+                    th {{'DISPLAY BACKGROUND IMAGE' | translate}}
+                    th {{'BANNER LINK BUTTON' | translate}}
+                    th {{'IS_SHOW_PRODUCTION_SERVER' | translate}}
+                    th {{'ACTION_BUTTON' | translate}}
+            tbody
+                tr(ng-if="vm.showPartnerAdvertisementRecord" ng-repeat="a in vm.displayPartnerAdvertisementList" )
+                    td(ng-class='{grayRow: a.status==0}') {{a.orderNo}}
+                    td(ng-class='{grayRow: a.status==0}') {{a.advertisementCode}}
+                    td(ng-class='{grayRow: a.status==0}')
+                        table(style="width: 100%;")
+                            tbody
+                                tr(ng-repeat="a in a.title")
+                                    td(style="") {{a.name}}
+                    td(ng-class='{grayRow: a.status==0}')
+                        table(style="font-size: 10px; width: 100%;")
+                            tbody
+                                tr
+                                    td(colspan=2)
+                                        div(style="width: 100%; height: 80px; background-size: cover; background-repeat: no-repeat;" ng-style="{'background-image': 'url({{ a.backgroundBannerImage.url }})'}")
+                                tr
+                                    td
+                                        label {{'SOURCE' | translate}}
+                                    td
+                                        a(href='{{a.backgroundBannerImage.url}}', title='{{a.backgroundBannerImage.url}}', target='_blank') {{a.backgroundBannerImage.urlDisplay | translate}}
+                                tr
+                                    td
+                                        label {{'HYPERLINK' | translate}}
+                                    td
+                                        a(href='{{a.backgroundBannerImage.hyperLink}}', title='{{a.backgroundBannerImage.hyperLink}}', target='_blank') {{a.backgroundBannerImage.hyperLinkDisplay | translate}}
+                    td(ng-class='{grayRow: a.status==0}')
+                        div
+                            table(style="font-size: 10px;")
+                                tbody
+                                    tr
+                                        td(ng-repeat="(i,v) in a.imageButton" style="border: none;")
+                                            table
+                                                tbody
+                                                    tr
+                                                        td(colspan=2)
+                                                            div(style="height: 80px; background-size: cover; background-repeat: no-repeat;" ng-style="{'background-image': 'url({{ v.url }})'}")
+                                                    tr
+                                                        td
+                                                            label {{'BUTTON NAME' | translate}}
+                                                        td
+                                                            label {{v.buttonName | translate}}
+                                                    tr
+                                                        td
+                                                            label {{'SOURCE' | translate}}
+                                                        td
+                                                            a(href='{{v.url}}', title='{{v.url}}', target='_blank') {{v.urlDisplay | translate}}
+                                                    tr
+                                                        td
+                                                            label {{'HYPERLINK' | translate}}
+                                                        td
+                                                            a(href='{{v.hyperLink}}', title='{{v.hyperLink}}', target='_blank') {{v.hyperLinkDisplay | translate}}
+                                                            //input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
+                    td(ng-class='{grayRow: a.status==0}')
+                        input(type="checkbox" ng-model="a.showInRealServer" ng-disabled='true')
+                    td(ng-class='{grayRow: a.status==0}')
+                        div(style="display: inline-grid; font-size: 10px;")
+                            button.common-button.btn.btn-info(ng-click="vm.selectedAdvListData(a._id,vm.subject='partner');vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" data-toggle="modal", data-target="#modalAdvPlatform" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.editPartnerAdvertisementRecord=true; vm.showPartnerAdvertisementRecord=false" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.deletePartnerAdvertisementRecord(a._id,$index);" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.changePartnerAdvertisementStatus(a._id,0);vm.partnerAdvertisementList()" ng-if="a.status == 0; " style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.changePartnerAdvertisementStatus(a._id,1);vm.partnerAdvertisementList()" ng-if="a.status == 1; " style="width: auto; background-color: #5bc0de") {{'CLOSE' | translate}}
+
+                tr(ng-if="vm.editPartnerAdvertisementRecord" ng-repeat="a in vm.displayPartnerAdvertisementList")
+                    td
+                        input(type='number' , ng-model='a.orderNo', style="width: 50px;" ng-change="vm.checkPartnerDuplicateOrderNoWithId(a.orderNo,a._id)" )
+                    td
+                        input(type='text' , ng-model='a.advertisementCode', style="width: 100px;" ng-change="vm.checkPartnerDuplicateAdCodeWithId(a.advertisementCode,a._id)" )
+                    td
+                        table(style="font-size: 10px; width: 100%")
+                            tbody
+                                tr(ng-repeat="(i,v) in a.title")
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="v.name")
+                                    td
+                                        i.fa.fa-minus(ng-click='a.title.splice($index,1)')
+                                tr
+                                    td
+                                        input(type="text" ng-model="vm.partnerAdvertisementGroup.bannerTitle" style="width: 150px;")
+                                    td
+                                        i.fa.fa-plus(ng-click='a.title.push({name: vm.partnerAdvertisementGroup.bannerTitle});vm.existingPartnerAdvertisementTitle = "true";vm.partnerAdvertisementGroup.bannerTitle = ""'  )
+                    td
+                        table(style="font-size: 10px; width: 100%")
+                            tbody
+                                tr
+                                    td(colspan=2)
+                                        div(style="width: 100%; height: 80px; background-size: cover; background-repeat: no-repeat;" ng-style="{'background-image': 'url({{ a.backgroundBannerImage.url }})'}")
+                                tr
+                                    td
+                                        label {{'SOURCE' | translate}}
+                                    td
+                                        input(type='text' , ng-model='a.backgroundBannerImage.url', style="margin-bottom: 2px;")
+                                tr
+                                    td
+                                        label {{'HYPERLINK' | translate}}
+                                    td
+                                        input(type='text' , ng-model='a.backgroundBannerImage.hyperLink', style="margin-bottom: 2px;")
+                    td
+                        div
+                            table
+                                tbody
+                                    tr
+                                        td(ng-repeat="c in a.imageButton" style="border: none;")
+                                            table(style="font-size: 10px;")
+                                                tbody
+                                                    tr
+                                                        td(colspan=2)
+                                                            div(style="height: 80px; background-size: cover; background-repeat: no-repeat;" ng-style="{'background-image': 'url({{ c.url }})'}")
+                                                        td(rowspan=4)
+                                                            i.fa.fa-minus(ng-click='a.imageButton.splice($index,1)')
+                                                    tr
+                                                        td
+                                                            label {{'BUTTON NAME' | translate}}
+                                                        td
+                                                            input(type='text' , ng-model='c.buttonName', style="margin-bottom: 2px;")
+                                                    tr
+                                                        td
+                                                            label {{'SOURCE' | translate}}
+                                                        td
+                                                            input(type='text' , ng-model='c.url', style="margin-bottom: 2px;")
+                                                    tr
+                                                        td
+                                                            label {{'HYPERLINK' | translate}}
+                                                        td
+                                                            input(type='text' , ng-model='c.hyperLink', style="margin-bottom: 2px;")
+                    td(ng-class='{grayRow: a.status==0}')
+                        input(type="checkbox" ng-model="a.showInRealServer")
+                    td
+                        div(style="display: inline-grid;font-size: 10px;")
+                            button.common-button.btn.btn-info(ng-click="vm.savePartnerAdvertisementRecordChanges();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                            //button.common-button.btn.btn-info(ng-click="a.button.push({url: '', hyperLink: '', css: 'position:absolute; width: 195px; height: 80px; top:150px; left: 500px'});" style="width: auto; background-color: #5bc0de") {{'ADD NEW BUTTON' | translate}}
+                            button.common-button.btn.btn-info(ng-click="a.imageButton.push({buttonName: vm.addedButtonName,url: '',hyperLink: '',css:'position:absolute; width: auto; height: auto; top:50%; left: 50%',hoverCss: ':hover{filter: contrast(200%);}'});" style="width: auto; background-color: #5bc0de") {{'ADD NEW BUTTON' | translate}}
+                            //button.common-button.btn.btn-info(ng-click="vm.setEditImageButtonName(a._id);" style="width: auto; background-color: #5bc0de") {{'ADD NEW BUTTON' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.partnerAdvertisementList();vm.editPartnerAdvertisementRecord=false; vm.showPartnerAdvertisementRecord=true;" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
+
+
+    .well(style="margin-top: 50px; background-color: white;" )
+        .row(style="text-align: right; margin-bottom: 10px;" ng-if="!vm.addNewPartnerAdvertisement")
+            button.common-button.btn.btn-info(ng-click="vm.getPartnerNextOrderNo();vm.addNewPartnerAdvertisement=true" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
+        .row(style="text-align: center; margin-bottom: 10px;" ng-if="vm.addNewPartnerAdvertisement")
+            label {{"Add new advertisement" | translate}}
+        .row(style="overflow-x: scroll; max-height: 250px;" ng-if="vm.addNewPartnerAdvertisement")
+            table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white' )
+                thead
+                    tr
+                        th {{'Display Order' | translate}}
+                        th {{'ADVERTISEMENT CODE (CANNOT REPEAT)' | translate}}
+                        th {{'BANNER TITLE' | translate}}
+                        th {{'DISPLAY BACKGROUND IMAGE' | translate}}
+                        th {{'BANNER LINK BUTTON' | translate}}
+                        th {{'IS_SHOW_PRODUCTION_SERVER' | translate}}
+                        th {{'ACTION_BUTTON' | translate}}
+                tbody
+                    tr
+                        td
+                            input(type='number' , ng-model='vm.partnerAdvertisementGroup.orderNo', ng-change="vm.checkPartnerDuplicateOrderNo(vm.partnerAdvertisementGroup.orderNo)", style="width: 50px;" )
+                        td
+                            input(type='text' , ng-model='vm.partnerAdvertisementGroup.advertisementCode', ng-change="vm.checkPartnerDuplicateAdCode(vm.partnerAdvertisementGroup.advertisementCode)", style="width: 100px;")
+                        td
+                            table(style="font-size: 10px; width: 100%")
+                                tbody
+                                    tr(ng-if="vm.existingPartnerAdvertisementTitle" ng-repeat="(i,v) in vm.partnerAdvertisementTitle")
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="v.name")
+                                        td
+                                            i.fa.fa-minus(ng-click='vm.partnerAdvertisementTitle.splice($index,1)')
+                                    tr
+                                        td
+                                            input(type="text" ng-model="vm.partnerAdvertisementGroup.title" style="width: 150px;")
+                                        td
+                                            i.fa.fa-plus(ng-click='vm.partnerAdvertisementTitle.push({name: vm.partnerAdvertisementGroup.title});vm.existingPartnerAdvertisementTitle = "true";vm.partnerAdvertisementGroup.title = ""'  )
+                        td
+                            table(style="font-size: 10px; width: 100%")
+                                tbody
+                                    tr
+                                        td(colspan=2)
+                                            div(style="width: 100%; height: 80px; background-size: cover; background-repeat: no-repeat;" ng-style="{'background-image': 'url({{ vm.partnerAdvertisementGroup.backgroundUrl }})'}")
+                                    tr
+                                        td
+                                            label {{'SOURCE' | translate}}
+                                        td
+                                            input(type='text' , ng-model='vm.partnerAdvertisementGroup.backgroundUrl', style="margin-bottom: 2px;")
+                                    tr
+                                        td
+                                            label {{'HYPERLINK' | translate}}
+                                        td
+                                            input(type='text' , ng-model='vm.partnerAdvertisementGroup.backgroundHyperLink', style="margin-bottom: 2px;")
+                        td
+                            div
+                                table
+                                    tbody
+                                        tr
+                                            td(ng-repeat="(i,v) in vm.partnerAdvertisementGroup.imageButton" style="border: none;")
+                                                table(style="font-size: 10px;")
+                                                    tbody
+                                                        tr
+                                                            td(colspan=2)
+                                                                div(style="height: 80px; background-size: cover; background-repeat: no-repeat;" ng-style="{'background-image': 'url({{ v.url }})'}")
+                                                        tr
+                                                            td
+                                                                label {{'BUTTON NAME' | translate}}
+                                                            td
+                                                                input(type='text' , ng-model='v.buttonName', style="margin-bottom: 2px;")
+                                                        tr
+                                                            td
+                                                                label {{'SOURCE' | translate}}
+                                                            td
+                                                                input(type='text' , ng-model='v.url', style="margin-bottom: 2px;")
+                                                        tr
+                                                            td
+                                                                label {{'HYPERLINK' | translate}}
+                                                            td
+                                                                input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
+                        td
+                            input(type='checkbox' , ng-model='vm.partnerAdvertisementGroup.showInRealServer')
+                        td
+                            div(style="display: inline-grid; font-size: 10px;")
+                                button.common-button.btn.btn-info(ng-click="vm.addNewPartnerAdvertisementRecord();vm.partnerAdvertisementList();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                                //button.common-button.btn.btn-info(ng-click="vm.partnerAdvertisementGroup.imageButton.push({url: '', hyperLink: ''});" style="width: auto; background-color: #5bc0de") {{'ADD NEW BUTTON' | translate}}
+                                button.common-button.btn.btn-info(ng-click="vm.setPartnerNewImageButtonName();" style="width: auto; background-color: #5bc0de") {{'ADD NEW BUTTON' | translate}}
+                                button.common-button.btn.btn-info(ng-click="vm.resetPartnerAddTable();" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
+

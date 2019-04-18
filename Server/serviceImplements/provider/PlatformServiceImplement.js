@@ -2,6 +2,7 @@ var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var PlatformService = require("./../../services/provider/ProviderServices").PlatformService;
 var dbPlatform = require('./../../db_modules/dbPlatform');
 var dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
+const rsaCrypto = require('./../../modules/rsaCrypto');
 
 var PlatformServiceImplement = function () {
     PlatformService.call(this);
@@ -70,6 +71,8 @@ var PlatformServiceImplement = function () {
       let isValidData = Boolean(data && data.loginname && data.password && data.platformId && data.providerId);
       WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.verifyUserPasswordWithTransferIn, [data.loginname, data.password, data.platformId, data.providerId], isValidData);
     };
+
+    this.updateRSAKeys.addListener(() => rsaCrypto.refreshKeys());
 
 };
 

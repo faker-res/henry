@@ -22,7 +22,7 @@ let RewardServiceImplement = function () {
     this.getRewardList.expectsData = 'platformId: String';
     this.getRewardList.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getRewardEventForPlatform, [data.platformId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getRewardEventForPlatform, [data.platformId, conn.playerObjId], isValidData, false, false, true);
     };
 
     this.getPlayerRewardList.expectsData = '[startIndex]: Number, [requestCount]: Number';
@@ -163,6 +163,13 @@ let RewardServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId);
         let emptyBonusList = Boolean(!data.noLogin && !conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPromoCode, [conn.playerId, data.platformId, data.status, emptyBonusList], isValidData, false, false, true);
+    };
+
+    this.getOpenPromoCode.expectsData = 'platformId: String';
+    this.getOpenPromoCode.onRequest = function(wsFunc, conn, data){
+        let isValidData = Boolean(data && data.platformId);
+        // let emptyBonusList = Boolean(!data.noLogin && !conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getOpenPromoCode, [conn.playerId, data.platformId, data.status], isValidData, false, false, true);
     };
 
     this.applyPromoCode.expectsData = 'promoCode: Number|String';

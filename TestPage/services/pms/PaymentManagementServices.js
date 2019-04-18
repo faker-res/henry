@@ -73,7 +73,6 @@
                 "getProvince",
                 "getCity",
                 "getDistrict",
-                "requestBankTypeByUsername",
                 "requestOnLinepayByUsername",
                 "requestWechatpayByUsername",
                 "requestAlipayByUsername",
@@ -95,9 +94,6 @@
 
             //define functions
             var functionNames = [
-                //"requestManualBankCard",
-                //"requestOnlineMerchant",
-                "modifyManualTopupRequest",
                 "setProposalIdToOnlineMerchantRequest",
                 "setProposalIdToManualTopupRequest"
             ];

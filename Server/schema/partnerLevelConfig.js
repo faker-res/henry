@@ -1,6 +1,10 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
+// NOTE :: this schema really has nothing to do with partner level,
+// it is use to determine whether a player is 'active' or 'effective'
+// and it isn't even use for partner as that is separated to another
+// schema
 var partnerLevelConfigSchema = new Schema({
     platform: {type: Schema.ObjectId, required: true},
     // This is how we decide if a player is valid
