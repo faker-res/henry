@@ -16,7 +16,7 @@ var proposalSchema = new Schema({
     //proposal main type
     mainType: {type: String, index: true},
     //proposal type
-    type: {type: Schema.Types.ObjectId, ref: 'proposalType', index: true},
+    type: {type: Schema.Types.ObjectId, ref: 'proposalType'},
     //creator {type(system, player or admin), name, id(shortID for player, longId for admin)
     creator: {type: JSON, default: {}},
     // create Time
@@ -51,10 +51,12 @@ var proposalSchema = new Schema({
     inputDevice: {type: Number, default: 0, index: true}
 });
 
-// Index for general proposalId (Descending)
-proposalSchema.index({proposalId: -1});
+// Index for general proposalId (Descending)c
+proposalSchema.index({proposalId: 1});
 // Index for top up report without proposalId search
-proposalSchema.index({createTime: -1});
+proposalSchema.index({createTime: 1, mainType: 1});
+// Index based on type
+proposalSchema.index({type: 1, createTime: -1});
 
 proposalSchema.index({"data.playerName": 1});
 proposalSchema.index({"data.playerId": 1});
