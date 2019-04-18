@@ -5651,7 +5651,7 @@ let dbPlayerInfo = {
      * check the player exists and check password is matched against the password in DB using bcrypt
      *  @param include name and password of the player and some more additional info to log the player's login
      */
-    playerLogin: function (playerData, userAgent, inputDevice, mobileDetect) {
+    playerLogin: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId) {
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -5707,6 +5707,10 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
+
+                    if (checkLastDeviceId && playerObj.deviceId && playerData.deviceId && playerObj.deviceId != playerData.deviceId) {
+                        return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
+                    }
 
                     if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
                         return Promise.reject({
@@ -6132,7 +6136,7 @@ let dbPlayerInfo = {
         )
     },
 
-    playerLoginOrRegisterWithSMS: (loginData, ua) => {
+    playerLoginOrRegisterWithSMS: (loginData, ua, checkLastDeviceId) => {
         let isSMSVerified = false;
         let rejectMsg = {
             status: constServerCode.VALIDATION_CODE_INVALID,
@@ -6186,6 +6190,9 @@ let dbPlayerInfo = {
                         ).then(
                             player => {
                                 if (player) {
+                                    if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
+                                        return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
+                                    }
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
                                 } else {
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
@@ -6240,7 +6247,7 @@ let dbPlayerInfo = {
         )
     },
 
-    phoneNumberLoginWithPassword: function (playerData, userAgent, inputDevice, mobileDetect) {
+    phoneNumberLoginWithPassword: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId) {
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -6293,6 +6300,10 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
+
+                    if (checkLastDeviceId && playerObj.deviceId && playerData.deviceId && playerObj.deviceId != playerData.deviceId) {
+                        return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
+                    }
 
                     if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
                         return Promise.reject({

@@ -464,7 +464,7 @@ let PlayerServiceImplement = function () {
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
 
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua, inputDevice, md], isValidData, true, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua, inputDevice, md, data.checkLastDeviceId], isValidData, true, true, true).then(
             playerData => {
                 if (conn.noOfAttempt >= constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
@@ -1328,7 +1328,7 @@ let PlayerServiceImplement = function () {
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
 
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua], isValidData, true, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua, data.checkLastDeviceId], isValidData, true, true, true).then(
             player => {
                 let playerData = player[0] || player;
 
@@ -1401,7 +1401,7 @@ let PlayerServiceImplement = function () {
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
 
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.phoneNumberLoginWithPassword, [data, ua, inputDevice, md], isValidData, true, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.phoneNumberLoginWithPassword, [data, ua, inputDevice, md, data.checkLastDeviceId], isValidData, true, true, true).then(
             playerData => {
                 if (conn.noOfAttempt >= constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
