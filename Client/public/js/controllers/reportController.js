@@ -1676,7 +1676,7 @@ define(['js/app'], function (myApp) {
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
                 index: isExport ? 0 : (newSearch ? 0 : (vm.queryTopup.index || 0)),
                 limit: isExport ? 5000 : (vm.queryTopup.limit || 10),
-                sortCol: vm.queryTopup.sortCol || {proposalId: -1}
+                sortCol: vm.queryTopup.sortCol || {}
             };
 
             if ( vm.queryTopup.line && vm.queryTopup.line.length > 0 ) {
