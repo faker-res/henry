@@ -54,7 +54,7 @@ var proposalSchema = new Schema({
 // Index for general proposalId (Descending)
 proposalSchema.index({proposalId: -1});
 // Index for top up report without proposalId search
-proposalSchema.index({createTime: -1, proposalId: -1});
+proposalSchema.index({createTime: -1});
 
 proposalSchema.index({"data.playerName": 1});
 proposalSchema.index({"data.playerId": 1});
@@ -83,7 +83,6 @@ proposalSchema.index({"data.consecutiveNumber": 1});
 proposalSchema.index({"data.bConsumptionReturnRequest": 1});
 proposalSchema.index({"data.bankCardNo": 1});
 proposalSchema.index({"data.eventId": 1});
-proposalSchema.index({type: 1, createTime: 1});
 proposalSchema.index({"data.alipayer": 1});
 proposalSchema.index({"data.alipayerAccount": 1});
 proposalSchema.index({"data.alipayerNickName": 1});
