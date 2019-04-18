@@ -1909,7 +1909,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     amountLeft++;
                     // console.log(amountLeft);
                     resolve(amountLeft);
-                }, 4000);
+                }, 30000);
             });
         }
         sendProfitData()
