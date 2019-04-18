@@ -1,8 +1,9 @@
-#partnerPanel.panel-body(style="background-color: white;")
+include ./partner-setting-platform-select
+#partnerPanel.panel-body(style="background-color: white;" ng-if='vm.platformInSetting')
     div.col-md-12
         div.form-group.col-md-6(style="padding-left: 0px;")
             label.control-label {{"PARTNER'S CDN/FTP ROUTE SETTING" | translate}}
-            input.form-control(type="text", placeholder="{{'CDN/FTP ROUTE SETTING' | translate}}", ng-model="vm.showPlatform.partnerRouteSetting", ng-disabled="vm.isNotAllowEdit")
+            input.form-control(type="text", placeholder="{{'CDN/FTP ROUTE SETTING' | translate}}", ng-model="vm.showPlatform.partnerRouteSetting", ng-disabled="!vm.editFrontEndDisplay")
     div.form-group.col-md-6
         label.control-label {{"CUSTOMER_SERVICE_PARTNER_EMAIL" | translate}} ({{"IMAGE_URL" | translate}})
         table.simple-table.platformFrontEndDisplayTable
@@ -22,9 +23,9 @@
                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.csPartnerEmailList, $index)')
                     td(ng-if="vm.editFrontEndDisplay")
                         div
-                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
-                                option(value= '0') {{'WORDS' | translate}}
-                                option(value= '1') {{'IMAGE' | translate}}
+                            select.form-control(ng-model='item.isImg', style='max-width:300px', required, convert-to-number)
+                                option(ng-value= '0') {{'WORDS' | translate}}
+                                option(ng-value= '1') {{'IMAGE' | translate}}
                     td(ng-if="vm.editFrontEndDisplay")
                         input.form-control(type='text', value='{{item.content}}', ng-model='item.content')
 
@@ -65,7 +66,7 @@
                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.csPartnerPhoneList, $index)')
                     td(ng-if="vm.editFrontEndDisplay")
                         div
-                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                            select.form-control(ng-model='item.isImg', style='max-width:300px', required, convert-to-number)
                                 option(value= '0') {{'WORDS' | translate}}
                                 option(value= '1') {{'IMAGE' | translate}}
                     td(ng-if="vm.editFrontEndDisplay")
@@ -108,7 +109,7 @@
                     td(ng-if="vm.editFrontEndDisplay")
                         //, ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
                         div
-                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                            select.form-control(ng-model='item.isImg', style='max-width:300px', required, convert-to-number)
                                 option(value= '0') {{'WORDS' | translate}}
                                 option(value= '1') {{'IMAGE' | translate}}
                     td(ng-if="vm.editFrontEndDisplay")
@@ -151,7 +152,7 @@
                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.csPartnerQQList, $index)')
                     td(ng-if="vm.editFrontEndDisplay")
                         div
-                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                            select.form-control(ng-model='item.isImg', style='max-width:300px', required, convert-to-number)
                                 option(value= '0') {{'WORDS' | translate}}
                                 option(value= '1') {{'IMAGE' | translate}}
                     td(ng-if="vm.editFrontEndDisplay")
@@ -193,7 +194,7 @@
                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.csPartnerWeixinList, $index)')
                     td(ng-if="vm.editFrontEndDisplay")
                         div
-                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                            select.form-control(ng-model='item.isImg', style='max-width:300px', required, convert-to-number)
                                 option(value= '0') {{'WORDS' | translate}}
                                 option(value= '1') {{'IMAGE' | translate}}
                     td(ng-if="vm.editFrontEndDisplay")
@@ -235,7 +236,7 @@
                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.csPartnerSkypeList, $index)')
                     td(ng-if="vm.editFrontEndDisplay")
                         div
-                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                            select.form-control(ng-model='item.isImg', style='max-width:300px', required, convert-to-number)
                                 option(value= '0') {{'WORDS' | translate}}
                                 option(value= '1') {{'IMAGE' | translate}}
                     td(ng-if="vm.editFrontEndDisplay")
@@ -277,7 +278,7 @@
                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.csPartnerDisplayUrlList, $index)')
                     td(ng-if="vm.editFrontEndDisplay")
                         div
-                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                            select.form-control(ng-model='item.isImg', style='max-width:300px', required, convert-to-number)
                                 option(value= '0') {{'WORDS' | translate}}
                                 option(value= '1') {{'IMAGE' | translate}}
                     td(ng-if="vm.editFrontEndDisplay")
@@ -320,7 +321,7 @@
                     td(ng-if="vm.editFrontEndDisplay")
                         //, ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
                         div
-                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                            select.form-control(ng-model='item.isImg', style='max-width:300px', required, convert-to-number)
                                 option(value= '0') {{'WORDS' | translate}}
                                 option(value= '1') {{'IMAGE' | translate}}
                     td(ng-if="vm.editFrontEndDisplay")
@@ -364,7 +365,7 @@
                     td(ng-if="vm.editFrontEndDisplay")
                         //, ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
                         div
-                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                            select.form-control(ng-model='item.isImg', style='max-width:300px', required, convert-to-number)
                                 option(value= '0') {{'WORDS' | translate}}
                                 option(value= '1') {{'IMAGE' | translate}}
                     td(ng-if="vm.editFrontEndDisplay")
@@ -407,7 +408,7 @@
                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.partnerWebLogoUrlList, $index)')
                     td(ng-if="vm.editFrontEndDisplay")
                         div
-                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                            select.form-control(ng-model='item.isImg', style='max-width:300px', required, convert-to-number)
                                 option(value= '0') {{'WORDS' | translate}}
                                 option(value= '1') {{'IMAGE' | translate}}
                     td(ng-if="vm.editFrontEndDisplay")

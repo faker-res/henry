@@ -1,4 +1,5 @@
-#partnerAdvertisementPanel.panel-body(style="background-color: white;")
+include ./partner-setting-platform-select
+#partnerAdvertisementPanel.panel-body(style="background-color: white;" ng-if='vm.platformInSetting')
     #partnerAdvertisementRecords.adminLogQueryDiv
         .inlineBlk
             label {{"WEB" | translate}}

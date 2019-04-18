@@ -447,7 +447,6 @@ define(['js/app'], function (myApp) {
         };
 
         vm.retrievePlatformData = function (platformData) {
-
             let newList = [
                 'csEmailImageUrlList',
                 'csPhoneList',
@@ -474,6 +473,9 @@ define(['js/app'], function (myApp) {
             // check if using new data list, else show up the old data
             let newListBoolean = false;
             for (let i = 0; i < newList.length; i++) {
+                if (!platformData[newList[i]]) {
+                    platformData[newList[i]] = [];
+                }
                 if (platformData[newList[i]].length > 0) {
                     newListBoolean = true;
                     break;
@@ -492,14 +494,7 @@ define(['js/app'], function (myApp) {
                         }];
                     }
                 }
-
-                if (platformData[listName] && platformData[listName].length > 0) {
-                    platformData[listName].forEach(p => {
-                        p.isImg = typeof p.isImg === 'number' ? p.isImg.toString() : null;
-
-                    })
-                }
-            })
+            });
 
             return platformData;
         };
@@ -15688,7 +15683,7 @@ define(['js/app'], function (myApp) {
             if (!vm.duplicatePartnerOrderNo && !vm.duplicatePartnerAdCode) {
                 if (vm.partnerAdvertisementGroup) {
                     let query = {
-                        platformId: vm.selectedPlatform.id,
+                        platformId: vm.platformInSetting._id,
                         orderNo: vm.partnerAdvertisementGroup.orderNo ? vm.partnerAdvertisementGroup.orderNo : 0,
                         advertisementCode: vm.partnerAdvertisementGroup.advertisementCode ? vm.partnerAdvertisementGroup.advertisementCode : "",
                         title: vm.partnerAdvertisementTitle ? vm.partnerAdvertisementTitle : [],
@@ -15795,7 +15790,7 @@ define(['js/app'], function (myApp) {
         vm.deletePartnerAdvertisementRecord = function (advertisementId, index) {
             if (advertisementId) {
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.platformInSetting._id,
                     advertisementId: advertisementId,
                 };
 
@@ -15816,7 +15811,7 @@ define(['js/app'], function (myApp) {
 
         vm.partnerAdvertisementList = function () {
             let sendData = {
-                platformId: vm.selectedPlatform.id,
+                platformId: vm.platformInSetting._id,
                 inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
             };
 
@@ -15854,11 +15849,10 @@ define(['js/app'], function (myApp) {
         vm.changePartnerAdvertisementStatus = function (advertisementId, advertisementStatus) {
             if (advertisementId) {
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.platformInSetting._id,
                     _id: advertisementId,
                     status: advertisementStatus
-                }
-
+                };
 
                 let statusChangeConfirmText = "";
 
@@ -15982,7 +15976,7 @@ define(['js/app'], function (myApp) {
 
         vm.getPartnerNextOrderNo = function () {
             let sendData = {
-                platformId: vm.selectedPlatform.id,
+                platformId: vm.platformInSetting._id,
                 inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
             }
 
@@ -16481,6 +16475,8 @@ define(['js/app'], function (myApp) {
                 case 'partnerDisplay':
                 case 'partnerAdvert':
                     vm.partnerAdvertisementList();
+                    vm.showPlatform = $.extend({}, vm.platformInSetting);
+                    vm.showPlatform = vm.retrievePlatformData(vm.showPlatform);
                     break;
 
             }
@@ -17064,7 +17060,7 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'updatePlatform',
                 {
-                    query: {_id: vm.selectedPlatform.id},
+                    query: {_id: vm.platformInSetting._id},
                     updateData: vm.showPlatform,
                     isUpdatePlatform: true
                 },
