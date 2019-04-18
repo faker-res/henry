@@ -8,8 +8,8 @@ let constSystemParam = require('./../const/constSystemParam');
 let fs = require('fs'), crt, key, replKey, replCrt;
 
 // SSL preparation - comment after SSL online
-// key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-// crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
+crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 
 let oldKey, oldCert;
 
@@ -93,6 +93,18 @@ module.exports = {
         }
 
         return decrypted;
+    },
+
+    legacyEncrypt: (msg) => {
+        let encrypted = msg;
+
+        try {
+            encrypted = crypto.privateEncrypt(oldKey, Buffer.from(msg, 'base64'));
+        } catch (e) {
+            encrypted = msg;
+        }
+
+        return Buffer.from(encrypted).toString('base64');
     },
 
     signFKP: (msg) => {

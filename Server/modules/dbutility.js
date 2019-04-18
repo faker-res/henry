@@ -1138,7 +1138,7 @@ var dbUtility = {
 
     encryptMessage: (msg) => {
         return new Promise((resolve, reject) => {
-            let encrypted = rsaCrypto.encrypt(msg);
+            let encrypted = rsaCrypto.legacyEncrypt(msg);
             resolve(encrypted);
         })
     },

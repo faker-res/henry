@@ -2153,21 +2153,17 @@ var proposalExecutor = {
                         // }
                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
-                       var message = {
+                       let message = {
                            proposalId: proposalData.proposalId,
                            platformId: player.platform.platformId,
-                           bonusId: proposalData.data.bonusId,
                            amount: proposalData.data.amount,
                            bankTypeId: player.bankName || "",
                            accountName: player.bankAccountName || "",
-                           accountType: player.bankAccountType || "",
                            accountCity: player.bankAccountCity || "",
                            accountProvince: player.bankAccountProvince || "",
                            accountNo: player.bankAccount ? player.bankAccount.replace(/\s/g, '') : "",
                            bankAddress: player.bankAddress || "",
                            bankName: player.bankName || "",
-                           phone: "",
-                           email: player.email || "",
                            loginName: player.name || "",
                            applyTime: cTimeString
                         };
@@ -2266,35 +2262,19 @@ var proposalExecutor = {
                             });
                         }
 
-                        var decryptedPhoneNo = partner.phoneNumber;
-
-                        if (partner.phoneNumber && partner.phoneNumber.length > 20) {
-                            try {
-                                decryptedPhoneNo = rsaCrypto.decrypt(partner.phoneNumber);
-                            }
-                            catch (err) {
-                                console.error(err);
-                                decryptedPhoneNo = "";
-                            }
-                        }
-
                         let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
                         let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                         var message = {
                             proposalId: proposalData.proposalId,
                             platformId: partner.platform.platformId,
-                            bonusId: proposalData.data.bonusId,
                             amount: proposalData.data.amount,
                             bankTypeId: partner.bankName || "",
                             accountName: partner.bankAccountName || "",
-                            accountType: partner.bankAccountType || "",
                             accountCity: partner.bankAccountCity || "",
                             accountProvince: partner.bankAccountProvince || "",
                             accountNo: partner.bankAccount ? partner.bankAccount.replace(/\s/g, '') : "",
                             bankAddress: partner.bankAddress || "",
                             bankName: partner.bankName || "",
-                            phone: decryptedPhoneNo || "",
-                            email: partner.email || "",
                             loginName: partner.partnerName || "",
                             applyTime: cTimeString
                         };

@@ -13,7 +13,7 @@
             label {{"TRACKING_GROUP" | translate}}
         .panel-body
             ul.list-group.treeview(style='max-height:567px;overflow-y:auto')
-                li.list-group-item(ng-repeat='(i,v) in vm.rewardEventGroup', ng-class='{active: v == vm.showRewardEventGroup}', ng-click='vm.showRewardEventGroup = v; vm.deselectRewardEvent()') {{v.name}}
+                li.list-group-item(ng-repeat='(i,v) in vm.rewardEventGroup', ng-class='{active: v == vm.showRewardEventGroup}', ng-click='vm.showRewardEventGroup = v; vm.deselectRewardEvent()') {{v.name | translate}}
             button.btn.btn-primary.common-button(style='text-align:center' ng-if='checkViewPermission("Platform", "Reward", "Add")' ng-click='vm.initNewRewardGroup()')
                 text {{"ADD_NEW_GROUP"|translate}}
             button.btn.btn-success.common-button(style='text-align:center' ng-if='checkViewPermission("Platform", "Reward", "Update")' ng-click='vm.initEditRewardGroup()' ng-disabled='!vm.showRewardEventGroup || !vm.showRewardEventGroup._id')
