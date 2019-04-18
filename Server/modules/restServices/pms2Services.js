@@ -16,16 +16,22 @@ function getSubDomain (paymentSystemKey) {
     return extConfig[tempId].subDomain;
 }
 
-function getMainTopupLobbyAddress () {
-    return extConfig[paymentSystemId].topUpAPIAddr;
+function getMainTopupLobbyAddress (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].topUpAPIAddr;
 }
 
-function getSubTopupLobbyAddress () {
-    return extConfig[paymentSystemId].topUpAPIAddr2;
+function getSubTopupLobbyAddress (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].topUpAPIAddr2;
 }
 
-function get3rdTopupLobbyAddress () {
-    return extConfig[paymentSystemId].topUpAPIAddr3;
+function get3rdTopupLobbyAddress (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].topUpAPIAddr3;
 }
 
 function requestWithPromise (domain, paramStr) {
@@ -116,21 +122,21 @@ function getMinMax (reqData) {
     return sendRequest(paramStr);
 }
 
-async function getTopupLobbyAddress () {
-    if (await pingDomain(getMainTopupLobbyAddress())) {
-        return getMainTopupLobbyAddress();
+async function getTopupLobbyAddress (paymentSystemKey) {
+    if (await pingDomain(getMainTopupLobbyAddress(paymentSystemKey))) {
+        return getMainTopupLobbyAddress(paymentSystemKey);
     }
 
-    if (await pingDomain(getSubTopupLobbyAddress())) {
-        return getSubTopupLobbyAddress();
+    if (await pingDomain(getSubTopupLobbyAddress(paymentSystemKey))) {
+        return getSubTopupLobbyAddress(paymentSystemKey);
     }
 
-    if (await pingDomain(get3rdTopupLobbyAddress())) {
-        return get3rdTopupLobbyAddress();
+    if (await pingDomain(get3rdTopupLobbyAddress(paymentSystemKey))) {
+        return get3rdTopupLobbyAddress(paymentSystemKey);
     }
 
     // If things goes wrong, just return main address
-    return getMainTopupLobbyAddress();
+    return getMainTopupLobbyAddress(paymentSystemKey);
 }
 
 function postWithdraw (reqData, paymentSystemKey) {
