@@ -2169,72 +2169,76 @@ var proposalExecutor = {
                         };
 
                        console.log('withdrawAPIAddr player req:', message);
-
-                       if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'PMS2') {
-                           return RESTUtils.getPMS2Services('postWithdraw', message).then(
-                               function (bonusData) {
-                                   console.log('bonus post success', bonusData);
-                                   if (bonusData) {
-                                       // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
-                                       increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
-                                       // return bonusData;
-                                       return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
-                                           platformData => {
-                                               if (!platformData) {
-                                                   return Q.reject({
-                                                       name: "DataError",
-                                                       errorMessage: "Cannot find platform"
-                                                   });
-                                               }
-                                               let dataToUpdate = {
-                                                   "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                   "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                               };
-                                               dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                               return bonusData;
-                                           }
-                                       );
-                                   }
-                                   else {
-                                       return Q.reject({
-                                           name: "DataError",
-                                           errorMessage: "Cannot request bonus"
-                                       });
-                                   }
-                               })
-                       } else {
-                           return pmsAPI.bonus_applyBonus(message).then(
-                               bonusData => {
-                                   if (bonusData) {
-                                       // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
-                                       increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
-                                       // return bonusData;
-                                       return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
-                                           platformData => {
-                                               if (!platformData) {
-                                                   return Q.reject({
-                                                       name: "DataError",
-                                                       errorMessage: "Cannot find platform"
-                                                   });
-                                               }
-                                               let dataToUpdate = {
-                                                   "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                   "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                               };
-                                               dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                               return bonusData;
-                                           }
-                                       );
-                                   }
-                                   else {
-                                       return Q.reject({
-                                           name: "DataError",
-                                           errorMessage: "Cannot request bonus"
-                                       });
-                                   }
-                               }
-                           );
+                       let paymentSystemId;
+                       if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'DAYOU') {
+                           paymentSystemId = bonusSystemType;
                        }
+                       console.log('withdrawAPIAddr player paymentSystemId', paymentSystemId);
+
+                       return RESTUtils.getPMS2Services('postWithdraw', message, paymentSystemId).then(
+                           function (bonusData) {
+                               console.log('bonus post success', bonusData);
+                               if (bonusData) {
+                                   // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                   increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
+                                   // return bonusData;
+                                   return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
+                                       platformData => {
+                                           if (!platformData) {
+                                               return Q.reject({
+                                                   name: "DataError",
+                                                   errorMessage: "Cannot find platform"
+                                               });
+                                           }
+                                           let dataToUpdate = {
+                                               "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                               "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                           };
+                                           dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                           return bonusData;
+                                       });
+                               }
+                               else {
+                                   return Q.reject({
+                                       name: "DataError",
+                                       errorMessage: "Cannot request bonus"
+                                   });
+                               }
+                           })
+
+                       // else {
+                       //     return pmsAPI.bonus_applyBonus(message).then(
+                       //         bonusData => {
+                       //             if (bonusData) {
+                       //                 // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                       //                 increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
+                       //                 // return bonusData;
+                       //                 return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
+                       //                     platformData => {
+                       //                         if (!platformData) {
+                       //                             return Q.reject({
+                       //                                 name: "DataError",
+                       //                                 errorMessage: "Cannot find platform"
+                       //                             });
+                       //                         }
+                       //                         let dataToUpdate = {
+                       //                             "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                       //                             "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                       //                         };
+                       //                         dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                       //                         return bonusData;
+                       //                     }
+                       //                 );
+                       //             }
+                       //             else {
+                       //                 return Q.reject({
+                       //                     name: "DataError",
+                       //                     errorMessage: "Cannot request bonus"
+                       //                 });
+                       //             }
+                       //         }
+                       //     );
+                       // }
                     }
                 ).then(deferred.resolve, deferred.reject);
             },
@@ -2281,55 +2285,61 @@ var proposalExecutor = {
 
                         console.log('withdrawAPIAddr partner req:', message);
 
-                        if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'PMS2') {
-                            return RESTUtils.getPMS2Services('postWithdraw', message).then(
-                                function (bonusData) {
-                                    console.log('partner bonus post success', bonusData);
-                                    if (bonusData) {
-                                        return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
-                                            platformData => {
-                                                if (!platformData) {
-                                                    return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
-                                                }
-
-                                                let dataToUpdate = {
-                                                    "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                    "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                                };
-                                                dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                                return bonusData;
-                                            }
-                                        )
-                                    }
-                                    else {
-                                        return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
-                                    }
-                                })
-                        } else {
-                            return pmsAPI.bonus_applyBonus(message).then(
-                                bonusData => {
-                                    if (bonusData) {
-                                        return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
-                                            platformData => {
-                                                if (!platformData) {
-                                                    return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
-                                                }
-
-                                                let dataToUpdate = {
-                                                    "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                    "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                                };
-                                                dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                                return bonusData;
-                                            }
-                                        )
-                                    }
-                                    else {
-                                        return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
-                                    }
-                                }
-                            );
+                        let paymentSystemId;
+                        if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'DAYOU') {
+                            paymentSystemId = bonusSystemType;
                         }
+                        console.log('withdrawAPIAddr partner paymentSystemId', paymentSystemId);
+
+                        return RESTUtils.getPMS2Services('postWithdraw', message, paymentSystemId).then(
+                            function (bonusData) {
+                                console.log('partner bonus post success', bonusData);
+                                if (bonusData) {
+                                    return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
+                                        platformData => {
+                                            if (!platformData) {
+                                                return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                                            }
+
+                                            let dataToUpdate = {
+                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                            };
+                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                            return bonusData;
+                                        }
+                                    )
+                                }
+                                else {
+                                    return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
+                                }
+                            })
+
+                        // else {
+                        //     return pmsAPI.bonus_applyBonus(message).then(
+                        //         bonusData => {
+                        //             if (bonusData) {
+                        //                 return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
+                        //                     platformData => {
+                        //                         if (!platformData) {
+                        //                             return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                        //                         }
+                        //
+                        //                         let dataToUpdate = {
+                        //                             "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                        //                             "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                        //                         };
+                        //                         dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                        //                         return bonusData;
+                        //                     }
+                        //                 )
+                        //             }
+                        //             else {
+                        //                 return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
+                        //             }
+                        //         }
+                        //     );
+                        // }
                     }
                 ).then(deferred.resolve, deferred.reject);
             },

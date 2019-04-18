@@ -4,12 +4,16 @@ const extConfig = require('../../config/externalPayment/paymentSystems');
 
 const paymentSystemId = 4;
 
-function getMainDomain () {
-    return extConfig[paymentSystemId].mainDomain;
+function getMainDomain (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].mainDomain;
 }
 
-function getSubDomain () {
-    return extConfig[paymentSystemId].subDomain;
+function getSubDomain (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].subDomain;
 }
 
 function getMainTopupLobbyAddress () {
@@ -61,10 +65,10 @@ function sendRequest (paramStr) {
     );
 }
 
-function postRequest (reqData, urlName, method) {
+function postRequest (reqData, urlName, method, paymentSystemKey) {
     let options = {
         method: method,
-        uri: getMainDomain().concat(urlName),
+        uri: getMainDomain(paymentSystemKey).concat(urlName),
         body: reqData,
         json: true // Automatically stringifies the body to JSON
     };
@@ -78,8 +82,8 @@ function postRequest (reqData, urlName, method) {
         err => {
             console.log(`${urlName} 1ST FAILED: ${err}`);
 
-            if (getSubDomain()) {
-                options.uri = getSubDomain().concat(urlName);
+            if (getSubDomain(paymentSystemKey)) {
+                options.uri = getSubDomain(paymentSystemKey).concat(urlName);
 
                 return rp(options).then(
                     data => {
@@ -129,8 +133,8 @@ async function getTopupLobbyAddress () {
     return getMainTopupLobbyAddress();
 }
 
-function postWithdraw (reqData) {
-    return postRequest(reqData, 'withdraw-proposal', 'POST');
+function postWithdraw (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'withdraw-proposal', 'POST', paymentSystemKey);
 }
 
 function patchTopupStatus (reqData) {
