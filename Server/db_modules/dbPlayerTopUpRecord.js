@@ -748,18 +748,14 @@ var dbPlayerTopUpRecord = {
 
         console.log('queryObj', queryObj);
 
-        let totalCount = await dbconfig.collection_proposal.find(queryObj).count();
-        console.log('count done');
-        let totalPlayerResult = await dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
-        console.log('distinct done');
-        let totalAmountResult = await dbconfig.collection_proposal.aggregate({$match: queryObj}, {
+        let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
+        let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
+        let totalAmountProm = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
             $group: {
                 _id: null,
                 totalAmount: {$sum: "$data.amount"}
             }
         }).read("secondaryPreferred").allowDiskUse(true);
-
-        console.log('total amount done');
 
         let prom = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
             .populate({path: 'type', model: dbconfig.collection_proposalType})
@@ -789,63 +785,15 @@ var dbPlayerTopUpRecord = {
             );
         });
 
-        return Promise.all([topupRecordProm]).then(
+        return Promise.all([totalCountProm, totalAmountProm, topupRecordProm, totalPlayerProm]).then(
             data => {
-                console.log('done');
-                // let totalCount = data[0];
-                // let totalAmountResult = data[1][0];
-                // let totalPlayerResult = data[3] && data[3].length || 0;
+                let totalCount = data[0];
+                let totalAmountResult = data[1][0];
+                let totalPlayerResult = data[3] && data[3].length || 0;
 
                 return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
             }
         );
-
-        // let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
-        // let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
-        // let totalAmountProm = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
-        //     $group: {
-        //         _id: null,
-        //         totalAmount: {$sum: "$data.amount"}
-        //     }
-        // }).read("secondaryPreferred").allowDiskUse(true);
-        //
-        // let prom = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
-        //     .populate({path: 'type', model: dbconfig.collection_proposalType})
-        //     .populate({path: "data.playerObjId", model: dbconfig.collection_players})
-        //     .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
-        //
-        // let stream = prom.cursor({batchSize: 500});
-        // let balancer = new SettlementBalancer();
-        //
-        // let topupRecordProm = balancer.initConns().then(function () {
-        //     return Q(
-        //         balancer.processStream(
-        //             {
-        //                 stream: stream,
-        //                 batchSize: 100,
-        //                 makeRequest: function (proposals, request) {
-        //                     request("player", "topupRecordInsertRepeatCount", {
-        //                         proposals: proposals,
-        //                         platformId: query.platformId,
-        //                     });
-        //                 },
-        //                 processResponse: function (record) {
-        //                     topupRecords = topupRecords.concat(record.data);
-        //                 }
-        //             }
-        //         )
-        //     );
-        // });
-        //
-        // return Promise.all([totalCountProm, totalAmountProm, topupRecordProm, totalPlayerProm]).then(
-        //     data => {
-        //         let totalCount = data[0];
-        //         let totalAmountResult = data[1][0];
-        //         let totalPlayerResult = data[3] && data[3].length || 0;
-        //
-        //         return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
-        //     }
-        // );
 
         async function getProposalQ (query) {
             let queryObj = {
