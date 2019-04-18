@@ -23462,11 +23462,11 @@ let dbPlayerInfo = {
                 return dbconfig.collection_players.findOneAndUpdate(
                     {
                         _id: playerData._id,
-                        guestDeviceId: {$ne: deviceId}
+                        guestDeviceId: {$nin: [deviceId, rsaCrypto.encrypt(deviceId), rsaCrypto.oldEncrypt(deviceId)]}
                     },
                     {
-                        guestDeviceId: deviceId
-                    }).lean()
+                        guestDeviceId: rsaCrypto.encrypt(deviceId)
+                    }).lean();
             }
         ).then(
             updatedPlayer => {
