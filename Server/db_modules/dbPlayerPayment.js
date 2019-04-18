@@ -673,7 +673,7 @@ const dbPlayerPayment = {
                         if (player && player.platform && player.platform.topUpSystemType && extConfig
                             && extConfig[player.platform.topUpSystemType]
                         ) {
-                            paymentUrl = await RESTUtils.getPMS2Services("getTopupLobbyAddress");
+                            paymentUrl = await RESTUtils.getPMS2Services("getTopupLobbyAddress", player.platform.topUpSystemType);
                         }
 
                         let returnData = {
