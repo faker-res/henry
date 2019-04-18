@@ -309,6 +309,7 @@ var roleChecker = {
             },
             "Report": {
                 PLAYERPARTNER_REPORT: [],
+                PARTNERPLAYERBOUNS_REPORT: [],
             },
         },
         Platform: {

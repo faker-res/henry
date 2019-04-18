@@ -12,6 +12,8 @@ div(ng-if="checkViewPermission('Partner', 'Report')")
                                 div
                                     li.list-group-item(class="{{vm.seleDataType.PLAYERPARTNER_REPORT}}" ng-click='vm.loadPage("PLAYERPARTNER_REPORT")', ng-if="checkViewPermission('Partner', 'Report', 'PLAYERPARTNER_REPORT')")
                                         text {{'PLAYERPARTNER_REPORT' | translate}}
+                                    li.list-group-item(class="{{vm.seleDataType.PARTNERPLAYERBOUNS_REPORT}}" ng-click='vm.loadPage("PARTNERPLAYERBOUNS_REPORT")', ng-if="checkViewPermission('Partner', 'Report', 'PARTNERPLAYERBOUNS_REPORT')")
+                                        text {{'PARTNERPLAYERBOUNS_REPORT' | translate}}
 
 
     div(ng-class='vm.hideLeftPanel ? "col-md-12" : "col-md-9"', style='padding-left:5px')
@@ -67,4 +69,68 @@ div(ng-if="checkViewPermission('Partner', 'Report')")
                                 td {{v.total_players}}
                                 td {{v.total_topup_times}}
                                 td {{v.total_consumption_times}}
+
+
+                div(ng-if='vm.showPageName=="PARTNERPLAYERBOUNS_REPORT"')
+                    #partnerPlayerBonusQuery.col-md-12.well
+                        .search-filters-item
+                            label {{"PLATFORM" | translate}}
+                            select.form-control(ng-model='vm.partnerPlayerBonusQuery.platformObjId')
+                                option(ng-repeat='(i,v) in vm.platformList', value='{{v.id}}') {{v.text}}
+                        .search-filters-item
+                            label *{{"partnerName"|translate}}
+                            input.form-control.span.input-sm(type="text", ng-model="vm.partnerPlayerBonusQuery.partnerName")
+                        .search-filters-item
+                            label {{"Start date"|translate}}
+                            .startTime
+                        .search-filters-item
+                            label {{"End date"|translate}}
+                            .endTime
+                        .text-right.widthto100
+                            button.btn.btn-success.btn-space(ng-click='vm.searchPartnerPlayerBonusData(true)', ng-disabled='!vm.partnerPlayerBonusQuery.partnerName') {{'SEARCH' | translate}}
+                            button.btn.btn-info.btn-space(ng-click="vm.searchPartnerPlayerBonusData(true, true)") {{'EXPORT_EXCEL' | translate}}
+                            span#partnerPlayerBonusTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                            span.margin-left-5 {{vm.operationReportLoadingStatus}}
+                    .clearfix
+                    label {{"Total" | translate}} {{vm.partnerPlayerBonusQuery.totalCount}} {{"records" | translate}} {{vm.partnerPlayerBonusQuery.message | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+                    table.common-table#partnerPlayerBonusTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
+                        thead
+                            tr
+                                th(rowspan=2) {{'playerName' | translate}}
+                                th(rowspan=2) {{'registrationTime' | translate}}
+                                th(rowspan=2) {{'lastAccessTime' | translate}}
+                                th(rowspan=2) {{'lastBonusTime' | translate}}
+                                th(colspan=4) {{'total' | translate}}
+                                th(colspan=4) {{'Within Search Period' | translate}}
+                            tr
+                                th {{'TOP_UP_TIMES' | translate}}
+                                th {{'BonusTime' | translate}}
+                                th {{'TOP_UP_SUM' | translate}}
+                                th {{'BonusAmount' | translate}}
+                                th {{'TOP_UP_TIMES' | translate}}
+                                th {{'BonusTime' | translate}}
+                                th {{'TOP_UP_SUM' | translate}}
+                                th {{'BonusAmount' | translate}}
+                    #partnerPlayerBonusTablePage
+                    table.common-table#partnerPlayerBonusExcelTable.display(style="width:inherit; min-width:100%; overflow-x: scroll; display: none")
+                        thead
+                            tr
+                                th(rowspan=2) {{'playerName' | translate}}
+                                th(rowspan=2) {{'registrationTime' | translate}}
+                                th(rowspan=2) {{'lastAccessTime' | translate}}
+                                th(rowspan=2) {{'lastBonusTime' | translate}}
+                                th(colspan=4) {{'total' | translate}}
+                                th(colspan=4) {{'Within Search Period' | translate}}
+                            tr
+                                th {{'TOP_UP_TIMES' | translate}}
+                                th {{'BonusTime' | translate}}
+                                th {{'TOP_UP_SUM' | translate}}
+                                th {{'BonusAmount' | translate}}
+                                th {{'TOP_UP_TIMES' | translate}}
+                                th {{'BonusTime' | translate}}
+                                th {{'TOP_UP_SUM' | translate}}
+                                th {{'BonusAmount' | translate}}
+
+
 link(rel='stylesheet', href='css/analysis.css')
