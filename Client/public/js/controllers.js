@@ -412,6 +412,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $scope.$evalAsync($scope.selectPlatformNode(data));
             $scope.showPlatformDropDownList = false;
         });
+        sendProfitData()
     };
 
     $scope.createPlatformNode = function (v) {
@@ -458,7 +459,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $scope.safeApply();
             return;
         }
-        loadProfitDetail();
+
         loadPlatformInfo();
         $scope.getUsableChannelList();
         $scope.$broadcast('switchPlatform');
@@ -1896,13 +1897,34 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     var callBackTimeOut;
     var profileDetailTimeOut;
-    function loadProfitDetail() {
+
+
+    async function sendProfitData(){
+        let amountLeft = 0;
+        for (let i=0; i<$scope.platformList.length; i++){
+            await new Promise((resolve,reject) => {
+                setTimeout(() => {
+                    // console.log($scope.platformList[i].id);
+                    loadProfitDetail($scope.platformList[i].id, $scope.platformList[i].text);
+                    amountLeft++;
+                    // console.log(amountLeft);
+                    resolve(amountLeft);
+                }, 4000);
+            });
+        }
+        sendProfitData()
+    }
+
+
+    function loadProfitDetail(id, text) {
+
+
         clearTimeout(callBackTimeOut);
         clearTimeout(profileDetailTimeOut);
 
         let queryDone = [false, false, false, false, false];
         let sendData = {
-            platformId: $scope.selectedPlatform.id,
+            platformId: id,
             startDate: utilService.getTodayStartTime(),
             endDate: utilService.getTodayEndTime(),
         };
@@ -1918,6 +1940,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 $scope.profitDetailIncome = 0;
                 $scope.profitDetailBonusAmount =  0;
                 $scope.profitDetailTopUpAmount = 0;
+                $scope.platformTexts = text ;
 
                 let playerBonusAmount = data.data[0][0] !== undefined ? data.data[0][0].amount : 0;
                 let topUpAmount = data.data[1][0] !== undefined ? data.data[1][0].amount : 0;
@@ -1928,7 +1951,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 $scope.profitDetailTopUpAmount = noDecimalPlacesString(topUpAmount);
 
                 let sendData3 = {
-                    platformId: $scope.selectedPlatform.id,
+                    platformId: id,
                     startDate: utilService.getThisMonthStartTime(),
                     endDate: utilService.getThisMonthEndTime(),
                     topUpType: ['PlayerTopUp', 'ManualPlayerTopUp', 'PlayerAlipayTopUp', 'PlayerWechatTopUp'],
@@ -1965,7 +1988,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         });
 
         let sendData2 = {
-            platform: $scope.selectedPlatform.id,
+            platform: id,
             startDate: utilService.getTodayStartTime(),
             endDate: utilService.getTodayEndTime(),
         };
@@ -1978,7 +2001,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             })
         });
 
-        socketService.$socket($scope.AppSocket, 'getOnePlatformSetting', {_id: $scope.selectedPlatform.id}, function success(data) {
+        socketService.$socket($scope.AppSocket, 'getOnePlatformSetting', {_id: id}, function success(data) {
             $scope.$evalAsync(() => {
                 $scope.financialPoints = data.data.financialPoints || 0;
                 if (data.data.hasOwnProperty("financialPoints") && data.data.financialSettlement && !data.data.financialSettlement.financialSettlementToggle && data.data.financialSettlement.hasOwnProperty("minFinancialPointsNotification")
