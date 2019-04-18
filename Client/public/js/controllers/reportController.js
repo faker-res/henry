@@ -1641,8 +1641,6 @@ define(['js/app'], function (myApp) {
         vm.searchTopupRecord = function (newSearch, isExport = false) {
             vm.reportSearchTimeStart = new Date().getTime();
 
-            console.log('vm.queryTopup', vm.queryTopup);
-            // vm.queryTopup.platformId = vm.curPlatformId;
             $('#topupTableSpin').show();
 
             var staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
@@ -1688,6 +1686,8 @@ define(['js/app'], function (myApp) {
             if (vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length) {
                 sendObj.merchantNo = vm.queryTopup.merchantNo;
             }
+
+            console.log('searchTopupRecord sendObj', sendObj);
 
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
                 $scope.$evalAsync(() => {
