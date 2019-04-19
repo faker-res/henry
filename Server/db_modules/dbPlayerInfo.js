@@ -4415,9 +4415,9 @@ let dbPlayerInfo = {
                         {$match: {
                             platformObjId: topupRecordData.platformId,
                             playerObjId: topupRecordData.playerId,
-                            promoCodeTemplateObjId: {$exists: true},
-                            autoFeedbackMissionObjId: {$exists: true},
-                            autoFeedbackMissionTopUp: {$exists: false}
+                            hasPromoCodeTemplateObjId: true,
+                            hasAutoFeedbackMissionObjId: true,
+                            autoFeedbackMissionLogin: false
                         }},
                         {$sort: {createTime: -1}},
                         {
@@ -5996,9 +5996,9 @@ let dbPlayerInfo = {
                 {$match: {
                     platformObjId: record.platform,
                     playerObjId: record.player,
-                    promoCodeTemplateObjId: {$exists: true},
-                    autoFeedbackMissionObjId: {$exists: true},
-                    autoFeedbackMissionLogin: {$exists: false}
+                    hasPromoCodeTemplateObjId: true,
+                    hasAutoFeedbackMissionObjId: true,
+                    autoFeedbackMissionLogin: false
                 }},
                 {$sort: {createTime: -1}},
                 {
@@ -6621,12 +6621,12 @@ let dbPlayerInfo = {
             console.log('updateAutoFeedbackLoginCount time log start', record.platform, record.player);
             return dbconfig.collection_promoCode.aggregate([
                 {$match: {
-                        platformObjId: record.platform,
-                        playerObjId: record.player,
-                        promoCodeTemplateObjId: {$exists: true},
-                        autoFeedbackMissionObjId: {$exists: true},
-                        autoFeedbackMissionLogin: {$exists: false}
-                    }},
+                    platformObjId: record.platform,
+                    playerObjId: record.player,
+                    hasPromoCodeTemplateObjId: true,
+                    hasAutoFeedbackMissionObjId: true,
+                    autoFeedbackMissionLogin: false
+                }},
                 {$sort: {createTime: -1}},
                 {
                     $group: {
