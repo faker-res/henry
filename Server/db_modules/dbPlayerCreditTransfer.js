@@ -1772,6 +1772,12 @@ let dbPlayerCreditTransfer = {
                 groups.forEach(group => {
                     console.log('playerCreditTransferFROMEbetWallets group', group);
                     if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0 && gameCredit.wallet.hasOwnProperty(group.ebetWallet.toString())) {
+                        let hasEbet = false;
+                        group.providers.forEach(provider => {
+                            if(provider.code.toUpperCase() === "EBET" || provider.code.toUpperCase() === "EBETSLOTS") {
+                                hasEbet = true;
+                            }
+                        });
                         hasEbetWalletSettings = true;
                         checkRTGProm.push(
                             dbConfig.collection_rewardTaskGroup.findOne({
@@ -1784,7 +1790,7 @@ let dbPlayerCreditTransfer = {
                             }).lean().then(RTG => {
                                 console.log("Reward Task Group filter",RTG);
                                 if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name && (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" ||
-                                    RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
+                                    RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS") || (hasEbet && gameCredit.wallet[group.ebetWallet] > 0)) {
                                     transferOut = transferOut.then(() => {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
                                             amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
@@ -1817,15 +1823,17 @@ let dbPlayerCreditTransfer = {
                     //     if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name &&
                     //         (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
                     return Promise.all(checkRTGProm).then(() => {
-                        transferOut = transferOut.then(() => {
-                            return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
-                                amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
-                                transferOutSuccessData.push(ret);
-                            }).catch(err => {
-                                transferOutErrorData.push(err);
-                                return errorUtils.reportError(err);
-                            })
-                        });
+                        if(gameCredit.wallet[0] > 0) {
+                            transferOut = transferOut.then(() => {
+                                return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
+                                    amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
+                                    transferOutSuccessData.push(ret);
+                                }).catch(err => {
+                                    transferOutErrorData.push(err);
+                                    return errorUtils.reportError(err);
+                                })
+                            });
+                        }
                         return transferOut;
                     }).then(() => {
                         console.log('transferOut Success Data',transferOutSuccessData);
