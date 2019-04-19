@@ -4379,7 +4379,7 @@ var dbQualityInspection = {
                 manualApprovalOrCancelCal(adminObjId, manualCancelData)
             ]).then(
                 retData => {
-                    console.log("checking retData", retData, adminObjId)
+                    // console.log("checking retData", retData, adminObjId)
                     if (retData && retData.length){
                         let manualSubmitData = retData[0];
                         let manualApprovalData = retData[1];
