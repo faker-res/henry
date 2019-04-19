@@ -548,6 +548,13 @@ define(['js/app'], function (myApp) {
 
             vm.longestDelayStatus = "rgb(0,180,0)";
 
+            vm.deviceType = {
+                1: "WEB",
+                2: "H5",
+                5: "ANDROID APP",
+                6: "IOS APP",
+            };
+
             // Basic library functions
             var Lodash = {
                 keyBy: (array, keyName) => {
@@ -21610,6 +21617,9 @@ define(['js/app'], function (myApp) {
                                             playerLevels[level._id] = level.name;
                                         }
                                         result = playerLevels;
+                                        break;
+                                    case "deviceType":
+                                        result = vm.deviceType;
                                         break;
                                     default:
                                         result = $scope[cond.options];

@@ -410,9 +410,10 @@ var generalCond = {
     validEndTime: {index: 8, type: "date", des: "Reward end time"},
     // Is differentiate reward by player level
     isPlayerLevelDiff: {index: 9, type: "checkbox", des: "Reward differentiate by player level", default: false},
+    visibleForDevice: {index: 51, type: "multiSelect", des: "Is visible for device", options: "deviceType",  detail: "REWARD_CLIENT_DEVICE_DETAIL"},
     // Display in home page popup
     visibleFromHomePage: {
-        index: 51,
+        index: 52,
         name: "visibleFromHomePage",
         visible: {index: 1, type: "checkbox", des: "Is visible in home page"},
         visibleForPhoneNumberBinding: {index: 2, type: "checkbox", des: "Is visible for phone number binding player"},
@@ -425,7 +426,7 @@ var generalCond = {
         invisibleIfApplyCurrentReward: {index: 9, type: "checkbox", des: "Is invisible if apply current reward"},
     },
     visibleFromRewardEntry: {
-        index: 52,
+        index: 53,
         name: "visibleFromRewardEntry",
         visible: {index: 1, type: "checkbox", des: "Is visible in reward entry"},
         visibleForPhoneNumberBinding: {index: 2, type: "checkbox", des: "Is visible for phone number binding player"},
@@ -438,7 +439,7 @@ var generalCond = {
         invisibleIfApplyCurrentReward: {index: 9, type: "checkbox", des: "Is invisible if apply current reward"},
     },
     visibleFromRewardList: {
-        index: 53,
+        index: 54,
         name: "visibleFromRewardList",
         visible: {index: 1, type: "checkbox", des: "Is visible in reward list"},
         visibleForPhoneNumberBinding: {index: 2, type: "checkbox", des: "Is visible for phone number binding player"},
