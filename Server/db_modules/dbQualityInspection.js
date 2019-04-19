@@ -4538,6 +4538,9 @@ var dbQualityInspection = {
         if (data && data.proposalId && data.proposalId.length){
             prom = dbconfig.collection_proposal.find({
                 proposalId: {$in: data.proposalId}
+            }).populate({
+                path: "type",
+                model: dbconfig.collection_proposalType
             }).sort(sort).skip(index).limit(limit).lean();
 
             sizeProm =  dbconfig.collection_proposal.find({

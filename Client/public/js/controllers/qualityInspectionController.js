@@ -4051,7 +4051,7 @@ define(['js/app'], function (myApp) {
                 $('#manualProposalTable').resize();
                 // }, 300);
                 $scope.safeApply();
-            }
+            };
 
             //specific proposal template
             vm.proposalTemplate = {
