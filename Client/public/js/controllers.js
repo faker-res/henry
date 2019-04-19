@@ -921,6 +921,27 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         西藏: ["拉萨", "日喀则地区", "山南地区", "林芝地区", "昌都", "那曲地区", "阿里地区"]
     };
 
+    $scope.constNavigationTag = {
+        1: {name: "优惠活动", type: "功能"},
+        2: {name: "优惠详情", type: "网页"},
+        3: {name: "赛事直播", type: "功能"},
+        4: {name: "体育赛事", type: "功能"},
+        5: {name: "真人", type: "功能"},
+        6: {name: "棋牌", type: "功能"},
+        7: {name: "电子", type: "功能"},
+        8: {name: "捕鱼", type: "功能"},
+        9: {name: "充值", type: "功能"},
+        10: {name: "提款", type: "功能"},
+        11: {name: "绑定手机号", type: "功能"},
+        12: {name: "绑定银行卡", type: "功能"},
+        13: {name: "客服", type: "功能"},
+        14: {name: "在线客服", type: "网页"},
+        15: {name: "任务", type: "功能"},
+        16: {name: "商城", type: "功能"},
+        17: {name: "分享", type: "功能"},
+        18: {name: "代理", type: "功能"}
+    };
+
     // $scope.consumptionRecordProviderName = {
     //     1: "AGOTHS",
     //     2: "PT",

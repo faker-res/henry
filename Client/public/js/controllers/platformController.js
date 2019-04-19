@@ -34994,6 +34994,14 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.getPlayerAdTooltips = function () {
+                vm.playerNavigationTagToolTips = "";
+                for (let key in $scope.constNavigationTag) {
+                    vm.playerNavigationTagToolTips += $translate("VALUE") + ": " + key + "\t" + $translate("NAME") + ": " + $scope.constNavigationTag[key].name
+                        + "\t\t" + $translate("TYPE") + ": " + $scope.constNavigationTag[key].type + "\n";
+                }
+            }
+
             vm.selectedAdvListData = function (id, subject) {
 
                 let sendData = {
