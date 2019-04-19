@@ -7,6 +7,7 @@ define(['js/app'], function (myApp) {
         var qualityInspectionController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
 
             var $translate = $filter('translate');
+            let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
             var vm = this;
 
             // For debugging:
@@ -97,6 +98,17 @@ define(['js/app'], function (myApp) {
                 limit: 1000,
                 totalPage: 1
             };
+
+            vm.inputDevice = {
+                BACKSTAGE: 0,
+                WEB_PLAYER: 1,
+                WEB_AGENT: 2,
+                H5_PLAYER: 3,
+                H5_AGENT: 4,
+                APP_PLAYER: 5,
+                APP_AGENT: 6
+            };
+
             vm.inspectionWechatReport = {};
             vm.showDeviceTable = false;
 
@@ -3647,6 +3659,401 @@ define(['js/app'], function (myApp) {
             };
             //////////////////////////////////////////////////////////End of Wechat Conversation Report Tab///////////////////////////////////////////////////////////////////
 
+
+            //////////////////////////////////////////////////////////Start of Audio System Tab///////////////////////////////////////////////////////////////////
+            vm.initCSAudioSystem = function(){
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#audioRecordEndDatetimePicker', function () {
+                        $('#audioRecordStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#audioRecordStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#audioRecordEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#audioRecordEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                    });
+                }
+            };
+
+            //////////////////////////////////////////////////////////End of Audio System Tab///////////////////////////////////////////////////////////////////
+
+
+
+            //////////////////////////////////////////////////////////Start of Manual Approval Report Tab///////////////////////////////////////////////////////////////////
+            vm.initManualProcessReport = function(){
+                vm.selectedCS = [];
+                vm.csDepartmentMember = [];
+                vm.platformList.forEach(
+                    platform => {
+                        if (platform && platform.data && platform.data.csDepartment){
+                            platform.data.csDepartment.forEach(cItem => {
+                                vm.csDepartmentMember = vm.csDepartmentMember.concat(cItem.users);
+                            })
+                        }
+                    }
+                );
+
+                if (vm.csDepartmentMember && vm.csDepartmentMember.length) {
+                    socketService.$socket($scope.AppSocket, 'getCSAdmins', {admins: vm.csDepartmentMember}, function (cdata) {
+                        console.log('all admin data', cdata.data);
+                        vm.csList = cdata.data;
+                    })
+                };
+
+                vm.manualProcessRecordData = {totalCount: 0};
+                vm.manualProcessRecordData.index = 0;
+                vm.manualProcessRecordData.limit = vm.manualProcessRecordData && vm.manualProcessRecordData.limit ? vm.manualProcessRecordData.limit : 50;
+                utilService.actionAfterLoaded(('#manualProcessRecordEndDatetimePicker'), function () {
+
+                    $('#manualProcessRecordStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#manualProcessRecordStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                    $('#manualProcessRecordEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#manualProcessRecordEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+
+
+                    vm.manualProcessRecordData.pageObj = utilService.createPageForPagingTable("#manualProcessReportTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "manualProcessRecordData", vm.getManualProcessRecord)
+                    });
+                })
+            };
+
+            vm.getManualProcessRecord = function (newSearch){
+                let searchQuery = {
+
+                    startDate: $("#manualProcessRecordStartDatetimePicker").data('datetimepicker').getLocalDate(),
+                    endDate: $("#manualProcessRecordEndDatetimePicker").data('datetimepicker').getLocalDate(),
+                    adminObjId: vm.csList.map(cs => {return cs._id}),
+                    limit: vm.manualProcessRecordData.limit || 50,
+                    index: newSearch ? 0 : (vm.manualProcessRecordData.index || 0),
+                    sortCol: vm.manualProcessRecordData.sortCol,
+                };
+
+                if (vm.selectedCS && vm.selectedCS.length){
+                    searchQuery.adminObjId = vm.selectedCS
+                }
+
+                socketService.$socket($scope.AppSocket, 'getManualProcessRecord', searchQuery, function (data) {
+                    console.log('manaulProcessRecord', data);
+                    $('#manualProcessReportTableSpin').hide();
+
+                    let drawData = data.data.data.map(item => {
+                        let index = vm.csList.findIndex(p =>p._id.toString() == item._id.toString())
+                        if (index != -1){
+                            item.adminName = vm.csList[index].adminName;
+                        }
+
+                        return item;
+                    });
+                    vm.manualProcessRecordData.totalCount = data.data.data.length;
+                    vm.manualProcessRecordData.size = data.data.size;
+                    vm.drawManualProcessTable(drawData, newSearch);
+                });
+            }
+
+            vm.drawManualProcessTable = function (tblData, newSearch) {
+                console.log(newSearch);
+                let option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    // "aaSorting": vm.manualProcessRecordData.aaSorting,
+                    aoColumnDefs: [
+                        {'sortCol': 'submitCount', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'approvalCount', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'cancelCount', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'totalCount', bSortable: true, 'aTargets': [4]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+
+                    columns: [
+                        {
+                            title: 'FPMS' + $translate('CS Account'),
+                            data: "adminName",
+                        },
+                        {
+                            title: $translate('Manual Submit Count'),
+                            data: "submitCount",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showManualProposalTable(' + JSON.stringify(row.submitProposalIdArr) + ',"' + row.adminName + '", "Manual Submit Count")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            },
+                            sClass: "proposalLinks"
+                        },
+                        {
+                            title: $translate('Manual Approval Count'),
+                            data: "approvalCount",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showManualProposalTable(' + JSON.stringify(row.approvalProposalIdArr) + ',"' + row.adminName + '", "Manual Approval Count")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            },
+                            sClass: "proposalLinks"
+                        },
+                        {
+                            title: $translate('Manual Cancel Count'),
+                            data: "cancelCount",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showManualProposalTable(' + JSON.stringify(row.cancelProposalIdArr) + ',"' + row.adminName + '", "Manual Cancel Count")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            },
+                            sClass: "proposalLinks"
+                        },
+                        {
+                            title: $translate('Manual Process Count'),
+                            data: "totalCount",
+                        },
+                    ],
+                    // destroy: true,
+                    paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                option.language.emptyTable = $translate("No data available in table");
+
+                let a = utilService.createDatatableWithFooter('#manualProcessReportTable', option, {});
+                vm.manualProcessRecordData.pageObj.init({maxCount: vm.manualProcessRecordData.size}, newSearch);
+                $("#manualProcessReportTable").off('order.dt');
+                $("#manualProcessReportTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'manualProcessRecordData', vm.getManualProcessRecord);
+                });
+                // setTimeout(function () {
+                $('#manualProcessReportTable').resize();
+                // }, 300);
+                $scope.$evalAsync();
+            }
+
+            vm.showManualProposalTable = function (data, adminName, countType){
+                vm.manualProposalData = {};
+                vm.manualProposalData.adminName = adminName || null;
+                vm.manualProposalData.countType = countType || null;
+                vm.manualProposalData.proposalId = data;
+
+                $('#modalManualProposalTable').modal();
+
+                utilService.actionAfterLoaded(('#manualProposalTablePage'), function () {
+                    vm.manualProposalData.pageObj = utilService.createPageForPagingTable("#manualProposalTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "manualProposalData", vm.getManualProposalRecord)
+                    });
+
+                    vm.getManualProposalRecord(true);
+                });
+            };
+
+            vm.closeManualProposalTable = function (modal) {
+                $(modal).modal('hide');
+            };
+
+            vm.getManualProposalRecord = function (newSearch) {
+                vm.manualProposalData.totalCount = 0;
+                vm.manualProposalData.index = newSearch ? 0 : (vm.manualProposalData.index || 0),
+                    vm.manualProposalData.limit = vm.manualProposalData && vm.manualProposalData.limit ? vm.manualProposalData.limit : 50;
+
+                let searchQuery = {
+                    proposalId: vm.manualProposalData.proposalId,
+                    limit: vm.manualProposalData.limit || 50,
+                    index: newSearch ? 0 : (vm.manualProposalData.index || 0),
+                    sortCol: vm.manualProposalData.sortCol,
+                };
+
+                socketService.$socket($scope.AppSocket, 'getManualProcessProposalDetail', searchQuery, function (data) {
+                    console.log('manual processed proposal data', data);
+                    $('#manualProposalTableSpin').hide();
+
+                    var drawData = data.data.data.map(item => {
+                        item.involveAmount$ = 0;
+                        if (item.data.updateAmount) {
+                            item.involveAmount$ = item.data.updateAmount;
+                        } else if (item.data.amount) {
+                            item.involveAmount$ = item.data.amount;
+                        } else if (item.data.rewardAmount) {
+                            item.involveAmount$ = item.data.rewardAmount;
+                        } else if (item.data.commissionAmount) {
+                            item.involveAmount$ = item.data.commissionAmount;
+                        } else if (item.data.negativeProfitAmount) {
+                            item.involveAmount$ = item.data.negativeProfitAmount;
+                        }
+                        item.involveAmount$ = $noRoundTwoDecimalPlaces(item.involveAmount$);
+                        item.typeName = $translate(item.type.name || "Unknown");
+                        item.mainType$ = $translate(item.mainType || "Unknown");
+                        item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                        item.status$ = $translate(item.status ? item.type.name == "PlayerBonus" || item.type.name == "PartnerBonus" ? item.status == "Approved" ? "approved" : item.status : item.status : item.process.status);
+                        return item;
+                    })
+                    vm.manualProposalData.totalCount = data.data.data.length;
+                    vm.manualProposalData.size = data.data.size;
+                    vm.drawManualProposalTable(drawData, newSearch);
+                });
+
+            };
+
+            vm.drawManualProposalTable = function (tblData, newSearch) {
+                var option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    "aaSorting": vm.manualProposalData.aaSorting,
+                    aoColumnDefs: [
+                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+
+                    columns: [
+                        {
+                            title: $translate('PROPOSAL_NO'),
+                            data: "proposalId",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+
+                                    'ng-click': 'vm.showProposalModal("' + data + '",1)'
+
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            },
+                            sClass: "proposalLinks"
+                        },
+                        {
+                            title: $translate('CREATOR'),
+                            data: null,
+                            render: function (data, type, row) {
+                                if (data.hasOwnProperty('creator')) {
+                                    return data.creator.name;
+                                } else {
+                                    var creator = $translate('System');
+                                    if (data && data.data && data.data.playerName) {
+                                        creator += "(" + data.data.playerName + ")";
+                                    }
+                                    return creator;
+                                }
+                            }
+                        },
+                        {
+                            title: $translate('INPUT_DEVICE'),
+                            data: "inputDevice",
+                            render: function (data, type, row) {
+                                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
+                                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data) {
+                                        return $translate(Object.keys(vm.inputDevice)[i]);
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            title: $translate('PROPOSAL TYPE'), data: ("mainType$"),
+                            orderable: false,
+                            // render: function (data) {
+                            //     return $translate(data);
+                            // }
+                        },
+                        {
+                            title: $translate('PROPOSAL_SUB_TYPE'), data: null,
+                            orderable: false,
+                            render: function (data, type, row) {
+                                if (data && data.data && data.data.PROMO_CODE_TYPE) {
+                                    return data.data.PROMO_CODE_TYPE;
+                                } else if (data && data.data && data.data.eventName) {
+                                    return data.data.eventName;
+                                } else {
+                                    return data.typeName;
+                                }
+                            }
+                        },
+                        {
+                            title: "<div>" + $translate('Proposal Status'), data: "status$",
+                            orderable: false,
+                            // render: function (data, type, row) {
+                            //     return $translate(vm.getStatusStrfromRow(row))
+                            // }
+                        },
+                        {
+                            title: "<div>" + $translate('INVOLVED_ACC'),
+                            "data": null,
+                            render: function (data, type, row) {
+                                if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                    return data.creator.name;
+                                }
+                                if (data && data.data && data.data.playerName) {
+                                    return data.data.playerName;
+                                }
+                                else if (data && data.data && data.data.partnerName) {
+                                    return data.data.partnerName;
+                                }
+                                else {
+                                    return "";
+                                }
+                            },
+                            orderable: false,
+                            sClass: "sumText"
+                        },
+                        {
+                            title: $translate('Amount Involved'), data: "involveAmount$", defaultContent: 0,
+                            orderable: false,
+                            sClass: "sumFloat alignRight",
+                        },
+                        {
+                            title: "<div>" + $translate('START_TIME'), data: "createTime$",
+                            // render: function (data, type, row) {
+                            //     return utilService.$getTimeFromStdTimeFormat(data);
+                            // },
+                            defaultContent: 0
+                        },
+                        {
+                            title: "<div>" + $translate('Player Level'), data: "data.proposalPlayerLevel",
+                            orderable: false,
+                        },
+                        {
+                            title: "<div>" + $translate('REMARKS'), data: "data.remark",
+                            orderable: false,
+                        }
+
+                    ],
+                    // destroy: true,
+                    paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $(nRow).off('click');
+                        $(nRow).find('a').on('click', function () {
+                            vm.showProposalModal(aData.proposalId, 1);
+                        });
+                    }
+                    // autoWidth: true
+                });
+
+                // $('#playerProposalTable').DataTable(option);
+                var a = utilService.createDatatableWithFooter('#manualProposalTable', option, {});
+
+                vm.manualProposalData.pageObj.init({maxCount: vm.manualProposalData.size}, newSearch);
+                $("#manualProposalTable").off('order.dt');
+                $("#manualProposalTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'manualProposalData', vm.getManualProposalRecord);
+                });
+                // setTimeout(function () {
+                $('#manualProposalTable').resize();
+                // }, 300);
+                $scope.safeApply();
+            }
+
+            //////////////////////////////////////////////////////////End of Manual Approval Report Tab///////////////////////////////////////////////////////////////////
 
         };
     qualityInspectionController.$inject = injectParams;

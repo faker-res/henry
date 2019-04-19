@@ -482,6 +482,9 @@ let dxPhoneModel = dbLogs2.model('dxPhone', dxPhoneSchema, 'dxPhone');
 let apiResponseLogSchema = require('./../schema/logs2/apiResponseLog');
 let apiResponseLogModel = dbLogs2.model('apiResponseLog', apiResponseLogSchema, 'apiResponseLog');
 
+let manualProcessDailySummaryRecordSchema = require('./../schema/logs2/manualProcessDailySummaryRecord');
+let manualProcessDailySummaryRecordModel = dbLogs2.model('manualProcessDailySummaryRecord', manualProcessDailySummaryRecordSchema, 'manualProcessDailySummaryRecord');
+
 let playerConsumptionSlipRewardGroupRecordSchema = require('./../schema/logs2/playerConsumptionSlipRewardGroupRecord');
 let playerConsumptionSlipRewardGroupRecordModel = dbLogs2.model('playerConsumptionSlipRewardGroupRecord', playerConsumptionSlipRewardGroupRecordSchema, 'playerConsumptionSlipRewardGroupRecord');
 
@@ -797,6 +800,7 @@ var dbProperties = {
     collection_wcGroupControlPlayerWechat: wcGroupControlPlayerWechatModel,
     collection_baccaratConsumption: baccaratConsumptionModel,
 
+    collection_manualProcessDailySummaryRecord: manualProcessDailySummaryRecordModel,
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
     collection_live800RecordDayRecord: scheduledLive800DailyRecordModel,
