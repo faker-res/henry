@@ -8824,7 +8824,7 @@ let dbPlayerInfo = {
                             if (!rewardEventItem.hasOwnProperty("groupName")) {
                                 rewardEventItem.groupName = localization.localization.translate(constSystemRewardEventGroup.DEFAULT);
                             }
-                            //rewardEventArray.push(rewardEventItem);
+
                             if(typeof clientType == "undefined"){
                                 rewardEventArray.push(rewardEventItem);
                             }else if(rewardEventItem.condition && rewardEventItem.condition.visibleForDevice && rewardEventItem.condition.visibleForDevice.length > 0){
