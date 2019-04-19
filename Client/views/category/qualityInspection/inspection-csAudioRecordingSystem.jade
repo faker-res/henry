@@ -1,0 +1,67 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+div(ng-if="vm.curPlatformText")
+    .panel(ng-if="checkViewPermission('QualityInspection', 'CsAudioRecordingSystem','Read')")
+        .tab-content
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+                        #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+
+                        li.active(ng-show="checkViewPermission('QualityInspection', 'CsAudioRecordingSystem', 'Read')" style="margin-left: 20px;")
+                            a.common-tab(data-toggle="tab", ng-click="vm.audioSystemTab ='audioRecord';vm.initUnreadEvaluation();" )
+                                .fa.fa-wrench.margin-right-5
+                                text.span {{"AUDIO RECORD" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'CsAudioRecordingSystem', 'Read')")
+                            a.common-tab(data-toggle="tab", ng-click="vm.audioSystemTab ='audioReport';vm.initReadEvaluation();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"REPORT OF AUDIO RECORDING SYSTEM" | translate}}
+                .panel-body.common-right-panel-body
+                    div(ng-show="vm.audioSystemTab == 'audioRecord'")
+                        #audioRecordDiv.tab-pane.fade.in.active.well
+                            //.search-filters-item
+                            //    label {{"PRODUCT" |translate}}
+                            //    select.form-control(ng-change='vm.filterPlatform()',ng-model='vm.audioRecordSearching.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
+                            //.search-filters-item
+                            //    label FPMS {{"CS Account" | translate}}
+                            //    select.form-control(ng-model='vm.audioRecordSearching.fpms', ng-change='vm.loadLive800Acc()', ng-options='product._id as product.name for product in vm.fpmsACCList', multiple, bsp, data-actions-box='true')
+                            //.search-filters-item
+                            //    label {{"Seat Number" | translate}}
+                            //    select.form-control(ng-model='vm.audioRecordSearching.seatNumber', ng-options='v as v | translate for (i,v) in vm.live800Accs', multiple, bsp, data-actions-box='true')
+                            //.search-filters-item
+                            //    label {{'START_DATE' | translate}}
+                            //    #audioRecordStartDatetimePicker.input-append.form-control
+                            //        input(data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                            //        span.add-on
+                            //            i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            //.search-filters-item
+                            //    label {{'END_DATE' | translate}}
+                            //    #audioRecordEndDatetimePicker.input-append.form-control
+                            //        input(data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                            //        span.add-on
+                            //            i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            //.search-filters-item
+                            //    label {{'Duration' | translate}}
+                            //    div
+                            //        select.form-control.threeBoxes(ng-model='vm.audioRecordSearching.durationOperator')
+                            //            option(value='>=') >=
+                            //            option(value='=') =
+                            //            option(value='<=') <=
+                            //            option(value='range') {{'range' | translate}}
+                            //        input.form-control.threeBoxes(ng-model='vm.audioRecordSearching.durationOne', type = 'number')
+                            //        div.symbol(ng-if="vm.audioRecordSearching.durationOperator === 'range'") ~
+                            //        input.form-control.threeBoxes(type="number" ng-model="vm.audioRecordSearching.durationTwo" ng-if="vm.audioRecordSearching.durationOperator === 'range'")
+                            //.search-filters-item
+                            //    label {{"Call Type" |translate}}
+                            //    select.form-control(ng-model='vm.audioRecordSearching.callType', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
+                            //
+                            //.text-right.widthto100(ng-show="checkViewPermission('QualityInspection', 'CsAudioSystem', 'Read')")
+                            //    button.btn.btn-primary.btn-space(ng-click='vm.getAudioRecord()') {{'SEARCH' | translate}}
+                            //    i.fa.fa-spin.fa-spinner(ng-show='vm.loadingUnreadEvaluationTable')
+                            //
+                            //.clearfix
+                            //label {{"Total" | translate}} {{vm.audioRecordData.length}} {{"records" | translate}}
+                            //table#AudioRecordTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                            //#AudioRecordTablePage
+                    div(ng-show="vm.audioSystemTab == 'audioReport'" )

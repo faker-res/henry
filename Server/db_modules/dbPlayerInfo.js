@@ -8689,7 +8689,7 @@ let dbPlayerInfo = {
     },
 
 
-    getRewardEventForPlatform: function (platformId, playerObjId) {
+    getRewardEventForPlatform: function (platformId, clientType, playerObjId) {
         var playerPlatformId = null;
         let routeSetting;
         return dbconfig.collection_platform.findOne({platformId: platformId}).then(
@@ -8824,7 +8824,26 @@ let dbPlayerInfo = {
                             if (!rewardEventItem.hasOwnProperty("groupName")) {
                                 rewardEventItem.groupName = localization.localization.translate(constSystemRewardEventGroup.DEFAULT);
                             }
-                            rewardEventArray.push(rewardEventItem);
+
+                            if(typeof clientType == "undefined"){
+                                rewardEventArray.push(rewardEventItem);
+                            }else if(rewardEventItem.condition && rewardEventItem.condition.visibleForDevice && rewardEventItem.condition.visibleForDevice.length > 0){
+                                let visible = false;
+
+                                rewardEventItem.condition.visibleForDevice.forEach(
+                                    device => {
+                                        if(device && device == clientType){
+                                            visible = true;
+                                        }
+                                    }
+                                )
+
+                                if(visible == true){
+                                    rewardEventArray.push(rewardEventItem);
+                                }
+                            }else{
+                                rewardEventArray.push(rewardEventItem);
+                            }
                         }
                     }
                     return rewardEventArray;
@@ -13508,7 +13527,8 @@ let dbPlayerInfo = {
                     && data.status !== constProposalStatus.FAIL
                 ) {
                     prop = data;
-                    console.log("check pms2 update player 1", status)
+                    console.log("check pms2 update player 1", status);
+                    console.log('check proposal::', proposalId, data.status, data.createTime, data._id, lastSettleTime);
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: data._id, createTime: data.createTime},
                         {

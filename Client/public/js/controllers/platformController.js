@@ -548,6 +548,13 @@ define(['js/app'], function (myApp) {
 
             vm.longestDelayStatus = "rgb(0,180,0)";
 
+            vm.deviceType = {
+                1: "WEB",
+                2: "H5",
+                5: "ANDROID APP",
+                6: "IOS APP",
+            };
+
             // Basic library functions
             var Lodash = {
                 keyBy: (array, keyName) => {
@@ -21611,6 +21618,9 @@ define(['js/app'], function (myApp) {
                                         }
                                         result = playerLevels;
                                         break;
+                                    case "deviceType":
+                                        result = vm.deviceType;
+                                        break;
                                     default:
                                         result = $scope[cond.options];
                                         if (result) {
@@ -34829,7 +34839,10 @@ define(['js/app'], function (myApp) {
                                 hyperLink: vm.playerAdvertisementGroup.backgroundHyperLink ? vm.playerAdvertisementGroup.backgroundHyperLink : ""
                             },
                             imageButton: vm.playerAdvertisementGroup.imageButton ? vm.playerAdvertisementGroup.imageButton : [],
-                            inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                            inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"],
+                            navigateMainType: vm.playerAdvertisementGroup.navigateMainType ? vm.playerAdvertisementGroup.navigateMainType : "",
+                            navigateSubtype: vm.playerAdvertisementGroup.navigateSubtype ? vm.playerAdvertisementGroup.navigateSubtype : "",
+                            type: vm.playerAdvertisementGroup.type ? vm.playerAdvertisementGroup.type : "",
                         }
 
                         if (query.imageButton) {
@@ -34982,6 +34995,14 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 });
+            }
+
+            vm.getPlayerAdTooltips = function () {
+                vm.playerNavigationTagToolTips = "";
+                for (let key in $scope.constNavigationTag) {
+                    vm.playerNavigationTagToolTips += $translate("VALUE") + ": " + key + "\t" + $translate("NAME") + ": " + $scope.constNavigationTag[key].name
+                        + "\t\t" + $translate("TYPE") + ": " + $scope.constNavigationTag[key].type + "\n";
+                }
             }
 
             vm.selectedAdvListData = function (id, subject) {

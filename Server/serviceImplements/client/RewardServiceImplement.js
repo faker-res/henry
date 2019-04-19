@@ -22,7 +22,7 @@ let RewardServiceImplement = function () {
     this.getRewardList.expectsData = 'platformId: String';
     this.getRewardList.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getRewardEventForPlatform, [data.platformId, conn.playerObjId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getRewardEventForPlatform, [data.platformId, data.clientType, conn.playerObjId], isValidData, false, false, true);
     };
 
     this.getPlayerRewardList.expectsData = '[startIndex]: Number, [requestCount]: Number';
