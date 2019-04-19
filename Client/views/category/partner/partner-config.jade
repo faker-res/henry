@@ -8,6 +8,8 @@
                 p(ng-if="!vm.curPlatformText")
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
                 ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.curPlatformText")
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "validActive"}', ng-click='vm.configTabClicked("validActive")')
+                        span {{"VALID_ACTIVE" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerBasic"}', ng-click='vm.configTabClicked("partnerBasic")', ng-if="checkViewPermission('Partner', 'Config', 'PartnerBasic')" )
                         span {{"Partner Basic" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "autoApproval"}', ng-click='vm.configTabClicked("autoApproval")', ng-if="checkViewPermission('Partner', 'Config', 'AutoApproval')")
@@ -28,6 +30,8 @@
             .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
                 .text-center(ng-if='!vm.selectedConfigTab')
                     label.text-danger {{'Please select a type' | translate}}
+                div(ng-if='vm.selectedConfigTab=="validActive"')
+                    include ./setting/partner-setting-valid-active
                 div(ng-if='vm.selectedConfigTab=="partnerBasic"')
                     include ./setting/partner-setting-basic
                 div(ng-if='vm.selectedConfigTab=="partnerCommission"')

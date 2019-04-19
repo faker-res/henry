@@ -211,6 +211,9 @@ const dbPlayerUtility = {
         ).then(
             player => {
                 if (player) {
+                    console.log('playerObjId 11::', playerObjId);
+                    console.log('player.validCredit 11::', player.validCredit);
+                    console.log('updateAmount 11::', updateAmount);
                     if (player.validCredit < updateAmount) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -232,6 +235,9 @@ const dbPlayerUtility = {
             () => dbPlayerUtility.changePlayerCredit(playerObjId, platformObjId, -updateAmount, reasonType, data)
         ).then(
             player => {
+                console.log('playerObjId 22::', playerObjId);
+                console.log('player.validCredit 22::', player.validCredit);
+                console.log('playerCreditBeforeDeduct 22::', playerCreditBeforeDeduct);
                 if (player.validCredit < 0) {
                     // First reset the deduction, then report the problem
                     return Q.resolve().then(

@@ -67,6 +67,7 @@ const constSMSPurpose = require("../const/constSMSPurpose");
 const constClientQnA = require("../const/constClientQnA");
 const constFinancialPointsType = require("../const/constFinancialPointsType");
 const constTsPhoneListStatus = require('../const/constTsPhoneListStatus');
+const constSystemRewardEventGroup = require('./../const/constSystemRewardEventGroup');
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -5685,7 +5686,7 @@ let dbPlayerInfo = {
      * check the player exists and check password is matched against the password in DB using bcrypt
      *  @param include name and password of the player and some more additional info to log the player's login
      */
-    playerLogin: function (playerData, userAgent, inputDevice, mobileDetect) {
+    playerLogin: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId) {
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -5741,6 +5742,10 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
+
+                    if (checkLastDeviceId && playerObj.deviceId && playerData.deviceId && playerObj.deviceId != playerData.deviceId) {
+                        return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
+                    }
 
                     if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
                         return Promise.reject({
@@ -6168,7 +6173,7 @@ let dbPlayerInfo = {
         )
     },
 
-    playerLoginOrRegisterWithSMS: (loginData, ua) => {
+    playerLoginOrRegisterWithSMS: (loginData, ua, checkLastDeviceId) => {
         let isSMSVerified = false;
         let rejectMsg = {
             status: constServerCode.VALIDATION_CODE_INVALID,
@@ -6223,6 +6228,9 @@ let dbPlayerInfo = {
                         ).then(
                             player => {
                                 if (player) {
+                                    if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
+                                        return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
+                                    }
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
                                 } else {
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
@@ -6308,7 +6316,7 @@ let dbPlayerInfo = {
         )
     },
 
-    phoneNumberLoginWithPassword: function (playerData, userAgent, inputDevice, mobileDetect) {
+    phoneNumberLoginWithPassword: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId) {
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -6360,6 +6368,10 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
+
+                    if (checkLastDeviceId && playerObj.deviceId && playerData.deviceId && playerObj.deviceId != playerData.deviceId) {
+                        return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
+                    }
 
                     if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
                         return Promise.reject({
@@ -8685,7 +8697,7 @@ let dbPlayerInfo = {
                 if (platform) {
                     playerPlatformId = platform._id;
                     routeSetting = platform.playerRouteSetting ? platform.playerRouteSetting : null;
-                    return dbconfig.collection_rewardEvent.find({platform: playerPlatformId})
+                    let rewardEventProm = dbconfig.collection_rewardEvent.find({platform: playerPlatformId})
                         .populate({
                             path: "type",
                             model: dbconfig.collection_rewardType
@@ -8700,6 +8712,10 @@ let dbPlayerInfo = {
                             path: "condition.providerGroup",
                             model: dbconfig.collection_gameProviderGroup,
                         })
+
+                    let rewardEventGroupProm = dbconfig.collection_rewardEventGroup.find({platform: playerPlatformId}).lean();
+
+                    return Promise.all([rewardEventProm, rewardEventGroupProm])
                 } else {
                     return Q.reject({
                         name: "DataError",
@@ -8712,8 +8728,9 @@ let dbPlayerInfo = {
                 return Q.reject({name: "DBError", message: "Error in getting platform", error: error});
             }
         ).then(
-            function (rewardEvent) {
-                if (rewardEvent) {
+            function ([rewardEvent, rewardEventGroup]) {
+                if (rewardEvent && rewardEventGroup) {
+                    rewardEventGroup = JSON.parse(JSON.stringify(rewardEventGroup)); // to change all object id to string
                     var rewardEventArray = [];
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
@@ -8787,6 +8804,27 @@ let dbPlayerInfo = {
                         }
 
                         if (rewardEventItem.canApplyFromClient) {
+                            let isRewardEventExpired = false;
+                            if (rewardEventItem.validEndTime && new Date(rewardEventItem.validEndTime).getTime() < new Date().getTime()) {
+                                isRewardEventExpired = true;
+                            }
+
+                            if (isRewardEventExpired) {
+                                rewardEventItem.groupName = localization.localization.translate(constSystemRewardEventGroup.ENDED);
+                            } else if (rewardEventGroup && rewardEventGroup.length) {
+                                for (let j = 0; j < rewardEventGroup.length; j++) {
+                                    if (rewardEventGroup[j].rewardEvents && rewardEventGroup[j].rewardEvents.length && rewardEventGroup[j].rewardEvents.includes(String(rewardEventItem._id))) {
+                                        rewardEventItem.groupName = rewardEventGroup[j].name;
+                                        break;
+                                    }
+                                }
+                            }
+
+
+                            if (!rewardEventItem.hasOwnProperty("groupName")) {
+                                rewardEventItem.groupName = localization.localization.translate(constSystemRewardEventGroup.DEFAULT);
+                            }
+                            //rewardEventArray.push(rewardEventItem);
                             if(typeof clientType == "undefined"){
                                 rewardEventArray.push(rewardEventItem);
                             }else if(rewardEventItem.condition && rewardEventItem.condition.visibleForDevice && rewardEventItem.condition.visibleForDevice.length > 0){
@@ -23454,11 +23492,11 @@ let dbPlayerInfo = {
                 return dbconfig.collection_players.findOneAndUpdate(
                     {
                         _id: playerData._id,
-                        guestDeviceId: {$ne: deviceId}
+                        guestDeviceId: {$nin: [deviceId, rsaCrypto.encrypt(deviceId), rsaCrypto.oldEncrypt(deviceId)]}
                     },
                     {
-                        guestDeviceId: deviceId
-                    }).lean()
+                        guestDeviceId: rsaCrypto.encrypt(deviceId)
+                    }).lean();
             }
         ).then(
             updatedPlayer => {

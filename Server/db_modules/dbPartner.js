@@ -2751,7 +2751,11 @@ let dbPartner = {
             ).then(
                 proposal => {
                     if (proposal) {
-                        if (proposal.data && proposal.data.amount && proposal.data.amount >= platform.partnerAutoApproveWhenSingleBonusApplyLessThan) {
+                        if (
+                            platform.partnerAutoApproveWhenSingleBonusApplyLessThan
+                            && proposal.data && proposal.data.amount
+                            && proposal.data.amount >= platform.partnerAutoApproveWhenSingleBonusApplyLessThan
+                        ) {
                             createPartnerLargeWithdrawalLog(proposal, platform._id).catch(err => {
                                 console.log("createLargeWithdrawalLog failed", err);
                                 return errorUtils.reportError(err);

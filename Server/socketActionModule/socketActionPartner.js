@@ -310,6 +310,12 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.platform);
             socketUtil.emitter(self.socket, dbPartnerLevelConfig.getPartnerLevelConfig, [data], actionName, isValidData);
         },
+
+        getActiveConfig: function getActiveConfig(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPartnerLevelConfig.getActiveConfig, [data], actionName, isValidData);
+        },
         /**
          * Create player phone number by object id
          * @param {json} data - It has to contain _id
@@ -324,6 +330,12 @@ function socketActionPartner(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPartnerLevelConfig.updatePartnerLevelConfig, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        updateActiveConfig: function updateActiveConfig(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPartnerLevelConfig.updateActiveConfig, [data.query, data.updateData], actionName, isValidData);
         },
 
         getPartnerIPHistory: function getPartnerIPHistory(data) {

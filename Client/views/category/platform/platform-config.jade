@@ -1,13 +1,20 @@
 .row
+    .col-md-12
+        .well.col-xs-12
+            .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.filterConfigPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.configTabClicked(vm.selectedConfigTab)')
+.text-center(ng-if='!vm.filterConfigPlatform')
+    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
+.row(ng-if='vm.filterConfigPlatform')
     .col-md-3
         .panel.panel-primary
             .panel-heading.panel-heading-sm
                 .fa.fa-wrench
                 label &nbsp;{{"CONFIGURATION" | translate}}
             .panel-body.common-left-sub-panel-body
-                p(ng-if="!vm.curPlatformText")
-                    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-                ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.curPlatformText")
+                ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.filterConfigPlatform")
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "player"}', ng-click='vm.configTabClicked("player")')
                         span {{"PLAYER_LEVEL" | translate}}
                     //li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partner"}', ng-click='vm.configTabClicked("partner")')
@@ -63,8 +70,8 @@
         .panel.panel-primary
             .panel-heading.panel-heading-sm
                 label {{"CONFIGURATION_DETAIL" | translate}}
-            .panel-body.common-right-sub-panel-body(ng-if="!vm.curPlatformText")
-            .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
+            .panel-body.common-right-sub-panel-body(ng-if="!vm.filterConfigPlatform")
+            .panel-body.common-right-sub-panel-body(ng-if="vm.filterConfigPlatform")
                 .text-center(ng-if='!vm.selectedConfigTab')
                     label.text-danger {{'Please select a type' | translate}}
 
@@ -893,7 +900,7 @@
                                                         table.simple-table(style='width:auto;min-width:99.9%')
                                                             thead
                                                                 tr
-                                                                    th(colspan=6) {{gpg.name | translate}}{{'Commission'| translate}}:{{vm.commissionSettingTab | translate}}
+                                                                    th(colspan=6) {{gpg.name | translate}} {{'Commission'| translate}}:{{vm.commissionSettingTab | translate}}
                                                                 tr
                                                                     th(colspan=2) {{vm.playerConsumptionTableHeader | translate}}
                                                                     th(colspan=2) {{vm.activePlayerTableHeader | translate}}

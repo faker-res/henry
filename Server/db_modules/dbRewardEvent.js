@@ -8,6 +8,7 @@ var constRewardPriority = require('./../const/constRewardPriority');
 var constRewardType = require('./../const/constRewardType');
 var constProposalType = require('./../const/constProposalType');
 const constProposalStatus = require('./../const/constProposalStatus');
+const constSystemRewardEventGroup = require('./../const/constSystemRewardEventGroup');
 const constProposalMainType = require('../const/constProposalMainType');
 const constSystemParam = require("./../const/constSystemParam");
 const constGameStatus = require('./../const/constGameStatus');
@@ -2553,8 +2554,8 @@ var dbRewardEvent = {
     getRewardEventGroup: function (query) {
         return dbconfig.collection_rewardEventGroup.find(query).lean().then(
             groupData => {
-                groupData.unshift({name: "已结束优惠组*"});
-                groupData.unshift({name: "默认组别*"});
+                groupData.unshift({name: constSystemRewardEventGroup.ENDED});
+                groupData.unshift({name: constSystemRewardEventGroup.DEFAULT});
                 return groupData;
             }
         );

@@ -12,15 +12,15 @@ var Schema = mongoose.Schema;
 
 var proposalSchema = new Schema({
     //proposal unique id
-    proposalId: {type: String, index: true},
+    proposalId: {type: String},
     //proposal main type
     mainType: {type: String, index: true},
     //proposal type
-    type: {type: Schema.Types.ObjectId, ref: 'proposalType', index: true},
+    type: {type: Schema.Types.ObjectId, ref: 'proposalType'},
     //creator {type(system, player or admin), name, id(shortID for player, longId for admin)
     creator: {type: JSON, default: {}},
     // create Time
-    createTime: {type: Date, default: Date.now, index: true},
+    createTime: {type: Date, default: Date.now},
     //proposal process info
     process: {type: Schema.Types.ObjectId, ref: 'proposalProcess', index: true},
     //proposal data
@@ -51,6 +51,13 @@ var proposalSchema = new Schema({
     inputDevice: {type: Number, default: 0, index: true}
 });
 
+// Index for general proposalId (Descending)c
+proposalSchema.index({proposalId: 1});
+// Index for top up report without proposalId search
+proposalSchema.index({createTime: 1, mainType: 1});
+// Index based on type
+proposalSchema.index({type: 1, createTime: -1});
+
 proposalSchema.index({"data.playerName": 1});
 proposalSchema.index({"data.playerId": 1});
 proposalSchema.index({"data.playerObjId": 1});
@@ -78,7 +85,6 @@ proposalSchema.index({"data.consecutiveNumber": 1});
 proposalSchema.index({"data.bConsumptionReturnRequest": 1});
 proposalSchema.index({"data.bankCardNo": 1});
 proposalSchema.index({"data.eventId": 1});
-proposalSchema.index({type: 1, createTime: 1});
 proposalSchema.index({"data.alipayer": 1});
 proposalSchema.index({"data.alipayerAccount": 1});
 proposalSchema.index({"data.alipayerNickName": 1});
