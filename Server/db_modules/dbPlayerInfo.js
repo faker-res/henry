@@ -8677,7 +8677,7 @@ let dbPlayerInfo = {
     },
 
 
-    getRewardEventForPlatform: function (platformId, playerObjId) {
+    getRewardEventForPlatform: function (platformId, clientType, playerObjId) {
         var playerPlatformId = null;
         let routeSetting;
         return dbconfig.collection_platform.findOne({platformId: platformId}).then(
@@ -8787,7 +8787,25 @@ let dbPlayerInfo = {
                         }
 
                         if (rewardEventItem.canApplyFromClient) {
-                            rewardEventArray.push(rewardEventItem);
+                            if(typeof clientType == "undefined"){
+                                rewardEventArray.push(rewardEventItem);
+                            }else if(rewardEventItem.condition && rewardEventItem.condition.visibleForDevice && rewardEventItem.condition.visibleForDevice.length > 0){
+                                let visible = false;
+
+                                rewardEventItem.condition.visibleForDevice.forEach(
+                                    device => {
+                                        if(device && device == clientType){
+                                            visible = true;
+                                        }
+                                    }
+                                )
+
+                                if(visible == true){
+                                    rewardEventArray.push(rewardEventItem);
+                                }
+                            }else{
+                                rewardEventArray.push(rewardEventItem);
+                            }
                         }
                     }
                     return rewardEventArray;
