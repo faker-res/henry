@@ -6630,7 +6630,7 @@ let dbPlayerInfo = {
                     hasPromoCodeTemplateObjId: true,
                     hasAutoFeedbackMissionObjId: true,
                     autoFeedbackMissionLogin: false
-                    }},
+                }},
                 {$sort: {createTime: -1}},
                 {
                     $group: {
