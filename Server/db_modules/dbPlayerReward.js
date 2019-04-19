@@ -3071,12 +3071,12 @@ let dbPlayerReward = {
 
         let openQuery = {};
         let query = {
-            platformObjId: searchQuery.platformObjId
+            platformObjId: {$in: searchQuery.platformObjId}
         };
 
         return expirePromoCode().then(() => {return expirePromoCode(true)}).then(() => {
             return dbConfig.collection_players.findOne({
-                platform: searchQuery.platformObjId,
+                platform: {$in: searchQuery.platformObjId},
                 name: searchQuery.playerName
             }).lean();
         }).then(
@@ -3124,8 +3124,8 @@ let dbPlayerReward = {
                     .sort(searchQuery.sortCol).lean();
 
                 if (query.status != constPromoCodeStatus.AVAILABLE){
-                    openPromoCodeProm = dbConfig.collection_proposalType.findOne({
-                        platformId: ObjectId(searchQuery.platformObjId),
+                    openPromoCodeProm = dbConfig.collection_proposalType.find({
+                        platformId: {$in: searchQuery.platformObjId},
                         name: constProposalType.PLAYER_PROMO_CODE_REWARD
                     }).lean().then(
                         proposalType => {
@@ -4546,8 +4546,9 @@ let dbPlayerReward = {
         index = index || 0;
         limit = limit || 10;
         let monitorObjs;
+        platformObjId = platformObjId.map(id => ObjectId(id));
         let promoCodeQuery = {
-            'data.platformId': platformObjId,
+            'data.platformId': {$in: platformObjId},
             settleTime: {$gte: startAcceptedTime, $lt: endAcceptedTime},
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             "data.promoCodeTypeValue": isTypeCPromo? 3: {$ne: 3}
@@ -4557,12 +4558,13 @@ let dbPlayerReward = {
             promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeTypeName;
         }
 
-        return dbConfig.collection_proposalType.findOne({
-            platformId: platformObjId,
+        return dbConfig.collection_proposalType.find({
+            platformId: {$in: platformObjId},
             name: constProposalType.PLAYER_PROMO_CODE_REWARD
         }).lean().then(
             proposalType => {
-                promoCodeQuery.type = proposalType._id;
+                let allProposalTypeId = proposalType.map(e => e._id);
+                promoCodeQuery.type = {$in: allProposalTypeId};
                 return dbConfig.collection_proposal.find(promoCodeQuery).sort({createTime: -1}).populate(
                     {path: "process", model: dbConfig.collection_proposalProcess}
                 ).lean();
