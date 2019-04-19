@@ -4569,15 +4569,12 @@ var dbQualityInspection = {
 
     summarizeManualProcessRecord: function (startDate, endDate) {
         let adminObjIdArr = [];
-        // let proms =[];
         let dayStartTime = new Date (startDate);
-
+        let totalDays = dbUtility.getNumberOfDays(startDate, endDate);
         let getNextDate = function (date) {
             let newDate = new Date(date);
             return new Date(newDate.setDate(newDate.getDate() + 1));
         };
-
-        let totalDays = dbUtility.getNumberOfDays(startDate, endDate);
 
         return dbconfig.collection_platform.find({}, {csDepartment: 1}).populate({
             path: "csDepartment",
