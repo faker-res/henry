@@ -6625,8 +6625,8 @@ let dbPlayerInfo = {
             console.log('updateAutoFeedbackLoginCount time log start', record.platform, record.player);
             return dbconfig.collection_promoCode.aggregate([
                 {$match: {
-                        platformObjId: record.platform,
-                        playerObjId: record.player,
+                    platformObjId: record.platform,
+                    playerObjId: record.player,
                     hasPromoCodeTemplateObjId: true,
                     hasAutoFeedbackMissionObjId: true,
                     autoFeedbackMissionLogin: false
