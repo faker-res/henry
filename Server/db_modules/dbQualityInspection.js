@@ -4208,7 +4208,7 @@ var dbQualityInspection = {
 
         if (data && data.endDate && new Date(data.endDate)> new Date(todayStartDate)){
             // get the latest record and save into summary record
-            let newEndDate = dbUtility.getDayEndTime(data.endDate);
+            let newEndDate = new Date(data.endDate);
             let newStartDate = todayStartDate;
 
             manualProcessRecordProm = dbQualityInspection.getManualProposalDailySummaryRecord(newStartDate, newEndDate, data.adminObjId)
@@ -4538,6 +4538,9 @@ var dbQualityInspection = {
         if (data && data.proposalId && data.proposalId.length){
             prom = dbconfig.collection_proposal.find({
                 proposalId: {$in: data.proposalId}
+            }).populate({
+                path: "type",
+                model: dbconfig.collection_proposalType
             }).sort(sort).skip(index).limit(limit).lean();
 
             sizeProm =  dbconfig.collection_proposal.find({

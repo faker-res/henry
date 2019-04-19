@@ -2,9 +2,9 @@
 
 define(['js/app'], function (myApp) {
 
-        var injectParams = ['$sce', '$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", "$timeout", '$http', 'uiGridExporterService', 'uiGridExporterConstants'];
+        var injectParams = ['$sce', '$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'commonService', 'CONFIG', "$cookies", "$timeout", '$http', 'uiGridExporterService', 'uiGridExporterConstants'];
 
-        var qualityInspectionController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
+        var qualityInspectionController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, commonService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
 
             var $translate = $filter('translate');
             let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
@@ -4051,7 +4051,233 @@ define(['js/app'], function (myApp) {
                 $('#manualProposalTable').resize();
                 // }, 300);
                 $scope.safeApply();
-            }
+            };
+
+            //specific proposal template
+            vm.proposalTemplate = {
+                1: '#modalProposal',
+                2: '#newPlayerModal'
+            };
+
+            vm.showProposalModal = function (proposalId, templateNo) {
+                socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+                    platformId: vm.selectedPlatform.id,
+                    proposalId: proposalId
+                }, function (data) {
+                    vm.selectedProposal = data.data;
+                    vm.proposalDetailStyle = {};
+
+                    vm.selectedProposal.data = commonService.setFixedPropDetail($scope, $translate, $noRoundTwoDecimalPlaces, vm);
+
+                    if (vm.selectedProposal && vm.selectedProposal.data) {
+                        delete vm.selectedProposal.data.betAmount;
+                        delete vm.selectedProposal.data.betTime;
+                        delete vm.selectedProposal.data.winAmount;
+                        delete vm.selectedProposal.data.winTimes;
+                    }
+
+                    if (vm.selectedProposal.data.inputData) {
+                        if (vm.selectedProposal.data.inputData.provinceId) {
+                            //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                            commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data.provinceName = data;
+                            });
+                        }
+                        if (vm.selectedProposal.data.inputData.cityId) {
+                            //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                            commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data.cityName = data;
+                            });
+                        }
+                    } else {
+                        if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
+                            //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                            commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                            });
+                        }
+                        if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
+                            //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                            commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                                vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                            });
+                        }
+                    }
+
+                    if ( vm.selectedProposal.mainType && vm.selectedProposal.mainType == "PlayerBonus" && vm.selectedProposal.status && vm.selectedProposal.status == 'Approved' ) {
+                        vm.selectedProposal.status = 'approved';
+                    }
+
+                    let tmpt = vm.proposalTemplate[templateNo];
+                    $(tmpt).modal('show');
+                    if (templateNo == 1) {
+                        $(tmpt).css('z-Index', 1051).modal();
+                    }
+
+                    $(tmpt).on('shown.bs.modal', function (e) {
+                        $scope.safeApply();
+                    })
+
+
+                })
+            };
+
+            // display proposal detail
+            vm.showProposalDetailField = function (obj, fieldName, val) {
+                if (!obj) return '';
+                var result = val || val === false ? val.toString() : (val === 0) ? "0" : "";
+                if (obj.type.name === "UpdatePlayerPhone" && (fieldName === "updateData" || fieldName === "curData")) {
+                    var str = val.phoneNumber
+                    if (obj && obj.status && obj.status == 'Pending' && fieldName == 'updateData') {
+                        var $link = $('<a>', {
+                            class: 'a telToPlayerBtn',
+                            text: val.phoneNumber,
+                            'data-proposal': JSON.stringify(obj),
+                        });
+                        utilService.actionAfterLoaded(".telToPlayerBtn", function () {
+                            $('#ProposalDetail .telToPlayerBtn').off('click');
+                            $('#ProposalDetail .telToPlayerBtn').on('click', function () {
+                                var $tr = $(this).closest('tr');
+                                vm.telToPlayer(obj);
+                            })
+                        });
+
+                        result = $link.prop('outerHTML');
+                    } else {
+                        result = val.phoneNumber; //str.substring(0, 3) + "******" + str.slice(-4);
+                    }
+                } else if (obj.status === "Expired" && fieldName === "validTime") {
+                    var $time = $('<div>', {
+                        class: 'inlineBlk margin-right-5'
+                    }).text(utilService.getFormatTime(val));
+                    var $btn = $('<button>', {
+                        class: 'btn common-button btn-primary delayTopupExpireDate',
+                        text: $translate('Delay'),
+                        'data-proposal': JSON.stringify(obj),
+                    });
+                    utilService.actionAfterLoaded(".delayTopupExpireDate", function () {
+                        $('#ProposalDetail .delayTopupExpireDate').off('click');
+                        $('#ProposalDetail .delayTopupExpireDate').on('click', function () {
+                            var $tr = $(this).closest('tr');
+                            vm.delayTopupExpirDate(obj, function (newData) {
+                                $tr.find('td:nth-child(2)').first().text(utilService.getFormatTime(newData.newValidTime));
+                                vm.needRefreshTable = true;
+                                $scope.safeApply();
+                            });
+                        })
+                    });
+                    result = $time.prop('outerHTML') + $btn.prop('outerHTML');
+                } else if (fieldName.indexOf('providerId') > -1 || fieldName.indexOf('targetProviders') > -1) {
+                    result = val ? val.map(item => {
+                        return vm.getProviderText(item);
+                    }) : '';
+                    result = result.join(',');
+                } else if (fieldName.indexOf('providerGroup') > -1) {
+                    result = vm.getProviderGroupNameById(val);
+                } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
+                    result = utilService.getFormatTime(val);
+                } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
+                    result = Number.isFinite(parseFloat(val)) ? $noRoundTwoDecimalPlaces(parseFloat(val)).toString() : val;
+                } else if (fieldName == 'bankAccountType') {
+                    switch (parseInt(val)) {
+                        case 1:
+                            result = $translate('Credit Card');
+                            break;
+                        case 2:
+                            result = $translate('Debit Card');
+                            break;
+                        case 3:
+                            result = "储存卡";
+                            break;
+                        case 4:
+                            result = "储蓄卡";
+                            break;
+                        case 5:
+                            result = "商务理财卡";
+                            break;
+                        case 6:
+                            result = "工商银行一卡通";
+                            break;
+                        default:
+                            result = val;
+                            break;
+                    }
+                } else if (fieldName == 'clientType') {
+                    result = $translate($scope.merchantTargetDeviceJson[val]);
+                } else if (fieldName == 'merchantUseType') {
+                    result = $translate($scope.merchantUseTypeJson[val])
+                } else if (fieldName == 'topupType') {
+                    result = $translate($scope.merchantTopupTypeJson[val])
+                } else if (fieldName == 'periodType') {
+                    result = $translate(firstTopUpPeriodTypeJson[val])
+                } else if (fieldName == 'playerId' && val && val.playerId && val.name) {
+                    result = val.playerId;
+                    vm.selectedProposalDetailForDisplay.playerName = val.name;
+                } else if (fieldName == 'bankTypeId' || fieldName == 'bankCardType' || fieldName == 'bankName') {
+                    result = vm.allBankTypeList[val] || (val + " ! " + $translate("not in bank type list"));
+                } else if (fieldName == 'depositMethod') {
+                    result = $translate(vm.getDepositMethodbyId[val])
+                } else if (fieldName === 'playerStatus') {
+                    result = $translate($scope.constPlayerStatus[val]);
+
+                } else if (fieldName == 'allowedProviders') {
+
+                    let providerName = '';
+                    for (var v in val) {
+                        providerName += val[v].name + ', ';
+                    }
+                    result = providerName;
+                } else if (fieldName === 'proposalPlayerLevel') {
+                    result = $translate(val);
+                } else if (fieldName === 'applyForDate') {
+                    result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+                } else if (fieldName === 'DOB') {
+                    result = commonService.convertDOBDateFormat(val);
+                } else if (fieldName === 'returnDetail') {
+                    // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
+                    let newReturnDetail = {};
+                    Object.keys(val).forEach(
+                        key => {
+                            if (key && key.indexOf(':') != -1) {
+                                let splitGameTypeIdArr = key.split(':');
+                                let gameTypeId = splitGameTypeIdArr[1];
+                                newReturnDetail[splitGameTypeIdArr[0] + ':' + vm.allGameTypes[gameTypeId]] = val[key];
+                            }
+                        });
+                    result = JSON.stringify(newReturnDetail || val)
+                        .replace(new RegExp('GameType', "gm"), $translate('GameType'))
+                        .replace(new RegExp('ratio', 'gm'), $translate('RATIO'))
+                        .replace(new RegExp('consumeValidAmount', "gm"), $translate('consumeValidAmount'));
+                } else if (fieldName === 'nonXIMADetail') {
+                    let newNonXIMADetail = {};
+                    Object.keys(val).forEach(
+                        key => {
+                            if (key && key.indexOf(':') != -1) {
+                                let splitGameTypeIdArr = key.split(':');
+                                let gameTypeId = splitGameTypeIdArr[1];
+                                newNonXIMADetail[splitGameTypeIdArr[0] + ':' + vm.allGameTypes[gameTypeId]] = val[key];
+                            }
+                        });
+                    result = JSON.stringify(newNonXIMADetail || val)
+                        .replace(new RegExp('GameType', "gm"), $translate('GameType'))
+                        .replace(new RegExp('nonXIMAAmt', "gm"), $translate('totalNonXIMAAmt'));
+                } else if (typeof(val) == 'object') {
+                    result = JSON.stringify(val);
+                } else if (fieldName === "upOrDown") {
+                    result = $translate(val);
+                } else if (fieldName === 'definePlayerLoginMode') {
+                    result = $translate($scope.playerLoginMode[val]);
+                } else if (fieldName === 'rewardInterval') {
+                    result = $translate($scope.rewardInterval[val]);
+                } else if (fieldName === 'gameProviderInEvent') {
+                    let index = vm.allGameProviders.findIndex(p => p._id.toString() == val.toString());
+                    if (index != -1){
+                        result =  vm.allGameProviders[index].name;
+                    }
+                }
+
+                return $sce.trustAsHtml(result);
+            };
 
             //////////////////////////////////////////////////////////End of Manual Approval Report Tab///////////////////////////////////////////////////////////////////
 
