@@ -2708,11 +2708,7 @@ let dbPlayerInfo = {
                 if (platformData && platformData._id) {
                     topUpSystemConfig = extConfig && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
-                    if (isUpdatePMSPermission && ((topUpSystemConfig && topUpSystemConfig.name === 'PMS') || !topUpSystemConfig)) {
-                        let topUpSystemName = topUpSystemConfig && topUpSystemConfig.name ? topUpSystemConfig.name : 'PMS';
-                        pmsUpdateProm = dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission, remark, topUpSystemName);
-
-                    } else if (isUpdatePMSPermission && topUpSystemConfig && topUpSystemConfig.name === 'PMS2') {
+                    if (isUpdatePMSPermission && topUpSystemConfig && topUpSystemConfig.name !== 'FPMS') {
                         pmsUpdateProm = dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission, remark, topUpSystemConfig.name, platformData.topUpSystemType);
 
                     }
@@ -24569,53 +24565,37 @@ let dbPlayerInfo = {
     updatePMSPlayerTopupChannelPermission: (platformId, playerObjArr, topUpSystemType) => {
         let sendObjArr = [];
         let topUpSystemConfig;
-        let topUpSystemName = 'PMS';
+        let topUpSystemName = 'PMS2';
 
         topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
 
-        if ((topUpSystemConfig && topUpSystemConfig.name === 'PMS') || !topUpSystemConfig) {
-            topUpSystemName = topUpSystemConfig && topUpSystemConfig.name ? topUpSystemConfig.name : 'PMS';
-        } else if (topUpSystemConfig && topUpSystemConfig.name === 'PMS2') {
+        if (topUpSystemConfig && topUpSystemConfig.name) {
             topUpSystemName = topUpSystemConfig.name;
         }
 
         playerObjArr.forEach(playerData => {
             let sendObj = getPlayerTopupChannelPermission(playerData);
 
-            if (topUpSystemName === 'PMS') {
-                if (
-                    sendObj
-                    && (
-                        sendObj.manualRechargeMethod === 1
-                        || sendObj.onlineRechargeMethod === 1
-                        || sendObj.alipayRechargeMethod === 1
-                        || sendObj.wechatRechargeMethod === 1
-                    )
-                ) {
-                    sendObjArr.push(sendObj);
-                }
-            } else if (topUpSystemName === 'PMS2') {
-                if (
-                    sendObj
-                    && (
-                        sendObj.topupManual === 0
-                        || sendObj.topupOnline === 0
-                        || sendObj.alipay === 0
-                        || sendObj.wechatpay === 0
-                    )
-                ) {
-                    sendObjArr.push(sendObj);
-                }
+            if (
+                sendObj
+                && (
+                    sendObj.topupManual === 0
+                    || sendObj.topupOnline === 0
+                    || sendObj.alipay === 0
+                    || sendObj.wechatpay === 0
+                )
+            ) {
+                sendObjArr.push(sendObj);
             }
 
         });
 
-        if (sendObjArr.length && topUpSystemName === 'PMS2') {
+        if (sendObjArr.length && topUpSystemName !== 'FPMS') {
             let data = {
                 requests: sendObjArr
             };
 
-            return RESTUtils.getPMS2Services("postBatchTopupStatus", data);
+            return RESTUtils.getPMS2Services("postBatchTopupStatus", data, topUpSystemType);
         }
 
         function getPlayerTopupChannelPermission (player) {
@@ -24627,10 +24607,10 @@ let dbPlayerInfo = {
         return getPlayerTopupChannelPermission(ObjectId(playerObjId)).then(
             sendObj => {
                 console.log('getPlayerTopupChannelPermission sendObj :', sendObj);
-                if (sendObj && topUpSystemName === 'PMS2') {
+                if (sendObj) {
                     sendObj.timestamp = Date.now();
 
-                    return RESTUtils.getPMS2Services("patchTopupStatus", sendObj)
+                    return RESTUtils.getPMS2Services("patchTopupStatus", sendObj, topUpSystemType)
                 }
             }
         );
@@ -24724,57 +24704,27 @@ function getPlayerTopupChannelPermissionRequestData (player, platformId, updateO
             platformId: platformId
         }
 
-        if (topUpSystemName === 'PMS') {
-
-            retObj.manualRechargeMethod = player.permission.topupManual ? 0 : 1;
-            retObj.onlineRechargeMethod = player.permission.topupOnline ? 0 : 1;
-            retObj.alipayRechargeMethod = player.permission.alipayTransaction ? 0 : 1;
-            retObj.wechatRechargeMethod = player.permission.disableWechatPay ? 1 : 0;
-
-        } else if (topUpSystemName === 'PMS2') {
-
-            retObj.topupManual = player.permission.topupManual ? 1 : 0;
-            retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
-            retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
-            retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
-            if (updateRemark) {
-                retObj.remark = updateRemark;
-            }
-
+        retObj.topupManual = player.permission.topupManual ? 1 : 0;
+        retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
+        retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
+        retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
+        if (updateRemark) {
+            retObj.remark = updateRemark;
         }
     }
 
     if (updateObj) {
-        if (topUpSystemName === 'PMS') {
-
-            if (updateObj.hasOwnProperty('topupManual')) {
-                retObj.manualRechargeMethod = updateObj.topupManual ? 0 : 1;
-            }
-            if (updateObj.hasOwnProperty('topupOnline')) {
-                retObj.onlineRechargeMethod = updateObj.topupOnline ? 0 : 1;
-            }
-            if (updateObj.hasOwnProperty('alipayTransaction')) {
-                retObj.alipayRechargeMethod = updateObj.alipayTransaction ? 0 : 1;
-            }
-            if (updateObj.hasOwnProperty('disableWechatPay')) {
-                retObj.wechatRechargeMethod = updateObj.disableWechatPay ? 1 : 0;
-            }
-
-        } else if (topUpSystemName === 'PMS2') {
-
-            if (updateObj.hasOwnProperty('topupManual')) {
-                retObj.topupManual = updateObj.topupManual ? 1 : 0;
-            }
-            if (updateObj.hasOwnProperty('topupOnline')) {
-                retObj.topupOnline = updateObj.topupOnline ? 1 : 0;
-            }
-            if (updateObj.hasOwnProperty('alipayTransaction')) {
-                retObj.alipay = updateObj.alipayTransaction ? 1 : 0;
-            }
-            if (updateObj.hasOwnProperty('disableWechatPay')) {
-                retObj.wechatpay = updateObj.disableWechatPay ? 0 : 1;
-            }
-
+        if (updateObj.hasOwnProperty('topupManual')) {
+            retObj.topupManual = updateObj.topupManual ? 1 : 0;
+        }
+        if (updateObj.hasOwnProperty('topupOnline')) {
+            retObj.topupOnline = updateObj.topupOnline ? 1 : 0;
+        }
+        if (updateObj.hasOwnProperty('alipayTransaction')) {
+            retObj.alipay = updateObj.alipayTransaction ? 1 : 0;
+        }
+        if (updateObj.hasOwnProperty('disableWechatPay')) {
+            retObj.wechatpay = updateObj.disableWechatPay ? 0 : 1;
         }
     }
 
