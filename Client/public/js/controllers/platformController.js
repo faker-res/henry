@@ -34829,7 +34829,10 @@ define(['js/app'], function (myApp) {
                                 hyperLink: vm.playerAdvertisementGroup.backgroundHyperLink ? vm.playerAdvertisementGroup.backgroundHyperLink : ""
                             },
                             imageButton: vm.playerAdvertisementGroup.imageButton ? vm.playerAdvertisementGroup.imageButton : [],
-                            inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                            inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"],
+                            navigateMainType: vm.playerAdvertisementGroup.navigateMainType ? vm.playerAdvertisementGroup.navigateMainType : "",
+                            navigateSubtype: vm.playerAdvertisementGroup.navigateSubtype ? vm.playerAdvertisementGroup.navigateSubtype : "",
+                            type: vm.playerAdvertisementGroup.type ? vm.playerAdvertisementGroup.type : "",
                         }
 
                         if (query.imageButton) {

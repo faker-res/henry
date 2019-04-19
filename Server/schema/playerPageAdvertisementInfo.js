@@ -25,7 +25,9 @@ var playerPageAdvertisementInfoSchema = new Schema({
     // navigation (main type) tag for XBET APP
     navigateMainType: {type: String},
     // navigation (subtype) tag for XBET APP
-    navigateSubtype: {type: String}
+    navigateSubtype: {type: String},
+    // type of advertisement
+    type: {type: String},
 });
 
 module.exports = playerPageAdvertisementInfoSchema;
