@@ -4287,9 +4287,10 @@ var dbQualityInspection = {
         let manualApprovalProm = [];
         let manualCancelProm = [];
         let countProm = [];
-
         let getAdminProm = Promise.resolve();
 
+        console.log("checking startDate", startDate);
+        console.log("checking endDate", endDate);
         if (!adminObjIdList || (adminObjIdList && adminObjIdList.length == 0)){
             getAdminProm = dbconfig.collection_platform.find({}, {csDepartment: 1}).populate({
                 path: "csDepartment",
@@ -4369,8 +4370,16 @@ var dbQualityInspection = {
                     )
                     return Promise.all(countProm);
                 }
+            },
+            err => {
+                console.log("Error when getting manual process record; Error: ", err);
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Error when getting manual process record",
+                    error: err
+                })
             }
-        )
+        );
 
         function saveManualCountDetailByAdminObjId (adminObjId, manualSubmitData, manualApprovalData, manualCancelData, startDate, endDate) {
             return Promise.all([
@@ -4554,6 +4563,71 @@ var dbQualityInspection = {
                     data: retData && retData[0] ? retData[0] : [],
                     size: retData && retData[1] ? retData[1] : 0
                 }
+            }
+        )
+    },
+
+    summarizeManualProcessRecord: function (startDate, endDate) {
+        let adminObjIdArr = [];
+        // let proms =[];
+        let dayStartTime = new Date (startDate);
+
+        let getNextDate = function (date) {
+            let newDate = new Date(date);
+            return new Date(newDate.setDate(newDate.getDate() + 1));
+        };
+
+        let totalDays = dbUtility.getNumberOfDays(startDate, endDate);
+
+        return dbconfig.collection_platform.find({}, {csDepartment: 1}).populate({
+            path: "csDepartment",
+            model: dbconfig.collection_department
+        }).lean().then(
+            platformList => {
+                if (platformList && platformList.length) {
+                    platformList.forEach(
+                        platform => {
+                            if (platform && platform.csDepartment && platform.csDepartment.length){
+                                platform.csDepartment.forEach(
+                                    csDepartment => {
+                                        if (csDepartment && csDepartment.users && csDepartment.users.length){
+                                            csDepartment.users.forEach(
+                                                adminObjId => {
+                                                    let index = adminObjIdArr.findIndex(p => p == adminObjId);
+                                                    if (index == -1){
+                                                        adminObjIdArr.push(adminObjId)
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+        ).then(
+            () => {
+                if (adminObjIdArr && adminObjIdArr.length){
+                    let partialProcessProm = Promise.resolve();
+                    for(let x = 0; x < totalDays; x++){
+                        let newStartTime = dayStartTime;
+                        let dayEndTime = getNextDate.call(this, dayStartTime);
+                        partialProcessProm = partialProcessProm.then(() => {return dbQualityInspection.getManualProposalDailySummaryRecord(newStartTime, dayEndTime, adminObjIdArr)});
+                        dayStartTime = dayEndTime;
+                    }
+                    return partialProcessProm;
+                }
+            }
+        ).catch(
+            err => {
+                console.log("Error when summarizing manual process record; Error: ", err);
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Error when summarizing manual process record",
+                    error: err
+                })
             }
         )
     },
