@@ -13527,7 +13527,8 @@ let dbPlayerInfo = {
                     && data.status !== constProposalStatus.FAIL
                 ) {
                     prop = data;
-                    console.log("check pms2 update player 1", status)
+                    console.log("check pms2 update player 1", status);
+                    console.log('check proposal::', proposalId, data.status, data.createTime, data._id, lastSettleTime);
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: data._id, createTime: data.createTime},
                         {
