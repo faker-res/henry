@@ -1,0 +1,46 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+div(ng-if="vm.curPlatformText")
+    .col-md-12.well(ng-show="checkViewPermission('QualityInspection', 'ManualProcessReport', 'Read')")
+        .search-filters-item
+            label FPMS {{'CS Account' | translate}}
+            select.spicker.form-control(ng-model='vm.selectedCS', ng-options='v._id as v.adminName for v in vm.csList', multiple, data-actions-box='true', bsp,ng-init='vm.endLoadMultipleSelect()')
+        .search-filters-item
+            label {{'START_DATE' | translate}}
+            #manualProcessRecordStartDatetimePicker.input-append.form-control
+                input(data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                span.add-on
+                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filters-item
+            label {{'END_DATE' | translate}}
+            #manualProcessRecordEndDatetimePicker.input-append.form-control
+                input(data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                span.add-on
+                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .text-right.widthto100
+            label &nbsp;
+            button.btn.btn-primary.btn-space(ng-click='vm.getManualProcessRecord(true)' ng-show="checkViewPermission('QualityInspection', 'ManualProcessReport', 'Read')") {{'SEARCH' | translate}}
+            span#manualProcessReportTableSpin.collapse
+                i.fa.fa-spinner.fa-spin
+    .clearfix
+    label {{"Total" | translate}} {{vm.manualProcessRecordData.size}} {{"records" | translate}}
+    table#manualProcessReportTable.common-table.display(style="min-width:100% ;overflow: scroll")
+    #manualProcessReportTablePage
+
+
+#modalManualProposalTable.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', ng-click='vm.closeManualProposalTable("#modalManualProposalTable")')
+                h4.modal-title FPMS {{'CS Account' | translate}} : {{vm.manualProposalData.adminName}} ({{vm.manualProposalData.countType |translate}})
+            .modal-body
+                .panel.panel-primary(style="border-radius:0 !important;")
+                    .panel-body
+                        div
+                            span#manualProposalTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                            label {{"Total" | translate}} {{vm.manualProposalData.size}} {{"records" | translate}}
+                            table#manualProposalTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
+                            #manualProposalTablePage

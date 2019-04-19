@@ -35,6 +35,14 @@
                             a.common-tab(data-toggle="tab", href="#WechatConversationReport", ng-click="vm.qualityInspectionPageName='WECHAT CONVERSATION ANALYSIS REPORT';vm.updatePageTile();vm.initWechatConversationReport();")
                                 .fa.fa-table.margin-right-5
                                 text.span {{"WECHAT CONVERSATION ANALYSIS REPORT" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'CsAudioRecordingSystem', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#CsAudioSystem", ng-click="vm.qualityInspectionPageName='CS AUDIO RECORDING SYSTEM';vm.updatePageTile(); vm.audioSystemTab = 'audioRecord'; vm.initCSAudioSystem();")
+                                .fa.fa-table.margin-right-5
+                                text.span {{"CS AUDIO RECORDING SYSTEM" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'ManualProcessReport', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#ManualProcessReport", ng-click="vm.qualityInspectionPageName='MANUAL PROCESS REPORT';vm.updatePageTile(); vm.initManualProcessReport();")
+                                .fa.fa-table.margin-right-5
+                                text.span {{"MANUAL PROCESS REPORT" | translate}}
 
                 .panel-body.common-right-panel-body
                     div.tab-content
@@ -52,3 +60,7 @@
                             include ./inspection-wechatRecord
                         #WechatConversationReport.tab-pane.fade
                             include ./inspection-wechatAnalysisReport
+                        #CsAudioSystem.tab-pane.fade
+                            include ./inspection-csAudioRecordingSystem
+                        #ManualProcessReport.tab-pane.fade
+                            include ./inspection-manualProcessReport

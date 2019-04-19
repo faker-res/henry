@@ -75,6 +75,17 @@
   "SEARCH_SINGLE": "单一搜索",
   "SEARCH_LIST": "列表展示",
 
+  "CS AUDIO RECORDING SYSTEM": "客服电话录音系统",
+  "AUDIO RECORD": "电话录音记录",
+  "REPORT OF AUDIO RECORDING SYSTEM": "电话录音工作量报表",
+  "CS AUDIO SYSTEM": "列表展示",
+  "CS AUDIO SYSTEM": "列表展示",
+  "MANUAL PROCESS REPORT": "人工审核报表",
+  "Manual Submit Count": "人工提交（提交审核）",
+  "Manual Approval Count": "人工审核（通过提案）",
+  "Manual Cancel Count": "人工审核（取消提案）",
+  "Manual Process Count": "人工处理个数（总）",
+
   "DAYS": "天",
   "DAYS_AND_ABOVE": "天以上",
   "NUMBER_OF_APPLICATION": "申请笔数",
