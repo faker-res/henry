@@ -1,0 +1,90 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+div(ng-if="vm.curPlatformText")
+    .col-md-12.well(ng-show="checkViewPermission('QualityInspection', 'ManualProcessReport', 'Read')")
+        .search-filters-item
+            label FPMS {{'CS Account' | translate}}
+            select.spicker.form-control(ng-model='vm.selectedCS', ng-options='v._id as v.adminName for v in vm.csList', multiple, data-actions-box='true', bsp,ng-init='vm.endLoadMultipleSelect()')
+        .search-filters-item
+            label {{'START_DATE' | translate}}
+            #manualProcessRecordStartDatetimePicker.input-append.form-control
+                input(data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                span.add-on
+                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filters-item
+            label {{'END_DATE' | translate}}
+            #manualProcessRecordEndDatetimePicker.input-append.form-control
+                input(data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                span.add-on
+                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .text-right.widthto100
+            label &nbsp;
+            button.btn.btn-primary.btn-space(ng-click='vm.getManualProcessRecord(true)' ng-show="checkViewPermission('QualityInspection', 'ManualProcessReport', 'Read')") {{'SEARCH' | translate}}
+            span#manualProcessReportTableSpin.collapse
+                i.fa.fa-spinner.fa-spin
+    .clearfix
+    label {{"Total" | translate}} {{vm.manualProcessRecordData.size}} {{"records" | translate}}
+    table#manualProcessReportTable.common-table.display(style="min-width:100% ;overflow: scroll")
+    #manualProcessReportTablePage
+
+
+#modalManualProposalTable.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', ng-click='vm.closeManualProposalTable("#modalManualProposalTable")')
+                h4.modal-title FPMS {{'CS Account' | translate}} : {{vm.manualProposalData.adminName}} ({{vm.manualProposalData.countType |translate}})
+            .modal-body
+                .panel.panel-primary(style="border-radius:0 !important;")
+                    .panel-body
+                        div
+                            span#manualProposalTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                            label {{"Total" | translate}} {{vm.manualProposalData.size}} {{"records" | translate}}
+                            table#manualProposalTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
+                            #manualProposalTablePage
+
+#modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label {{vm.selectedProposal.type.name | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+                        li(ng-if='vm.chartData')
+                            a(data-toggle="tab", href="#Workflow", ng-click="")
+                                .fa.fa-user
+                                | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            #ProposalDetail.tab-pane.fade.in.active
+                                include ../player/proposal-dialog-detail
+            .modal-footer
+                .inlineBlk(ng-show='vm.selectedProposal.isLocked && !vm.selectedProposal.showUnlockBtn')
+                    label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
+                .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
+                    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
+                button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
+                .inlineBlk(ng-if='vm.selectedProposal.cancelling')
+                    label {{'Cancelling Proposal' | translate}}
+                    i.fa.fa-spin.fa-2x.fa-spinner
+                label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
+                button.btn.btn-success.common-button(ng-if="vm.showCopyProposal()" ng-click="vm.copyTopUpProposal()") {{"COPY_TO_CLIPBOARD" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
+                .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
+                    label.inlineBlk {{'remark' | translate}}
+                    input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
+
+

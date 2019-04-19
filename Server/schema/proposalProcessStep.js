@@ -8,9 +8,9 @@ var proposalProcessStepSchema = new Schema({
     // Remark by the Admin
     memo: String,
     // Assigned admin who process this step
-    operator:  {type:Schema.Types.ObjectId, ref:'adminInfo'},
+    operator:  {type:Schema.Types.ObjectId, ref:'adminInfo', index: true},
     // Operation Time
-    operationTime: {type: Date, default: Date.now},
+    operationTime: {type: Date, default: Date.now, index: true},
     // Id of the Proposal Process
     type : {type:Schema.Types.ObjectId, ref:'proposalTypeProcessStep', required: true, index: true},
     //next step if approve

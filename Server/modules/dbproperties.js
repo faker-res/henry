@@ -197,6 +197,9 @@ let keywordFilterModel = db_admin.model('keywordFilter', keywordFilterSchema, 'k
 let geoIpSchema = require('./../schema/geoip');
 let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 
+let activeConfigSchema = require('./../schema/activeConfig');
+let activeConfigModel = db_admin.model('activeConfig', activeConfigSchema, 'activeConfig');
+
 let platformQuickPayGroupSchema = require('./../schema/platformQuickPayGroup');
 let platformQuickPayGroupModel = db_admin.model('platformQuickPayGroup', platformQuickPayGroupSchema, 'platformQuickPayGroup');
 
@@ -479,6 +482,9 @@ let dxPhoneModel = dbLogs2.model('dxPhone', dxPhoneSchema, 'dxPhone');
 let apiResponseLogSchema = require('./../schema/logs2/apiResponseLog');
 let apiResponseLogModel = dbLogs2.model('apiResponseLog', apiResponseLogSchema, 'apiResponseLog');
 
+let manualProcessDailySummaryRecordSchema = require('./../schema/logs2/manualProcessDailySummaryRecord');
+let manualProcessDailySummaryRecordModel = dbLogs2.model('manualProcessDailySummaryRecord', manualProcessDailySummaryRecordSchema, 'manualProcessDailySummaryRecord');
+
 let playerConsumptionSlipRewardGroupRecordSchema = require('./../schema/logs2/playerConsumptionSlipRewardGroupRecord');
 let playerConsumptionSlipRewardGroupRecordModel = dbLogs2.model('playerConsumptionSlipRewardGroupRecord', playerConsumptionSlipRewardGroupRecordSchema, 'playerConsumptionSlipRewardGroupRecord');
 
@@ -658,6 +664,7 @@ var dbProperties = {
     collection_promoCodeUserGroup: promoCodeUserGroupModel,
 
     collection_keywordFilter: keywordFilterModel,
+    collection_activeConfig: activeConfigModel,
 
     collection_dxMission: dxMissionModel,
     collection_dxPhone: dxPhoneModel,
@@ -793,6 +800,7 @@ var dbProperties = {
     collection_wcGroupControlPlayerWechat: wcGroupControlPlayerWechatModel,
     collection_baccaratConsumption: baccaratConsumptionModel,
 
+    collection_manualProcessDailySummaryRecord: manualProcessDailySummaryRecordModel,
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
     collection_live800RecordDayRecord: scheduledLive800DailyRecordModel,

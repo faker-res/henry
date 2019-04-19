@@ -4,24 +4,34 @@ const extConfig = require('../../config/externalPayment/paymentSystems');
 
 const paymentSystemId = 4;
 
-function getMainDomain () {
-    return extConfig[paymentSystemId].mainDomain;
+function getMainDomain (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].mainDomain;
 }
 
-function getSubDomain () {
-    return extConfig[paymentSystemId].subDomain;
+function getSubDomain (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].subDomain;
 }
 
-function getMainTopupLobbyAddress () {
-    return extConfig[paymentSystemId].topUpAPIAddr;
+function getMainTopupLobbyAddress (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].topUpAPIAddr;
 }
 
-function getSubTopupLobbyAddress () {
-    return extConfig[paymentSystemId].topUpAPIAddr2;
+function getSubTopupLobbyAddress (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].topUpAPIAddr2;
 }
 
-function get3rdTopupLobbyAddress () {
-    return extConfig[paymentSystemId].topUpAPIAddr3;
+function get3rdTopupLobbyAddress (paymentSystemKey) {
+    let tempId = paymentSystemKey ? paymentSystemKey : paymentSystemId;
+
+    return extConfig[tempId].topUpAPIAddr3;
 }
 
 function requestWithPromise (domain, paramStr) {
@@ -61,10 +71,10 @@ function sendRequest (paramStr) {
     );
 }
 
-function postRequest (reqData, urlName, method) {
+function postRequest (reqData, urlName, method, paymentSystemKey) {
     let options = {
         method: method,
-        uri: getMainDomain().concat(urlName),
+        uri: getMainDomain(paymentSystemKey).concat(urlName),
         body: reqData,
         json: true // Automatically stringifies the body to JSON
     };
@@ -78,8 +88,8 @@ function postRequest (reqData, urlName, method) {
         err => {
             console.log(`${urlName} 1ST FAILED: ${err}`);
 
-            if (getSubDomain()) {
-                options.uri = getSubDomain().concat(urlName);
+            if (getSubDomain(paymentSystemKey)) {
+                options.uri = getSubDomain(paymentSystemKey).concat(urlName);
 
                 return rp(options).then(
                     data => {
@@ -112,25 +122,25 @@ function getMinMax (reqData) {
     return sendRequest(paramStr);
 }
 
-async function getTopupLobbyAddress () {
-    if (await pingDomain(getMainTopupLobbyAddress())) {
-        return getMainTopupLobbyAddress();
+async function getTopupLobbyAddress (paymentSystemKey) {
+    if (await pingDomain(getMainTopupLobbyAddress(paymentSystemKey))) {
+        return getMainTopupLobbyAddress(paymentSystemKey);
     }
 
-    if (await pingDomain(getSubTopupLobbyAddress())) {
-        return getSubTopupLobbyAddress();
+    if (await pingDomain(getSubTopupLobbyAddress(paymentSystemKey))) {
+        return getSubTopupLobbyAddress(paymentSystemKey);
     }
 
-    if (await pingDomain(get3rdTopupLobbyAddress())) {
-        return get3rdTopupLobbyAddress();
+    if (await pingDomain(get3rdTopupLobbyAddress(paymentSystemKey))) {
+        return get3rdTopupLobbyAddress(paymentSystemKey);
     }
 
     // If things goes wrong, just return main address
-    return getMainTopupLobbyAddress();
+    return getMainTopupLobbyAddress(paymentSystemKey);
 }
 
-function postWithdraw (reqData) {
-    return postRequest(reqData, 'withdraw-proposal', 'POST');
+function postWithdraw (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'withdraw-proposal', 'POST', paymentSystemKey);
 }
 
 function patchTopupStatus (reqData) {

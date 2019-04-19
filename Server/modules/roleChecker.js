@@ -309,6 +309,7 @@ var roleChecker = {
             },
             "Report": {
                 PLAYERPARTNER_REPORT: [],
+                PARTNERPLAYERBOUNS_REPORT: [],
             },
         },
         Platform: {
@@ -876,6 +877,12 @@ var roleChecker = {
             },
             WechatConversationReport: {
                 Read: ['getWechatDeviceNickNameList', 'getWechatConversationReport']
+            },
+            CsAudioRecordingSystem: {
+                Read: []
+            },
+            ManualProcessReport: {
+                Read: []
             }
         },
         TeleMarketing: {

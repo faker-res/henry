@@ -673,7 +673,7 @@ const dbPlayerPayment = {
                         if (player && player.platform && player.platform.topUpSystemType && extConfig
                             && extConfig[player.platform.topUpSystemType]
                         ) {
-                            paymentUrl = await RESTUtils.getPMS2Services("getTopupLobbyAddress");
+                            paymentUrl = await RESTUtils.getPMS2Services("getTopupLobbyAddress", player.platform.topUpSystemType);
                         }
 
                         let returnData = {
@@ -870,18 +870,25 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
     paramString += clientType + delimiter;
     paramString += ipAddress + delimiter;
     paramString += amount + delimiter;
-    if (playerData && playerData.platform && playerData.platform.topUpSystemType && extConfig &&
-        extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].name && extConfig[playerData.platform.topUpSystemType].name === 'PMS2') {
-        paramString += proposalData.proposalId + delimiter;
-        paramString += proposalData.entryType + delimiter;
-        paramString += proposalData.createTime.getTime()
-    } else {
-        paramString += proposalData.proposalId
-    }
+    paramString += proposalData.proposalId + delimiter;
+    paramString += proposalData.entryType + delimiter;
+    paramString += proposalData.createTime.getTime();
 
-    let encryptedParamString = "tk=".concat(jwt.sign(paramString, constSystemParam.PMS2_AUTH_SECRET_KEY));
+    let encryptedParamString = "tk=".concat(jwt.sign(paramString, getSecret(playerData, extConfig)));
 
     return url.concat(encryptedParamString);
+
+    function getSecret (playerData, extConfig) {
+        if (extConfig[playerData.platform.topUpSystemType].name === 'PMS2') {
+            return constSystemParam.PMS2_AUTH_SECRET_KEY;
+        }
+
+        if (extConfig[playerData.platform.topUpSystemType].name === 'DAYOU') {
+            return constSystemParam.DAYOU_AUTH_SECRET_KEY;
+        }
+
+        return constSystemParam.PMS2_AUTH_SECRET_KEY;
+    }
 }
 
 module.exports = dbPlayerPayment;

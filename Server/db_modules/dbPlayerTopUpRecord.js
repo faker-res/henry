@@ -746,6 +746,8 @@ var dbPlayerTopUpRecord = {
             queryObj = await getProposalQ(query);
         }
 
+        console.log('queryObj', queryObj);
+
         let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
         let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
         let totalAmountProm = dbconfig.collection_proposal.aggregate({$match: queryObj}, {

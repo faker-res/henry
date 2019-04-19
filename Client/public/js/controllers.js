@@ -412,6 +412,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $scope.$evalAsync($scope.selectPlatformNode(data));
             $scope.showPlatformDropDownList = false;
         });
+        sendProfitData()
     };
 
     $scope.createPlatformNode = function (v) {
@@ -458,7 +459,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $scope.safeApply();
             return;
         }
-        loadProfitDetail();
+
         loadPlatformInfo();
         $scope.getUsableChannelList();
         $scope.$broadcast('switchPlatform');
@@ -918,6 +919,27 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         海南: ["海口"],
         香港: ["香港"],
         西藏: ["拉萨", "日喀则地区", "山南地区", "林芝地区", "昌都", "那曲地区", "阿里地区"]
+    };
+
+    $scope.constNavigationTag = {
+        1: {name: "优惠活动", type: "功能"},
+        2: {name: "优惠详情", type: "网页"},
+        3: {name: "赛事直播", type: "功能"},
+        4: {name: "体育赛事", type: "功能"},
+        5: {name: "真人", type: "功能"},
+        6: {name: "棋牌", type: "功能"},
+        7: {name: "电子", type: "功能"},
+        8: {name: "捕鱼", type: "功能"},
+        9: {name: "充值", type: "功能"},
+        10: {name: "提款", type: "功能"},
+        11: {name: "绑定手机号", type: "功能"},
+        12: {name: "绑定银行卡", type: "功能"},
+        13: {name: "客服", type: "功能"},
+        14: {name: "在线客服", type: "网页"},
+        15: {name: "任务", type: "功能"},
+        16: {name: "商城", type: "功能"},
+        17: {name: "分享", type: "功能"},
+        18: {name: "代理", type: "功能"}
     };
 
     // $scope.consumptionRecordProviderName = {
@@ -1896,13 +1918,34 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     var callBackTimeOut;
     var profileDetailTimeOut;
-    function loadProfitDetail() {
+
+
+    async function sendProfitData(){
+        let amountLeft = 0;
+        for (let i=0; i<$scope.platformList.length; i++){
+            await new Promise((resolve,reject) => {
+                setTimeout(() => {
+                    // console.log($scope.platformList[i].id);
+                    loadProfitDetail($scope.platformList[i].id, $scope.platformList[i].text);
+                    amountLeft++;
+                    // console.log(amountLeft);
+                    resolve(amountLeft);
+                }, 30000);
+            });
+        }
+        sendProfitData()
+    }
+
+
+    function loadProfitDetail(id, text) {
+
+
         clearTimeout(callBackTimeOut);
         clearTimeout(profileDetailTimeOut);
 
         let queryDone = [false, false, false, false, false];
         let sendData = {
-            platformId: $scope.selectedPlatform.id,
+            platformId: id,
             startDate: utilService.getTodayStartTime(),
             endDate: utilService.getTodayEndTime(),
         };
@@ -1918,6 +1961,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 $scope.profitDetailIncome = 0;
                 $scope.profitDetailBonusAmount =  0;
                 $scope.profitDetailTopUpAmount = 0;
+                $scope.platformTexts = text ;
 
                 let playerBonusAmount = data.data[0][0] !== undefined ? data.data[0][0].amount : 0;
                 let topUpAmount = data.data[1][0] !== undefined ? data.data[1][0].amount : 0;
@@ -1928,7 +1972,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 $scope.profitDetailTopUpAmount = noDecimalPlacesString(topUpAmount);
 
                 let sendData3 = {
-                    platformId: $scope.selectedPlatform.id,
+                    platformId: id,
                     startDate: utilService.getThisMonthStartTime(),
                     endDate: utilService.getThisMonthEndTime(),
                     topUpType: ['PlayerTopUp', 'ManualPlayerTopUp', 'PlayerAlipayTopUp', 'PlayerWechatTopUp'],
@@ -1965,7 +2009,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         });
 
         let sendData2 = {
-            platform: $scope.selectedPlatform.id,
+            platform: id,
             startDate: utilService.getTodayStartTime(),
             endDate: utilService.getTodayEndTime(),
         };
@@ -1978,7 +2022,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             })
         });
 
-        socketService.$socket($scope.AppSocket, 'getOnePlatformSetting', {_id: $scope.selectedPlatform.id}, function success(data) {
+        socketService.$socket($scope.AppSocket, 'getOnePlatformSetting', {_id: id}, function success(data) {
             $scope.$evalAsync(() => {
                 $scope.financialPoints = data.data.financialPoints || 0;
                 if (data.data.hasOwnProperty("financialPoints") && data.data.financialSettlement && !data.data.financialSettlement.financialSettlementToggle && data.data.financialSettlement.hasOwnProperty("minFinancialPointsNotification")

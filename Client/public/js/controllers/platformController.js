@@ -37,6 +37,11 @@ define(['js/app'], function (myApp) {
                 OPTIONAL_REGISTRATION: 6
             };
 
+            vm.constSystemRewardEventGroup = {
+                DEFAULT: "defaultRewardEventGroup*",
+                ENDED: "endedRewardEventGroup*",
+            };
+
             vm.constXBETAdvertisementType = {
                 MAIN_PAGE_AD: 1,
                 FIRST_TIME_AD: 2,
@@ -542,6 +547,13 @@ define(['js/app'], function (myApp) {
             vm.prepareToBeDeletedProviderGroupId = [];
 
             vm.longestDelayStatus = "rgb(0,180,0)";
+
+            vm.deviceType = {
+                1: "WEB",
+                2: "H5",
+                5: "ANDROID APP",
+                6: "IOS APP",
+            };
 
             // Basic library functions
             var Lodash = {
@@ -21328,9 +21340,9 @@ define(['js/app'], function (myApp) {
                 if (rewardEventObj && rewardEventObj._id && vm.showRewardEventGroup) {
                     if (!vm.showRewardEventGroup._id && vm.groupedRewardEvent.indexOf(String(rewardEventObj._id)) == -1) {
                         let isExpiredRewardEvent = vm.expiredRewardEventList.includes(String(rewardEventObj._id));
-                        if (isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == "已结束优惠组*") {
+                        if (isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == vm.constSystemRewardEventGroup.ENDED) {
                             isShow = true;
-                        } else if (!isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == "默认组别*"){
+                        } else if (!isExpiredRewardEvent && vm.showRewardEventGroup.name && vm.showRewardEventGroup.name == vm.constSystemRewardEventGroup.DEFAULT){
                             isShow = true;
                         }
                     } else if (vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.indexOf(String(rewardEventObj._id)) > -1) {
@@ -21605,6 +21617,9 @@ define(['js/app'], function (myApp) {
                                             playerLevels[level._id] = level.name;
                                         }
                                         result = playerLevels;
+                                        break;
+                                    case "deviceType":
+                                        result = vm.deviceType;
                                         break;
                                     default:
                                         result = $scope[cond.options];
@@ -34874,7 +34889,10 @@ define(['js/app'], function (myApp) {
                                 hyperLink: vm.playerAdvertisementGroup.backgroundHyperLink ? vm.playerAdvertisementGroup.backgroundHyperLink : ""
                             },
                             imageButton: vm.playerAdvertisementGroup.imageButton ? vm.playerAdvertisementGroup.imageButton : [],
-                            inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
+                            inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"],
+                            navigateMainType: vm.playerAdvertisementGroup.navigateMainType ? vm.playerAdvertisementGroup.navigateMainType : "",
+                            navigateSubtype: vm.playerAdvertisementGroup.navigateSubtype ? vm.playerAdvertisementGroup.navigateSubtype : "",
+                            type: vm.playerAdvertisementGroup.type ? vm.playerAdvertisementGroup.type : "",
                         }
 
                         if (query.imageButton) {
@@ -35027,6 +35045,14 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 });
+            }
+
+            vm.getPlayerAdTooltips = function () {
+                vm.playerNavigationTagToolTips = "";
+                for (let key in $scope.constNavigationTag) {
+                    vm.playerNavigationTagToolTips += $translate("VALUE") + ": " + key + "\t" + $translate("NAME") + ": " + $scope.constNavigationTag[key].name
+                        + "\t\t" + $translate("TYPE") + ": " + $scope.constNavigationTag[key].type + "\n";
+                }
             }
 
             vm.selectedAdvListData = function (id, subject) {
