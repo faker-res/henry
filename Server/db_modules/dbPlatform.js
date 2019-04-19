@@ -2457,7 +2457,7 @@ var dbPlatform = {
         return dbconfig.collection_playerPageAdvertisementInfo.remove({_id: advertisementId, platformId: platformId});
     },
 
-    savePlayerAdvertisementRecordChanges: function (platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice, showInRealServer) {
+    savePlayerAdvertisementRecordChanges: function (platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice, showInRealServer, navigateMainType, navigateSubtype) {
 
         let query = {
             platformId: platformId,
@@ -2471,7 +2471,9 @@ var dbPlatform = {
             backgroundBannerImage: backgroundBannerImage,
             imageButton: imageButton,
             inputDevice: inputDevice,
-            showInRealServer: showInRealServer
+            showInRealServer: showInRealServer,
+            navigateMainType: navigateMainType,
+            navigateSubtype: navigateSubtype
         }
         return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query, updateData).then(
             platformObj => {

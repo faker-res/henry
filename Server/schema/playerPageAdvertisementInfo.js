@@ -22,6 +22,10 @@ var playerPageAdvertisementInfoSchema = new Schema({
     status: {type: Number, default: 0, required: true},
     //if this ads show in production server
     showInRealServer: {type: Boolean, default: true},
+    // navigation (main type) tag for XBET APP
+    navigateMainType: {type: String},
+    // navigation (subtype) tag for XBET APP
+    navigateSubtype: {type: String}
 });
 
 module.exports = playerPageAdvertisementInfoSchema;
