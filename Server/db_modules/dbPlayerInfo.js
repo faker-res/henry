@@ -20013,7 +20013,12 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.amount"}
                     }
                 }
-            ]).read("secondaryPreferred");
+            ]).read("secondaryPreferred").then(
+                data => {
+                    console.log('done topUpProm');
+                    return data;
+                }
+            );
 
             let bonusProm = dbconfig.collection_proposal.aggregate([
                 {
