@@ -19986,7 +19986,12 @@ let dbPlayerInfo = {
                         bonusAmount: {$sum: "$bonusAmount"}
                     }
                 }
-            ]).allowDiskUse(true).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred").then(
+                data => {
+                    console.log('done consumptionProm');
+                    return data;
+                }
+            );
 
             let topUpProm = dbconfig.collection_proposal.aggregate([
                 {
