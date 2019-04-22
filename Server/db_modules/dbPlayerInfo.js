@@ -19959,6 +19959,9 @@ let dbPlayerInfo = {
         );
 
         function getPlayerRecord(playerObjId, startTime, endTime, domain, showPlatformFeeEstimate) {
+
+            console.log('getConsumptionDetailOfPlayers getPlayerRecord - start');
+
             let result = {_id: playerObjId};
             playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
             let onlineTopUpTypeId = "";
