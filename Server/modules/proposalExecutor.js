@@ -1579,7 +1579,7 @@ var proposalExecutor = {
                                     status: proposalData.status,
                                     playerId: proposalData.data.playerId
                                 }
-                            ).catch(errorUtils.reportError);
+                            )//.catch(errorUtils.reportError);
                         }
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
@@ -2169,13 +2169,8 @@ var proposalExecutor = {
                         };
 
                        console.log('withdrawAPIAddr player req:', message);
-                       let paymentSystemId;
-                       if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'DAYOU') {
-                           paymentSystemId = bonusSystemType;
-                       }
-                       console.log('withdrawAPIAddr player paymentSystemId', paymentSystemId);
 
-                       return RESTUtils.getPMS2Services('postWithdraw', message, paymentSystemId).then(
+                       return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
                            function (bonusData) {
                                console.log('bonus post success', bonusData);
                                if (bonusData) {
@@ -2285,13 +2280,7 @@ var proposalExecutor = {
 
                         console.log('withdrawAPIAddr partner req:', message);
 
-                        let paymentSystemId;
-                        if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'DAYOU') {
-                            paymentSystemId = bonusSystemType;
-                        }
-                        console.log('withdrawAPIAddr partner paymentSystemId', paymentSystemId);
-
-                        return RESTUtils.getPMS2Services('postWithdraw', message, paymentSystemId).then(
+                        return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
                             function (bonusData) {
                                 console.log('partner bonus post success', bonusData);
                                 if (bonusData) {
@@ -3116,6 +3105,7 @@ var proposalExecutor = {
                                             newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
                                             newPromoCodeEntry.platformObjId = platformObjId;
                                             newPromoCodeEntry.promoCodeTemplateObjId = promoCodeTemplate._id;
+                                            newPromoCodeEntry.hasPromoCodeTemplateObjId = true;
                                             newPromoCodeEntry.isSharedWithXIMA = promoCodeTemplate.isSharedWithXIMA;
                                             newPromoCodeEntry.disableWithdraw = promoCodeTemplate.disableWithdraw;
                                             newPromoCodeEntry.requiredConsumption = promoCodeTemplate.requiredConsumption;
@@ -3979,6 +3969,7 @@ var proposalExecutor = {
                                 newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
                                 newPromoCodeEntry.platformObjId = platformObjId;
                                 newPromoCodeEntry.promoCodeTemplateObjId = promoCodeTemplateData._id;
+                                newPromoCodeEntry.hasPromoCodeTemplateObjId = true;
                                 newPromoCodeEntry.isSharedWithXIMA = promoCodeTemplateData.isSharedWithXIMA;
                                 newPromoCodeEntry.disableWithdraw = promoCodeTemplateData.disableWithdraw;
                                 newPromoCodeEntry.requiredConsumption = promoCodeTemplateData.requiredConsumption;
@@ -4618,6 +4609,7 @@ var proposalExecutor = {
              */
             rejectPlayerTopUp: function (proposalData, deferred) {
                 var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                let paymentSystemId;
                 if (wsMessageClient) {
                     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
                         {
@@ -4630,11 +4622,15 @@ var proposalExecutor = {
                     );
                 }
 
+                if (proposalData && proposalData.data && proposalData.data.topUpSystemType) {
+                    paymentSystemId = proposalData.data.topUpSystemType;
+                }
+
                 // pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
                 //     deferred.resolve, deferred.reject
                 // );
 
-                RESTUtils.getPMS2Services("postCancelTopup", {proposalId: proposalData.proposalId}).then(deferred.resolve, deferred.reject);
+                RESTUtils.getPMS2Services("postCancelTopup", {proposalId: proposalData.proposalId}, paymentSystemId).then(deferred.resolve, deferred.reject);
             },
 
             rejectPlayerFKPTopUp: function (proposalData, deferred) {
@@ -4662,12 +4658,12 @@ var proposalExecutor = {
                 //     );
                 // }
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType
-                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName !== 'FPMS') {
                     let data = {
                         proposalId: proposalData.proposalId
                     };
 
-                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
+                    return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType).then(deferred.resolve, deferred.reject);
                 } else {
                     //deduct alipay daily quota
                     if (proposalData.data && proposalData.data.alipayAccount && proposalData.data.platform && proposalData.data.amount) {
@@ -4705,12 +4701,12 @@ var proposalExecutor = {
                 //     );
                 // }
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType
-                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName !== 'FPMS') {
                     let data = {
                         proposalId: proposalData.proposalId
                     };
 
-                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
+                    return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType).then(deferred.resolve, deferred.reject);
                 } else {
                     //deduct wechatpay daily quota
                     if (proposalData.data && proposalData.data.weChatAccount && proposalData.data.platform && proposalData.data.amount) {
@@ -4754,12 +4750,12 @@ var proposalExecutor = {
              */
             rejectManualPlayerTopUp: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType
-                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName !== 'FPMS') {
                     let data = {
                         proposalId: proposalData.proposalId
                     };
 
-                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
+                    return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType).then(deferred.resolve, deferred.reject);
                 } else {
                     //deduct bank daily quota
                     if (proposalData.data && proposalData.data.bankCardNo && proposalData.data.platform && proposalData.data.amount) {
@@ -4785,12 +4781,12 @@ var proposalExecutor = {
              */
             rejectPlayerAssignTopUp: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType
-                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName !== 'FPMS') {
                     let data = {
                         proposalId: proposalData.proposalId
                     };
 
-                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
+                    return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType).then(deferred.resolve, deferred.reject);
                 } else {
                     //deduct bank daily quota
                     if (proposalData.data && proposalData.data.bankCardNo && proposalData.data.platform && proposalData.data.amount) {

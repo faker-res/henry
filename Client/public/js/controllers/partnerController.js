@@ -11801,7 +11801,7 @@ define(['js/app'], function (myApp) {
             config.rateAfterRebateGameProviderGroup.forEach(e => {
                 let src = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup.filter(grp => String(grp.gameProviderGroupId) === String(e.gameProviderGroupId))[0];
 
-                if (e.rate != src.rate) {
+                if (src && e.rate != src.rate) {
                     isDelete = false;
                 }
             });

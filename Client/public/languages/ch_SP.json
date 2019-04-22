@@ -85,6 +85,9 @@
   "Manual Approval Count": "人工审核（通过提案）",
   "Manual Cancel Count": "人工审核（取消提案）",
   "Manual Process Count": "人工处理个数（总）",
+  "MANUAL_SUMMARIZE_MANUAL_PROCESS_RECORD": "手动收录人工审核记录",
+  "CsAudioRecordingSystem": "客服电话录音系统",
+  "ManualProcessReport": "人工审核报表",
 
   "DAYS": "天",
   "DAYS_AND_ABOVE": "天以上",

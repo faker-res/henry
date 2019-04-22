@@ -882,7 +882,8 @@ var roleChecker = {
                 Read: []
             },
             ManualProcessReport: {
-                Read: []
+                Read: ['getManualProcessRecord', 'getManualProcessProposalDetail'],
+                Edit: ['summarizeManualProcessRecord'],
             }
         },
         TeleMarketing: {

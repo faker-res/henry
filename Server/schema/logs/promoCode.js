@@ -26,6 +26,8 @@ let promoCodeSchema = new Schema({
         ],
         index: true
     },
+    //if promo code template obj id exists
+    hasPromoCodeTemplateObjId: {type: Boolean, index: true, default: false},
     // promo code reward amount
     amount: {type: Number, required: true},
     // promo code minimum top up amount
@@ -82,10 +84,12 @@ let promoCodeSchema = new Schema({
     remark: {type: String},
     //auto feedback mission obj id
     autoFeedbackMissionObjId: {type: Schema.ObjectId, index: true},
+    //if auto feedback mission obj id exists
+    hasAutoFeedbackMissionObjId: {type: Boolean, index: true, default: false},
     //auto feedback schedule number (first, second, or third time)
     autoFeedbackMissionScheduleNumber: {type: Number, index: true},
     //match with login
-    autoFeedbackMissionLogin: {type: Boolean, index: true},
+    autoFeedbackMissionLogin: {type: Boolean, index: true, default: false},
     //match with top up
     autoFeedbackMissionTopUp: {type: Boolean, index: true},
     // sms channel
@@ -94,6 +98,6 @@ let promoCodeSchema = new Schema({
 
 promoCodeSchema.index({platformObjId: 1, createTime: 1});
 promoCodeSchema.index({promoCodeTemplateObjId: 1});
-promoCodeSchema.index({platformObjId: 1, playerObjId: 1, promoCodeTemplateObjId: 1, autoFeedbackMissionObjId: 1, autoFeedbackMissionLogin: 1});
+promoCodeSchema.index({platformObjId: 1, playerObjId: 1, hasPromoCodeTemplateObjId: 1, hasAutoFeedbackMissionObjId: 1, autoFeedbackMissionLogin: 1});
 
 module.exports = promoCodeSchema;
