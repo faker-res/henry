@@ -19946,15 +19946,7 @@ let dbPlayerInfo = {
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
                 },
-                $or: [
-                    {isDuplicate: {$exists: false}},
-                    {
-                        $and: [
-                            {isDuplicate: {$exists: true}},
-                            {isDuplicate: false}
-                        ]
-                    }
-                ]
+                isDuplicate: {$ne: true}
             };
 
             query.providerId ? consumptionPromMatchObj.providerId = ObjectId(query.providerId) : false;
