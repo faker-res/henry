@@ -17453,29 +17453,6 @@ let dbPlayerInfo = {
             getPlayerProm = dbconfig.collection_players.find(playerQuery, {_id: 1}).lean();
         }
 
-        // function getPlayerWithConsumptionInTimeFrame () {
-        //
-        // }
-        //
-        // // Returns an array of dates between the two dates
-        // function getDates(startDate, endDate) {
-        //     let dates = [],
-        //         currentDate = startDate,
-        //         addDays = function(days) {
-        //             let date = new Date(this.valueOf());
-        //             date.setDate(date.getDate() + days);
-        //             return date;
-        //         };
-        //     while (currentDate <= endDate) {
-        //         dates.push(currentDate);
-        //         currentDate = addDays.call(currentDate, 1);
-        //     }
-        //     return dates;
-        // }
-        //
-        // let dates = getDates(startDate, endDate);
-        // console.log('dates', dates);
-
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
@@ -17507,6 +17484,7 @@ let dbPlayerInfo = {
 
                 return collection.aggregate([
                     {$match: relevantPlayerQuery},
+                    {$sort: {playerId: 1}},
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
