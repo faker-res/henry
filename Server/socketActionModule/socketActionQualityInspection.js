@@ -287,7 +287,13 @@ function socketActionQualityInspection(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.proposalId);
             socketUtil.emitter(self.socket, dbQualityInspection.getManualProcessProposalDetail, [data], actionName, isValidData);
-        }
+        },
+
+        summarizeManualProcessRecord: function summarizeManualProcessRecord (data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbQualityInspection.summarizeManualProcessRecord, [data.startTime,data.endTime], actionName, isDataValid);
+        },
     };
 
     socketActionQualityInspection.actions = this.actions;
