@@ -1579,7 +1579,7 @@ var proposalExecutor = {
                                     status: proposalData.status,
                                     playerId: proposalData.data.playerId
                                 }
-                            ).catch(errorUtils.reportError);
+                            )//.catch(errorUtils.reportError);
                         }
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
