@@ -23974,6 +23974,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformSmsGroups = (platformObjId) => {
+                let platform = getSelectedPlatform();
+                if (!platformObjId) {
+                    platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
+                }
                 let sendData = {
                     platformObjId: platformObjId || null
                 }
