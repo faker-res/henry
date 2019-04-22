@@ -19959,6 +19959,9 @@ let dbPlayerInfo = {
         );
 
         function getPlayerRecord(playerObjId, startTime, endTime, domain, showPlatformFeeEstimate) {
+
+            console.log('getConsumptionDetailOfPlayers getPlayerRecord - start');
+
             let result = {_id: playerObjId};
             playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
             let onlineTopUpTypeId = "";
@@ -19973,15 +19976,7 @@ let dbPlayerInfo = {
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
                 },
-                $or: [
-                    {isDuplicate: {$exists: false}},
-                    {
-                        $and: [
-                            {isDuplicate: {$exists: true}},
-                            {isDuplicate: false}
-                        ]
-                    }
-                ]
+                isDuplicate: {$ne: true}
             };
 
             query.providerId ? consumptionPromMatchObj.providerId = ObjectId(query.providerId) : false;
@@ -20021,7 +20016,12 @@ let dbPlayerInfo = {
                         bonusAmount: {$sum: "$bonusAmount"}
                     }
                 }
-            ]).allowDiskUse(true).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred").then(
+                data => {
+                    console.log('done consumptionProm');
+                    return data;
+                }
+            );
 
             let topUpProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -20043,7 +20043,12 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.amount"}
                     }
                 }
-            ]).read("secondaryPreferred");
+            ]).read("secondaryPreferred").then(
+                data => {
+                    console.log('done topUpProm');
+                    return data;
+                }
+            );
 
             let bonusProm = dbconfig.collection_proposal.aggregate([
                 {
