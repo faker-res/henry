@@ -16794,6 +16794,20 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 }
             };
+            vm.feedbackPlatformChanged = ()=>{
+                vm.hasFeedbackPlatformChange = true;
+            };
+            vm.searchPlayerFeedback = (isNewSearch, currentTimeBoolean) => {
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
+                if(vm.hasFeedbackPlatformChange) {
+                    vm.getCtiData().then(()=>{
+                        vm.submitPlayerFeedbackQuery(isNewSearch, currentTimeBoolean);
+                        vm.hasFeedbackPlatformChange = false;
+                    });
+                } else {
+                    vm.submitPlayerFeedbackQuery(isNewSearch, currentTimeBoolean);
+                }
+            };
             vm.submitPlayerFeedbackQuery = function (isNewSearch, currentTimeBoolean) {
                 if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                 vm.playerFeedbackSelectedPlatform = vm.allPlatformData.filter(platform => {return vm.playerFeedbackQuery.selectedPlatform == platform._id})[0];
@@ -17509,11 +17523,12 @@ define(['js/app'], function (myApp) {
                 // }
                 // vm.getCtiDataRepeatCount = 0;
 
-                socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
+                vm.isSingleFeedBackPageChange = false;
+                return $scope.$socketPromise('getUpdatedAdminMissionStatusFromCti', {
                     platformObjId: vm.playerFeedbackQuery.selectedPlatform,
                     limit: vm.playerFeedbackQuery.limit || 10,
                     index: vm.playerFeedbackQuery.index || 0,
-                }, function (data) {
+                }).then(function (data) {
                     console.log("getCtiData ret",data);
                     vm.ctiData = data.data;
                     if(vm.ctiData.hasOnGoingMission) {
@@ -17633,7 +17648,6 @@ define(['js/app'], function (myApp) {
                     }
                     vm.getCtiData(true);
                 });
-                vm.isSingleFeedBackPageChange = false;
             };
 
             vm.getPlayerCreditinFeedbackInfo = function () {
@@ -17705,14 +17719,17 @@ define(['js/app'], function (myApp) {
                         vm.queryDepartments.push(e);
                     }
                 });
+                setTimeout(()=>{
                 vm.setupRemarksMultiInputFeedback();
                 vm.setupRemarksMultiInputFeedbackFilter();
                 vm.setupGameProviderMultiInputFeedback();
                 vm.setupMultiInputFeedbackTopicFilter();
+                },100);
             };
 
             vm.initPlayerFeedback = function () {
                 console.log("initPlayerFeedback");
+                vm.hasFeedbackPlatformChange = true;
                 vm.playerFeedbackSearchType = "many";
                 vm.playerFeedbackQuery = {};
                 vm.playerFeedbackQuery.index = 0;
@@ -27577,7 +27594,7 @@ define(['js/app'], function (myApp) {
                 vm.playerLevelDisplayList = [];
 
                 let sendData = {
-                    platformId: platformObjId || null
+                    platformId: platformObjId || vm.selectedPlatform.id || null
                 }
                 return $scope.$socketPromise('getPlayerLevelByPlatformId', sendData)
                     .then(function (data) {
@@ -27588,7 +27605,7 @@ define(['js/app'], function (myApp) {
                             vm.platformBatchLevelUp = true;
 
                             let sendData = {
-                                _id: platformObjId || null
+                                _id: platformObjId || vm.selectedPlatform.id || null
                             }
                             socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                                 $scope.$evalAsync(() => {
