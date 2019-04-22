@@ -36849,23 +36849,8 @@ define(['js/app'], function (myApp) {
                 vm.feedbackAdminQuery = vm.feedbackAdminQuery || {};
                 vm.feedbackAdminQuery.total = 0;
                 vm.feedbackAdminQuery.cs = '';
-                vm.loadAlldepartment(getQueryDepartments);
-                let departmentID = vm.platformDepartmentObjId;
-                if (departmentID) {
-                    socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.platformDepartmentObjId}, function (data) {
-                        var result = [];
-                        data.data.forEach(function (userData) {
-                            userData.users.forEach(function (user) {
-                                var singleRecord = {}
-                                singleRecord.departmentName = userData.departmentName;
-                                singleRecord.adminName = user.adminName;
-                                singleRecord._id = user._id;
-                                result.push(singleRecord);
-                            })
-                        });
-                        vm.departmentUsers = result;
-                    });
-                }
+                vm.departmentUsers = [];
+                vm.getAllDepartmentUsers();
                 vm.feedbackAdminQuery.admin = "any";
                 vm.feedbackAdminQuery = {
                     result: 'all',
@@ -36893,6 +36878,29 @@ define(['js/app'], function (myApp) {
                     vm.submitAdminPlayerFeedbackQuery(true);
                 })
             }
+
+            vm.getAllDepartmentUsers = () => {
+                let sendData = {
+                    platforms: vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : []
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getAllDepartmentUsers', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getAllDepartmentUsers', data);
+                        var result = [];
+                        data.data.forEach(function (userData) {
+                            userData.users.forEach(function (user) {
+                                var singleRecord = {}
+                                singleRecord.departmentName = userData.departmentName;
+                                singleRecord.adminName = user.adminName;
+                                singleRecord._id = user._id;
+                                result.push(singleRecord);
+                            })
+                        });
+                        vm.departmentUsers = result;
+                    });
+                });
+            };
 
             vm.createCallOutMission = function () {
                 if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
