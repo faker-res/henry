@@ -2031,7 +2031,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         _id: authService.adminId
                     },  data => {
                         if (data.data && data.data.financialPointsNotificationShowed && data.data.financialPointsNotificationShowed.indexOf($scope.selectedPlatform.data.platformId) < 0) {
-                            $("#modalFinancialPointsNotification").modal('show');
+                            // $("#modalFinancialPointsNotification").modal('show');
                             updateFinancialNotificationShowed();
                         }
                     });
