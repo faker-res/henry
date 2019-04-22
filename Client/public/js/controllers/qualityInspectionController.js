@@ -4279,6 +4279,48 @@ define(['js/app'], function (myApp) {
                 return $sce.trustAsHtml(result);
             };
 
+            vm.initManualSummarizeManualProcessRecord = function(){
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#manualProcessSummarizeEndDatetimePicker', function () {
+                        $('#manualProcessSummarizeStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#manualProcessSummarizeStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                        $('#manualProcessSummarizeEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#manualProcessSummarizeEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    });
+                }
+            };
+
+            vm.summarizeManualProcessRecord = function(){
+                vm.loadingSummarizeManualProcessRecord = true;
+                let startTime = $('#manualProcessSummarizeStartDatetimePicker').data('datetimepicker').getLocalDate();
+                let endTime = $('#manualProcessSummarizeEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                };
+
+                socketService.$socket($scope.AppSocket, 'summarizeManualProcessRecord', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.loadingSummarizeManualProcessRecord = false;
+                    })
+                }, function (error){
+                    vm.loadingSummarizeManualProcessRecord = false;
+                    console.log("Error when gather summarized manual process record data:", error)
+                });
+            }
+
             //////////////////////////////////////////////////////////End of Manual Approval Report Tab///////////////////////////////////////////////////////////////////
 
         };

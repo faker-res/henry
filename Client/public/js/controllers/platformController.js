@@ -23991,6 +23991,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformSmsGroups = (platformObjId) => {
+                let platform = getSelectedPlatform();
+                if (!platformObjId) {
+                    platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
+                }
                 let sendData = {
                     platformObjId: platformObjId || null
                 }
@@ -25710,15 +25714,21 @@ define(['js/app'], function (myApp) {
             vm.getPromoCodeHistory = function (isNewSearch, type) {
                 vm.selectedPromoCodes = [];
                 vm.selectedPromoCode = null;
-                vm.promoCodeQuery.platformId = vm.selectedPlatform.id;
                 $('#promoCodeHistoryTableSpin').show();
 
                 vm.promoCodeQuery.index = isNewSearch ? 0 : (vm.promoCodeQuery.index || 0);
 
+                let platformIdList;
+                if (vm.promoCodeQuery && vm.promoCodeQuery.platformList && vm.promoCodeQuery.platformList.length) {
+                    platformIdList = vm.promoCodeQuery.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
                 let sendObj = {
                     promoCodeType: vm.promoCodeQuery.promoCodeType,
                     status: vm.promoCodeQuery.status,
-                    platformObjId: vm.promoCodeQuery.platformId,
+                    platformObjId: platformIdList,
                     index: vm.promoCodeQuery.index || 0,
                     limit: vm.promoCodeQuery.limit || 10,
                     sortCol: vm.promoCodeQuery.sortCol,
@@ -25784,6 +25794,13 @@ define(['js/app'], function (myApp) {
 
                             if (item.status){
                                 item.promoCodeStatus = item.status;
+                            }
+
+                            if (item.platformObjId) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platformObjId.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
                             }
 
                             // special handling for openPromoCode getting from proposal
@@ -26272,12 +26289,16 @@ define(['js/app'], function (myApp) {
             vm.drawPromoCodeHistoryTable = function (data, size, summary, newSearch) {
                 let tableOptions = {
                     data: data,
-                    "order": vm.promoCodeQuery.aaSorting || [[12, 'desc']],
+                    "order": vm.promoCodeQuery.aaSorting || [[13, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [12]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [13]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {
                             title: $translate('ACCOUNT'),
                             data: "playerName$"
@@ -26443,6 +26464,10 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
+                        {
                             title: $translate('ACCOUNT'),
                             data: "playerName"
                         },
@@ -26519,6 +26544,10 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platform$"
+                        },
                         {
                             title: $translate('ACCOUNT'),
                             data: "playerName"
@@ -26677,16 +26706,22 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPromoCodeTypeBMonitor = function (isNewSearch) {
-                vm.promoCodeTypeBMonitor.platformId = vm.selectedPlatform.id;
                 $('#promoCodeMonitorTableSpin').show();
 
                 vm.promoCodeTypeBMonitor.index = isNewSearch ? 0 : (vm.promoCodeTypeBMonitor.index || 0);
+
+                let platformIdList;
+                if (vm.promoCodeTypeBMonitor && vm.promoCodeTypeBMonitor.platformList && vm.promoCodeTypeBMonitor.platformList.length) {
+                    platformIdList = vm.promoCodeTypeBMonitor.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
 
                 let sendObj = {
                     startAcceptedTime: vm.promoCodeTypeBMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeTypeBMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
                     promoCodeTypeName: vm.promoCodeTypeBMonitor.promoCodeTypeName || '',
-                    platformObjId: vm.promoCodeTypeBMonitor.platformId,
+                    platformObjId: platformIdList,
                     index: vm.promoCodeTypeBMonitor.index || 0,
                     limit: vm.promoCodeTypeBMonitor.limit || 10,
                     sortCol: vm.promoCodeTypeBMonitor.sortCol
@@ -26703,6 +26738,13 @@ define(['js/app'], function (myApp) {
                     vm.drawPromoCodeTypeBMonitorTable(data.data.data.map(
                         item => {
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+
+                            if (item.platformObjId) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platformObjId.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
                             return item;
                         }
                     ), data.data.totalCount, {}, isNewSearch);
@@ -26713,16 +26755,22 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPromoCodeMonitor = function (isNewSearch) {
-                vm.promoCodeMonitor.platformId = vm.selectedPlatform.id;
                 $('#promoCodeMonitorTableSpin').show();
 
                 vm.promoCodeMonitor.index = isNewSearch ? 0 : (vm.promoCodeMonitor.index || 0);
 
+                let platformIdList;
+                if (vm.promoCodeMonitor && vm.promoCodeMonitor.platformList && vm.promoCodeMonitor.platformList.length) {
+                    platformIdList = vm.promoCodeMonitor.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+                
                 let sendObj = {
                     startAcceptedTime: vm.promoCodeMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
                     promoCodeTypeName: vm.promoCodeMonitor.promoCodeTypeName || '',
-                    platformObjId: vm.promoCodeMonitor.platformId,
+                    platformObjId: platformIdList,
                     isTypeCPromo: true,
                     index: vm.promoCodeMonitor.index || 0,
                     limit: vm.promoCodeMonitor.limit || 10,
@@ -26740,6 +26788,12 @@ define(['js/app'], function (myApp) {
                     vm.drawPromoCodeMonitorTable(data.data.data.map(
                         item => {
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                            if (item.platformObjId) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platformObjId.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
                             return item;
                         }
                     ), data.data.totalCount, {}, isNewSearch);

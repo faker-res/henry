@@ -143,36 +143,36 @@ function postWithdraw (reqData, paymentSystemKey) {
     return postRequest(reqData, 'withdraw-proposal', 'POST', paymentSystemKey);
 }
 
-function patchTopupStatus (reqData) {
-    return postRequest(reqData, 'playerDepositStatus', 'PATCH');
+function patchTopupStatus (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'playerDepositStatus', 'PATCH', paymentSystemKey);
 }
 
-function postBatchTopupStatus (reqData) {
-    return postRequest(reqData, 'batch/playerDepositStatus', 'POST')
+function postBatchTopupStatus (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'batch/playerDepositStatus', 'POST', paymentSystemKey);
 }
 
-function postCancelTopup (reqData) {
-    return postRequest(reqData, 'deposit-proposal/cancel', 'POST')
+function postCancelTopup (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'deposit-proposal/cancel', 'POST', paymentSystemKey);
 }
 
-function postDelayTopup (reqData) {
-    return postRequest(reqData, 'deposit-proposal/delay', 'POST')
+function postDelayTopup (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'deposit-proposal/delay', 'POST', paymentSystemKey);
 }
 
-function postCreateTopup (reqData) {
-    return postRequest(reqData, 'deposit-proposal/create', 'POST')
+function postCreateTopup (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'deposit-proposal/create', 'POST', paymentSystemKey);
 }
 
 function postBankCardList (reqData) {
     return postRequest(reqData, 'getBankCardList', 'POST')
 }
 
-function postBankCard (reqData) {
-    return postRequest(reqData, 'getBankCard', 'POST')
+function postBankCard (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getBankCard', 'POST', paymentSystemKey);
 }
 
-function postBankType (reqData) {
-    return postRequest(reqData, 'bankType', 'POST')
+function postBankType (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'bankType', 'POST', paymentSystemKey);
 }
 
 function postBankTypeList (reqData) {
@@ -183,8 +183,8 @@ function postSyncPlatform (reqData) {
     return postRequest(reqData, 'sync-platform', 'POST')
 }
 
-function postTopupForceMatch (reqData) {
-    return postRequest(reqData, 'deposit-proposal/force-match', 'POST')
+function postTopupForceMatch (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'deposit-proposal/force-match', 'POST', paymentSystemKey)
 }
 
 function postMerchantList (reqData) {
