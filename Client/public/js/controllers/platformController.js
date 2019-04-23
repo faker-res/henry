@@ -21292,7 +21292,7 @@ define(['js/app'], function (myApp) {
                         }
                     })
                 });
-                vm.getPlatformProviderGroup();
+                vm.getPlatformProviderGroup(platformObjId);
             };
 
 
