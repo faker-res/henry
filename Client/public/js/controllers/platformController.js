@@ -6354,56 +6354,6 @@ define(['js/app'], function (myApp) {
 
             };
 
-
-            vm.advancedPlayerQuery = function (newSearch) {
-                if (vm.advancedQueryObj.credibilityRemarks && (vm.advancedQueryObj.credibilityRemarks.constructor !== Array || vm.advancedQueryObj.credibilityRemarks.length === 0)) {
-                    delete vm.advancedQueryObj.credibilityRemarks;
-                }
-                let platform = getSelectedPlatform();
-                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
-                let apiQuery = {
-                    platformId: platformObjId,
-                    query: vm.advancedQueryObj,
-                    index: newSearch ? 0 : (vm.playerTableQuery.index || 0),
-                    limit: vm.playerTableQuery.limit,
-                    sortCol: vm.playerTableQuery.sortCol
-                };
-                $("#playerTable-search-filter .form-control").prop("disabled", false).css("background-color", "#fff");
-                $("#playerTable-search-filter .form-control input").prop("disabled", false).css("background-color", "#fff");
-                $("select#selectCredibilityRemark").multipleSelect("enable");
-                console.log(apiQuery);
-                $('#loadingPlayerTableSpin').show();
-                socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', apiQuery, function (reply) {
-                    setPlayerTableData(reply.data.data);
-                    vm.searchPlayerCount = reply.data.size;
-                    console.log("getPlayersByAdvanceQueryDebounced response", reply);
-                    utilService.hideAllPopoversExcept();
-                    vm.playerTableQuery.pageObj.init({maxCount: vm.searchPlayerCount}, newSearch);
-                    $('#loadingPlayerTableSpin').hide();
-                    if (vm.selectedSinglePlayer) {
-                        var found = false;
-                        vm.playerFeedbackTable.rows(function (idx, rowData, node) {
-                            if (rowData._id == vm.selectedSinglePlayer._id) {
-                                vm.playerTableRowClicked(rowData);
-                                vm.selectedPlayersCount = 1;
-                                $(node).addClass('selected');
-                                found = true;
-                            }
-                        })
-                        if (!found) {
-                            vm.selectedSinglePlayer = null;
-                            vm.selectedPlayersCount = 0;
-                        }
-                        if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.referral) {
-                            socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function (data) {
-                                vm.showReferralName = data.data.name;
-                                // $scope.safeApply();
-                            });
-                        }
-                    }
-                });
-            };
-
             vm.searchForExactPlayerDebounced = $scope.debounceSearch(function (playerExactSearchText) {
                 //console.log("playerExactSearchText", playerExactSearchText);
                 if (playerExactSearchText === "") {
@@ -8120,26 +8070,6 @@ define(['js/app'], function (myApp) {
                         }));
                     }
                 });
-                // var btn = $('<button>', {
-                //     id: "resetPlayerQuery",
-                //     class: "btn btn-primary common-button-sm",
-                //     style: "display:block;",
-                // }).text($translate('Reset'));
-                // var newFilter = $('<div class="search-filter col-md-3">').append($('<label class="control-label">')).append(btn);
-                // $(config.filtersElement).append(newFilter);
-                // utilService.actionAfterLoaded('#resetPlayerQuery', function () {
-                //     $('#resetPlayerQuery').off('click');
-                //     $('#resetPlayerQuery').click(function () {
-                //         $('#playerTable-search-filters').find(".form-control").each((i, v) => {
-                //             $(v).val(null);
-                //             utilService.clearDatePickerDate(v)
-                //         })
-                //         getPlayersByAdvanceQueryDebounced(function ({}) {
-                //         });
-                //         vm.advancedQueryObj = {};
-                //         vm.advancedPlayerQuery(true);
-                //     })
-                // })
             }
 
             function createPartnerAdvancedSearchFilters(config) {

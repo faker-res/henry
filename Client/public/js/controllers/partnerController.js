@@ -13955,29 +13955,6 @@ define(['js/app'], function (myApp) {
             remarkSelect.multipleSelect('refresh');
         };
 
-        utilService.actionAfterLoaded('#resetPlayerQuery', function () {
-            $('#resetPlayerQuery').off('click');
-            $('#resetPlayerQuery').click(function () {
-                utilService.clearDatePickerDate('#regDateTimePicker');
-                utilService.clearDatePickerDate('#regEndDateTimePicker');
-                utilService.clearDatePickerDate('#lastAccessDateTimePicker');
-                utilService.clearDatePickerDate('#lastAccessEndDateTimePicker');
-                $("select#selectCredibilityRemark").multipleSelect("enable");
-                $("select#selectCredibilityRemark").multipleSelect("uncheckAll");
-                vm.playerAdvanceSearchQuery = {
-                    creditOperator: ">=",
-                    playerType: 'Real Player (all)'
-                };
-                vm.getPlayersByAdvanceQueryDebounced(function () {});
-                vm.advancedQueryObj = {
-                    creditOperator: ">=",
-                    playerType: 'Real Player (all)'
-                };
-                vm.advancedPlayerQuery(true);
-            })
-
-        });
-
         vm.setupRemarksMultiInputFeedback = function () {
             let remarkSelect = $('select#selectCredibilityRemarkFeedback');
             // if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
