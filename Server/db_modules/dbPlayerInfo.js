@@ -8826,7 +8826,9 @@ let dbPlayerInfo = {
                             }
 
                             if(typeof clientType == "undefined"){
-                                rewardEventArray.push(rewardEventItem);
+                                if(!(rewardEventItem.condition && rewardEventItem.condition.visibleForDevice && rewardEventItem.condition.visibleForDevice.length > 0)){
+                                    rewardEventArray.push(rewardEventItem);
+                                }
                             }else if(rewardEventItem.condition && rewardEventItem.condition.visibleForDevice && rewardEventItem.condition.visibleForDevice.length > 0){
                                 let visible = false;
 
