@@ -8822,7 +8822,9 @@ let dbPlayerInfo = {
                             }
 
                             if(typeof clientType == "undefined"){
-                                rewardEventArray.push(rewardEventItem);
+                                if(!(rewardEventItem.condition && rewardEventItem.condition.visibleForDevice && rewardEventItem.condition.visibleForDevice.length > 0)){
+                                    rewardEventArray.push(rewardEventItem);
+                                }
                             }else if(rewardEventItem.condition && rewardEventItem.condition.visibleForDevice && rewardEventItem.condition.visibleForDevice.length > 0){
                                 let visible = false;
 
@@ -20079,8 +20081,9 @@ let dbPlayerInfo = {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
                         },
-                        "type": ObjectId(consumptionReturnTypeId),
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        "mainType": "Reward",
+                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        "type": ObjectId(consumptionReturnTypeId)
                     }
                 },
                 {
@@ -20100,8 +20103,8 @@ let dbPlayerInfo = {
                             "$lte": new Date(endTime)
                         },
                         "mainType": "Reward",
-                        "type": {"$ne": ObjectId(consumptionReturnTypeId)},
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        "type": {"$ne": ObjectId(consumptionReturnTypeId)}
                     }
                 },
                 {
@@ -20115,14 +20118,14 @@ let dbPlayerInfo = {
             let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
                 {
                     "$match": {
-                        "type": ObjectId(onlineTopUpTypeId),
                         "data.playerObjId": playerObjId,
                         "createTime": {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
                         },
                         "mainType": "TopUp",
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        "type": ObjectId(onlineTopUpTypeId),
                     }
                 },
                 {

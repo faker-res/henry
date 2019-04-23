@@ -16455,11 +16455,12 @@ define(['js/app'], function (myApp) {
                 //     vm.newPartnerLvl = {};
                 //     vm.getAllPartners();
                 //     break;
-                // case 'partnerCommission':
-                //     vm.partnerCommission = {};
-                //     vm.getCommissionRateGameProviderGroup();
-                //     vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
-                //     break;
+                case 'partnerCommission':
+                    vm.partnerCommission = {};
+                    // vm.getCommissionRateGameProviderGroup();
+                    vm.getPlatformCommissionRate();
+                    vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
+                    break;
                 case 'validActive':
                     vm.getActiveConfig();
                     break;
@@ -16544,6 +16545,16 @@ define(['js/app'], function (myApp) {
                     console.log("vm.activeConfig", vm.activeConfig);
                     $scope.safeApply();
                 });
+        };
+
+        vm.getPlatformCommissionRate = function () {
+            return $scope.$socketPromise("getPlatformPartnerCommConfig", {platformObjId: vm.platformInSetting._id}).then(
+                function (data) {
+                    console.log("getPlatformPartnerCommConfig", data);
+
+                    // todo :: add implementation
+                }
+            )
         };
 
         vm.initModalLargeWithdrawalPartner = function () {
@@ -16845,18 +16856,20 @@ define(['js/app'], function (myApp) {
             vm.merchantGroupObj = $scope.merchantGroupObj;
             vm.merchantGroupCloneList = $scope.merchantGroupCloneList;
 
-            socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform._id}, function (data) {
-                $scope.$evalAsync(() => {
-                    if (data && data.data && data.data.data) {
-                        vm.allBankTypeList = {};
-                        data.data.data.forEach(item => {
-                            if (item && item.bankTypeId) {
-                                vm.allBankTypeList[item.id] = item.name;
-                            }
-                        })
-                    }
-                })
-            });
+            if (vm.reportPlatformObjId) {
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.reportPlatformObjId}, function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data && data.data && data.data.data) {
+                            vm.allBankTypeList = {};
+                            data.data.data.forEach(item => {
+                                if (item && item.bankTypeId) {
+                                    vm.allBankTypeList[item.id] = item.name;
+                                }
+                            })
+                        }
+                    })
+                });
+            }
 
             switch (choice) {
                 case "PLAYERPARTNER_REPORT":
