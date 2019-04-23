@@ -23,3 +23,4 @@ module.exports = playerConsumptionHourSummary;
 
 playerConsumptionHourSummary.index({platform: 1, player: 1, provider: 1, startTime: 1});
 playerConsumptionHourSummary.index({platform: 1, provider: 1, startTime: 1});
+playerConsumptionHourSummary.index({platform: 1, startTime: 1});
