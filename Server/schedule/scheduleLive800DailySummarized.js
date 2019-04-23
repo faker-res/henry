@@ -32,6 +32,10 @@ let everyDayAtTwelveAMJob = new CronJob(
         // to record down the conversation record for speeding up the searching time
         dbQualityInspection.getLive800Records(startDate, endDate).then().catch(errorUtils.reportError);
 
+        // to get the proposal settled manually and save in daily summary record
+        // dbQualityInspection.getManualProposalDailySummaryRecord(dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().startTime, 1), dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().endTime, 1)).then().catch(errorUtils.reportError);
+
+
     }, function () {
         /* This function is executed when the job stops */
         console.log('Live 800 daily summarize schedule done');

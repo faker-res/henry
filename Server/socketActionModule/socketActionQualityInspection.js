@@ -275,7 +275,25 @@ function socketActionQualityInspection(socketIO, socket) {
             var index = data.index || 0;
             var limit = data.limit || 10;
             socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversationReport, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, index, limit], actionName, isDataValid);
-        }
+        },
+
+        getManualProcessRecord: function getManualProcessRecord(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate && data.adminObjId);
+            socketUtil.emitter(self.socket, dbQualityInspection.getManualProcessRecord, [data], actionName, isValidData);
+        },
+
+        getManualProcessProposalDetail: function getManualProcessProposalDetail (data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.proposalId);
+            socketUtil.emitter(self.socket, dbQualityInspection.getManualProcessProposalDetail, [data], actionName, isValidData);
+        },
+
+        summarizeManualProcessRecord: function summarizeManualProcessRecord (data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbQualityInspection.summarizeManualProcessRecord, [data.startTime,data.endTime], actionName, isDataValid);
+        },
     };
 
     socketActionQualityInspection.actions = this.actions;

@@ -78,7 +78,8 @@ router.post('/notifyPayment', function(req, res, next) {
                     console.log('updateTopupProposal error', msgBody.proposalId, err);
                     let returnMsg = encodeURIComponent(JSON.stringify({
                         code: constServerCode.INVALID_DATA,
-                        msg: err.message
+                        msg: err.message,
+                        data: err.data
                     }));
 
                     res.send(returnMsg);

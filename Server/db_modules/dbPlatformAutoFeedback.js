@@ -628,9 +628,11 @@ let dbPlatformAutoFeedback = {
                                                                 delete newPromoCodeEntry._id;
                                                                 delete newPromoCodeEntry.createTime;
                                                                 newPromoCodeEntry.promoCodeTemplateObjId = template._id;
+                                                                newPromoCodeEntry.hasPromoCodeTemplateObjId = true;
                                                                 newPromoCodeEntry.playerName = player.name;
                                                                 newPromoCodeEntry.expirationTime = dbutility.getNdaylaterFromSpecificStartTime(template.expiredInDay, new Date());
                                                                 newPromoCodeEntry.autoFeedbackMissionObjId = feedback._id;
+                                                                newPromoCodeEntry.hasAutoFeedbackMissionObjId = true;
                                                                 newPromoCodeEntry.autoFeedbackMissionScheduleNumber = curScheduleNumber;
                                                                 newPromoCodeEntry.allowedSendSms = true;
                                                                 return {

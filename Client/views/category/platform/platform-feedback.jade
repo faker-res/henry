@@ -1,7 +1,7 @@
 .well
     .search-filters-item
         label {{'PRODUCT_NAME'| translate}}
-        select.form-control(ng-model="vm.playerFeedbackQuery.selectedPlatform" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();' )
+        select.form-control(ng-model="vm.playerFeedbackQuery.selectedPlatform" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.feedbackPlatformChanged();' )
     .search-filters-item
         label {{"USER_TYPE"|translate}}
         select.form-control(ng-model="vm.playerFeedbackQuery.playerType")
@@ -145,8 +145,8 @@
                 option(value='true') {{'CALLABLE'|translate}}
                 option(value='all') {{'ALL'|translate}}
     .text-right
-        button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true, false);') {{"SEARCH_SINGLE" | translate}}
-        button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true, false);') {{"SEARCH_LIST" | translate}}
+        button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.searchPlayerFeedback(true, false);') {{"SEARCH_SINGLE" | translate}}
+        button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.searchPlayerFeedback(true, false);') {{"SEARCH_LIST" | translate}}
         button.btn.btn-warning.btn-space(ng-if="checkViewPermission('Platform','Feedback','Export') && !vm.ctiData.hasOnGoingMission", ng-disabled='vm.showExportButton()', ng-click='vm.exportPlayerQuery()') {{"PLAYER_EXPORT_BATCH" | translate}}
         button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.toggleCallOutMissionStatus()') {{"Pause/Resume Mission" | translate}}
         button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.stopCallOutMission()') {{"Stop Mission" | translate}}

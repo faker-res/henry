@@ -60,7 +60,7 @@ form(name="form_new_platform" ,novalidate)
                             .fa.fa-file-text.margin-right-5
                             text.span {{"CUSTOMER_SERVICE" | translate}}
                     li(id = 'advertisementTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
-                        a.common-tab(data-toggle="tab",ng-click='vm.playerDisplayDataTab = \'advertisementPanel\';vm.playerAdvertisementWebDevice=true;vm.playerAdvertisementH5Device=false; vm.playerAdvertisementList();vm.editAdvertisementRecord=false; vm.showAdvertisementRecord=true;vm.addNewPlayerAdvertisement=false;')
+                        a.common-tab(data-toggle="tab",ng-click='vm.getPlayerAdTooltips();vm.playerDisplayDataTab = \'advertisementPanel\';vm.playerAdvertisementWebDevice=true;vm.playerAdvertisementH5Device=false; vm.playerAdvertisementList();vm.editAdvertisementRecord=false; vm.showAdvertisementRecord=true;vm.addNewPlayerAdvertisement=false;')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"ADVERTISEMENT" | translate}}
                     li(id = 'mainPageAdvertisementTab', ng-show="checkViewPermission('Platform', 'PlayerDisplayData','MAIN_PAGE_ADVERTISEMENT')")
@@ -530,6 +530,8 @@ form(name="form_new_platform" ,novalidate)
                                     th {{'BANNER TITLE' | translate}}
                                     th {{'DISPLAY BACKGROUND IMAGE' | translate}}
                                     th {{'BANNER LINK BUTTON' | translate}}
+                                    th {{'Custom' | translate}}{{'ADVERTISEMENT_TYPE' | translate}}
+                                    th {{'NAVIGATION_TAG' | translate}}
                                     th {{'IS_SHOW_PRODUCTION_SERVER' | translate}}
                                     th {{'ACTION_BUTTON' | translate}}
                             tbody
@@ -584,6 +586,18 @@ form(name="form_new_platform" ,novalidate)
                                                                         td
                                                                             a(href='{{v.hyperLink}}', title='{{v.hyperLink}}', target='_blank') {{v.hyperLinkDisplay | translate}}
                                                                             //input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
+                                    td(ng-class='{grayRow: a.status==0}')
+                                        input(style='text-align:center' type='text' ng-model='a.type' ng-disabled='true')
+                                    td(ng-class='{grayRow: a.status==0}')
+                                        label {{"Type" | translate}}
+                                            i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{vm.playerNavigationTagToolTips}}')
+                                        br
+                                        input(style='text-align:center' type='text' ng-model='constNavigationTag[a.navigateMainType].name' ng-disabled='true')
+                                        br
+                                        br
+                                        label {{"Subtype" | translate}}
+                                        br
+                                        input(style='text-align:center' type='text' ng-model='a.navigateSubtype' ng-disabled='true')
                                     td(ng-class='{grayRow: a.status==0}')
                                         input(type="checkbox" ng-model="a.showInRealServer" ng-disabled='true')
                                     td(ng-class='{grayRow: a.status==0}')
@@ -657,6 +671,18 @@ form(name="form_new_platform" ,novalidate)
                                                                         td
                                                                             input(type='text' , ng-model='c.hyperLink', style="margin-bottom: 2px;")
                                     td(ng-class='{grayRow: a.status==0}')
+                                        input(type='text' ng-model='a.type')
+                                    td(ng-class='{grayRow: a.status==0}')
+                                        label {{"Type" | translate}}
+                                            i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{vm.playerNavigationTagToolTips}}')
+                                        br
+                                        select.form-control(ng-model="a.navigateMainType" ng-options='i as v.name for (i,v) in constNavigationTag')
+                                        br
+                                        br
+                                        label {{"Subtype" | translate}}
+                                        br
+                                        input(type='text' ng-model='a.navigateSubtype')
+                                    td(ng-class='{grayRow: a.status==0}')
                                         input(type="checkbox" ng-model="a.showInRealServer")
                                     td
                                         div(style="display: inline-grid;font-size: 10px;")
@@ -681,6 +707,8 @@ form(name="form_new_platform" ,novalidate)
                                         th {{'BANNER TITLE' | translate}}
                                         th {{'DISPLAY BACKGROUND IMAGE' | translate}}
                                         th {{'BANNER LINK BUTTON' | translate}}
+                                        th {{'Custom' | translate}}{{'ADVERTISEMENT_TYPE' | translate}}
+                                        th {{'NAVIGATION_TAG' | translate}}
                                         th {{'IS_SHOW_PRODUCTION_SERVER' | translate}}
                                         th {{'ACTION_BUTTON' | translate}}
                                 tbody
@@ -746,6 +774,18 @@ form(name="form_new_platform" ,novalidate)
                                                                                 label {{'HYPERLINK' | translate}}
                                                                             td
                                                                                 input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
+                                        td(ng-class='{grayRow: a.status==0}')
+                                            input(type='text' ng-model='vm.playerAdvertisementGroup.type')
+                                        td(ng-class='{grayRow: a.status==0}')
+                                            label {{"Type" | translate}}
+                                                i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{vm.playerNavigationTagToolTips}}')
+                                            br
+                                            select.form-control(ng-model="vm.playerAdvertisementGroup.navigateMainType" ng-options='i as v.name for (i,v) in constNavigationTag')
+                                            br
+                                            br
+                                            label {{"Subtype" | translate}}
+                                            br
+                                            input(type='text' ng-model='vm.playerAdvertisementGroup.navigateSubtype')
                                         td
                                             input(type='checkbox' , ng-model='vm.playerAdvertisementGroup.showInRealServer')
                                         td

@@ -877,6 +877,13 @@ var roleChecker = {
             },
             WechatConversationReport: {
                 Read: ['getWechatDeviceNickNameList', 'getWechatConversationReport']
+            },
+            CsAudioRecordingSystem: {
+                Read: []
+            },
+            ManualProcessReport: {
+                Read: ['getManualProcessRecord', 'getManualProcessProposalDetail'],
+                Edit: ['summarizeManualProcessRecord'],
             }
         },
         TeleMarketing: {

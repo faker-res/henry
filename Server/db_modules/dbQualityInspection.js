@@ -10,6 +10,7 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const ObjectId = mongoose.Types.ObjectId;
 let env = require("../config/env").config();
+const constProposalStatus = require('./../const/constProposalStatus');
 
 var dbQualityInspection = {
     connectMysql: function(){
@@ -4182,6 +4183,450 @@ var dbQualityInspection = {
             }
         )
 
+    },
+
+    getManualProcessRecord: function (data) {
+        let manualProcessRecordProm = Promise.resolve();
+        let todayStartDate = dbUtility.getTodaySGTime().startTime;
+
+        let matchObj = {
+            adminObjId: {$in: data.adminObjId.map( p => ObjectId(p))},
+            createTime: {$gte: new Date(data.startDate), $lt: new Date(data.endDate)}
+        };
+
+        let groupByObj = {
+            _id: "$adminObjId",
+            submitCount: {$sum: "$manualSubmitCount"},
+            approvalCount: {$sum: "$manualApprovalCount"},
+            cancelCount: {$sum: "$manualCancelCount"},
+            totalCount: {$sum: {$sum: ["$manualSubmitCount", "$manualApprovalCount", "$manualCancelCount"]}},
+            submitProposalIdList: {$push: '$manualSubmitProposalId'},
+            approvalProposalIdList: {$push: '$manualApprovalProposalId'},
+            cancelProposalIdList: {$push: '$manualCancelProposalId'},
+        };
+        data.sortCol = data.sortCol || {"totalCount": -1};
+
+        if (data && data.endDate && new Date(data.endDate)> new Date(todayStartDate)){
+            // get the latest record and save into summary record
+            let newEndDate = new Date(data.endDate);
+            let newStartDate = todayStartDate;
+
+            manualProcessRecordProm = dbQualityInspection.getManualProposalDailySummaryRecord(newStartDate, newEndDate, data.adminObjId)
+        }
+
+        return manualProcessRecordProm.then(
+            () => {
+                return dbconfig.collection_manualProcessDailySummaryRecord.aggregate(
+                    {
+                        $match: matchObj
+                    }, {
+                        $group: groupByObj
+                    },{
+                        $sort: data.sortCol
+                    }
+                ).read("secondaryPreferred");
+            }
+        ).then(
+            recordData => {
+                // console.log("checking recordData", recordData)
+                let index = data.index || 0;
+                let limit = data.limit || 50;
+                let size = recordData && recordData.length ? recordData.length : 0;
+                let sliceRecordData = recordData.splice(index, limit);
+
+                if(sliceRecordData && sliceRecordData.length){
+                    sliceRecordData.forEach(
+                        record => {
+                            if (record && record.submitProposalIdList && record.submitProposalIdList.length){
+                                record.submitProposalIdArr = concatProposalIdList (record.submitProposalIdList)
+                            }
+
+                            if (record && record.approvalProposalIdList && record.approvalProposalIdList.length){
+                                record.approvalProposalIdArr = concatProposalIdList (record.approvalProposalIdList)
+                            }
+
+                            if (record && record.cancelProposalIdList && record.cancelProposalIdList.length){
+                                record.cancelProposalIdArr = concatProposalIdList (record.cancelProposalIdList)
+                            }
+
+                            return record
+                        }
+                    )
+                }
+                return {data: sliceRecordData, size: size}
+            }
+        ).catch(
+            err => {
+                console.log("Error: When getting daily summary record for manual process", err)
+                return Promise.reject({
+                    name: "DataError",
+                    message: "There is error when getting daily summary record for manual process",
+                    error: err
+                })
+            }
+        )
+
+        function concatProposalIdList (proposalIdList) {
+            let tempProposalList = [];
+            proposalIdList.forEach(
+                list => {
+                    if (list && list.length){
+                        tempProposalList = tempProposalList.concat(list);
+                    }
+                }
+            )
+
+            return tempProposalList
+        }
+    },
+
+    // run on scheduler to get daily summary record of manual approval
+    getManualProposalDailySummaryRecord: function (startDate, endDate, adminObjIdList) {
+        let adminObjIdArr = [];
+        let manualSubmitProm = [];
+        let manualApprovalProm = [];
+        let manualCancelProm = [];
+        let countProm = [];
+        let getAdminProm = Promise.resolve();
+
+        console.log("checking startDate", startDate);
+        console.log("checking endDate", endDate);
+        if (!adminObjIdList || (adminObjIdList && adminObjIdList.length == 0)){
+            getAdminProm = dbconfig.collection_platform.find({}, {csDepartment: 1}).populate({
+                path: "csDepartment",
+                model: dbconfig.collection_department
+            }).lean().then(
+                platformList => {
+                    if (platformList && platformList.length) {
+                        platformList.forEach(
+                            platform => {
+                                if (platform && platform.csDepartment && platform.csDepartment.length){
+                                    platform.csDepartment.forEach(
+                                        csDepartment => {
+                                            if (csDepartment && csDepartment.users && csDepartment.users.length){
+                                                csDepartment.users.forEach(
+                                                    adminObjId => {
+                                                        let index = adminObjIdArr.findIndex(p => p == adminObjId);
+                                                        if (index == -1){
+                                                            adminObjIdArr.push(adminObjId)
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
+            )
+        }
+        else{
+            adminObjIdArr = adminObjIdList
+        }
+
+        return getAdminProm.then(
+            () => {
+                if (adminObjIdArr && adminObjIdArr.length){
+                    manualSubmitProm = dbconfig.collection_proposal.find({
+                        'creator.id': {$in: adminObjIdArr.map(adminObjId => {return adminObjId.toString()})},
+                        createTime: {$gte: startDate, $lt: endDate}
+                    }, {creator: 1, proposalId: 1}).lean();
+
+                    manualApprovalProm = dbconfig.collection_proposalProcessStep.find({
+                        operationTime: {$gte: startDate, $lt: endDate},
+                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.APPROVE]},
+                        operator: {$in: adminObjIdArr.map(adminObjId => {return ObjectId(adminObjId)})}
+                    }, {operator: 1}).lean();
+
+                    manualCancelProm = dbconfig.collection_proposalProcessStep.find({
+                        operationTime: {$gte: startDate, $lt: endDate},
+                        status: {$in: [constProposalStatus.REJECTED, constProposalStatus.CANCEL]},
+                        operator: {$in: adminObjIdArr.map(adminObjId => {return ObjectId(adminObjId)})}
+                    }, {operator: 1}).lean();
+
+
+                }
+                return Promise.all([manualSubmitProm, manualApprovalProm, manualCancelProm])
+            }
+        ).then(
+            retData => {
+                if (retData && retData.length && adminObjIdArr && adminObjIdArr.length){
+                    let manualSubmitData = retData[0];
+                    let manualApprovalData = retData[1];
+                    let manualCancelData = retData[2];
+
+                    // console.log("checking manualSubmitData", manualSubmitData)
+                    // console.log("checking manualApprovalData", manualApprovalData)
+                    // console.log("checking manualCancelData", manualCancelData)
+
+                    adminObjIdArr.forEach(
+                        adminObjId =>{
+                            countProm.push(
+                                saveManualCountDetailByAdminObjId(adminObjId, manualSubmitData, manualApprovalData, manualCancelData, startDate, endDate)
+                            )
+                        }
+                    )
+                    return Promise.all(countProm);
+                }
+            },
+            err => {
+                console.log("Error when getting manual process record; Error: ", err);
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Error when getting manual process record",
+                    error: err
+                })
+            }
+        );
+
+        function saveManualCountDetailByAdminObjId (adminObjId, manualSubmitData, manualApprovalData, manualCancelData, startDate, endDate) {
+            return Promise.all([
+                manualSubmitCal(adminObjId, manualSubmitData),
+                manualApprovalOrCancelCal(adminObjId, manualApprovalData),
+                manualApprovalOrCancelCal(adminObjId, manualCancelData)
+            ]).then(
+                retData => {
+                    // console.log("checking retData", retData, adminObjId)
+                    if (retData && retData.length){
+                        let manualSubmitData = retData[0];
+                        let manualApprovalData = retData[1];
+                        let manualCancelData = retData[2];
+
+                        if ((manualSubmitData && manualSubmitData.count) || (manualApprovalData && manualApprovalData.count) || (manualCancelData && manualCancelData.count)){
+                            // check if there is existing record
+                            return dbconfig.collection_manualProcessDailySummaryRecord.findOne({
+                                adminObjId: ObjectId(adminObjId),
+                                createTime: {$gte: startDate, $lt: endDate}
+                            }).then(
+                                record => {
+                                    if (record && record._id){
+                                        return dbconfig.collection_manualProcessDailySummaryRecord.findOneAndUpdate(
+                                            {_id: record._id},
+                                            {
+                                                manualSubmitCount: manualSubmitData && manualSubmitData.count ? manualSubmitData.count : 0,
+                                                manualApprovalCount: manualApprovalData && manualApprovalData.count ? manualApprovalData.count : 0,
+                                                manualCancelCount: manualCancelData && manualCancelData.count ? manualCancelData.count : 0,
+                                                manualSubmitProposalId: manualSubmitData && manualSubmitData.proposalList ? manualSubmitData.proposalList: null,
+                                                manualApprovalProposalId: manualApprovalData && manualApprovalData.proposalList ? manualApprovalData.proposalList: null,
+                                                manualCancelProposalId: manualCancelData && manualCancelData.proposalList ? manualCancelData.proposalList: null,
+                                            }
+                                        ).lean()
+                                    }
+                                    else{
+                                        let saveData = {
+                                            adminObjId: adminObjId,
+                                            manualSubmitCount: manualSubmitData && manualSubmitData.count ? manualSubmitData.count : 0,
+                                            manualApprovalCount: manualApprovalData && manualApprovalData.count ? manualApprovalData.count : 0,
+                                            manualCancelCount: manualCancelData && manualCancelData.count ? manualCancelData.count : 0,
+                                            manualSubmitProposalId: manualSubmitData && manualSubmitData.proposalList ? manualSubmitData.proposalList: null,
+                                            manualApprovalProposalId: manualApprovalData && manualApprovalData.proposalList ? manualApprovalData.proposalList: null,
+                                            manualCancelProposalId: manualCancelData && manualCancelData.proposalList ? manualCancelData.proposalList: null,
+                                            createTime: startDate
+                                        }
+
+                                        let newRecord = new dbconfig.collection_manualProcessDailySummaryRecord(saveData);
+                                        return newRecord.save();
+                                    }
+                                }
+                            )
+
+                        }
+                    }
+                }
+            )
+        }
+
+        function manualSubmitCal(adminObjId, manualSubmitData) {
+            if (adminObjId && manualSubmitData && manualSubmitData.length){
+                let filteredData = manualSubmitData.filter(p => p && p.creator && p.creator.id && p.creator.id == adminObjId)
+                let proposalList = [];
+
+                filteredData.forEach(
+                    data => {
+                        if (data && data.proposalId){
+                            proposalList.push(data.proposalId)
+                        }
+                    }
+                )
+
+                return {
+                    count: filteredData && filteredData.length ? filteredData.length : 0,
+                    proposalList: proposalList
+                }
+            }
+            return {
+                count: 0,
+                proposalList: []
+            }
+        }
+
+        function manualApprovalOrCancelCal(adminObjId, manualData) {
+            if (adminObjId && manualData && manualData.length) {
+                let filteredData = manualData.filter(p => {
+                    if (p.operator && adminObjId) {
+                        return p.operator.toString() == adminObjId.toString()
+                    }
+                });
+                let proposalList = [];
+                let processStepList = [];
+                let gettingProposalStepProm = Promise.resolve();
+                let gettingProposalProcessProm = Promise.resolve();
+                let processList = [];
+
+                filteredData.forEach(
+                    data => {
+                        if (data && data._id) {
+                            processStepList.push(ObjectId(data._id))
+                        }
+                    }
+                );
+
+                if (processStepList && processStepList.length) {
+                    gettingProposalStepProm = dbconfig.collection_proposalProcess.find({
+                        steps: {$in: processStepList}
+                    }).lean();
+                }
+
+                return gettingProposalStepProm.then(
+                    processStepArr => {
+                        if (processStepArr && processStepArr.length){
+                            processStepArr.forEach(p => {
+                                if (p && p._id) {
+                                    processList.push(ObjectId(p._id))
+                                }
+                            })
+                        }
+
+                        if (processList && processList.length){
+                            gettingProposalProcessProm = dbconfig.collection_proposal.find({
+                                process: {$in: processList}
+                            }, {proposalId: 1}).lean();
+                        }
+
+                        return gettingProposalProcessProm
+                    }
+                ).then(
+                    proposalArr => {
+                        if (proposalArr && proposalArr.length){
+                            proposalArr.forEach(
+                                proposal => {
+                                    if (proposal && proposal.proposalId){
+                                        proposalList.push(proposal.proposalId)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                ).then(
+                    () => {
+                        return {
+                            count: filteredData && filteredData.length ? filteredData.length : 0,
+                            proposalList: proposalList
+                        }
+                    }
+                )
+            }
+            else{
+                return {
+                    count: 0,
+                    proposalList: []
+                }
+            }
+        }
+    },
+
+    getManualProcessProposalDetail: function (data) {
+        let index = data.index || 0;
+        let limit = data.limit || 50;
+        let sort = data.sortCol || {createTime: -1};
+
+        let prom = Promise.resolve();
+        let sizeProm = Promise.resolve();
+        if (data && data.proposalId && data.proposalId.length){
+            prom = dbconfig.collection_proposal.find({
+                proposalId: {$in: data.proposalId}
+            }).populate({
+                path: "type",
+                model: dbconfig.collection_proposalType
+            }).sort(sort).skip(index).limit(limit).lean();
+
+            sizeProm =  dbconfig.collection_proposal.find({
+                proposalId: {$in: data.proposalId}
+            }).lean().count();
+        }
+
+        return Promise.all([prom, sizeProm]).then(
+            retData =>{
+                return {
+                    data: retData && retData[0] ? retData[0] : [],
+                    size: retData && retData[1] ? retData[1] : 0
+                }
+            }
+        )
+    },
+
+    summarizeManualProcessRecord: function (startDate, endDate) {
+        let adminObjIdArr = [];
+        let dayStartTime = new Date (startDate);
+        let totalDays = dbUtility.getNumberOfDays(startDate, endDate);
+        let getNextDate = function (date) {
+            let newDate = new Date(date);
+            return new Date(newDate.setDate(newDate.getDate() + 1));
+        };
+
+        return dbconfig.collection_platform.find({}, {csDepartment: 1}).populate({
+            path: "csDepartment",
+            model: dbconfig.collection_department
+        }).lean().then(
+            platformList => {
+                if (platformList && platformList.length) {
+                    platformList.forEach(
+                        platform => {
+                            if (platform && platform.csDepartment && platform.csDepartment.length){
+                                platform.csDepartment.forEach(
+                                    csDepartment => {
+                                        if (csDepartment && csDepartment.users && csDepartment.users.length){
+                                            csDepartment.users.forEach(
+                                                adminObjId => {
+                                                    let index = adminObjIdArr.findIndex(p => p == adminObjId);
+                                                    if (index == -1){
+                                                        adminObjIdArr.push(adminObjId)
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+        ).then(
+            () => {
+                if (adminObjIdArr && adminObjIdArr.length){
+                    let partialProcessProm = Promise.resolve();
+                    for(let x = 0; x < totalDays; x++){
+                        let newStartTime = dayStartTime;
+                        let dayEndTime = getNextDate.call(this, dayStartTime);
+                        partialProcessProm = partialProcessProm.then(() => {return dbQualityInspection.getManualProposalDailySummaryRecord(newStartTime, dayEndTime, adminObjIdArr)});
+                        dayStartTime = dayEndTime;
+                    }
+                    return partialProcessProm;
+                }
+            }
+        ).catch(
+            err => {
+                console.log("Error when summarizing manual process record; Error: ", err);
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Error when summarizing manual process record",
+                    error: err
+                })
+            }
+        )
     },
 
 

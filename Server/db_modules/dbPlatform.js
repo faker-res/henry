@@ -2413,7 +2413,7 @@ var dbPlatform = {
 
     },
 
-    createNewPlayerAdvertisementRecord: function (platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice, showInRealServer) {
+    createNewPlayerAdvertisementRecord: function (platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice, showInRealServer,navigateMainType, navigateSubtype, type) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
                 if (platformObj) {
@@ -2446,6 +2446,17 @@ var dbPlatform = {
                         showInRealServer: showInRealServer,
                         status: 1
                     }
+
+                    if (navigateMainType) {
+                        newRecordData.navigateMainType = navigateMainType;
+                    }
+                    if (navigateSubtype) {
+                        newRecordData.navigateSubtype = navigateSubtype;
+                    }
+                    if (type) {
+                        newRecordData.type = type;
+                    }
+
                     let advertistmentRecord = new dbconfig.collection_playerPageAdvertisementInfo(newRecordData);
                     return advertistmentRecord.save();
                 }
@@ -2457,7 +2468,7 @@ var dbPlatform = {
         return dbconfig.collection_playerPageAdvertisementInfo.remove({_id: advertisementId, platformId: platformId});
     },
 
-    savePlayerAdvertisementRecordChanges: function (platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice, showInRealServer) {
+    savePlayerAdvertisementRecordChanges: function (platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice, showInRealServer, navigateMainType, navigateSubtype, type) {
 
         let query = {
             platformId: platformId,
@@ -2471,8 +2482,19 @@ var dbPlatform = {
             backgroundBannerImage: backgroundBannerImage,
             imageButton: imageButton,
             inputDevice: inputDevice,
-            showInRealServer: showInRealServer
+            showInRealServer: showInRealServer,
         }
+
+        if (navigateMainType) {
+            updateData.navigateMainType = navigateMainType;
+        }
+        if (navigateSubtype) {
+            updateData.navigateSubtype = navigateSubtype;
+        }
+        if (type) {
+            updateData.type = type;
+        }
+
         return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query, updateData).then(
             platformObj => {
                 if (platformObj) {
@@ -3126,6 +3148,18 @@ var dbPlatform = {
 
                                 if (info.hasOwnProperty('status')) {
                                     activityListObj.status = info.status;
+                                }
+
+                                if (info.hasOwnProperty('navigateMainType')) {
+                                    activityListObj.navigateMainType = info.navigateMainType;
+                                }
+
+                                if (info.hasOwnProperty('navigateSubtype')) {
+                                    activityListObj.navigateSubtype = info.navigateSubtype;
+                                }
+
+                                if (info.hasOwnProperty('type')) {
+                                    activityListObj.type = info.type;
                                 }
 
                                 if (info.backgroundBannerImage && info.backgroundBannerImage.url) {
