@@ -3868,9 +3868,9 @@ var dbPlayerTopUpRecord = {
                     topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
                     if ((playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) || bPMSGroup
-                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
+                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS')) {
 
-                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS') {
                             bPMSGroup = false;
                         } else if (playerData.platform.wechatPayGroupIsPMS) {
                             bPMSGroup = true
@@ -3912,7 +3912,7 @@ var dbPlayerTopUpRecord = {
                                     accountType: constAccountType.WECHAT
                                 };
 
-                                prom = RESTUtils.getPMS2Services("postBankCardList", reqData);
+                                prom = RESTUtils.getPMS2Services("postBankCardList", reqData, playerData.platform.topUpSystemType);
                             }
                         }
 
@@ -3983,7 +3983,7 @@ var dbPlayerTopUpRecord = {
 
                     topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS') {
                         bPMSGroup = false;
                     } else if (playerData && playerData.platform && playerData.platform.aliPayGroupIsPMS) {
                         bPMSGroup = true
@@ -3992,7 +3992,7 @@ var dbPlayerTopUpRecord = {
                     }
 
                     if ((playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) || bPMSGroup
-                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
+                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS')) {
                         let aliPayProm;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
@@ -4026,7 +4026,7 @@ var dbPlayerTopUpRecord = {
                                     accountType: constAccountType.ALIPAY
                                 };
 
-                                aliPayProm = RESTUtils.getPMS2Services("postBankCardList", reqData);
+                                aliPayProm = RESTUtils.getPMS2Services("postBankCardList", reqData, playerData.platform.topUpSystemType);
                             }
                         }
 

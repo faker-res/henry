@@ -207,16 +207,8 @@ var dbPlatformBankCardGroup = {
                         accountType: constAccountType.BANK_CARD
                     };
 
-                    return RESTUtils.getPMS2Services("postBankCardList", reqData);
+                    return RESTUtils.getPMS2Services("postBankCardList", reqData, platformData.topUpSystemType);
                 }
-                // else {
-                    // return pmsAPI.bankcard_getBankcardList(
-                    //     {
-                    //         platformId: platformId,
-                    //         queryId: serverInstance.getQueryId()
-                    //     }
-                    // );
-                // }
             }
         );
     },
@@ -264,10 +256,20 @@ var dbPlatformBankCardGroup = {
         //         queryId: serverInstance.getQueryId()
         //     }
         // )
-        return RESTUtils.getPMS2Services("postBankCardList", {
-            platformId: platformId,
-            accountType: constAccountType.BANK_CARD
-        }).then(
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {platformId: 1, topUpSystemType: 1, name: 1}).then(
+            platformData => {
+                if (platformData) {
+                    let query = {
+                        platformId: platformId,
+                        accountType: constAccountType.BANK_CARD,
+                    };
+
+                    return RESTUtils.getPMS2Services("postBankCardList", query, platformData.topUpSystemType);
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
             data => {
                 allBankCards = data.data || [];
                 return dbconfig.collection_platformBankCardGroup.findOne({_id: bankCardGroupId})
@@ -289,10 +291,20 @@ var dbPlatformBankCardGroup = {
         //         queryId: serverInstance.getQueryId()
         //     }
         // )
-        return RESTUtils.getPMS2Services("postBankCardList", {
-            platformId: platformId,
-            accountType: constAccountType.BANK_CARD
-        }).then(
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {platformId: 1, topUpSystemType: 1, name: 1}).then(
+            platformData => {
+                if (platformData) {
+                    let query = {
+                        platformId: platformId,
+                        accountType: constAccountType.BANK_CARD
+                    };
+
+                    return RESTUtils.getPMS2Services("postBankCardList", query, platformData.topUpSystemType);
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
             data => {
                 allBankCards = data.data;
                 return dbconfig.collection_platformBankCardGroup.findOne({_id: bankCardGroupId})
@@ -392,22 +404,12 @@ var dbPlatformBankCardGroup = {
 
                     topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
 
-                    // if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-                        let reqData = {
-                            platformId: platformId,
-                            accountType: constAccountType.BANK_CARD
-                        };
+                    let reqData = {
+                        platformId: platformId,
+                        accountType: constAccountType.BANK_CARD
+                    };
 
-                        return RESTUtils.getPMS2Services("postBankCardList", reqData);
-                    // }
-                    // else {
-                    //     return pmsAPI.bankcard_getBankcardList(
-                    //         {
-                    //             platformId: platform.platformId,
-                    //             queryId: serverInstance.getQueryId()
-                    //         }
-                    //     )
-                    // }
+                    return RESTUtils.getPMS2Services("postBankCardList", reqData, platform.topUpSystemType);
                 }
             }
         ).then(
