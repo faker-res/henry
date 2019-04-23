@@ -17804,7 +17804,6 @@ define(['js/app'], function (myApp) {
                     $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
                     $('select#selectGameProvider').multipleSelect('refresh');
                     vm.refreshSPicker();
-                    vm.getCredibilityRemarksLocal();
                 });
             };
 
@@ -27695,15 +27694,7 @@ define(['js/app'], function (myApp) {
                     });
             };
             vm.getAllPlayerLevelsLocal = function() {
-                let platformObjId;
-                switch(vm.platformPageName.toLowerCase()) {
-                    case "feedback":
-                        platformObjId = vm.playerFeedbackQuery.selectedPlatform;
-                        break;
-                    case "autofeedback":
-                        // platformObjId = vm.playerFeedbackSelectedPlatform;
-                        break;
-                }
+                let platformObjId = getSelectedPlatform()._id;
                 vm.allPlayerLvl = vm.allPlayerLvlAcrossPlatform.filter(item => {return item.platform == platformObjId});
                 vm.sortPlayerLevels();
             };
@@ -30027,15 +30018,7 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.getCredibilityRemarksLocal = () => {
-                let platformObjId;
-                switch(vm.platformPageName.toLowerCase()) {
-                    case "feedback":
-                        platformObjId = vm.playerFeedbackQuery.selectedPlatform;
-                        break;
-                    case "autofeedback":
-                        // platformObjId = vm.playerFeedbackSelectedPlatform;
-                        break;
-                }
+                let platformObjId = getSelectedPlatform()._id;
                 if(vm.allCredibilityRemarks) {
                     vm.credibilityRemarks = vm.allCredibilityRemarks.filter(item=>{return item.platform == platformObjId});
                     vm.filterCredibilityRemarks = JSON.parse(JSON.stringify(vm.credibilityRemarks));
@@ -39183,13 +39166,19 @@ define(['js/app'], function (myApp) {
 
             function getSelectedPlatform() {
                 let platform = null;
+                let selectedPlatformObjId = null;
                 switch(vm.platformPageName.toLowerCase()) {
                     case "feedback":
-                        platform = vm.playerFeedbackSelectedPlatform;
+                        selectedPlatformObjId = vm.playerFeedbackQuery.selectedPlatform;
                         break;
                     case "autofeedback":
-                        // platform = vm.playerFeedbackSelectedPlatform;
+                        // selectedPlatformObjId = vm.autoFeedbackMission.platformObjId;
                         break;
+                }
+                if(selectedPlatformObjId) {
+                    platform = vm.allPlatformData.filter(platform => {
+                        return selectedPlatformObjId == platform._id
+                    })[0];
                 }
                 return platform;
             }
