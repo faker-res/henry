@@ -17496,22 +17496,26 @@ let dbPlayerInfo = {
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
                 let collection;
+                let distinctField = 'playerId';
 
                 if (endDate.getTime() > todayDate.startTime.getTime()) {
                     console.log('RT - getPlayerReport 1.1');
-                    collection = dbconfig.collection_playerConsumptionRecord;
-                    relevantPlayerQuery.createTime = {$gte: startDate, $lt: endDate};
+                    collection = dbconfig.collection_playerConsumptionHourSummary;
+                    relevantPlayerQuery = {platform: platform};
+                    relevantPlayerQuery.startTime = {$gte: startDate, $lt: endDate};
 
                     // Limit records search to provider
                     if (query && query.providerId) {
                         relevantPlayerQuery.providerId = ObjectId(query.providerId);
                     }
+
+                    distinctField = 'player';
                 } else {
                     collection = dbconfig.collection_playerConsumptionDaySummary;
                     relevantPlayerQuery.date = {$gte: startDate, $lt: endDate};
                 }
 
-                return collection.distinct('playerId', relevantPlayerQuery).then(
+                return collection.distinct(distinctField, relevantPlayerQuery).then(
                     consumptionData => {
                         console.log('RT - getPlayerReport 2');
                         if (consumptionData && consumptionData.length) {
