@@ -30041,6 +30041,15 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.getAllGameProvidersLocal = () => {
+                vm.allCurrentPlatformGameProviders = [];
+                let platform = getSelectedPlatform(); console.log(platform);
+                if(platform && platform.gameProviderDetails) {
+                    vm.allCurrentPlatformGameProviders = platform.gameProviderDetails;
+                }
+                setTimeout(()=>{$('select#selectGameProvider').multipleSelect('refresh')},100);
+            };
+
             vm.getPlatformProviderGroup = (platformObjId) => {
                 let sendData = {
                     platformObjId: platformObjId || vm.selectedPlatform.data._id
@@ -32651,7 +32660,15 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 );
-            }
+            };
+
+            vm.loadDepartmentLocal = () => {
+                let platformObjId = getSelectedPlatform()._id;
+                vm.currentPlatformQueryDepartments = vm.departments.filter(department => {
+                    return (department.platforms.indexOf(platformObjId) > -1 && department.parent);
+                })
+                vm.refreshSPicker();
+            };
 
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
