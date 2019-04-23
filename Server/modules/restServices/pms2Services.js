@@ -72,6 +72,7 @@ function sendRequest (paramStr) {
 }
 
 function postRequest (reqData, urlName, method, paymentSystemKey) {
+    //console.log('reqData ::',urlName, reqData);
     let options = {
         method: method,
         uri: getMainDomain(paymentSystemKey).concat(urlName),
@@ -163,8 +164,8 @@ function postCreateTopup (reqData, paymentSystemKey) {
     return postRequest(reqData, 'deposit-proposal/create', 'POST', paymentSystemKey);
 }
 
-function postBankCardList (reqData) {
-    return postRequest(reqData, 'getBankCardList', 'POST')
+function postBankCardList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getBankCardList', 'POST', paymentSystemKey)
 }
 
 function postBankCard (reqData, paymentSystemKey) {
