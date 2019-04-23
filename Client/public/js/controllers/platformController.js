@@ -2616,6 +2616,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initSendMultiMessage = function () {
+                vm.getAllDepartment();
                 vm.smsLog = {index: 0, limit: 10};
                 //vm.getSMSTemplate();
                 vm.sendMultiMessage = {
@@ -36915,6 +36916,23 @@ define(['js/app'], function (myApp) {
                             })
                         });
                         vm.departmentUsers = result;
+                    });
+                });
+            };
+
+            vm.getAllDepartment = () => {
+                let sendData = {
+                    platforms: vm.sendMultiMessage && vm.sendMultiMessage.platformList ? vm.sendMultiMessage.platformList : []
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getAllDepartment', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getAllDepartment', data);
+                        var result = [];
+                        data.data.forEach(function (departmentData) {
+                            result.push(departmentData);
+                        });
+                        vm.queryDepartments = result;
                     });
                 });
             };
