@@ -380,6 +380,12 @@ include modalGameCreditLog
                 div
                     label {{"优惠代码" | translate}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode', ng-checked='vm.forbidPromoCode || vm.selectedAllForbidRewardEvent')
+                div
+                    label {{"PlayerLevelUp" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelUpReward', ng-checked='vm.forbidLevelUpReward || vm.selectedAllForbidRewardEvent')
+                div
+                    label {{"PlayerLevelMaintain" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelMaintainReward', ng-checked='vm.forbidLevelMaintainReward || vm.selectedAllForbidRewardEvent')
                 div(ng-repeat='(i,v) in vm.allRewardEvent')
                     label {{v.name}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1 || vm.selectedAllForbidRewardEvent')

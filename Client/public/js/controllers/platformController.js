@@ -7125,8 +7125,19 @@ define(['js/app'], function (myApp) {
                                 var playerObjId = row._id ? row._id : "";
 
                                 if (row.isRealPlayer) {
+                                    let forbidFixedRewardsCount = 0;
+                                    if (row.forbidPromoCode) {
+                                        forbidFixedRewardsCount++;
+                                    }
+                                    if (row.forbidLevelUpReward) {
+                                        forbidFixedRewardsCount++;
+                                    }
+                                    if (row.forbidLevelMaintainReward) {
+                                        forbidFixedRewardsCount++;
+                                    }
+
                                     link.append($('<a>', {
-                                        'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? " text-danger" : ""),
+                                        'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && (row.forbidRewardEvents.length + forbidFixedRewardsCount) > 0 ? " text-danger" : ""),
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'popover',
                                         // 'title': $translate("PHONE"),
@@ -7137,7 +7148,7 @@ define(['js/app'], function (myApp) {
                                         'href': '#',
                                         'style': "z-index: auto; min-width:23px",
                                         'data-container': "body",
-                                        'html': (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? '<sup>' + row.forbidRewardEvents.length + '</sup>' : ''),
+                                        'html': (row.forbidRewardEvents && (row.forbidRewardEvents.length + forbidFixedRewardsCount) > 0 ? '<sup>' + (row.forbidRewardEvents.length + forbidFixedRewardsCount) + '</sup>' : ''),
                                     }));
                                 }
 
@@ -7740,6 +7751,9 @@ define(['js/app'], function (myApp) {
                             content: function () {
                                 var data = JSON.parse(this.dataset.row);
                                 vm.forbidRewardEventPopover = data;
+                                vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
+                                vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
+                                vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
                                 vm.forbidRewardEvents = [];
                                 vm.forbidRewardDisable = true;
                                 $scope.safeApply();
@@ -7758,7 +7772,11 @@ define(['js/app'], function (myApp) {
                                             forbidRewardEvents.push($(v).attr('data-provider'));
                                         }
                                     });
-                                    vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                    if (vm.forbidPromoCode != rowData.forbidPromoCode || vm.forbidLevelUpReward != rowData.forbidLevelUpReward || vm.forbidLevelMaintainReward != rowData.forbidLevelMaintainReward) {
+                                        vm.forbidRewardDisable = false;
+                                    } else {
+                                        vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                    }
                                     $scope.safeApply();
                                 });
 
@@ -7777,13 +7795,16 @@ define(['js/app'], function (myApp) {
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
                                     $.each(forbidRewardEventList, function (i, v) {
-                                        if ($(v).prop('checked')) {
+                                        if ($(v).prop('checked') && $(v).attr('data-provider')) {
                                             forbidRewardEvents.push($(v).attr('data-provider'));
                                         }
                                     });
                                     let sendData = {
                                         _id: rowData._id,
                                         forbidRewardEvents: forbidRewardEvents,
+                                        forbidPromoCode: vm.forbidPromoCode,
+                                        forbidLevelUpReward: vm.forbidLevelUpReward,
+                                        forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
                                         adminName: authService.adminName
                                     };
                                     vm.updatePlayerForbidRewardEvents(sendData);
@@ -15268,10 +15289,37 @@ define(['js/app'], function (myApp) {
             vm.updatePlayerForbidRewardEvents = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
+                    let playerObj = data.data;
+                    if (playerObj) {
+                        let sendData = {
+                            query: {
+                                platformObjId: playerObj.platform,
+                                isBlockByMainPermission: false
+                            },
+                            updateData: {}
+                        }
+                        if (playerObj.forbidPromoCode) {
+                            sendData.query.name = "次权限禁用组（预设）"; //hard code name;
+                            sendData.query.isBlockPromoCodeUser = true;
+                            sendData.query.isDefaultGroup = true;
+                            sendData.checkQuery = {
+                                platformObjId: playerObj.platform,
+                                playerNames: playerObj.name
+                            }
+                            sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
+                        } else {
+                            sendData.query.playerNames =  playerObj.name;
+                            sendData.updateData["$pull"] = {playerNames: playerObj.name};
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                        });
+                    }
                     vm.getPlatformPlayersData();
                     vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent), data.data);
                 });
             };
+
             vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidRewardEvents', sendData, function (data) {
@@ -31932,6 +31980,17 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.playerLevelDownChangeIsRewardTask = level => {
+                if (level && level.reward) {
+                    if (level.reward.requiredUnlockTimesLevelDown) {
+                        level.reward.isRewardTaskLevelDown = true;
+                    }
+                    else {
+                        level.reward.isRewardTaskLevelDown = false;
+                    }
+                }
+            };
+
             vm.configTableDeleteLevelConfirm = function (choice, level) {
                 switch (choice) {
                     case 'player':
@@ -34657,6 +34716,15 @@ define(['js/app'], function (myApp) {
                 if (playerObj && playerObj.forbidPromoCode) {
                     forbidReward.push("优惠代码");
                 }
+
+                if (playerObj && playerObj.forbidLevelUpReward) {
+                    forbidReward.push("系统升级优惠");
+                }
+
+                if (playerObj && playerObj.forbidLevelMaintainReward) {
+                    forbidReward.push("系统保级优惠");
+                }
+
                 let queryData = {
                     playerId: playerId,
                     remark: vm.forbidRewardRemark,
@@ -35611,8 +35679,19 @@ define(['js/app'], function (myApp) {
                                 var link = $('<div>', {});
                                 var playerObjId = row._id ? row._id : "";
 
+                                let forbidFixedRewardsCount = 0;
+                                if (row.forbidPromoCode) {
+                                    forbidFixedRewardsCount++;
+                                }
+                                if (row.forbidLevelUpReward) {
+                                    forbidFixedRewardsCount++;
+                                }
+                                if (row.forbidLevelMaintainReward) {
+                                    forbidFixedRewardsCount++;
+                                }
+
                                 link.append($('<a>', {
-                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? " text-danger" : ""),
+                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && (row.forbidRewardEvents.length + forbidFixedRewardsCount) > 0 ? " text-danger" : ""),
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -35623,7 +35702,7 @@ define(['js/app'], function (myApp) {
                                     'href': '#',
                                     'style': "z-index: auto; min-width:23px",
                                     'data-container': "body",
-                                    'html': (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? '<sup>' + row.forbidRewardEvents.length + '</sup>' : ''),
+                                    'html': (row.forbidRewardEvents && (row.forbidRewardEvents.length + forbidFixedRewardsCount) > 0 ? '<sup>' + (row.forbidRewardEvents.length + forbidFixedRewardsCount) + '</sup>' : ''),
                                 }));
 
 
@@ -35890,6 +35969,9 @@ define(['js/app'], function (myApp) {
                             content: function () {
                                 var data = uData;
                                 vm.forbidRewardEventPopover = data;
+                                vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
+                                vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
+                                vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
                                 vm.forbidRewardEvents = [];
                                 vm.forbidRewardDisable = true;
                                 return $compile($('#forbidRewardEventPopover').html())($scope);
@@ -35909,7 +35991,7 @@ define(['js/app'], function (myApp) {
                                         }
                                     });
 
-                                    if (vm.forbidPromoCode != rowData.forbidPromoCode) {
+                                    if (vm.forbidPromoCode != rowData.forbidPromoCode || vm.forbidLevelUpReward != rowData.forbidLevelUpReward || vm.forbidLevelMaintainReward != rowData.forbidLevelMaintainReward) {
                                         vm.forbidRewardDisable = false;
                                     } else {
                                         vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
@@ -35952,6 +36034,8 @@ define(['js/app'], function (myApp) {
                                             'removeList': vm.forbidRewardEventRemoveList
                                         },
                                         forbidPromoCode: vm.forbidPromoCode,
+                                        forbidLevelUpReward: vm.forbidLevelUpReward,
+                                        forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
                                         adminName: authService.adminName
                                     };
                                     // subcategory 1
@@ -36232,6 +36316,10 @@ define(['js/app'], function (myApp) {
                     })
                 }
                 // add to record which is selected to edit
+                $('#c-' + id).html($translate("ModifyIt"));
+            };
+
+            vm.forbidFixedRewardModification = function (id) {
                 $('#c-' + id).html($translate("ModifyIt"));
             };
 

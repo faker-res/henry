@@ -5657,12 +5657,19 @@ define(['js/app'], function (myApp) {
                             var playerObjId = row._id ? row._id : "";
 
                             if (row.isRealPlayer) {
-                                let isForbidPromoCode = 0;
+                                let forbidFixedRewardsCount = 0;
                                 if (row.forbidPromoCode) {
-                                    isForbidPromoCode = 1;
+                                    forbidFixedRewardsCount++;
                                 }
+                                if (row.forbidLevelUpReward) {
+                                    forbidFixedRewardsCount++;
+                                }
+                                if (row.forbidLevelMaintainReward) {
+                                    forbidFixedRewardsCount++;
+                                }
+
                                 link.append($('<a>', {
-                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && (row.forbidRewardEvents.length + isForbidPromoCode) > 0 ? " text-danger" : ""),
+                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && (row.forbidRewardEvents.length + forbidFixedRewardsCount) > 0 ? " text-danger" : ""),
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -5673,7 +5680,7 @@ define(['js/app'], function (myApp) {
                                     'href': '#',
                                     'style': "z-index: auto; min-width:23px",
                                     'data-container': "body",
-                                    'html': (row.forbidRewardEvents && (row.forbidRewardEvents.length + isForbidPromoCode) > 0 ? '<sup>' + (row.forbidRewardEvents.length + isForbidPromoCode) + '</sup>' : ''),
+                                    'html': (row.forbidRewardEvents && (row.forbidRewardEvents.length + forbidFixedRewardsCount) > 0 ? '<sup>' + (row.forbidRewardEvents.length + forbidFixedRewardsCount) + '</sup>' : ''),
                                 }));
                             }
 
@@ -6192,10 +6199,12 @@ define(['js/app'], function (myApp) {
                             var data = JSON.parse(this.dataset.row);
                             vm.forbidRewardEventPopover = data;
                             vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
+                            vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
+                            vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
                             vm.selectedAllForbidRewardEvent = false;
-                            if (vm.forbidPromoCode && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
+                            if (vm.forbidPromoCode && vm.forbidLevelUpReward && vm.forbidLevelMaintainReward && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
                                 vm.selectedAllForbidRewardEvent = true;
                             }
                             $scope.safeApply();
@@ -6214,7 +6223,7 @@ define(['js/app'], function (myApp) {
                                         forbidRewardEvents.push($(v).attr('data-provider'));
                                     }
                                 });
-                                if (vm.forbidPromoCode != rowData.forbidPromoCode) {
+                                if (vm.forbidPromoCode != rowData.forbidPromoCode || vm.forbidLevelUpReward != rowData.forbidLevelUpReward || vm.forbidLevelMaintainReward != rowData.forbidLevelMaintainReward) {
                                     vm.forbidRewardDisable = false;
                                 } else {
                                     vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
@@ -6245,6 +6254,8 @@ define(['js/app'], function (myApp) {
                                     _id: rowData._id,
                                     forbidRewardEvents: forbidRewardEvents,
                                     forbidPromoCode: vm.forbidPromoCode,
+                                    forbidLevelUpReward: vm.forbidLevelUpReward,
+                                    forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
                                     adminName: authService.adminName
                                 };
                                 vm.updatePlayerForbidRewardEvents(sendData);
@@ -22716,6 +22727,14 @@ define(['js/app'], function (myApp) {
         vm.updateForbidRewardLog = function (playerId, forbidReward, playerObj) {
             if (playerObj && playerObj.forbidPromoCode) {
                 forbidReward.push("优惠代码");
+            }
+
+            if (playerObj && playerObj.forbidLevelUpReward) {
+                forbidReward.push("系统升级优惠");
+            }
+
+            if (playerObj && playerObj.forbidLevelMaintainReward) {
+                forbidReward.push("系统保级优惠");
             }
 
             let queryData = {
