@@ -860,7 +860,8 @@ define(['js/app'], function (myApp) {
             vm.bankCards = preValue1[0];
 
             // Initiate player table
-            vm.getPlatformPlayersData(true, true);
+            // vm.getPlatformPlayersData(true, true);
+            vm.drawPlayerTable([]);
 
             // check settlement buttons
             let nowDate = new Date().toLocaleDateString();
@@ -893,25 +894,6 @@ define(['js/app'], function (myApp) {
             Q.all([vm.getAllPlayerLevels(), vm.getAllPartnerLevels()]).then(
                 function (data) {
                     $scope.$evalAsync(() => {
-                        // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
-                        console.log('vm.platformPageName', vm.platformPageName);
-
-                        switch (vm.platformPageName) {
-                            case "GameGroup":
-                                vm.loadGameGroupData();
-                                break;
-                            case "Feedback":
-                                vm.initPlayerFeedback();
-                                // vm.submitPlayerFeedbackQuery();
-                                break;
-                            case "MessageTemplates":
-                                vm.getPlatformMessageTemplates();
-                                break;
-                            case "FeedbackAdmin" :
-                                initFeedbackAdmin();
-                                break;
-                        }
-                        //     case "Player":
                         vm.playersQueryCreated = false;
                         vm.loadAlldepartment();
                         vm.rewardTabClicked();
@@ -931,8 +913,6 @@ define(['js/app'], function (myApp) {
                     console.log("error getting all levels", error);
                 }
             ).done();
-            vm.jiguang.appKey = vm.selectedPlatform.data.jiguangAppKey;
-            vm.jiguang.masterKey = vm.selectedPlatform.data.jiguangMasterKey;
         }
 
         //search and select platform node
@@ -4960,6 +4940,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.advancedPlayerQuery = function (newSearch) {
+            console.trace('vm.advancedPlayerQuery', newSearch);
             if (vm.advancedQueryObj.credibilityRemarks && (vm.advancedQueryObj.credibilityRemarks.constructor !== Array || vm.advancedQueryObj.credibilityRemarks.length === 0)) {
                 delete vm.advancedQueryObj.credibilityRemarks;
             }
@@ -6590,7 +6571,7 @@ define(['js/app'], function (myApp) {
                 createPlayerAdvancedSearchFilters({
                     tableOptions: tableOptions,
                     filtersElement: '#playerTable-search-filters',
-                    queryFunction: vm.getPlayersByAdvanceQueryDebounced
+                    // queryFunction: vm.getPlayersByAdvanceQueryDebounced
                 });
             }
         };
@@ -6727,26 +6708,6 @@ define(['js/app'], function (myApp) {
                     }));
                 }
             });
-            // var btn = $('<button>', {
-            //     id: "resetPlayerQuery",
-            //     class: "btn btn-primary common-button-sm",
-            //     style: "display:block;",
-            // }).text($translate('Reset'));
-            // var newFilter = $('<div class="search-filter col-md-3">').append($('<label class="control-label">')).append(btn);
-            // $(config.filtersElement).append(newFilter);
-            // utilService.actionAfterLoaded('#resetPlayerQuery', function () {
-            //     $('#resetPlayerQuery').off('click');
-            //     $('#resetPlayerQuery').click(function () {
-            //         $('#playerTable-search-filters').find(".form-control").each((i, v) => {
-            //             $(v).val(null);
-            //             utilService.clearDatePickerDate(v)
-            //         })
-            //         getPlayersByAdvanceQueryDebounced(function ({}) {
-            //         });
-            //         vm.advancedQueryObj = {};
-            //         vm.advancedPlayerQuery(true);
-            //     })
-            // })
         }
 
         function getQueryFunction(config, filterConfig, fieldName, queryValue, isDateTimePicker) {
@@ -9669,14 +9630,12 @@ define(['js/app'], function (myApp) {
                 // vm.getPlatformPlayersData();
                 vm.creditTransfer.showValidCredit = data.data.playerCredit;
                 vm.creditTransfer.needRefreshPlatformPlayerData = true;
-                // vm.advancedPlayerQuery();
                 $scope.safeApply();
                 // vm.creditModal.modal('hide');
             }, function (err) {
                 console.log('transfer credit', err);
                 vm.creditTransfer.transferResult = 'FAIL';
                 vm.creditTransfer.isProcessing = false;
-                // vm.advancedPlayerQuery();
                 $scope.safeApply();
             })
         }
@@ -21734,34 +21693,8 @@ define(['js/app'], function (myApp) {
             loadPlatformData({loadAll: true, noParallelTrigger: true});
         });
 
-        function oneSecIntervalTask () {
-            let countDown = -1;
-            setInterval(() => {
-                let item = $('#autoRefreshPlayerFlag');
-                let isRefresh = item && item.length > 0 && item[0].checked;
-                let mark = $('#timeLeftRefreshPlayer')[0];
-                $(mark).parent().toggleClass('hidden', countDown < 0);
-                if (isRefresh) {
-                    if (countDown < 0) {
-                        countDown = 11
-                    }
-                    if (countDown == 0) {
-                        vm.advancedPlayerQuery();
-                        countDown = 11;
-                    }
-                    countDown--;
-                    $(mark).text(countDown);
-                } else {
-                    countDown = -1;
-                }
-            }, 1000);
-        }
-
         function initPageParam() {
-            oneSecIntervalTask();
-
             vm.queryPara = {};
-
             vm.forbidGameAddList = [];
             vm.forbidGameRemoveList = [];
             vm.phonePattern = /^[0-9]{8,11}$/;
@@ -21820,7 +21753,7 @@ define(['js/app'], function (myApp) {
                         if (vm.playerTableQuery.sortCol[sortKey] != preVal) {
                             vm.playerTableQuery.sortCol = {};
                             vm.playerTableQuery.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                            vm.advancedPlayerQuery();
+                            // vm.advancedPlayerQuery();
                         }
                     }
                 });
@@ -22409,8 +22342,6 @@ define(['js/app'], function (myApp) {
                         }
                     })
                 });
-            } else {
-                vm.advancedPlayerQuery(true);
             }
         };
 

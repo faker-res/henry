@@ -55,6 +55,14 @@ var proposalSchema = new Schema({
 proposalSchema.index({proposalId: 1});
 // Index for top up report without proposalId search
 proposalSchema.index({createTime: 1, mainType: 1});
+
+proposalSchema.index({"data.merchantNo": 1});
+proposalSchema.index({"data.bankCardNo": 1});
+proposalSchema.index({"data.accountNo": 1});
+proposalSchema.index({"data.alipayAccount": 1});
+proposalSchema.index({"data.wechatAccount": 1});
+proposalSchema.index({"data.weChatAccount": 1});
+
 // Index for player report
 proposalSchema.index({"data.playerObjId": 1, createTime: 1, mainType: 1, status: 1, type: 1});
 // Index based on type
@@ -62,15 +70,12 @@ proposalSchema.index({type: 1, createTime: -1});
 
 proposalSchema.index({"data.playerName": 1});
 proposalSchema.index({"data.playerId": 1});
-
 proposalSchema.index({"data.partnerName": 1});
 proposalSchema.index({"data.eventCode": 1});
 proposalSchema.index({"data.eventName": 1});
 proposalSchema.index({"data.validTime": 1});
 proposalSchema.index({mainType: 1, type: 1, status: 1});
 proposalSchema.index({noSteps: 1, type: 1, createTime: 1});
-proposalSchema.index({"data.merchantNo": 1});
-proposalSchema.index({"data.alipayAccount": 1});
 proposalSchema.index({"data.PROMO_CODE_TYPE": 1});
 proposalSchema.index({"data.name": 1});
 proposalSchema.index({"data.phoneNumber": 1});
@@ -85,7 +90,6 @@ proposalSchema.index({"data.userAgent": 1});
 proposalSchema.index({"data.topupType": 1});
 proposalSchema.index({"data.consecutiveNumber": 1});
 proposalSchema.index({"data.bConsumptionReturnRequest": 1});
-proposalSchema.index({"data.bankCardNo": 1});
 proposalSchema.index({"data.eventId": 1});
 proposalSchema.index({"data.alipayer": 1});
 proposalSchema.index({"data.alipayerAccount": 1});
@@ -102,9 +106,6 @@ proposalSchema.index({"data.line": 1});
 proposalSchema.index({"data.topUpProposal": 1});
 proposalSchema.index({"data.topUpProposalId": 1});
 proposalSchema.index({"data.topUpRecordId": 1});
-proposalSchema.index({"data.accountNo": 1});
-proposalSchema.index({"data.wechatAccount": 1});
-proposalSchema.index({"data.weChatAccount": 1});
 proposalSchema.index({"data.followUpContent": 1});
 proposalSchema.index({"data.bankTypeId": 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.depositMethod": 1});
