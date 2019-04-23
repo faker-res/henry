@@ -55,12 +55,14 @@ var proposalSchema = new Schema({
 proposalSchema.index({proposalId: 1});
 // Index for top up report without proposalId search
 proposalSchema.index({createTime: 1, mainType: 1});
+// Index for player report
+proposalSchema.index({"data.playerObjId": 1, createTime: 1, mainType: 1, status: 1, type: 1});
 // Index based on type
 proposalSchema.index({type: 1, createTime: -1});
 
 proposalSchema.index({"data.playerName": 1});
 proposalSchema.index({"data.playerId": 1});
-proposalSchema.index({"data.playerObjId": 1});
+
 proposalSchema.index({"data.partnerName": 1});
 proposalSchema.index({"data.eventCode": 1});
 proposalSchema.index({"data.eventName": 1});
@@ -103,10 +105,8 @@ proposalSchema.index({"data.topUpRecordId": 1});
 proposalSchema.index({"data.accountNo": 1});
 proposalSchema.index({"data.wechatAccount": 1});
 proposalSchema.index({"data.weChatAccount": 1});
-proposalSchema.index({"data.requestId": 1});
 proposalSchema.index({"data.followUpContent": 1});
 proposalSchema.index({"data.bankTypeId": 1});
-proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.depositMethod": 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.topupType": 1});
 proposalSchema.index({"data.topUpSystemName": 1});
