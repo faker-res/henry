@@ -460,7 +460,7 @@ let dbPlayerInfo = {
                             dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
-                            let guestNameProm = generateGuestPlayerName(platform._id);
+                            let guestNameProm = generateGuestPlayerName(platform._id, inputData.accountPrefix);
                             promArr.push(guestNameProm);
 
 
@@ -3655,13 +3655,15 @@ let dbPlayerInfo = {
         return Promise.all(proms);
     },
 
-    updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents, disablePromoCode) {
+    updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents, disablePromoCode, forbidLevelUpReward, forbidLevelMaintainReward) {
         let updateData = {};
         if (forbidRewardEvents) {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
 
         updateData.forbidPromoCode = disablePromoCode? true: false;
+        updateData.forbidLevelUpReward = forbidLevelUpReward? true: false;
+        updateData.forbidLevelMaintainReward = forbidLevelMaintainReward? true: false;
 
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
@@ -10369,6 +10371,25 @@ let dbPlayerInfo = {
                                                 }
                                             );
                                         } else {
+                                            if (checkLevelDown && !(playerObj.permission && playerObj.permission.banReward) && !playerObj.forbidLevelMaintainReward && playerObj.playerLevel.value > 0 && playerObj.playerLevel.reward
+                                                && playerObj.playerLevel.reward.bonusCreditLevelDown && !(playerObj.permission && playerObj.permission.banReward)) { // for player level maintain reward
+                                                if (platformPeriod) { // level down period same (both top up and consumption)
+                                                    let rewardPeriodTime;
+                                                    if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
+                                                        rewardPeriodTime = dbUtil.getTodaySGTime();
+                                                    } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
+                                                        platformPeriod = dbUtil.getCurrentWeekSGTime();
+                                                    } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
+                                                        rewardPeriodTime = dbUtil.getCurrentMonthSGTIme();
+                                                    }
+
+                                                    if (rewardPeriodTime) {
+                                                        checkLevelMaintainReward(playerObj, rewardPeriodTime).catch(errorUtils.reportError);
+                                                    }
+                                                }
+                                            }
+
+
                                             if (checkLevelUp) {
                                                 console.log("check player level up",playerObj.name, topUpSumPeriod, consumptionSumPeriod)
                                                 return Q.reject({
@@ -10386,6 +10407,27 @@ let dbPlayerInfo = {
                     }
                     else {
                         console.log("check player level consumption", playerObj.name, errorMsg);
+
+                        // if (checkLevelDown && !(playerObj.permission && playerObj.permission.banReward) && !playerObj.forbidLevelMaintainReward && playerObj.playerLevel.value > 0 && playerObj.playerLevel.reward
+                        //     && playerObj.playerLevel.reward.bonusCreditLevelDown && !(playerObj.permission && playerObj.permission.banReward)) { // for player level maintain reward
+                        //     let levelDownPeriod = levelDownLevel && levelDownLevel.levelDownConfig && levelDownLevel.levelDownConfig[0] && levelDownLevel.levelDownConfig[0].consumptionPeriod;
+                        //     if (levelDownPeriod) { // level down period same (both top up and consumption)
+                        //         let rewardPeriodTime;
+                        //         if (levelDownPeriod == constPlayerLevelUpPeriod.DAY) {
+                        //             rewardPeriodTime = dbUtil.getTodaySGTime();
+                        //         } else if (levelDownPeriod == constPlayerLevelUpPeriod.WEEK) {
+                        //             rewardPeriodTime = dbUtil.getCurrentWeekSGTime();
+                        //         } else if (levelDownPeriod == constPlayerLevelUpPeriod.MONTH) {
+                        //             rewardPeriodTime = dbUtil.getCurrentMonthSGTIme();
+                        //         }
+                        //
+                        //         if (rewardPeriodTime) {
+                        //             checkLevelMaintainReward(playerObj, rewardPeriodTime).catch(errorUtils.reportError);
+                        //         }
+                        //     }
+                        // }
+
+
                         if (showReject) {
                             return Q.reject({
                                 status: errorCode,
@@ -17496,31 +17538,31 @@ let dbPlayerInfo = {
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
                 let collection;
+                let distinctField = 'playerId';
 
                 if (endDate.getTime() > todayDate.startTime.getTime()) {
                     console.log('RT - getPlayerReport 1.1');
-                    collection = dbconfig.collection_playerConsumptionRecord;
-                    relevantPlayerQuery.createTime = {$gte: startDate, $lt: endDate};
+                    collection = dbconfig.collection_playerConsumptionHourSummary;
+                    relevantPlayerQuery = {platform: platform};
+                    relevantPlayerQuery.startTime = {$gte: startDate, $lt: endDate};
 
                     // Limit records search to provider
                     if (query && query.providerId) {
                         relevantPlayerQuery.providerId = ObjectId(query.providerId);
                     }
+
+                    distinctField = 'player';
                 } else {
                     collection = dbconfig.collection_playerConsumptionDaySummary;
                     relevantPlayerQuery.date = {$gte: startDate, $lt: endDate};
                 }
 
-                return collection.aggregate([
-                    {$match: relevantPlayerQuery},
-                    {$sort: {playerId: 1}},
-                    {$group: {_id: "$playerId"}}
-                ]).read("secondaryPreferred").then(
+                return collection.distinct(distinctField, relevantPlayerQuery).then(
                     consumptionData => {
                         console.log('RT - getPlayerReport 2');
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
-                                return String(playerIdObj._id);
+                                return String(playerIdObj);
                             });
                         }
 
@@ -25016,9 +25058,9 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
     }
 }
 
-function generateGuestPlayerName(platformObjId, count) {
+function generateGuestPlayerName(platformObjId, accountPrefix, count) {
     count = count || 0;
-    let namePrefix = "g";// hard code guest prefix
+    let namePrefix = accountPrefix || "g";// hard code guest prefix
     let numArray = [];
 
     for (let i = 0; i < 8; i++) {
@@ -25043,7 +25085,7 @@ function generateGuestPlayerName(platformObjId, count) {
                 });
             }
 
-            return generateGuestPlayerName(platformObjId, count);
+            return generateGuestPlayerName(platformObjId, accountPrefix, count);
         }
     );
 }
@@ -25293,6 +25335,55 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
     return recordSum;
 }
 
+async function checkLevelMaintainReward (playerObj, lvlDownPeriod) {
+    let proposalType = await dbconfig.collection_proposalType.findOne({
+        platformId: playerObj.platform,
+        name: constProposalType.PLAYER_LEVEL_MAINTAIN
+    }).lean();
+
+    if (!proposalType) {
+        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+    }
+
+    let rewardProm = await dbconfig.collection_proposal.findOne({
+        'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+        'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
+        type: proposalType._id,
+        createTime: {
+            $gte: lvlDownPeriod.startTime,
+            $lt: lvlDownPeriod.endTime
+        },
+        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
+    }).lean();
+
+    if (rewardProm) {
+        return Promise.resolve(); // player claimed reward in the period
+    }
+
+    let proposalData = {
+        levelOldName: playerObj.playerLevel.name,
+        upOrDown: "LEVEL_MAINTAIN",
+        playerObjId: playerObj._id,
+        playerName: playerObj.name,
+        playerId: playerObj.playerId,
+        platformObjId: playerObj.platform,
+        levelValue: playerObj.playerLevel.value,
+        levelName: playerObj.playerLevel.name,
+        levelObjId: playerObj.playerLevel._id,
+        rewardAmount: playerObj.playerLevel.reward.bonusCreditLevelDown,
+        isRewardTask: playerObj.playerLevel.reward.isRewardTaskLevelDown,
+
+    };
+
+    if (proposalData.isRewardTask) {
+        if (playerObj.playerLevel.reward.providerGroupLevelDown && playerObj.playerLevel.reward.providerGroupLevelDown !== "free") {
+            proposalData.providerGroup = playerObj.playerLevel.reward.providerGroupLevelDown;
+        }
+        proposalData.requiredUnlockAmount = playerObj.playerLevel.reward.requiredUnlockTimesLevelDown * playerObj.playerLevel.reward.bonusCreditLevelDown;
+    }
+    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MAINTAIN, {data: proposalData});
+}
+
 function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevelUp, proposal, inputDevice, index, isDisableAutoLevelUpReward) {
     let isSkipAudit = false;
     let isRewardAssign = false;
@@ -25372,7 +25463,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
                 // if this is level up and player has not reach this level before
                 // create level up reward proposal
 
-                if (playerObj.permission && playerObj.permission.banReward) {
+                if (playerObj.forbidLevelUpReward || (playerObj.permission && playerObj.permission.banReward)) {
                     return Promise.resolve();
                 }
 
@@ -25399,7 +25490,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
     ).then(
         proposalResult => {
 
-            if (!checkLevelUp || isDisableAutoLevelUpReward) {
+            if (!checkLevelUp) {
                 return Promise.resolve();
             }
 
@@ -25416,7 +25507,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
                 let rewardPriceCount = rewardPrice.length;
                 let mainMessage = '恭喜您从 ' + prevLevelName + ' 升级到 ' + currentLevelName;
                 let subMessage = '';
-                if (!isRewardAssign && (proposalResult.status == constProposalStatus.APPROVED || proposalResult.status == constProposalStatus.SUCCESS)) {
+                if (!isRewardAssign && proposalResult && (proposalResult.status == constProposalStatus.APPROVED || proposalResult.status == constProposalStatus.SUCCESS)) {
                     subMessage = ',获得';
                     rewardPrice.forEach(
                         function (val, index) {

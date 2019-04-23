@@ -2295,6 +2295,8 @@
   "PARTNER_BONUS": "代理提款",
   "GAME_ID": "游戏ID",
   "PlayerLevelUp": "系统升级优惠",
+  "PlayerLevelMaintain": "系统保级优惠",
+  "LEVEL_MAINTAIN": "保级",
   "Online": "网银转账",
   "Counter": "银行柜台",
   "allTopUp": "所有存款",

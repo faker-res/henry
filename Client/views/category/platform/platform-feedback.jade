@@ -347,8 +347,16 @@ div
                 label {{"FORBID_REWARD" | translate}}
                 div
                     label {{"优惠代码" | translate}}
-                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode')
-                        span(id="{{'c-promoCode'}}" ng-if='vm.forbidPromoCode != undefined') {{"ModifyIt" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode' ng-change='vm.forbidFixedRewardModification("forbidPromoCode")')
+                        span(id="{{'c-forbidPromoCode'}}")
+                div
+                    label {{"PlayerLevelUp" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelUpReward' ng-change='vm.forbidFixedRewardModification("forbidLevelUpReward")')
+                        span(id="{{'c-forbidLevelUpReward'}}")
+                div
+                    label {{"PlayerLevelMaintain" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelMaintainReward' ng-change='vm.forbidFixedRewardModification("forbidLevelMaintainReward")')
+                        span(id="{{'c-forbidLevelMaintainReward'}}")
                 div(ng-repeat='(i,v) in vm.allRewardEvent')
                     label {{v.name}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1')

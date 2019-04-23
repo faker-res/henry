@@ -82,22 +82,11 @@
                 div.symbol(ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'") ~
                 input.form-control.threeBoxes(type="number" ng-model="vm.playerAdvanceSearchQuery.creditAmountTwo" ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'" ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
         .col-xs-12.text-right
+            button#searchPlayer.btn.btn-success.margin-right-5(ng-click='vm.advancedPlayerQuery()') {{'SEARCH' | translate}}
             button#resetPlayerQuery.btn.btn-primary {{'Reset' | translate}}
-
-
 
 .col-md-12
     label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.platformPlayerCount}} ({{"Search Result" | translate}} : {{vm.searchPlayerCount}})
-    i#loadingPlayerTableSpin.fa.fa-spin.fa-refresh.margin-left-5.text-danger.collapse
-    .pull-right
-        .inlineBlk.hidden
-            text {{"Time left until next refresh" | translate}} :&nbsp;
-            text#timeLeftRefreshPlayer
-            text s
-        label.inlineBlk {{'Auto Refresh' | translate}}
-            input#autoRefreshPlayerFlag.margin-left-5(type='checkbox')
-        a.fa.fa-refresh.margin-top-5(ng-click='vm.getPlayersByAdvanceQuery(vm.playerAdvanceSearchQuery)')
-            text.margin-right-5.pull-left {{"Refresh" | translate}}
 .col-md-12
     table.common-table#playerDataTable.display.paymentGroup-btn
         thead
@@ -380,6 +369,12 @@ include modalGameCreditLog
                 div
                     label {{"优惠代码" | translate}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode', ng-checked='vm.forbidPromoCode || vm.selectedAllForbidRewardEvent')
+                div
+                    label {{"PlayerLevelUp" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelUpReward', ng-checked='vm.forbidLevelUpReward || vm.selectedAllForbidRewardEvent')
+                div
+                    label {{"PlayerLevelMaintain" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelMaintainReward', ng-checked='vm.forbidLevelMaintainReward || vm.selectedAllForbidRewardEvent')
                 div(ng-repeat='(i,v) in vm.allRewardEvent')
                     label {{v.name}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1 || vm.selectedAllForbidRewardEvent')

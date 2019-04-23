@@ -197,6 +197,16 @@ const constMessageTypeParam = {
             {parameterName:'executeTime' , description:'executeTime'}
         ]
     },
+    PLAYER_LEVEL_MAINTAIN_SUCCESS:{
+        name:"PlayerLevelUpSuccess",
+        params:[
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.providerGroup' , description:'providerGroup'},
+            {parameterName:'proposalData.data.requiredUnlockAmount' , description:'Spending times on reward'},
+            {parameterName:'proposalData.proposalId' , description:'proposalId'},
+            {parameterName:'executeTime' , description:'executeTime'}
+        ]
+    },
     PROMO_CODE_SEND: {
         name:"PromoCodeSend",
         params:[]
