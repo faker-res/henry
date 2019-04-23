@@ -33,6 +33,7 @@ const constProposalMainType = {
     "AddPlayerRewardTask": constMainType.REWARD,
     "PlayerAuctionPromotionReward": constMainType.REWARD,
     "PlayerLevelUp": constMainType.REWARD,
+    "PlayerLevelMaintain": constMainType.REWARD,
     "PlayerTopUpReturn": constMainType.REWARD,
     "PartnerConsumptionReturn": constMainType.REWARD,
     "PartnerIncentiveReward": constMainType.REWARD,
