@@ -61,7 +61,7 @@ const dbPlayerPayment = {
                             accountType: constAccountType.ALIPAY
                         };
 
-                        return RESTUtils.getPMS2Services("postBankCardList", reqData);
+                        return RESTUtils.getPMS2Services("postBankCardList", reqData, data.platform.topUpSystemType);
                     }
                 } else {
                     return Promise.reject({name: "DataError", message: "Invalid player data"})
@@ -228,10 +228,13 @@ const dbPlayerPayment = {
                                 //         queryId: serverInstance.getQueryId()
                                 //     }
                                 // )
-                                return RESTUtils.getPMS2Services("postBankCardList", {
+
+                                let query = {
                                     platformId: platformData.platformId,
                                     accountType: constAccountType.BANK_CARD
-                                }).then(
+                                };
+
+                                return RESTUtils.getPMS2Services("postBankCardList", query, playerData.platform.topUpSystemType).then(
                                     bankCardListData => {
                                         if (bankCardListData && bankCardListData.data && bankCardListData.data.length
                                             && playerObj.bankCardGroup && playerObj.bankCardGroup.banks && playerObj.bankCardGroup.banks.length) {
