@@ -591,6 +591,7 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
+        console.log("checking raw inputData when create new player", inputData)
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -1846,6 +1847,7 @@ let dbPlayerInfo = {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
 
+                    console.log("checking playerData before saving", playerdata)
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -1867,7 +1869,7 @@ let dbPlayerInfo = {
                 if (data) {
                     playerData = data;
 
-
+                    console.log("checking playerData sourceUrl after saving", playerData.sourceUrl || null, playerData.name)
                     if (playerData.tsPhone) {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
                             tsPhoneData => {
