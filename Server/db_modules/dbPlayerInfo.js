@@ -460,7 +460,7 @@ let dbPlayerInfo = {
                             dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
-                            let guestNameProm = generateGuestPlayerName(platform._id);
+                            let guestNameProm = generateGuestPlayerName(platform._id, inputData.accountPrefix);
                             promArr.push(guestNameProm);
 
 
@@ -25013,9 +25013,9 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
     }
 }
 
-function generateGuestPlayerName(platformObjId, count) {
+function generateGuestPlayerName(platformObjId, accountPrefix, count) {
     count = count || 0;
-    let namePrefix = "g";// hard code guest prefix
+    let namePrefix = accountPrefix || "g";// hard code guest prefix
     let numArray = [];
 
     for (let i = 0; i < 8; i++) {
@@ -25040,7 +25040,7 @@ function generateGuestPlayerName(platformObjId, count) {
                 });
             }
 
-            return generateGuestPlayerName(platformObjId, count);
+            return generateGuestPlayerName(platformObjId, accountPrefix, count);
         }
     );
 }
