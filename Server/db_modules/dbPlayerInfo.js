@@ -2913,6 +2913,7 @@ let dbPlayerInfo = {
     resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code) {
         let platformObj;
         let playerObj;
+        let paymentSystemId;
         let isCheckByPhone = false;
         let isCheckByCode = false;
         let isGetQuestion = false; //  return question only
@@ -2924,6 +2925,11 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
                 platformObj = platformData;
+                if (platformObj && platformObj.topUpSystemType) {
+                    paymentSystemId = platformObj.topUpSystemType;
+                } else if (platformObj && platformObj.bonusSystemType) {
+                    paymentSystemId = platformObj.bonusSystemType;
+                }
                 return dbconfig.collection_players.findOne({name: name, platform: platformData._id}).lean();
             }).then(
             playerData => {
@@ -3038,7 +3044,7 @@ let dbPlayerInfo = {
                 }
 
                 if (isGetQuestion) {
-                    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
+                    return RESTUtils.getPMS2Services("postBankTypeList", {}, paymentSystemId).then(
                         bankTypeData => {
                             returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
                             returnData.questionList = [];
@@ -6847,7 +6853,7 @@ let dbPlayerInfo = {
                 if (bank3.bankName || bank3.bankAccountName || bank3.bankAccount) {
                     listData.push(bank3);
                 }
-                return RESTUtils.getPMS2Services("postBankTypeList", {});
+                return RESTUtils.getPMS2Services("postBankTypeList", {}, platformObj.bonusSystemType);
             },
         ).then(
             bankTypeList => {
