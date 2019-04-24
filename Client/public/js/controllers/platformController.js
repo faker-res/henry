@@ -12986,7 +12986,7 @@ define(['js/app'], function (myApp) {
                 resultName = resultName.length > 0 ? resultName[0].value : "";
                 let sendData = {
                     playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
-                    platform: platformObjId,
+                    platform: vm.isOneSelectedPlayer().platform || platformObjId,
                     createTime: Date.now(),
                     adminId: authService.adminId,
                     content: vm.playerFeedback.content,
