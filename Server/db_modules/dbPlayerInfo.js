@@ -18202,7 +18202,7 @@ let dbPlayerInfo = {
         ).then(
             returnedData => {
                 returnedObj = returnedData;
-                let twoDaysAgo = dbUtil.getDayTime().startTime;
+                let twoDaysAgo = dbUtil.getYesterdaySGTime().startTime;
 
                 query.start = new Date(query.start) > twoDaysAgo ? query.start : twoDaysAgo;
 
