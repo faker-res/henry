@@ -17555,12 +17555,16 @@ let dbPlayerInfo = {
                     relevantPlayerQuery.date = {$gte: startDate, $lt: endDate};
                 }
 
-                return collection.distinct('playerId', relevantPlayerQuery).then(
+                return collection.aggregate([
+                    {$match: relevantPlayerQuery},
+                    {$sort: {playerId: 1}},
+                    {$group: {_id: "$playerId"}}
+                ]).read("secondaryPreferred").then(
                     consumptionData => {
                         console.log('RT - getPlayerReport 2');
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
-                                return String(playerIdObj);
+                                return String(playerIdObj._id);
                             });
                         }
 
