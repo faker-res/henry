@@ -522,9 +522,9 @@ var dbPlatformMerchantGroup = {
                     };
 
                     merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
-                    bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions);
-                    aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions);
-                    weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions);
+                    bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions, platformData.topUpSystemType);
+                    aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions, platformData.topUpSystemType);
+                    weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions, platformData.topUpSystemType);
 
                     return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
                         data=>{

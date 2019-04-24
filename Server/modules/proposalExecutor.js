@@ -264,6 +264,7 @@ var proposalExecutor = {
             this.executions.executePlayerTopUpReturn.des = "Player top up return";
             this.executions.executePlayerConsumptionIncentive.des = "Player consumption incentive";
             this.executions.executePlayerLevelUp.des = "Player Level Up";
+            this.executions.executePlayerLevelMaintain.des = "Player Level Maintain";
             this.executions.executePartnerTopUpReturn.des = "Partner Top Up Return";
             this.executions.executePlayerTopUpReward.des = "Player Top Up Reward";
             this.executions.executePlayerReferralReward.des = "Player Referral Reward";
@@ -353,6 +354,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerTopUpReturn.des = "Reject Player top up return";
             this.rejections.rejectPlayerConsumptionIncentive.des = "Reject Player consumption incentive";
             this.rejections.rejectPlayerLevelUp.des = "Reject Player Level Up";
+            this.rejections.rejectPlayerLevelMaintain.des = "Reject Player Level Maintain";
             this.rejections.rejectPartnerTopUpReturn.des = "Reject Partner Top Up Return";
             this.rejections.rejectPlayerTopUpReward.des = "Reject Player Top Up Reward";
             this.rejections.rejectPlayerReferralReward.des = "Reject Player Referral Reward";
@@ -2357,6 +2359,34 @@ var proposalExecutor = {
                     else {
                         changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constProposalType.PLAYER_LEVEL_UP, proposalData.data).then(deferred.resolve, deferred.reject);
                         sendMessageToPlayer(proposalData,constMessageType.PLAYER_LEVEL_UP_SUCCESS,{});
+                    }
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player level up reward proposal data"});
+                }
+            },
+
+            executePlayerLevelMaintain: function (proposalData, deferred) {
+                //create reward task for related player
+                //verify data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
+                    if (proposalData.data.isRewardTask) {
+                        var taskData = {
+                            playerId: proposalData.data.playerObjId,
+                            type: constRewardType.PLAYER_LEVEL_MAINTAIN,
+                            rewardType: constRewardType.PLAYER_LEVEL_MAINTAIN,
+                            platformId: proposalData.data.platformObjId,
+                            //todo::check unlock amount here
+                            requiredUnlockAmount: proposalData.data.requiredUnlockAmount || 0,
+                            providerGroup: proposalData.data.providerGroup,
+                            currentAmount: proposalData.data.rewardAmount,
+                            initAmount: proposalData.data.rewardAmount,
+                        };
+                        createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_LEVEL_MAINTAIN, proposalData);
+                    }
+                    else {
+                        changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constProposalType.PLAYER_LEVEL_MAINTAIN, proposalData.data).then(deferred.resolve, deferred.reject);
+                        sendMessageToPlayer(proposalData,constMessageType.PLAYER_LEVEL_MAINTAIN_SUCCESS,{});
                     }
                 }
                 else {
@@ -4904,6 +4934,13 @@ var proposalExecutor = {
             },
 
             /**
+             * reject function for player level maintain
+             */
+            rejectPlayerLevelMaintain: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
              * reject function for player top up return
              */
             rejectPartnerTopUpReturn: function (proposalData, deferred) {
@@ -5636,7 +5673,7 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
     //type that need to add 'Success' status
     let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP, constRewardType.PLAYER_RANDOM_REWARD_GROUP,
-        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP, constRewardType.PLAYER_RETENTION_REWARD_GROUP
+        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP, constRewardType.PLAYER_RETENTION_REWARD_GROUP, constRewardType.PLAYER_LEVEL_MAINTAIN
     ];
 
     // type reference to constMessageType or constMessageTypeParam.name
@@ -5647,14 +5684,14 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
 
     console.log("checking messageType", messageType)
     let providerProm = Promise.resolve();
-    if (messageType == messageType.PLAYER_LEVEL_UP_SUCCESS && proposalData && proposalData.data && proposalData.data.providerGroup) {
+    if ((messageType == messageType.PLAYER_LEVEL_UP_SUCCESS || messageType == messageType.PLAYER_LEVEL_MAINTAIN_SUCCESS) && proposalData && proposalData.data && proposalData.data.providerGroup) {
         providerProm = dbconfig.collection_gameProviderGroup.findOne({
             _id:ObjectId(proposalData.data.providerGroup)
         });
     }
     providerProm.then(
         providerData => {
-            if (messageType == constMessageType.PLAYER_LEVEL_UP_SUCCESS) {
+            if (messageType == constMessageType.PLAYER_LEVEL_UP_SUCCESS || messageType == messageType.PLAYER_LEVEL_MAINTAIN_SUCCESS) {
                 if (providerData && providerData.name) {
                     proposalData.data.providerGroup = providerData.name;
                 } else {

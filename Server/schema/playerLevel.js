@@ -37,6 +37,10 @@ var playerLevelSchema = new Schema({
     consumption: {type: JSON},
     reward: {
         _id: false,
+        bonusCreditLevelDown: {type: Number, default: 0},
+        isRewardTaskLevelDown: {type: Boolean, default: false},
+        providerGroupLevelDown: {type: String, default: 'free'},
+        requiredUnlockTimesLevelDown: {type: Number, default: 0},
         bonusCredit: {type: Number, default: 20},
         isRewardTask: {type: Boolean, default: false},
         providerGroup: {type: String, default: 'free'},
@@ -49,6 +53,8 @@ var playerLevelSchema = new Schema({
 
     //if player of this level can apply for consumption return
     canApplyConsumptionReturn: {type: Boolean},
+    //if player of this level down can apply for consumption return
+    canApplyConsumptionReturnLevelDown: {type: Boolean},
     // region XBET sport - no default value (currently only for XBET)
     // withdrawal consumption
     withdrawalConsumption: {type: Number},
