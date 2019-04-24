@@ -546,7 +546,7 @@
                 br
                 label {{'CONFIRM_LEVEL_UP' | translate}} : {{vm.playerLevelSettlement.lvlUpStartTime}} -> {{vm.playerLevelSettlement.lvlUpEndTime}}
                 br
-                label {{'CONFIRM_LEVEL_DOWN' | translate}} : {{vm.playerLevelSettlement.lvlDownStartTime}} -> {{vm.playerLevelSettlement.lvlDownEndTime}}
+                label {{'CONFIRM_LEVEL_MAINTAIN' | translate}} : {{vm.playerLevelSettlement.lvlDownStartTime}} -> {{vm.playerLevelSettlement.lvlDownEndTime}}
             .modal-footer
                 .form-control.inlineBlk(style='width:initial', ng-if='vm.playerLevelSettlement.status=="completed"')
                     .text-danger {{vm.playerLevelSettlement.result | translate}}
