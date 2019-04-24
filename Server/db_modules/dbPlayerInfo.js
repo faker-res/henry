@@ -18203,7 +18203,7 @@ let dbPlayerInfo = {
             returnedData => {
                 returnedObj = returnedData;
                 let twoDaysAgo = new Date();
-                twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+                twoDaysAgo.setDate(dbUtil.getTodaySGTime().startTime.getDate() - 1);
 
                 if(new Date(query.end) > twoDaysAgo ){
                     console.log("LH check player report summary 8");
