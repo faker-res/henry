@@ -26595,43 +26595,43 @@ define(['js/app'], function (myApp) {
             };
 
             vm.drawTable = function (tblOptions, tblId, qObj, qName, fnSortChange, data, size, summary, newSearch) {
-                tblOptions = $.extend(true, {}, vm.generalDataTableOptions, tblOptions);
+                $scope.$evalAsync(() => {
+                    tblOptions = $.extend(true, {}, vm.generalDataTableOptions, tblOptions);
 
-                if (summary) {
-                    let summaryRate = "0%";
-                    if (summary.hasOwnProperty("acceptedCount") && summary.hasOwnProperty("sendCount")) {
-                        summaryRate = String(parseFloat(summary.acceptedCount / summary.sendCount * 100).toFixed(2)) + "%";
-                    }
-                    if (qName == "promoCodeAnalysis2") {
-                        utilService.createDatatableWithFooter(tblId, tblOptions, {
-                            1: summary.sendCount,
-                            2: summary.acceptedCount,
-                            3: summaryRate,
-                            4: summary.acceptedAmount,
-                            5: summary.topUpAmount
-                        });
+                    if (summary) {
+                        let summaryRate = "0%";
+                        if (summary.hasOwnProperty("acceptedCount") && summary.hasOwnProperty("sendCount")) {
+                            summaryRate = String(parseFloat(summary.acceptedCount / summary.sendCount * 100).toFixed(2)) + "%";
+                        }
+                        if (qName == "promoCodeAnalysis2") {
+                            utilService.createDatatableWithFooter(tblId, tblOptions, {
+                                1: summary.sendCount,
+                                2: summary.acceptedCount,
+                                3: summaryRate,
+                                4: summary.acceptedAmount,
+                                5: summary.topUpAmount
+                            });
+                        } else {
+                            utilService.createDatatableWithFooter(tblId, tblOptions, {
+                                1: summary.sendCount,
+                                2: summary.acceptedCount,
+                                3: summary.totalPlayer,
+                                4: summaryRate,
+                                5: summary.acceptedAmount
+                            });
+                        }
                     } else {
-                        utilService.createDatatableWithFooter(tblId, tblOptions, {
-                            1: summary.sendCount,
-                            2: summary.acceptedCount,
-                            3: summary.totalPlayer,
-                            4: summaryRate,
-                            5: summary.acceptedAmount
-                        });
+                        utilService.createDatatableWithFooter(tblId, tblOptions, {}, true);
                     }
-                } else {
-                    utilService.createDatatableWithFooter(tblId, tblOptions, {}, true);
-                }
 
-                qObj.pageObj.init({maxCount: size}, newSearch);
+                    qObj.pageObj.init({maxCount: size}, newSearch);
 
-                $(tblId).off('order.dt');
-                $(tblId).on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, qName, fnSortChange);
-                });
-                $(tblId).resize();
-
-                $scope.safeApply();
+                    $(tblId).off('order.dt');
+                    $(tblId).on('order.dt', function (event, a, b) {
+                        vm.commonSortChangeHandler(a, qName, fnSortChange);
+                    });
+                    $(tblId).resize();
+                })
             };
 
             vm.disablePromoCode = function () {
@@ -26743,7 +26743,7 @@ define(['js/app'], function (myApp) {
                 } else {
                     platformIdList = vm.allPlatformData.map(a => a._id);
                 }
-                
+
                 let sendObj = {
                     startAcceptedTime: vm.promoCodeMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
@@ -26871,7 +26871,7 @@ define(['js/app'], function (myApp) {
 
                     let table1Data = data.data[0];
                     vm.promoCodeAnalysis.totalCount = data.data[1].length;
-                    vm.promoCodeAnalysis.sendCount = data.data[2][0].sendCount;
+                    vm.promoCodeAnalysis.sendCount = ( data.data[2] && data.data[2][0] && data.data[2][0].sendCount) ? data.data[2][0].sendCount : 0;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p = Promise.resolve();
@@ -26979,7 +26979,7 @@ define(['js/app'], function (myApp) {
 
                     let table2Data = data.data[0];
                     vm.promoCodeAnalysis2.totalCount = data.data[1].length;
-                    vm.promoCodeAnalysis2.sendCount = data.data[2][0].sendCount;
+                    vm.promoCodeAnalysis2.sendCount = (data.data[2] && data.data[2][0] && data.data[2][0].sendCount) ? data.data[2][0].sendCount :0;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p1 = Promise.resolve();
