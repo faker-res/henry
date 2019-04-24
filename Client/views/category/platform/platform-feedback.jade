@@ -1,7 +1,7 @@
 .well
     .search-filters-item
         label {{'PRODUCT_NAME'| translate}}
-        select.form-control(ng-model="vm.playerFeedbackQuery.selectedPlatform" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.feedbackPlatformChanged();' )
+        select.form-control(ng-model="vm.playerFeedbackQuery.selectedPlatform" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.feedbackPlatformChanged();vm.getAllGameProvidersLocal();vm.loadDepartmentLocal();' )
     .search-filters-item
         label {{"USER_TYPE"|translate}}
         select.form-control(ng-model="vm.playerFeedbackQuery.playerType")
@@ -109,7 +109,7 @@
             input.threeBoxes.form-control(type="number" ng-model="vm.playerFeedbackQuery.topUpSumLatter" ng-if="vm.playerFeedbackQuery.topUpSumOperator === 'range'")
     .search-filters-item
         label {{"GAME_LOBBY"|translate}}
-        select.form-control#selectGameProvider(multiple="multiple",  ng-options='provider._id as provider.name for provider in vm.allGameProviders', ng-model='vm.playerFeedbackQuery.gameProviderId')
+        select.form-control#selectGameProvider(multiple="multiple",  ng-options='provider._id as provider.name for provider in vm.allCurrentPlatformGameProviders', ng-model='vm.playerFeedbackQuery.gameProviderId')
     .search-filters-item
         label {{"SYSTEM_PLAYER" | translate}}
         select.form-control(ng-model='vm.playerFeedbackQuery.isNewSystem')
@@ -130,7 +130,7 @@
                 i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
     .search-filters-item
         label {{"REGISTRATION_DEPARTMENT"|translate}}
-        select.spicker.form-control(ng-model='vm.playerFeedbackQuery.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.playerFeedbackQuery)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
+        select.spicker.form-control(ng-model='vm.playerFeedbackQuery.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.playerFeedbackQuery)", ng-options='dp._id as dp.departmentName | translate for dp in vm.currentPlatformQueryDepartments')
     .search-filters-item
         label {{"REGISTRATION_ROLE"|translate}}
         select.spicker.form-control(ng-model='vm.playerFeedbackQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.playerFeedbackQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')

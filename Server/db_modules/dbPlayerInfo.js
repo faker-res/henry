@@ -591,6 +591,7 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
+        console.log("checking raw inputData when create new player", inputData)
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -1846,6 +1847,7 @@ let dbPlayerInfo = {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
 
+                    console.log("checking playerData before saving", playerdata)
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -1867,7 +1869,7 @@ let dbPlayerInfo = {
                 if (data) {
                     playerData = data;
 
-
+                    console.log("checking playerData sourceUrl after saving", playerData.sourceUrl || null, playerData.name)
                     if (playerData.tsPhone) {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
                             tsPhoneData => {
@@ -2911,6 +2913,7 @@ let dbPlayerInfo = {
     resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code) {
         let platformObj;
         let playerObj;
+        let paymentSystemId;
         let isCheckByPhone = false;
         let isCheckByCode = false;
         let isGetQuestion = false; //  return question only
@@ -2922,6 +2925,11 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
                 platformObj = platformData;
+                if (platformObj && platformObj.topUpSystemType) {
+                    paymentSystemId = platformObj.topUpSystemType;
+                } else if (platformObj && platformObj.bonusSystemType) {
+                    paymentSystemId = platformObj.bonusSystemType;
+                }
                 return dbconfig.collection_players.findOne({name: name, platform: platformData._id}).lean();
             }).then(
             playerData => {
@@ -3036,7 +3044,7 @@ let dbPlayerInfo = {
                 }
 
                 if (isGetQuestion) {
-                    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
+                    return RESTUtils.getPMS2Services("postBankTypeList", {}, paymentSystemId).then(
                         bankTypeData => {
                             returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
                             returnData.questionList = [];
@@ -6845,7 +6853,7 @@ let dbPlayerInfo = {
                 if (bank3.bankName || bank3.bankAccountName || bank3.bankAccount) {
                     listData.push(bank3);
                 }
-                return RESTUtils.getPMS2Services("postBankTypeList", {});
+                return RESTUtils.getPMS2Services("postBankTypeList", {}, platformObj.bonusSystemType);
             },
         ).then(
             bankTypeList => {
@@ -17538,31 +17546,31 @@ let dbPlayerInfo = {
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
                 let collection;
-                let distinctField = 'playerId';
 
                 if (endDate.getTime() > todayDate.startTime.getTime()) {
                     console.log('RT - getPlayerReport 1.1');
-                    collection = dbconfig.collection_playerConsumptionHourSummary;
-                    relevantPlayerQuery = {platform: platform};
-                    relevantPlayerQuery.startTime = {$gte: startDate, $lt: endDate};
+                    collection = dbconfig.collection_playerConsumptionRecord;
+                    relevantPlayerQuery.createTime = {$gte: startDate, $lt: endDate};
 
                     // Limit records search to provider
                     if (query && query.providerId) {
                         relevantPlayerQuery.providerId = ObjectId(query.providerId);
                     }
-
-                    distinctField = 'player';
                 } else {
                     collection = dbconfig.collection_playerConsumptionDaySummary;
                     relevantPlayerQuery.date = {$gte: startDate, $lt: endDate};
                 }
 
-                return collection.distinct(distinctField, relevantPlayerQuery).then(
+                return collection.aggregate([
+                    {$match: relevantPlayerQuery},
+                    {$sort: {playerId: 1}},
+                    {$group: {_id: "$playerId"}}
+                ]).read("secondaryPreferred").then(
                     consumptionData => {
                         console.log('RT - getPlayerReport 2');
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
-                                return String(playerIdObj);
+                                return String(playerIdObj._id);
                             });
                         }
 

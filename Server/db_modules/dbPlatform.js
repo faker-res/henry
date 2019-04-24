@@ -5255,6 +5255,7 @@ var dbPlatform = {
         let platformObjId;
         let todayTime = dbUtility.getTodaySGTime();
 
+        console.log("checking sourceUrl", sourceUrl)
         return dbconfig.collection_platform.findOne({
             platformId: platformId
         }, '_id').lean().then(
@@ -5290,6 +5291,7 @@ var dbPlatform = {
                         updateQuery.partnerId = partnerId;
                     }
 
+                    console.log("checking updateQuery", ipDomainLog)
                     return dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, updateQuery).then(
                         () => {
                             // hide the detail in the return msg
@@ -5312,6 +5314,7 @@ var dbPlatform = {
                         newLog.sourceUrl = sourceUrl;
                     }
 
+                    console.log("checking newLog", newLog)
                     return dbconfig.collection_ipDomainLog(newLog).save().then(
                         () => {
                             // hide the detail in the return msg

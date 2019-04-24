@@ -214,7 +214,37 @@ var dbPlatformBankCardGroup = {
     },
 
     getBankTypeList: function(platformObjId) {
-        return RESTUtils.getPMS2Services("postBankTypeList", {});
+        let paymentSystemId;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1}).then(
+            platformData => {
+                if (platformData && platformData.topUpSystemType) {
+                    paymentSystemId = platformData.topUpSystemType;
+                }
+
+                return RESTUtils.getPMS2Services("postBankTypeList", {}, paymentSystemId);
+            }
+        )
+    },
+
+    getWithdrawalBankTypeList: function(platformId) {
+        let paymentSystemId;
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {bonusSystemType: 1}).then(
+            platformData => {
+                if (platformData && platformData.bonusSystemType) {
+                    paymentSystemId = platformData.bonusSystemType;
+                }
+
+                return RESTUtils.getPMS2Services("postBankTypeList", {}, paymentSystemId).then(data => {
+                    // bankflag: 1   // 提款银行类型
+                    // bankflag: 0   // 存款银行类型
+                    // Hank requested to display bankflag 1 only
+                    if (data && data.data) {
+                        let withdrawalBank = data.data.filter(bank => bank.bankflag === 1);
+                        return withdrawalBank;
+                    }
+                });
+            }
+        )
     },
 
     /**
