@@ -26765,7 +26765,7 @@ define(['js/app'], function (myApp) {
                 } else {
                     platformIdList = vm.allPlatformData.map(a => a._id);
                 }
-                
+
                 let sendObj = {
                     startAcceptedTime: vm.promoCodeMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
@@ -26893,7 +26893,7 @@ define(['js/app'], function (myApp) {
 
                     let table1Data = data.data[0];
                     vm.promoCodeAnalysis.totalCount = data.data[1].length;
-                    vm.promoCodeAnalysis.sendCount = data.data[2][0].sendCount;
+                    vm.promoCodeAnalysis.sendCount = ( data.data[2] && data.data[2][0] && data.data[2][0].sendCount) ? data.data[2][0].sendCount : 0;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p = Promise.resolve();
@@ -27001,7 +27001,7 @@ define(['js/app'], function (myApp) {
 
                     let table2Data = data.data[0];
                     vm.promoCodeAnalysis2.totalCount = data.data[1].length;
-                    vm.promoCodeAnalysis2.sendCount = data.data[2][0].sendCount;
+                    vm.promoCodeAnalysis2.sendCount = (data.data[2] && data.data[2][0] && data.data[2][0].sendCount) ? data.data[2][0].sendCount :0;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p1 = Promise.resolve();
