@@ -16777,7 +16777,9 @@ define(['js/app'], function (myApp) {
                 vm.hasFeedbackPlatformChange = true;
             };
             vm.searchPlayerFeedback = (isNewSearch, currentTimeBoolean) => {
-                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) {
+                    return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+                }
                 if(vm.hasFeedbackPlatformChange) {
                     vm.getCtiData().then(()=>{
                         vm.submitPlayerFeedbackQuery(isNewSearch, currentTimeBoolean);
