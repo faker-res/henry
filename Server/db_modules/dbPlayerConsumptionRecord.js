@@ -1994,8 +1994,8 @@ var dbPlayerConsumptionRecord = {
             {
                 $group: {
                     _id: "$platform",
-                    totalAmount: {$sum: "consumptionValidAmount"},
-                    userIds: {$addToSet: "player"},
+                    totalAmount: {$sum: "$consumptionValidAmount"},
+                    userIds: {$addToSet: "$player"},
                 }
             }
         ).read("secondaryPreferred").allowDiskUse(true).exec();
