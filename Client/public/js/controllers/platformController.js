@@ -26881,7 +26881,7 @@ define(['js/app'], function (myApp) {
                             p = p.then(function () {
                                 return $scope.$socketPromise('promoCodeTemplateByObjId', elem._id.promoCodeTemplateObjId).then(res => {
                                     elem.promoCodeTemplate = res.data;
-                                    elem.promoCodeSubType$ = res.data.name;
+                                    elem.promoCodeSubType$ = ( res.data && res.data.name ) ? res.data.name : '';
                                     elem.totalPlayer$ = elem.totalPlayer.length || 0;
                                 })
                             });
@@ -26889,7 +26889,7 @@ define(['js/app'], function (myApp) {
                             p = p.then(function () {
                                 return $scope.$socketPromise('getPromoCodeTypeByObjId', elem._id.promoCodeTypeObjId).then(res => {
                                     elem.promoCodeType = res.data;
-                                    elem.promoCodeSubType$ = res.data.name;
+                                    elem.promoCodeSubType$ = ( res.data && res.data.name ) ? res.data.name : '';
                                     elem.totalPlayer$ = elem.totalPlayer.length || 0;
                                 })
                             });
