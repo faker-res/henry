@@ -2863,8 +2863,11 @@ define(['js/app'], function (myApp) {
                         case "PlayerLevelUp":
                             vm.allProposalType[x].seq = 3.02;
                             break;
-                        case "PlayerPromoCodeReward":
+                        case "PlayerLevelMaintain":
                             vm.allProposalType[x].seq = 3.03;
+                            break;
+                        case "PlayerPromoCodeReward":
+                            vm.allProposalType[x].seq = 3.04;
                             break;
                         case "UpdatePlayerInfo":
                             vm.allProposalType[x].seq = 4.01;

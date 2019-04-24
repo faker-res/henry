@@ -198,7 +198,7 @@ const constMessageTypeParam = {
         ]
     },
     PLAYER_LEVEL_MAINTAIN_SUCCESS:{
-        name:"PlayerLevelUpSuccess",
+        name:"PlayerLevelMaintainSuccess",
         params:[
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
             {parameterName:'proposalData.data.providerGroup' , description:'providerGroup'},

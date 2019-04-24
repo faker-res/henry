@@ -95,7 +95,7 @@ let PlayerServiceImplement = function () {
         let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
         conn.captchaCode = null;
         data.isOnline = true;
-        console.log("yH checking---conn", conn)
+        // console.log("yH checking---conn", conn)
         if (conn.partnerId){
             connPartnerId = conn.partnerId;
         }
@@ -130,7 +130,9 @@ let PlayerServiceImplement = function () {
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
-                playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                if (playerData.phoneNumber) {
+                    playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                }
                 playerData.email = dbUtility.encodeEmail(playerData.email);
                 if (playerData.bankAccount) {
                     playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
@@ -1449,7 +1451,9 @@ let PlayerServiceImplement = function () {
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
-                playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                if (playerData.phoneNumber) {
+                    playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                }
                 playerData.email = dbUtility.encodeEmail(playerData.email);
                 if (playerData.bankAccount) {
                     playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);

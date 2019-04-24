@@ -591,6 +591,7 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
+        console.log("checking raw inputData when create new player", inputData)
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -1846,6 +1847,7 @@ let dbPlayerInfo = {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
 
+                    console.log("checking playerData before saving", playerdata)
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -1867,7 +1869,7 @@ let dbPlayerInfo = {
                 if (data) {
                     playerData = data;
 
-
+                    console.log("checking playerData sourceUrl after saving", playerData.sourceUrl || null, playerData.name)
                     if (playerData.tsPhone) {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
                             tsPhoneData => {
@@ -2911,6 +2913,7 @@ let dbPlayerInfo = {
     resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code) {
         let platformObj;
         let playerObj;
+        let paymentSystemId;
         let isCheckByPhone = false;
         let isCheckByCode = false;
         let isGetQuestion = false; //  return question only
@@ -2922,6 +2925,11 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
                 platformObj = platformData;
+                if (platformObj && platformObj.topUpSystemType) {
+                    paymentSystemId = platformObj.topUpSystemType;
+                } else if (platformObj && platformObj.bonusSystemType) {
+                    paymentSystemId = platformObj.bonusSystemType;
+                }
                 return dbconfig.collection_players.findOne({name: name, platform: platformData._id}).lean();
             }).then(
             playerData => {
@@ -3036,7 +3044,7 @@ let dbPlayerInfo = {
                 }
 
                 if (isGetQuestion) {
-                    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
+                    return RESTUtils.getPMS2Services("postBankTypeList", {}, paymentSystemId).then(
                         bankTypeData => {
                             returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
                             returnData.questionList = [];
@@ -6845,7 +6853,7 @@ let dbPlayerInfo = {
                 if (bank3.bankName || bank3.bankAccountName || bank3.bankAccount) {
                     listData.push(bank3);
                 }
-                return RESTUtils.getPMS2Services("postBankTypeList", {});
+                return RESTUtils.getPMS2Services("postBankTypeList", {}, platformObj.bonusSystemType);
             },
         ).then(
             bankTypeList => {
@@ -10378,7 +10386,7 @@ let dbPlayerInfo = {
                                                     if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
                                                         rewardPeriodTime = dbUtil.getTodaySGTime();
                                                     } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
-                                                        platformPeriod = dbUtil.getCurrentWeekSGTime();
+                                                        rewardPeriodTime = dbUtil.getCurrentWeekSGTime();
                                                     } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
                                                         rewardPeriodTime = dbUtil.getCurrentMonthSGTIme();
                                                     }
@@ -15941,6 +15949,16 @@ let dbPlayerInfo = {
                                         }
                                     }
                                 }
+
+                                if (code === "MANUAL_PLAYER_LEVEL_MAINTAIN_REWARD") {
+                                    return {
+                                        _id: "MANUAL_PLAYER_LEVEL_MAINTAIN_REWARD",
+                                        type: {
+                                            name: constRewardType.PLAYER_LEVEL_MAINTAIN
+                                        }
+                                    }
+                                }
+
                                 return dbconfig.collection_rewardEvent.findOne({
                                     platform: playerData.platform,
                                     code: code
@@ -15997,6 +16015,7 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_TOP_UP_RETURN,
                         constRewardType.PLAYER_CONSUMPTION_INCENTIVE,
                         constRewardType.PLAYER_LEVEL_UP,
+                        constRewardType.PLAYER_LEVEL_MAINTAIN,
                         constRewardType.PLAYER_TOP_UP_REWARD,
                         constRewardType.PLAYER_REGISTRATION_REWARD,
                         constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
@@ -16131,6 +16150,9 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_LEVEL_UP:
                                     return manualPlayerLevelUpReward(playerInfo._id, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_LEVEL_MAINTAIN:
+                                    return manualPlayerLevelMaintainReward(playerInfo._id, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP:
                                     // check if there is selected game providers from front-end
@@ -18200,16 +18222,14 @@ let dbPlayerInfo = {
         ).then(
             returnedData => {
                 returnedObj = returnedData;
-                let twoDaysAgo = new Date();
-                twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+                let twoDaysAgo = dbUtil.getYesterdaySGTime().startTime;
+
+                query.start = new Date(query.start) > twoDaysAgo ? query.start : twoDaysAgo;
 
                 if(new Date(query.end) > twoDaysAgo ){
                     console.log("LH check player report summary 8");
-                    query.start = twoDaysAgo;
                     return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
                 }
-
-                return;
             }
         ).then(
             twoDaysPlayerReportData => {
@@ -26261,7 +26281,7 @@ function manualPlayerLevelUpReward(playerObjId, adminInfo) {
 
             playerLevel = player.playerLevel;
 
-            if (player.permission && player.permission.banReward) {
+            if (player.forbidLevelUpReward && player.permission && player.permission.banReward) {
                 return Promise.reject({
                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                     name: "DataError",
@@ -26328,6 +26348,109 @@ function manualPlayerLevelUpReward(playerObjId, adminInfo) {
 
             } else {
                 return Promise.reject({message: "该玩家已经领取『" + playerLevel.name + "』的升级优惠。"});
+            }
+        }
+    );
+}
+
+function manualPlayerLevelMaintainReward(playerObjId, adminInfo) {
+    let player, proposalType, playerLevel, platform = {};
+    return dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+        path: "playerLevel",
+        model: dbconfig.collection_playerLevel
+    }).populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+        playerData => {
+            player = playerData;
+            if (!player) {
+                return Promise.reject({message: "Player not found."});
+            }
+            platform = player.platform;
+
+            playerLevel = player.playerLevel;
+
+            if (player.forbidLevelMaintainReward && player.permission && player.permission.banReward) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Player do not have permission for reward"
+                });
+            }
+
+            return dbconfig.collection_proposalType.findOne({
+                platformId: platform._id,
+                name: constProposalType.PLAYER_LEVEL_MAINTAIN
+            }).lean();
+        }
+    ).then(
+        proposalTypeData => {
+            proposalType = proposalTypeData;
+            let platformPeriod = platform.playerLevelDownPeriod;
+            let rewardPeriodTime;
+
+            if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
+                rewardPeriodTime = dbUtil.getTodaySGTime();
+            } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
+                rewardPeriodTime = dbUtil.getCurrentWeekSGTime();
+            } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
+                rewardPeriodTime = dbUtil.getCurrentMonthSGTIme();
+            }
+
+            if (!rewardPeriodTime) {
+                return Promise.reject({name: "DBError", message: "Cannot find platform level down period"})
+            }
+
+
+            return dbconfig.collection_proposal.findOne({
+                'data.playerObjId': {$in: [ObjectId(player._id), String(player._id)]},
+                'data.platformObjId': {$in: [ObjectId(platform._id), String(platform._id)]},
+                type: proposalTypeData._id,
+                createTime: {
+                    $gte: rewardPeriodTime.startTime,
+                    $lt: rewardPeriodTime.endTime
+                },
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
+            }).lean();
+        }
+    ).then(
+        rewardProposal => {
+            if (!rewardProposal) {
+
+                let proposalData = {
+                    levelName: playerLevel.name,
+                    levelObjId: playerLevel._id,
+                    levelValue: playerLevel.value,
+                    proposalPlayerLevel: playerLevel.name,
+                    playerLevelName: playerLevel.name,
+                    proposalPlayerLevelValue: playerLevel.value,
+                    platformId: platform._id,
+                    platformObjId: String(platform._id),
+                    playerId: player.playerId,
+                    playerName: player.name,
+                    playerObjId: String(player._id),
+                    upOrDown: "LEVEL_MAINTAIN"
+                };
+
+                if (playerLevel && playerLevel.reward && playerLevel.reward.bonusCreditLevelDown) {
+                    proposalData.rewardAmount = playerLevel.reward.bonusCreditLevelDown;
+                    proposalData.isRewardTask = playerLevel.reward.isRewardTaskLevelDown;
+                    if (proposalData.isRewardTask) {
+                        if (playerLevel.reward.providerGroupLevelDown && playerLevel.reward.providerGroupLevelDown !== "free") {
+                            proposalData.providerGroup = playerLevel.reward.providerGroupLevelDown;
+                        }
+                        proposalData.requiredUnlockAmount = playerLevel.reward.requiredUnlockTimesLevelDown * playerLevel.reward.bonusCreditLevelDown;
+                    }
+
+                    let proposal = {data: proposalData};
+                    if (adminInfo) {
+                        proposal.creator = adminInfo;
+                        proposal.entryType = constProposalEntryType.ADMIN;
+                    }
+
+                    return dbProposal.createProposalWithTypeName(platform._id, constProposalType.PLAYER_LEVEL_MAINTAIN, proposal);
+                }
+
+            } else {
+                return Promise.reject({message: "该玩家周期内已经领取『" + playerLevel.name + "』的保级优惠。"});
             }
         }
     );

@@ -176,8 +176,8 @@ function postBankType (reqData, paymentSystemKey) {
     return postRequest(reqData, 'bankType', 'POST', paymentSystemKey);
 }
 
-function postBankTypeList (reqData) {
-    return postRequest(reqData, 'bankTypes', 'POST')
+function postBankTypeList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'bankTypes', 'POST', paymentSystemKey)
 }
 
 function postSyncPlatform (reqData) {

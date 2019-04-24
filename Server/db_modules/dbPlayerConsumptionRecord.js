@@ -1983,19 +1983,19 @@ var dbPlayerConsumptionRecord = {
 
     getPlayerConsumptionDetailByPlatform: function (startTime, endTime, platformId) {
         let matchObj = {
-            createTime: {$gte: startTime, $lt: endTime},
-            platformId: (platformId)
+            platform: platformId,
+            startTime: {$gte: startTime, $lt: endTime}
         };
 
-        return dbconfig.collection_playerConsumptionRecord.aggregate(
+        return dbconfig.collection_playerConsumptionHourSummary.aggregate(
             {
                 $match: matchObj
             },
             {
                 $group: {
-                    _id: "$platformId",
-                    totalAmount: {$sum: "$amount"},
-                    userIds: {$addToSet: "$playerId"},
+                    _id: "$platform",
+                    totalAmount: {$sum: "$consumptionValidAmount"},
+                    userIds: {$addToSet: "$player"},
                 }
             }
         ).read("secondaryPreferred").allowDiskUse(true).exec();
