@@ -977,6 +977,7 @@ define([], function () {
                     break;
                 case "AddPlayerRewardTask":
                 case "PlayerLevelUp":
+                case "PlayerLevelMaintain":
                 case "PlayerPromoCodeReward":
                 case "DxReward":
                 case "PlatformTransactionReward":
@@ -1075,8 +1076,11 @@ define([], function () {
                     case "PlayerLevelUp":
                         allProposalType[x].seq = 3.02;
                         break;
-                    case "PlayerPromoCodeReward":
+                    case "PlayerLevelMaintain":
                         allProposalType[x].seq = 3.03;
+                        break;
+                    case "PlayerPromoCodeReward":
+                        allProposalType[x].seq = 3.04;
                         break;
                     case "UpdatePlayerInfo":
                         allProposalType[x].seq = 5.01;

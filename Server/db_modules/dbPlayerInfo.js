@@ -4377,10 +4377,13 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                console.log('JY check 1::');
                 if (data && data[0]) {
                     let topupRecordData = data[0];
                     topupRecordData.topUpRecordId = topupRecordData._id;
+                    console.log('JY check topupRecordData._id::', topupRecordData._id);
                     checkLimitedOfferToApply(proposalData, topupRecordData._id);
+                    console.log('JY check 2::');
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(player._id).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
@@ -10386,7 +10389,7 @@ let dbPlayerInfo = {
                                                     if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
                                                         rewardPeriodTime = dbUtil.getTodaySGTime();
                                                     } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
-                                                        platformPeriod = dbUtil.getCurrentWeekSGTime();
+                                                        rewardPeriodTime = dbUtil.getCurrentWeekSGTime();
                                                     } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
                                                         rewardPeriodTime = dbUtil.getCurrentMonthSGTIme();
                                                     }
@@ -15949,6 +15952,16 @@ let dbPlayerInfo = {
                                         }
                                     }
                                 }
+
+                                if (code === "MANUAL_PLAYER_LEVEL_MAINTAIN_REWARD") {
+                                    return {
+                                        _id: "MANUAL_PLAYER_LEVEL_MAINTAIN_REWARD",
+                                        type: {
+                                            name: constRewardType.PLAYER_LEVEL_MAINTAIN
+                                        }
+                                    }
+                                }
+
                                 return dbconfig.collection_rewardEvent.findOne({
                                     platform: playerData.platform,
                                     code: code
@@ -16005,6 +16018,7 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_TOP_UP_RETURN,
                         constRewardType.PLAYER_CONSUMPTION_INCENTIVE,
                         constRewardType.PLAYER_LEVEL_UP,
+                        constRewardType.PLAYER_LEVEL_MAINTAIN,
                         constRewardType.PLAYER_TOP_UP_REWARD,
                         constRewardType.PLAYER_REGISTRATION_REWARD,
                         constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
@@ -16139,6 +16153,9 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_LEVEL_UP:
                                     return manualPlayerLevelUpReward(playerInfo._id, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_LEVEL_MAINTAIN:
+                                    return manualPlayerLevelMaintainReward(playerInfo._id, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP:
                                     // check if there is selected game providers from front-end
@@ -17546,31 +17563,31 @@ let dbPlayerInfo = {
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
                 let collection;
+                let distinctField = 'playerId';
 
                 if (endDate.getTime() > todayDate.startTime.getTime()) {
                     console.log('RT - getPlayerReport 1.1');
-                    collection = dbconfig.collection_playerConsumptionRecord;
-                    relevantPlayerQuery.createTime = {$gte: startDate, $lt: endDate};
+                    collection = dbconfig.collection_playerConsumptionHourSummary;
+                    relevantPlayerQuery = {platform: platform};
+                    relevantPlayerQuery.startTime = {$gte: startDate, $lt: endDate};
 
                     // Limit records search to provider
                     if (query && query.providerId) {
                         relevantPlayerQuery.providerId = ObjectId(query.providerId);
                     }
+
+                    distinctField = 'player';
                 } else {
                     collection = dbconfig.collection_playerConsumptionDaySummary;
                     relevantPlayerQuery.date = {$gte: startDate, $lt: endDate};
                 }
 
-                return collection.aggregate([
-                    {$match: relevantPlayerQuery},
-                    {$sort: {playerId: 1}},
-                    {$group: {_id: "$playerId"}}
-                ]).read("secondaryPreferred").then(
+                return collection.distinct(distinctField, relevantPlayerQuery).then(
                     consumptionData => {
                         console.log('RT - getPlayerReport 2');
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
-                                return String(playerIdObj._id);
+                                return String(playerIdObj);
                             });
                         }
 
@@ -18208,16 +18225,14 @@ let dbPlayerInfo = {
         ).then(
             returnedData => {
                 returnedObj = returnedData;
-                let twoDaysAgo = new Date();
-                twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+                let twoDaysAgo = dbUtil.getYesterdaySGTime().startTime;
+
+                query.start = new Date(query.start) > twoDaysAgo ? query.start : twoDaysAgo;
 
                 if(new Date(query.end) > twoDaysAgo ){
                     console.log("LH check player report summary 8");
-                    query.start = twoDaysAgo;
                     return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
                 }
-
-                return;
             }
         ).then(
             twoDaysPlayerReportData => {
@@ -24957,9 +24972,10 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
         if(proposalData.data.actualAmountReceived){
             updateObj["data.actualAmount"] = proposalData.data.actualAmountReceived;
         }
-
+        console.log('JY check proposalData.data.limitedOfferObjId::', proposalData.data.limitedOfferObjId);
         return dbconfig.collection_proposal.findOne({_id: proposalData.data.limitedOfferObjId}).then(
             limitedOfferProposal => {
+                console.log('JY check limitedOfferProposal::', limitedOfferProposal);
                 if (limitedOfferProposal && limitedOfferProposal.data && limitedOfferProposal.data.isUsed) {
                     return Promise.reject({name: "DBError", message: "Reward is applied"});
                 }
@@ -24987,6 +25003,8 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
             }
         ).then(
             res => {
+                console.log('JY check res 11::');
+                console.log('JY check proposalData.data.actualAmountReceived::', proposalData.data.actualAmountReceived);
                 newProp = res;
                 if(proposalData.data.actualAmountReceived){
                     amountToDeduct = proposalData.data.actualAmountReceived
@@ -24994,10 +25012,13 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
                     amountToDeduct = res.data.applyAmount;
                 }
 
+                let dbPlayerUtil = require('./../db_common/dbPlayerUtility');
+
                 return dbPlayerUtil.tryToDeductCreditFromPlayer(res.data.playerObjId, res.data.platformId, amountToDeduct, res.data.limitedOfferName + ":Deduction", res.data);
             }
         ).then(
             res => {
+                console.log('JY check res 22::');
                 if (res) {
                     return dbconfig.collection_proposalType.findOne({
                         platformId: newProp.data.platformObjId,
@@ -25026,6 +25047,7 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
             }
         ).then(
             res => {
+                console.log('JY check res 33::');
                 if (res) {
                     dbUtility.findOneAndUpdateForShard(
                         dbconfig.collection_playerTopUpRecord,
@@ -26269,7 +26291,7 @@ function manualPlayerLevelUpReward(playerObjId, adminInfo) {
 
             playerLevel = player.playerLevel;
 
-            if (player.permission && player.permission.banReward) {
+            if (player.forbidLevelUpReward && player.permission && player.permission.banReward) {
                 return Promise.reject({
                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                     name: "DataError",
@@ -26336,6 +26358,109 @@ function manualPlayerLevelUpReward(playerObjId, adminInfo) {
 
             } else {
                 return Promise.reject({message: "该玩家已经领取『" + playerLevel.name + "』的升级优惠。"});
+            }
+        }
+    );
+}
+
+function manualPlayerLevelMaintainReward(playerObjId, adminInfo) {
+    let player, proposalType, playerLevel, platform = {};
+    return dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+        path: "playerLevel",
+        model: dbconfig.collection_playerLevel
+    }).populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+        playerData => {
+            player = playerData;
+            if (!player) {
+                return Promise.reject({message: "Player not found."});
+            }
+            platform = player.platform;
+
+            playerLevel = player.playerLevel;
+
+            if (player.forbidLevelMaintainReward && player.permission && player.permission.banReward) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Player do not have permission for reward"
+                });
+            }
+
+            return dbconfig.collection_proposalType.findOne({
+                platformId: platform._id,
+                name: constProposalType.PLAYER_LEVEL_MAINTAIN
+            }).lean();
+        }
+    ).then(
+        proposalTypeData => {
+            proposalType = proposalTypeData;
+            let platformPeriod = platform.playerLevelDownPeriod;
+            let rewardPeriodTime;
+
+            if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
+                rewardPeriodTime = dbUtil.getTodaySGTime();
+            } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
+                rewardPeriodTime = dbUtil.getCurrentWeekSGTime();
+            } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
+                rewardPeriodTime = dbUtil.getCurrentMonthSGTIme();
+            }
+
+            if (!rewardPeriodTime) {
+                return Promise.reject({name: "DBError", message: "Cannot find platform level down period"})
+            }
+
+
+            return dbconfig.collection_proposal.findOne({
+                'data.playerObjId': {$in: [ObjectId(player._id), String(player._id)]},
+                'data.platformObjId': {$in: [ObjectId(platform._id), String(platform._id)]},
+                type: proposalTypeData._id,
+                createTime: {
+                    $gte: rewardPeriodTime.startTime,
+                    $lt: rewardPeriodTime.endTime
+                },
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
+            }).lean();
+        }
+    ).then(
+        rewardProposal => {
+            if (!rewardProposal) {
+
+                let proposalData = {
+                    levelName: playerLevel.name,
+                    levelObjId: playerLevel._id,
+                    levelValue: playerLevel.value,
+                    proposalPlayerLevel: playerLevel.name,
+                    playerLevelName: playerLevel.name,
+                    proposalPlayerLevelValue: playerLevel.value,
+                    platformId: platform._id,
+                    platformObjId: String(platform._id),
+                    playerId: player.playerId,
+                    playerName: player.name,
+                    playerObjId: String(player._id),
+                    upOrDown: "LEVEL_MAINTAIN"
+                };
+
+                if (playerLevel && playerLevel.reward && playerLevel.reward.bonusCreditLevelDown) {
+                    proposalData.rewardAmount = playerLevel.reward.bonusCreditLevelDown;
+                    proposalData.isRewardTask = playerLevel.reward.isRewardTaskLevelDown;
+                    if (proposalData.isRewardTask) {
+                        if (playerLevel.reward.providerGroupLevelDown && playerLevel.reward.providerGroupLevelDown !== "free") {
+                            proposalData.providerGroup = playerLevel.reward.providerGroupLevelDown;
+                        }
+                        proposalData.requiredUnlockAmount = playerLevel.reward.requiredUnlockTimesLevelDown * playerLevel.reward.bonusCreditLevelDown;
+                    }
+
+                    let proposal = {data: proposalData};
+                    if (adminInfo) {
+                        proposal.creator = adminInfo;
+                        proposal.entryType = constProposalEntryType.ADMIN;
+                    }
+
+                    return dbProposal.createProposalWithTypeName(platform._id, constProposalType.PLAYER_LEVEL_MAINTAIN, proposal);
+                }
+
+            } else {
+                return Promise.reject({message: "该玩家周期内已经领取『" + playerLevel.name + "』的保级优惠。"});
             }
         }
     );
