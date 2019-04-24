@@ -2,6 +2,7 @@ const WebSocketUtil = require("./../../server_common/WebSocketUtil");
 const PaymentService = require("./../../services/client/ClientServices").PaymentService;
 const dbPlayerTopUpIntentRecord = require('./../../db_modules/dbPlayerTopUpIntentRecord');
 const dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
+const dbPlatformBankCardGroup = require('./../../db_modules/dbPlatformBankCardGroup');
 const constServerCode = require('./../../const/constServerCode');
 const dbPlayerTopUpRecord = require('./../../db_modules/dbPlayerTopUpRecord');
 const constSystemParam = require('../../const/constSystemParam');
@@ -294,19 +295,19 @@ var PaymentServiceImplement = function () {
     this.getBankTypeList.expectsData = '';
     this.getBankTypeList.onRequest = function (wsFunc, conn, data) {
         var isValidData = true;
-        WebSocketUtil.performAction(conn, wsFunc, data, getBankTypeList, [], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformBankCardGroup.getWithdrawalBankTypeList, [data.platformId], isValidData, false, false, true);
 
-        function getBankTypeList() {
-            return RESTUtils.getPMS2Services("postBankTypeList", {}).then(data => {
-                // bankflag: 1   // 提款银行类型
-                // bankflag: 0   // 存款银行类型
-                // Hank requested to display bankflag 1 only
-                if (data && data.data) {
-                    let withdrawalBank = data.data.filter(bank => bank.bankflag === 1);
-                    return withdrawalBank;
-                }
-            });
-        }
+        // function getBankTypeList() {
+        //     return RESTUtils.getPMS2Services("postBankTypeList", {}).then(data => {
+        //         // bankflag: 1   // 提款银行类型
+        //         // bankflag: 0   // 存款银行类型
+        //         // Hank requested to display bankflag 1 only
+        //         if (data && data.data) {
+        //             let withdrawalBank = data.data.filter(bank => bank.bankflag === 1);
+        //             return withdrawalBank;
+        //         }
+        //     });
+        // }
     };
 
     this.getValidFirstTopUpRecordList.expectsData = 'period, [startIndex]: Number, [requestCount]: Number';
