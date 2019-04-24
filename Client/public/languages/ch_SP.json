@@ -452,6 +452,7 @@
   "CONFIRM": "确定",
   "CONFIRM_LEVEL_UP": "确定升级结算",
   "CONFIRM_LEVEL_DOWN": "确定降级结算",
+  "CONFIRM_LEVEL_MAINTAIN": "确定保级结算",
   "EDIT_USER": "修改用户",
   "PASSWORD_RETYPE": "确定密码",
   "FIRSTNAME": "姓",

@@ -4698,7 +4698,7 @@ let dbPlayerReward = {
             let promoCodeTemplateObjIds = promoCodeTemplateData.map(e => e._id);
 
             let matchObj = {
-                platformObjId: platformObjId,
+                platformObjId: ObjectId(platformObjId),
                 createTime: {$gte: new Date(data.startCreateTime), $lt: new Date(data.endCreateTime)}
             };
 
