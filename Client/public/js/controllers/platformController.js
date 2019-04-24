@@ -8791,13 +8791,13 @@ define(['js/app'], function (myApp) {
                 var title, text;
                 if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                     let platform = getSelectedPlatform();
-                    let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
+                    let platformId = platform && platform.platformId ? platform.platformId : vm.selectedPlatform.data.platformId;
                     vm.smstpl = "";
                     vm.smsPlayer = {
                         playerId: playerObjId.playerId,
                         name: playerObjId.name,
                         nickName: playerObjId.nickName,
-                        platformId: platformObjId,
+                        platformId: platformId,
                         // channel: $scope.channelList[0],
                         hasPhone: playerObjId.phoneNumber
                     }
