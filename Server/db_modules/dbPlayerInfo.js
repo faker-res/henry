@@ -18202,15 +18202,14 @@ let dbPlayerInfo = {
         ).then(
             returnedData => {
                 returnedObj = returnedData;
-                let twoDaysAgo = dbUtil.getYesterdaySGTime().startTime;
+                let twoDaysAgo = dbUtil.getDayTime().startTime;
+
+                query.start = new Date(query.start) > twoDaysAgo ? query.start : twoDaysAgo;
 
                 if(new Date(query.end) > twoDaysAgo ){
                     console.log("LH check player report summary 8");
-                    query.start = twoDaysAgo;
                     return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
                 }
-
-                return;
             }
         ).then(
             twoDaysPlayerReportData => {
