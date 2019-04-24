@@ -4585,6 +4585,19 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.reCalculatePlayerReportSummary = function (){
+            $('#loadingPlayerReportTableSpin').show();
+            var sendquery = {
+                platformId: vm.curPlatformId,
+                start: vm.playerQuery.start.data('datetimepicker').getLocalDate(),
+                end: vm.playerQuery.end.data('datetimepicker').getLocalDate()
+            };
+
+            socketService.$socket($scope.AppSocket, 'reCalculatePlayerReportSummary', sendquery, function (data) {
+                $('#loadingPlayerReportTableSpin').hide();
+            });
+        };
+
         vm.drawPlayerReport = function (data, total, size, newSearch, isExport) {
             var tableOptions = {
                 data: data,
