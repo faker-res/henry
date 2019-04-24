@@ -26595,43 +26595,43 @@ define(['js/app'], function (myApp) {
             };
 
             vm.drawTable = function (tblOptions, tblId, qObj, qName, fnSortChange, data, size, summary, newSearch) {
-                tblOptions = $.extend(true, {}, vm.generalDataTableOptions, tblOptions);
+                $scope.$evalAsync(() => {
+                    tblOptions = $.extend(true, {}, vm.generalDataTableOptions, tblOptions);
 
-                if (summary) {
-                    let summaryRate = "0%";
-                    if (summary.hasOwnProperty("acceptedCount") && summary.hasOwnProperty("sendCount")) {
-                        summaryRate = String(parseFloat(summary.acceptedCount / summary.sendCount * 100).toFixed(2)) + "%";
-                    }
-                    if (qName == "promoCodeAnalysis2") {
-                        utilService.createDatatableWithFooter(tblId, tblOptions, {
-                            1: summary.sendCount,
-                            2: summary.acceptedCount,
-                            3: summaryRate,
-                            4: summary.acceptedAmount,
-                            5: summary.topUpAmount
-                        });
+                    if (summary) {
+                        let summaryRate = "0%";
+                        if (summary.hasOwnProperty("acceptedCount") && summary.hasOwnProperty("sendCount")) {
+                            summaryRate = String(parseFloat(summary.acceptedCount / summary.sendCount * 100).toFixed(2)) + "%";
+                        }
+                        if (qName == "promoCodeAnalysis2") {
+                            utilService.createDatatableWithFooter(tblId, tblOptions, {
+                                1: summary.sendCount,
+                                2: summary.acceptedCount,
+                                3: summaryRate,
+                                4: summary.acceptedAmount,
+                                5: summary.topUpAmount
+                            });
+                        } else {
+                            utilService.createDatatableWithFooter(tblId, tblOptions, {
+                                1: summary.sendCount,
+                                2: summary.acceptedCount,
+                                3: summary.totalPlayer,
+                                4: summaryRate,
+                                5: summary.acceptedAmount
+                            });
+                        }
                     } else {
-                        utilService.createDatatableWithFooter(tblId, tblOptions, {
-                            1: summary.sendCount,
-                            2: summary.acceptedCount,
-                            3: summary.totalPlayer,
-                            4: summaryRate,
-                            5: summary.acceptedAmount
-                        });
+                        utilService.createDatatableWithFooter(tblId, tblOptions, {}, true);
                     }
-                } else {
-                    utilService.createDatatableWithFooter(tblId, tblOptions, {}, true);
-                }
 
-                qObj.pageObj.init({maxCount: size}, newSearch);
+                    qObj.pageObj.init({maxCount: size}, newSearch);
 
-                $(tblId).off('order.dt');
-                $(tblId).on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, qName, fnSortChange);
-                });
-                $(tblId).resize();
-
-                $scope.safeApply();
+                    $(tblId).off('order.dt');
+                    $(tblId).on('order.dt', function (event, a, b) {
+                        vm.commonSortChangeHandler(a, qName, fnSortChange);
+                    });
+                    $(tblId).resize();
+                })
             };
 
             vm.disablePromoCode = function () {
