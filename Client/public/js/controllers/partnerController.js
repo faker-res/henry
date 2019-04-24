@@ -3683,10 +3683,37 @@ define(['js/app'], function (myApp) {
         vm.updatePlayerForbidRewardEvents = function (sendData) {
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
+                let playerObj = data.data;
+                if (playerObj) {
+                    let sendData = {
+                        query: {
+                            platformObjId: playerObj.platform,
+                            isBlockByMainPermission: false
+                        },
+                        updateData: {}
+                    }
+                    if (playerObj.forbidPromoCode) {
+                        sendData.query.name = "次权限禁用组（预设）"; //hard code name;
+                        sendData.query.isBlockPromoCodeUser = true;
+                        sendData.query.isDefaultGroup = true;
+                        sendData.checkQuery = {
+                            platformObjId: playerObj.platform,
+                            playerNames: playerObj.name
+                        }
+                        sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
+                    } else {
+                        sendData.query.playerNames =  playerObj.name;
+                        sendData.updateData["$pull"] = {playerNames: playerObj.name};
+                    }
+
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                    });
+                }
                 vm.getPlatformPlayersData();
                 vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent), data.data);
             });
         };
+
         vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidRewardEvents', sendData, function (data) {
@@ -13955,29 +13982,6 @@ define(['js/app'], function (myApp) {
             remarkSelect.multipleSelect('refresh');
         };
 
-        utilService.actionAfterLoaded('#resetPlayerQuery', function () {
-            $('#resetPlayerQuery').off('click');
-            $('#resetPlayerQuery').click(function () {
-                utilService.clearDatePickerDate('#regDateTimePicker');
-                utilService.clearDatePickerDate('#regEndDateTimePicker');
-                utilService.clearDatePickerDate('#lastAccessDateTimePicker');
-                utilService.clearDatePickerDate('#lastAccessEndDateTimePicker');
-                $("select#selectCredibilityRemark").multipleSelect("enable");
-                $("select#selectCredibilityRemark").multipleSelect("uncheckAll");
-                vm.playerAdvanceSearchQuery = {
-                    creditOperator: ">=",
-                    playerType: 'Real Player (all)'
-                };
-                vm.getPlayersByAdvanceQueryDebounced(function () {});
-                vm.advancedQueryObj = {
-                    creditOperator: ">=",
-                    playerType: 'Real Player (all)'
-                };
-                vm.advancedPlayerQuery(true);
-            })
-
-        });
-
         vm.setupRemarksMultiInputFeedback = function () {
             let remarkSelect = $('select#selectCredibilityRemarkFeedback');
             // if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
@@ -14225,6 +14229,14 @@ define(['js/app'], function (myApp) {
         vm.updateForbidRewardLog = function (playerId, forbidReward, playerObj) {
             if (playerObj && playerObj.forbidPromoCode) {
                 forbidReward.push("优惠代码");
+            }
+
+            if (playerObj && playerObj.forbidLevelUpReward) {
+                forbidReward.push("系统升级优惠");
+            }
+
+            if (playerObj && playerObj.forbidLevelMaintainReward) {
+                forbidReward.push("系统保级优惠");
             }
 
             let queryData = {
@@ -15338,6 +15350,9 @@ define(['js/app'], function (myApp) {
                         content: function () {
                             var data = uData;
                             vm.forbidRewardEventPopover = data;
+                            vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
+                            vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
+                            vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
                             $scope.safeApply();
@@ -15356,7 +15371,11 @@ define(['js/app'], function (myApp) {
                                         forbidRewardEvents.push($(v).attr('data-provider'));
                                     }
                                 });
-                                vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                if (vm.forbidPromoCode != rowData.forbidPromoCode || vm.forbidLevelUpReward != rowData.forbidLevelUpReward || vm.forbidLevelMaintainReward != rowData.forbidLevelMaintainReward) {
+                                    vm.forbidRewardDisable = false;
+                                } else {
+                                    vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                }
                                 $scope.safeApply();
                             });
 
@@ -15676,6 +15695,10 @@ define(['js/app'], function (myApp) {
             // add to record which is selected to edit
             $('#c-' + id).html($translate("ModifyIt"));
         }
+
+        vm.forbidFixedRewardModification = function (id) {
+            $('#c-' + id).html($translate("ModifyIt"));
+        };
 
         ///
         //Partner Advertisement
@@ -16455,11 +16478,12 @@ define(['js/app'], function (myApp) {
                 //     vm.newPartnerLvl = {};
                 //     vm.getAllPartners();
                 //     break;
-                // case 'partnerCommission':
-                //     vm.partnerCommission = {};
-                //     vm.getCommissionRateGameProviderGroup();
-                //     vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
-                //     break;
+                case 'partnerCommission':
+                    vm.partnerCommission = {};
+                    // vm.getCommissionRateGameProviderGroup();
+                    vm.getPlatformCommissionRate();
+                    vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
+                    break;
                 case 'validActive':
                     vm.getActiveConfig();
                     break;
@@ -16544,6 +16568,16 @@ define(['js/app'], function (myApp) {
                     console.log("vm.activeConfig", vm.activeConfig);
                     $scope.safeApply();
                 });
+        };
+
+        vm.getPlatformCommissionRate = function () {
+            return $scope.$socketPromise("getPlatformPartnerCommConfig", {platformObjId: vm.platformInSetting._id}).then(
+                function (data) {
+                    console.log("getPlatformPartnerCommConfig", data);
+
+                    // todo :: add implementation
+                }
+            )
         };
 
         vm.initModalLargeWithdrawalPartner = function () {
@@ -16845,18 +16879,20 @@ define(['js/app'], function (myApp) {
             vm.merchantGroupObj = $scope.merchantGroupObj;
             vm.merchantGroupCloneList = $scope.merchantGroupCloneList;
 
-            socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform._id}, function (data) {
-                $scope.$evalAsync(() => {
-                    if (data && data.data && data.data.data) {
-                        vm.allBankTypeList = {};
-                        data.data.data.forEach(item => {
-                            if (item && item.bankTypeId) {
-                                vm.allBankTypeList[item.id] = item.name;
-                            }
-                        })
-                    }
-                })
-            });
+            if (vm.reportPlatformObjId) {
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.reportPlatformObjId}, function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data && data.data && data.data.data) {
+                            vm.allBankTypeList = {};
+                            data.data.data.forEach(item => {
+                                if (item && item.bankTypeId) {
+                                    vm.allBankTypeList[item.id] = item.name;
+                                }
+                            })
+                        }
+                    })
+                });
+            }
 
             switch (choice) {
                 case "PLAYERPARTNER_REPORT":

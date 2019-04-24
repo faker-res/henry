@@ -503,6 +503,49 @@ var dbDepartment = {
         return deferred.promise;
     },
 
+    getAllDepartmentUsers: function (platforms) {
+        let query = {};
+        if (platforms && platforms.length) {
+            query = {
+                platforms : {$in: platforms}
+            }
+        }
+        return dbconfig.collection_department.find(query)
+        .populate({path: 'users', model: dbconfig.collection_admin})
+        .lean().then(data => {
+            if (!data) {
+                return Promise.reject({name: "DataError", message: "Can't find all departments"});
+            }
+            if (data && data.length > 0) {
+                return data;
+            }
+        });
+    },
+
+    getAllDepartment: function (platforms) {
+        let query = {};
+        if (platforms && platforms.length) {
+            query = {
+                platforms : {$in: platforms}
+            }
+        }
+        return dbconfig.collection_department.find(query)
+        .populate({path: 'users', model: dbconfig.collection_admin})
+        .populate({path: "roles", model: dbconfig.collection_role,
+            populate: {
+                path: "users",
+                model: dbconfig.collection_admin
+            }
+        }).lean().then(data => {
+            if (!data) {
+                return Promise.reject({name: "DataError", message: "Can't find all departments"});
+            }
+            if (data && data.length > 0) {
+                return data;
+            }
+        });
+    },
+
     getDepartmentTreeByIdWithUser: function(departmentId){
         var deferred = Q.defer();
         dbconfig.collection_department.find()

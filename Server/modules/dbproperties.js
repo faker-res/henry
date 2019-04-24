@@ -555,6 +555,19 @@ let playerInfoFromExternalSourceModel = dbLogs2.model('playerInfoFromExternalSou
 
 let queryCreditTimeoutSchema = require('./../schema/logs2/queryCreditTimeout');
 let queryCreditTimeoutModel = dbLogs2.model('queryCreditTimeout', queryCreditTimeoutSchema, 'queryCreditTimeout');
+
+let platformPartnerCommConfigSchema = require('../schema/platformPartnerCommConfig');
+let platformPartnerCommConfigModel = db_admin.model('platformPartnerCommConfig', platformPartnerCommConfigSchema, 'platformPartnerCommConfig');
+
+let partnerMainCommConfigSchema = require('./../schema/partnerMainCommConfig');
+let partnerMainCommConfigModel = dbLogs2.model('partnerMainCommConfig', partnerMainCommConfigSchema, 'partnerMainCommConfig');
+
+let partnerDefDownLineCommConfigSchema = require('./../schema/partnerDefDownLineCommConfig');
+let partnerDefDownLineCommConfigModel = dbLogs2.model('partnerDefDownLineCommConfig', partnerDefDownLineCommConfigSchema, 'partnerDefDownLineCommConfig');
+
+let partnerDownLineCommConfigSchema = require('./../schema/partnerDownLineCommConfig');
+let partnerDownLineCommConfigModel = dbLogs2.model('partnerDownLineCommConfig', partnerDownLineCommConfigSchema, 'partnerDownLineCommConfig');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -807,6 +820,12 @@ var dbProperties = {
     collection_playerDataFromExternalSource: playerInfoFromExternalSourceModel,
     collection_queryCreditTimeout: queryCreditTimeoutModel,
     collection_playerRandomReward: playerRandomRewardSchemaModel,
+
+    collection_platformPartnerCommConfig: platformPartnerCommConfigModel,
+    collection_partnerMainCommConfig: partnerMainCommConfigModel,
+    collection_partnerDefDownLineCommConfig: partnerDefDownLineCommConfigModel,
+    collection_partnerDownLineCommConfig: partnerDownLineCommConfigModel,
+
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,

@@ -1,4 +1,5 @@
-form(name="formPartnerCommission", novalidate)
+include ./partner-setting-platform-select
+form.margin-top-5(name="formPartnerCommission", novalidate)
     .col-md-12
         .panel(style="box-shadow: none;")
             .panel-body
@@ -167,34 +168,3 @@ form(name="formPartnerCommission", novalidate)
                                     button.btn.btn-primary.common-button(ng-if='!vm.isCommissionRateEditing' ng-click='vm.editPartnerRateSetting()') {{'Edit' | translate}}
                                     button.btn.btn-primary.common-button(ng-if='vm.isCommissionRateEditing' ng-click='vm.createUpdateCommissionRateSetting()') {{'SUBMIT' | translate}}
 
-    .col-md-12
-        .panel(style="box-shadow: none;")
-            .panel-body
-                .padding-all-5
-                    .panel.panel-primary
-                        .panel-body.common-right-panel-body(style="min-height: 260px;")
-                            div
-                                h4 {{'Partner Level Commission Rate Setting' | translate}}
-                                table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
-                                    thead
-                                        tr
-                                            th(style='min-width:300px') {{'Hierarchical Architecture' | translate}}
-                                            th {{'Commission Rate' | translate}}
-                                    tbody
-                                        tr
-                                            td {{'Parent Partner' | translate}}
-                                            td
-                                                span.percentage
-                                                    input(style="display: inline-block", ng-model='vm.parentCommissionRate', ng-change='vm.validateNumber(vm.parentCommissionRate, "parentCommissionRate")', ng-disabled='!vm.isParentRateEditing')
-                                        tr
-                                            td {{'Child_Partner' | translate}}
-                                            td {{'Follow partner commission config' | translate}}
-
-                                        tr
-                                            td {{'PLAYER' | translate}}
-                                            td {{'winlose X above ratio' | translate}}
-                                h5 *{{'Represent a player winlose share between 2 levels' | translate}}
-                                .pull-right
-                                    button.btn.btn-primary.common-button(ng-if='vm.isParentRateEditing' ng-click='vm.cancelParentRateSetting()') {{'CANCEL' | translate}}
-                                    button.btn.btn-primary.common-button(ng-if='!vm.isParentRateEditing' ng-click='vm.editParentRateSetting()') {{'Edit' | translate}}
-                                    button.btn.btn-primary.common-button(ng-if='vm.isParentRateEditing' ng-click='vm.submitParentCommissionRateSetting()') {{'SUBMIT' | translate}}
