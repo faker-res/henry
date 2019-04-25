@@ -180,8 +180,8 @@ function postBankTypeList (reqData, paymentSystemKey) {
     return postRequest(reqData, 'bankTypes', 'POST', paymentSystemKey)
 }
 
-function postSyncPlatform (reqData) {
-    return postRequest(reqData, 'sync-platform', 'POST')
+function postSyncPlatform (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'sync-platform', 'POST', paymentSystemKey);
 }
 
 function postTopupForceMatch (reqData, paymentSystemKey) {
