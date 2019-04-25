@@ -1359,6 +1359,7 @@ define(['js/app'], function (myApp) {
                     if (storedPlatform) {
                         searchAndSelectPlatform(storedPlatform, option);
                     }
+                    $scope.$evalAsync();
                 }, function (err) {
                     $('#platformRefresh').removeClass('fa-spin');
                 });
