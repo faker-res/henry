@@ -112,7 +112,7 @@ var dbPlayerTopUpRecord = {
         return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
             platformData => {
                 if (platformData && platformData.platformId) {
-                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}, platformData.topUpSystemType).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
@@ -1725,7 +1725,7 @@ var dbPlayerTopUpRecord = {
                 rewardEvent = eventData;
                 if (player && player.platform) {
                     let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
-                    let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId});
+                    let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId}, player.platform.topUpSystemType);
 
                     let merchantTypeProm = Promise.resolve(false);
                     // if (bPMSGroup === true || bPMSGroup === "true") {
