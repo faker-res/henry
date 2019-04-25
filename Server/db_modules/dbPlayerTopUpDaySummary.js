@@ -153,7 +153,7 @@ var dbPlayerTopUpDaySummary = {
             endDate.setDate(startTime.getDate() + (i + 1));
             endDate = dbutility.getDayStartTime(endDate);
 
-            calculateSummaryProm.push(dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId));
+            calculateSummaryProm.push(dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId, true));
         }
 
         return Promise.all(calculateSummaryProm).then(
@@ -164,7 +164,7 @@ var dbPlayerTopUpDaySummary = {
 
     },
 
-    calculatePlayerReportDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
+    calculatePlayerReportDaySummaryForTimeFrame: function (startTime, endTime, platformId, isReSummarized) {
         console.log("LH check player report test data 1");
         var balancer = new SettlementBalancer();
 
@@ -187,20 +187,39 @@ var dbPlayerTopUpDaySummary = {
                         ]
                     ).cursor({batchSize: 1000}).allowDiskUse(true).exec();
 
-                    return Q(
-                        balancer.processStream({
-                            stream: stream,
-                            batchSize: constSystemParam.BATCH_SIZE,
-                            makeRequest: function (playerIdObjs, request) {
-                                request("player", "calculateDaySummary", {
-                                    startTime: startTime,
-                                    endTime: endTime,
-                                    platformId: platformId,
-                                    playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj._id)
-                                });
-                            }
-                        })
-                    );
+                    if(!isReSummarized){
+                        return Q(
+                            balancer.processStream({
+                                stream: stream,
+                                batchSize: constSystemParam.BATCH_SIZE,
+                                makeRequest: function (playerIdObjs, request) {
+                                    request("player", "calculateDaySummary", {
+                                        startTime: startTime,
+                                        endTime: endTime,
+                                        platformId: platformId,
+                                        playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj._id)
+                                    });
+                                }
+                            })
+                        );
+                    }else{
+                        return Q(
+                            balancer.processStream({
+                                stream: stream,
+                                batchSize: constSystemParam.BATCH_SIZE,
+                                makeRequest: function (playerIdObjs, request) {
+                                    request("player", "playerReportDaySummary_calculatePlatformDaySummaryForPlayers", {
+                                        startTime: startTime,
+                                        endTime: endTime,
+                                        platformId: platformId,
+                                        playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj._id)
+                                    });
+                                }
+                            })
+                        );
+                    }
+
+
                 }
             )
         });
