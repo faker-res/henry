@@ -131,8 +131,41 @@ var dbPlayerTopUpDaySummary = {
         return deferred.promise;
     },
 
-    calculatePlayerReportDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
+    reCalculatePlayerReportSummary: function(platformId, start, end){
+        if(!platformId || !start || ! end){
+            return;
+        }
 
+        let calculateSummaryProm = [];
+        let startTime = new Date(start);
+        let endTime = new Date(end);
+
+        startTime.setHours(0, 0, 0, 0);
+        endTime.setHours(0, 0, 0, 0);
+
+        let diffInDays = dbutility.getNumberOfDays(startTime, endTime);
+
+        for(let i = 0; i <= diffInDays; i ++){
+            let startDate = new Date();
+            startDate.setDate(startTime.getDate() + i);
+            startDate = dbutility.getDayStartTime(startDate);
+            let endDate = new Date();
+            endDate.setDate(startTime.getDate() + (i + 1));
+            endDate = dbutility.getDayStartTime(endDate);
+
+            calculateSummaryProm.push(dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId));
+        }
+
+        return Promise.all(calculateSummaryProm).then(
+            result => {
+                return result;
+            }
+        );
+
+    },
+
+    calculatePlayerReportDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
+        console.log("LH check player report test data 1");
         var balancer = new SettlementBalancer();
 
         return balancer.initConns().then(function () {
@@ -184,7 +217,9 @@ var dbPlayerTopUpDaySummary = {
     playerReportDaySummary_calculatePlatformDaySummaryForPlayers: function (startTime, endTime, platformId, playerObjIds) {
         return dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
             function(data){
+                console.log("LH check player report 15------");
                 if(data && data.length > 0){
+                    console.log("LH check player report 16------", data.length);
                     return data;
                 }else{
                     return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
