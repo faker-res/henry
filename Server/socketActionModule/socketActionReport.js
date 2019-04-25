@@ -387,7 +387,7 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.platformId);
             var platformId = ObjectId(data.platformId);
 
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
         },
 
         getPlayerReportFromSummary: function getPlayerReportFromSummary(data) {
