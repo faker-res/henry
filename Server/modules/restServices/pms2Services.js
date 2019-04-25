@@ -188,12 +188,12 @@ function postTopupForceMatch (reqData, paymentSystemKey) {
     return postRequest(reqData, 'deposit-proposal/force-match', 'POST', paymentSystemKey)
 }
 
-function postMerchantList (reqData) {
-    return postRequest(reqData, 'getMerchantList', 'POST')
+function postMerchantList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getMerchantList', 'POST', paymentSystemKey)
 }
 
-function postMerchantTypeList (reqData) {
-    return postRequest(reqData, 'getMerchantTypeList', 'POST')
+function postMerchantTypeList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getMerchantTypeList', 'POST', paymentSystemKey)
 }
 
 function postPaymentGroup (reqData) {

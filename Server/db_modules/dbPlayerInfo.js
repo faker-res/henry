@@ -12441,7 +12441,7 @@ let dbPlayerInfo = {
 
                     // only when analysis category is thirdPartyPlatform need get merchantList from pms
                     if (analysisCategory === 'thirdPartyPlatform') {
-                        getMerchantListProm = RESTUtils.getPMS2Services("postMerchantList", {platformId: onlineTopupType.platformId.platformId});
+                        getMerchantListProm = RESTUtils.getPMS2Services("postMerchantList", {platformId: onlineTopupType.platformId.platformId}, onlineTopupType.platformId.topUpSystemType);
                     }
 
 
@@ -14568,7 +14568,7 @@ let dbPlayerInfo = {
                         //     pmsQuery.clientType = clientType;
                         //     return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
                         // }
-                        return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
+                        return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId}, data.platform.topUpSystemType);
                     // }
                     // else {
                     //     return pmsAPI.bankcard_getBankcardList(pmsQuery);
@@ -17481,7 +17481,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerReport: function (platform, query, index, limit, sortCol) {
+    getPlayerReport: function (platform, query, index, limit, sortCol, isExport) {
         console.log('RT - getPlayerReport start');
         limit = limit ? limit : 20;
         index = index ? index : 0;
@@ -17554,22 +17554,28 @@ let dbPlayerInfo = {
                 console.log('RT - getPlayerReport 1');
                 let relevantPlayerQuery = {platformId: platform};
 
+                // relevant players are the players who played any game within given time period
+                let playerObjArr = [];
+                let collection;
+                let distinctField = 'playerId';
+
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
                 } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
                     relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
                 }
 
-                // relevant players are the players who played any game within given time period
-                let playerObjArr = [];
-                let collection;
-                let distinctField = 'playerId';
-
                 if (endDate.getTime() > todayDate.startTime.getTime()) {
                     console.log('RT - getPlayerReport 1.1');
                     collection = dbconfig.collection_playerConsumptionHourSummary;
                     relevantPlayerQuery = {platform: platform};
                     relevantPlayerQuery.startTime = {$gte: startDate, $lt: endDate};
+
+                    if (isSinglePlayer) {
+                        relevantPlayerQuery.player = playerData._id;
+                    } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
+                        relevantPlayerQuery.player = {$in: playerData.map(p => p._id)}
+                    }
 
                     // Limit records search to provider
                     if (query && query.providerId) {
@@ -17747,8 +17753,38 @@ let dbPlayerInfo = {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
-                console.log('RT - getPlayerReport end');
-                return {size: result.length, data: outputResult, total: resultSum};
+                let XLSX = require('xlsx');
+
+                function generateExcelFile (outputResult) {
+                    let topupRecordOutputFormat = [null, "proposalId"];
+                    let wb = XLSX.utils.book_new();
+
+                    wb.Props = {
+                        Title: "Top Up Report",
+                        Subject: "Test",
+                        Author: "FPMS",
+                        CreatedDate: new Date()
+                    };
+                    let wsdata = outputResult;
+                    let ws = XLSX.utils.json_to_sheet(wsdata);
+                    XLSX.utils.book_append_sheet(wb, ws, "Results");
+                    let wbout = XLSX.write(wb, {type: 'buffer'});
+
+                    console.log('outputResult', outputResult);
+
+                    return wbout;
+
+                    // outputResult
+                }
+
+                let file = generateExcelFile(outputResult);
+
+                console.log('RT - getPlayerReport end', file);
+                if (isExport) {
+                    return file;
+                } else {
+                    return {size: result.length, data: outputResult, total: resultSum};
+                }
             }
         );
     },
@@ -19928,7 +19964,7 @@ let dbPlayerInfo = {
             platformData => {
                 console.log('getConsumptionDetailOfPlayers - 1');
                 if (platformData && platformData.platformId) {
-                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}, platformData.topUpSystemType).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];

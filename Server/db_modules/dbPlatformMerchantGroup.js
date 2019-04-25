@@ -189,7 +189,16 @@ var dbPlatformMerchantGroup = {
     getIncludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
         let allMerchants = [];
 
-        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}).then(
+        return dbconfig.collection_platform.findOne({platformId: platformId}).then(
+            platformData => {
+                if (platformData) {
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}, platformData.topUpSystemType);
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
             data=> {
                 allMerchants = data.merchants || [];
                 return dbconfig.collection_platformMerchantGroup.findOne({_id: merchantGroupId})
@@ -212,7 +221,7 @@ var dbPlatformMerchantGroup = {
                 if (platformData) {
                     topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
 
-                    return getMerchantList(topUpSystemConfig, platformId);
+                    return getMerchantList(platformId, platformData.topUpSystemType);
 
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
@@ -271,7 +280,16 @@ var dbPlatformMerchantGroup = {
 
     getExcludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
         var allMerchants = [];
-        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}).then(
+        return dbconfig.collection_platform.findOne({platformId: platformId}).then(
+            platformData => {
+                if (platformData) {
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}, platformData.topUpSystemType);
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
             data=> {
                 allMerchants = data.merchants || [];
 
@@ -326,7 +344,7 @@ var dbPlatformMerchantGroup = {
 
                     topUpSystemConfig = extConfig && platform && platform.topUpSystemType && extConfig[platform.topUpSystemType];
 
-                    return getMerchantList(topUpSystemConfig, platformId);
+                    return getMerchantList(platformId, platform.topUpSystemType);
 
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
@@ -521,7 +539,7 @@ var dbPlatformMerchantGroup = {
                         accountType: constAccountType.WECHAT
                     };
 
-                    merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
+                    merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}, platformData.topUpSystemType);
                     bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions, platformData.topUpSystemType);
                     aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions, platformData.topUpSystemType);
                     weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions, platformData.topUpSystemType);
@@ -624,7 +642,7 @@ var dbPlatformMerchantGroup = {
         var allMerchants = [];
         return dbconfig.collection_platform.findOne({'_id': platformObjId}).then(
             platformData => {
-                return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId});
+                return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}, platformData.topUpSystemType);
             }
         ).then(
             data => {
@@ -718,7 +736,15 @@ var dbPlatformMerchantGroup = {
     },
 
     getMerchantTypeList: function (platformObjId) {
-        return RESTUtils.getPMS2Services("postMerchantTypeList", {});
+        let paymentSystemId;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1, platformId: 1, name: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData.topUpSystemType) {
+                    paymentSystemId = platformData.topUpSystemType;
+                }
+
+                return RESTUtils.getPMS2Services("postMerchantTypeList", {}, paymentSystemId);
+        });
     },
 
     getPMSMerchantGroup: function (platformId, topUpSystemType) {
@@ -761,13 +787,25 @@ var dbPlatformMerchantGroup = {
             },
             {new: true}
         );
+    },
+
+    getMerchantListByPlatformId: function(platformId) {
+        let paymentSystemId;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData && platformData.topUpSystemType) {
+                    paymentSystemId = platformData.topUpSystemType;
+                }
+
+                return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}, paymentSystemId);
+            }
+        )
+
     }
 };
 
-function getMerchantList(topUpSystemConfig, platformId) {
-    //if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-        return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId});
-    //}
+function getMerchantList(platformId, paymentSystemId) {
+    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformId}, paymentSystemId);
 }
 
 module.exports = dbPlatformMerchantGroup;
