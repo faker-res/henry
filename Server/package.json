@@ -59,6 +59,7 @@
     "winston": "^2.1.1",
     "winston-mongodb": "^1.2.0",
     "ws": "=6.0.0",
+    "xlsx": "^0.14.2",
     "xoauth2": "^1.2.0"
   },
   "devDependencies": {
