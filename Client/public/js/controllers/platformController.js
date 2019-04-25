@@ -2617,6 +2617,7 @@ define(['js/app'], function (myApp) {
 
             vm.initSendMultiMessage = function () {
                 vm.getAllDepartment();
+                vm.getPlatformCredibilityRemarks();
                 vm.smsLog = {index: 0, limit: 10};
                 //vm.getSMSTemplate();
                 vm.sendMultiMessage = {
@@ -3157,12 +3158,12 @@ define(['js/app'], function (myApp) {
                                 let output = "";
                                 let remarkMatches = false;
                                 data.map(function (remarkId) {
-                                    for (let i = 0; i < vm.credibilityRemarks.length; i++) {
-                                        if (vm.credibilityRemarks[i]._id === remarkId) {
+                                    for (let i = 0; i < vm.platformCredibilityRemarks.length; i++) {
+                                        if (vm.platformCredibilityRemarks[i]._id === remarkId) {
                                             if (output) {
                                                 output += "<br>";
                                             }
-                                            output += vm.credibilityRemarks[i].name;
+                                            output += vm.platformCredibilityRemarks[i].name;
                                             remarkMatches = true;
                                         }
                                     }
@@ -30013,6 +30014,26 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getAllCredibilityRemarks', {}, function (data) {
                         console.log('all credibilityRemarks', data);
                         vm.allCredibilityRemarks = data.data;
+                        resolve();
+                    }, function (err) {
+                        reject(err);
+                    });
+                });
+            };
+
+            vm.getPlatformCredibilityRemarks = (platformList) => {
+                let sendData = {
+                    platformList: platformList && platformList.length ? platformList : []
+                }
+                return new Promise((resolve, reject) => {
+                    socketService.$socket($scope.AppSocket, 'getPlatformCredibilityRemarks', sendData, function (data) {
+                        console.log('getPlatformCredibilityRemarks', data);
+                        vm.platformCredibilityRemarks = data.data;
+                        vm.platformCredibilityRemarks.map(remark => {
+                            if (remark && remark.platform && remark.platform.name) {
+                                remark.platformName = remark.platform.name;
+                            }
+                        });
                         resolve();
                     }, function (err) {
                         reject(err);
