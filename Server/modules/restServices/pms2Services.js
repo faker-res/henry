@@ -192,8 +192,8 @@ function postMerchantList (reqData, paymentSystemKey) {
     return postRequest(reqData, 'getMerchantList', 'POST', paymentSystemKey)
 }
 
-function postMerchantTypeList (reqData) {
-    return postRequest(reqData, 'getMerchantTypeList', 'POST')
+function postMerchantTypeList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getMerchantTypeList', 'POST', paymentSystemKey)
 }
 
 function postPaymentGroup (reqData) {

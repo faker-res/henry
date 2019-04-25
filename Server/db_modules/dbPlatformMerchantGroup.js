@@ -736,7 +736,15 @@ var dbPlatformMerchantGroup = {
     },
 
     getMerchantTypeList: function (platformObjId) {
-        return RESTUtils.getPMS2Services("postMerchantTypeList", {});
+        let paymentSystemId;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1, platformId: 1, name: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData.topUpSystemType) {
+                    paymentSystemId = platformData.topUpSystemType;
+                }
+
+                return RESTUtils.getPMS2Services("postMerchantTypeList", {}, paymentSystemId);
+        });
     },
 
     getPMSMerchantGroup: function (platformId, topUpSystemType) {
