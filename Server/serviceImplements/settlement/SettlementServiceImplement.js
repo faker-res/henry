@@ -70,6 +70,13 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpDaySummary.playerTopUpDaySummary_calculatePlatformDaySummaryForPlayers, args, isValidData);
     };
 
+    this.playerReportDaySummary_calculatePlatformDaySummaryForPlayers.expectsData = 'platformId, startTime: Date, endTime: Date, playerObjIds: []';
+    this.playerReportDaySummary_calculatePlatformDaySummaryForPlayers.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.startTime && data.endTime && data.platformId && data.playerObjIds);
+        let args = [new Date(data.startTime), new Date(data.endTime), ObjectId(data.platformId), mapIdsToMongooseIds(data.playerObjIds)];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpDaySummary.playerReportDaySummary_calculatePlatformDaySummaryForPlayers, args, isValidData);
+    };
+
     this.calculateDaySummary.expectsData = 'platformId, startTime: Date, endTime: Date, playerObjIds: []';
     this.calculateDaySummary.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.startTime && data.endTime && data.platformId && data.playerObjIds);
