@@ -219,7 +219,7 @@ var dbPlayerTopUpDaySummary = {
             function(data){
                 console.log("LH check player report 15------");
                 if(data && data.length > 0){
-                    onsole.log("LH check player report 16------", data.length);
+                    console.log("LH check player report 16------", data.length);
                     return data;
                 }else{
                     return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
