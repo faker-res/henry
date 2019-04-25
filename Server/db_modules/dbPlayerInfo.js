@@ -4377,10 +4377,13 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                console.log('JY check 1::');
                 if (data && data[0]) {
                     let topupRecordData = data[0];
                     topupRecordData.topUpRecordId = topupRecordData._id;
+                    console.log('JY check topupRecordData._id::', topupRecordData._id);
                     checkLimitedOfferToApply(proposalData, topupRecordData._id);
+                    console.log('JY check 2::');
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(player._id).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
@@ -24969,9 +24972,10 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
         if(proposalData.data.actualAmountReceived){
             updateObj["data.actualAmount"] = proposalData.data.actualAmountReceived;
         }
-
+        console.log('JY check proposalData.data.limitedOfferObjId::', proposalData.data.limitedOfferObjId);
         return dbconfig.collection_proposal.findOne({_id: proposalData.data.limitedOfferObjId}).then(
             limitedOfferProposal => {
+                console.log('JY check limitedOfferProposal::', limitedOfferProposal);
                 if (limitedOfferProposal && limitedOfferProposal.data && limitedOfferProposal.data.isUsed) {
                     return Promise.reject({name: "DBError", message: "Reward is applied"});
                 }
@@ -24999,6 +25003,8 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
             }
         ).then(
             res => {
+                console.log('JY check res 11::');
+                console.log('JY check proposalData.data.actualAmountReceived::', proposalData.data.actualAmountReceived);
                 newProp = res;
                 if(proposalData.data.actualAmountReceived){
                     amountToDeduct = proposalData.data.actualAmountReceived
@@ -25006,10 +25012,13 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
                     amountToDeduct = res.data.applyAmount;
                 }
 
+                let dbPlayerUtil = require('./../db_common/dbPlayerUtility');
+
                 return dbPlayerUtil.tryToDeductCreditFromPlayer(res.data.playerObjId, res.data.platformId, amountToDeduct, res.data.limitedOfferName + ":Deduction", res.data);
             }
         ).then(
             res => {
+                console.log('JY check res 22::');
                 if (res) {
                     return dbconfig.collection_proposalType.findOne({
                         platformId: newProp.data.platformObjId,
@@ -25038,6 +25047,7 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
             }
         ).then(
             res => {
+                console.log('JY check res 33::');
                 if (res) {
                     dbUtility.findOneAndUpdateForShard(
                         dbconfig.collection_playerTopUpRecord,

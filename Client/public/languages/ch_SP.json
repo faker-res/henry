@@ -5502,5 +5502,6 @@
   "frontEndVisiblePosition": "前端可见位置",
   "visibleFromHomePage": "首页弹屏可见",
   "visibleFromRewardEntry": "优惠入口可见",
-  "visibleFromRewardList": "优惠列表可见"
+  "visibleFromRewardList": "优惠列表可见",
+  "RECALCULATE": "重新收录"
 }

@@ -26883,7 +26883,7 @@ define(['js/app'], function (myApp) {
                             p = p.then(function () {
                                 return $scope.$socketPromise('promoCodeTemplateByObjId', elem._id.promoCodeTemplateObjId).then(res => {
                                     elem.promoCodeTemplate = res.data;
-                                    elem.promoCodeSubType$ = res.data.name;
+                                    elem.promoCodeSubType$ = ( res.data && res.data.name ) ? res.data.name : '';
                                     elem.totalPlayer$ = elem.totalPlayer.length || 0;
                                 })
                             });
@@ -26891,7 +26891,7 @@ define(['js/app'], function (myApp) {
                             p = p.then(function () {
                                 return $scope.$socketPromise('getPromoCodeTypeByObjId', elem._id.promoCodeTypeObjId).then(res => {
                                     elem.promoCodeType = res.data;
-                                    elem.promoCodeSubType$ = res.data.name;
+                                    elem.promoCodeSubType$ = ( res.data && res.data.name ) ? res.data.name : '';
                                     elem.totalPlayer$ = elem.totalPlayer.length || 0;
                                 })
                             });
@@ -36888,7 +36888,7 @@ define(['js/app'], function (myApp) {
                 vm.feedbackAdminQuery.total = 0;
                 vm.feedbackAdminQuery.cs = '';
                 vm.departmentUsers = [];
-                vm.getAllDepartmentUsers();
+                vm.getUniqueAdminFeedbacks();
                 vm.feedbackAdminQuery.admin = "any";
                 vm.feedbackAdminQuery = {
                     result: 'all',
@@ -36917,23 +36917,22 @@ define(['js/app'], function (myApp) {
                 })
             }
 
-            vm.getAllDepartmentUsers = () => {
+            vm.getUniqueAdminFeedbacks = () => {
+                vm.departmentUsers = [];
                 let sendData = {
-                    platforms: vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : []
+                    platformList: vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : []
                 }
                 console.log('sendData', sendData);
-                socketService.$socket($scope.AppSocket, 'getAllDepartmentUsers', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'getUniqueAdminFeedbacks', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log('getAllDepartmentUsers', data);
+                        console.log('getUniqueAdminFeedbacks', data);
                         var result = [];
                         data.data.forEach(function (userData) {
-                            userData.users.forEach(function (user) {
-                                var singleRecord = {}
-                                singleRecord.departmentName = userData.departmentName;
-                                singleRecord.adminName = user.adminName;
-                                singleRecord._id = user._id;
-                                result.push(singleRecord);
-                            })
+                            let singleRecord = {}
+                            singleRecord.departmentName = userData.departmentName;
+                            singleRecord.adminName = userData.adminName;
+                            singleRecord._id = userData._id;
+                            result.push(singleRecord);
                         });
                         vm.departmentUsers = result;
                     });
