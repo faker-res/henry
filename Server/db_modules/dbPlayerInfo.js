@@ -12441,7 +12441,7 @@ let dbPlayerInfo = {
 
                     // only when analysis category is thirdPartyPlatform need get merchantList from pms
                     if (analysisCategory === 'thirdPartyPlatform') {
-                        getMerchantListProm = RESTUtils.getPMS2Services("postMerchantList", {platformId: onlineTopupType.platformId.platformId});
+                        getMerchantListProm = RESTUtils.getPMS2Services("postMerchantList", {platformId: onlineTopupType.platformId.platformId}, onlineTopupType.platformId.topUpSystemType);
                     }
 
 
@@ -14568,7 +14568,7 @@ let dbPlayerInfo = {
                         //     pmsQuery.clientType = clientType;
                         //     return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
                         // }
-                        return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
+                        return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId}, data.platform.topUpSystemType);
                     // }
                     // else {
                     //     return pmsAPI.bankcard_getBankcardList(pmsQuery);
@@ -19964,7 +19964,7 @@ let dbPlayerInfo = {
             platformData => {
                 console.log('getConsumptionDetailOfPlayers - 1');
                 if (platformData && platformData.platformId) {
-                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}, platformData.topUpSystemType).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
