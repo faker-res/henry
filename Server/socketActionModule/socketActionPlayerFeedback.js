@@ -86,6 +86,11 @@ function socketActionPlayerFeedback(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId && data.playerObjId);
             socketUtil.emitter(self.socket, dbPlayerInfo.getOnePlayerSummaryRecord, [data.platformObjId, data.playerObjId], actionName, isValidData);
         },
+        getUniqueAdminFeedbacks: function getUniqueAdminFeedbacks(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerFeedback.getUniqueAdminFeedbacks, [data.platformList], actionName, isValidData);
+        },
 
         /**
          * Get the latest 5 player feedback record
