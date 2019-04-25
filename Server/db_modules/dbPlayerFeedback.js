@@ -75,6 +75,40 @@ var dbPlayerFeedback = {
         return dbconfig.collection_playerFeedback.find(query).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
     },
 
+    getUniqueAdminFeedbacks: function (platformList) {
+        let query = {};
+        if (platformList && platformList.length) {
+            query = {
+                platform: {$in: platformList}
+            }
+        }
+
+        return dbconfig.collection_playerFeedback.distinct('adminId', query).read("secondaryPreferred").then(
+            adminList => {
+                if (adminList && adminList.length === 0) {
+                    return [];
+                }
+                if (adminList && adminList.length) {
+                    return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
+                        .populate({path: "departments", model: dbconfig.collection_department})
+                        .then(
+                            data => {
+                                if (data && data.length) {
+                                    let selectedUniqueAdmin = data;
+                                    selectedUniqueAdmin.map(admin => {
+                                        if (admin.departments && admin.departments.length) {
+                                            admin.departmentName = admin.departments[0].departmentName;
+                                        }
+                                    });
+                                    return selectedUniqueAdmin;
+                                }
+                            }
+                    )
+                }
+            }
+        )
+    },
+
     getAllPlayerFeedbacks: function (query, admin, player, index, limit, sortCol, topUpTimesOperator, topUpTimesValue, topUpTimesValueTwo) {
         var adminArr = [];
         var playerArr = [];
