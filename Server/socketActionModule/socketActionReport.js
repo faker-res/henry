@@ -18,6 +18,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbUtil = require('./../modules/dbutility');
 var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+var dbPlayerTopUpDaySummary = require('./../db_modules/dbPlayerTopUpDaySummary');
 
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 const dbReport = require('./../db_modules/dbReport');
@@ -395,6 +396,14 @@ function socketActionReport(socketIO, socket) {
             var platformId = ObjectId(data.platformId);
 
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReportFromSummary, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        reCalculatePlayerReportSummary: function reCalculatePlayerReportSummary(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            var platformId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerTopUpDaySummary.reCalculatePlayerReportSummary, [platformId, data.start, data.end], actionName, isValidData);
         },
 
         getPlayerDepositAnalysisReport: function getPlayerDepositAnalysisReport(data) {
