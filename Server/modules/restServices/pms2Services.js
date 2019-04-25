@@ -196,12 +196,12 @@ function postMerchantTypeList (reqData, paymentSystemKey) {
     return postRequest(reqData, 'getMerchantTypeList', 'POST', paymentSystemKey)
 }
 
-function postPaymentGroup (reqData) {
-    return postRequest(reqData, 'getPlayerRankByType', 'POST')
+function postPaymentGroup (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getPlayerRankByType', 'POST', paymentSystemKey)
 }
 
-function postPaymentGroupByPlayer (reqData) {
-    return postRequest(reqData, 'getPlayerRankByPlayer', 'POST')
+function postPaymentGroupByPlayer (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getPlayerRankByPlayer', 'POST', paymentSystemKey)
 }
 
 function postProvince (reqData) {

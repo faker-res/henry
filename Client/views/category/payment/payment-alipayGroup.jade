@@ -68,22 +68,22 @@
                     .search-filters-item
                         .control-label {{"alipayName" | translate}}
                         input.form-control.merchantNoList(ng-model='vm.filterAlipayName', type='text')
-                    .threeBoxes(ng-if="vm.alipayGroupUsed != 'PMS' && vm.paymentSystemName !== 'PMS2'")
+                    .threeBoxes(ng-show="vm.alipayGroupUsed != 'PMS' && vm.paymentSystemName === 'FPMS'")
                         .control-label {{"isInGroup" | translate}}
                         select.form-control.merchantNoList(ng-model='vm.filterAlipayInGroup' ng-init='vm.filterAlipayInGroup="all"')
                             option(value='all') {{'any' | translate}}
                             option(value='false') {{'noInGroup' | translate}}
                             option(value='true') {{'inGroup' | translate}}
-                    .search-filters-item(ng-if="vm.alipayGroupUsed == 'PMS' || vm.paymentSystemName === 'PMS2'")
+                    .search-filters-item(ng-if="vm.alipayGroupUsed == 'PMS' || vm.paymentSystemName !== 'FPMS'")
                         .control-label {{"Player's Name (PMS Group Search)" | translate}}
                         input.form-control(type='text', ng-model='vm.pmsGroupPlayerName', ng-change='vm.searchPMSAlipayGroup()')
-                    .text-right.widthto100(ng-if="vm.alipayGroupUsed == 'PMS' || vm.paymentSystemName === 'PMS2'")
+                    .text-right.widthto100(ng-if="vm.alipayGroupUsed == 'PMS' || vm.paymentSystemName !== 'FPMS'")
                         button.btn.btn-primary(data-dismiss='modal', ng-click="vm.playerPMSAlipayGroupSearch()") {{"SEARCH" | translate}}
                 text.blink.margin-left-5.text-danger(ng-if='vm.SelectedAlipayGroupNode && !vm.allAlipayList') {{'loading alipays' | translate}}...
                 text.margin-left-5(ng-if='vm.SelectedAlipayGroupNode && vm.allAlipayList') {{'Total' | translate}}: {{filteredAlipayList.length}}
                 table#aliPayTable.simple-table.table-vertical-middle
                     thead
-                        th(ng-show="vm.alipayGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'") {{ 'select' | translate }}
+                        th(ng-show="vm.alipayGroupUsed == 'FPMS' && vm.paymentSystemName === 'FPMS'") {{ 'select' | translate }}
                         th(data-toggle="modal", data-target="#modalFilterAlipayStatus", style="cursor: pointer") {{ 'STATUS' | translate }}
                         th {{ 'Alipay Line' | translate }}
                         th {{ 'alipayAccount' | translate }}
@@ -93,7 +93,7 @@
                         th {{ 'DAY_LIMIT' | translate }}
                     tbody
                         tr(ng-repeat="(idx,val) in vm.allAlipayList | filter: vm.filterAlipay as filteredAlipayList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
-                            td(ng-show="vm.alipayGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'")
+                            td(ng-show="vm.alipayGroupUsed == 'FPMS' && vm.paymentSystemName === 'FPMS'")
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.alipayListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
                             td {{ val.state === 'DISABLED' ? 'DISABLE' : val.state | translate}}
                             td {{ val.line }}

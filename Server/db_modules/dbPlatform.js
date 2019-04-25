@@ -6148,7 +6148,7 @@ var dbPlatform = {
     },
 
     getPaymentSystemName: function (systemTypeId) {
-        let paymentSystemName = 'PMS';
+        let paymentSystemName = 'PMS2';
 
         if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
             Object.keys(extConfig).forEach(key => {

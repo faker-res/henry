@@ -520,20 +520,14 @@ var dbPlatformAlipayGroup = {
     },
 
     getPMSAlipayGroup: function (platformId, topUpSystemType) {
-        let topUpSystemConfig;
+        let type = constAccountType.ALIPAY;
 
-        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+        let options = {
+            platformId: platformId,
+            accountType: type
+        };
 
-        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-            let type = constAccountType.ALIPAY;
-
-            let options = {
-                platformId: platformId,
-                accountType: type
-            };
-
-            return RESTUtils.getPMS2Services("postPaymentGroup", options);
-        }
+        return RESTUtils.getPMS2Services("postPaymentGroup", options, topUpSystemType);
     }
 
 };
