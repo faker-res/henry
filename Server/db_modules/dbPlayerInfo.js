@@ -17481,7 +17481,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerReport: function (platform, query, index, limit, sortCol) {
+    getPlayerReport: function (platform, query, index, limit, sortCol, isExport) {
         console.log('RT - getPlayerReport start');
         limit = limit ? limit : 20;
         index = index ? index : 0;
@@ -17747,8 +17747,38 @@ let dbPlayerInfo = {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
-                console.log('RT - getPlayerReport end');
-                return {size: result.length, data: outputResult, total: resultSum};
+                let XLSX = require('xlsx');
+
+                function generateExcelFile (outputResult) {
+                    let topupRecordOutputFormat = [null, "proposalId"];
+                    let wb = XLSX.utils.book_new();
+
+                    wb.Props = {
+                        Title: "Top Up Report",
+                        Subject: "Test",
+                        Author: "FPMS",
+                        CreatedDate: new Date()
+                    };
+                    let wsdata = outputResult;
+                    let ws = XLSX.utils.json_to_sheet(wsdata);
+                    XLSX.utils.book_append_sheet(wb, ws, "Results");
+                    let wbout = XLSX.write(wb, {type: 'buffer'});
+
+                    console.log('outputResult', outputResult);
+
+                    return wbout;
+
+                    // outputResult
+                }
+
+                let file = generateExcelFile(outputResult);
+
+                console.log('RT - getPlayerReport end', file);
+                if (isExport) {
+                    return file;
+                } else {
+                    return {size: result.length, data: outputResult, total: resultSum};
+                }
             }
         );
     },
