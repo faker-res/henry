@@ -17551,22 +17551,28 @@ let dbPlayerInfo = {
                 console.log('RT - getPlayerReport 1');
                 let relevantPlayerQuery = {platformId: platform};
 
+                // relevant players are the players who played any game within given time period
+                let playerObjArr = [];
+                let collection;
+                let distinctField = 'playerId';
+
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
                 } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
                     relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
                 }
 
-                // relevant players are the players who played any game within given time period
-                let playerObjArr = [];
-                let collection;
-                let distinctField = 'playerId';
-
                 if (endDate.getTime() > todayDate.startTime.getTime()) {
                     console.log('RT - getPlayerReport 1.1');
                     collection = dbconfig.collection_playerConsumptionHourSummary;
                     relevantPlayerQuery = {platform: platform};
                     relevantPlayerQuery.startTime = {$gte: startDate, $lt: endDate};
+
+                    if (isSinglePlayer) {
+                        relevantPlayerQuery.player = playerData._id;
+                    } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
+                        relevantPlayerQuery.player = {$in: playerData.map(p => p._id)}
+                    }
 
                     // Limit records search to provider
                     if (query && query.providerId) {
