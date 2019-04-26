@@ -77,6 +77,7 @@ const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus"
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
 let dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbPropUtil = require("../db_common/dbProposalUtility");
+const dbReportUtil = require("../db_common/dbReportUtility");
 const dbUtil = require('./../modules/dbutility');
 const constPlayerLevelUpPeriod = require('./../const/constPlayerLevelUpPeriod');
 const constPlayerBillBoardPeriod = require('./../const/constPlayerBillBoardPeriod');
@@ -17753,35 +17754,10 @@ let dbPlayerInfo = {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
-                let XLSX = require('xlsx');
+                console.log('RT - getPlayerReport end');
 
-                function generateExcelFile (outputResult) {
-                    let topupRecordOutputFormat = [null, "proposalId"];
-                    let wb = XLSX.utils.book_new();
-
-                    wb.Props = {
-                        Title: "Top Up Report",
-                        Subject: "Test",
-                        Author: "FPMS",
-                        CreatedDate: new Date()
-                    };
-                    let wsdata = outputResult;
-                    let ws = XLSX.utils.json_to_sheet(wsdata);
-                    XLSX.utils.book_append_sheet(wb, ws, "Results");
-                    let wbout = XLSX.write(wb, {type: 'buffer'});
-
-                    console.log('outputResult', outputResult);
-
-                    return wbout;
-
-                    // outputResult
-                }
-
-                let file = generateExcelFile(outputResult);
-
-                console.log('RT - getPlayerReport end', file);
                 if (isExport) {
-                    return file;
+                    return dbReportUtil.generateExcelFile("PlayerReport", outputResult);
                 } else {
                     return {size: result.length, data: outputResult, total: resultSum};
                 }
@@ -20122,7 +20098,7 @@ let dbPlayerInfo = {
             ]).allowDiskUse(true).read("secondaryPreferred").then(
                 data => {
                     console.log('done consumptionProm');
-                    return data;
+                    return dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'});
                 }
             );
 
@@ -20341,6 +20317,14 @@ let dbPlayerInfo = {
             ).populate({
                 path: 'csOfficer',
                 model: dbconfig.collection_admin
+            }).populate({
+                path: 'playerLevel',
+                model: dbconfig.collection_playerLevel,
+                select: "_id name"
+            }).populate({
+                path: 'credibilityRemarks',
+                model: dbconfig.collection_playerCredibilityRemark,
+                select: "_id name"
             }).lean();
 
             // Promise domain CS and promote way
@@ -20370,9 +20354,18 @@ let dbPlayerInfo = {
                     result.consumptionBonusAmount = 0;
 
                     let providerDetail = {};
+                    let providerNames = "";
+
                     for (let i = 0, len = result.gameDetail.length; i < len; i++) {
                         let gameRecord = result.gameDetail[i];
-                        let providerId = gameRecord.providerId.toString();
+                        let providerId = gameRecord.providerId._id.toString();
+
+                        if (len > i + 1) {
+                            providerNames += gameRecord.providerId.name + '\n';
+                        } else {
+                            providerNames += gameRecord.providerId.name;
+                        }
+
                         result.gameDetail[i].bonusRatio = (result.gameDetail[i].bonusAmount / result.gameDetail[i].validAmount);
 
                         if (!providerDetail.hasOwnProperty(providerId)) {
@@ -20397,7 +20390,7 @@ let dbPlayerInfo = {
 
                     result.consumptionBonusRatio = (result.consumptionBonusAmount / result.consumptionBonusRatio);
                     result.providerDetail = providerDetail;
-
+                    result.providerNames = providerNames;
 
                     // filter irrelevant result base on query
                     if (query.providerId && !providerDetail[query.providerId]) {
@@ -20566,8 +20559,16 @@ let dbPlayerInfo = {
 
                     // player related
                     let playerDetail = data[5];
-                    result.credibilityRemarks = playerDetail.credibilityRemarks;
-                    result.playerLevel = playerDetail.playerLevel;
+                    result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e._id);
+                    result.credibilityRemarksName = playerDetail.credibilityRemarks.reduce((i, n, idx, arr) => {
+                        if (arr.length === idx + 1) {
+                            return i += n.name
+                        } else {
+                            return i += n.name + "\n"
+                        }
+                    }, "");
+                    result.playerLevel = playerDetail.playerLevel._id;
+                    result.playerLevelName = playerDetail.playerLevel.name;
                     result.name = playerDetail.name;
                     result.valueScore = playerDetail.valueScore;
                     result.registrationTime = playerDetail.registrationTime;

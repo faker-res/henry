@@ -26,6 +26,7 @@ var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
+const dbReportUtil = require("./../db_common/dbReportUtility");
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
 var dbProposalUtility = require('./../db_common/dbProposalUtility');
 var pmsAPI = require('../externalAPI/pmsAPI');
@@ -3443,7 +3444,7 @@ var proposal = {
      * @param {JSON} -  startTime, endTime, platformId (ObjectId), type{ObjectId), status
      *
      */
-    getProposalsByAdvancedQuery: function (reqData, index, count, sortObj) {
+    getProposalsByAdvancedQuery: function (reqData, index, count, sortObj, isExport) {
         sortObj = sortObj || {};
         let proposalTypeList = [];
         let approveProposalTypeList = [];
@@ -3880,12 +3881,16 @@ var proposal = {
                 }
                 total = dbutility.decimalAdjust("floor", total, -2);
 
-                return {
-                    size: totalSize,
-                    totalPlayer: totalPlayer,
-                    data: resultArray,
-                    summary: {amount: total}, //parseFloat(total).toFixed(2)
-                };
+                if (isExport) {
+                    return dbReportUtil.generateExcelFile("ProposalReport", resultArray);
+                } else {
+                    return {
+                        size: totalSize,
+                        totalPlayer: totalPlayer,
+                        data: resultArray,
+                        summary: {amount: total}, //parseFloat(total).toFixed(2)
+                    };
+                }
             },
             function (error) {
                 return Promise.reject({
