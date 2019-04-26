@@ -2628,8 +2628,6 @@ var dbRewardEvent = {
                     })
                 }
 
-                console.log('checkRewardEmptyUpdate--query===', query);
-                console.log('checkRewardEmptyUpdate--updateData===', updateData);
                 return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData).exec();
             }
         ).catch(
