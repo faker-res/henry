@@ -2,6 +2,7 @@ const XLSX = require('xlsx');
 
 const dbUtil = require('./../modules/dbutility');
 const localization = require('./../modules/localization');
+const RESTUtils = require('./../modules/RESTUtils');
 
 const constPlayerRegistrationInterface = {
     0: '后台',
@@ -11,6 +12,32 @@ const constPlayerRegistrationInterface = {
     4: 'H5代理',
     5: 'APP玩家',
     6: 'APP代理'
+};
+
+const constMerchantTopupType = {
+    1: '网银支付',
+    2: '微信扫码',
+    3: '支付宝扫码',
+    4: '微信App支付',
+    5: '支付宝App支付',
+    6: '快捷支付',
+    7: 'QQ扫码',
+    8: '银联扫码支付',
+    9: '京东钱包扫码支付',
+    10: '微信wap',
+    11: '支付宝wap',
+    12: 'QQWAP',
+    13: '点卡',
+    14: '京东wap'
+};
+
+const constDepositMethod = {
+    1: '网银转账',
+    2: 'ATM',
+    3: '银行柜台',
+    4: '支付宝转账',
+    5: '微信转帐',
+    6: '云闪付'
 };
 
 const dbReportUtility = {
@@ -33,6 +60,26 @@ const dbReportUtility = {
             if (outputResult && outputResult.length) {
                 return outputResult.map(res => {
                     switch (reportName) {
+                        case "TopupReport":
+                            return {
+                                "产品名称": res.data.platformId.name,
+                                "提案ID": res.proposalId,
+                                "充值类型": localization.localization.translate(res.type.name),
+                                "装置": constPlayerRegistrationInterface[res.inputDevice],
+                                "在线充值类型": constMerchantTopupType[res.data.topupType],
+                                "第三方平台": res.data.merchantUseName,
+                                "手工存款方式": constDepositMethod[res.data.depositMethod],
+                                "收款商户/账号": res.data.bankTypeId,
+                                "商户计数": res.$merchantCurrentCount + "/" + res.$merchantAllCount + " (" + res.$merchantGapTime + ")",
+                                "状态": localization.localization.translate(res.status),
+                                "会员账号": res.data.playerName,
+                                "会员姓名": res.data.playerRealName,
+                                "会员计数": res.$playerCurrentCount + "/" + res.$playerAllCount + " (" + res.$playerGapTime + ")",
+                                "充值金额": res.data.amount,
+                                "加入时间": dbUtil.getSGTimeToString(res.createTime),
+                                "成功执行时间": dbUtil.getSGTimeToString(res.settleTime),
+                            };
+                            break;
                         case "ProposalReport":
                             return {
                                 "产品名称": res.data.platformId.name,

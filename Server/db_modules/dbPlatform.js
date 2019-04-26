@@ -6268,18 +6268,24 @@ var dbPlatform = {
                         //encrypt player phone number
                         try {
                             let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+                            let decGuestDeviceId = rsaCrypto.decrypt(playerData.guestDeviceId);
 
                             if (decPhoneNumber && decPhoneNumber.length < 20) {
                                 let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
+                                let reEncGuestDeviceId = rsaCrypto.encrypt(decGuestDeviceId);
 
                                 // Make sure it's encrypted
                                 if (reEncPhoneNumber && reEncPhoneNumber.length > 20) {
                                     dbconfig.collection_players.findOneAndUpdate(
                                         {_id: playerData._id, platform: playerData.platform},
-                                        {phoneNumber: reEncPhoneNumber}
+                                        {$set: {
+                                            phoneNumber: reEncPhoneNumber,
+                                            guestDeviceId: reEncGuestDeviceId
+                                        }}
                                     ).then();
                                 }
                             }
+
                             console.log("index", platformData.name, i);
                             i++;
                         } catch (err) {

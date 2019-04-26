@@ -1663,7 +1663,7 @@ define(['js/app'], function (myApp) {
                 // platformId: vm.curPlatformId,
                 proposalId: vm.queryTopup.proposalId,
                 index: 0,
-                limit: isExport ? 5000 : 1,
+                limit: isExport ? 10000 : 1,
             } : {
                 playerName: vm.queryTopup.playerName,
                 mainTopupType: vm.queryTopup.mainTopupType,
@@ -1678,8 +1678,9 @@ define(['js/app'], function (myApp) {
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
                 index: isExport ? 0 : (newSearch ? 0 : (vm.queryTopup.index || 0)),
-                limit: isExport ? 5000 : (vm.queryTopup.limit || 10),
-                sortCol: vm.queryTopup.sortCol || {}
+                limit: isExport ? 10000 : (vm.queryTopup.limit || 10),
+                sortCol: vm.queryTopup.sortCol || {},
+                isExport: isExport
             };
 
             if ( vm.queryTopup.line && vm.queryTopup.line.length > 0 ) {
@@ -1693,47 +1694,53 @@ define(['js/app'], function (myApp) {
             console.log('searchTopupRecord sendObj', sendObj);
 
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
-                $scope.$evalAsync(() => {
-                    findReportSearchTime();
-                    $('#topupTableSpin').hide();
-                    console.log('topup', data);
-                    vm.queryTopup.totalCount = data.data.size;
-                    vm.queryTopup.totalPlayer = data.data.totalPlayer;
-                    vm.drawTopupReport(
-                        data.data.data.map(item => {
-                            item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                            item.status$ = $translate(item.status);
-                            item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
-                            item.merchantNoDisplay = item.data.merchantNo != null ? item.data.merchantNo
-                                : item.data.bankCardNo != null ? item.data.bankCardNo
-                                : item.data.wechatAccount != null ? item.data.wechatAccount
-                                : item.data.weChatAccount != null ? item.data.weChatAccount
-                                : item.data.alipayAccount != null ? item.data.alipayAccount
-                                : item.data.accountNo != null ? item.data.accountNo
-                                : '';
+                $('#topupTableSpin').hide();
+
+                if (isExport) {
+                    window.saveAs(new Blob([data.data]), "充值报表.csv");
+                } else {
+                    $scope.$evalAsync(() => {
+                        findReportSearchTime();
+
+                        console.log('topup', data);
+                        vm.queryTopup.totalCount = data.data.size;
+                        vm.queryTopup.totalPlayer = data.data.totalPlayer;
+                        vm.drawTopupReport(
+                            data.data.data.map(item => {
+                                item.amount$ = parseFloat(item.data.amount).toFixed(2);
+                                item.status$ = $translate(item.status);
+                                item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
+                                item.merchantNoDisplay = item.data.merchantNo != null ? item.data.merchantNo
+                                    : item.data.bankCardNo != null ? item.data.bankCardNo
+                                        : item.data.wechatAccount != null ? item.data.wechatAccount
+                                            : item.data.weChatAccount != null ? item.data.weChatAccount
+                                                : item.data.alipayAccount != null ? item.data.alipayAccount
+                                                    : item.data.accountNo != null ? item.data.accountNo
+                                                        : '';
                                 item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                                 item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
-                            if (item.type.name == 'PlayerTopUp') {
-                                //show detail topup type info for online topup.
-                                let typeID = item.data.topUpType || item.data.topupType
-                                item.topupTypeStr = typeID
-                                    ? $translate($scope.merchantTopupTypeJson[typeID])
-                                    : $translate("Unknown")
-                                let merchantNo = '';
-                                if(item.data.merchantNo){
-                                    merchantNo = item.data.merchantNo;
+                                if (item.type.name == 'PlayerTopUp') {
+                                    //show detail topup type info for online topup.
+                                    let typeID = item.data.topUpType || item.data.topupType
+                                    item.topupTypeStr = typeID
+                                        ? $translate($scope.merchantTopupTypeJson[typeID])
+                                        : $translate("Unknown")
+                                    let merchantNo = '';
+                                    if(item.data.merchantNo){
+                                        merchantNo = item.data.merchantNo;
+                                    }
+                                    item.merchantNoDisplay = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                                } else {
+                                    //show topup type for other types
+                                    item.topupTypeStr = $translate(item.type.name)
                                 }
-                                item.merchantNoDisplay = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
-                            } else {
-                                //show topup type for other types
-                                item.topupTypeStr = $translate(item.type.name)
-                            }
-                            item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                            item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "";
-                            return item;
-                        }), data.data.size, {amount: data.data.total}, newSearch, isExport
-                    );
-                })
+                                item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                                item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "";
+                                return item;
+                            }), data.data.size, {amount: data.data.total}, newSearch, isExport
+                        );
+                    })
+                }
             }, function (err) {
                 console.log(err);
             }, true);
@@ -4381,7 +4388,7 @@ define(['js/app'], function (myApp) {
                                 : adminIds
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.playerQuery.index || 0)),
-                limit: isExport ? 5000 : (vm.playerQuery.limit || 5000),
+                limit: isExport ? 10000 : (vm.playerQuery.limit || 5000),
                 sortCol: vm.playerQuery.sortCol || {validConsumptionAmount: -1},
                 isExport: isExport
             };
