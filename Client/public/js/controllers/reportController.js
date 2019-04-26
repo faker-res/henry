@@ -4388,15 +4388,10 @@ define(['js/app'], function (myApp) {
             console.log('sendquery', sendquery);
             if(!vm.playerQuery.searchBySummaryData){
                 socketService.$socket($scope.AppSocket, 'getPlayerReport', sendquery, function (data) {
-                    console.log('sss3', typeof data.data);
                     $('#loadingPlayerReportTableSpin').hide();
 
                     if (isExport) {
-                        var fileName = "FPMS report.xls";
-
-                        //Save the file
-                        var blob = new Blob([data.data]);
-                        window.saveAs(blob, fileName);
+                        window.saveAs(new Blob([data.data]), "玩家报表.csv");
                     } else {
                         $scope.$evalAsync(() => {
                             findReportSearchTime();
@@ -6415,7 +6410,7 @@ define(['js/app'], function (myApp) {
                 // platformId: vm.curPlatformId,
                 proposalId: newproposalQuery.proposalId,
                 index: 0,
-                limit: isExport ? 5000 : 1,
+                limit: isExport ? 10000 : 1,
             } : {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
@@ -6428,46 +6423,55 @@ define(['js/app'], function (myApp) {
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
-                limit: isExport ? 5000 : newproposalQuery.limit,
-                sortCol: newproposalQuery.sortCol
+                limit: isExport ? 10000 : newproposalQuery.limit,
+                sortCol: newproposalQuery.sortCol,
+                isExport: isExport
             };
 
-            socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {
-                findReportSearchTime();
-                // $('#operationTableSpin').hide();
-                $('#proposalTable').show();
-                console.log('proposal data', data);
-                var datatoDraw = data.data.data.map(item => {
-                    item.involveAmount$ = 0;
-                    if (item.data.updateAmount) {
-                        item.involveAmount$ = parseFloat(item.data.updateAmount).toFixed(2);
-                    } else if (item.data.amount) {
-                        item.involveAmount$ = parseFloat(item.data.amount).toFixed(2);
-                    } else if (item.data.rewardAmount) {
-                        item.involveAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
-                    } else if (item.data.commissionAmount) {
-                        item.involveAmount$ = parseFloat(item.data.commissionAmount).toFixed(2);
-                    } else if (item.data.negativeProfitAmount) {
-                        item.involveAmount$ = parseFloat(item.data.negativeProfitAmount).toFixed(2);
-                    }
-                    item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
-                    item.typeName = $translate(item.type.name || "Unknown");
-                    item.mainType$ = $translate(item.mainType || "Unknown");
-                    if (item.mainType === "PlayerBonus")
-                        item.mainType$ = $translate("Bonus");
-                    item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                    if (item.data && item.data.remark) {
-                        item.remark$ = item.data.remark;
-                    }
-                    item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
+            console.log('sendData', sendData);
 
-                    return item;
-                })
+            socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {
                 $('#proposalTableSpin').hide();
-                vm.proposalQuery.totalCount = data.data.size;
-                vm.proposalQuery.totalPlayer = data.data.totalPlayer;
-                $scope.safeApply();
-                vm.drawProposalReportNew(datatoDraw, vm.proposalQuery.totalCount, data.data.summary, newSearch, isExport);
+
+                if (isExport) {
+                    window.saveAs(new Blob([data.data]), "提案报表.csv");
+                } else {
+                    findReportSearchTime();
+                    // $('#operationTableSpin').hide();
+                    $('#proposalTable').show();
+                    console.log('proposal data', data);
+                    var datatoDraw = data.data.data.map(item => {
+                        item.involveAmount$ = 0;
+                        if (item.data.updateAmount) {
+                            item.involveAmount$ = parseFloat(item.data.updateAmount).toFixed(2);
+                        } else if (item.data.amount) {
+                            item.involveAmount$ = parseFloat(item.data.amount).toFixed(2);
+                        } else if (item.data.rewardAmount) {
+                            item.involveAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
+                        } else if (item.data.commissionAmount) {
+                            item.involveAmount$ = parseFloat(item.data.commissionAmount).toFixed(2);
+                        } else if (item.data.negativeProfitAmount) {
+                            item.involveAmount$ = parseFloat(item.data.negativeProfitAmount).toFixed(2);
+                        }
+                        item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
+                        item.typeName = $translate(item.type.name || "Unknown");
+                        item.mainType$ = $translate(item.mainType || "Unknown");
+                        if (item.mainType === "PlayerBonus")
+                            item.mainType$ = $translate("Bonus");
+                        item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                        if (item.data && item.data.remark) {
+                            item.remark$ = item.data.remark;
+                        }
+                        item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
+
+                        return item;
+                    })
+
+                    vm.proposalQuery.totalCount = data.data.size;
+                    vm.proposalQuery.totalPlayer = data.data.totalPlayer;
+                    $scope.safeApply();
+                    vm.drawProposalReportNew(datatoDraw, vm.proposalQuery.totalCount, data.data.summary, newSearch, isExport);
+                }
             }, function (err) {
                 $('#proposalTableSpin').hide();
 

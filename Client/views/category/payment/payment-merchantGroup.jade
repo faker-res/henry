@@ -61,7 +61,7 @@ style.
                         img.img-create
                         text 同步商户号
 
-                .panel(ng-show="vm.paymentSystemName === 'PMS2'")
+                .panel(ng-show="vm.paymentSystemName !== 'FPMS'")
                     .panel.panel-primary(style="height:300px")
                         .panel-body.common-right-panel-body
                             div
@@ -94,12 +94,12 @@ style.
             .panel-body
                 .text-center(ng-if='!vm.SelectedMerchantGroupNode')
                     label.text-danger {{"NO_MERCHANT_GROUP_MESSAGE" | translate}}
-                .col-sm-12(ng-class="{'col-sm-6':(vm.merchantGroupUsed == 'PMS' || vm.paymentSystemName == 'PMS2')}")
+                .col-sm-12(ng-class="{'col-sm-6':(vm.merchantGroupUsed == 'PMS' || vm.paymentSystemName !== 'FPMS')}")
                     .well
                         .search-filters-item
                             .control-label {{"Backstage Merchant ID" | translate}}
                             input.form-control(type='text', ng-model='vm.merchantFilterOptions.backstageMerchantId')
-                        .threeBoxes(ng-if="vm.merchantGroupUsed != 'PMS' && vm.paymentSystemName !== 'PMS2'")
+                        .threeBoxes(ng-if="vm.merchantGroupUsed != 'PMS' && vm.paymentSystemName === 'FPMS'")
                             .control-label {{"IS_IN_GROUP" | translate}}
                             select.form-control(ng-model="vm.merchantFilterOptions.isIncluded")
                                 option(value='all') {{'any' | translate}}
@@ -107,7 +107,7 @@ style.
                                 option(value='no') {{'NOT_IN_GROUP' | translate}}
                         .text-right.widthto100
                             button.btn.btn-primary(data-dismiss='modal', ng-click="vm.merchantPayFilter()") {{"FILTER" | translate}}
-                .col-sm-6(ng-if="vm.merchantGroupUsed == 'PMS' || vm.paymentSystemName == 'PMS2'")
+                .col-sm-6(ng-if="vm.merchantGroupUsed == 'PMS' || vm.paymentSystemName !== 'FPMS'")
                     .well
                         .search-filters-item
                             .control-label {{"Player's Name (PMS Group Search)" | translate}}
@@ -119,7 +119,7 @@ style.
                 table#merchantGroupTable.table(ng-if='vm.SelectedMerchantGroupNode')
                     thead
                         tr
-                            th(ng-show="vm.merchantGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'") {{'SELECT' | translate}}
+                            th(ng-show="vm.merchantGroupUsed == 'FPMS' && vm.paymentSystemName === 'FPMS'") {{'SELECT' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterMerchantStatus", style="cursor: pointer")
                                 u {{'STATUS' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterMerchantDevice", style="cursor: pointer")
@@ -136,7 +136,7 @@ style.
                             th {{'Service Charge Ratio' | translate}}%
                     tbody
                         tr(ng-repeat='(i,v) in vm.allMerchantList' ng-class="{'bg-grey' : v.isIncluded == false}" ng-show="v.show$")
-                            td(ng-show="vm.merchantGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'")
+                            td(ng-show="vm.merchantGroupUsed == 'FPMS' && vm.paymentSystemName === 'FPMS'")
                                 input(type="checkbox" ng-model="v.selected")
                             td(ng-class="{'text-disabled': v.status === 'DISABLED'}").text-success {{v.status === 'DISABLED' ? 'DISABLE' : v.status | translate}}
                             td {{merchantTargetDeviceJson[v.targetDevices] | translate}}

@@ -42,7 +42,7 @@ function socketActionReport(socketIO, socket) {
             data["endTime"] = endTime;
             query = utility.buildProposalReportQueryString(data);
 
-            socketUtil.emitter(self.socket, dbProposal.getProposalsByAdvancedQuery, [query, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getProposalsByAdvancedQuery, [query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
         },
 
         getFinancialPointsReport: function getFinancialPointsReport(data) {

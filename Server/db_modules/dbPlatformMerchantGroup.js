@@ -748,20 +748,14 @@ var dbPlatformMerchantGroup = {
     },
 
     getPMSMerchantGroup: function (platformId, topUpSystemType) {
-        let topUpSystemConfig;
+        let type = constAccountType.ONLINE
 
-        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+        let options = {
+            platformId: platformId,
+            accountType: type
+        };
 
-        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-            let type = constAccountType.ONLINE
-
-            let options = {
-                platformId: platformId,
-                accountType: type
-            };
-
-            return RESTUtils.getPMS2Services("postPaymentGroup", options);
-        }
+        return RESTUtils.getPMS2Services("postPaymentGroup", options, topUpSystemType);
     },
 
     getServiceChargeSetting: function (platformObjId) {

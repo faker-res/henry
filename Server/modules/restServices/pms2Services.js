@@ -180,8 +180,8 @@ function postBankTypeList (reqData, paymentSystemKey) {
     return postRequest(reqData, 'bankTypes', 'POST', paymentSystemKey)
 }
 
-function postSyncPlatform (reqData) {
-    return postRequest(reqData, 'sync-platform', 'POST')
+function postSyncPlatform (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'sync-platform', 'POST', paymentSystemKey);
 }
 
 function postTopupForceMatch (reqData, paymentSystemKey) {
@@ -196,12 +196,12 @@ function postMerchantTypeList (reqData, paymentSystemKey) {
     return postRequest(reqData, 'getMerchantTypeList', 'POST', paymentSystemKey)
 }
 
-function postPaymentGroup (reqData) {
-    return postRequest(reqData, 'getPlayerRankByType', 'POST')
+function postPaymentGroup (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getPlayerRankByType', 'POST', paymentSystemKey)
 }
 
-function postPaymentGroupByPlayer (reqData) {
-    return postRequest(reqData, 'getPlayerRankByPlayer', 'POST')
+function postPaymentGroupByPlayer (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getPlayerRankByPlayer', 'POST', paymentSystemKey)
 }
 
 function postProvince (reqData) {
