@@ -6414,7 +6414,7 @@ define(['js/app'], function (myApp) {
                 // platformId: vm.curPlatformId,
                 proposalId: newproposalQuery.proposalId,
                 index: 0,
-                limit: isExport ? 5000 : 1,
+                limit: isExport ? 10000 : 1,
             } : {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
@@ -6427,7 +6427,7 @@ define(['js/app'], function (myApp) {
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
-                limit: isExport ? 5000 : newproposalQuery.limit,
+                limit: isExport ? 10000 : newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol,
                 isExport: isExport
             };

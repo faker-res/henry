@@ -23,8 +23,6 @@ const dbReportUtility = {
                 return outputResult.map(res => {
                     switch (reportName) {
                         case "ProposalReport":
-
-                            console.log('res', res);
                             return {
                                 "产品名称": res.data.platformId.name,
                                 "提案ID": res.proposalId,
