@@ -1013,6 +1013,7 @@ let dbTeleSales = {
                         let updateProm = dbconfig.collection_players.find({
                             tsPhoneList: phoneList._id,
                             tsAssignee: assignee.admin,
+                            csOfficer: assignee.admin, // new requirement, player must registered by tsAssignee
                             platform: platformObjId,
                             topUpTimes: {$gte: partnerLevelConfigData.validPlayerTopUpTimes},
                             topUpSum: {$gte: partnerLevelConfigData.validPlayerTopUpAmount},
