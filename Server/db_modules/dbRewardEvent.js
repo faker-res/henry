@@ -2545,10 +2545,24 @@ var dbRewardEvent = {
      * @param {String} query
      */
     getRewardEvents: function (query) {
+        console.log('checkRewardEmpty--query===', query);
         return dbconfig.collection_rewardEvent.find(query).populate({
             path: "type",
             model: dbconfig.collection_rewardType
-        }).sort({updateTime: -1}).exec();
+        }).sort({updateTime: -1}).lean().exec().then(
+            rewardEvent => {
+                if (rewardEvent && rewardEvent.length) {
+                    console.log('checkRewardEmpty--rewardEvent.length===', rewardEvent.length);
+                    rewardEvent.forEach(event => {
+                       if (event && event.param && event.param.rewardParam && event.param.rewardParam[0]) {
+                           console.log('checkRewardEmpty--event.name===', event.name);
+                           console.log('checkRewardEmpty--rewardParam===', event.param.rewardParam[0]);
+                       }
+                    });
+                }
+                return rewardEvent;
+            }
+        );
     },
 
     getRewardEventGroup: function (query) {
@@ -2628,6 +2642,8 @@ var dbRewardEvent = {
                     })
                 }
 
+                console.log('checkRewardEmptyUpdate--query===', query);
+                console.log('checkRewardEmptyUpdate--updateData===', updateData);
                 return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData).exec();
             }
         ).catch(
