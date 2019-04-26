@@ -1,6 +1,17 @@
-let XLSX = require('xlsx');
+const XLSX = require('xlsx');
 
-const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
+const dbUtil = require('./../modules/dbutility');
+const localization = require('./../modules/localization');
+
+const constPlayerRegistrationInterface = {
+    0: '后台',
+    1: 'WEB玩家',
+    2: 'WEB代理',
+    3: 'H5玩家',
+    4: 'H5代理',
+    5: 'APP玩家',
+    6: 'APP代理'
+};
 
 const dbReportUtility = {
     generateExcelFile: (reportName, outputResult) => {
@@ -16,7 +27,7 @@ const dbReportUtility = {
         let ws = XLSX.utils.json_to_sheet(wsdata);
         XLSX.utils.book_append_sheet(wb, ws, "Results");
 
-        return XLSX.write(wb, {type: 'buffer'});
+        return XLSX.write(wb, {type: 'buffer', bookType: 'csv'});
 
         function processResult (reportName, outputResult) {
             if (outputResult && outputResult.length) {
@@ -28,12 +39,12 @@ const dbReportUtility = {
                                 "提案ID": res.proposalId,
                                 "创建者": (res.creator && res.creator.name) || "",
                                 "入口": constPlayerRegistrationInterface[res.inputDevice],
-                                "提案类型": res.mainType,
-                                "提案子类型": res.type.name,
-                                "提案状态": res.status,
+                                "提案类型": localization.localization.translate(res.mainType),
+                                "提案子类型": localization.localization.translate(res.type.name),
+                                "提案状态": localization.localization.translate(res.status),
                                 "涉及账号": res.data.playerName,
-                                "涉及额度": res.rewardAmount || res.amount,
-                                "加入时间": res.createTime,
+                                "涉及额度": res.data.rewardAmount || res.data.amount,
+                                "加入时间": dbUtil.getSGTimeToString(res.createTime),
                                 "会员等级": res.data.playerLevelName,
                                 "备注": res.data.remark
                             };
