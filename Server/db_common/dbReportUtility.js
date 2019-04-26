@@ -1,6 +1,6 @@
 let XLSX = require('xlsx');
 
-const dbconfig = require('./../modules/dbproperties');
+const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 
 const dbReportUtility = {
     generateExcelFile: (reportName, outputResult) => {
@@ -27,12 +27,12 @@ const dbReportUtility = {
                                 "产品名称": res.data.platformId.name,
                                 "提案ID": res.proposalId,
                                 "创建者": (res.creator && res.creator.name) || "",
-                                "入口": res.inputDevice,
+                                "入口": constPlayerRegistrationInterface[res.inputDevice],
                                 "提案类型": res.mainType,
                                 "提案子类型": res.type.name,
                                 "提案状态": res.status,
                                 "涉及账号": res.data.playerName,
-                                "涉及额度": res.amount,
+                                "涉及额度": res.rewardAmount || res.amount,
                                 "加入时间": res.createTime,
                                 "会员等级": res.data.playerLevelName,
                                 "备注": res.data.remark
