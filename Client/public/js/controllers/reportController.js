@@ -4391,11 +4391,7 @@ define(['js/app'], function (myApp) {
                     $('#loadingPlayerReportTableSpin').hide();
 
                     if (isExport) {
-                        var fileName = "FPMS report.xlsx";
-
-                        //Save the file
-                        var blob = new Blob([data.data]);
-                        window.saveAs(blob, fileName);
+                        window.saveAs(new Blob([data.data]), "玩家报表.csv");
                     } else {
                         $scope.$evalAsync(() => {
                             findReportSearchTime();
@@ -6438,7 +6434,7 @@ define(['js/app'], function (myApp) {
                 $('#proposalTableSpin').hide();
 
                 if (isExport) {
-                    window.saveAs(new Blob([data.data]), "提案报表.xlsx");
+                    window.saveAs(new Blob([data.data]), "提案报表.csv");
                 } else {
                     findReportSearchTime();
                     // $('#operationTableSpin').hide();
