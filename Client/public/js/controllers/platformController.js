@@ -18115,7 +18115,7 @@ define(['js/app'], function (myApp) {
                     j.amount$ = j.amount ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
 
                     if (j.playerId.credibilityRemarks && j.playerId.credibilityRemarks.length > 0) {
-                        j.playerId.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
+                        j.playerId.credibilityRemarks = vm.allCredibilityRemarks.filter(remark => {
                             return j.playerId.credibilityRemarks.includes(remark._id);
                         });
                         j.playerId.credibilityRemarks.forEach(function (value, index) {
@@ -36906,6 +36906,7 @@ define(['js/app'], function (myApp) {
             })
 
             function initFeedbackAdmin (callback) {
+                vm.getAllCredibilityRemarks();
                 vm.feedbackAdminQuery = vm.feedbackAdminQuery || {};
                 vm.feedbackAdminQuery.total = 0;
                 vm.feedbackAdminQuery.cs = '';
