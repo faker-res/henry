@@ -1663,7 +1663,7 @@ define(['js/app'], function (myApp) {
                 // platformId: vm.curPlatformId,
                 proposalId: vm.queryTopup.proposalId,
                 index: 0,
-                limit: isExport ? 5000 : 1,
+                limit: isExport ? 10000 : 1,
             } : {
                 playerName: vm.queryTopup.playerName,
                 mainTopupType: vm.queryTopup.mainTopupType,
@@ -1678,7 +1678,7 @@ define(['js/app'], function (myApp) {
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
                 index: isExport ? 0 : (newSearch ? 0 : (vm.queryTopup.index || 0)),
-                limit: isExport ? 5000 : (vm.queryTopup.limit || 10),
+                limit: isExport ? 10000 : (vm.queryTopup.limit || 10),
                 sortCol: vm.queryTopup.sortCol || {},
                 isExport: isExport
             };
@@ -4388,7 +4388,7 @@ define(['js/app'], function (myApp) {
                                 : adminIds
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.playerQuery.index || 0)),
-                limit: isExport ? 5000 : (vm.playerQuery.limit || 5000),
+                limit: isExport ? 10000 : (vm.playerQuery.limit || 5000),
                 sortCol: vm.playerQuery.sortCol || {validConsumptionAmount: -1},
                 isExport: isExport
             };
