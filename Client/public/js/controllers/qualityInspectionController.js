@@ -3785,7 +3785,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.drawCsAudioRecordTable = function (tblData, newSearch) {
-                console.log(newSearch);
                 let option = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [

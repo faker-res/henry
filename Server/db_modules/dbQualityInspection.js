@@ -55,9 +55,8 @@ var dbQualityInspection = {
 
             let startTime = dbUtility.getLocalTimeString(startDate);
             let endTime = dbUtility.getLocalTimeString(endDate);
-            console.log("checking endTime", endTime)
-
             let callerIdStringList = "";
+
             if (data && data.callerId && data.callerId.length){
                 data.callerId.forEach(
                     id => {
@@ -127,7 +126,7 @@ var dbQualityInspection = {
                     let jiaBoData = data && data[1] && data[1].data ? data[1].data : [];
                     let csDataSize = data && data[0] && data[0].size ? data[0].size : 0;
                     let jiaBoDataSize = data && data[1] && data[1].size ? data[1].size : 0;
-                    let totalSize = (csDataSize || 0) + (jiaBoDataSize || 0)
+                    let totalSize = (csDataSize || 0) + (jiaBoDataSize || 0);
                     let dataset = [];
                     dataset = dataset.concat(csData, jiaBoData);
 
@@ -4813,6 +4812,6 @@ var dbQualityInspection = {
             model: dbconfig.collection_platform
         }).lean();
     },
-    
+
 };
 module.exports = dbQualityInspection;
