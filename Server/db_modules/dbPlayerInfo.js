@@ -20577,8 +20577,10 @@ let dbPlayerInfo = {
                             }
                         }, "");
                     }
-                    result.playerLevel = playerDetail.playerLevel._id;
-                    result.playerLevelName = playerDetail.playerLevel.name;
+                    if (playerDetail.playerLevel) {
+                        result.playerLevel = playerDetail.playerLevel._id;
+                        result.playerLevelName = playerDetail.playerLevel.name;
+                    }
                     result.name = playerDetail.name;
                     result.valueScore = playerDetail.valueScore;
                     result.registrationTime = playerDetail.registrationTime;
