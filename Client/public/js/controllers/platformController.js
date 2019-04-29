@@ -3936,7 +3936,7 @@ define(['js/app'], function (myApp) {
                 // }
                 //console.log("getGames", gameIds);
                 let sendData = {
-                    _id: platformObjId || null
+                    _id: platformObjId || vm.selectedPlatform.id || null
                 }
                 socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                     console.log('getPlatform', data.data);
