@@ -321,7 +321,7 @@ var dbPlatformGameGroup = {
                                 }
                             );
                             gameGroup.games.gameList.forEach(
-                                (game, index) => {
+                                (game) => {
                                     game.game.provider = gameProviderMap[String(game.game.provider)] || game.game.provider;
                                 }
                             )
