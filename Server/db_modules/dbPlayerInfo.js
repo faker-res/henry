@@ -17607,7 +17607,7 @@ let dbPlayerInfo = {
 
                         if (isSinglePlayer) {
                             proposalQuery['data.playerObjId'] = playerData._id;
-                        } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                        } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
                             proposalQuery['data.playerObjId'] = {$in: playerData.map(p => p._id)}
                         }
 
