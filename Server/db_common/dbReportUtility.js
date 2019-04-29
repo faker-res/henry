@@ -90,7 +90,7 @@ const dbReportUtility = {
                                 "提案子类型": localization.localization.translate(res.type.name),
                                 "提案状态": localization.localization.translate(res.status),
                                 "涉及账号": res.data.playerName,
-                                "涉及额度": res.data.rewardAmount || res.data.amount,
+                                "涉及额度": res.data.rewardAmount || res.data.amount || res.data.updateAmount,
                                 "加入时间": dbUtil.getSGTimeToString(res.createTime),
                                 "会员等级": res.data.playerLevelName,
                                 "备注": res.data.remark
