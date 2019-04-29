@@ -276,6 +276,7 @@
   "GAME_PROVIDER": "游戏提供商",
   "PROVIDER": "游戏提供商",
   "GAME_STATUS": "游戏状态",
+  "GAME_ORIENTATION": "游戏方位",
   "SHOW_PRIORITY": "显示优先级",
   "OPERATION": "实时提案",
   "REWARD": "优惠",
@@ -5486,6 +5487,7 @@
   "defaultFeedbackConfig": "默认回访主题/结果设置",
   "Converted":"已兑换",
   "Current Game Display Setting is:": "目前的游戏状态设置为: ",
+  "Current Game Orientation Setting is:": "游戏方位设置为: ",
   "Promo Code-B (With Deposit)": "优惠類型-B(需存款)",
   "Promo Code-B (Without Deposit)": "优惠類型-B(不存款)",
   "Promo Code-C": "优惠类型-C",
@@ -5504,5 +5506,8 @@
   "visibleFromHomePage": "首页弹屏可见",
   "visibleFromRewardEntry": "优惠入口可见",
   "visibleFromRewardList": "优惠列表可见",
+  "Landscape": "橫向",
+  "Portrait": "纵向",
+  "default": "预设",
   "RECALCULATE": "重新收录"
 }
