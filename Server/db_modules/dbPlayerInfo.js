@@ -19962,9 +19962,6 @@ let dbPlayerInfo = {
                         for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                             let prom;
 
-                            //recalculate player value
-                            dbPlayerCredibility.calculatePlayerValue(playerObjIds[p]);
-
                             if (option.isDX) {
                                 prom = dbconfig.collection_players.findOne({
                                     _id: playerObjIds[p]
@@ -20043,6 +20040,9 @@ let dbPlayerInfo = {
         function getPlayerRecord(playerObjId, startTime, endTime, domain, showPlatformFeeEstimate) {
 
             console.log('getConsumptionDetailOfPlayers getPlayerRecord - start');
+
+            //recalculate player value
+            dbPlayerCredibility.calculatePlayerValue(playerObjId).catch(errorUtils.reportError);
 
             let result = {_id: playerObjId};
             playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
@@ -20357,16 +20357,21 @@ let dbPlayerInfo = {
                     result.consumptionBonusAmount = 0;
 
                     let providerDetail = {};
+                    let providerNameArr = [];
                     let providerNames = "";
 
                     for (let i = 0, len = result.gameDetail.length; i < len; i++) {
                         let gameRecord = result.gameDetail[i];
                         let providerId = gameRecord.providerId._id.toString();
 
-                        if (len > i + 1) {
-                            providerNames += gameRecord.providerId.name + '\n';
-                        } else {
-                            providerNames += gameRecord.providerId.name;
+                        if (providerNameArr.findIndex(p => p === providerId) === -1) {
+                            providerNameArr.push(providerId);
+
+                            if (len > i + 1) {
+                                providerNames += gameRecord.providerId.name + '\n';
+                            } else {
+                                providerNames += gameRecord.providerId.name;
+                            }
                         }
 
                         result.gameDetail[i].bonusRatio = (result.gameDetail[i].bonusAmount / result.gameDetail[i].validAmount);
