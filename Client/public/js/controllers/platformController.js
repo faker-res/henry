@@ -96,6 +96,12 @@ define(['js/app'], function (myApp) {
                 "realPrize": 6
             };
 
+            vm.festivalRewardType = {
+                "festivalType1": 1,
+                "festivalType2": 2,
+                "festivalType3": 3,
+                "birthday": 4
+            }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
             //     "UpdatePlayerCredit",
@@ -22420,6 +22426,29 @@ define(['js/app'], function (myApp) {
                         let festivalType2Value = [];
                         let festivalType3Value = [];
 
+                        if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam[0] && vm.rewardParams.rewardParam[0].value && vm.rewardParams.rewardParam[0].value.length){
+                            birthdayValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthdayValue);
+                            festivalType1Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType1);
+                            festivalType2Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType2);
+                            festivalType3Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType3);
+                        }
+
+                        if (birthdayValue && !birthdayValue.length){
+                            birthdayValue = [{ id: createObjectId(), rewardType: vm.randomRewardType.birthdayValue}];
+                        }
+
+
+                        // if (festivalType1Value && !festivalType1Value.length){
+                        //     festivalType1Value = [{ id: createObjectId(), rewardType: vm.randomRewardType.festivalType1Value}];
+                        // }
+                        // if (festivalType2Value && !festivalType2Value.length){
+                        //     festivalType2Value = [{ id: createObjectId(), rewardType: vm.randomRewardType.festivalType2Value}];
+                        // }
+                        // if (festivalType3Value && !festivalType3Value.length){
+                        //     festivalType3Value = [{ id: createObjectId(), rewardType: vm.randomRewardType.festivalType3Value}];
+                        // }
+
+
                         // birthday
                         if (birthdayValue && !birthdayValue.length){
                             birthdayValue = [{ id: createObjectId(), rewardType: null}];
@@ -22548,6 +22577,10 @@ define(['js/app'], function (myApp) {
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
                 newEntryData.id = createObjectId();
+                row.push(newEntryData);
+            }
+
+            vm.addNewFestivalTypeRow = (row, entry, newEntryData) => {
                 row.push(newEntryData);
             }
 
@@ -23330,6 +23363,24 @@ define(['js/app'], function (myApp) {
                 vm.rewardMainParamTable.push({value: []});
                 vm.rewardMainParamTable[0].value = rewardParamPromoCode1.concat(rewardParamPromoCode2).concat(rewardParamPromoCode3).concat(rewardParamCredit).concat(rewardParamPrize).concat(rewardParamRewardPoints);
                 vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title && Number.isFinite(p.possibility))
+            }
+
+            vm.repackageFestivalRewardGroup = function() {
+
+                let rewardParamFestivalType1 = vm.rewardMainParamTableFestivalType1 && vm.rewardMainParamTableFestivalType1[0] &&
+                vm.rewardMainParamTableFestivalType1[0].value ? vm.rewardMainParamTableFestivalType1[0].value : [];
+                let rewardParamFestivalType2 = vm.rewardMainParamTableFestivalType2 && vm.rewardMainParamTableFestivalType2[0] &&
+                vm.rewardMainParamTableFestivalType2[0].value ? vm.rewardMainParamTableFestivalType2[0].value : [];
+                let rewardParamFestivalType3 = vm.rewardMainParamTableFestivalType3 && vm.rewardMainParamTableFestivalType3[0] &&
+                vm.rewardMainParamTableFestivalType3[0].value ? vm.rewardMainParamTableFestivalType3[0].value : [];
+                let rewardParamBirthday = vm.rewardMainParamTableBirthday && vm.rewardMainParamTableBirthday[0] &&
+                vm.rewardMainParamTableBirthday[0].value ? vm.rewardMainParamTableBirthday[0].value : [];
+
+                // redefine
+                vm.rewardMainParamTable = [];
+                vm.rewardMainParamTable.push({value: []});
+                vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3);
+                vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title)
             }
 
             vm.editReward = function (i) {
