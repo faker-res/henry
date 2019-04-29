@@ -214,7 +214,37 @@ var dbPlatformBankCardGroup = {
     },
 
     getBankTypeList: function(platformObjId) {
-        return RESTUtils.getPMS2Services("postBankTypeList", {});
+        let paymentSystemId;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1}).then(
+            platformData => {
+                if (platformData && platformData.topUpSystemType) {
+                    paymentSystemId = platformData.topUpSystemType;
+                }
+
+                return RESTUtils.getPMS2Services("postBankTypeList", {}, paymentSystemId);
+            }
+        )
+    },
+
+    getWithdrawalBankTypeList: function(platformId) {
+        let paymentSystemId;
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {bonusSystemType: 1}).then(
+            platformData => {
+                if (platformData && platformData.bonusSystemType) {
+                    paymentSystemId = platformData.bonusSystemType;
+                }
+
+                return RESTUtils.getPMS2Services("postBankTypeList", {}, paymentSystemId).then(data => {
+                    // bankflag: 1   // 提款银行类型
+                    // bankflag: 0   // 存款银行类型
+                    // Hank requested to display bankflag 1 only
+                    if (data && data.data) {
+                        let withdrawalBank = data.data.filter(bank => bank.bankflag === 1);
+                        return withdrawalBank;
+                    }
+                });
+            }
+        )
     },
 
     /**
@@ -600,10 +630,7 @@ var dbPlatformBankCardGroup = {
         // debug param, todo :: remove later
         // platformId = "100";
         // playerName = "111";
-        let topUpSystemConfig;
         let type;
-
-        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
 
         switch (accountType) {
             case "1":
@@ -620,39 +647,24 @@ var dbPlatformBankCardGroup = {
                 break;
         }
 
-        // if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-            let options = {
-                platformId: platformId,
-                userName: playerName,
-                accountType: type
-            };
+        let options = {
+            platformId: platformId,
+            userName: playerName,
+            accountType: type
+        };
 
-            return RESTUtils.getPMS2Services("postPaymentGroupByPlayer", options);
-        // }
-        // else {
-        //     return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
-        //         data => {
-        //             return data;
-        //         }
-        //     );
-        // }
+        return RESTUtils.getPMS2Services("postPaymentGroupByPlayer", options, topUpSystemType);
     },
 
     getPMSBankCardGroup: function (platformId, topUpSystemType) {
-        let topUpSystemConfig;
+        let type = constAccountType.BANK_CARD;
 
-        topUpSystemConfig = extConfig && topUpSystemType && extConfig[topUpSystemType];
+        let options = {
+            platformId: platformId,
+            accountType: type
+        };
 
-        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
-            let type = constAccountType.BANK_CARD;
-
-            let options = {
-                platformId: platformId,
-                accountType: type
-            };
-
-            return RESTUtils.getPMS2Services("postPaymentGroup", options);
-        }
+        return RESTUtils.getPMS2Services("postPaymentGroup", options, topUpSystemType);
     },
 
 };

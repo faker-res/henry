@@ -1359,6 +1359,7 @@ define(['js/app'], function (myApp) {
                     if (storedPlatform) {
                         searchAndSelectPlatform(storedPlatform, option);
                     }
+                    $scope.$evalAsync();
                 }, function (err) {
                     $('#platformRefresh').removeClass('fa-spin');
                 });
@@ -2617,6 +2618,7 @@ define(['js/app'], function (myApp) {
 
             vm.initSendMultiMessage = function () {
                 vm.getAllDepartment();
+                vm.getPlatformCredibilityRemarks();
                 vm.smsLog = {index: 0, limit: 10};
                 //vm.getSMSTemplate();
                 vm.sendMultiMessage = {
@@ -3157,12 +3159,12 @@ define(['js/app'], function (myApp) {
                                 let output = "";
                                 let remarkMatches = false;
                                 data.map(function (remarkId) {
-                                    for (let i = 0; i < vm.credibilityRemarks.length; i++) {
-                                        if (vm.credibilityRemarks[i]._id === remarkId) {
+                                    for (let i = 0; i < vm.platformCredibilityRemarks.length; i++) {
+                                        if (vm.platformCredibilityRemarks[i]._id === remarkId) {
                                             if (output) {
                                                 output += "<br>";
                                             }
-                                            output += vm.credibilityRemarks[i].name;
+                                            output += vm.platformCredibilityRemarks[i].name;
                                             remarkMatches = true;
                                         }
                                     }
@@ -8791,13 +8793,13 @@ define(['js/app'], function (myApp) {
                 var title, text;
                 if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                     let platform = getSelectedPlatform();
-                    let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
+                    let platformId = platform && platform.platformId ? platform.platformId : vm.selectedPlatform.data.platformId;
                     vm.smstpl = "";
                     vm.smsPlayer = {
                         playerId: playerObjId.playerId,
                         name: playerObjId.name,
                         nickName: playerObjId.nickName,
-                        platformId: platformObjId,
+                        platformId: platformId,
                         // channel: $scope.channelList[0],
                         hasPhone: playerObjId.phoneNumber
                     }
@@ -12986,7 +12988,7 @@ define(['js/app'], function (myApp) {
                 resultName = resultName.length > 0 ? resultName[0].value : "";
                 let sendData = {
                     playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
-                    platform: platformObjId,
+                    platform: vm.isOneSelectedPlayer().platform || platformObjId,
                     createTime: Date.now(),
                     adminId: authService.adminId,
                     content: vm.playerFeedback.content,
@@ -16777,7 +16779,9 @@ define(['js/app'], function (myApp) {
                 vm.hasFeedbackPlatformChange = true;
             };
             vm.searchPlayerFeedback = (isNewSearch, currentTimeBoolean) => {
-                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) {
+                    return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+                }
                 if(vm.hasFeedbackPlatformChange) {
                     vm.getCtiData().then(()=>{
                         vm.submitPlayerFeedbackQuery(isNewSearch, currentTimeBoolean);
@@ -18111,7 +18115,7 @@ define(['js/app'], function (myApp) {
                     j.amount$ = j.amount ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
 
                     if (j.playerId.credibilityRemarks && j.playerId.credibilityRemarks.length > 0) {
-                        j.playerId.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
+                        j.playerId.credibilityRemarks = vm.allCredibilityRemarks.filter(remark => {
                             return j.playerId.credibilityRemarks.includes(remark._id);
                         });
                         j.playerId.credibilityRemarks.forEach(function (value, index) {
@@ -21270,7 +21274,7 @@ define(['js/app'], function (myApp) {
                         }
                     })
                 });
-                vm.getPlatformProviderGroup();
+                vm.getPlatformProviderGroup(platformObjId);
             };
 
 
@@ -24770,8 +24774,8 @@ define(['js/app'], function (myApp) {
             }
 
 
-            vm.getRewardPointsLvlConfig = (platformObjId) => {
-                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: platformObjId}).then((data) => {
+            vm.getRewardPointsLvlConfig = () => {
+                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: vm.selectedPlatform.id}).then((data) => {
                     vm.rewardPointsLvlConfig = data.data;
                     $scope.safeApply();
                 });
@@ -26595,43 +26599,43 @@ define(['js/app'], function (myApp) {
             };
 
             vm.drawTable = function (tblOptions, tblId, qObj, qName, fnSortChange, data, size, summary, newSearch) {
-                tblOptions = $.extend(true, {}, vm.generalDataTableOptions, tblOptions);
+                $scope.$evalAsync(() => {
+                    tblOptions = $.extend(true, {}, vm.generalDataTableOptions, tblOptions);
 
-                if (summary) {
-                    let summaryRate = "0%";
-                    if (summary.hasOwnProperty("acceptedCount") && summary.hasOwnProperty("sendCount")) {
-                        summaryRate = String(parseFloat(summary.acceptedCount / summary.sendCount * 100).toFixed(2)) + "%";
-                    }
-                    if (qName == "promoCodeAnalysis2") {
-                        utilService.createDatatableWithFooter(tblId, tblOptions, {
-                            1: summary.sendCount,
-                            2: summary.acceptedCount,
-                            3: summaryRate,
-                            4: summary.acceptedAmount,
-                            5: summary.topUpAmount
-                        });
+                    if (summary) {
+                        let summaryRate = "0%";
+                        if (summary.hasOwnProperty("acceptedCount") && summary.hasOwnProperty("sendCount")) {
+                            summaryRate = String(parseFloat(summary.acceptedCount / summary.sendCount * 100).toFixed(2)) + "%";
+                        }
+                        if (qName == "promoCodeAnalysis2") {
+                            utilService.createDatatableWithFooter(tblId, tblOptions, {
+                                1: summary.sendCount,
+                                2: summary.acceptedCount,
+                                3: summaryRate,
+                                4: summary.acceptedAmount,
+                                5: summary.topUpAmount
+                            });
+                        } else {
+                            utilService.createDatatableWithFooter(tblId, tblOptions, {
+                                1: summary.sendCount,
+                                2: summary.acceptedCount,
+                                3: summary.totalPlayer,
+                                4: summaryRate,
+                                5: summary.acceptedAmount
+                            });
+                        }
                     } else {
-                        utilService.createDatatableWithFooter(tblId, tblOptions, {
-                            1: summary.sendCount,
-                            2: summary.acceptedCount,
-                            3: summary.totalPlayer,
-                            4: summaryRate,
-                            5: summary.acceptedAmount
-                        });
+                        utilService.createDatatableWithFooter(tblId, tblOptions, {}, true);
                     }
-                } else {
-                    utilService.createDatatableWithFooter(tblId, tblOptions, {}, true);
-                }
 
-                qObj.pageObj.init({maxCount: size}, newSearch);
+                    qObj.pageObj.init({maxCount: size}, newSearch);
 
-                $(tblId).off('order.dt');
-                $(tblId).on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, qName, fnSortChange);
-                });
-                $(tblId).resize();
-
-                $scope.safeApply();
+                    $(tblId).off('order.dt');
+                    $(tblId).on('order.dt', function (event, a, b) {
+                        vm.commonSortChangeHandler(a, qName, fnSortChange);
+                    });
+                    $(tblId).resize();
+                })
             };
 
             vm.disablePromoCode = function () {
@@ -26743,7 +26747,7 @@ define(['js/app'], function (myApp) {
                 } else {
                     platformIdList = vm.allPlatformData.map(a => a._id);
                 }
-                
+
                 let sendObj = {
                     startAcceptedTime: vm.promoCodeMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
@@ -26871,7 +26875,7 @@ define(['js/app'], function (myApp) {
 
                     let table1Data = data.data[0];
                     vm.promoCodeAnalysis.totalCount = data.data[1].length;
-                    vm.promoCodeAnalysis.sendCount = data.data[2][0].sendCount;
+                    vm.promoCodeAnalysis.sendCount = ( data.data[2] && data.data[2][0] && data.data[2][0].sendCount) ? data.data[2][0].sendCount : 0;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p = Promise.resolve();
@@ -26881,7 +26885,7 @@ define(['js/app'], function (myApp) {
                             p = p.then(function () {
                                 return $scope.$socketPromise('promoCodeTemplateByObjId', elem._id.promoCodeTemplateObjId).then(res => {
                                     elem.promoCodeTemplate = res.data;
-                                    elem.promoCodeSubType$ = res.data.name;
+                                    elem.promoCodeSubType$ = ( res.data && res.data.name ) ? res.data.name : '';
                                     elem.totalPlayer$ = elem.totalPlayer.length || 0;
                                 })
                             });
@@ -26889,7 +26893,7 @@ define(['js/app'], function (myApp) {
                             p = p.then(function () {
                                 return $scope.$socketPromise('getPromoCodeTypeByObjId', elem._id.promoCodeTypeObjId).then(res => {
                                     elem.promoCodeType = res.data;
-                                    elem.promoCodeSubType$ = res.data.name;
+                                    elem.promoCodeSubType$ = ( res.data && res.data.name ) ? res.data.name : '';
                                     elem.totalPlayer$ = elem.totalPlayer.length || 0;
                                 })
                             });
@@ -26979,7 +26983,7 @@ define(['js/app'], function (myApp) {
 
                     let table2Data = data.data[0];
                     vm.promoCodeAnalysis2.totalCount = data.data[1].length;
-                    vm.promoCodeAnalysis2.sendCount = data.data[2][0].sendCount;
+                    vm.promoCodeAnalysis2.sendCount = (data.data[2] && data.data[2][0] && data.data[2][0].sendCount) ? data.data[2][0].sendCount :0;
                     let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p1 = Promise.resolve();
@@ -30020,6 +30024,35 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.getPlatformCredibilityRemarks = (platformList) => {
+                let sendData = {
+                    platformList: platformList && platformList.length ? platformList : []
+                }
+                return new Promise((resolve, reject) => {
+                    socketService.$socket($scope.AppSocket, 'getPlatformCredibilityRemarks', sendData, function (data) {
+                        console.log('getPlatformCredibilityRemarks', data);
+                        vm.platformCredibilityRemarks = data.data;
+                        vm.platformCredibilityRemarks.map(remark => {
+                            if (remark && remark.platform && remark.platform.name) {
+                                remark.platformName = remark.platform.name;
+                            }
+                        });
+                        resolve();
+                    }, function (err) {
+                        reject(err);
+                    });
+                });
+            };
+
+            vm.getAllGameProvidersLocal = () => {
+                vm.allCurrentPlatformGameProviders = [];
+                let platform = getSelectedPlatform(); console.log(platform);
+                if(platform && platform.gameProviderDetails) {
+                    vm.allCurrentPlatformGameProviders = platform.gameProviderDetails;
+                }
+                setTimeout(()=>{$('select#selectGameProvider').multipleSelect('refresh')},100);
+            };
+
             vm.getPlatformProviderGroup = (platformObjId) => {
                 let sendData = {
                     platformObjId: platformObjId || vm.selectedPlatform.data._id
@@ -32641,7 +32674,15 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 );
-            }
+            };
+
+            vm.loadDepartmentLocal = () => {
+                let platformObjId = getSelectedPlatform()._id;
+                vm.currentPlatformQueryDepartments = vm.departments.filter(department => {
+                    return (department.platforms.indexOf(platformObjId) > -1 && department.parent);
+                })
+                vm.refreshSPicker();
+            };
 
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
@@ -36865,11 +36906,12 @@ define(['js/app'], function (myApp) {
             })
 
             function initFeedbackAdmin (callback) {
+                vm.getAllCredibilityRemarks();
                 vm.feedbackAdminQuery = vm.feedbackAdminQuery || {};
                 vm.feedbackAdminQuery.total = 0;
                 vm.feedbackAdminQuery.cs = '';
                 vm.departmentUsers = [];
-                vm.getAllDepartmentUsers();
+                vm.getUniqueAdminFeedbacks();
                 vm.feedbackAdminQuery.admin = "any";
                 vm.feedbackAdminQuery = {
                     result: 'all',
@@ -36898,23 +36940,22 @@ define(['js/app'], function (myApp) {
                 })
             }
 
-            vm.getAllDepartmentUsers = () => {
+            vm.getUniqueAdminFeedbacks = () => {
+                vm.departmentUsers = [];
                 let sendData = {
-                    platforms: vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : []
+                    platformList: vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : []
                 }
                 console.log('sendData', sendData);
-                socketService.$socket($scope.AppSocket, 'getAllDepartmentUsers', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'getUniqueAdminFeedbacks', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log('getAllDepartmentUsers', data);
+                        console.log('getUniqueAdminFeedbacks', data);
                         var result = [];
                         data.data.forEach(function (userData) {
-                            userData.users.forEach(function (user) {
-                                var singleRecord = {}
-                                singleRecord.departmentName = userData.departmentName;
-                                singleRecord.adminName = user.adminName;
-                                singleRecord._id = user._id;
-                                result.push(singleRecord);
-                            })
+                            let singleRecord = {}
+                            singleRecord.departmentName = userData.departmentName;
+                            singleRecord.adminName = userData.adminName;
+                            singleRecord._id = userData._id;
+                            result.push(singleRecord);
                         });
                         vm.departmentUsers = result;
                     });

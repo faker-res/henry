@@ -176,32 +176,32 @@ function postBankType (reqData, paymentSystemKey) {
     return postRequest(reqData, 'bankType', 'POST', paymentSystemKey);
 }
 
-function postBankTypeList (reqData) {
-    return postRequest(reqData, 'bankTypes', 'POST')
+function postBankTypeList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'bankTypes', 'POST', paymentSystemKey)
 }
 
-function postSyncPlatform (reqData) {
-    return postRequest(reqData, 'sync-platform', 'POST')
+function postSyncPlatform (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'sync-platform', 'POST', paymentSystemKey);
 }
 
 function postTopupForceMatch (reqData, paymentSystemKey) {
     return postRequest(reqData, 'deposit-proposal/force-match', 'POST', paymentSystemKey)
 }
 
-function postMerchantList (reqData) {
-    return postRequest(reqData, 'getMerchantList', 'POST')
+function postMerchantList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getMerchantList', 'POST', paymentSystemKey)
 }
 
-function postMerchantTypeList (reqData) {
-    return postRequest(reqData, 'getMerchantTypeList', 'POST')
+function postMerchantTypeList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getMerchantTypeList', 'POST', paymentSystemKey)
 }
 
-function postPaymentGroup (reqData) {
-    return postRequest(reqData, 'getPlayerRankByType', 'POST')
+function postPaymentGroup (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getPlayerRankByType', 'POST', paymentSystemKey)
 }
 
-function postPaymentGroupByPlayer (reqData) {
-    return postRequest(reqData, 'getPlayerRankByPlayer', 'POST')
+function postPaymentGroupByPlayer (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getPlayerRankByPlayer', 'POST', paymentSystemKey)
 }
 
 function postProvince (reqData) {

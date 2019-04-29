@@ -30,6 +30,7 @@ const dbUtility = require('./../modules/dbutility');
 const mobileDetect = require('mobile-detect');
 const rsaCrypto = require("../modules/rsaCrypto");
 const RESTUtils = require('../modules/RESTUtils');
+const extConfig = require('../config/externalPayment/paymentSystems');
 
 var dbMigration = {
 
@@ -133,6 +134,7 @@ var dbMigration = {
     },
 
     createPlayer: function (data) {
+        let paymentSystemId;
         if (data.lastLoginIp) {
             var geo = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
             if (geo) {
@@ -157,6 +159,7 @@ var dbMigration = {
             platformData => {
                 if (platformData) {
                     data.platform = platformData._id;
+                    paymentSystemId = platformData.topUpSystemType;
                     var playerLevel = data.playerLevel ? data.playerLevel : 0;
                     return dbconfig.collection_playerLevel.findOne({value: playerLevel, platform: platformData._id})
                 }
@@ -204,8 +207,7 @@ var dbMigration = {
             //find bank name id based on code
             playerData => {
                 if (playerData.bankName != null) {
-                    // return pmsAPI.bankcard_getBankTypeList({}).then(
-                    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
+                    return RESTUtils.getPMS2Services("postBankTypeList", {}, paymentSystemId).then(
                         list => {
                             if (list && list.data && list.data.length > 0) {
                                 var type = list.data.find(bankType => bankType.bankTypeId == data.bankName);
@@ -537,7 +539,7 @@ var dbMigration = {
                         proposalData.playerName = player.name;
                     }
                     var newProposalData = proposalData;
-                    return dbMigration.proposalDataConverter(typeName, proposalData).then(
+                    return dbMigration.proposalDataConverter(typeName, proposalData, platformObj).then(
                         convertData => {
                             newProposalData = convertData;
                             return dbconfig.collection_proposalType.findOne({
@@ -885,7 +887,31 @@ var dbMigration = {
         );
     },
 
-    proposalDataConverter: function (type, proposalData) {
+    proposalDataConverter: function (type, proposalData, platformData) {
+        let topUpSystemConfig;
+        let bonusSystemConfig;
+        topUpSystemConfig = extConfig && platformData && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+        bonusSystemConfig = extConfig && platformData && platformData.bonusSystemType && extConfig[platformData.bonusSystemType];
+
+        switch (type) {
+            case constProposalType.PLAYER_TOP_UP:
+            case constProposalType.PLAYER_ALIPAY_TOP_UP:
+            case constProposalType.PLAYER_MANUAL_TOP_UP:
+            case constProposalType.PLAYER_WECHAT_TOP_UP:
+                if (topUpSystemConfig && topUpSystemConfig.name) {
+                    proposalData.topUpSystemType = platformData.topUpSystemType;
+                    proposalData.topUpSystemName = topUpSystemConfig.name;
+                }
+                break;
+            case constProposalType.PLAYER_BONUS:
+            case constProposalType.PARTNER_BONUS:
+                if (bonusSystemConfig && bonusSystemConfig.name) {
+                    proposalData.bonusSystemType = platformData.bonusSystemType;
+                    proposalData.bonusSystemName = bonusSystemConfig.name;
+                }
+                break;
+        }
+
         var convertData = Object.assign({}, proposalData);
         switch (type) {
             case constProposalType.PLAYER_TOP_UP:
@@ -905,11 +931,7 @@ var dbMigration = {
                         convertData.cityId = cityData.cityId;
                         convertData.districtId = cityData.districtId;
 
-                        // return pmsAPI.bankcard_getBankTypeList({
-                        //     platformId: proposalData.platformId,
-                        //     queryId: serverInstance.getQueryId()
-                        // });
-                        return RESTUtils.getPMS2Services("postBankTypeList", {})
+                        return RESTUtils.getPMS2Services("postBankTypeList", {}, platformData.topUpSystemType)
                     }
                 ).then(
                     cList => {
@@ -1517,7 +1539,7 @@ var dbMigration = {
                         proposalData.partnerName = partner.partnerName;
                     }
                     var newProposalData = proposalData;
-                    return dbMigration.proposalDataConverter(typeName, proposalData).then(
+                    return dbMigration.proposalDataConverter(typeName, proposalData, platformObj).then(
                         convertData => {
                             newProposalData = convertData;
                             return dbconfig.collection_proposalType.findOne({

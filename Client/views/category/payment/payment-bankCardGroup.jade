@@ -62,7 +62,7 @@ style.
             .panel-body
                 .text-center(ng-if='!vm.SelectedBankCardGroupNode')
                     label.text-danger {{"NO_BANKCARD_GROUP_MESSAGE" | translate}}
-                .col-sm-12(ng-class="{'col-sm-6':(vm.groupUsed == 'PMS' || vm.paymentSystemName == 'PMS2')}")
+                .col-sm-12(ng-class="{'col-sm-6':(vm.groupUsed == 'PMS' || vm.paymentSystemName !== 'FPMS')}")
                     .well
                         .search-filters-item
                             .control-label {{"Bank Card Name" | translate}}
@@ -70,7 +70,7 @@ style.
                         .search-filters-item
                             .control-label {{"BANK_ACCOUNT_NUMBER" | translate}}
                             input.form-control(type='text', ng-model='vm.bankCardFilterOptions.bankAccountNumber')
-                        .threeBoxes(ng-if="vm.groupUsed != 'PMS' && vm.paymentSystemName !=='PMS2'")
+                        .threeBoxes(ng-if="vm.groupUsed != 'PMS' && vm.paymentSystemName ==='FPMS'")
                             .control-label {{"IS_IN_GROUP" | translate}}
                             select.form-control(ng-model="vm.bankCardFilterOptions.included")
                                 option(value='all') {{'any' | translate}}
@@ -78,7 +78,7 @@ style.
                                 option(value='no') {{'NOT_IN_GROUP' | translate}}
                         .text-right.widthto100
                             button.btn.btn-primary(data-dismiss='modal', ng-click="vm.bankCardsFilter()") {{"FILTER" | translate}}
-                .col-sm-6(ng-if="vm.groupUsed == 'PMS' || vm.paymentSystemName == 'PMS2'")
+                .col-sm-6(ng-if="vm.groupUsed == 'PMS' || vm.paymentSystemName !== 'FPMS'")
                     .well
                         .search-filters-item
                             .control-label {{"Player's Name (PMS Group Search)" | translate}}
@@ -90,7 +90,7 @@ style.
                 table#bankCards.table(ng-if='vm.SelectedBankCardGroupNode')
                     thead
                         tr
-                            th(ng-if="vm.groupUsed != 'PMS' && vm.paymentSystemName !=='PMS2'") {{'SELECT' | translate}}
+                            th(ng-if="vm.groupUsed != 'PMS' && vm.paymentSystemName ==='FPMS'") {{'SELECT' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterBankCardStatus", style="cursor: pointer")
                                 u {{'STATUS' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterBankCardType", style="cursor: pointer")
@@ -105,7 +105,7 @@ style.
                             th {{'DAY_LIMIT' | translate}}
                     tbody
                         tr(ng-repeat="v in vm.allBankCards" ng-class="{'bg-secondary': !v.included}" ng-show="v.show$")
-                            td(ng-if="vm.groupUsed != 'PMS' && vm.paymentSystemName !=='PMS2'")
+                            td(ng-if="vm.groupUsed != 'PMS' && vm.paymentSystemName ==='FPMS'")
                                 input(type="checkbox" ng-model="v.selected")
                             td.text-center(ng-class="{'text-disabled': v.state === 'DISABLED'}") {{v.status === 'DISABLED' ? 'DISABLE' : v.status | translate}}
                             td {{v.bankTypeId ? vm.getBankCardTypeTextbyId(v.bankTypeId) : ("VOID" | translate)}}
@@ -240,7 +240,7 @@ style.
                     .panel-body(style='height:80px;padding:5px')
                         .textareaDetail
                             textarea(disabled, readonly, rows="3" style="border:none") {{'BANK_TYPE' | translate}}&nbsp;:&nbsp;{{vm.curBank.bankTypeId ? vm.getBankCardTypeTextbyId(vm.curBank.bankTypeId) : ("VOID" | translate)}}
-                div.text-right.widthto100(ng-if='vm.SelectedBankCardGroupNode && checkViewPermission("Payment", "BankCardGroup", "Update") && vm.groupUsed == "FPMS" && vm.paymentSystemName !== "PMS2" ')
+                div.text-right.widthto100(ng-if='vm.SelectedBankCardGroupNode && checkViewPermission("Payment", "BankCardGroup", "Update") && vm.groupUsed == "FPMS" && vm.paymentSystemName === "FPMS" ')
                     button.btn.btn-info.btn-space(ng-click="vm.selectBankCard(true)") {{"Select All" | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.selectBankCard(false)") {{"Clear All" | translate}}
                     button.btn.btn-primary.btn-space(ng-click="vm.removeBankCardFromGroup()")

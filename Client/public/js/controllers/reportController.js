@@ -1663,7 +1663,7 @@ define(['js/app'], function (myApp) {
                 // platformId: vm.curPlatformId,
                 proposalId: vm.queryTopup.proposalId,
                 index: 0,
-                limit: isExport ? 5000 : 1,
+                limit: isExport ? 10000 : 1,
             } : {
                 playerName: vm.queryTopup.playerName,
                 mainTopupType: vm.queryTopup.mainTopupType,
@@ -1678,8 +1678,9 @@ define(['js/app'], function (myApp) {
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
                 index: isExport ? 0 : (newSearch ? 0 : (vm.queryTopup.index || 0)),
-                limit: isExport ? 5000 : (vm.queryTopup.limit || 10),
-                sortCol: vm.queryTopup.sortCol || {}
+                limit: isExport ? 10000 : (vm.queryTopup.limit || 10),
+                sortCol: vm.queryTopup.sortCol || {},
+                isExport: isExport
             };
 
             if ( vm.queryTopup.line && vm.queryTopup.line.length > 0 ) {
@@ -1693,47 +1694,53 @@ define(['js/app'], function (myApp) {
             console.log('searchTopupRecord sendObj', sendObj);
 
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
-                $scope.$evalAsync(() => {
-                    findReportSearchTime();
-                    $('#topupTableSpin').hide();
-                    console.log('topup', data);
-                    vm.queryTopup.totalCount = data.data.size;
-                    vm.queryTopup.totalPlayer = data.data.totalPlayer;
-                    vm.drawTopupReport(
-                        data.data.data.map(item => {
-                            item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                            item.status$ = $translate(item.status);
-                            item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
-                            item.merchantNoDisplay = item.data.merchantNo != null ? item.data.merchantNo
-                                : item.data.bankCardNo != null ? item.data.bankCardNo
-                                : item.data.wechatAccount != null ? item.data.wechatAccount
-                                : item.data.weChatAccount != null ? item.data.weChatAccount
-                                : item.data.alipayAccount != null ? item.data.alipayAccount
-                                : item.data.accountNo != null ? item.data.accountNo
-                                : '';
+                $('#topupTableSpin').hide();
+
+                if (isExport) {
+                    window.saveAs(new Blob([data.data]), "充值报表.csv");
+                } else {
+                    $scope.$evalAsync(() => {
+                        findReportSearchTime();
+
+                        console.log('topup', data);
+                        vm.queryTopup.totalCount = data.data.size;
+                        vm.queryTopup.totalPlayer = data.data.totalPlayer;
+                        vm.drawTopupReport(
+                            data.data.data.map(item => {
+                                item.amount$ = parseFloat(item.data.amount).toFixed(2);
+                                item.status$ = $translate(item.status);
+                                item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
+                                item.merchantNoDisplay = item.data.merchantNo != null ? item.data.merchantNo
+                                    : item.data.bankCardNo != null ? item.data.bankCardNo
+                                        : item.data.wechatAccount != null ? item.data.wechatAccount
+                                            : item.data.weChatAccount != null ? item.data.weChatAccount
+                                                : item.data.alipayAccount != null ? item.data.alipayAccount
+                                                    : item.data.accountNo != null ? item.data.accountNo
+                                                        : '';
                                 item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                                 item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
-                            if (item.type.name == 'PlayerTopUp') {
-                                //show detail topup type info for online topup.
-                                let typeID = item.data.topUpType || item.data.topupType
-                                item.topupTypeStr = typeID
-                                    ? $translate($scope.merchantTopupTypeJson[typeID])
-                                    : $translate("Unknown")
-                                let merchantNo = '';
-                                if(item.data.merchantNo){
-                                    merchantNo = item.data.merchantNo;
+                                if (item.type.name == 'PlayerTopUp') {
+                                    //show detail topup type info for online topup.
+                                    let typeID = item.data.topUpType || item.data.topupType
+                                    item.topupTypeStr = typeID
+                                        ? $translate($scope.merchantTopupTypeJson[typeID])
+                                        : $translate("Unknown")
+                                    let merchantNo = '';
+                                    if(item.data.merchantNo){
+                                        merchantNo = item.data.merchantNo;
+                                    }
+                                    item.merchantNoDisplay = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                                } else {
+                                    //show topup type for other types
+                                    item.topupTypeStr = $translate(item.type.name)
                                 }
-                                item.merchantNoDisplay = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
-                            } else {
-                                //show topup type for other types
-                                item.topupTypeStr = $translate(item.type.name)
-                            }
-                            item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                            item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "";
-                            return item;
-                        }), data.data.size, {amount: data.data.total}, newSearch, isExport
-                    );
-                })
+                                item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                                item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "";
+                                return item;
+                            }), data.data.size, {amount: data.data.total}, newSearch, isExport
+                        );
+                    })
+                }
             }, function (err) {
                 console.log(err);
             }, true);
@@ -4381,107 +4388,119 @@ define(['js/app'], function (myApp) {
                                 : adminIds
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.playerQuery.index || 0)),
-                limit: isExport ? 5000 : (vm.playerQuery.limit || 5000),
+                limit: isExport ? 10000 : (vm.playerQuery.limit || 5000),
                 sortCol: vm.playerQuery.sortCol || {validConsumptionAmount: -1},
+                isExport: isExport
             };
             console.log('sendquery', sendquery);
             if(!vm.playerQuery.searchBySummaryData){
                 socketService.$socket($scope.AppSocket, 'getPlayerReport', sendquery, function (data) {
-                    $scope.$evalAsync(() => {
-                        findReportSearchTime();
-                        console.log('retData', data);
-                        vm.playerQuery.totalCount = data.data.size;
-                        $('#loadingPlayerReportTableSpin').hide();
-                        // get game data.then(
-                        // map
-                        vm.drawPlayerReport(data.data.data.map(item => {
-                            item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
-                            item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
-                            item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
-                            item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
-                            item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
-                            item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
-                            item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
-                            item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                            item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
-                            item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
-                            item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
-                            item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
-                            item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
-                            item.registrationAgent$ = item.csOfficer || null;
+                    $('#loadingPlayerReportTableSpin').hide();
 
-                            item.playerLevel$ = "";
-                            if (vm.playerLvlData[item.playerLevel]) {
-                                item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
-                            }
-                            else {
+                    if (isExport) {
+                        window.saveAs(new Blob([data.data]), "玩家报表.csv");
+                    } else {
+                        $scope.$evalAsync(() => {
+                            findReportSearchTime();
+                            console.log('retData', data);
+                            vm.playerQuery.totalCount = data.data.size;
+                            $('#loadingPlayerReportTableSpin').hide();
+                            // get game data.then(
+                            // map
+                            vm.drawPlayerReport(data.data.data.map(item => {
+                                item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                                item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                                item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
+                                item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                                item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
+                                item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
+                                item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                                item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                                item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
+                                item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
+                                item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                                item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                                item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                                item.registrationAgent$ = item.csOfficer || null;
+
                                 item.playerLevel$ = "";
-                            }
+                                if (vm.playerLvlData[item.playerLevel]) {
+                                    item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                                }
+                                else {
+                                    item.playerLevel$ = "";
+                                }
 
-                            item.credibility$ = "";
-                            if (item.credibilityRemarks) {
-                                for (let i = 0; i < item.credibilityRemarks.length; i++) {
-                                    if (item.credibilityRemarks[i]) {
-                                        for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                            if (vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                                item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                item.credibility$ = "";
+                                if (item.credibilityRemarks) {
+                                    for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                        if (item.credibilityRemarks[i]) {
+                                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                                if (vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                                    item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
 
-                            item.providerArr = [];
-                            for (var key in item.providerDetail) {
-                                if (item.providerDetail.hasOwnProperty(key)) {
-                                    item.providerDetail[key].providerId = key;
-                                    item.providerArr.push(item.providerDetail[key]);
+                                item.providerArr = [];
+                                for (var key in item.providerDetail) {
+                                    if (item.providerDetail.hasOwnProperty(key)) {
+                                        item.providerDetail[key].providerId = key;
+                                        item.providerArr.push(item.providerDetail[key]);
+                                    }
                                 }
-                            }
 
-                            item.provider$ = "";
-                            if (item.providerDetail) {
-                                for (let i = 0; i < item.providerArr.length; i++) {
-                                    item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
-                                    item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
-                                    item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
-                                    item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                                    for (let j = 0; j < vm.allProviders.length; j++) {
-                                        if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                            item.providerArr[i].name = vm.allProviders[j].name;
-                                            item.provider$ += vm.allProviders[j].name + "<br>";
+                                item.provider$ = "";
+                                if (item.providerDetail) {
+                                    for (let i = 0; i < item.providerArr.length; i++) {
+                                        item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                        item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                        item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                        item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                        for (let j = 0; j < vm.allProviders.length; j++) {
+                                            if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                                item.providerArr[i].name = vm.allProviders[j].name;
+                                                item.provider$ += vm.allProviders[j].name + "<br>";
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            item.profit$ = 0;
-                            if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
-                                item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
-                            }
+                                item.profit$ = 0;
+                                if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                                    item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
+                                }
 
-                            if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
-                                let detailArr = [];
-                                item.onlineTopUpFeeDetail.forEach((detail, index) => {
-                                    if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
-                                        let orderNo = index ? index + 1 : 1;
-                                        detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
-                                    }
-                                });
+                                if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                                    let detailArr = [];
+                                    item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                                        if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                            let orderNo = index ? index + 1 : 1;
+                                            detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                                        }
+                                    });
 
-                                item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
-                            } else {
-                                item.onlineTopUpFeeDetail$ = '';
-                            }
-                            item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+                                    item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                                } else {
+                                    item.onlineTopUpFeeDetail$ = '';
+                                }
+                                item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
 
-                            if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
-                                item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
-                            }
+                                if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
+                                    item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                                }
 
-                            return item;
-                        }), data.data.total, data.data.size, newSearch, isExport);
-                    });
+                                return item;
+                            }), data.data.total, data.data.size, newSearch, isExport);
+                        });
+                    }
+
+
+
+
+
                 });
 
             }else{
@@ -4583,6 +4602,19 @@ define(['js/app'], function (myApp) {
                     });
                 });
             }
+        };
+
+        vm.reCalculatePlayerReportSummary = function (){
+            $('#loadingPlayerReportTableSpin').show();
+            var sendquery = {
+                platformId: vm.curPlatformId,
+                start: vm.playerQuery.start.data('datetimepicker').getLocalDate(),
+                end: vm.playerQuery.end.data('datetimepicker').getLocalDate()
+            };
+
+            socketService.$socket($scope.AppSocket, 'reCalculatePlayerReportSummary', sendquery, function (data) {
+                $('#loadingPlayerReportTableSpin').hide();
+            });
         };
 
         vm.drawPlayerReport = function (data, total, size, newSearch, isExport) {
@@ -6385,7 +6417,7 @@ define(['js/app'], function (myApp) {
                 // platformId: vm.curPlatformId,
                 proposalId: newproposalQuery.proposalId,
                 index: 0,
-                limit: isExport ? 5000 : 1,
+                limit: isExport ? 10000 : 1,
             } : {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
@@ -6398,46 +6430,55 @@ define(['js/app'], function (myApp) {
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
-                limit: isExport ? 5000 : newproposalQuery.limit,
-                sortCol: newproposalQuery.sortCol
+                limit: isExport ? 10000 : newproposalQuery.limit,
+                sortCol: newproposalQuery.sortCol,
+                isExport: isExport
             };
 
-            socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {
-                findReportSearchTime();
-                // $('#operationTableSpin').hide();
-                $('#proposalTable').show();
-                console.log('proposal data', data);
-                var datatoDraw = data.data.data.map(item => {
-                    item.involveAmount$ = 0;
-                    if (item.data.updateAmount) {
-                        item.involveAmount$ = parseFloat(item.data.updateAmount).toFixed(2);
-                    } else if (item.data.amount) {
-                        item.involveAmount$ = parseFloat(item.data.amount).toFixed(2);
-                    } else if (item.data.rewardAmount) {
-                        item.involveAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
-                    } else if (item.data.commissionAmount) {
-                        item.involveAmount$ = parseFloat(item.data.commissionAmount).toFixed(2);
-                    } else if (item.data.negativeProfitAmount) {
-                        item.involveAmount$ = parseFloat(item.data.negativeProfitAmount).toFixed(2);
-                    }
-                    item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
-                    item.typeName = $translate(item.type.name || "Unknown");
-                    item.mainType$ = $translate(item.mainType || "Unknown");
-                    if (item.mainType === "PlayerBonus")
-                        item.mainType$ = $translate("Bonus");
-                    item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                    if (item.data && item.data.remark) {
-                        item.remark$ = item.data.remark;
-                    }
-                    item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
+            console.log('sendData', sendData);
 
-                    return item;
-                })
+            socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {
                 $('#proposalTableSpin').hide();
-                vm.proposalQuery.totalCount = data.data.size;
-                vm.proposalQuery.totalPlayer = data.data.totalPlayer;
-                $scope.safeApply();
-                vm.drawProposalReportNew(datatoDraw, vm.proposalQuery.totalCount, data.data.summary, newSearch, isExport);
+
+                if (isExport) {
+                    window.saveAs(new Blob([data.data]), "提案报表.csv");
+                } else {
+                    findReportSearchTime();
+                    // $('#operationTableSpin').hide();
+                    $('#proposalTable').show();
+                    console.log('proposal data', data);
+                    var datatoDraw = data.data.data.map(item => {
+                        item.involveAmount$ = 0;
+                        if (item.data.updateAmount) {
+                            item.involveAmount$ = parseFloat(item.data.updateAmount).toFixed(2);
+                        } else if (item.data.amount) {
+                            item.involveAmount$ = parseFloat(item.data.amount).toFixed(2);
+                        } else if (item.data.rewardAmount) {
+                            item.involveAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
+                        } else if (item.data.commissionAmount) {
+                            item.involveAmount$ = parseFloat(item.data.commissionAmount).toFixed(2);
+                        } else if (item.data.negativeProfitAmount) {
+                            item.involveAmount$ = parseFloat(item.data.negativeProfitAmount).toFixed(2);
+                        }
+                        item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
+                        item.typeName = $translate(item.type.name || "Unknown");
+                        item.mainType$ = $translate(item.mainType || "Unknown");
+                        if (item.mainType === "PlayerBonus")
+                            item.mainType$ = $translate("Bonus");
+                        item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                        if (item.data && item.data.remark) {
+                            item.remark$ = item.data.remark;
+                        }
+                        item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
+
+                        return item;
+                    })
+
+                    vm.proposalQuery.totalCount = data.data.size;
+                    vm.proposalQuery.totalPlayer = data.data.totalPlayer;
+                    $scope.safeApply();
+                    vm.drawProposalReportNew(datatoDraw, vm.proposalQuery.totalCount, data.data.summary, newSearch, isExport);
+                }
             }, function (err) {
                 $('#proposalTableSpin').hide();
 

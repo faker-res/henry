@@ -77,6 +77,7 @@ const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus"
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
 let dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbPropUtil = require("../db_common/dbProposalUtility");
+const dbReportUtil = require("../db_common/dbReportUtility");
 const dbUtil = require('./../modules/dbutility');
 const constPlayerLevelUpPeriod = require('./../const/constPlayerLevelUpPeriod');
 const constPlayerBillBoardPeriod = require('./../const/constPlayerBillBoardPeriod');
@@ -591,6 +592,7 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
+        console.log("checking raw inputData when create new player", inputData)
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -1846,6 +1848,7 @@ let dbPlayerInfo = {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
 
+                    console.log("checking playerData before saving", playerdata)
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -1867,7 +1870,7 @@ let dbPlayerInfo = {
                 if (data) {
                     playerData = data;
 
-
+                    console.log("checking playerData sourceUrl after saving", playerData.sourceUrl || null, playerData.name)
                     if (playerData.tsPhone) {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
                             tsPhoneData => {
@@ -2912,6 +2915,7 @@ let dbPlayerInfo = {
     resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code) {
         let platformObj;
         let playerObj;
+        let paymentSystemId;
         let isCheckByPhone = false;
         let isCheckByCode = false;
         let isGetQuestion = false; //  return question only
@@ -2923,6 +2927,11 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
                 platformObj = platformData;
+                if (platformObj && platformObj.topUpSystemType) {
+                    paymentSystemId = platformObj.topUpSystemType;
+                } else if (platformObj && platformObj.bonusSystemType) {
+                    paymentSystemId = platformObj.bonusSystemType;
+                }
                 return dbconfig.collection_players.findOne({name: name, platform: platformData._id}).lean();
             }).then(
             playerData => {
@@ -3037,7 +3046,7 @@ let dbPlayerInfo = {
                 }
 
                 if (isGetQuestion) {
-                    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
+                    return RESTUtils.getPMS2Services("postBankTypeList", {}, paymentSystemId).then(
                         bankTypeData => {
                             returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
                             returnData.questionList = [];
@@ -4372,10 +4381,13 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                console.log('JY check 1::');
                 if (data && data[0]) {
                     let topupRecordData = data[0];
                     topupRecordData.topUpRecordId = topupRecordData._id;
+                    console.log('JY check topupRecordData._id::', topupRecordData._id);
                     checkLimitedOfferToApply(proposalData, topupRecordData._id);
+                    console.log('JY check 2::');
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(player._id).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
@@ -6848,7 +6860,7 @@ let dbPlayerInfo = {
                 if (bank3.bankName || bank3.bankAccountName || bank3.bankAccount) {
                     listData.push(bank3);
                 }
-                return RESTUtils.getPMS2Services("postBankTypeList", {});
+                return RESTUtils.getPMS2Services("postBankTypeList", {}, platformObj.bonusSystemType);
             },
         ).then(
             bankTypeList => {
@@ -12433,7 +12445,7 @@ let dbPlayerInfo = {
 
                     // only when analysis category is thirdPartyPlatform need get merchantList from pms
                     if (analysisCategory === 'thirdPartyPlatform') {
-                        getMerchantListProm = RESTUtils.getPMS2Services("postMerchantList", {platformId: onlineTopupType.platformId.platformId});
+                        getMerchantListProm = RESTUtils.getPMS2Services("postMerchantList", {platformId: onlineTopupType.platformId.platformId}, onlineTopupType.platformId.topUpSystemType);
                     }
 
 
@@ -14560,7 +14572,7 @@ let dbPlayerInfo = {
                         //     pmsQuery.clientType = clientType;
                         //     return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
                         // }
-                        return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
+                        return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId}, data.platform.topUpSystemType);
                     // }
                     // else {
                     //     return pmsAPI.bankcard_getBankcardList(pmsQuery);
@@ -17473,7 +17485,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerReport: function (platform, query, index, limit, sortCol) {
+    getPlayerReport: function (platform, query, index, limit, sortCol, isExport) {
         console.log('RT - getPlayerReport start');
         limit = limit ? limit : 20;
         index = index ? index : 0;
@@ -17546,22 +17558,28 @@ let dbPlayerInfo = {
                 console.log('RT - getPlayerReport 1');
                 let relevantPlayerQuery = {platformId: platform};
 
+                // relevant players are the players who played any game within given time period
+                let playerObjArr = [];
+                let collection;
+                let distinctField = 'playerId';
+
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
                 } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
                     relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
                 }
 
-                // relevant players are the players who played any game within given time period
-                let playerObjArr = [];
-                let collection;
-                let distinctField = 'playerId';
-
                 if (endDate.getTime() > todayDate.startTime.getTime()) {
                     console.log('RT - getPlayerReport 1.1');
                     collection = dbconfig.collection_playerConsumptionHourSummary;
                     relevantPlayerQuery = {platform: platform};
                     relevantPlayerQuery.startTime = {$gte: startDate, $lt: endDate};
+
+                    if (isSinglePlayer) {
+                        relevantPlayerQuery.player = playerData._id;
+                    } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
+                        relevantPlayerQuery.player = {$in: playerData.map(p => p._id)}
+                    }
 
                     // Limit records search to provider
                     if (query && query.providerId) {
@@ -17740,7 +17758,12 @@ let dbPlayerInfo = {
                 }
 
                 console.log('RT - getPlayerReport end');
-                return {size: result.length, data: outputResult, total: resultSum};
+
+                if (isExport) {
+                    return dbReportUtil.generateExcelFile("PlayerReport", outputResult);
+                } else {
+                    return {size: result.length, data: outputResult, total: resultSum};
+                }
             }
         );
     },
@@ -18217,16 +18240,14 @@ let dbPlayerInfo = {
         ).then(
             returnedData => {
                 returnedObj = returnedData;
-                let twoDaysAgo = new Date();
-                twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+                let twoDaysAgo = dbUtil.getYesterdaySGTime().startTime;
+
+                query.start = new Date(query.start) > twoDaysAgo ? query.start : twoDaysAgo;
 
                 if(new Date(query.end) > twoDaysAgo ){
                     console.log("LH check player report summary 8");
-                    query.start = twoDaysAgo;
                     return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
                 }
-
-                return;
             }
         ).then(
             twoDaysPlayerReportData => {
@@ -19922,7 +19943,7 @@ let dbPlayerInfo = {
             platformData => {
                 console.log('getConsumptionDetailOfPlayers - 1');
                 if (platformData && platformData.platformId) {
-                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}, platformData.topUpSystemType).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
@@ -20080,7 +20101,7 @@ let dbPlayerInfo = {
             ]).allowDiskUse(true).read("secondaryPreferred").then(
                 data => {
                     console.log('done consumptionProm');
-                    return data;
+                    return dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'});
                 }
             );
 
@@ -20299,6 +20320,14 @@ let dbPlayerInfo = {
             ).populate({
                 path: 'csOfficer',
                 model: dbconfig.collection_admin
+            }).populate({
+                path: 'playerLevel',
+                model: dbconfig.collection_playerLevel,
+                select: "_id name"
+            }).populate({
+                path: 'credibilityRemarks',
+                model: dbconfig.collection_playerCredibilityRemark,
+                select: "_id name"
             }).lean();
 
             // Promise domain CS and promote way
@@ -20328,9 +20357,18 @@ let dbPlayerInfo = {
                     result.consumptionBonusAmount = 0;
 
                     let providerDetail = {};
+                    let providerNames = "";
+
                     for (let i = 0, len = result.gameDetail.length; i < len; i++) {
                         let gameRecord = result.gameDetail[i];
-                        let providerId = gameRecord.providerId.toString();
+                        let providerId = gameRecord.providerId._id.toString();
+
+                        if (len > i + 1) {
+                            providerNames += gameRecord.providerId.name + '\n';
+                        } else {
+                            providerNames += gameRecord.providerId.name;
+                        }
+
                         result.gameDetail[i].bonusRatio = (result.gameDetail[i].bonusAmount / result.gameDetail[i].validAmount);
 
                         if (!providerDetail.hasOwnProperty(providerId)) {
@@ -20355,7 +20393,7 @@ let dbPlayerInfo = {
 
                     result.consumptionBonusRatio = (result.consumptionBonusAmount / result.consumptionBonusRatio);
                     result.providerDetail = providerDetail;
-
+                    result.providerNames = providerNames;
 
                     // filter irrelevant result base on query
                     if (query.providerId && !providerDetail[query.providerId]) {
@@ -20524,8 +20562,16 @@ let dbPlayerInfo = {
 
                     // player related
                     let playerDetail = data[5];
-                    result.credibilityRemarks = playerDetail.credibilityRemarks;
-                    result.playerLevel = playerDetail.playerLevel;
+                    result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e._id);
+                    result.credibilityRemarksName = playerDetail.credibilityRemarks.reduce((i, n, idx, arr) => {
+                        if (arr.length === idx + 1) {
+                            return i += n.name
+                        } else {
+                            return i += n.name + "\n"
+                        }
+                    }, "");
+                    result.playerLevel = playerDetail.playerLevel._id;
+                    result.playerLevelName = playerDetail.playerLevel.name;
                     result.name = playerDetail.name;
                     result.valueScore = playerDetail.valueScore;
                     result.registrationTime = playerDetail.registrationTime;
@@ -24966,9 +25012,10 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
         if(proposalData.data.actualAmountReceived){
             updateObj["data.actualAmount"] = proposalData.data.actualAmountReceived;
         }
-
+        console.log('JY check proposalData.data.limitedOfferObjId::', proposalData.data.limitedOfferObjId);
         return dbconfig.collection_proposal.findOne({_id: proposalData.data.limitedOfferObjId}).then(
             limitedOfferProposal => {
+                console.log('JY check limitedOfferProposal::', limitedOfferProposal);
                 if (limitedOfferProposal && limitedOfferProposal.data && limitedOfferProposal.data.isUsed) {
                     return Promise.reject({name: "DBError", message: "Reward is applied"});
                 }
@@ -24996,6 +25043,8 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
             }
         ).then(
             res => {
+                console.log('JY check res 11::');
+                console.log('JY check proposalData.data.actualAmountReceived::', proposalData.data.actualAmountReceived);
                 newProp = res;
                 if(proposalData.data.actualAmountReceived){
                     amountToDeduct = proposalData.data.actualAmountReceived
@@ -25003,10 +25052,13 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
                     amountToDeduct = res.data.applyAmount;
                 }
 
+                let dbPlayerUtil = require('./../db_common/dbPlayerUtility');
+
                 return dbPlayerUtil.tryToDeductCreditFromPlayer(res.data.playerObjId, res.data.platformId, amountToDeduct, res.data.limitedOfferName + ":Deduction", res.data);
             }
         ).then(
             res => {
+                console.log('JY check res 22::');
                 if (res) {
                     return dbconfig.collection_proposalType.findOne({
                         platformId: newProp.data.platformObjId,
@@ -25035,6 +25087,7 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
             }
         ).then(
             res => {
+                console.log('JY check res 33::');
                 if (res) {
                     dbUtility.findOneAndUpdateForShard(
                         dbconfig.collection_playerTopUpRecord,
