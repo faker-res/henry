@@ -118,7 +118,8 @@ const dbReportUtility = {
                                 "洗码金额": res.consumptionReturnAmount,
                                 "投注笔数": res.consumptionTimes,
                                 "有效投注额": res.validConsumptionAmount,
-                                "输赢金额": res.consumptionBonusAmount
+                                "输赢金额": res.consumptionBonusAmount,
+                                "在线充值费用": res.totalOnlineTopUpFee
                             }
                     }
                 })
