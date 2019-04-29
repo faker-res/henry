@@ -13,6 +13,136 @@ let env = require("../config/env").config();
 const constProposalStatus = require('./../const/constProposalStatus');
 
 var dbQualityInspection = {
+
+    connectTel400CSMysql: function(){
+        console.log("checking env.tel400Port", env.tel400Port)
+        var connection = mysql.createConnection({
+            host     : '205.177.199.7',
+            user     : 'devtest',
+            password : 'devtest123',
+            database : 'ctiserver',
+            port: '3306',
+            queueLimit: 100,
+            connectionLimit: 100
+        });
+        return connection;
+    },
+
+    connectTel400JiaBoMysql: function(){
+        console.log("checking env.tel400Port", env.tel400Port)
+        var connection = mysql.createConnection({
+            host     : '101.78.133.213',
+            user     : 'devtest',
+            password : 'devtest123',
+            database : 'ctiserver',
+            port: '3306',
+            queueLimit: 100,
+            connectionLimit: 100
+        });
+        return connection;
+    },
+
+    getAudioRecordData: function (startDate, endDate, data){
+        let index = data.index || 0;
+        let limit = data.limit || 50;
+
+        if (startDate && endDate) {
+            let connection1 = dbQualityInspection.connectTel400CSMysql();
+            let connection2 = dbQualityInspection.connectTel400JiaBoMysql();
+
+            endDate = new Date(endDate);
+            endDate = endDate.getTime() - 1000;
+
+            let startTime = dbUtility.getLocalTimeString(startDate);
+            let endTime = dbUtility.getLocalTimeString(endDate);
+            console.log("checking endTime", endTime)
+
+            let callerIdStringList = "";
+            if (data && data.callerId && data.callerId.length){
+                data.callerId.forEach(
+                    id => {
+                        if (id){
+                            callerIdStringList += "('" + id + "'),";
+                        }
+                    }
+                )
+            }
+
+            let queryObj = "SELECT * FROM cti_record AS A JOIN cti_cdr_call AS B ON A.record_uuid = B.callleg_uuid WHERE A.begintime BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME) AND A.record_status = '2'";
+            let queryCount = "SELECT COUNT(*) AS total FROM cti_record as A JOIN cti_cdr_call AS B ON A.record_uuid = B.callleg_uuid WHERE A.begintime BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME) AND A.record_status = '2'";
+            callerIdStringList = callerIdStringList && callerIdStringList.length > 0 ? callerIdStringList.substring(0,callerIdStringList.length - 1) : callerIdStringList;
+
+            if (callerIdStringList && callerIdStringList.length > 0){
+                queryObj = queryObj + " AND A.exten_num IN (" + callerIdStringList + ")";
+                queryCount = queryCount + " AND A.exten_num IN (" + callerIdStringList + ")";
+            }
+
+            if (data && data.hasOwnProperty('callType')) {
+                // call out
+                if (data.callType == 2){
+                    queryObj = queryObj + " AND A.leg_type IN ('9','10','11','12','13','14') ";
+                    queryCount = queryCount + " AND A.leg_type IN ('9','10','11','12','13','14') ";
+                }
+                // call in
+                else if (data.callType == 3){
+                    queryObj = queryObj + " AND A.leg_type IN ('4','5','6','7','8') ";
+                    queryCount = queryCount + " AND A.leg_type IN ('4','5','6','7','8') ";
+                }
+            }
+
+            if (data && data.durationOperator && data.hasOwnProperty('durationOne')){
+                if (data.durationOperator == '>='){
+                    queryObj = queryObj + " AND B.billsec >= " + data.durationOne
+                    queryCount = queryCount + " AND B.billsec >= " + data.durationOne
+                }
+                else if (data.durationOperator == '<='){
+                    queryObj = queryObj + " AND B.billsec <= " + data.durationOne
+                    queryCount = queryCount + " AND B.billsec <= " + data.durationOne
+                }
+                else if (data.durationOperator == '='){
+                    queryObj = queryObj + " AND B.billsec = " + data.durationOne
+                    queryCount = queryCount + " AND B.billsec = " + data.durationOne
+                }
+                else if (data.durationOperator == 'range'){
+                  if (data.hasOwnProperty('durationTwo')){
+                      queryObj = queryObj + " AND B.billsec >= " + data.durationOne + " AND B.billsec <= " + data.durationTwo
+                      queryCount = queryCount + " AND B.billsec >= " + data.durationOne + " AND B.billsec <= " + data.durationTwo
+                  }
+                  else{
+                      queryObj = queryObj + " AND B.billsec >= " + data.durationOne + " AND B.billsec <= " + data.durationOne + 60
+                      queryCount = queryCount + " AND B.billsec >= " + data.durationOne + " AND B.billsec <= " + data.durationOne + 60
+                  }
+                }
+            }
+
+            console.log("checking queryObj", queryObj)
+            console.log("checking queryObj", queryCount)
+
+            let sqlCSProm = dbQualityInspection.multipleSqlExecution(connection1, queryCount, queryObj + " ORDER BY A.begintime desc")
+            let sqlJiaBoProm = dbQualityInspection.multipleSqlExecution(connection2, queryCount, queryObj + " ORDER BY A.begintime desc")
+
+            return Promise.all([sqlCSProm, sqlJiaBoProm]).then(
+                data => {
+                    let csData = data && data[0] && data[0].data ? data[0].data : [];
+                    let jiaBoData = data && data[1] && data[1].data ? data[1].data : [];
+                    let csDataSize = data && data[0] && data[0].size ? data[0].size : 0;
+                    let jiaBoDataSize = data && data[1] && data[1].size ? data[1].size : 0;
+                    let totalSize = (csDataSize || 0) + (jiaBoDataSize || 0)
+                    let dataset = [];
+                    dataset = dataset.concat(csData, jiaBoData);
+
+                    if (dataset && dataset.length > limit){
+                        dataset = dataset.slice(index, index+limit)
+                    }
+                    return {
+                        data: dataset,
+                        size: totalSize
+                    }
+                }
+            )
+        }
+    },
+
     connectMysql: function(){
         console.log("checking env.live800Port", env.live800Port)
         var connection = mysql.createConnection({
@@ -93,6 +223,49 @@ var dbQualityInspection = {
         }).then(results=>{
             return returnData;
         });
+    },
+
+    multipleSqlExecution: function (connection, queryCount, query){
+        let returnData;
+        connection.connect();
+
+        let countProm =  new Promise((resolve, reject)=>{
+            connection.query(queryCount, function (error, results, fields) {
+                if (error) {
+                    console.log(error);
+                }
+
+                returnData = results;
+                resolve(results);
+
+            })
+        }).then(results=>{
+            return returnData;
+        });
+
+        let prom = new Promise((resolve, reject)=>{
+            connection.query(query, function (error, results, fields) {
+                if (error) {
+                    console.log(error);
+                }
+
+                returnData = results;
+                resolve(results);
+
+            })
+        }).then(results=>{
+            return returnData;
+        });
+
+        return Promise.all([prom, countProm]).then(
+            retData => {
+                connection.end();
+                return {
+                    data: retData && retData[0] ? JSON.parse(JSON.stringify(retData[0])) : [],
+                    size: retData && retData[1] ? JSON.parse(JSON.stringify(retData[1]))[0].total : 0
+                }
+            }
+        )
     },
 
     insertSqlDataToDB: function (arr, platformDetails) {
@@ -4629,6 +4802,17 @@ var dbQualityInspection = {
         )
     },
 
-
+    getCsByCsDepartment: function (csDepartmentObjIdList) {
+        return dbconfig.collection_department.find({
+            _id: {$in: csDepartmentObjIdList.map(p => {return ObjectId(p)})}
+        }, {users: 1, platforms: 1}).populate({
+            path: "users",
+            model: dbconfig.collection_admin
+        }).populate({
+            path: "platforms",
+            model: dbconfig.collection_platform
+        }).lean();
+    },
+    
 };
 module.exports = dbQualityInspection;

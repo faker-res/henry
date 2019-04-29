@@ -18,6 +18,12 @@ define(['js/app'], function (myApp) {
                 APPEAL_COMPLETED: 6
             };
 
+            vm.callType = {
+                1: "ALL",
+                2: "CALL_OUT",
+                3: "CALL_IN",
+            };
+
             vm.constQualityInspectionStatus = {
                 1: "PENDINGTOPROCESS",
                 2: "COMPLETED_UNREAD",
@@ -3662,27 +3668,287 @@ define(['js/app'], function (myApp) {
 
             //////////////////////////////////////////////////////////Start of Audio System Tab///////////////////////////////////////////////////////////////////
             vm.initCSAudioSystem = function(){
-                if(vm.selectedPlatform){
-                    utilService.actionAfterLoaded('#audioRecordEndDatetimePicker', function () {
-                        $('#audioRecordStartDatetimePicker').datetimepicker({
-                            language: 'en',
-                            format: 'dd/MM/yyyy hh:mm:ss',
-                            pick12HourFormat: true
-                        });
+                vm.initAudioRecordingReport();
+            };
 
-                        $("#audioRecordStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
-
-                        $('#audioRecordEndDatetimePicker').datetimepicker({
-                            language: 'en',
-                            format: 'dd/MM/yyyy hh:mm:ss',
-                            pick12HourFormat: true
-                        });
-
-                        $("#audioRecordEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+            vm.initAudioRecordingReport = function () {
+                vm.audioRecordSearching = {};
+                vm.audioRecordSearching.index = 0;
+                vm.audioRecordSearching.limit = vm.audioRecordSearching && vm.audioRecordSearching.limit ? vm.audioRecordSearching.limit : 50;
+                vm.audioRecordSearching.callType = "1";
+                utilService.actionAfterLoaded('#audioRecordEndDatetimePicker', function () {
+                    $('#audioRecordStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
                     });
+
+                    $("#audioRecordStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                    $('#audioRecordEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#audioRecordEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+
+                    vm.audioRecordSearching.pageObj = utilService.createPageForPagingTable("#AudioRecordTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "audioRecordSearching", vm.getAudioRecordData)
+                    });
+                });
+
+            };
+
+            vm.getCsByPlatform = function (){
+                let csDepartmentObjIdList = [];
+                vm.platformList.forEach(
+                    platformData => {
+                        if (platformData && platformData.data && platformData.data.csDepartment && platformData.data.csDepartment.length){
+                            platformData.data.csDepartment.forEach(
+                                csDepartmentData => {
+                                    if (csDepartmentData && csDepartmentData._id){
+                                        csDepartmentObjIdList.push(csDepartmentData._id);
+                                    }
+                                }
+                            )
+                        }
+                    }
+                );
+
+                if (csDepartmentObjIdList && csDepartmentObjIdList.length){
+                    vm.csAccountList = [];
+                    socketService.$socket($scope.AppSocket, 'getCsByCsDepartment', {csDepartmentObjIdList: csDepartmentObjIdList}, function (data) {
+                        $scope.$evalAsync( () => {
+                            if (data && data.data && data.data.length){
+                                data.data.forEach(
+                                    department => {
+                                        if (department && department.users && department.users.length){
+                                            department.users.forEach(
+                                                user => {
+                                                    user.platformName = department.platforms && department.platforms[0] &&  department.platforms[0].name?  department.platforms[0].name : null
+                                                }
+                                            );
+                                            vm.csAccountList = vm.csAccountList.concat(department.users);
+                                        }
+                                    }
+                                )
+                            }
+                        })
+                    })
                 }
             };
 
+            vm.getCallerId = function () {
+                vm.callerIdList = [];
+                if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length && vm.csAccountList && vm.csAccountList.length){
+                    vm.audioRecordSearching.csObjId.forEach(
+                        selectedCs => {
+                            let index = vm.csAccountList.findIndex(p => p._id.toString() == selectedCs.toString());
+                            if (index != -1){
+                                let csData = vm.csAccountList[index];
+                                if (csData && csData.callerId){
+                                    vm.callerIdList.push(csData.callerId)
+                                }
+                            }
+                        }
+                    );
+                    $scope.$evalAsync();
+                }
+            };
+
+            vm.getAudioRecordData = function (newSearch){
+                let searchQuery = {
+                    startDate: $("#audioRecordStartDatetimePicker").data('datetimepicker').getLocalDate(),
+                    endDate: $("#audioRecordEndDatetimePicker").data('datetimepicker').getLocalDate(),
+                    data: vm.audioRecordSearching,
+                    limit: vm.audioRecordSearching.limit || 50,
+                    index: newSearch ? 0 : (vm.audioRecordSearching.index || 0),
+                    sortCol: vm.audioRecordSearching.sortCol,
+                };
+
+                socketService.$socket($scope.AppSocket, 'getAudioRecordData', searchQuery, function (data) {
+                    console.log('audioRecordData', data);
+                    $('#csAudioRecordTableSpin').hide();
+
+                    let drawData = data.data.data.map(item => {
+                        let index = vm.csAccountList.findIndex(p => p.callerId == item.exten_num)
+                        if (index != -1){
+                            item.adminName = vm.csAccountList[index].adminName;
+                            item.platformName = vm.csAccountList[index].platformName;
+                        }
+                        return item;
+                    });
+                    vm.audioRecordSearching.size = data.data.size;
+                    vm.drawCsAudioRecordTable(drawData, newSearch);
+                });
+            };
+
+            vm.drawCsAudioRecordTable = function (tblData, newSearch) {
+                console.log(newSearch);
+                let option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+
+                    columns: [
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platformName",
+                        },
+                        {
+                            title: 'FPMS' + $translate('CS Account'),
+                            data: "adminName",
+                        },
+                        {
+                            title: $translate('Caller ID'),
+                            data: "exten_num",
+                        },
+                        {
+                            title: $translate('Start date'),
+                            data: "begintime",
+                        },
+                        {
+                            title: $translate('End date'),
+                            data: "endtime",
+                        },
+                        {
+                            title: $translate('Calling Duration (s)'),
+                            data: "billsec",
+                        },
+                        {
+                            title: $translate('Calling Record'),
+                            orderable: false,
+                            render: function (data, type, row) {
+                                let link = $('<div>', {});
+
+                                link.append($('<a>', {
+                                    'ng-click': `vm.listeningAudioClip(${row.recordId},"${row.agent_group_name}", "${row.adminName}", "${row.exten_num}")`,
+                                    'data-placement': 'left',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'style': "z-index: auto; width:35px; display:inline-block;",
+                                }).text($translate("Listen")));
+
+                                link.append($('<a>', {
+                                    'ng-click': `vm.downloadAudioClip(${row.recordId},"${row.agent_group_name}", "${row.exten_num}", "${row.begintime}")`,
+                                    'id': row.id,
+                                    'data-placement': 'left',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'download': 'true',
+                                    'style': "z-index: auto; width:35px;  display:inline-block;",
+                                }).text($translate("Download")));
+
+                                link.append($('<i>', {
+                                    'id': 'spin-' + row.recordId,
+                                    'class': 'fa fa-spinner fa-spin',
+                                    'style': "display: none;",
+                                }));
+
+                                return link.prop('outerHTML');
+                            },
+                            "sClass": "alignLeft"
+                        },
+                    ],
+                    // destroy: true,
+                    paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    },
+                });
+                option.language.emptyTable = $translate("No data available in table");
+
+                let a = utilService.createDatatableWithFooter('#AudioRecordTable', option, {});
+                vm.audioRecordSearching.pageObj.init({maxCount: vm.audioRecordSearching.size}, newSearch);
+                $("#AudioRecordTable").off('order.dt');
+                $("#AudioRecordTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'audioRecordSearching', vm.getAudioRecordData);
+                });
+                // setTimeout(function () {
+                $('#AudioRecordTable').resize();
+                // }, 300);
+                $scope.$evalAsync();
+            };
+
+            vm.listeningAudioClip = (recordId, agentGroup, adminName, callerId)=>{
+                console.log("recordId",recordId);
+                console.log("agentGroup",agentGroup);
+
+                if (!recordId || !agentGroup){
+                    return  socketService.showErrorMessage($translate("recordId or agentGroup is not found"));
+                }
+
+                $scope.$evalAsync( () => {
+                    vm.selectedCSAdmin = adminName;
+                    vm.selectedCallerId = callerId;
+                    $('#modalListeningAudioClip').modal();
+                    $('#csAudiolistenSpin').show();
+                    vm.isReadyToPlay = true;
+                });
+
+                let xhr = new XMLHttpRequest();
+                xhr.addEventListener('load', function(blob) {
+                    $scope.$evalAsync( () => {
+                        if (xhr.status == 200) {
+                            let windowUrl = window.URL || window.webkitURL;
+                            let url = windowUrl.createObjectURL(xhr.response);
+                            document.querySelector('#csAudioClip>source').setAttribute('src', url);
+                            document.querySelector('#csAudioClip').load();
+                            $('#csAudiolistenSpin').hide();
+                        }
+                    })
+                });
+
+                xhr.open('GET', `https://api-radio.tel400.me/getRecording.do?record_id=${recordId}&agent_group=${agentGroup}`);
+                xhr.responseType = 'blob';
+                xhr.setRequestHeader('user', 'master');
+                xhr.setRequestHeader('key', 'fr389uhjf43w89ujf43w89j');
+                xhr.send(null);
+            };
+
+            vm.downloadAudioClip = (recordId, agentGroup, callerId, beginTime)=>{
+                console.log("recordId",recordId);
+                console.log("agentGroup",agentGroup);
+
+                if (!recordId || !agentGroup){
+                    return  socketService.showErrorMessage($translate("recordId or agentGroup is not found"));
+                }
+
+                $('#spin-'+recordId).show();
+                let xhr = new XMLHttpRequest();
+                xhr.addEventListener('load', function(blob) {
+                    $scope.$evalAsync( () => {
+                        if (xhr.status == 200) {
+                            $('#spin-'+recordId).hide();
+                            let windowUrl = window.URL || window.webkitURL;
+                            let url = windowUrl.createObjectURL(xhr.response);
+                            let anchor = document.createElement("a");
+                            anchor.setAttribute('href', url);
+                            anchor.setAttribute('download', callerId + '-' + beginTime + '.mp3');
+                            anchor.click();
+                        }
+                        else{
+                            vm.isDownloading = false
+                        }
+                    })
+                });
+
+                xhr.open('GET', `https://api-radio.tel400.me/getRecording.do?record_id=${recordId}&agent_group=${agentGroup}`);
+                xhr.responseType = 'blob';
+                xhr.setRequestHeader('user', 'master');
+                xhr.setRequestHeader('key', 'fr389uhjf43w89ujf43w89j');
+                xhr.send(null);
+            };
+
+            vm.closeListeningAudioClipModal = function (modal) {
+                let audioElem = document.getElementById("csAudioClip");
+                audioElem.pause();
+                audioElem.load();
+                vm.isReadyToPlay = false;
+                $(modal).modal('hide');
+            };
             //////////////////////////////////////////////////////////End of Audio System Tab///////////////////////////////////////////////////////////////////
 
 
@@ -3767,7 +4033,7 @@ define(['js/app'], function (myApp) {
                     vm.manualProcessRecordData.size = data.data.size;
                     vm.drawManualProcessTable(drawData, newSearch);
                 });
-            }
+            };
 
             vm.drawManualProcessTable = function (tblData, newSearch) {
                 console.log(newSearch);
@@ -3843,7 +4109,7 @@ define(['js/app'], function (myApp) {
                 $('#manualProcessReportTable').resize();
                 // }, 300);
                 $scope.$evalAsync();
-            }
+            };
 
             vm.showManualProposalTable = function (data, adminName, countType){
                 vm.manualProposalData = {};
