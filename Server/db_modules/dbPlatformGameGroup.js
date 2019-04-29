@@ -205,6 +205,9 @@ var dbPlatformGameGroup = {
 
                     for (var i = 0; i < gameGroup.games.length; i++) {
                         var game = gameGroup.games[i].game;
+                        if (i > 0 && i < 4) {
+                            console.log(' MT --check gameDisplay --1', game);
+                        }
                         if (game) {
                             for (var j = 0; j < pltGameStatusArr.length; j++) {
                                 if (pltGameStatusArr[j] && game && String(game._id) == String(pltGameStatusArr[j].game)) {
@@ -321,8 +324,11 @@ var dbPlatformGameGroup = {
                                 }
                             );
                             gameGroup.games.gameList.forEach(
-                                game => {
+                                (game, index) => {
                                     game.game.provider = gameProviderMap[String(game.game.provider)] || game.game.provider;
+                                    if (game.game && game.game.gameDisplay && index && Number(index) < 5) {
+                                        console.log(' MT --check gameDisplay --1', game.game.gameDisplay);
+                                    }
                                 }
                             )
                         }
