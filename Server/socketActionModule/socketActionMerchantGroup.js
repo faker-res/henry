@@ -118,7 +118,7 @@ function socketActionMerchantGroup(socketIO, socket) {
 
         getMerchantList: function getMerchantList(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postMerchantList", {platformId: data.platformId}], actionName, true);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getMerchantListByPlatformId, [data.platformId], actionName, true);
         },
 
         getMerchantNBankCard: function getMerchantNBankCard(data){

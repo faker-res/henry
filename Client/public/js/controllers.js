@@ -2000,6 +2000,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
 
         socketService.$socket($scope.AppSocket, 'getPlayerConsumptionDetailByPlatform', sendData, function success(data) {
+
+            console.log('getPlayerConsumptionDetailByPlatform data', data);
+
             $scope.$evalAsync(() => {
                 let consumptionAmount = data.data[0] != undefined ? data.data[0].totalAmount : 0;
                 $scope.profitDetailConsumptionAmount = noDecimalPlacesString(consumptionAmount);
@@ -2031,7 +2034,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         _id: authService.adminId
                     },  data => {
                         if (data.data && data.data.financialPointsNotificationShowed && data.data.financialPointsNotificationShowed.indexOf($scope.selectedPlatform.data.platformId) < 0) {
-                            $("#modalFinancialPointsNotification").modal('show');
+                            // $("#modalFinancialPointsNotification").modal('show');
                             updateFinancialNotificationShowed();
                         }
                     });

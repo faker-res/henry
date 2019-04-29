@@ -283,6 +283,17 @@ let dbPlayerCredibility = {
     getAllCredibilityRemarks: () => {
         return dbconfig.collection_playerCredibilityRemark.find({}).lean().exec();
     },
+    getPlatformCredibilityRemarks: (platformList) => {
+        let query = {};
+        if (platformList && platformList.length) {
+            query = {
+                platform: {$in: platformList}
+            }
+        }
+        return dbconfig.collection_playerCredibilityRemark.find(query)
+            .populate({path: 'platform', model: dbconfig.collection_platform})
+            .lean().exec();
+    },
 
     addCredibilityRemark: (platformObjId, name, score) => {
         let remark = dbconfig.collection_playerCredibilityRemark({

@@ -5,6 +5,7 @@ var ObjectId = mongoose.Types.ObjectId;
 var socketUtil = require('./../modules/socketutility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 let RESTUtils = require('./../modules/RESTUtils');
+const constAccountType = require('../const/constAccountType');
 
 function socketActionBankCardGroup(socketIO, socket) {
 
@@ -128,9 +129,13 @@ function socketActionBankCardGroup(socketIO, socket) {
         },
 
         getBankCardList: function getBankCardList(data) {
-            var actionName = arguments.callee.name;
-            // socketUtil.emitter(self.socket, pmsAPI.bankcard_getBankcardList, [{platformId: data.platformId}], actionName, true);
-            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postBankCardList", {platformId: data.platformId, accountType: "BANK"}], actionName, true);
+            let actionName = arguments.callee.name;
+            let query = {
+                platformId: data.platformId,
+                accountType: constAccountType.BANK_CARD
+            };
+
+            socketUtil.emitter(self.socket, RESTUtils.getPMS2Services, ["postBankCardList", query], actionName, true);
         },
 
         getZoneList: function getZoneList(data) {

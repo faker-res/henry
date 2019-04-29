@@ -452,6 +452,7 @@
   "CONFIRM": "确定",
   "CONFIRM_LEVEL_UP": "确定升级结算",
   "CONFIRM_LEVEL_DOWN": "确定降级结算",
+  "CONFIRM_LEVEL_MAINTAIN": "确定保级结算",
   "EDIT_USER": "修改用户",
   "PASSWORD_RETYPE": "确定密码",
   "FIRSTNAME": "姓",
@@ -927,6 +928,7 @@
   "OFFER_AMOUNT": "促销额度",
   "Reward number": "优惠数",
   "Product name must be unique": "品名不能重复",
+  "Product Name is Mandatory": "产品名称必填",
   "Product name has collided with the Promo code name": "品名不能与优惠代码名称相同",
   "Minimum spending amount for reward task": "优惠最低投注额",
   "Minimum daily top up amount": "每日最低充值额",
@@ -1192,6 +1194,7 @@
   "Page_Previous": "上",
   "Page_Next": "下",
   "Page": "页",
+  "See More":"查看更多",
   "Current Page": "当前页",
   "SMS Send Log": "短信发送记录",
   "SMSSendLog": "短信发送记录",
@@ -2295,6 +2298,8 @@
   "PARTNER_BONUS": "代理提款",
   "GAME_ID": "游戏ID",
   "PlayerLevelUp": "系统升级优惠",
+  "PlayerLevelMaintain": "系统保级优惠",
+  "LEVEL_MAINTAIN": "保级",
   "Online": "网银转账",
   "Counter": "银行柜台",
   "allTopUp": "所有存款",
@@ -4366,6 +4371,7 @@
   "PlayerLevelUpMigrationSuccess": "玩家升级（成功）",
   "PlayerLevelDownMigrationSuccess": "玩家降级（成功）",
   "PlayerLevelUpSuccess": "升级优惠（成功）",
+  "PlayerLevelMaintainSuccess": "保级优惠（成功）",
   "PromoCodeSend": "优惠代码（发送）",
   "*Please config message template at 『PromoCode』~『SmsContent』": "*优惠代码发送内容请至『优惠代码』~『短信内容』编辑",
   "active": "活跃",
@@ -5504,5 +5510,6 @@
   "frontEndVisiblePosition": "前端可见位置",
   "visibleFromHomePage": "首页弹屏可见",
   "visibleFromRewardEntry": "优惠入口可见",
-  "visibleFromRewardList": "优惠列表可见"
+  "visibleFromRewardList": "优惠列表可见",
+  "RECALCULATE": "重新收录"
 }

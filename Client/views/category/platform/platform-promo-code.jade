@@ -323,6 +323,9 @@
                 div(ng-if='vm.selectedPromoCodeTab=="history" && checkViewPermission("Platform", "promoCode", "promoCodeHistory")')
                     #promoCodeQuery.col-md-12.well
                         .search-filters-item
+                            label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
+                            select.form-control(ng-model='vm.promoCodeQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                        .search-filters-item
                             label {{"ACCOUNT" | translate}}
                             input.form-control(type='text', ng-model='vm.promoCodeQuery.playerName')
                         .search-filters-item
@@ -384,6 +387,9 @@
                 div(ng-if='vm.selectedPromoCodeTab=="monitorTypeB" && checkViewPermission("Platform", "promoCode", "monitorTypeB")')
                     #promoCodeTypeBMonitorQuery.col-md-12.well
                         .search-filters-item
+                            label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
+                            select.form-control(ng-model='vm.promoCodeTypeBMonitor.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                        .search-filters-item
                             label.control-label {{'START_ACCEPTED_TIME' | translate}}
                             .startAcceptedTime
                         .search-filters-item
@@ -405,6 +411,9 @@
                 //Tab - Promo Code Monitor
                 div(ng-if='vm.selectedPromoCodeTab=="monitor" && checkViewPermission("Platform", "promoCode", "monitor")')
                     #promoCodeMonitorQuery.col-md-12.well
+                        .search-filters-item
+                            label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
+                            select.form-control(ng-model='vm.promoCodeMonitor.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
                         .search-filters-item
                             label.control-label {{'START_ACCEPTED_TIME' | translate}}
                             .startAcceptedTime
@@ -453,13 +462,13 @@
                                 td(colspan=4) {{'ADD' | translate}}
                             tr(ng-if='vm.promoCodeSMSContentEdit')
                                 td
-                                    input(type='text' , ng-model='vm.newPromoCodeSMSContentType1.name')
+                                    input(type='text', ng-model='vm.newPromoCodeSMSContentType1.name')
                                 td
                                     input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsTitle")
                                 td
                                     input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsContent")
                                 td
-                                    i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name,smsTitle: vm.newPromoCodeSMSContentType1.smsTitle,smsContent: vm.newPromoCodeSMSContentType1.smsContent}, vm.promoCodeType1BeforeEdit); vm.newPromoCodeSMSContentType1={}')
+                                    i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name, smsTitle: vm.newPromoCodeSMSContentType1.smsTitle, smsContent: vm.newPromoCodeSMSContentType1.smsContent}, vm.promoCodeType1BeforeEdit); vm.newPromoCodeSMSContentType1={}')
                     br
                     table.common-table.playerLvlTable
                         thead
@@ -486,7 +495,7 @@
                                 td(colspan=4) {{'ADD' | translate}}
                             tr(ng-if='vm.promoCodeSMSContentEdit')
                                 td
-                                    input(type='text' , ng-model='vm.newPromoCodeSMSContentType2.name')
+                                    input(type='text', ng-model='vm.newPromoCodeSMSContentType2.name')
                                 td
                                     input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsTitle")
                                 td
@@ -519,7 +528,7 @@
                                 td(colspan=4) {{'ADD' | translate}}
                             tr(ng-if='vm.promoCodeSMSContentEdit')
                                 td
-                                    input(type='text' , ng-model='vm.newPromoCodeSMSContentType3.name')
+                                    input(type='text', ng-model='vm.newPromoCodeSMSContentType3.name')
                                 td
                                     input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsTitle")
                                 td

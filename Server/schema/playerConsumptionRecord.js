@@ -5,7 +5,7 @@ var playerConsumptionRecordSchema = new Schema({
     //player id
     playerId: {type: Schema.ObjectId, required: true, index: true},
     // platform Id
-    platformId: {type: Schema.ObjectId, required: true, index: true},
+    platformId: {type: Schema.ObjectId, required: true},
     // provider ID
     providerId: {type: Schema.ObjectId, index: true},
     // game ID
@@ -71,10 +71,11 @@ var playerConsumptionRecordSchema = new Schema({
 //record is unique by playerId platformId and date
 playerConsumptionRecordSchema.index({playerId: 1, platformId: 1, gameId: 1, createTime: 1});
 playerConsumptionRecordSchema.index({platformId: 1, createTime: 1});
-playerConsumptionRecordSchema.index({playerId: 1, createTime: 1});
+playerConsumptionRecordSchema.index({playerId: 1, createTime: 1, isDuplicate: 1});
 playerConsumptionRecordSchema.index({platformId: 1, playerId: 1, createTime: 1});
-playerConsumptionRecordSchema.index({platformId: 1, providerId: 1});
 playerConsumptionRecordSchema.index({createTime: 1, platformId: 1, _id: 1});
+playerConsumptionRecordSchema.index({platformId:1, providerId:1, createTime:1});
+
 
 
 module.exports = playerConsumptionRecordSchema;

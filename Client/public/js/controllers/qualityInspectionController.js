@@ -3969,8 +3969,10 @@ define(['js/app'], function (myApp) {
 
                 if (vm.csDepartmentMember && vm.csDepartmentMember.length) {
                     socketService.$socket($scope.AppSocket, 'getCSAdmins', {admins: vm.csDepartmentMember}, function (cdata) {
-                        console.log('all admin data', cdata.data);
-                        vm.csList = cdata.data;
+                       $scope.$evalAsync( () => {
+                           console.log('all admin data', cdata.data);
+                           vm.csList = cdata.data;
+                       })
                     })
                 };
 
@@ -4299,7 +4301,7 @@ define(['js/app'], function (myApp) {
                     fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                         $(nRow).off('click');
                         $(nRow).find('a').on('click', function () {
-                            vm.showProposalModal(aData.proposalId, 1);
+                            vm.showProposalModal(aData.proposalId, aData.data.platformId, 1);
                         });
                     }
                     // autoWidth: true
@@ -4325,9 +4327,9 @@ define(['js/app'], function (myApp) {
                 2: '#newPlayerModal'
             };
 
-            vm.showProposalModal = function (proposalId, templateNo) {
+            vm.showProposalModal = function (proposalId, platformObjId, templateNo) {
                 socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: platformObjId,
                     proposalId: proposalId
                 }, function (data) {
                     vm.selectedProposal = data.data;

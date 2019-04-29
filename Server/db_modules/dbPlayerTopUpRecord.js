@@ -36,6 +36,7 @@ const dbPromoCode = require("../db_modules/dbPromoCode");
 const constRewardType = require("./../const/constRewardType");
 const dbRewardTask = require('./../db_modules/dbRewardTask');
 const dbPlayerReward = require('../db_modules/dbPlayerReward');
+const dbReportUtil = require("./../db_common/dbReportUtility");
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
 const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const rewardUtility = require("../modules/rewardUtility");
@@ -112,7 +113,7 @@ var dbPlayerTopUpRecord = {
         return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
             platformData => {
                 if (platformData && platformData.platformId) {
-                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}, platformData.topUpSystemType).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
@@ -306,6 +307,7 @@ var dbPlayerTopUpRecord = {
 
                 return Promise.all([topUpProm, consumptionProm, bonusProm, consumptionReturnProm, rewardProm, onlineTopUpByMerchantProm]).then(
                     result => {
+                        console.log("LH check player report 3------");
                         let topUpDetails = result[0];
                         let consumptionDetails = result[1];
                         let bonusDetails = result[2];
@@ -316,6 +318,7 @@ var dbPlayerTopUpRecord = {
                         let playerReportDaySummary = [];
 
                         if(topUpDetails && topUpDetails.length > 0){
+                            console.log("LH check player report 4------", topUpDetails.length);
                             topUpDetails.forEach(
                                 topUp => {
                                     if(topUp && topUp._id && topUp._id.playerId){
@@ -358,6 +361,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if(consumptionDetails && consumptionDetails.length > 0){
+                            console.log("LH check player report 5------", consumptionDetails.length);
                             consumptionDetails.forEach(
                                 consumption => {
                                     if(consumption && consumption._id && consumption._id.playerId){
@@ -437,6 +441,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if(bonusDetails && bonusDetails.length > 0){
+                            console.log("LH check player report 6------", bonusDetails.length);
                             bonusDetails.forEach(
                                 bonus => {
                                     if(bonus && bonus._id && bonus._id.playerId){
@@ -459,6 +464,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if(consumptionReturnDetails && consumptionReturnDetails.length > 0){
+                            console.log("LH check player report 7------", consumptionReturnDetails.length);
                             consumptionReturnDetails.forEach(
                                 consumptionReturn => {
                                     if(consumptionReturn && consumptionReturn._id && consumptionReturn._id.playerId){
@@ -479,6 +485,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if(rewardDetails && rewardDetails.length > 0){
+                            console.log("LH check player report 8------", rewardDetails.length);
                             rewardDetails.forEach(
                                 reward => {
                                     if(reward && reward._id && reward._id.playerId){
@@ -501,6 +508,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if(onlineTopUpByMerchantDetails && onlineTopUpByMerchantDetails.length > 0){
+                            console.log("LH check player report 9------", onlineTopUpByMerchantDetails.length);
                             onlineTopUpByMerchantDetails.forEach(
                                 onlineTopUpByMerchant => {
                                     if(onlineTopUpByMerchant && onlineTopUpByMerchant.playerId){
@@ -557,10 +565,20 @@ var dbPlayerTopUpRecord = {
                             )
                         }
 
+                        console.log("LH check player report 10------", playerReportDaySummary.length);
                         return playerReportDaySummary;
+                    },
+                    error => {
+                        console.log("player report data summary error 1- ", error);
+                        return Promise.reject({
+                            name: "DataError",
+                            errorMessage: "player report data summary error 1",
+                            error: error
+                        });
                     }
                 ).then(
                     playerReportDaySummary => {
+                        console.log("LH check player report 11------");
                         playerReportSummary = playerReportDaySummary;
                         let platformFeeProm = [];
                         if(playerReportDaySummary && playerReportDaySummary.length > 0){
@@ -573,11 +591,22 @@ var dbPlayerTopUpRecord = {
                             );
                         }
 
+                        console.log("LH check player report 12------", platformFeeProm.length);
                         return Promise.all(platformFeeProm);
+                    },
+                    error => {
+                        console.log("player report data summary error 2- ", error);
+                        return Promise.reject({
+                            name: "DataError",
+                            errorMessage: "player report data summary error 2",
+                            error: error
+                        });
                     }
                 ).then(
                     playerPlatformFeeDetail => {
+                        console.log("LH check player report 13------");
                         if(playerPlatformFeeDetail && playerPlatformFeeDetail.length > 0){
+                            console.log("LH check player report 14------", playerPlatformFeeDetail.length);
                             playerPlatformFeeDetail.forEach(
                                 platformFee => {
                                     if(platformFee){
@@ -593,11 +622,23 @@ var dbPlayerTopUpRecord = {
                         }
 
                         return playerReportSummary;
+                    },
+                    error => {
+                        console.log("player report data summary error 3- ", error);
+                        return Promise.reject({
+                            name: "DataError",
+                            errorMessage: "player report data summary error 3",
+                            error: error
+                        });
                     }
                 ).catch(
                     error => {
                         console.log("player report data summary error - ", error);
-                        return;
+                        return Promise.reject({
+                            name: "DataError",
+                            errorMessage: "player report data summary error",
+                            error: error
+                        });
                     }
                 )
             }
@@ -734,7 +775,7 @@ var dbPlayerTopUpRecord = {
      * Get total top up amount in a certain period of time
      * @param {Date} startTime,endTime - The date info
      */
-    topupReport: async (query, index, limit, sortObj) => {
+    topupReport: async (query, index, limit, sortObj, isExport) => {
         let topupRecords = [];
         let queryObj = {};
 
@@ -791,7 +832,11 @@ var dbPlayerTopUpRecord = {
                 let totalAmountResult = data[1][0];
                 let totalPlayerResult = data[3] && data[3].length || 0;
 
-                return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
+                if (isExport) {
+                    return dbReportUtil.generateExcelFile("TopupReport", topupRecords);
+                } else {
+                    return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
+                }
             }
         );
 
@@ -1685,7 +1730,7 @@ var dbPlayerTopUpRecord = {
                 rewardEvent = eventData;
                 if (player && player.platform) {
                     let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
-                    let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId});
+                    let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId}, player.platform.topUpSystemType);
 
                     let merchantTypeProm = Promise.resolve(false);
                     // if (bPMSGroup === true || bPMSGroup === "true") {
@@ -2204,7 +2249,7 @@ var dbPlayerTopUpRecord = {
                 player = playerData;
                 topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
 
-                if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                if (topUpSystemConfig && topUpSystemConfig.name && (topUpSystemConfig.name !== 'FPMS' || topUpSystemConfig.name !== 'PMS')) {
                     bPMSGroup = false;
                 } else if (player && player.platform && player.platform.bankCardGroupIsPMS) {
                     bPMSGroup = true
@@ -2488,14 +2533,14 @@ var dbPlayerTopUpRecord = {
                     // console.log("requestData", requestData);
                     if (isFPMS) {
                         return dbPlayerTopUpRecord.manualTopUpValidate(requestData, fromFPMS);
-                    } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'FPMS') {
                         delete requestData.groupBankcardList;
                         delete requestData.bankTypeId;
 
-                        return RESTUtils.getPMS2Services("postCreateTopup", requestData).then(
+                        return RESTUtils.getPMS2Services("postCreateTopup", requestData, player.platform.topUpSystemType).then(
                             manualTopUpCardData => {
                                 if (manualTopUpCardData && manualTopUpCardData.result && manualTopUpCardData.result.bankTypeId) {
-                                    return RESTUtils.getPMS2Services("postBankType", {bankTypeId: manualTopUpCardData.result.bankTypeId}).then(
+                                    return RESTUtils.getPMS2Services("postBankType", {bankTypeId: manualTopUpCardData.result.bankTypeId}, player.platform.topUpSystemType).then(
                                         bankData => {
                                             if (bankData && bankData.data && bankData.data.name) {
                                                 manualTopUpCardData.result.bankName = bankData.data.name;
@@ -2547,7 +2592,7 @@ var dbPlayerTopUpRecord = {
                     if (isFPMS && topupResult.result.hasOwnProperty("quotaUsed")) {
                         quotaUsedProm = Promise.resolve([{totalAmount:  topupResult.result.quotaUsed}]);
                     } else {
-                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        if (topUpSystemConfig && topUpSystemConfig.name && (topUpSystemConfig.name !== 'FPMS' || topUpSystemConfig.name !== 'PMS')) {
                             queryObj["data.topUpSystemName"] = topUpSystemConfig.name;
                         } else {
                             if (!queryObj.$and) {
@@ -2613,7 +2658,7 @@ var dbPlayerTopUpRecord = {
 
                     let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
-                    updateManualTopUpProposalBankLimit(proposalQuery, request.result.bankCardNo, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
+                    updateManualTopUpProposalBankLimit(proposalQuery, request.result.bankCardNo, isFPMS, player.platform.platformId, topUpSystemConfig, player.platform.topUpSystemType).catch(errorUtils.reportError);
 
                     let checkProposalStatus = Promise.resolve();
                     if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
@@ -2932,14 +2977,14 @@ var dbPlayerTopUpRecord = {
             proposalData => {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.topUpSystemType
-                        && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                        && proposalData.data.topUpSystemName) {
                         proposal = proposalData;
 
                         let data = {
                             proposalId: proposalId
                         };
 
-                        return RESTUtils.getPMS2Services("postCancelTopup", data);
+                        return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType);
                     }
                     else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
@@ -2983,14 +3028,14 @@ var dbPlayerTopUpRecord = {
             proposalData => {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.topUpSystemType
-                        && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                        && proposalData.data.topUpSystemName) {
                         proposal = proposalData;
 
                         let data = {
                             proposalId: proposalId
                         };
 
-                        return RESTUtils.getPMS2Services("postCancelTopup", data);
+                        return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType);
                     } else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
                     }
@@ -3033,14 +3078,14 @@ var dbPlayerTopUpRecord = {
             proposalData => {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.topUpSystemType
-                        && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                        && proposalData.data.topUpSystemName) {
                         proposal = proposalData;
 
                         let data = {
                             proposalId: proposalId
                         };
 
-                        return RESTUtils.getPMS2Services("postCancelTopup", data);
+                        return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType);
                     } else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
                     }
@@ -3082,7 +3127,7 @@ var dbPlayerTopUpRecord = {
             proposalData => {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.topUpSystemType
-                        && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                        && proposalData.data.topUpSystemName) {
                         proposal = proposalData;
 
                         let data = {
@@ -3090,7 +3135,7 @@ var dbPlayerTopUpRecord = {
                             delayTime: delayTime
                         };
 
-                        return RESTUtils.getPMS2Services("postDelayTopup", data);
+                        return RESTUtils.getPMS2Services("postDelayTopup", data, proposalData.data.topUpSystemType);
                     } else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
                     }
@@ -3372,7 +3417,7 @@ var dbPlayerTopUpRecord = {
                     if (fromFPMS) {
                         bPMSGroup = false
                     } else {
-                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        if (topUpSystemConfig && topUpSystemConfig.name && (topUpSystemConfig.name !== 'FPMS' || topUpSystemConfig.name !== 'PMS')) {
                             bPMSGroup = false;
                         } else if (player && player.platform && player.platform.aliPayGroupIsPMS) {
                             bPMSGroup = true
@@ -3422,7 +3467,7 @@ var dbPlayerTopUpRecord = {
                                     && player.alipayGroup.alipays
                                     && player.alipayGroup.alipays.length > 0
                                 ) ||
-                                (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')
+                                (topUpSystemConfig && topUpSystemConfig.name && (topUpSystemConfig.name !== 'FPMS' || topUpSystemConfig.name !== 'PMS'))
                             )
                         ) {
                             let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
@@ -3632,7 +3677,7 @@ var dbPlayerTopUpRecord = {
                         // console.log("requestData", requestData);
                         if (isFPMS) {
                             return dbPlayerTopUpRecord.alipayTopUpValidate(requestData, alipayAccount);
-                        } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'FPMS') {
                             delete requestData.groupAlipayList;
                             delete requestData.aliPayAccount;
 
@@ -3640,7 +3685,7 @@ var dbPlayerTopUpRecord = {
                             requestData.depositMethod = constTopUpMethod.ALIPAY;
                             requestData.depositTime = cTimeString;
 
-                            return RESTUtils.getPMS2Services("postCreateTopup", requestData);
+                            return RESTUtils.getPMS2Services("postCreateTopup", requestData, player.platform.topUpSystemType);
                         }
                     }
                     else {
@@ -3679,7 +3724,7 @@ var dbPlayerTopUpRecord = {
                     if (isFPMS && pmsData.result.hasOwnProperty("quotaUsed")) {
                         quotaUsedProm = Promise.resolve([{totalAmount:  pmsData.result.quotaUsed}]);
                     } else {
-                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        if (topUpSystemConfig && topUpSystemConfig.name && (topUpSystemConfig.name !== 'FPMS' || topUpSystemConfig.name !== 'PMS')) {
                             queryObj["data.topUpSystemName"] = topUpSystemConfig.name;
                         } else {
                             if (!queryObj.$and) {
@@ -3775,7 +3820,7 @@ var dbPlayerTopUpRecord = {
                             alipayAcc = request.result.bankCardNo;
                         }
 
-                        updateAliPayTopUpProposalDailyLimit(proposalQuery, alipayAcc, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
+                        updateAliPayTopUpProposalDailyLimit(proposalQuery, alipayAcc, isFPMS, player.platform.platformId, topUpSystemConfig, player.platform.topUpSystemType).catch(errorUtils.reportError);
 
                         let checkProposalStatus = Promise.resolve();
                         if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
@@ -3868,9 +3913,9 @@ var dbPlayerTopUpRecord = {
                     topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
                     if ((playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) || bPMSGroup
-                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
+                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS')) {
 
-                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS') {
                             bPMSGroup = false;
                         } else if (playerData.platform.wechatPayGroupIsPMS) {
                             bPMSGroup = true
@@ -3912,7 +3957,7 @@ var dbPlayerTopUpRecord = {
                                     accountType: constAccountType.WECHAT
                                 };
 
-                                prom = RESTUtils.getPMS2Services("postBankCardList", reqData);
+                                prom = RESTUtils.getPMS2Services("postBankCardList", reqData, playerData.platform.topUpSystemType);
                             }
                         }
 
@@ -3983,7 +4028,7 @@ var dbPlayerTopUpRecord = {
 
                     topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS') {
                         bPMSGroup = false;
                     } else if (playerData && playerData.platform && playerData.platform.aliPayGroupIsPMS) {
                         bPMSGroup = true
@@ -3992,7 +4037,7 @@ var dbPlayerTopUpRecord = {
                     }
 
                     if ((playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) || bPMSGroup
-                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
+                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS')) {
                         let aliPayProm;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
@@ -4026,7 +4071,7 @@ var dbPlayerTopUpRecord = {
                                     accountType: constAccountType.ALIPAY
                                 };
 
-                                aliPayProm = RESTUtils.getPMS2Services("postBankCardList", reqData);
+                                aliPayProm = RESTUtils.getPMS2Services("postBankCardList", reqData, playerData.platform.topUpSystemType);
                             }
                         }
 
@@ -4169,7 +4214,7 @@ var dbPlayerTopUpRecord = {
                     if (fromFPMS) {
                         bPMSGroup = false
                     } else {
-                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        if (topUpSystemConfig && topUpSystemConfig.name && (topUpSystemConfig.name !== 'FPMS' || topUpSystemConfig.name !== 'PMS')) {
                             bPMSGroup = false;
                         } else if (player && player.platform && player.platform.wechatPayGroupIsPMS) {
                             bPMSGroup = true
@@ -4235,7 +4280,7 @@ var dbPlayerTopUpRecord = {
                     let bonusCodeValidity = data[1];
 
                     if (player && player.platform && ((player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) ||
-                        (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2'))) {
+                        (topUpSystemConfig && topUpSystemConfig.name && (topUpSystemConfig.name !== 'FPMS' || topUpSystemConfig.name !== 'PMS')))) {
                         let minTopUpAmount = player.platform.minTopUpAmount || 0;
                         if (amount < minTopUpAmount && entryType != "ADMIN") {
                             return Q.reject({
@@ -4415,7 +4460,7 @@ var dbPlayerTopUpRecord = {
                         //console.log("requestData", requestData);
                         if (isFPMS) {
                             return dbPlayerTopUpRecord.wechatpayTopUpValidate(requestData, wechatAccount);
-                        } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'FPMS') {
                             delete requestData.groupWechatList;
                             delete requestData.aliPayAccount;
 
@@ -4423,7 +4468,7 @@ var dbPlayerTopUpRecord = {
                             requestData.depositMethod = constTopUpMethod.WECHAT;
                             requestData.depositTime = cTimeString;
 
-                            return RESTUtils.getPMS2Services("postCreateTopup", requestData);
+                            return RESTUtils.getPMS2Services("postCreateTopup", requestData, player.platform.topUpSystemType);
                         }
                     }
                     else {
@@ -4473,7 +4518,7 @@ var dbPlayerTopUpRecord = {
                     if (isFPMS && pmsData.result.hasOwnProperty("quotaUsed")) {
                         quotaUsedProm = Promise.resolve([{totalAmount:  pmsData.result.quotaUsed}]);
                     } else {
-                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        if (topUpSystemConfig && topUpSystemConfig.name && (topUpSystemConfig.name !== 'FPMS' || topUpSystemConfig.name !== 'PMS')) {
                             queryObj["data.topUpSystemName"] = topUpSystemConfig.name;
                         } else {
                             if (!queryObj.$and) {
@@ -4546,7 +4591,7 @@ var dbPlayerTopUpRecord = {
                             wechatAcc = request.result.bankCardNo;
                         }
 
-                        updateWeChatPayTopUpProposalDailyLimit(proposalQuery, wechatAcc, isFPMS, player.platform.platformId, topUpSystemConfig).catch(errorUtils.reportError);
+                        updateWeChatPayTopUpProposalDailyLimit(proposalQuery, wechatAcc, isFPMS, player.platform.platformId, topUpSystemConfig, player.platform.topUpSystemType).catch(errorUtils.reportError);
 
                         let checkProposalStatus = Promise.resolve();
                         if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
@@ -4737,28 +4782,25 @@ var dbPlayerTopUpRecord = {
     },
 
     forcePairingWithReferenceNumber: function(platformId, proposalObjId, proposalId, referenceNumber) {
-        let isPMS2Proposal = false;
 
         return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
             if (proposal && proposal.data && new Date(proposal.data.validTime) < new Date) {
                 return Promise.reject({message: "提案已过期"});
             }
 
-            if (proposal && proposal.data && proposal.data.topUpSystemName == "PMS2") {
-                isPMS2Proposal = true;
+            if (proposal && proposal.data && proposal.data.topUpSystemName && proposal.data.topUpSystemName !== 'FPMS') {
+
                 let requestData = {
                     platformId: platformId,
                     proposalId: proposalId,
                     depositId: referenceNumber
                 };
 
-                return RESTUtils.getPMS2Services("postTopupForceMatch", requestData);
-            } else {
-                // Other payment systems
+                return RESTUtils.getPMS2Services("postTopupForceMatch", requestData, proposal.data.topUpSystemType);
             }
         }).then(data => {
             console.log("forcePairingWithReferenceNumber data", data);
-            if (data || isPMS2Proposal) {
+            if (data) {
                 // execute TopUp
                 let remarks = "强制匹配：成功。";
                 return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
@@ -5149,7 +5191,7 @@ proto = Object.assign(proto, dbPlayerTopUpRecord);
 // This make WebStorm navigation work
 module.exports = dbPlayerTopUpRecord;
 
-function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, platformId, topUpSystemConfig) {
+function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, platformId, topUpSystemConfig, paymentSystemId) {
     let prom;
     if (isFPMS && platformId) {
         prom = dbconfig.collection_platformBankCardList.findOne({accountNumber: bankCardNo, platformId: platformId}).lean().then(
@@ -5157,12 +5199,12 @@ function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, 
                 return {data: bankCardList}
             }
         );
-    } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+    } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'FPMS') {
         let options = {
             accountNumber: bankCardNo
         };
 
-        prom = RESTUtils.getPMS2Services("postBankCard", options);
+        prom = RESTUtils.getPMS2Services("postBankCard", options, paymentSystemId);
     }
 
     return prom.then(
@@ -5174,7 +5216,7 @@ function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, 
     );
 }
 
-function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, platformId, topUpSystemConfig) {
+function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, platformId, topUpSystemConfig, paymentSystemId) {
     let prom;
     if (isFPMS && platformId) {
         prom = dbconfig.collection_platformAlipayList.findOne({accountNumber: accNo, platformId: platformId}).lean().then(
@@ -5182,12 +5224,12 @@ function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, plat
                 return {data: alipayList}
             }
         );
-    } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+    } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'FPMS') {
         let options = {
             accountNumber: accNo
         };
 
-        prom = RESTUtils.getPMS2Services("postBankCard", options);
+        prom = RESTUtils.getPMS2Services("postBankCard", options, paymentSystemId);
     }
 
     return prom.then(
@@ -5202,7 +5244,7 @@ function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, plat
     );
 }
 
-function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, platformId, topUpSystemConfig) {
+function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, platformId, topUpSystemConfig, paymentSystemId) {
     let prom;
 
     if (isFPMS && platformId) {
@@ -5211,7 +5253,7 @@ function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, p
                 return {data: wechatList}
             }
         );
-    } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+    } else if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'FPMS') {
         let options = {
             accountNumber: accNo
         };

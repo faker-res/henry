@@ -264,6 +264,7 @@ var proposalExecutor = {
             this.executions.executePlayerTopUpReturn.des = "Player top up return";
             this.executions.executePlayerConsumptionIncentive.des = "Player consumption incentive";
             this.executions.executePlayerLevelUp.des = "Player Level Up";
+            this.executions.executePlayerLevelMaintain.des = "Player Level Maintain";
             this.executions.executePartnerTopUpReturn.des = "Partner Top Up Return";
             this.executions.executePlayerTopUpReward.des = "Player Top Up Reward";
             this.executions.executePlayerReferralReward.des = "Player Referral Reward";
@@ -353,6 +354,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerTopUpReturn.des = "Reject Player top up return";
             this.rejections.rejectPlayerConsumptionIncentive.des = "Reject Player consumption incentive";
             this.rejections.rejectPlayerLevelUp.des = "Reject Player Level Up";
+            this.rejections.rejectPlayerLevelMaintain.des = "Reject Player Level Maintain";
             this.rejections.rejectPartnerTopUpReturn.des = "Reject Partner Top Up Return";
             this.rejections.rejectPlayerTopUpReward.des = "Reject Player Top Up Reward";
             this.rejections.rejectPlayerReferralReward.des = "Reject Player Referral Reward";
@@ -1579,7 +1581,7 @@ var proposalExecutor = {
                                     status: proposalData.status,
                                     playerId: proposalData.data.playerId
                                 }
-                            ).catch(errorUtils.reportError);
+                            )//.catch(errorUtils.reportError);
                         }
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
@@ -2169,13 +2171,8 @@ var proposalExecutor = {
                         };
 
                        console.log('withdrawAPIAddr player req:', message);
-                       let paymentSystemId;
-                       if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'DAYOU') {
-                           paymentSystemId = bonusSystemType;
-                       }
-                       console.log('withdrawAPIAddr player paymentSystemId', paymentSystemId);
 
-                       return RESTUtils.getPMS2Services('postWithdraw', message, paymentSystemId).then(
+                       return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
                            function (bonusData) {
                                console.log('bonus post success', bonusData);
                                if (bonusData) {
@@ -2285,13 +2282,7 @@ var proposalExecutor = {
 
                         console.log('withdrawAPIAddr partner req:', message);
 
-                        let paymentSystemId;
-                        if (proposalData && proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'DAYOU') {
-                            paymentSystemId = bonusSystemType;
-                        }
-                        console.log('withdrawAPIAddr partner paymentSystemId', paymentSystemId);
-
-                        return RESTUtils.getPMS2Services('postWithdraw', message, paymentSystemId).then(
+                        return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
                             function (bonusData) {
                                 console.log('partner bonus post success', bonusData);
                                 if (bonusData) {
@@ -2368,6 +2359,34 @@ var proposalExecutor = {
                     else {
                         changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constProposalType.PLAYER_LEVEL_UP, proposalData.data).then(deferred.resolve, deferred.reject);
                         sendMessageToPlayer(proposalData,constMessageType.PLAYER_LEVEL_UP_SUCCESS,{});
+                    }
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player level up reward proposal data"});
+                }
+            },
+
+            executePlayerLevelMaintain: function (proposalData, deferred) {
+                //create reward task for related player
+                //verify data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
+                    if (proposalData.data.isRewardTask) {
+                        var taskData = {
+                            playerId: proposalData.data.playerObjId,
+                            type: constRewardType.PLAYER_LEVEL_MAINTAIN,
+                            rewardType: constRewardType.PLAYER_LEVEL_MAINTAIN,
+                            platformId: proposalData.data.platformObjId,
+                            //todo::check unlock amount here
+                            requiredUnlockAmount: proposalData.data.requiredUnlockAmount || 0,
+                            providerGroup: proposalData.data.providerGroup,
+                            currentAmount: proposalData.data.rewardAmount,
+                            initAmount: proposalData.data.rewardAmount,
+                        };
+                        createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_LEVEL_MAINTAIN, proposalData);
+                    }
+                    else {
+                        changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constProposalType.PLAYER_LEVEL_MAINTAIN, proposalData.data).then(deferred.resolve, deferred.reject);
+                        sendMessageToPlayer(proposalData,constMessageType.PLAYER_LEVEL_MAINTAIN_SUCCESS,{});
                     }
                 }
                 else {
@@ -3116,6 +3135,7 @@ var proposalExecutor = {
                                             newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
                                             newPromoCodeEntry.platformObjId = platformObjId;
                                             newPromoCodeEntry.promoCodeTemplateObjId = promoCodeTemplate._id;
+                                            newPromoCodeEntry.hasPromoCodeTemplateObjId = true;
                                             newPromoCodeEntry.isSharedWithXIMA = promoCodeTemplate.isSharedWithXIMA;
                                             newPromoCodeEntry.disableWithdraw = promoCodeTemplate.disableWithdraw;
                                             newPromoCodeEntry.requiredConsumption = promoCodeTemplate.requiredConsumption;
@@ -3979,6 +3999,7 @@ var proposalExecutor = {
                                 newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
                                 newPromoCodeEntry.platformObjId = platformObjId;
                                 newPromoCodeEntry.promoCodeTemplateObjId = promoCodeTemplateData._id;
+                                newPromoCodeEntry.hasPromoCodeTemplateObjId = true;
                                 newPromoCodeEntry.isSharedWithXIMA = promoCodeTemplateData.isSharedWithXIMA;
                                 newPromoCodeEntry.disableWithdraw = promoCodeTemplateData.disableWithdraw;
                                 newPromoCodeEntry.requiredConsumption = promoCodeTemplateData.requiredConsumption;
@@ -4618,6 +4639,7 @@ var proposalExecutor = {
              */
             rejectPlayerTopUp: function (proposalData, deferred) {
                 var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                let paymentSystemId;
                 if (wsMessageClient) {
                     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
                         {
@@ -4630,11 +4652,15 @@ var proposalExecutor = {
                     );
                 }
 
+                if (proposalData && proposalData.data && proposalData.data.topUpSystemType) {
+                    paymentSystemId = proposalData.data.topUpSystemType;
+                }
+
                 // pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
                 //     deferred.resolve, deferred.reject
                 // );
 
-                RESTUtils.getPMS2Services("postCancelTopup", {proposalId: proposalData.proposalId}).then(deferred.resolve, deferred.reject);
+                RESTUtils.getPMS2Services("postCancelTopup", {proposalId: proposalData.proposalId}, paymentSystemId).then(deferred.resolve, deferred.reject);
             },
 
             rejectPlayerFKPTopUp: function (proposalData, deferred) {
@@ -4662,12 +4688,12 @@ var proposalExecutor = {
                 //     );
                 // }
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType
-                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName !== 'FPMS') {
                     let data = {
                         proposalId: proposalData.proposalId
                     };
 
-                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
+                    return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType).then(deferred.resolve, deferred.reject);
                 } else {
                     //deduct alipay daily quota
                     if (proposalData.data && proposalData.data.alipayAccount && proposalData.data.platform && proposalData.data.amount) {
@@ -4705,12 +4731,12 @@ var proposalExecutor = {
                 //     );
                 // }
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType
-                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName !== 'FPMS') {
                     let data = {
                         proposalId: proposalData.proposalId
                     };
 
-                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
+                    return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType).then(deferred.resolve, deferred.reject);
                 } else {
                     //deduct wechatpay daily quota
                     if (proposalData.data && proposalData.data.weChatAccount && proposalData.data.platform && proposalData.data.amount) {
@@ -4754,12 +4780,12 @@ var proposalExecutor = {
              */
             rejectManualPlayerTopUp: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType
-                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName !== 'FPMS') {
                     let data = {
                         proposalId: proposalData.proposalId
                     };
 
-                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
+                    return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType).then(deferred.resolve, deferred.reject);
                 } else {
                     //deduct bank daily quota
                     if (proposalData.data && proposalData.data.bankCardNo && proposalData.data.platform && proposalData.data.amount) {
@@ -4785,12 +4811,12 @@ var proposalExecutor = {
              */
             rejectPlayerAssignTopUp: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType
-                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName === 'PMS2') {
+                    && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName !== 'FPMS') {
                     let data = {
                         proposalId: proposalData.proposalId
                     };
 
-                    return RESTUtils.getPMS2Services("postCancelTopup", data).then(deferred.resolve, deferred.reject);
+                    return RESTUtils.getPMS2Services("postCancelTopup", data, proposalData.data.topUpSystemType).then(deferred.resolve, deferred.reject);
                 } else {
                     //deduct bank daily quota
                     if (proposalData.data && proposalData.data.bankCardNo && proposalData.data.platform && proposalData.data.amount) {
@@ -4904,6 +4930,13 @@ var proposalExecutor = {
              * reject function for player level up
              */
             rejectPlayerLevelUp: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject function for player level maintain
+             */
+            rejectPlayerLevelMaintain: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 
@@ -5640,7 +5673,7 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
     //type that need to add 'Success' status
     let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP, constRewardType.PLAYER_RANDOM_REWARD_GROUP,
-        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP, constRewardType.PLAYER_RETENTION_REWARD_GROUP
+        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP, constRewardType.PLAYER_RETENTION_REWARD_GROUP, constRewardType.PLAYER_LEVEL_MAINTAIN
     ];
 
     // type reference to constMessageType or constMessageTypeParam.name
@@ -5651,14 +5684,14 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
 
     console.log("checking messageType", messageType)
     let providerProm = Promise.resolve();
-    if (messageType == messageType.PLAYER_LEVEL_UP_SUCCESS && proposalData && proposalData.data && proposalData.data.providerGroup) {
+    if ((messageType == messageType.PLAYER_LEVEL_UP_SUCCESS || messageType == messageType.PLAYER_LEVEL_MAINTAIN_SUCCESS) && proposalData && proposalData.data && proposalData.data.providerGroup) {
         providerProm = dbconfig.collection_gameProviderGroup.findOne({
             _id:ObjectId(proposalData.data.providerGroup)
         });
     }
     providerProm.then(
         providerData => {
-            if (messageType == constMessageType.PLAYER_LEVEL_UP_SUCCESS) {
+            if (messageType == constMessageType.PLAYER_LEVEL_UP_SUCCESS || messageType == messageType.PLAYER_LEVEL_MAINTAIN_SUCCESS) {
                 if (providerData && providerData.name) {
                     proposalData.data.providerGroup = providerData.name;
                 } else {

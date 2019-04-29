@@ -162,10 +162,11 @@
                                             text(style="width: 60px") {{level.value}}
                                         td.static(colspan='{{vm.configTableAdd? 7: vm.configTableEdit ? 8 : 6}}')
                                             text {{"Level Up Conditions" | translate}}
-                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                        //td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                        td(rowspan='{{level.levelUpConfig.length + 1}}')
                                             input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.reward.bonusCredit')
                                             text(ng-show='!vm.configTableEdit') {{level.reward.bonusCredit | number}}
-                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                        td(rowspan='{{level.levelUpConfig.length + 1}}')
                                             div(ng-if='vm.selectedPlatform.data.useProviderGroup')
                                                 select(ng-show='vm.configTableEdit', ng-model='level.reward.providerGroup')
                                                     option(value='free') {{"LOCAL_CREDIT"|translate}}
@@ -177,10 +178,10 @@
                                             //input(ng-show='vm.configTableEdit', type='checkbox', ng-model='level.reward.isRewardTask')
                                             //i.fa.fa-square-o(ng-show='!vm.configTableEdit && !level.reward.isRewardTask')
                                             //i.fa.fa-check-square-o(ng-show='!vm.configTableEdit && level.reward.isRewardTask')
-                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                        td(rowspan='{{level.levelUpConfig.length + 1}}')
                                             input(ng-show='vm.configTableEdit', type='number', style='width:100px', ng-model='level.reward.requiredUnlockTimes', ng-change='vm.playerLevelChangeIsRewardTask(level)')
                                             text(ng-show='!vm.configTableEdit') {{level.reward.requiredUnlockTimes | number}}
-                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                        td(rowspan='{{level.levelUpConfig.length + 1}}')
                                             input(ng-show='vm.configTableEdit', type='checkbox', ng-model='level.canApplyConsumptionReturn')
                                             i.fa.fa-square-o(ng-show='!vm.configTableEdit && !level.canApplyConsumptionReturn')
                                             i.fa.fa-check-square-o(ng-show='!vm.configTableEdit && level.canApplyConsumptionReturn')
@@ -220,6 +221,22 @@
                                     tr
                                         td.static(colspan='{{vm.configTableAdd? 7: vm.configTableEdit ? 8 : 6}}', ng-class='{hidden: i === 0}')
                                             text {{"Level Down Conditions" | translate}}
+                                        td(rowspan='{{level.levelDownConfig.length + 1}}', ng-class='{hidden: i === 0}')
+                                            input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.reward.bonusCreditLevelDown')
+                                            text(ng-show='!vm.configTableEdit') {{level.reward.bonusCreditLevelDown | number}}
+                                        td(rowspan='{{level.levelDownConfig.length + 1}}', ng-class='{hidden: i === 0}')
+                                            div(ng-if='vm.selectedPlatform.data.useProviderGroup')
+                                                select(ng-show='vm.configTableEdit', ng-model='level.reward.providerGroupLevelDown')
+                                                    option(value='free') {{"LOCAL_CREDIT"|translate}}
+                                                    option(ng-repeat="(groupId, groupName) in vm.gameProviderGroupNames", value='{{groupId}}') {{groupName}}
+                                                text(ng-show='!vm.configTableEdit') {{vm.gameProviderGroupNames[level.reward.providerGroupLevelDown] || ("LOCAL_CREDIT" | translate)}}
+                                        td(rowspan='{{level.levelDownConfig.length + 1}}', ng-class='{hidden: i === 0}')
+                                            input(ng-show='vm.configTableEdit', type='number', style='width:100px', ng-model='level.reward.requiredUnlockTimesLevelDown', ng-change='vm.playerLevelDownChangeIsRewardTask(level)')
+                                            text(ng-show='!vm.configTableEdit') {{level.reward.requiredUnlockTimesLevelDown | number}}
+                                        td(rowspan='{{level.levelDownConfig.length + 1}}', ng-class='{hidden: i === 0}')
+                                            input(ng-show='vm.configTableEdit', type='checkbox', ng-model='level.canApplyConsumptionReturnLevelDown')
+                                            i.fa.fa-square-o(ng-show='!vm.configTableEdit && !level.canApplyConsumptionReturnLevelDown')
+                                            i.fa.fa-check-square-o(ng-show='!vm.configTableEdit && level.canApplyConsumptionReturnLevelDown')
                                     tr(ng-repeat='(j,oneConfig) in level.levelDownConfig', ng-class='{hidden: i === 0}')
                                         td(ng-if='(vm.configTableEdit || vm.configTableAdd) && j == 0', rowspan='{{level.levelDownConfig.length}}')
                                             //a.fa.fa-plus-circle(ng-click='level.levelDownConfig.push({})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
@@ -253,7 +270,7 @@
 
                                 tbody(ng-if='vm.configTableAdd')
                                     tr.stronger-top
-                                        td(colspan='10')
+                                        td(colspan='13')
                                             text &nbsp;
                                 thead(ng-if='vm.configTableAdd')
                                     tr.stronger-top.stronger-bottom
@@ -268,9 +285,9 @@
                                             input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.value', required, disabled)
                                         td.static(colspan='7')
                                             text {{"Level Up Conditions" | translate}}
-                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 1}}')
                                             input.form-control(type='number', min=0, ng-model='vm.newPlayerLvl.reward.bonusCredit', required)
-                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 1}}')
                                             //input(type='checkbox', ng-model='vm.newPlayerLvl.reward.isRewardTask', required)
                                             div(ng-if='vm.selectedPlatform.data.useProviderGroup')
                                                 select(ng-model='vm.newPlayerLvl.reward.providerGroup')
@@ -279,9 +296,9 @@
 
                                             div(ng-if='!vm.selectedPlatform.data.useProviderGroup')
                                                 text {{"LOCAL_CREDIT" | translate}}
-                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
-                                            input.form-control(type='number', ng-model='vm.newPlayerLvl.reward.requiredUnlockTimes')
-                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 1}}')
+                                            input.form-control(type='number', ng-model='vm.newPlayerLvl.reward.requiredUnlockTimes' ng-change='vm.playerLevelChangeIsRewardTask(vm.newPlayerLvl)')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 1}}')
                                             input(type='checkbox', ng-model='vm.newPlayerLvl.canApplyConsumptionReturn')
 
                                     tr(ng-repeat='(j,levelConfig) in vm.newPlayerLevelUpConfig')
@@ -312,6 +329,17 @@
                                     tr
                                         td.static(colspan='7')
                                             text {{"Level Down Conditions" | translate}}
+                                        td(rowspan='{{vm.newPlayerLvl.levelDownConfig.length + 1}}')
+                                            input.form-control(type='number', min=0, ng-model='vm.newPlayerLvl.reward.bonusCreditLevelDown', required)
+                                        td(rowspan='{{vm.newPlayerLvl.levelDownConfig.length + 1}}')
+                                            div(ng-if='vm.selectedPlatform.data.useProviderGroup')
+                                                select(ng-model='vm.newPlayerLvl.reward.providerGroupLevelDown')
+                                                    option(value='free') {{"LOCAL_CREDIT"|translate}}
+                                                    option(ng-repeat="(groupId, groupName) in vm.gameProviderGroupNames", value='{{groupId}}') {{groupName}}
+                                        td(rowspan='{{vm.newPlayerLvl.levelDownConfig.length + 1}}',)
+                                            input(type='number', style='width:100px', ng-model='vm.newPlayerLvl.reward.requiredUnlockTimesLevelDown', ng-change='vm.playerLevelDownChangeIsRewardTask(vm.newPlayerLvl)')
+                                        td(rowspan='{{vm.newPlayerLvl.levelDownConfig.length + 1}}')
+                                            input(type='checkbox', ng-model='vm.newPlayerLvl.canApplyConsumptionReturnLevelDown')
                                     tr
                                         td
                                         td
