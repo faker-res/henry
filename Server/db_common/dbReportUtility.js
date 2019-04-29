@@ -40,6 +40,8 @@ const constDepositMethod = {
     6: '云闪付'
 };
 
+let bankTypeList = [];
+
 const dbReportUtility = {
     generateExcelFile: (reportName, outputResult) => {
         let wb = XLSX.utils.book_new();
@@ -69,7 +71,8 @@ const dbReportUtility = {
                                 "在线充值类型": constMerchantTopupType[res.data.topupType],
                                 "第三方平台": res.data.merchantUseName,
                                 "手工存款方式": constDepositMethod[res.data.depositMethod],
-                                "收款商户/账号": res.data.bankTypeId,
+                                "收款银行类别": res.data.bankTypeId && bankTypeList.length && bankTypeList.find(p => p.bankTypeId === res.data.bankTypeId).name || res.data.bankTypeId,
+                                "收款商户/账号": res.data.merchantName,
                                 "商户计数": res.$merchantCurrentCount + "/" + res.$merchantAllCount + " (" + res.$merchantGapTime + ")",
                                 "状态": localization.localization.translate(res.status),
                                 "会员账号": res.data.playerName,
@@ -125,5 +128,13 @@ const dbReportUtility = {
         }
     }
 };
+
+getBankTypeList();
+
+function getBankTypeList () {
+    RESTUtils.getPMS2Services("postBankTypeList", {}, 4).then(data => {
+        bankTypeList = data.data;
+    });
+}
 
 module.exports = dbReportUtility;
