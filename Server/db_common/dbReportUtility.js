@@ -87,7 +87,7 @@ const dbReportUtility = {
                                 "创建者": (res.creator && res.creator.name) || "",
                                 "入口": constPlayerRegistrationInterface[res.inputDevice],
                                 "提案类型": localization.localization.translate(res.mainType),
-                                "提案子类型": res.data.PROMO_CODE_TYPE || res.data.eventName ,
+                                "提案子类型": res.data.PROMO_CODE_TYPE || res.data.eventName || localization.localization.translate(res.type.name),
                                 "提案状态": localization.localization.translate(res.status),
                                 "涉及账号": res.data.playerName,
                                 "涉及额度": res.data.rewardAmount || res.data.amount || res.data.updateAmount,
