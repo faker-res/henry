@@ -24774,8 +24774,8 @@ define(['js/app'], function (myApp) {
             }
 
 
-            vm.getRewardPointsLvlConfig = (platformObjId) => {
-                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: platformObjId}).then((data) => {
+            vm.getRewardPointsLvlConfig = () => {
+                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: vm.selectedPlatform.id}).then((data) => {
                     vm.rewardPointsLvlConfig = data.data;
                     $scope.safeApply();
                 });
