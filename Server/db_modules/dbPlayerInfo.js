@@ -19962,9 +19962,6 @@ let dbPlayerInfo = {
                         for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                             let prom;
 
-                            //recalculate player value
-                            dbPlayerCredibility.calculatePlayerValue(playerObjIds[p]);
-
                             if (option.isDX) {
                                 prom = dbconfig.collection_players.findOne({
                                     _id: playerObjIds[p]
@@ -20043,6 +20040,9 @@ let dbPlayerInfo = {
         function getPlayerRecord(playerObjId, startTime, endTime, domain, showPlatformFeeEstimate) {
 
             console.log('getConsumptionDetailOfPlayers getPlayerRecord - start');
+
+            //recalculate player value
+            dbPlayerCredibility.calculatePlayerValue(playerObjId).catch(errorUtils.reportError);
 
             let result = {_id: playerObjId};
             playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
