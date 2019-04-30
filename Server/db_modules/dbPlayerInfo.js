@@ -20100,58 +20100,63 @@ let dbPlayerInfo = {
                 }
             );
 
-            let topUpProm = dbconfig.collection_proposal.aggregate([
+            let topupAndBonusProm = dbconfig.collection_proposal.aggregate([
                 {
                     "$match": {
-                        "data.playerObjId": playerObjId,
+                        "data.playerObjId": ObjectId(playerObjId),
                         "createTime": {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
                         },
-                        "mainType": "TopUp",
+                        "mainType": {$in: ["TopUp", "PlayerBonus"]},
                         "status": option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
                 {
-                    "$group": {
-                        "_id": "$type",
-                        "typeId": {"$first": "$type"},
-                        "count": {"$sum": 1},
-                        "amount": {"$sum": "$data.amount"}
-                    }
-                }
-            ]).allowDiskUse(true).read("secondaryPreferred").then(
-                data => {
-                    console.log('done topUpProm');
-                    return data;
-                }
-            );
-
-            let bonusProm = dbconfig.collection_proposal.aggregate([
-                {
-                    "$match": {
-                        "data.playerObjId": playerObjId,
-                        "createTime": {
-                            "$gte": new Date(startTime),
-                            "$lte": new Date(endTime)
+                    $group: {
+                        _id: {
+                            mainType: "$mainType",
+                            typeId: "$type"
                         },
-                        "mainType": "PlayerBonus",
-                        "status": option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                    }
-                },
-                {
-                    "$group": {
-                        "_id": null,
-                        "count": {"$sum": 1},
-                        "amount": {"$sum": "$data.amount"}
+                        count: {"$sum": 1},
+                        amount: {"$sum": "$data.amount"}
                     }
                 }
+                // {
+                //     "$group": {
+                //         "_id": "$type",
+                //         "typeId": {"$first": "$type"},
+                //         "count": {"$sum": 1},
+                //         "amount": {"$sum": "$data.amount"}
+                //     }
+                // }
             ]).allowDiskUse(true).read("secondaryPreferred");
+
+            // let bonusProm = dbconfig.collection_proposal.aggregate([
+            //     {
+            //         "$match": {
+            //             "data.playerObjId": ObjectId(playerObjId),
+            //             "createTime": {
+            //                 "$gte": new Date(startTime),
+            //                 "$lte": new Date(endTime)
+            //             },
+            //             "mainType": "PlayerBonus",
+            //             "status": option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+            //         }
+            //     },
+            //     {
+            //         "$group": {
+            //             "_id": null,
+            //             "count": {"$sum": 1},
+            //             "amount": {"$sum": "$data.amount"}
+            //         }
+            //     }
+            // ]).allowDiskUse(true).read("secondaryPreferred");
 
             let consumptionReturnProm = dbconfig.collection_proposal.aggregate([
                 {
                     "$match": {
-                        "data.playerObjId": playerObjId,
+                        "data.playerObjId": ObjectId(playerObjId),
                         "createTime": {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
@@ -20172,7 +20177,7 @@ let dbPlayerInfo = {
             let rewardProm = dbconfig.collection_proposal.aggregate([
                 {
                     "$match": {
-                        "data.playerObjId": playerObjId,
+                        "data.playerObjId": ObjectId(playerObjId),
                         "createTime": {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
@@ -20193,7 +20198,7 @@ let dbPlayerInfo = {
             let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
                 {
                     "$match": {
-                        "data.playerObjId": playerObjId,
+                        "data.playerObjId": ObjectId(playerObjId),
                         "createTime": {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
@@ -20339,9 +20344,9 @@ let dbPlayerInfo = {
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
 
-            return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm, onlineTopUpByMerchantProm]).then(
+            return Promise.all([consumptionProm, topupAndBonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm, onlineTopUpByMerchantProm]).then(
                 data => {
-                    if (!data[5]) {
+                    if (!data[4]) {
                         return "";
                     }
 
@@ -20456,35 +20461,63 @@ let dbPlayerInfo = {
                     result.weChatTopUpAmount = 0;
                     result.aliPayTopUpAmount = 0;
 
-                    let topUpTypeDetail = data[1];
-                    for (let i = 0, len = topUpTypeDetail.length; i < len; i++) {
-                        let topUpTypeRecord = topUpTypeDetail[i];
+                    let topUpAndBonusDetail = data[1];
+                    let bonusDetail = {};
 
-                        if (topUpTypeRecord.typeId.toString() === onlineTopUpTypeId) {
-                            result.onlineTopUpAmount = topUpTypeRecord.amount;
-                        }
-                        else if (topUpTypeRecord.typeId.toString() === manualTopUpTypeId) {
-                            result.manualTopUpAmount = topUpTypeRecord.amount;
-                        }
-                        else if (topUpTypeRecord.typeId.toString() === weChatTopUpTypeId) {
-                            result.weChatTopUpAmount = topUpTypeRecord.amount;
-                        }
-                        else if (topUpTypeRecord.typeId.toString() === aliPayTopUpTypeId) {
-                            result.aliPayTopUpAmount = topUpTypeRecord.amount;
-                        }
+                    if (topUpAndBonusDetail && topUpAndBonusDetail.length) {
+                        topUpAndBonusDetail.forEach(e => {
+                            if (e._id.mainType === 'TopUp') {
+                                if (e._id.typeId.toString() === onlineTopUpTypeId) {
+                                    result.onlineTopUpAmount = e.amount;
+                                }
+                                else if (e._id.typeId.toString() === manualTopUpTypeId) {
+                                    result.manualTopUpAmount = e.amount;
+                                }
+                                else if (e._id.typeId.toString() === weChatTopUpTypeId) {
+                                    result.weChatTopUpAmount = e.amount;
+                                }
+                                else if (e._id.typeId.toString() === aliPayTopUpTypeId) {
+                                    result.aliPayTopUpAmount = e.amount;
+                                }
 
-                        result.topUpAmount += topUpTypeRecord.amount;
-                        result.topUpTimes += topUpTypeRecord.count;
+                                result.topUpAmount += e.amount;
+                                result.topUpTimes += e.count;
+                            } else if (e._id.mainType === 'PlayerBonus') {
+                                bonusDetail.amount = e.amount ? e.amount : 0;
+                                bonusDetail.count = e.count ? e.count : 0;
+                            }
+                        })
                     }
 
-                    let bonusDetail = data[2][0];
+                    // let topUpTypeDetail = data[1];
+                    // for (let i = 0, len = topUpTypeDetail.length; i < len; i++) {
+                    //     let topUpTypeRecord = topUpTypeDetail[i];
+                    //
+                    //     if (topUpTypeRecord.typeId.toString() === onlineTopUpTypeId) {
+                    //         result.onlineTopUpAmount = topUpTypeRecord.amount;
+                    //     }
+                    //     else if (topUpTypeRecord.typeId.toString() === manualTopUpTypeId) {
+                    //         result.manualTopUpAmount = topUpTypeRecord.amount;
+                    //     }
+                    //     else if (topUpTypeRecord.typeId.toString() === weChatTopUpTypeId) {
+                    //         result.weChatTopUpAmount = topUpTypeRecord.amount;
+                    //     }
+                    //     else if (topUpTypeRecord.typeId.toString() === aliPayTopUpTypeId) {
+                    //         result.aliPayTopUpAmount = topUpTypeRecord.amount;
+                    //     }
+                    //
+                    //     result.topUpAmount += topUpTypeRecord.amount;
+                    //     result.topUpTimes += topUpTypeRecord.count;
+                    // }
+                    //
+                    // let bonusDetail = data[2][0];
                     result.bonusAmount = bonusDetail && bonusDetail.amount ? bonusDetail.amount : 0;
                     result.bonusTimes = bonusDetail && bonusDetail.count ? bonusDetail.count : 0;
 
-                    let consumptionReturnDetail = data[3][0];
+                    let consumptionReturnDetail = data[2][0];
                     result.consumptionReturnAmount = consumptionReturnDetail && consumptionReturnDetail.amount ? consumptionReturnDetail.amount : 0;
 
-                    let rewardDetail = data[4][0];
+                    let rewardDetail = data[3][0];
                     result.rewardAmount = rewardDetail && rewardDetail.amount ? rewardDetail.amount : 0;
 
                     // filter irrelevant result base on query
@@ -20561,7 +20594,7 @@ let dbPlayerInfo = {
                     }
 
                     // player related
-                    let playerDetail = data[5];
+                    let playerDetail = data[4];
                     if (playerDetail.credibilityRemarks && playerDetail.credibilityRemarks.length) {
                         result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e._id);
                         result.credibilityRemarksName = playerDetail.credibilityRemarks.reduce((i, n, idx, arr) => {
@@ -20584,7 +20617,7 @@ let dbPlayerInfo = {
                     result.lastAccessTime = playerDetail.lastAccessTime;
                     result.realName = playerDetail.realName;
 
-                    let csOfficerDetail = data[6];
+                    let csOfficerDetail = data[5];
 
                     // related admin
                     if (playerDetail.accAdmin) {
@@ -20607,7 +20640,7 @@ let dbPlayerInfo = {
                     result.province = playerDetail.province ? playerDetail.province : null;
                     result.city = playerDetail.city ? playerDetail.city : null;
 
-                    let onlineTopUpDetailByMerchant = data && data[7] ? data[7] : [];
+                    let onlineTopUpDetailByMerchant = data && data[6] ? data[6] : [];
                     let totalOnlineTopUpFee = 0;
 
                     if (onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 && merchantList && merchantList.length > 0) {
