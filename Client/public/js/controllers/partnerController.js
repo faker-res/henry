@@ -11346,6 +11346,7 @@ define(['js/app'], function (myApp) {
             if (isGetConfig) {
                 if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                     vm.getPartnerCommissionConfigWithGameProviderConfig(partnerObjId);
+                    // vm.getPlatformCommissionRate(partnerObjId);
                 } else {
                     vm.getPartnerCommisionConfig();
                 }
@@ -16481,8 +16482,7 @@ define(['js/app'], function (myApp) {
                 case 'partnerCommission':
                     vm.partnerCommission = {};
                     // vm.getCommissionRateGameProviderGroup();
-                    vm.getPlatformCommissionRate();
-                    vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
+                    vm.selectedCommissionTab(vm.commissionSettingTab);
                     break;
                 case 'validActive':
                     vm.getActiveConfig();
@@ -16571,11 +16571,80 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPlatformCommissionRate = function () {
-            return $scope.$socketPromise("getPlatformPartnerCommConfig", {platformObjId: vm.platformInSetting._id}).then(
-                function (data) {
-                    console.log("getPlatformPartnerCommConfig", data);
+            vm.partnerCommission.isGameProviderIncluded = true;
+            vm.partnerCommission.gameProviderGroup = [];
 
-                    // todo :: add implementation
+            return $scope.$socketPromise("getPlatformPartnerCommConfig", {platformObjId: vm.platformInSetting._id})
+                .then(function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log("getPlatformPartnerCommConfig", data.data);
+                        let emptyData = JSON.parse(JSON.stringify(data.data));
+
+                        if (data && data.data && data.data.length) {
+                            vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
+                            })
+                            vm.partnerCommission.gameProviderGroup.forEach(partnerGameProviderGroup => {
+                                data.data.forEach(data => {
+                                    emptyData.forEach(emptyData => {
+                                        emptyData.commissionSetting.forEach(empty => {
+                                            empty = [];
+                                            empty.push({
+                                                playerConsumptionAmountFrom: "",
+                                                playerConsumptionAmountTo: "",
+                                                activePlayerValueFrom: "",
+                                                activePlayerValueTo: "",
+                                                commissionRate: "",
+                                                isEditing: false,
+                                                isCreateNew: true
+                                            });
+                                            if (data.commissionType == vm.constPartnerCommisionType[vm.commissionSettingTab].toString() && partnerGameProviderGroup._id == data.provider) {
+                                                partnerGameProviderGroup.showConfig = data;
+                                            }else{
+                                                partnerGameProviderGroup.showConfig = {};
+                                                partnerGameProviderGroup.showConfig.commissionSetting = empty;
+                                                partnerGameProviderGroup.showConfig.platform = vm.platformInSetting._id;
+                                                partnerGameProviderGroup.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
+                                            }
+                                        })
+                                    })
+                                })
+                            })
+                        }else{
+                            vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
+                            })
+                            vm.partnerCommission.gameProviderGroup.forEach(partnerGameProviderGroup => {
+                                partnerGameProviderGroup.showConfig = {};
+                                partnerGameProviderGroup.showConfig.commissionSetting = []
+                                partnerGameProviderGroup.showConfig.commissionSetting.push({
+                                    playerConsumptionAmountFrom: "",
+                                    playerConsumptionAmountTo: "",
+                                    activePlayerValueFrom: "",
+                                    activePlayerValueTo: "",
+                                    commissionRate: "",
+                                    isEditing: false,
+                                    isCreateNew: true
+                                });
+                                partnerGameProviderGroup.showConfig.platform = vm.platformInSetting._id;
+                                partnerGameProviderGroup.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
+                            })
+                        }
+
+                        if (vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length > 0) {
+                            vm.partnerCommission.gameProviderGroup.forEach(grp => {
+                                if (grp.showConfig && grp.showConfig.commissionSetting && grp.showConfig.commissionSetting.length > 0) {
+                                    grp.showConfig.commissionSetting.forEach(e => {
+                                        // Change to percentage format
+                                        e.commissionRate = parseFloat((e.commissionRate * 100).toFixed(2));
+                                    });
+
+                                    //clone a copy of original customized config for cancel setting purpose
+                                    grp.srcCustomConfig = grp.showConfig ? JSON.parse(JSON.stringify(grp.showConfig)) : {};
+                                }
+                            });
+                        }
+                    })
                 }
             )
         };
