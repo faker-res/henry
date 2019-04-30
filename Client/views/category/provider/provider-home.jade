@@ -116,6 +116,24 @@ div
                             div(style='display:inline-flex')
                                 .btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Update')", ng-click="vm.updatePlatformGameDisplay(vm.chosenGameDisplay)") {{'EDIT' | translate}}
 
+                    div.margin-medium(style="display: block;")
+                        div(style='display:block')
+                            {{"Current Game Orientation Setting is:" | translate}} {{ vm.orientationSetting[vm.showGame.orientation] || '未设置' }}
+                            br
+                            br
+                        div(style='display:block')
+                            div(style='display:inline-flex')
+                                input(type="radio", ng-model="vm.chosenOrientationDisplay", ng-value = "1")
+                                {{ vm.orientationSetting[1] }}
+                            div(style='display:inline-flex')
+                                input(type="radio", ng-model="vm.chosenOrientationDisplay", ng-value = "2")
+                                {{ vm.orientationSetting[2] }}
+                            div(style='display:inline-flex')
+                                input(type="radio", ng-model="vm.chosenOrientationDisplay", ng-value = "3")
+                                {{ vm.orientationSetting[3] }}
+                            div(style='display:inline-flex')
+                                .btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Update')", ng-click="vm.updatePlatformGameOrientation(vm.chosenOrientationDisplay)") {{'EDIT' | translate}}
+
 
 
 

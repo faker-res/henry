@@ -18,11 +18,18 @@ define(['js/app'], function (myApp) {
             MAINTENANCE: 2,
             HALT: 3
         };
+
         vm.gameDisplay = {
             1: $translate("Horizontal"),
             2: $translate("Vertical"),
             3: $translate("Horizontal / Vertical"),
             4: $translate("No need setup")
+        }
+
+        vm.orientationSetting = {
+            1: $translate("Landscape"),
+            2: $translate("Portrait"),
+            3: $translate("default")
         }
 
         vm.allProviderStatusKeys = ['NORMAL', 'MAINTENANCE', 'HALT'];
@@ -190,6 +197,17 @@ define(['js/app'], function (myApp) {
                 vm.gameProviderClicked({data:vm.SelectedProvider});
             })
         }
+        vm.updatePlatformGameOrientation = function(orientation){
+            var query = {
+                platform: vm.selectedPlatform.data._id,
+                game: vm.showGame,
+                orientation: orientation
+            }
+            socketService.$socket($scope.AppSocket, 'updatePlatformGameOrientation', query, function (data) {
+                vm.gameProviderClicked({data:vm.SelectedProvider});
+            })
+        }
+
         vm.updateGameType = function (oriGameType, update) {
             socketService.$socket($scope.AppSocket, 'updateGameType', {
                 query: {name: oriGameType.name},

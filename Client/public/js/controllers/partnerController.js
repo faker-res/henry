@@ -11345,9 +11345,8 @@ define(['js/app'], function (myApp) {
 
             if (isGetConfig) {
                 if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                    // vm.getPartnerCommissionConfigWithGameProviderConfig(partnerObjId);
-                    vm.getPlatformCommissionRate(partnerObjId);
-
+                    vm.getPartnerCommissionConfigWithGameProviderConfig(partnerObjId);
+                    // vm.getPlatformCommissionRate(partnerObjId);
                 } else {
                     vm.getPartnerCommisionConfig();
                 }
