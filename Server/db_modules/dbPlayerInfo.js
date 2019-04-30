@@ -20108,7 +20108,6 @@ let dbPlayerInfo = {
                 }
             ]).allowDiskUse(true).read("secondaryPreferred").then(
                 data => {
-                    console.log('done consumptionProm');
                     return dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'});
                 }
             );
@@ -20133,7 +20132,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.amount"}
                     }
                 }
-            ]).read("secondaryPreferred").then(
+            ]).allowDiskUse(true).read("secondaryPreferred").then(
                 data => {
                     console.log('done topUpProm');
                     return data;
@@ -20159,7 +20158,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.amount"}
                     }
                 }
-            ]).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred");
 
             let consumptionReturnProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -20180,7 +20179,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.rewardAmount"}
                     }
                 }
-            ]).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred");
 
             let rewardProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -20201,7 +20200,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.rewardAmount"}
                     }
                 }
-            ]).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred");
 
             let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -20233,7 +20232,7 @@ let dbPlayerInfo = {
                         amount: 1
                     }
                 }
-            ]).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred");
 
             let playerQuery = {_id: playerObjId};
             if (query.playerLevel) {
