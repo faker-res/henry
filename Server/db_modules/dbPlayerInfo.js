@@ -14472,6 +14472,9 @@ let dbPlayerInfo = {
                         ip: ip,
                         clientType: clientType || 1
                     };
+                    if (gameData && gameData.orientation) {
+                        sendData.orientation = gameData.orientation;
+                    }
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     return cpmsAPI.player_getTestLoginURLWithOutUser(sendData);
                 } else {
