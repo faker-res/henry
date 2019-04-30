@@ -892,14 +892,19 @@ let dbPlayerInfo = {
                     }
                     return checkTsPhone.then(
                         tsPhoneData => {
-                            if (tsPhoneData && tsPhoneData.tsPhoneList) {
+                            if (tsPhoneData) {
                                 // inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
                                 // inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
                                 if (tsPhoneData.tsPhone) {
                                     inputData.tsPhone = tsPhoneData.tsPhone;
+                                }
+                                if (tsPhoneData.tsPhoneList) {
                                     inputData.tsPhoneList = tsPhoneData.tsPhoneList;
+                                }
+                                if (tsPhoneData.assignee) { // no tsAssignee if tsPhone have not distribute
                                     inputData.tsAssignee = tsPhoneData.assignee;
                                 }
+
                             }
                             return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
                         }
@@ -1875,7 +1880,7 @@ let dbPlayerInfo = {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
                             tsPhoneData => {
                                 if (tsPhoneData && tsPhoneData.tsPhoneList) {
-                                    if (adminId) {
+                                    if (adminId && playerData.tsAssignee && String(adminId) == String(playerData.tsAssignee)) {
                                         dbconfig.collection_tsAssignee.findOneAndUpdate({
                                             admin: adminId,
                                             tsPhoneList: tsPhoneData.tsPhoneList
@@ -26607,7 +26612,20 @@ function checkIsTelesales(phoneNumber, platformObjId) {
                     tsPhoneList: latestTsPhone.tsPhoneList,
                     endTime: {$gte: new Date()},
                     registered: false
-                }).lean();
+                }).lean().then(
+                    tsDistributedPhone => {
+                        let returnData = {};
+                        if (tsDistributedPhone) {
+                            returnData.tsPhone = tsDistributedPhone.tsPhone;
+                            returnData.tsPhoneList = tsDistributedPhone.tsPhoneList;
+                            returnData.assignee = tsDistributedPhone.assignee;
+                        } else {
+                            returnData.tsPhone = latestTsPhone._id;
+                            returnData.tsPhoneList = latestTsPhone.tsPhoneList;
+                        }
+                        return returnData;
+                    }
+                );
             } else {
                 return null;
             }
