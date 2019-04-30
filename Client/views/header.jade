@@ -131,6 +131,9 @@ div.nav-statistic
     span {{ 'Withdrawal Amount (Day)' | translate }}: -{{ profitDetailBonusAmount }} &emsp;
     span {{ 'Revenue (Day)' | translate }}: {{ profitDetailIncome }} &emsp;
     span(ng-if='selectedPlatform.data.financialSettlement && !selectedPlatform.data.financialSettlement.financialSettlementToggle') {{ 'financialPoints' | translate }}: {{ financialPoints | noRoundTwoDecimalPlaces}} &emsp;
+    button.btn-primary {{'See More' | translate }}
+
+
     span.pull-right
         label.margin-right-5 {{"New Tab" | translate}}
             input.input-sm.pull-left.margin-right-5(style='height:inherit;margin-top:0', type='checkbox', ng-model='openInNewTab')

@@ -48,27 +48,22 @@ var dbGameProviderPlayerDaySummary = {
         if (platformId) {
             platformId = Array.isArray(platformId) ? platformId.map(id => ObjectId(id)) : [ObjectId(platformId)];
         }
+
         let matchObj = {
             providerId: providerId,
             createTime: {
                 $gte: startTime,
                 $lt: endTime
             },
-            $or: [
-                {isDuplicate: {$exists: false}},
-                {
-                    $and: [
-                        {isDuplicate: {$exists: true}},
-                        {isDuplicate: false}
-                    ]
-                }
-            ]
+            isDuplicate: {$ne: true}
         };
+
         if (platformId) {
             matchObj.platformId = {
                 $in: platformId
             };
         }
+
         return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
@@ -123,9 +118,7 @@ var dbGameProviderPlayerDaySummary = {
      * @param {ObjectId} providerId - The provider id
      */
     calculateProviderPlayerDaySummaryForPlayers: function (startTime, endTime, providerId, playerObjIds) {
-        var deferred = Q.defer();
-
-        dbconfig.collection_playerConsumptionRecord.aggregate(
+        return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
                     $match: {
@@ -135,15 +128,7 @@ var dbGameProviderPlayerDaySummary = {
                             $gte: startTime,
                             $lt: endTime
                         },
-                        $or: [
-                            {isDuplicate: {$exists: false}},
-                            {
-                                $and: [
-                                    {isDuplicate: {$exists: true}},
-                                    {isDuplicate: false}
-                                ]
-                            }
-                        ]
+                        isDuplicate: {$ne: true}
                     }
                 },
                 {
@@ -162,7 +147,7 @@ var dbGameProviderPlayerDaySummary = {
                     }
                 }
             ]
-        ).read("secondaryPreferred").cursor({batchSize: 10000}).allowDiskUse(true).exec().toArray().then(
+        ).read("secondaryPreferred").cursor({batchSize: 1000}).allowDiskUse(true).exec().toArray().then(
             function (data) {
                 if (data && data.length > 0) {
                     var prom = [];
@@ -196,29 +181,27 @@ var dbGameProviderPlayerDaySummary = {
                             )
                         );
                     }
-                    return Q.all(prom);
+                    return Promise.all(prom);
                 } else {
                     //todo:: replace string with const???
-                    deferred.resolve("No player consumption today!");
+                    return Promise.resolve("No player consumption today!");
                 }
             },
             function (error) {
-                deferred.reject({name: "DBError", message: "Error finding player consumption records!", error: error});
+                return Promise.reject({name: "DBError", message: "Error finding player consumption records!", error: error});
             }
         ).then(
             function (data) {
-                deferred.resolve(data);
+                return Promise.resolve(data);
             },
             function (error) {
-                deferred.reject({
+                return Promise.reject({
                     name: "DBError",
                     message: "Error creating provider player day summary!",
                     error: error
                 });
             }
         );
-
-        return deferred.promise;
     },
 
     /**

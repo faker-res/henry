@@ -24,6 +24,8 @@
             span.text-primary {{ v.code }}
         label(title='{{v.gameDisplay}}', class='{{vm.getGameStatusColorClass(v)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_STATUS" | translate}} :&nbsp;
             span.text-primary {{ vm.gameDisplay[v.gameDisplay] || '' }}
+        label(title='{{v.orientation}}', class='{{vm.getGameStatusColorClass(v)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_ORIENTATION" | translate}} :&nbsp;
+            span.text-primary {{ vm.orientationSetting[v.orientation] || '' }}
 
 #modalConfirmChangeGameStatus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog.modal-medium

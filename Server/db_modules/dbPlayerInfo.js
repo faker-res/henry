@@ -883,27 +883,32 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                    // return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
 
                     // /* new reqeust from Yuki: the csOfficer is only binded by domain */
-                    // let checktsPhoneFeedback = Promise.resolve();
-                    // if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
-                    //     checktsPhoneFeedback = checkTelesalesFeedback(inputData.phoneNumber, platformObjId)
-                    // }
-                    // return checktsPhoneFeedback.then(
-                    //     tsPhoneFeedbackData => {
-                    //         if (tsPhoneFeedbackData && tsPhoneFeedbackData.adminId) {
-                    //             inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
-                    //             inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
-                    //             if (tsPhoneFeedbackData.tsPhone) {
-                    //                 inputData.tsPhone = tsPhoneFeedbackData.tsPhone;
-                    //                 inputData.tsPhoneList = tsPhoneFeedbackData.tsPhoneList;
-                    //                 inputData.tsAssignee = tsPhoneFeedbackData.adminId._id;
-                    //             }
-                    //         }
-                    //         return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
-                    //     }
-                    // )
+                    let checkTsPhone = Promise.resolve();
+                    if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
+                        checkTsPhone = checkIsTelesales(inputData.phoneNumber, platformObjId);
+                    }
+                    return checkTsPhone.then(
+                        tsPhoneData => {
+                            if (tsPhoneData) {
+                                // inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
+                                // inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
+                                if (tsPhoneData.tsPhone) {
+                                    inputData.tsPhone = tsPhoneData.tsPhone;
+                                }
+                                if (tsPhoneData.tsPhoneList) {
+                                    inputData.tsPhoneList = tsPhoneData.tsPhoneList;
+                                }
+                                if (tsPhoneData.assignee) { // no tsAssignee if tsPhone have not distribute
+                                    inputData.tsAssignee = tsPhoneData.assignee;
+                                }
+
+                            }
+                            return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
+                        }
+                    )
                 }
             ).then(
                 data => {
@@ -1875,7 +1880,7 @@ let dbPlayerInfo = {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
                             tsPhoneData => {
                                 if (tsPhoneData && tsPhoneData.tsPhoneList) {
-                                    if (adminId) {
+                                    if (adminId && playerData.tsAssignee && String(adminId) == String(playerData.tsAssignee)) {
                                         dbconfig.collection_tsAssignee.findOneAndUpdate({
                                             admin: adminId,
                                             tsPhoneList: tsPhoneData.tsPhoneList
@@ -1886,11 +1891,12 @@ let dbPlayerInfo = {
                             }
                         ).catch(errorUtils.reportError);
                         dbconfig.collection_tsDistributedPhone.update({tsPhone: playerData.tsPhone}, {registered: true}, {multi: true}).catch(errorUtils.reportError);
-                    } else {
-                        if (playerData.phoneNumber) {
-                            checkTelesalesPhone(playerData.phoneNumber, platformData._id);
-                        }
                     }
+                    // else {
+                    //     if (playerData.phoneNumber) {
+                    //         checkTelesalesPhone(playerData.phoneNumber, platformData._id);
+                    //     }
+                    // }
 
                     if (playerData.isRealPlayer) {
                         dbDemoPlayer.updatePlayerConverted(playerData.platform, playerData.phoneNumber).catch(errorUtils.reportError);
@@ -4273,11 +4279,13 @@ let dbPlayerInfo = {
                             updateTsPhoneListObj.totalMultipleTopUp = 1;
                             updateTsAssigneeObj.multipleTopUpCount = 1;
                         }
-                        dbconfig.collection_tsAssignee.findOneAndUpdate({
-                            platform: data.platform,
-                            admin: data.tsAssignee,
-                            tsPhoneList: data.tsPhoneList
-                        }, {$inc: updateTsAssigneeObj}).lean().catch(errorUtils.reportError);
+                        if (data.csOfficer && String(data.csOfficer) == String(data.tsAssignee)) {
+                            dbconfig.collection_tsAssignee.findOneAndUpdate({
+                                platform: data.platform,
+                                admin: data.tsAssignee,
+                                tsPhoneList: data.tsPhoneList
+                            }, {$inc: updateTsAssigneeObj}).lean().catch(errorUtils.reportError);
+                        }
 
                     dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: data.tsPhoneList}, {$inc: updateTsPhoneListObj}).lean().catch(errorUtils.reportError);
                     }
@@ -14307,6 +14315,10 @@ let dbPlayerInfo = {
                     clientType: clientType || 1,
                     closeMusic: closeMusic || false
                 };
+
+                if (gameData && gameData.orientation) {
+                    sendData.orientation = gameData.orientation;
+                }
                 if (tableCode) {
                     sendData.tableCode = tableCode
                 }
@@ -14417,6 +14429,9 @@ let dbPlayerInfo = {
                         clientType: clientType || 1
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
+                    if (gameData && gameData.orientation) {
+                        sendData.orientation = gameData.orientation;
+                    }
                     console.log("LH check getLoginUrl err -----test login ", sendData);
                     return cpmsAPI.player_getTestLoginURL(sendData);
                 } else {
@@ -14462,6 +14477,9 @@ let dbPlayerInfo = {
                         ip: ip,
                         clientType: clientType || 1
                     };
+                    if (gameData && gameData.orientation) {
+                        sendData.orientation = gameData.orientation;
+                    }
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     return cpmsAPI.player_getTestLoginURLWithOutUser(sendData);
                 } else {
@@ -17607,7 +17625,7 @@ let dbPlayerInfo = {
 
                         if (isSinglePlayer) {
                             proposalQuery['data.playerObjId'] = playerData._id;
-                        } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                        } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
                             proposalQuery['data.playerObjId'] = {$in: playerData.map(p => p._id)}
                         }
 
@@ -17650,7 +17668,7 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 50,
+                                batchSize: 20,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platform,
@@ -19959,9 +19977,6 @@ let dbPlayerInfo = {
                         for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                             let prom;
 
-                            //recalculate player value
-                            dbPlayerCredibility.calculatePlayerValue(playerObjIds[p]);
-
                             if (option.isDX) {
                                 prom = dbconfig.collection_players.findOne({
                                     _id: playerObjIds[p]
@@ -20041,8 +20056,10 @@ let dbPlayerInfo = {
 
             console.log('getConsumptionDetailOfPlayers getPlayerRecord - start');
 
+            //recalculate player value
+            dbPlayerCredibility.calculatePlayerValue(playerObjId).catch(errorUtils.reportError);
+
             let result = {_id: playerObjId};
-            playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
             let onlineTopUpTypeId = "";
             let manualTopUpTypeId = "";
             let weChatTopUpTypeId = "";
@@ -20050,7 +20067,7 @@ let dbPlayerInfo = {
             let consumptionReturnTypeId = "";
 
             let consumptionPromMatchObj = {
-                playerId: playerObjId,
+                playerId: ObjectId(playerObjId),
                 createTime: {
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
@@ -20097,7 +20114,6 @@ let dbPlayerInfo = {
                 }
             ]).allowDiskUse(true).read("secondaryPreferred").then(
                 data => {
-                    console.log('done consumptionProm');
                     return dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'});
                 }
             );
@@ -20122,7 +20138,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.amount"}
                     }
                 }
-            ]).read("secondaryPreferred").then(
+            ]).allowDiskUse(true).read("secondaryPreferred").then(
                 data => {
                     console.log('done topUpProm');
                     return data;
@@ -20148,7 +20164,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.amount"}
                     }
                 }
-            ]).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred");
 
             let consumptionReturnProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -20169,7 +20185,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.rewardAmount"}
                     }
                 }
-            ]).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred");
 
             let rewardProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -20190,7 +20206,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.rewardAmount"}
                     }
                 }
-            ]).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred");
 
             let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -20222,7 +20238,7 @@ let dbPlayerInfo = {
                         amount: 1
                     }
                 }
-            ]).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred");
 
             let playerQuery = {_id: playerObjId};
             if (query.playerLevel) {
@@ -20354,16 +20370,21 @@ let dbPlayerInfo = {
                     result.consumptionBonusAmount = 0;
 
                     let providerDetail = {};
+                    let providerNameArr = [];
                     let providerNames = "";
 
                     for (let i = 0, len = result.gameDetail.length; i < len; i++) {
                         let gameRecord = result.gameDetail[i];
                         let providerId = gameRecord.providerId._id.toString();
 
-                        if (len > i + 1) {
-                            providerNames += gameRecord.providerId.name + '\n';
-                        } else {
-                            providerNames += gameRecord.providerId.name;
+                        if (providerNameArr.findIndex(p => p === providerId) === -1) {
+                            providerNameArr.push(providerId);
+
+                            if (len > i + 1) {
+                                providerNames += gameRecord.providerId.name + '\n';
+                            } else {
+                                providerNames += gameRecord.providerId.name;
+                            }
                         }
 
                         result.gameDetail[i].bonusRatio = (result.gameDetail[i].bonusAmount / result.gameDetail[i].validAmount);
@@ -20559,16 +20580,20 @@ let dbPlayerInfo = {
 
                     // player related
                     let playerDetail = data[5];
-                    result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e._id);
-                    result.credibilityRemarksName = playerDetail.credibilityRemarks.reduce((i, n, idx, arr) => {
-                        if (arr.length === idx + 1) {
-                            return i += n.name
-                        } else {
-                            return i += n.name + "\n"
-                        }
-                    }, "");
-                    result.playerLevel = playerDetail.playerLevel._id;
-                    result.playerLevelName = playerDetail.playerLevel.name;
+                    if (playerDetail.credibilityRemarks && playerDetail.credibilityRemarks.length) {
+                        result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e._id);
+                        result.credibilityRemarksName = playerDetail.credibilityRemarks.reduce((i, n, idx, arr) => {
+                            if (arr.length === idx + 1) {
+                                return i += n.name
+                            } else {
+                                return i += n.name + "\n"
+                            }
+                        }, "");
+                    }
+                    if (playerDetail.playerLevel) {
+                        result.playerLevel = playerDetail.playerLevel._id;
+                        result.playerLevelName = playerDetail.playerLevel.name;
+                    }
                     result.name = playerDetail.name;
                     result.valueScore = playerDetail.valueScore;
                     result.registrationTime = playerDetail.registrationTime;
@@ -26535,21 +26560,84 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
     );
 }
 
-function checkTelesalesFeedback(phoneNumber, platformObjId) {
+function checkIsTelesales(phoneNumber, platformObjId) {
+    let latestTsPhone;
     let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
-    return dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false, isSucceedBefore: true}, {_id: 1}).lean().then(
+    return dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).sort({createTime: 1}).lean().then(
         tsPhoneData => {
             if (tsPhoneData && tsPhoneData.length) {
-                return dbconfig.collection_tsPhoneFeedback.findOne({
-                    tsPhone: {$in: tsPhoneData.map(tsPhone => tsPhone._id)}
-                }, {adminId: 1, tsPhone: 1, tsPhoneList: 1}).populate({
-                    path: "adminId",
-                    model: dbconfig.collection_admin,
-                    select: "adminName"
-                }).sort({createTime: -1}).lean();
+                latestTsPhone  = tsPhoneData[tsPhoneData.length - 1];
+                tsPhoneData.length = tsPhoneData.length - 1; // delete old tsPhone if have multiple same phoneNumber in telesales
+
+                if (tsPhoneData && tsPhoneData.length) {
+                    tsPhoneData.forEach(
+                        tsPhone => {
+                            dbconfig.collection_tsPhone.remove({_id: tsPhone._id}).catch(errorUtils.reportError);
+                            let tsPhoneListUpdate = {
+                                totalPhone: -1
+                            }
+                            if (tsPhone.isUsed) {
+                                tsPhoneListUpdate.totalUsed = -1;
+                            }
+                            if (tsPhone.isSucceedBefore) {
+                                tsPhoneListUpdate.totalSuccess = -1;
+                            }
+                            dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
+                            dbconfig.collection_tsDistributedPhone.findOneAndRemove({
+                                tsPhone: tsPhone._id,
+                                tsPhoneList: tsPhone.tsPhoneList,
+                                endTime: {$gte: new Date()},
+                                registered: false
+                            }).lean().then(
+                                removedTsDistributedPhone => {
+                                    if (removedTsDistributedPhone) {
+                                        dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
+                                        if (removedTsDistributedPhone.tsDistributedPhoneList) {
+                                            let distributedPhoneListUpdate = {
+                                                phoneCount: -1
+                                            }
+
+                                            if (removedTsDistributedPhone.isUsed) {
+                                                distributedPhoneListUpdate.phoneUsed = -1;
+                                            }
+                                            if (removedTsDistributedPhone.isSucceedBefore) {
+                                                distributedPhoneListUpdate.successfulCount = -1;
+                                            }
+
+                                            dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+
+            if (latestTsPhone && latestTsPhone._id && latestTsPhone.tsPhoneList) {
+                return dbconfig.collection_tsDistributedPhone.findOneAndRemove({
+                    tsPhone: latestTsPhone._id,
+                    tsPhoneList: latestTsPhone.tsPhoneList,
+                    endTime: {$gte: new Date()},
+                    registered: false
+                }).lean().then(
+                    tsDistributedPhone => {
+                        let returnData = {};
+                        if (tsDistributedPhone) {
+                            returnData.tsPhone = tsDistributedPhone.tsPhone;
+                            returnData.tsPhoneList = tsDistributedPhone.tsPhoneList;
+                            returnData.assignee = tsDistributedPhone.assignee;
+                        } else {
+                            returnData.tsPhone = latestTsPhone._id;
+                            returnData.tsPhoneList = latestTsPhone.tsPhoneList;
+                        }
+                        return returnData;
+                    }
+                );
             } else {
                 return null;
             }
+
         }
     );
 }
