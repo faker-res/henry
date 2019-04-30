@@ -35376,7 +35376,7 @@ define(['js/app'], function (myApp) {
             // Batch Permit Edit
             vm.initBatchPermit = function () {
                 setTimeout(() => {
-                    vm.prepareCredibilityConfig();
+                    vm.prepareCredibilityConfig(vm.selectedPlatform.id || null);
                     vm.initBatchParams();
                     vm.drawBatchPermitTable();
                 }, 0);
