@@ -17650,7 +17650,7 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 50,
+                                batchSize: 20,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platform,
@@ -20042,7 +20042,6 @@ let dbPlayerInfo = {
             dbPlayerCredibility.calculatePlayerValue(playerObjId).catch(errorUtils.reportError);
 
             let result = {_id: playerObjId};
-            playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
             let onlineTopUpTypeId = "";
             let manualTopUpTypeId = "";
             let weChatTopUpTypeId = "";
@@ -20050,7 +20049,7 @@ let dbPlayerInfo = {
             let consumptionReturnTypeId = "";
 
             let consumptionPromMatchObj = {
-                playerId: playerObjId,
+                playerId: ObjectId(playerObjId),
                 createTime: {
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
