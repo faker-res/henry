@@ -1763,8 +1763,7 @@ let dbPlayerReward = {
         }
     },
 
-    getPromoCodeTypes: (platformObjId, deleteFlag) => dbConfig.collection_promoCodeType.find({
-        platformObjId: platformObjId,
+    getPromoCodeTypes: (deleteFlag) => dbConfig.collection_promoCodeType.find({
         $or: [
             {deleteFlag: {$exists: false}},
             {deleteFlag: deleteFlag}
@@ -1772,8 +1771,8 @@ let dbPlayerReward = {
     }).lean().then(promoCodeType => {
         let promoCodeTypeList = promoCodeType;
         // get the auto promoCode template
-        let promoCodeTemplate = dbConfig.collection_promoCodeTemplate.find({platformObjId: platformObjId}).lean();
-        let openPromoCodeTemplate = dbConfig.collection_openPromoCodeTemplate.find({platformObjId: platformObjId}).lean();
+        let promoCodeTemplate = dbConfig.collection_promoCodeTemplate.find().lean();
+        let openPromoCodeTemplate = dbConfig.collection_openPromoCodeTemplate.find().lean();
 
         return Promise.all([promoCodeTemplate, openPromoCodeTemplate]).then(result => {
 
@@ -3215,12 +3214,12 @@ let dbPlayerReward = {
         ).catch(errorUtils.reportError);
     },
 
-    updatePromoCodeSMSContent: (platformObjId, promoCodeSMSContent, isDelete) => {
+    updatePromoCodeSMSContent: (promoCodeSMSContent, isDelete) => {
         let upsertProm = [];
 
         if (isDelete) {
             upsertProm.push(dbConfig.collection_promoCodeType.remove({
-                platformObjId: platformObjId,
+                platformObjId: promoCodeSMSContent[0].platformObjId,
                 name: promoCodeSMSContent[0].name,
                 type: promoCodeSMSContent[0].type
             }));
@@ -3230,7 +3229,7 @@ let dbPlayerReward = {
 
                 upsertProm.push(dbConfig.collection_promoCodeType.findOneAndUpdate(
                     {
-                        platformObjId: platformObjId,
+                        platformObjId: entry.platformObjId,
                         name: entry.name,
                         type: entry.type,
                         deleteFlag: false
