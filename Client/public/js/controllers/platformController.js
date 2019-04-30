@@ -1017,7 +1017,7 @@ define(['js/app'], function (myApp) {
                 // check if using new data list, else show up the old data
                 let newListBoolean = false;
                 for(let i = 0; i <newList.length; i++){
-                    if (platformData[newList[i]].length > 0) {
+                    if (platformData[newList[i]] && platformData[newList[i]].length > 0) {
                         newListBoolean = true;
                         break;
                     }
@@ -6350,11 +6350,6 @@ define(['js/app'], function (myApp) {
                 });
                 vm.advancedQueryObj = vm.advancedQueryObj || {};
                 vm.drawPlayerTable([]);
-
-                if (!initPage) {
-                    vm.advancedPlayerQuery(newSearch);
-                }
-
             };
 
             vm.searchForExactPlayerDebounced = $scope.debounceSearch(function (playerExactSearchText) {
@@ -35444,7 +35439,7 @@ define(['js/app'], function (myApp) {
                         vm.playerCredibilityRemarksUpdated = true;
                         vm.credibilityRemarkUpdateMessage = "SUCCESS";
                         vm.getPlatformPlayersData();
-                        vm.prepareCredibilityConfig();
+                        vm.prepareCredibilityConfig(vm.selectedPlatform.id);
                     })
                 }, function (error) {
                     $scope.$evalAsync(() => {
@@ -35456,8 +35451,15 @@ define(['js/app'], function (myApp) {
             };
             vm.resetCredibilityOption = function () {
                 // reset credibitlity checkbox
-                vm.playerCredibilityRemarksUpdated = false;
-                vm.credibilityRemarkUpdateMessage="";
+                $scope.$evalAsync(() => {
+                    vm.forbidCredibilityAddList = [];
+                    vm.forbidCredibilityRemoveList = [];
+                    vm.prepareCredibilityConfig(vm.selectedPlatform.id);
+                    $('.selectRemark').attr('checked', false);
+                    $('.creditUpdateStatus').html('');
+                    vm.playerCredibilityRemarksUpdated = false;
+                    vm.credibilityRemarkUpdateMessage="";
+                })
             };
             vm.resetBatchEditData = function () {
                 //generate a sample to render in datatable, only using for edit multi purpose.
