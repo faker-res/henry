@@ -14310,6 +14310,10 @@ let dbPlayerInfo = {
                     clientType: clientType || 1,
                     closeMusic: closeMusic || false
                 };
+
+                if (gameData && gameData.orientation) {
+                    sendData.orientation = gameData.orientation;
+                }
                 if (tableCode) {
                     sendData.tableCode = tableCode
                 }
