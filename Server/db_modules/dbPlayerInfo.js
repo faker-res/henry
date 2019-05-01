@@ -20247,7 +20247,9 @@ let dbPlayerInfo = {
                             $group: {
                                 _id: {
                                     mainType: "$mainType",
-                                    typeId: "$type"
+                                    typeId: "$type",
+                                    merchantName: "$data.merchantName",
+                                    merchantNo: "$data.merchantNo"
                                 },
                                 count: {"$sum": 1},
                                 amount: {"$sum": "$data.amount"}
@@ -20268,53 +20270,6 @@ let dbPlayerInfo = {
                         }
                     );
 
-                    // let bonusProm = dbconfig.collection_proposal.aggregate([
-                    //     {
-                    //         "$match": {
-                    //             "data.playerObjId": ObjectId(playerObjId),
-                    //             "createTime": {
-                    //                 "$gte": new Date(startTime),
-                    //                 "$lte": new Date(endTime)
-                    //             },
-                    //             "mainType": "PlayerBonus",
-                    //             "status": option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                    //         }
-                    //     },
-                    //     {
-                    //         "$group": {
-                    //             "_id": null,
-                    //             "count": {"$sum": 1},
-                    //             "amount": {"$sum": "$data.amount"}
-                    //         }
-                    //     }
-                    // ]).allowDiskUse(true).read("secondaryPreferred");
-
-                    // let consumptionReturnProm = dbconfig.collection_proposal.aggregate([
-                    //     {
-                    //         "$match": {
-                    //             "data.playerObjId": ObjectId(playerObjId),
-                    //             "createTime": {
-                    //                 "$gte": new Date(startTime),
-                    //                 "$lte": new Date(endTime)
-                    //             },
-                    //             "mainType": "Reward",
-                    //             "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                    //             "type": ObjectId(consumptionReturnTypeId)
-                    //         }
-                    //     },
-                    //     {
-                    //         "$group": {
-                    //             "_id": null,
-                    //             "amount": {"$sum": "$data.rewardAmount"}
-                    //         }
-                    //     }
-                    // ]).allowDiskUse(true).read("secondaryPreferred").then(
-                    //     data => {
-                    //         console.log('consumptionReturnProm done', playerObjId);
-                    //         return data;
-                    //     }
-                    // );
-
                     let rewardProm = dbconfig.collection_proposal.aggregate([
                         {
                             "$match": {
@@ -20325,7 +20280,6 @@ let dbPlayerInfo = {
                                 },
                                 "mainType": "Reward",
                                 "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                // "type": {"$ne": ObjectId(consumptionReturnTypeId)}
                             }
                         },
                         {
@@ -20341,42 +20295,42 @@ let dbPlayerInfo = {
                         }
                     );
 
-                    let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
-                        {
-                            "$match": {
-                                "data.playerObjId": ObjectId(playerObjId),
-                                "createTime": {
-                                    "$gte": new Date(startTime),
-                                    "$lte": new Date(endTime)
-                                },
-                                "mainType": "TopUp",
-                                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                "type": ObjectId(onlineTopUpTypeId),
-                            }
-                        },
-                        {
-                            "$group": {
-                                "_id": {
-                                    "merchantName": "$data.merchantName",
-                                    "merchantNo": "$data.merchantNo"
-                                },
-                                "amount": {"$sum": "$data.amount"}
-                            }
-                        },
-                        {
-                            "$project": {
-                                _id: 0,
-                                merchantName: "$_id.merchantName",
-                                merchantNo: "$_id.merchantNo",
-                                amount: 1
-                            }
-                        }
-                    ]).allowDiskUse(true).read("secondaryPreferred").then(
-                        data => {
-                            console.log('onlineTopUpByMerchantProm done', playerObjId);
-                            return data;
-                        }
-                    );
+                    // let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
+                    //     {
+                    //         "$match": {
+                    //             "data.playerObjId": ObjectId(playerObjId),
+                    //             "createTime": {
+                    //                 "$gte": new Date(startTime),
+                    //                 "$lte": new Date(endTime)
+                    //             },
+                    //             "mainType": "TopUp",
+                    //             "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    //             "type": ObjectId(onlineTopUpTypeId),
+                    //         }
+                    //     },
+                    //     {
+                    //         "$group": {
+                    //             "_id": {
+                    //                 "merchantName": "$data.merchantName",
+                    //                 "merchantNo": "$data.merchantNo"
+                    //             },
+                    //             "amount": {"$sum": "$data.amount"}
+                    //         }
+                    //     },
+                    //     {
+                    //         "$project": {
+                    //             _id: 0,
+                    //             merchantName: "$_id.merchantName",
+                    //             merchantNo: "$_id.merchantNo",
+                    //             amount: 1
+                    //         }
+                    //     }
+                    // ]).allowDiskUse(true).read("secondaryPreferred").then(
+                    //     data => {
+                    //         console.log('onlineTopUpByMerchantProm done', playerObjId);
+                    //         return data;
+                    //     }
+                    // );
 
                     // Promise domain CS and promote way
                     let filteredDomain = dbUtility.filterDomainName(domain);
@@ -20397,7 +20351,7 @@ let dbPlayerInfo = {
                             }
                         ) : Promise.resolve(false);
 
-                    return Promise.all([consumptionProm, topupAndBonusProm, rewardProm, Promise.resolve(playerData), promoteWayProm, onlineTopUpByMerchantProm]).then(
+                    return Promise.all([consumptionProm, topupAndBonusProm, rewardProm, Promise.resolve(playerData), promoteWayProm]).then(
                         data => {
                             result.gameDetail = data[0];
                             result.consumptionTimes = 0;
@@ -20509,6 +20463,8 @@ let dbPlayerInfo = {
                             result.manualTopUpAmount = 0;
                             result.weChatTopUpAmount = 0;
                             result.aliPayTopUpAmount = 0;
+                            result.onlineTopUpFeeDetail = [];
+                            result.totalOnlineTopUpFee = 0;
 
                             let topUpAndBonusDetail = data[1];
                             let bonusDetail = {};
@@ -20517,7 +20473,40 @@ let dbPlayerInfo = {
                                 topUpAndBonusDetail.forEach(e => {
                                     if (e._id.mainType === 'TopUp') {
                                         if (e._id.typeId.toString() === onlineTopUpTypeId) {
-                                            result.onlineTopUpAmount = e.amount;
+                                            result.onlineTopUpAmount += e.amount || 0;
+
+                                            if (e._id.merchantNo && e._id.merchantName && merchantList && merchantList.length) {
+                                                let index = merchantList.findIndex(x =>
+                                                    x && x.hasOwnProperty('merchantNo') && x.hasOwnProperty('name')
+                                                    && x.merchantNo && x.name && (x.merchantNo == e._id.merchantNo)
+                                                    && (x.name == e._id.merchantName));
+
+                                                let onlineTopUpAmount = e && e.amount ? e.amount : 0;
+                                                let rate = 0;
+                                                let onlineTopUpFee = 0;
+
+                                                let detailObj = {
+                                                    merchantName: e._id.merchantName,
+                                                    merchantNo: e._id.merchantNo,
+                                                    amount: e.amount,
+                                                };
+
+                                                if (index !== -1) {
+                                                    rate = merchantList[index] && merchantList[index].rate ? merchantList[index].rate : 0;
+                                                    onlineTopUpFee = onlineTopUpAmount * rate;
+
+                                                    detailObj.onlineToUpFee = onlineTopUpFee;
+                                                    detailObj.onlineTopUpServiceChargeRate = rate;
+                                                } else {
+                                                    onlineTopUpFee = onlineTopUpAmount * rate;
+
+                                                    detailObj.onlineToUpFee = onlineTopUpFee;
+                                                    detailObj.onlineTopUpServiceChargeRate = rate;
+                                                }
+
+                                                result.totalOnlineTopUpFee += Number(onlineTopUpFee) || 0;
+                                                result.onlineTopUpFeeDetail.push(detailObj);
+                                            }
                                         }
                                         else if (e._id.typeId.toString() === manualTopUpTypeId) {
                                             result.manualTopUpAmount = e.amount;
@@ -20537,37 +20526,12 @@ let dbPlayerInfo = {
                                     }
                                 })
                             }
-
-                            // let topUpTypeDetail = data[1];
-                            // for (let i = 0, len = topUpTypeDetail.length; i < len; i++) {
-                            //     let topUpTypeRecord = topUpTypeDetail[i];
-                            //
-                            //     if (topUpTypeRecord.typeId.toString() === onlineTopUpTypeId) {
-                            //         result.onlineTopUpAmount = topUpTypeRecord.amount;
-                            //     }
-                            //     else if (topUpTypeRecord.typeId.toString() === manualTopUpTypeId) {
-                            //         result.manualTopUpAmount = topUpTypeRecord.amount;
-                            //     }
-                            //     else if (topUpTypeRecord.typeId.toString() === weChatTopUpTypeId) {
-                            //         result.weChatTopUpAmount = topUpTypeRecord.amount;
-                            //     }
-                            //     else if (topUpTypeRecord.typeId.toString() === aliPayTopUpTypeId) {
-                            //         result.aliPayTopUpAmount = topUpTypeRecord.amount;
-                            //     }
-                            //
-                            //     result.topUpAmount += topUpTypeRecord.amount;
-                            //     result.topUpTimes += topUpTypeRecord.count;
-                            // }
-                            //
-                            // let bonusDetail = data[2][0];
                             result.bonusAmount = bonusDetail && bonusDetail.amount ? bonusDetail.amount : 0;
                             result.bonusTimes = bonusDetail && bonusDetail.count ? bonusDetail.count : 0;
-                            //
-                            // let consumptionReturnDetail = data[2][0];
-                            // result.consumptionReturnAmount = consumptionReturnDetail && consumptionReturnDetail.amount ? consumptionReturnDetail.amount : 0;
 
                             let rewardDetail = data[2];
                             result.rewardAmount = 0;
+                            result.consumptionReturnAmount = 0;
 
                             if (rewardDetail && rewardDetail.length) {
                                 rewardDetail.forEach(e => {
@@ -20698,42 +20662,6 @@ let dbPlayerInfo = {
                             result.phoneCity = playerDetail.phoneCity ? playerDetail.phoneCity : null;
                             result.province = playerDetail.province ? playerDetail.province : null;
                             result.city = playerDetail.city ? playerDetail.city : null;
-
-                            let onlineTopUpDetailByMerchant = data && data[5] ? data[5] : [];
-                            let totalOnlineTopUpFee = 0;
-
-                            if (onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 && merchantList && merchantList.length > 0) {
-                                for (let i = 0, len = onlineTopUpDetailByMerchant.length; i < len; i++) {
-                                    let onlineTopUpDetail = onlineTopUpDetailByMerchant[i];
-
-                                    if (onlineTopUpDetail && onlineTopUpDetail.hasOwnProperty('merchantNo') && onlineTopUpDetail.merchantNo
-                                        && onlineTopUpDetail.hasOwnProperty('merchantName') && onlineTopUpDetail.merchantName) {
-                                        let index = merchantList.findIndex(x => x && x.hasOwnProperty('merchantNo') && x.hasOwnProperty('name') && x.merchantNo && x.name && (x.merchantNo == onlineTopUpDetail.merchantNo) && (x.name == onlineTopUpDetail.merchantName));
-
-                                        let onlineTopUpAmount = onlineTopUpDetail && onlineTopUpDetail.amount ? onlineTopUpDetail.amount : 0;
-                                        let rate = 0;
-                                        let onlineTopUpFee = 0;
-
-                                        if (index != -1) {
-                                            rate = merchantList[index] && merchantList[index].rate ? merchantList[index].rate : 0;
-                                            onlineTopUpFee = onlineTopUpAmount * rate;
-
-                                            onlineTopUpDetail.onlineToUpFee = onlineTopUpFee;
-                                            onlineTopUpDetail.onlineTopUpServiceChargeRate = rate;
-                                        } else {
-                                            onlineTopUpFee = onlineTopUpAmount * rate;
-
-                                            onlineTopUpDetail.onlineToUpFee = onlineTopUpFee;
-                                            onlineTopUpDetail.onlineTopUpServiceChargeRate = rate;
-                                        }
-                                    }
-                                }
-
-                                totalOnlineTopUpFee = onlineTopUpDetailByMerchant.reduce((sum, value) => sum + (value.hasOwnProperty('onlineToUpFee') && value.onlineToUpFee ? value.onlineToUpFee : 0), 0);
-                            }
-
-                            result.onlineTopUpFeeDetail = onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 ? onlineTopUpDetailByMerchant : [];
-                            result.totalOnlineTopUpFee = totalOnlineTopUpFee;
 
                             console.log('getConsumptionDetailOfPlayers getPlayerRecord - returning', playerObjId);
 
