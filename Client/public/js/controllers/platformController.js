@@ -23379,7 +23379,7 @@ define(['js/app'], function (myApp) {
                 // redefine
                 vm.rewardMainParamTable = [];
                 vm.rewardMainParamTable.push({value: []});
-                vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3);
+                vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3).concat(rewardParamBirthday);
                 vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title)
             }
 

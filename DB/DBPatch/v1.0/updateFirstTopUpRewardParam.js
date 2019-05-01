@@ -1398,6 +1398,12 @@ db.rewardParam.update({
                     des: "Check if this portable device has received the reward",
                     detail: "Check the IMEI value/unique code of each handset when applying through APP"
                 },
+                festivalType: {
+                    index: 55,
+                    type: "select",
+                    options: "festivalType",
+                    des: "Customise Special Event Mode"
+                },
             }
         },
         param: {
