@@ -20122,7 +20122,7 @@ let dbPlayerInfo = {
                 }
             }
 
-            let playerProm = dbconfig.collection_players.findOne(
+            return dbconfig.collection_players.findOne(
                 playerQuery, {
                     playerLevel: 1,
                     credibilityRemarks: 1,
