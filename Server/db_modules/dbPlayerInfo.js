@@ -17650,7 +17650,7 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 20,
+                                batchSize: 10,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platform,
@@ -19930,7 +19930,7 @@ let dbPlayerInfo = {
     },
 
     getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay, customStartTime, customEndTime) {
-        console.log('getConsumptionDetailOfPlayers - start');
+        console.log('getConsumptionDetailOfPlayers - start', playerObjIds.length);
         option = option || {};
         let proms = [];
         let proposalType = [];
@@ -20036,7 +20036,7 @@ let dbPlayerInfo = {
 
         function getPlayerRecord(playerObjId, startTime, endTime, domain, showPlatformFeeEstimate) {
 
-            console.log('getConsumptionDetailOfPlayers getPlayerRecord - start');
+            console.log('getConsumptionDetailOfPlayers getPlayerRecord - start', playerObjId);
 
             //recalculate player value
             dbPlayerCredibility.calculatePlayerValue(playerObjId).catch(errorUtils.reportError);
@@ -20079,6 +20079,7 @@ let dbPlayerInfo = {
             }
 
             //use summary
+            console.log('consumptionProm start', playerObjId);
             let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
                 {
                     $match: consumptionPromMatchObj
@@ -20096,6 +20097,7 @@ let dbPlayerInfo = {
                 }
             ]).allowDiskUse(true).read("secondaryPreferred").then(
                 data => {
+                    console.log('consumptionProm done', playerObjId);
                     return dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'});
                 }
             );
@@ -20130,7 +20132,12 @@ let dbPlayerInfo = {
                 //         "amount": {"$sum": "$data.amount"}
                 //     }
                 // }
-            ]).allowDiskUse(true).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred").then(
+                data => {
+                    console.log('topupAndBonusProm done', playerObjId);
+                    return data;
+                }
+            );
 
             // let bonusProm = dbconfig.collection_proposal.aggregate([
             //     {
@@ -20172,7 +20179,12 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.rewardAmount"}
                     }
                 }
-            ]).allowDiskUse(true).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred").then(
+                data => {
+                    console.log('consumptionReturnProm done', playerObjId);
+                    return data;
+                }
+            );
 
             let rewardProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -20193,7 +20205,12 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.rewardAmount"}
                     }
                 }
-            ]).allowDiskUse(true).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred").then(
+                data => {
+                    console.log('rewardProm done', playerObjId);
+                    return data;
+                }
+            );
 
             let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -20225,7 +20242,12 @@ let dbPlayerInfo = {
                         amount: 1
                     }
                 }
-            ]).allowDiskUse(true).read("secondaryPreferred");
+            ]).allowDiskUse(true).read("secondaryPreferred").then(
+                data => {
+                    console.log('onlineTopUpByMerchantProm done', playerObjId);
+                    return data;
+                }
+            );
 
             let playerQuery = {_id: playerObjId};
             if (query.playerLevel) {
