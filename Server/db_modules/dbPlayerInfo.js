@@ -17642,7 +17642,7 @@ let dbPlayerInfo = {
                     _id: {$in: playerObjArrData},
                     isRealPlayer: true
                 }, {_id: 1});
-                let stream = playerProm.cursor({batchSize: 50});
+                let stream = playerProm.cursor({batchSize: 500});
                 let balancer = new SettlementBalancer();
 
                 return balancer.initConns().then(function () {
@@ -17650,7 +17650,7 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 5,
+                                batchSize: 50,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platform,
