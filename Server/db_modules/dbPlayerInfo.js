@@ -20635,7 +20635,7 @@ let dbPlayerInfo = {
                             }
 
                             // player related
-                            let playerDetail = data[4];
+                            let playerDetail = data[3];
                             if (playerDetail.credibilityRemarks && playerDetail.credibilityRemarks.length) {
                                 result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e._id);
                                 result.credibilityRemarksName = playerDetail.credibilityRemarks.reduce((i, n, idx, arr) => {
@@ -20658,7 +20658,7 @@ let dbPlayerInfo = {
                             result.lastAccessTime = playerDetail.lastAccessTime;
                             result.realName = playerDetail.realName;
 
-                            let csOfficerDetail = data[5];
+                            let csOfficerDetail = data[4];
 
                             // related admin
                             if (playerDetail.accAdmin) {
@@ -20681,7 +20681,7 @@ let dbPlayerInfo = {
                             result.province = playerDetail.province ? playerDetail.province : null;
                             result.city = playerDetail.city ? playerDetail.city : null;
 
-                            let onlineTopUpDetailByMerchant = data && data[6] ? data[6] : [];
+                            let onlineTopUpDetailByMerchant = data && data[5] ? data[5] : [];
                             let totalOnlineTopUpFee = 0;
 
                             if (onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 && merchantList && merchantList.length > 0) {
