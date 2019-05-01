@@ -318,7 +318,7 @@ var proposalExecutor = {
             this.executions.executePlayerAuctionPromotionReward.des = "player Auction Reward Promotion";
             this.executions.executeAuctionRealPrize.des = "Auction Real Prize";
             this.executions.executeAuctionRewardPointChange.des = "Auction Reward Point Change";
-            this.executions.executePlayerFestivalRewardGroup = 'Player Festival Reward';
+            this.executions.executePlayerFestivalRewardGroup.des = 'Player Festival Reward';
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -3032,7 +3032,7 @@ var proposalExecutor = {
                 }
             },
             executePlayerFestivalRewardGroup: function (proposalData) {
-
+                console.log('***executePlayerFestivalRewardGroup', proposalData)
             },
             executePlayerRandomRewardGroup: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty('rewardType')) {
@@ -5079,6 +5079,10 @@ var proposalExecutor = {
                 }
 
                 refundProm.then(() => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject));
+            },
+
+            rejectPlayerFestivalRewardGroup: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
             },
 
             rejectPlayerRandomRewardGroup: function (proposalData, deferred) {
