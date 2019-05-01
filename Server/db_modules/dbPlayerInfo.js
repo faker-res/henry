@@ -20271,31 +20271,31 @@ let dbPlayerInfo = {
                     //     }
                     // ]).allowDiskUse(true).read("secondaryPreferred");
 
-                    let consumptionReturnProm = dbconfig.collection_proposal.aggregate([
-                        {
-                            "$match": {
-                                "data.playerObjId": ObjectId(playerObjId),
-                                "createTime": {
-                                    "$gte": new Date(startTime),
-                                    "$lte": new Date(endTime)
-                                },
-                                "mainType": "Reward",
-                                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                "type": ObjectId(consumptionReturnTypeId)
-                            }
-                        },
-                        {
-                            "$group": {
-                                "_id": null,
-                                "amount": {"$sum": "$data.rewardAmount"}
-                            }
-                        }
-                    ]).allowDiskUse(true).read("secondaryPreferred").then(
-                        data => {
-                            console.log('consumptionReturnProm done', playerObjId);
-                            return data;
-                        }
-                    );
+                    // let consumptionReturnProm = dbconfig.collection_proposal.aggregate([
+                    //     {
+                    //         "$match": {
+                    //             "data.playerObjId": ObjectId(playerObjId),
+                    //             "createTime": {
+                    //                 "$gte": new Date(startTime),
+                    //                 "$lte": new Date(endTime)
+                    //             },
+                    //             "mainType": "Reward",
+                    //             "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    //             "type": ObjectId(consumptionReturnTypeId)
+                    //         }
+                    //     },
+                    //     {
+                    //         "$group": {
+                    //             "_id": null,
+                    //             "amount": {"$sum": "$data.rewardAmount"}
+                    //         }
+                    //     }
+                    // ]).allowDiskUse(true).read("secondaryPreferred").then(
+                    //     data => {
+                    //         console.log('consumptionReturnProm done', playerObjId);
+                    //         return data;
+                    //     }
+                    // );
 
                     let rewardProm = dbconfig.collection_proposal.aggregate([
                         {
@@ -20307,12 +20307,12 @@ let dbPlayerInfo = {
                                 },
                                 "mainType": "Reward",
                                 "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                "type": {"$ne": ObjectId(consumptionReturnTypeId)}
+                                // "type": {"$ne": ObjectId(consumptionReturnTypeId)}
                             }
                         },
                         {
                             "$group": {
-                                "_id": null,
+                                "_id": "$type",
                                 "amount": {"$sum": "$data.rewardAmount"}
                             }
                         }
@@ -20372,9 +20372,14 @@ let dbPlayerInfo = {
                         }).populate({
                             path: 'admin',
                             model: dbconfig.collection_admin
-                        }).lean() : Promise.resolve(false);
+                        }).lean().then(
+                            data => {
+                                console.log('promoteWayProm done', playerObjId);
+                                return data;
+                            }
+                        ) : Promise.resolve(false);
 
-                    return Promise.all([consumptionProm, topupAndBonusProm, consumptionReturnProm, rewardProm, Promise.resolve(playerData), promoteWayProm, onlineTopUpByMerchantProm]).then(
+                    return Promise.all([consumptionProm, topupAndBonusProm, rewardProm, Promise.resolve(playerData), promoteWayProm, onlineTopUpByMerchantProm]).then(
                         data => {
                             result.gameDetail = data[0];
                             result.consumptionTimes = 0;
@@ -20539,12 +20544,22 @@ let dbPlayerInfo = {
                             // let bonusDetail = data[2][0];
                             result.bonusAmount = bonusDetail && bonusDetail.amount ? bonusDetail.amount : 0;
                             result.bonusTimes = bonusDetail && bonusDetail.count ? bonusDetail.count : 0;
+                            //
+                            // let consumptionReturnDetail = data[2][0];
+                            // result.consumptionReturnAmount = consumptionReturnDetail && consumptionReturnDetail.amount ? consumptionReturnDetail.amount : 0;
 
-                            let consumptionReturnDetail = data[2][0];
-                            result.consumptionReturnAmount = consumptionReturnDetail && consumptionReturnDetail.amount ? consumptionReturnDetail.amount : 0;
+                            let rewardDetail = data[2];
+                            result.rewardAmount = 0;
 
-                            let rewardDetail = data[3][0];
-                            result.rewardAmount = rewardDetail && rewardDetail.amount ? rewardDetail.amount : 0;
+                            if (rewardDetail && rewardDetail.length) {
+                                rewardDetail.forEach(e => {
+                                    if (e._id.toString() === consumptionReturnTypeId) {
+                                        result.consumptionReturnAmount = e.rewardAmount || 0;
+                                    } else {
+                                        result.rewardAmount += e.rewardAmount || 0;
+                                    }
+                                })
+                            }
 
                             // filter irrelevant result base on query
                             if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator) {
@@ -20701,6 +20716,8 @@ let dbPlayerInfo = {
 
                             result.onlineTopUpFeeDetail = onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 ? onlineTopUpDetailByMerchant : [];
                             result.totalOnlineTopUpFee = totalOnlineTopUpFee;
+
+                            console.log('getConsumptionDetailOfPlayers getPlayerRecord - returning', playerObjId);
 
                             if (showPlatformFeeEstimate) {
                                 result.platformFeeEstimate = {}
