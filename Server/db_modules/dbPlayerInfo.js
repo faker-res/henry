@@ -17660,7 +17660,7 @@ let dbPlayerInfo = {
                     _id: {$in: playerObjArrData},
                     isRealPlayer: true
                 }, {_id: 1});
-                let stream = playerProm.cursor({batchSize: 100});
+                let stream = playerProm.cursor({batchSize: 50});
                 let balancer = new SettlementBalancer();
 
                 return balancer.initConns().then(function () {
@@ -17668,7 +17668,7 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 10,
+                                batchSize: 5,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platform,
@@ -20572,9 +20572,9 @@ let dbPlayerInfo = {
                             if (rewardDetail && rewardDetail.length) {
                                 rewardDetail.forEach(e => {
                                     if (e._id.toString() === consumptionReturnTypeId) {
-                                        result.consumptionReturnAmount = e.rewardAmount || 0;
+                                        result.consumptionReturnAmount = Number(e.amount) || 0;
                                     } else {
-                                        result.rewardAmount += e.rewardAmount || 0;
+                                        result.rewardAmount += Number(e.amount) || 0;
                                     }
                                 })
                             }
