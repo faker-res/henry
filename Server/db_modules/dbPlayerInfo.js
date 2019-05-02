@@ -592,7 +592,6 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
-        console.log("checking raw inputData when create new player", inputData)
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -655,8 +654,6 @@ let dbPlayerInfo = {
                         // sms(not require) && captchaCode (incorrect) => invalid image
 
                         // check if the create function initiated by a partner -> yes - check captcha only
-                        console.log("yH checking---connPartnerId", connPartnerId)
-                        console.log("yH checking---bypassSMSVerify", bypassSMSVerify)
                         if (connPartnerId){
                             if (bypassSMSVerify){
                                 return true;
@@ -1853,7 +1850,8 @@ let dbPlayerInfo = {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
 
-                    console.log("checking playerData before saving", playerdata)
+                    console.log(`Saving player ${playerdata.name} to database.`);
+
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -5774,7 +5772,6 @@ let dbPlayerInfo = {
                     }
                     db_password = String(data.password); // hashedPassword from db
                     if (dbUtility.isMd5(db_password)) {
-                        console.log('rt playerLogin 2.1');
                         if (md5(playerData.password) == db_password) {
                             return Promise.resolve(true);
                         }
@@ -5788,7 +5785,6 @@ let dbPlayerInfo = {
                                 let bcrypt = require('bcrypt');
 
                                 bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
-                                    console.log('rt playerLogin 2.2.2', err, isMatch);
                                     if (err) {
                                         reject({
                                             name: "DataError",
@@ -6007,7 +6003,7 @@ let dbPlayerInfo = {
                 retObj.bankAccountDistrict = zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
-                console.log('rt playerLogin end');
+                console.log(`Player ${playerObj.name} logged in.`);
                 return retObj;
             }
         );
@@ -6095,7 +6091,6 @@ let dbPlayerInfo = {
             }
         ).then(
             playerState => {
-                console.log('playerState===11', playerState);
                 if (playerState) {
                     return dbconfig.collection_playerRetentionRewardGroupRecord.find(query).populate({
                         path: "rewardEventObjId",
@@ -6400,7 +6395,6 @@ let dbPlayerInfo = {
                     }
                     db_password = String(data.password); // hashedPassword from db
                     if (dbUtility.isMd5(db_password)) {
-                        console.log('rt playerLogin 2.1');
                         if (md5(playerData.password) == db_password) {
                             return Promise.resolve(true);
                         }
@@ -6414,7 +6408,6 @@ let dbPlayerInfo = {
                                 let bcrypt = require('bcrypt');
 
                                 bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
-                                    console.log('rt playerLogin 2.2.2', err, isMatch);
                                     if (err) {
                                         reject({
                                             name: "DataError",
@@ -6425,7 +6418,6 @@ let dbPlayerInfo = {
                                     resolve(isMatch);
                                 });
                             } catch (err) {
-                                console.log('err', err);
                                 throw err;
                             }
 
@@ -6634,7 +6626,6 @@ let dbPlayerInfo = {
                 retObj.bankAccountDistrict = zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
-                console.log('rt playerLogin end');
                 return retObj;
             }
         );
