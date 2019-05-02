@@ -6289,6 +6289,7 @@ var dbPlatform = {
                             console.log("index", platformData.name, i);
                             i++;
                         } catch (err) {
+                            console.log('err', err);
                             console.log(`Failed to re-encrypt ${playerData.name}`);
                         }
 
