@@ -1159,7 +1159,7 @@ define(['js/app'], function (myApp) {
                  vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
                  vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
                  [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList],
-                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions, vm.smsTemplate
+                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions, vm.autoFeedbackMissionsAcrossPlatform, vm.smsTemplate
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -1179,6 +1179,7 @@ define(['js/app'], function (myApp) {
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                     commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []])),
                     commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getAllAutoFeedback($scope).catch(err => Promise.resolve([])),
                     commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
                 ]);
 
@@ -37074,6 +37075,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAutoFeedback = function() {
+                vm.allPlayerLvl = {};
+                vm.filterCredibilityRemarks = {};
                 vm.autoFeedbackTriggerHours = [];
                 vm.autoFeedbackTriggerMinutes = [];
                 for(let x=0; x<24; x++) {
@@ -37133,7 +37136,6 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.autoFeedbackCreateMission = function() {
-                vm.autoFeedbackMission.platformObjId = vm.selectedPlatform.id;
                 vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
@@ -37159,11 +37161,16 @@ define(['js/app'], function (myApp) {
                 vm.selectedAutoFeedbackTab = "create";
                 vm.autoFeedbackEditStatus = true;
                 vm.autoFeedbackUpdateMissionStatus = '';
+                vm.autoFeedbackMission = {};
+                vm.autoFeedbackMission.platformObjId = data.platformObjId;
+                vm.getAllPlayerLevelsLocal();
+                vm.getCredibilityRemarksLocal();
+                vm.getAllGameProvidersLocal();
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
-                    vm.setupRemarksMultiInputFeedback();
-                    vm.setupRemarksMultiInputFeedbackFilter();
+                    // vm.setupRemarksMultiInputFeedback();
+                    // vm.setupRemarksMultiInputFeedbackFilter();
                     vm.setupMultiInputFeedbackTopicFilter();
-                    vm.setupGameProviderMultiInputFeedback();
+                    // vm.setupGameProviderMultiInputFeedback();
                     vm.autoFeedbackMission = data;
                     if(!vm.autoFeedbackMission.schedule) {
                         vm.autoFeedbackMission.schedule = [];
@@ -37266,12 +37273,11 @@ define(['js/app'], function (myApp) {
             };
             vm.autoFeedbackSearchMission = function(newSearch) {
                 $('#autoFeedbackOverviewSpin').show();
-                vm.autoFeedbackMissionSearch.platformObjId = vm.selectedPlatform.id;
                 vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
                 let sendData = {
                     query: {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.autoFeedbackMissionSearch.platformObjId,
                         createTimeStart: vm.autoFeedbackMissionSearch.createTimeStart,
                         createTimeEnd: vm.autoFeedbackMissionSearch.createTimeEnd
                     }
@@ -37474,12 +37480,11 @@ define(['js/app'], function (myApp) {
             };
             vm.autoFeedbackSearchMissionDetail = function () {
                 $('#autoFeedbackDetailSpin').show();
-                vm.autoFeedbackMissionSearchDetail.platformObjId = vm.selectedPlatform.id;
                 vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearchDetail.name = !vm.autoFeedbackMissionSearchDetail.name ? vm.autoFeedbackMissions[0].name : vm.autoFeedbackMissionSearchDetail.name;
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.autoFeedbackMissionSearchDetail.platformObjId,
                     name: vm.autoFeedbackMissionSearchDetail.name,
                     startTime: vm.autoFeedbackMissionSearchDetail.startTime,
                     endTime: vm.autoFeedbackMissionSearchDetail.endTime
@@ -37984,11 +37989,20 @@ define(['js/app'], function (myApp) {
                 utilService.createDatatableWithFooter('#autoFeedbackPromoCodeTable', tableOptions, {}, true);
                 $('#autoFeedbackPromoCodeTable').resize();
             };
-            vm.getAllAutoFeedback = function() {
-                socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
-                    console.log("getAllAutoFeedbackMissions ret",data);
-                    vm.autoFeedbackMissions = data.data.data;
-                });
+            vm.getAutoFeedbackLocal = function(category) {
+                let platformObjId;
+                switch(category) {
+                    case 'overview':
+                        platformObjId = vm.autoFeedbackMissionSearch.platformObjId;
+                        vm.autoFeedbackMissionsOverview = vm.autoFeedbackMissionsAcrossPlatform.filter(item =>{return item.platformObjId == platformObjId});
+                        break;
+
+                    case 'detail':
+                        platformObjId = vm.autoFeedbackMissionSearchDetail.platformObjId;
+                        vm.autoFeedbackMissionsDetail = vm.autoFeedbackMissionsAcrossPlatform.filter(item =>{return item.platformObjId == platformObjId});
+                        break;
+                }
+                $scope.$evalAsync();
             };
 
             vm.updateImageUrl = function(uploaderName){
@@ -39259,7 +39273,11 @@ define(['js/app'], function (myApp) {
                         selectedPlatformObjId = vm.playerFeedbackQuery.selectedPlatform;
                         break;
                     case "autofeedback":
-                        // selectedPlatformObjId = vm.autoFeedbackMission.platformObjId;
+                        if(vm.selectedAutoFeedbackTab.toLowerCase() == "create") {
+                            selectedPlatformObjId = vm.autoFeedbackMission.platformObjId;
+                        } else if(vm.selectedAutoFeedbackTab.toLowerCase() == "overview") {
+                            selectedPlatformObjId = vm.autoFeedbackMissionSearchDetail.platformObjId;
+                        }
                         break;
                 }
                 if(selectedPlatformObjId) {

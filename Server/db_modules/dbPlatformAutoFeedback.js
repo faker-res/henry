@@ -69,12 +69,15 @@ let dbPlatformAutoFeedback = {
         limit = limit || 10;
         let curTime = new Date();
         let result;
+        if(query.createTimeStart || query.createTimeEnd) {
+            query.createTime = {};
+        }
         if(query.createTimeStart) {
-            query.createTime = {$gte: query.createTimeStart};
+            query.createTime['$gte'] = query.createTimeStart;
             delete query.createTimeStart;
         }
         if(query.createTimeEnd) {
-            query.createTime = {$lte: query.createTimeEnd};
+            query.createTime['$lte'] = query.createTimeEnd;
             delete query.createTimeEnd;
         }
         if(query.status) {
