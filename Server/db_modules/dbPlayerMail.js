@@ -504,6 +504,13 @@ const dbPlayerMail = {
                                         }
                                     }
 
+                                } else {
+                                    if (purpose && purpose === constSMSPurpose.PLAYER_LOGIN) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: "Phone number not found, please register first!"
+                                        });
+                                    }
                                 }
                             }
                         )
