@@ -6900,10 +6900,6 @@ define(['js/app'], function (myApp) {
             vm.loadWechatPayAcc();
         };
 
-        vm.getSelectedRowTopUpDetails = function(rowData){
-            vm.getSelectedRowPlatformDetails(rowData);
-        };
-
         vm.setPlayerLevelAccordingByPlatformId = function (platformObjId){
             $scope.$evalAsync(() => {
                 vm.playerLevelByAllPlatform.forEach(
