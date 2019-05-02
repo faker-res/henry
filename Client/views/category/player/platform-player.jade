@@ -189,7 +189,7 @@ include modalGameCreditLog
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='contactInfo';prepareEditCritical('player');")
                                             text.span {{"CONTACT_INFO" | translate}}
                                     li(ng-show="editWithdrawPermission",ng-class="selectedTab=='withdrawInfo'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPlayerPayment();")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPlayerPayment();vm.loadBankCard();")
                                             text.span {{"WITHDRAW_INFO" | translate}}
                                     li(ng-show="editMultipleWithdrawPermission",ng-class="selectedTab=='withdrawInfo2'?'active':''")
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo2';prepareEditPlayerPayment2();")
@@ -926,6 +926,9 @@ include modalGameCreditLog
                     #newPlayerListPanel.panel-body(ng-if="vm.playerModalTab === 'newPlayerListPanel'")
                         #newPlayerRecords.adminLogQueryDiv
                             .search-filters-item
+                                label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                                select.form-control(ng-model='vm.queryPara.newPlayerList.platform', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', required)
+                            .search-filters-item
                                 label {{'PLAYERNAME' | translate}}
                                 input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
                             .search-filters-item
@@ -954,6 +957,9 @@ include modalGameCreditLog
 
                     #attemptNumberListPanel.panel-body(ng-if="vm.playerModalTab === 'attemptNumberListPanel'")
                         #attemptNumberRecords.adminLogQueryDiv
+                            .search-filters-item
+                                label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                                    select.form-control(ng-model='vm.queryPara.attemptNumberRecords.platform', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', required)
                             .search-filters-item
                                 label {{'START_DATE' | translate}}
                                 .startTime
@@ -1106,12 +1112,12 @@ include modalGameCreditLog
                         #providerExpenseQuery.well
                             .search-filters-item
                                 label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-                                select.form-control(ng-model='vm.consumptionRecordPlatformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                                select.form-control(ng-model='vm.consumptionRecordPlatformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change="vm.getProviderListByPlatform(vm.consumptionRecordPlatformList)", multiple, bsp, data-actions-box='true')
                             .search-filters-item
                                 .control-label {{"Provider" | translate}}
                                 select.form-control(ng-model='vm.selectedProviderID', ng-init='vm.selectedProviderID="all"')
                                     option(value='all') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{v.name}}
+                                    option(ng-repeat='(i,v) in vm.providerListByPlatform', value='{{v._id}}') {{v.name}}
                             .search-filters-item
                                 .control-label {{"Start date" | translate}}
                                 .startTime
