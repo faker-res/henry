@@ -1284,7 +1284,6 @@ var dbUtility = {
                     inputDevice = 2;
             }
             else {
-                console.log(userAgent);
                 if(userAgent.browser){
                     // WEB
                     inputDevice = 1;
