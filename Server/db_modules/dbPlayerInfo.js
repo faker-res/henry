@@ -16005,6 +16005,10 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardEvent => {
+                if (rewardEvent && rewardEvent.name && rewardEvent.param && rewardEvent.param.rewardParam && rewardEvent.param.rewardParam[0]) {
+                    console.log('checkRewardEmpty===name', rewardEvent.name);
+                    console.log('checkRewardEmpty===rewardParam', rewardEvent.param.rewardParam[0]);
+                }
                 if (rewardEvent && rewardEvent.type) {
                     // Check reward individual permission
                     let playerIsForbiddenForThisReward = dbRewardUtil.isRewardEventForbidden(playerInfo, rewardEvent._id);
