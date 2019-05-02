@@ -18,6 +18,7 @@ var constProposalStatus = require("../const/constProposalStatus");
 const constPromoCodeStatus = require('../const/constPromoCodeStatus');
 const constPromoCodeTemplateGenre = require('../const/constPromoCodeTemplateGenre');
 const constRandomRewardType = require('../const/constRandomRewardType');
+const constFestivalRewardType = require('../const/constFestivalRewardType');
 var Q = require("q");
 var mongoose = require('mongoose');
 var messageDispatcher = require("./messageDispatcher.js");
@@ -3032,7 +3033,63 @@ var proposalExecutor = {
                 }
             },
             executePlayerFestivalRewardGroup: function (proposalData) {
-                console.log('MT --executePlayerFestivalRewardGroup', proposalData)
+                console.log('MT --executePlayerFestivalRewardGroup', proposalData);
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty('rewardType')) {
+                    let rtgData;
+                    let providerGroup$;
+                    let createRTGProm = Promise.resolve(true);
+
+                    return dbconfig.collection_gameProviderGroup.findOne({_id: ObjectId(proposalData.data.providerGroup)}).lean().then(
+                        providerGroup => {
+                            proposalData.data.allowedProvider$ = providerGroup && providerGroup.name ? providerGroup.name : "自由额度";
+                            providerGroup$ = proposalData.data.allowedProvider$;
+                            // type 1 festival
+                            if (proposalData.data && proposalData.data.rewardType && proposalData.data.rewardType == constFestivalRewardType.FESTIVAL_TYPE_1 && (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                                let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : (proposalData.data.applyAmount || 0);
+                                let taskData = {
+                                    playerId: proposalData.data.playerObjId,
+                                    type: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
+                                    rewardType: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
+                                    platformId: proposalData.data.platformId,
+                                    requiredUnlockAmount: proposalData.data.spendingAmount,
+                                    currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
+                                    initAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
+                                    useConsumption: Boolean(proposalData.data.useConsumption),
+                                    eventId: proposalData.data.eventId,
+                                    applyAmount: proposalData.data.applyAmount || 0,
+                                    providerGroup: proposalData.data.providerGroup
+                                };
+
+                                createRTGProm = createRTGForProposal(proposalData, taskData, constRewardType.PLAYER_RANDOM_REWARD_GROUP, proposalData).then(
+                                    data => {
+                                        rtgData = data;
+                                        let updateData = {$set: {}};
+
+                                        if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                            updateData.$set["permission.applyBonus"] = false;
+                                        }
+
+                                        return dbconfig.collection_players.findOneAndUpdate(
+                                            {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                            updateData
+                                        )
+                                    }
+                                ).then(
+                                    playerData => {
+                                        if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                            let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                            let newPermissionObj = {applyBonus: false};
+                                            let remark = "优惠提案：" + proposalData.proposalId + "(领取优惠后禁用提款)";
+                                            dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                        }
+
+                                        return rtgData;
+                                    }
+                                )
+                            }
+
+
+
             },
             executePlayerRandomRewardGroup: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty('rewardType')) {
