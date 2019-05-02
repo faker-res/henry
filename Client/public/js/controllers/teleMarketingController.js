@@ -6642,7 +6642,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedAssignees.forEach(adminName => {
                     let isNew = true;
                     vm.tsAssignees.forEach(assignee => {
-                        if (assignee.adminName == adminName) {
+                        if (assignee.adminName == adminName && !assignee.noDistribute) {
                             isNew = false;
                         }
                     });
@@ -6683,7 +6683,7 @@ define(['js/app'], function (myApp) {
                         removed = true;
                     }
                 });
-                if(!removed) {
+                if(!removed && !assignee.noDistribute) {
                     vm.tsAssigneesDisplay.push(assignee);
                 }
             });
