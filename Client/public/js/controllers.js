@@ -1944,10 +1944,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 $scope.$evalAsync(() => {
                     setTimeout(() => {
                         $scope.platformTexts = $scope.allProfitDetailList[i].platformTexts;
-                        console.log('$scope.platformTexts', $scope.platformTexts);
-
                         $scope.netProfitDetailIncome = $scope.allProfitDetailList[i].netProfitDetailIncome;
-                        console.log('$scope.netProfitDetailIncome', $scope.netProfitDetailIncome);
                         $scope.profitDetailConsumptionAmount = $scope.allProfitDetailList[i].profitDetailConsumptionAmount;
                         $scope.profitDetailNewPlayer = $scope.allProfitDetailList[i].profitDetailNewPlayer;
                         $scope.profitDetailTopUpAmount = $scope.allProfitDetailList[i].profitDetailTopUpAmount;
@@ -1956,7 +1953,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         $scope.profitDetailIncome = $scope.allProfitDetailList[i].profitDetailIncome;
                         $scope.financialPoints = $scope.allProfitDetailList[i].financialPoints;
                         resolve('success');
-                    }, 10000);
+                    }, 30000);
                 })
             });
         }
