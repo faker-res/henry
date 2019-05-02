@@ -15,8 +15,9 @@ const constProposalStatus = require('./../const/constProposalStatus');
 var dbQualityInspection = {
 
     connectTel400CSMysql: function(){
+        console.log("checking env.tel400CsIp", env.tel400CsIp)
         var connection = mysql.createConnection({
-            host     : '205.177.199.7',
+            host     : env.tel400CsIp,
             user     : 'devtest',
             password : 'devtest123',
             database : 'ctiserver',
@@ -28,8 +29,9 @@ var dbQualityInspection = {
     },
 
     connectTel400JiaBoMysql: function(){
+        console.log("checking env.tel400JiaBoIp", env.tel400JiaBoIp)
         var connection = mysql.createConnection({
-            host     : '101.78.133.213',
+            host     : env.tel400JiaBoIp,
             user     : 'devtest',
             password : 'devtest123',
             database : 'ctiserver',
@@ -126,13 +128,7 @@ var dbQualityInspection = {
                     let jiaBoDataSize = data && data[1] && data[1].size ? data[1].size : 0;
                     let totalSize = (csDataSize || 0) + (jiaBoDataSize || 0);
                     let dataset = [];
-
-                    console.log("checking csData.length", csData.length)
-                    console.log("checking csDataSize", csDataSize)
-                    console.log("checking jiaBoData.length", jiaBoData.length)
-                    console.log("checking jiaBoDataSize", jiaBoDataSize)
                     dataset = dataset.concat(csData, jiaBoData);
-                    console.log("checking dataset.length", dataset.length)
 
                     if (dataset && dataset.length > limit){
                         dataset = dataset.slice(index, index+limit)
@@ -263,7 +259,6 @@ var dbQualityInspection = {
         return Promise.all([prom, countProm]).then(
             retData => {
                 connection.end();
-                console.log("checking sql query result", retData && retData[0] ? JSON.parse(JSON.stringify(retData[0])) : [])
                 return {
                     data: retData && retData[0] ? JSON.parse(JSON.stringify(retData[0])) : [],
                     size: retData && retData[1] ? JSON.parse(JSON.stringify(retData[1]))[0].total : 0
