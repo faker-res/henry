@@ -22433,25 +22433,9 @@ define(['js/app'], function (myApp) {
                             festivalType3Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType3);
                         }
 
-                        if (birthdayValue && !birthdayValue.length){
-                            birthdayValue = [{ id: createObjectId(), rewardType: vm.randomRewardType.birthdayValue}];
-                        }
-
-
-                        // if (festivalType1Value && !festivalType1Value.length){
-                        //     festivalType1Value = [{ id: createObjectId(), rewardType: vm.randomRewardType.festivalType1Value}];
-                        // }
-                        // if (festivalType2Value && !festivalType2Value.length){
-                        //     festivalType2Value = [{ id: createObjectId(), rewardType: vm.randomRewardType.festivalType2Value}];
-                        // }
-                        // if (festivalType3Value && !festivalType3Value.length){
-                        //     festivalType3Value = [{ id: createObjectId(), rewardType: vm.randomRewardType.festivalType3Value}];
-                        // }
-
-
                         // birthday
                         if (birthdayValue && !birthdayValue.length){
-                            birthdayValue = [{ id: createObjectId(), rewardType: null}];
+                            birthdayValue = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthdayValue}];
                         }
 
                         let birthdayHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
@@ -22466,7 +22450,7 @@ define(['js/app'], function (myApp) {
 
                         // festival type1
                         if (festivalType1Value && !festivalType1Value.length){
-                            festivalType1Value = [{ id: createObjectId(), rewardType: null}];
+                            festivalType1Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.festivalType1Value}];
                         }
                         let festivalType1Header = Object.assign({}, vm.rewardMainParam.rewardParam);
                         if(festivalType1Header.totalConsumptionInInterval){
@@ -22488,7 +22472,7 @@ define(['js/app'], function (myApp) {
 
                         // festival type2
                         if (festivalType2Value && !festivalType2Value.length){
-                            festivalType2Value = [{ id: createObjectId(), rewardType: null}];
+                            festivalType2Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.festivalType2Value}];
                         }
 
                         let festivalType2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
@@ -22502,7 +22486,7 @@ define(['js/app'], function (myApp) {
                         });
                         // festival type3
                         if (festivalType3Value && !festivalType3Value.length){
-                            festivalType3Value = [{ id: createObjectId(), rewardType: null}];
+                            festivalType3Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.festivalType3Value}];
                         }
 
                         let festivalType3Header = Object.assign({}, vm.rewardMainParam.rewardParam);

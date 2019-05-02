@@ -3032,7 +3032,7 @@ var proposalExecutor = {
                 }
             },
             executePlayerFestivalRewardGroup: function (proposalData) {
-                console.log('***executePlayerFestivalRewardGroup', proposalData)
+                console.log('MT --executePlayerFestivalRewardGroup', proposalData)
             },
             executePlayerRandomRewardGroup: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty('rewardType')) {

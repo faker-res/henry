@@ -5506,6 +5506,10 @@
   "Apply Due Date": "优惠领取有效期",
   "Festival Name": "特别节日",
   "Festival Title": "现金奖励",
+  "Customise Special Event Mode": "定义特别节日模式",
+  "MemberBirthday": "会员生日",
+  "SpecialEvent(Custom)": "特别节日（可自定义）",
   "Top Up Return Reward": "存送金奖励",
+  "PlayerFestivalRewardGroup": "特别节日（组）",
   "RECALCULATE": "重新收录"
 }
