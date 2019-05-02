@@ -23037,6 +23037,12 @@ define(['js/app'], function (myApp) {
                         // }
 
                         Object.keys(data).forEach(e => {
+                            if (e && e === 'platformObjId') {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === data[e].toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    newObj.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
                             newObj[e] = data[e];
                         });
 
@@ -23094,7 +23100,7 @@ define(['js/app'], function (myApp) {
                     else {
 
                         let sendData = {
-                            platformObjId: vm.selectedPlatform.id,
+                            platformObjId: collection[data].platformObjId,
                             promoCodeTypeObjId: collection[data]._id
                         };
 
@@ -24157,6 +24163,8 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeTemplateData = [];
                 vm.deletedPromoCodeTemplateData = [];
                 vm.newPromoCode = {};
+
+                vm.promoCodeTemplateSetting = [];
 
                 vm.openPromoCodeTemplateData = [];
                 vm.deletedOpenPromoCodeTemplateData = [];
@@ -25411,7 +25419,6 @@ define(['js/app'], function (myApp) {
 
             function loadPromoCodeTypes() {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {
-                    platformObjId: vm.selectedPlatform.id,
                     deleteFlag: false
                 }, function (data) {
                     $scope.$evalAsync(() => {
@@ -25429,6 +25436,12 @@ define(['js/app'], function (myApp) {
                                 vm.promoCodeType3.push(entry);
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                             }
+                            if (entry.platformObjId) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === entry.platformObjId.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    entry.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
                         });
 
                         vm.promoCodeTypeB = JSON.parse(JSON.stringify(vm.promoCodeType1.concat(vm.promoCodeType2)));
@@ -25445,8 +25458,6 @@ define(['js/app'], function (myApp) {
                             })
                         }
                     })
-
-
                     // $scope.safeApply();
                 });
             }
@@ -31954,16 +31965,15 @@ define(['js/app'], function (myApp) {
                     });
                 } else {
                     let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
                         promoCodeSMSContent: promoCodeSMSContent,
                         isDelete: false
                     };
 
-                        socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                            loadPlatformData({loadAll: false});
-                        });
-                    }
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                        loadPlatformData({loadAll: false});
+                    });
                 }
+            }
 
             function updateProviderGroup() {
                 let totalProviderCount = vm.platformProviderList.length;
