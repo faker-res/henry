@@ -22933,12 +22933,6 @@ define(['js/app'], function (myApp) {
                         // }
 
                         Object.keys(data).forEach(e => {
-                            if (e && e === 'platformObjId') {
-                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === data[e].toString());
-                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
-                                    newObj.platform$ = matchedPlatformData[0].name;
-                                }
-                            }
                             newObj[e] = data[e];
                         });
 
@@ -22996,7 +22990,7 @@ define(['js/app'], function (myApp) {
                     else {
 
                         let sendData = {
-                            platformObjId: collection[data].platformObjId,
+                            platformObjId: vm.filterPromoSMSContentPlatform,
                             promoCodeTypeObjId: collection[data]._id
                         };
 
@@ -24022,10 +24016,6 @@ define(['js/app'], function (myApp) {
                 vm.newPromoCode2 = [];
                 vm.newPromoCode3 = [];
 
-                vm.promoCodeType1 = [];
-                vm.promoCodeType2 = [];
-                vm.promoCodeType3 = [];
-
                 vm.promoCodeType1BeforeEdit = [];
                 vm.promoCodeType2BeforeEdit = [];
                 vm.promoCodeType3BeforeEdit = [];
@@ -24047,7 +24037,7 @@ define(['js/app'], function (myApp) {
                 vm.openPromoCodeTemplateData = [];
                 vm.deletedOpenPromoCodeTemplateData = [];
 
-                loadPromoCodeTypes();
+                vm.loadPromoCodeTypes();
                 loadPromoCodeUserGroup();
                 loadOpenPromoCodeTemplate();
                 // loadPromoCodeTemplate();
@@ -24164,6 +24154,7 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case 'smsContent':
+                        vm.filterPromoSMSContentPlatform = '';
                         break;
                     case 'userGroupConfig':
                         vm.getPromoCodeUserGroup();
@@ -25295,10 +25286,17 @@ define(['js/app'], function (myApp) {
                 return allNames.includes(name);
             };
 
-            function loadPromoCodeTypes() {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {
+            vm.loadPromoCodeTypes = (platformObjId) => {
+                vm.promoCodeType1 = [];
+                vm.promoCodeType2 = [];
+                vm.promoCodeType3 = [];
+
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
                     deleteFlag: false
-                }, function (data) {
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         vm.promoCodeTypes = data.data;
                         vm.promoCodeTypeB = [];
@@ -25313,12 +25311,6 @@ define(['js/app'], function (myApp) {
                             } else if (entry.type == 3 && entry.hasOwnProperty("smsTitle")) {
                                 vm.promoCodeType3.push(entry);
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
-                            }
-                            if (entry.platformObjId) {
-                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === entry.platformObjId.toString());
-                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
-                                    entry.platform$ = matchedPlatformData[0].name;
-                                }
                             }
                         });
 
@@ -31843,6 +31835,7 @@ define(['js/app'], function (myApp) {
                     });
                 } else {
                     let sendData = {
+                        platformObjId: vm.filterPromoSMSContentPlatform,
                         promoCodeSMSContent: promoCodeSMSContent,
                         isDelete: false
                     };
