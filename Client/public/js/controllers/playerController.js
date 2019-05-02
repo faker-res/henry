@@ -16475,13 +16475,13 @@ define(['js/app'], function (myApp) {
 
             return $scope.$socketPromise("getPlatformBankCardGroup", {platform: vm.selectedPlatform.id}).then(
                 data => {
-                    $scope.$evalAsync(() => {
+                    //$scope.$evalAsync(() => {
                         vm.platformBankCardGroupList = data.data;
                         vm.platformBankCardGroupListCheck = {};
                         $.each(vm.platformBankCardGroupList, function (i, v) {
                             vm.platformBankCardGroupListCheck[v._id] = v.displayName ? v.displayName : true;
                         })
-                    })
+                    //})
                 },
                 error => {
                     console.log(error)
@@ -16524,13 +16524,13 @@ define(['js/app'], function (myApp) {
 
             return $scope.$socketPromise("getPlatformMerchantGroup", {platform: vm.selectedPlatform.id}).then(
                 data => {
-                    $scope.$evalAsync(() => {
+                    //$scope.$evalAsync(() => {
                         vm.platformMerchantGroupList = data.data;
                         vm.platformMerchantGroupListCheck = {};
                         $.each(vm.platformMerchantGroupList, function (i, v) {
                             vm.platformMerchantGroupListCheck[v._id] = v.displayName ? v.displayName : true;
                         })
-                    })
+                    //})
                 }
             )
         };
