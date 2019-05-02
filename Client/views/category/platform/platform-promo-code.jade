@@ -435,123 +435,133 @@
 
                 // Tab - SMS Content
                 div(ng-if='vm.selectedPromoCodeTab=="smsContent" && checkViewPermission("Platform", "promoCode", "smsContentConfig")')
-                    div(style="margin-bottom: 20px;")
-                        label(style="color: red") *{{ "Promo code name must be unique" | translate }}
-                    table.common-table.playerLvlTable
-                        thead
-                            tr
-                                th(style="width:30%") {{"PROMO_CODE_TYPE_1" | translate}}
-                                th(style="width:20%") {{"BANNER TITLE" | translate}}
-                                th(style="width:50%") {{"SMS_CONTENT" | translate}}
-                                th(ng-if='vm.promoCodeSMSContentEdit')
-                        tbody
-                            tr(ng-repeat='type in vm.promoCodeType1')
-                                td
-                                    text {{type.name}}
-                                td(ng-if="!vm.promoCodeSMSContentEdit")
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsTitle}}
-                                td(ng-if="!vm.promoCodeSMSContentEdit")
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
-                                td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
-                                td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
-                                td(ng-if='vm.promoCodeSMSContentEdit')
-                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType1, $index)')
-                            tr(ng-if='vm.promoCodeSMSContentEdit')
-                                td(colspan=4) {{'ADD' | translate}}
-                            tr(ng-if='vm.promoCodeSMSContentEdit')
-                                td
-                                    input(type='text', ng-model='vm.newPromoCodeSMSContentType1.name')
-                                td
-                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsTitle")
-                                td
-                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsContent")
-                                td
-                                    i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name, smsTitle: vm.newPromoCodeSMSContentType1.smsTitle, smsContent: vm.newPromoCodeSMSContentType1.smsContent}, vm.promoCodeType1BeforeEdit); vm.newPromoCodeSMSContentType1={}')
-                    br
-                    table.common-table.playerLvlTable
-                        thead
-                            tr
-                                th(style="width:30%") {{"PROMO_CODE_TYPE_2" | translate}}
-                                th(style="width:20%") {{"BANNER TITLE" | translate}}
-                                th(style="width:50%") {{"SMS_CONTENT" | translate}}
-                                th(ng-if='vm.promoCodeSMSContentEdit')
-                        tbody
-                            tr(ng-repeat='type in vm.promoCodeType2')
-                                td
-                                    text {{type.name}}
-                                td(ng-if="!vm.promoCodeSMSContentEdit")
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsTitle}}
-                                td(ng-if="!vm.promoCodeSMSContentEdit")
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
-                                td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
-                                td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
-                                td(ng-if='vm.promoCodeSMSContentEdit')
-                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType2, $index)')
-                            tr(ng-if='vm.promoCodeSMSContentEdit')
-                                td(colspan=4) {{'ADD' | translate}}
-                            tr(ng-if='vm.promoCodeSMSContentEdit')
-                                td
-                                    input(type='text', ng-model='vm.newPromoCodeSMSContentType2.name')
-                                td
-                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsTitle")
-                                td
-                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsContent")
-                                td
-                                    i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType2, {name: vm.newPromoCodeSMSContentType2.name, smsTitle: vm.newPromoCodeSMSContentType2.smsTitle, smsContent: vm.newPromoCodeSMSContentType2.smsContent}, vm.promoCodeType2BeforeEdit); vm.newPromoCodeSMSContentType2={}')
-                    br
-                    table.common-table.playerLvlTable
-                        thead
-                            tr
-                                th(style="width:30%") {{"PROMO_CODE_TYPE_3" | translate}}
-                                th(style="width:20%") {{"BANNER TITLE" | translate}}
-                                th(style="width:50%") {{"SMS_CONTENT" | translate}}
-                                th(ng-if='vm.promoCodeSMSContentEdit')
-                        tbody
-                            tr(ng-repeat='type in vm.promoCodeType3')
-                                td
-                                    text {{type.name}}
-                                td(ng-if="!vm.promoCodeSMSContentEdit")
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsTitle}}
-                                td(ng-if="!vm.promoCodeSMSContentEdit")
-                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
-                                td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
-                                td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
-                                td(ng-if='vm.promoCodeSMSContentEdit')
-                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType3, $index)')
-                            tr(ng-if='vm.promoCodeSMSContentEdit')
-                                td(colspan=4) {{'ADD' | translate}}
-                            tr(ng-if='vm.promoCodeSMSContentEdit')
-                                td
-                                    input(type='text', ng-model='vm.newPromoCodeSMSContentType3.name')
-                                td
-                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsTitle")
-                                td
-                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsContent")
-                                td
-                                    i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType3, {name: vm.newPromoCodeSMSContentType3.name, smsTitle: vm.newPromoCodeSMSContentType3.smsTitle, smsContent: vm.newPromoCodeSMSContentType3.smsContent}, vm.promoCodeType3BeforeEdit); vm.newPromoCodeSMSContentType3={}')
+                    .row
+                        .col-md-12
+                            .well.col-xs-12
+                                .search-filters-item
+                                    label {{'PRODUCT_NAME' | translate}}
+                                    select.form-control(ng-model='vm.filterPromoSMSContentPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadPromoCodeTypes(vm.filterPromoSMSContentPlatform)')
+                    .text-center(ng-if='!vm.filterPromoSMSContentPlatform')
+                        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+                    .row(ng-if='vm.filterPromoSMSContentPlatform')
+                        .col-md-12
+                            div(style="margin-bottom: 20px;")
+                                label(style="color: red") *{{ "Promo code name must be unique" | translate }}
+                            table.common-table.playerLvlTable
+                                thead
+                                    tr
+                                        th(style="width:15%") {{"PROMO_CODE_TYPE_1" | translate}}
+                                        th(style="width:20%") {{"BANNER TITLE" | translate}}
+                                        th(style="width:50%") {{"SMS_CONTENT" | translate}}
+                                        th(ng-if='vm.promoCodeSMSContentEdit')
+                                tbody
+                                    tr(ng-repeat='type in vm.promoCodeType1')
+                                        td
+                                            text {{type.name}}
+                                        td(ng-if="!vm.promoCodeSMSContentEdit")
+                                            div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsTitle}}
+                                        td(ng-if="!vm.promoCodeSMSContentEdit")
+                                            div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                        td(ng-if='vm.promoCodeSMSContentEdit')
+                                            input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
+                                        td(ng-if='vm.promoCodeSMSContentEdit')
+                                            input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
+                                        td(ng-if='vm.promoCodeSMSContentEdit')
+                                            i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType1, $index)')
+                                    tr(ng-if='vm.promoCodeSMSContentEdit')
+                                        td(colspan=4) {{'ADD' | translate}}
+                                    tr(ng-if='vm.promoCodeSMSContentEdit')
+                                        td
+                                            input(type='text', ng-model='vm.newPromoCodeSMSContentType1.name')
+                                        td
+                                            input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsTitle")
+                                        td
+                                            input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsContent")
+                                        td
+                                            i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name, smsTitle: vm.newPromoCodeSMSContentType1.smsTitle, smsContent: vm.newPromoCodeSMSContentType1.smsContent}, vm.promoCodeType1BeforeEdit); vm.newPromoCodeSMSContentType1={}')
+                            br
+                            table.common-table.playerLvlTable
+                                thead
+                                    tr
+                                        th(style="width:15%") {{"PROMO_CODE_TYPE_2" | translate}}
+                                        th(style="width:20%") {{"BANNER TITLE" | translate}}
+                                        th(style="width:50%") {{"SMS_CONTENT" | translate}}
+                                        th(ng-if='vm.promoCodeSMSContentEdit')
+                                tbody
+                                    tr(ng-repeat='type in vm.promoCodeType2')
+                                        td
+                                            text {{type.name}}
+                                        td(ng-if="!vm.promoCodeSMSContentEdit")
+                                            div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsTitle}}
+                                        td(ng-if="!vm.promoCodeSMSContentEdit")
+                                            div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                        td(ng-if='vm.promoCodeSMSContentEdit')
+                                            input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
+                                        td(ng-if='vm.promoCodeSMSContentEdit')
+                                            input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
+                                        td(ng-if='vm.promoCodeSMSContentEdit')
+                                            i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType2, $index)')
+                                    tr(ng-if='vm.promoCodeSMSContentEdit')
+                                        td(colspan=4) {{'ADD' | translate}}
+                                    tr(ng-if='vm.promoCodeSMSContentEdit')
+                                        td
+                                            input(type='text', ng-model='vm.newPromoCodeSMSContentType2.name')
+                                        td
+                                            input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsTitle")
+                                        td
+                                            input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsContent")
+                                        td
+                                            i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType2, {name: vm.newPromoCodeSMSContentType2.name, smsTitle: vm.newPromoCodeSMSContentType2.smsTitle, smsContent: vm.newPromoCodeSMSContentType2.smsContent}, vm.promoCodeType2BeforeEdit); vm.newPromoCodeSMSContentType2={}')
+                            br
+                            table.common-table.playerLvlTable
+                                thead
+                                    tr
+                                        th(style="width:15%") {{"PROMO_CODE_TYPE_3" | translate}}
+                                        th(style="width:20%") {{"BANNER TITLE" | translate}}
+                                        th(style="width:50%") {{"SMS_CONTENT" | translate}}
+                                        th(ng-if='vm.promoCodeSMSContentEdit')
+                                tbody
+                                    tr(ng-repeat='type in vm.promoCodeType3')
+                                        td
+                                            text {{type.name}}
+                                        td(ng-if="!vm.promoCodeSMSContentEdit")
+                                            div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsTitle}}
+                                        td(ng-if="!vm.promoCodeSMSContentEdit")
+                                            div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                        td(ng-if='vm.promoCodeSMSContentEdit')
+                                            input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
+                                        td(ng-if='vm.promoCodeSMSContentEdit')
+                                            input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
+                                        td(ng-if='vm.promoCodeSMSContentEdit')
+                                            i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType3, $index)')
+                                    tr(ng-if='vm.promoCodeSMSContentEdit')
+                                        td(colspan=4) {{'ADD' | translate}}
+                                    tr(ng-if='vm.promoCodeSMSContentEdit')
+                                        td
+                                            input(type='text', ng-model='vm.newPromoCodeSMSContentType3.name')
+                                        td
+                                            input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsTitle")
+                                        td
+                                            input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsContent")
+                                        td
+                                            i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType3, {name: vm.newPromoCodeSMSContentType3.name, smsTitle: vm.newPromoCodeSMSContentType3.smsTitle, smsContent: vm.newPromoCodeSMSContentType3.smsContent}, vm.promoCodeType3BeforeEdit); vm.newPromoCodeSMSContentType3={}')
 
-                    br
-                    .pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.promoCodeSMSContentEdit && checkViewPermission('Platform', 'promoCode', 'smsContentConfig')", ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit')
-                            text {{'EDIT' | translate}}
-                            img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=false; vm.promoCodeTabClicked("smsContent")') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-disabled='vm.smsTitleDuplicationBoolean', ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit;vm.configSubmitUpdate("promoSMSContent")') {{"CONFIRM" | translate}}
-                    br
-                    table.playerLvlTable(style="width:10%")
-                        thead
-                            tr
-                                th(colspan=2) {{"PROMO_CODE_LEGEND" | translate}}
-                        tbody
-                            tr(ng-repeat="(i, v) in constPromoCodeLegend")
-                                td(style="text-align:center;") {{ i | translate }}
-                                td(style="text-align:center;") {{ v }}
+                            br
+                            .pull-right
+                                button.btn.btn-primary.common-button(ng-if="!vm.promoCodeSMSContentEdit && checkViewPermission('Platform', 'promoCode', 'smsContentConfig')", ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit')
+                                    text {{'EDIT' | translate}}
+                                    img.img-edit
+                                button.btn.btn-danger.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=false; vm.loadPromoCodeTypes(vm.filterPromoSMSContentPlatform)') {{"CANCEL" | translate}}
+                                button.btn.btn-primary.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-disabled='vm.smsTitleDuplicationBoolean', ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit;vm.configSubmitUpdate("promoSMSContent")') {{"CONFIRM" | translate}}
+                            br
+                            table.playerLvlTable(style="width:10%")
+                                thead
+                                    tr
+                                        th(colspan=2) {{"PROMO_CODE_LEGEND" | translate}}
+                                tbody
+                                    tr(ng-repeat="(i, v) in constPromoCodeLegend")
+                                        td(style="text-align:center;") {{ i | translate }}
+                                        td(style="text-align:center;") {{ v }}
 
 
                 // Tab - Promo Code User Group

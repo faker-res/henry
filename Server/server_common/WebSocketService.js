@@ -89,7 +89,13 @@ var rootObj = {};
             packageData.requestId = requestData.requestId;
         }
         var res = JSON.stringify(packageData);
-        console.log("server _sendResponse:", res);
+
+        let ignoreResponseLogFuncList = ["login", "create"];
+
+        if (!ignoreResponseLogFuncList.includes(funcName)) {
+            console.log("server _sendResponse:", res);
+        }
+
         try {
             conn.send(res);
         } catch (e) {
