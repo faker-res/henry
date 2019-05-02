@@ -552,7 +552,7 @@
                     .text-danger {{vm.playerLevelSettlement.result | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
                 button.btn.btn-success.common-button(ng-if='vm.playerLevelSettlement.status=="ready" && vm.selectedPlatform.data.platformBatchLevelUp', ng-click="vm.performPlayerLevelSettlement(true)") {{'CONFIRM_LEVEL_UP' | translate}}
-                button.btn.btn-success.common-button(ng-if='vm.playerLevelSettlement.status=="ready"', ng-click="vm.performPlayerLevelSettlement(false)") {{'CONFIRM_LEVEL_DOWN' | translate}}
+                button.btn.btn-success.common-button(ng-if='vm.playerLevelSettlement.status=="ready"', ng-click="vm.performPlayerLevelSettlement(false)") {{'CONFIRM_LEVEL_MAINTAIN' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.playerLevelSettlement.status=="processing"')
 
 #playerConsecutiveConsumptionSettlementModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:50%;margin-left:20%')

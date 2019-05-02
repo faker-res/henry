@@ -450,19 +450,31 @@ let dbPlayerLevelInfo = {
 };
 
 async function checkLevelMaintainReward (playerObj, lvlDownPeriod) {
-    let proposalType = await dbconfig.collection_proposalType.findOne({
+    let proposalTypes = await dbconfig.collection_proposalType.find({
         platformId: playerObj.platform,
-        name: constProposalType.PLAYER_LEVEL_MAINTAIN
+        name: {$in: [constProposalType.PLAYER_LEVEL_MAINTAIN, constProposalType.PLAYER_LEVEL_MIGRATION, constProposalType.UPDATE_PLAYER_INFO_LEVEL]}
     }).lean();
 
-    if (!proposalType) {
+    if (!(proposalTypes && proposalTypes.length && proposalTypes.length == 3)) {
         return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
     }
 
     let rewardProm = await dbconfig.collection_proposal.findOne({
-        'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
-        'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
-        type: proposalType._id,
+        $or: [
+            {
+                $and: [
+                    {'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}},
+                    {'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]}}
+                ]
+            },
+            {
+                $and: [
+                    {'data._id': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}},
+                    {'data.platformId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]}}
+                ]
+            }
+        ],
+        type: {$in: proposalTypes.map(proposalType => proposalType._id)},
         createTime: {
             $gte: lvlDownPeriod.startTime,
             $lt: lvlDownPeriod.endTime
@@ -471,7 +483,7 @@ async function checkLevelMaintainReward (playerObj, lvlDownPeriod) {
     }).lean();
 
     if (rewardProm) {
-        return Promise.resolve(); // player claimed reward in the period
+        return Promise.resolve(); // player claimed reward in the period / player level changed in period
     }
 
     let proposalData = {
