@@ -20628,12 +20628,16 @@ let dbPlayerInfo = {
                             // player related
                             let playerDetail = data[3];
                             if (playerDetail.credibilityRemarks && playerDetail.credibilityRemarks.length) {
-                                result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e._id);
+                                result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e && e._id);
                                 result.credibilityRemarksName = playerDetail.credibilityRemarks.reduce((i, n, idx, arr) => {
-                                    if (arr.length === idx + 1) {
-                                        return i += n.name
+                                    if (n && n.name) {
+                                        if (arr.length === idx + 1) {
+                                            return i += n.name
+                                        } else {
+                                            return i += n.name + "\n"
+                                        }
                                     } else {
-                                        return i += n.name + "\n"
+                                        return i;
                                     }
                                 }, "");
                             }
