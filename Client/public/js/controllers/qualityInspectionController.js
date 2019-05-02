@@ -24,6 +24,15 @@ define(['js/app'], function (myApp) {
                 3: "CALL_IN",
             };
 
+            vm.getDepositMethodbyId = {
+                1: 'Online',
+                2: 'ATM',
+                3: 'Counter',
+                4: 'AliPayTransfer',
+                5: 'weChatPayTransfer',
+                6: 'CloudFlashPay'
+            };
+
             vm.constQualityInspectionStatus = {
                 1: "PENDINGTOPROCESS",
                 2: "COMPLETED_UNREAD",
@@ -2636,7 +2645,7 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 selectedLiveAcc = data.data[0].live800Acc.filter( acc => {return vm.selectedCompanyId.indexOf(acc.split("-")[0]) != -1 });
-                            
+
                                 let params= {
                                     'operatorId': selectedLiveAcc,
                                     'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
@@ -2709,7 +2718,7 @@ define(['js/app'], function (myApp) {
 
                                                 return data;
                                             });
-                                        
+
                                         $scope.safeApply();
                                         vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
                                     }
@@ -4327,66 +4336,77 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showProposalModal = function (proposalId, platformObjId, templateNo) {
-                socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
-                    platformId: platformObjId,
-                    proposalId: proposalId
-                }, function (data) {
-                    vm.selectedProposal = data.data;
-                    vm.proposalDetailStyle = {};
+                vm.allBankTypeList = {};
+                commonService.getBankTypeList($scope, platformObjId).catch(err => Promise.resolve({})).then(v => {
+                    vm.allBankTypeList = v;
+                    socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+                        platformId: platformObjId,
+                        proposalId: proposalId
+                    }, function (data) {
+                        vm.selectedProposal = data.data;
+                        vm.proposalDetailStyle = {};
 
-                    vm.selectedProposal.data = commonService.setFixedPropDetail($scope, $translate, $noRoundTwoDecimalPlaces, vm);
+                        vm.selectedProposal.data = commonService.setFixedPropDetail($scope, $translate, $noRoundTwoDecimalPlaces, vm);
 
-                    if (vm.selectedProposal && vm.selectedProposal.data) {
-                        delete vm.selectedProposal.data.betAmount;
-                        delete vm.selectedProposal.data.betTime;
-                        delete vm.selectedProposal.data.winAmount;
-                        delete vm.selectedProposal.data.winTimes;
-                    }
-
-                    if (vm.selectedProposal.data.inputData) {
-                        if (vm.selectedProposal.data.inputData.provinceId) {
-                            //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
-                            commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data.provinceName = data;
-                            });
+                        if (vm.selectedProposal && vm.selectedProposal.data) {
+                            delete vm.selectedProposal.data.betAmount;
+                            delete vm.selectedProposal.data.betTime;
+                            delete vm.selectedProposal.data.winAmount;
+                            delete vm.selectedProposal.data.winTimes;
                         }
-                        if (vm.selectedProposal.data.inputData.cityId) {
-                            //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
-                            commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data.cityName = data;
-                            });
-                        }
-                    } else {
-                        if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                            //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
-                            commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
-                            });
-                        }
-                        if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                            //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
-                            commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
-                            });
-                        }
-                    }
 
-                    if ( vm.selectedProposal.mainType && vm.selectedProposal.mainType == "PlayerBonus" && vm.selectedProposal.status && vm.selectedProposal.status == 'Approved' ) {
-                        vm.selectedProposal.status = 'approved';
-                    }
+                        if (vm.selectedProposal.data.inputData) {
+                            if (vm.selectedProposal.data.inputData.provinceId) {
+                                //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                                commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                                    vm.selectedProposal.data.provinceName = data;
+                                });
+                            }
+                            if (vm.selectedProposal.data.inputData.cityId) {
+                                //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                                commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                                    vm.selectedProposal.data.cityName = data;
+                                });
+                            }
+                        } else {
+                            if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
+                                //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                                commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                                    vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                                });
+                            }
+                            if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
+                                //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                                commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                                    vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                                });
+                            }
+                        }
 
-                    let tmpt = vm.proposalTemplate[templateNo];
-                    $(tmpt).modal('show');
-                    if (templateNo == 1) {
-                        $(tmpt).css('z-Index', 1051).modal();
-                    }
+                        if ( vm.selectedProposal.mainType && vm.selectedProposal.mainType == "PlayerBonus" && vm.selectedProposal.status && vm.selectedProposal.status == 'Approved' ) {
+                            vm.selectedProposal.status = 'approved';
+                        }
 
-                    $(tmpt).on('shown.bs.modal', function (e) {
-                        $scope.safeApply();
+                        let tmpt = vm.proposalTemplate[templateNo];
+                        $(tmpt).modal('show');
+                        if (templateNo == 1) {
+                            $(tmpt).css('z-Index', 1051).modal();
+                        }
+
+                        $(tmpt).on('shown.bs.modal', function (e) {
+                            $scope.safeApply();
+                        });
+
+                        // solving the scolling issue for the inner pop up after the outer pop up has closed
+                        $(tmpt).off('hidden.bs.modal');
+                        $(tmpt).on('hidden.bs.modal', function (event) {
+                            if ($('.modal.in').length > 0) {
+                                $("body").addClass('modal-open');
+                            }
+                            $scope.$evalAsync();
+                        });
                     })
-
-
-                })
+                });
             };
 
             // display proposal detail
