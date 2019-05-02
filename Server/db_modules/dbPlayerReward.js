@@ -7191,6 +7191,163 @@ let dbPlayerReward = {
                         spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
                         break;
 
+                    case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
+                        let consumptionData = rewardSpecificData[0];
+                        let topUpData = rewardSpecificData[1];
+                        let periodData = rewardSpecificData[2];
+                        let checkIsReceived = rewardSpecificData[3];
+                        let applyRewardCount = (periodData && periodData.length ) ? periodData.length :0;
+                        // let presetList = rewardSpecificData[5];
+                        // let gottenRewardInInterval = periodData;
+
+                        let participationCount = eventData.condition && eventData.condition.hasOwnProperty('numberParticipation') ? eventData.condition.numberParticipation : 1;
+                        let consumptionToParticipates = eventData.condition && eventData.condition.hasOwnProperty('requiredConsumptionAmount') ? eventData.condition.requiredConsumptionAmount : 0;
+                        let topUpAmountToParticipates = eventData.condition && eventData.condition.hasOwnProperty('requiredTopUpAmount') ? eventData.condition.requiredTopUpAmount : 0;
+                        let operationOptions = eventData.condition && eventData.condition.operatorOption ? true : false;
+
+                        let topUpSum = topUpData ? topUpData.reduce((sum, value) => sum + value.amount, 0) : 0;
+                        let consumptionSum = consumptionData ? consumptionData.reduce((sum, value) => sum + value.validAmount, 0): 0
+                        let applyRewardSum = periodData ? periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0): 0;
+                        useTopUpAmount = 0;
+                        useConsumptionAmount = 0;
+                        //periodProps.reduce((sum, value) => sum + value, 1);
+                        if(topUpData && topUpData.length > 0){
+                            topUpData.sort(function(a, b){
+                                return a.amount - b.amount;
+                            })
+                        }
+
+                        let sameIPAddressIsReceived = checkIsReceived && checkIsReceived.sameIPAddressIsReceived ? checkIsReceived.sameIPAddressIsReceived : "";
+                        let samePhoneNumIsReceived = checkIsReceived && checkIsReceived.samePhoneNumIsReceived ? checkIsReceived.samePhoneNumIsReceived : "";
+                        let sameDeviceIdIsReceived = checkIsReceived && checkIsReceived.sameDeviceIdIsReceived ? checkIsReceived.sameDeviceIdIsReceived : "";
+
+                        if (sameIPAddressIsReceived) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This IP address has applied for max reward times in event period")
+                            });
+                        }
+
+                        if (samePhoneNumIsReceived) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This phone number has applied for max reward times in event period")
+                            });
+                        }
+
+                        if (sameDeviceIdIsReceived) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This mobile device has applied for max reward times in event period")
+                            });
+                        }
+
+                        if (participationCount && applyRewardCount >= participationCount){
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "This player has applied for max reward times in event period"
+                            })
+                        }
+
+                        let reachTopUpCondition = false;
+                        let reachConsumptionCondition = false;
+
+                        if (topUpAmountToParticipates && (!topUpData || topUpData.length < 1)) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Not valid for the reward; Top-up is required."
+                            });
+                        }
+
+                        if (topUpAmountToParticipates == 0){
+                            reachTopUpCondition  = true;
+                            isUpdateMultiTopupRecord = false;
+                        }
+
+                        if (topUpAmountToParticipates && topUpSum >= topUpAmountToParticipates) {
+                            let useTopupRecordAmount = 0;
+                            //For set topup bDirty Use
+                            topUpData.forEach((topUpRecord) => {
+                                if (useTopupRecordAmount < topUpAmountToParticipates) {
+                                    useTopupRecordAmount += topUpRecord.amount;
+                                    updateTopupRecordIds.push(topUpRecord._id);
+                                }
+                            });
+
+                            useTopUpAmount = topUpAmountToParticipates;
+                            reachTopUpCondition = true;
+                            isUpdateMultiTopupRecord = true;
+                        }
+
+                        if (consumptionToParticipates == 0){
+                            reachConsumptionCondition = true;
+                            isUpdateMultiConsumptionRecord = false;
+                        }
+
+                        if (consumptionToParticipates && consumptionSum >= consumptionToParticipates) {
+                            let useConsumptionRecordAmount = 0;
+                            //For set consumption bDirty Use
+                            consumptionData.forEach((consumptionRecord) => {
+                                if (useConsumptionRecordAmount < consumptionToParticipate) {
+                                    useConsumptionRecordAmount += consumptionRecord.validAmount;
+                                    updateConsumptionRecordIds.push(consumptionRecord._id);
+                                }
+                            });
+                            isUpdateMultiConsumptionRecord = true;
+                            useConsumptionAmount = consumptionToParticipate;
+                            reachConsumptionCondition = true;
+                        }
+
+                        if (operationOptions) { // true = and, false = or
+                            if (!reachTopUpCondition) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Player does not have enough top up amount"
+                                });
+                            }
+                            if (!reachConsumptionCondition) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Player does not have enough consumption"
+                                });
+                            }
+                        } else {
+                            if (!(reachTopUpCondition || reachConsumptionCondition)) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Player does not have enough top up or consumption amount"
+                                });
+                            }
+                            //Only use one of the condition, reset another
+                            if (reachTopUpCondition && reachConsumptionCondition) {
+                                // if both condition true, then use TopUpAmount first
+                                if (isUpdateMultiTopupRecord){
+                                    useConsumptionAmount = 0;
+                                    isUpdateMultiConsumptionRecord = false;
+                                }
+                                else if (isUpdateMultiConsumptionRecord){
+                                    useTopUpAmount = 0;
+                                    isUpdateMultiTopupRecord = false;
+                                }
+                            } else {
+                                if (reachTopUpCondition) {
+                                    useConsumptionAmount = 0;
+                                    isUpdateMultiConsumptionRecord = false;
+                                }
+                                if (reachConsumptionCondition) {
+                                    useTopUpAmount = 0;
+                                    isUpdateMultiTopupRecord = false;
+                                }
+                            }
+                        }
+                        break;
                     // type 6
                     case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                         // selectedRewardParam = selectedRewardParam[0];

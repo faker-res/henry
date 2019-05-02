@@ -29,7 +29,7 @@ define(['js/app'], function (myApp) {
         vm.orientationSetting = {
             1: $translate("Landscape"),
             2: $translate("Portrait"),
-            3: $translate("default")
+            3: $translate("Default")
         }
 
         vm.allProviderStatusKeys = ['NORMAL', 'MAINTENANCE', 'HALT'];
