@@ -39,8 +39,8 @@ function socketActionPromoCode(socketIO, socket) {
 
         getPromoCodeTypes: function getPromoCodeTypes(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTypes, [data.deleteFlag], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTypes, [data.platformObjId, data.deleteFlag], actionName, isValidData);
         },
 
         getPromoCodeTypeByObjId: function getPromoCodeTypeByObjId(data) {
@@ -55,8 +55,8 @@ function socketActionPromoCode(socketIO, socket) {
 
         updatePromoCodeSMSContent: function updatePromoCodeSMSContent(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.promoCodeSMSContent);
-            socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeSMSContent, [data.promoCodeSMSContent, data.isDelete], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.promoCodeSMSContent);
+            socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeSMSContent, [ObjectId(data.platformObjId), data.promoCodeSMSContent, data.isDelete], actionName, isValidData);
         },
 
         getPromoCodeTemplate: function getPromoCodeTemplate(data) {

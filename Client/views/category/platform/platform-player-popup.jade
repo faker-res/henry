@@ -500,7 +500,7 @@
                                                 td
                                                     input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
                                                     input.selectRemark(type="checkbox", ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
-                                                    span(id="{{'c-'+data._id}}")
+                                                    span.creditUpdateStatus(id="{{'c-'+data._id}}")
                             div.col-md-4
                                 .well
                                     label {{"ADD_SCORE" | translate}}
@@ -519,7 +519,7 @@
                                                 td
                                                     input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
                                                     input.selectRemark(type="checkbox", ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
-                                                    span(id="{{'c-'+data._id}}")
+                                                    span.creditUpdateStatus(id="{{'c-'+data._id}}")
                             div.col-md-4
                                 .well
                                     label {{"REMINDER" | translate}}
@@ -538,7 +538,7 @@
                                                 td
                                                     input.selectRemark(type="checkbox", ng-show='!data.isFixed', ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
                                                     input.selectRemark(type="checkbox", ng-show='!data.isFixed', ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
-                                                    span(id="{{'c-'+data._id}}")
+                                                    span.creditUpdateStatus(id="{{'c-'+data._id}}")
                 .panel.panel-primary
                     .panel-body
                         div.col-md-4(style='width:40%;')

@@ -1017,7 +1017,7 @@ define(['js/app'], function (myApp) {
                 // check if using new data list, else show up the old data
                 let newListBoolean = false;
                 for(let i = 0; i <newList.length; i++){
-                    if (platformData[newList[i]].length > 0) {
+                    if (platformData[newList[i]] && platformData[newList[i]].length > 0) {
                         newListBoolean = true;
                         break;
                     }
@@ -6351,11 +6351,6 @@ define(['js/app'], function (myApp) {
                 });
                 vm.advancedQueryObj = vm.advancedQueryObj || {};
                 vm.drawPlayerTable([]);
-
-                if (!initPage) {
-                    vm.advancedPlayerQuery(newSearch);
-                }
-
             };
 
             vm.searchForExactPlayerDebounced = $scope.debounceSearch(function (playerExactSearchText) {
@@ -22934,12 +22929,6 @@ define(['js/app'], function (myApp) {
                         // }
 
                         Object.keys(data).forEach(e => {
-                            if (e && e === 'platformObjId') {
-                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === data[e].toString());
-                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
-                                    newObj.platform$ = matchedPlatformData[0].name;
-                                }
-                            }
                             newObj[e] = data[e];
                         });
 
@@ -22997,7 +22986,7 @@ define(['js/app'], function (myApp) {
                     else {
 
                         let sendData = {
-                            platformObjId: collection[data].platformObjId,
+                            platformObjId: vm.selectedPlatform.id,
                             promoCodeTypeObjId: collection[data]._id
                         };
 
@@ -24042,8 +24031,6 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeTemplateData = [];
                 vm.deletedPromoCodeTemplateData = [];
                 vm.newPromoCode = {};
-
-                vm.promoCodeTemplateSetting = [];
 
                 vm.openPromoCodeTemplateData = [];
                 vm.deletedOpenPromoCodeTemplateData = [];
@@ -25298,6 +25285,7 @@ define(['js/app'], function (myApp) {
 
             function loadPromoCodeTypes() {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {
+                    platformObjId: vm.selectedPlatform.id,
                     deleteFlag: false
                 }, function (data) {
                     $scope.$evalAsync(() => {
@@ -25315,12 +25303,6 @@ define(['js/app'], function (myApp) {
                                 vm.promoCodeType3.push(entry);
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                             }
-                            if (entry.platformObjId) {
-                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === entry.platformObjId.toString());
-                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
-                                    entry.platform$ = matchedPlatformData[0].name;
-                                }
-                            }
                         });
 
                         vm.promoCodeTypeB = JSON.parse(JSON.stringify(vm.promoCodeType1.concat(vm.promoCodeType2)));
@@ -25337,6 +25319,8 @@ define(['js/app'], function (myApp) {
                             })
                         }
                     })
+
+
                     // $scope.safeApply();
                 });
             }
@@ -31844,15 +31828,16 @@ define(['js/app'], function (myApp) {
                     });
                 } else {
                     let sendData = {
+                        platformObjId: vm.selectedPlatform.id,
                         promoCodeSMSContent: promoCodeSMSContent,
                         isDelete: false
                     };
 
-                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                        loadPlatformData({loadAll: false});
-                    });
+                        socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                            loadPlatformData({loadAll: false});
+                        });
+                    }
                 }
-            }
 
             function updateProviderGroup() {
                 let totalProviderCount = vm.platformProviderList.length;
@@ -35382,7 +35367,7 @@ define(['js/app'], function (myApp) {
             // Batch Permit Edit
             vm.initBatchPermit = function () {
                 setTimeout(() => {
-                    vm.prepareCredibilityConfig();
+                    vm.prepareCredibilityConfig(vm.selectedPlatform.id || null);
                     vm.initBatchParams();
                     vm.drawBatchPermitTable();
                 }, 0);
@@ -35445,7 +35430,7 @@ define(['js/app'], function (myApp) {
                         vm.playerCredibilityRemarksUpdated = true;
                         vm.credibilityRemarkUpdateMessage = "SUCCESS";
                         vm.getPlatformPlayersData();
-                        vm.prepareCredibilityConfig();
+                        vm.prepareCredibilityConfig(vm.selectedPlatform.id);
                     })
                 }, function (error) {
                     $scope.$evalAsync(() => {
@@ -35457,8 +35442,15 @@ define(['js/app'], function (myApp) {
             };
             vm.resetCredibilityOption = function () {
                 // reset credibitlity checkbox
-                vm.playerCredibilityRemarksUpdated = false;
-                vm.credibilityRemarkUpdateMessage="";
+                $scope.$evalAsync(() => {
+                    vm.forbidCredibilityAddList = [];
+                    vm.forbidCredibilityRemoveList = [];
+                    vm.prepareCredibilityConfig(vm.selectedPlatform.id);
+                    $('.selectRemark').attr('checked', false);
+                    $('.creditUpdateStatus').html('');
+                    vm.playerCredibilityRemarksUpdated = false;
+                    vm.credibilityRemarkUpdateMessage="";
+                })
             };
             vm.resetBatchEditData = function () {
                 //generate a sample to render in datatable, only using for edit multi purpose.
