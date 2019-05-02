@@ -684,7 +684,7 @@ define(['js/app'], function (myApp) {
             // check if using new data list, else show up the old data
             let newListBoolean = false;
             for(let i = 0; i <newList.length; i++){
-                if (platformData[newList[i]].length > 0) {
+                if (platformData[newList[i]] && platformData[newList[i]].length > 0) {
                     newListBoolean = true;
                     break;
                 }

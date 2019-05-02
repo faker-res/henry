@@ -39,6 +39,7 @@ const constRewardType = {
     PLAYER_CONSUMPTION_SLIP_REWARD_GROUP: "PlayerConsumptionSlipRewardGroup",
     PLAYER_RETENTION_REWARD_GROUP: "PlayerRetentionRewardGroup",
     PLAYER_BONUS_DOUBLED_REWARD_GROUP: "PlayerBonusDoubledRewardGroup",
+    PLAYER_FESTIVAL_REWARD_GROUP: "PlayerFestivalRewardGroup",
     BACCARAT_REWARD_GROUP: "BaccaratRewardGroup",
 };
 

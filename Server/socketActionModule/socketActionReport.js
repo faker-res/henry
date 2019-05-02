@@ -42,7 +42,7 @@ function socketActionReport(socketIO, socket) {
             data["endTime"] = endTime;
             query = utility.buildProposalReportQueryString(data);
 
-            socketUtil.emitter(self.socket, dbProposal.getProposalsByAdvancedQuery, [query, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getProposalsByAdvancedQuery, [query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
         },
 
         getFinancialPointsReport: function getFinancialPointsReport(data) {
@@ -86,7 +86,7 @@ function socketActionReport(socketIO, socket) {
             var actionName = arguments.callee.name;
             query.limit = query.limit || 10;
             var isValidData = Boolean(query);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.topupReport, [query, query.index, query.limit, query.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.topupReport, [query, query.index, query.limit, query.sortCol, query.isExport], actionName, isValidData);
         },
 
         /**
@@ -387,7 +387,7 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.platformId);
             var platformId = ObjectId(data.platformId);
 
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
         },
 
         getPlayerReportFromSummary: function getPlayerReportFromSummary(data) {

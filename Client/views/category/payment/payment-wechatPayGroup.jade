@@ -67,16 +67,16 @@
                     .search-filters-item
                         .control-label {{"Wechat Nickname" | translate}}
                         input.form-control.merchantNoList(ng-model='vm.filterWechatNickname', type='text')
-                    .threeBoxes(ng-if="vm.wechatGroupUsed != 'PMS' && vm.paymentSystemName !== 'PMS2'")
+                    .threeBoxes(ng-show="vm.wechatGroupUsed != 'PMS' && vm.paymentSystemName === 'FPMS'")
                         .control-label {{"isInGroup" | translate}}
                         select.form-control.merchantNoList(ng-model='vm.filterWechatInGroup', ng-init='vm.filterWechatInGroup="all"')
                             option(value='all') {{'any' | translate}}
                             option(value='false') {{'noInGroup' | translate}}
                             option(value='true') {{'inGroup' | translate}}
-                    .search-filters-item(ng-if="vm.wechatGroupUsed == 'PMS' || vm.paymentSystemName === 'PMS2'")
+                    .search-filters-item(ng-if="vm.wechatGroupUsed == 'PMS' || vm.paymentSystemName !== 'FPMS'")
                         .control-label {{"Player's Name (PMS Group Search)" | translate}}
                         input.form-control(type='text', ng-model='vm.pmsGroupPlayerName', ng-change='vm.searchPMSWechatGroup()')
-                    .text-right.widthto100(ng-if="vm.wechatGroupUsed == 'PMS' || vm.paymentSystemName === 'PMS2'")
+                    .text-right.widthto100(ng-if="vm.wechatGroupUsed == 'PMS' || vm.paymentSystemName !== 'FPMS'")
                         button.btn.btn-primary(data-dismiss='modal', ng-click="vm.playerPMSWechatGroupSearch()") {{"SEARCH" | translate}}
                 //    .inlineBlk.margin-right-5
                 //        .control-label {{"Wechat Account" | translate}}
@@ -208,7 +208,7 @@
                 text.margin-left-5(ng-if='vm.SelectedWechatPayGroupNode && vm.allWechatList') {{'Total' | translate}}: {{filteredWechatList.length}}
                 table#wechatTable.simple-table.table-vertical-middle
                     thead
-                        th(ng-show="vm.wechatGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'") {{ 'select' | translate }}
+                        th(ng-show="vm.wechatGroupUsed == 'FPMS' && vm.paymentSystemName === 'FPMS'") {{ 'select' | translate }}
                         th(data-toggle="modal", data-target="#modalFilterWechatStatus", style="cursor: pointer") {{ 'STATUS' | translate }}
                         th {{ 'Wechat Account' | translate }}
                         th {{ 'Wechat Name' | translate }}
@@ -217,7 +217,7 @@
                         th {{ 'DAY_LIMIT' | translate }}
                     tbody
                         tr(ng-repeat="(idx,val) in vm.allWechatList | filter: vm.filterWechat as filteredWechatList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
-                            td(ng-show="vm.wechatGroupUsed == 'FPMS' && vm.paymentSystemName !== 'PMS2'")
+                            td(ng-show="vm.wechatGroupUsed == 'FPMS' && vm.paymentSystemName === 'FPMS'")
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.wechatListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
                             td {{ val.state === 'DISABLED' ? 'DISABLE' : val.state | translate}}
                             td {{ val.accountNumber | translate}}

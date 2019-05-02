@@ -668,34 +668,39 @@ var dbPlatform = {
     },
 
     syncHTTPPMSPlatform: function () {
+        let proms = [];
         if (env.mode != "local" && env.mode != "qa") {
-            if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
-                Object.keys(extConfig).forEach(key => {
-                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS2') {
-                        return dbconfig.collection_platform.find().then(
-                            platformArr => {
-                                var sendObj = [];
-                                if (platformArr && platformArr.length > 0) {
-                                    for (var i in platformArr) {
-                                        var obj = {
-                                            platformId: platformArr[i].platformId,
-                                            name: platformArr[i].name,
-                                            code: platformArr[i].code
-                                        }
-                                        sendObj.push(obj)
-                                    }
-
-                                    let data = {
-                                        platforms: sendObj
-                                    };
-
-                                    return RESTUtils.getPMS2Services("postSyncPlatform", data);
-                                }
+            return dbconfig.collection_platform.find().then(
+                platformArr => {
+                    var sendObj = [];
+                    if (platformArr && platformArr.length > 0) {
+                        for (var i in platformArr) {
+                            var obj = {
+                                platformId: platformArr[i].platformId,
+                                name: platformArr[i].name,
+                                code: platformArr[i].code
                             }
-                        );
+                            sendObj.push(obj)
+                        }
+
+                        let data = {
+                            platforms: sendObj
+                        };
+
+                        if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                            Object.keys(extConfig).forEach(key => {
+                                if (key && extConfig[key] && extConfig[key].name && (extConfig[key].name === 'PMS2' || extConfig[key].name === 'DAYOU')) {
+                                    if (extConfig[key].mainDomain) {
+                                        proms.push(RESTUtils.getPMS2Services("postSyncPlatform", data, Number(key)));
+                                    }
+                                }
+                            });
+                        }
                     }
-                });
-            }
+
+                    return Promise.all(proms);
+                }
+            );
         }
     },
 
@@ -6187,7 +6192,7 @@ var dbPlatform = {
     },
 
     getPaymentSystemName: function (systemTypeId) {
-        let paymentSystemName = 'PMS';
+        let paymentSystemName = 'PMS2';
 
         if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
             Object.keys(extConfig).forEach(key => {
@@ -6302,18 +6307,24 @@ var dbPlatform = {
                         //encrypt player phone number
                         try {
                             let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+                            let decGuestDeviceId = rsaCrypto.decrypt(playerData.guestDeviceId);
 
                             if (decPhoneNumber && decPhoneNumber.length < 20) {
                                 let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
+                                let reEncGuestDeviceId = rsaCrypto.encrypt(decGuestDeviceId);
 
                                 // Make sure it's encrypted
                                 if (reEncPhoneNumber && reEncPhoneNumber.length > 20) {
                                     dbconfig.collection_players.findOneAndUpdate(
                                         {_id: playerData._id, platform: playerData.platform},
-                                        {phoneNumber: reEncPhoneNumber}
+                                        {$set: {
+                                            phoneNumber: reEncPhoneNumber,
+                                            guestDeviceId: reEncGuestDeviceId
+                                        }}
                                     ).then();
                                 }
                             }
+
                             console.log("index", platformData.name, i);
                             i++;
                         } catch (err) {
