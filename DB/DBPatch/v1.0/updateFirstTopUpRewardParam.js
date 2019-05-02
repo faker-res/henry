@@ -1369,3 +1369,75 @@ var param109Cursor = db.rewardParam.find({"name": type109});
 var param109 = param109Cursor.next();
 
 db.rewardType.update({"name": type109}, {$set: {params: param109._id, des: type109, isGrouped: true}}, {upsert: true});
+
+
+// 特别节日组
+var type110 = "PlayerFestivalRewardGroup";
+db.rewardParam.update({
+    "name": type110
+}, {
+    $set: {
+        condition: {
+            generalCond: generalCond,
+            periodCond: periodCond,
+            consumptionCond: consumptionCond,
+            customCond: {
+                checkSameIP: {
+                    index: 43,
+                    type: "checkbox",
+                    des: "Check if this IP address has received the reward"
+                },
+                checkSamePhoneNumber: {
+                    index: 44,
+                    type: "checkbox",
+                    des: "Check if this phone number has received the reward"
+                },
+                checkSameDeviceId: {
+                    index: 45,
+                    type: "checkbox",
+                    des: "Check if this portable device has received the reward",
+                    detail: "Check the IMEI value/unique code of each handset when applying through APP"
+                },
+                festivalType: {
+                    index: 55,
+                    type: "select",
+                    options: "festivalType",
+                    des: "Customise Special Event Mode"
+                },
+            }
+        },
+        param: {
+            tblOptFixed: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
+                isSteppingReward: {type: "checkbox", des: "Reward step needed"},
+                countInRewardInterval: {type: "number", des: "Reward limit in interval"},
+                rewardParam: {
+                    festivalName: {type: "text", des: "Festival Name"},
+                    title: {type: "text", des: "Festival Title"},
+                    topUpReturnReward: {type: "text", des: "Top Up Return Reward"},
+                    amount: {type: "text", des: "REWARD_AMOUNT"},
+                    minTopUpAmount: {type: "number", des: "Minimal top up amount"},
+                    totalConsumptionInInterval: {type: "number", des: "Total consumption amount in interval"},
+                    rewardAmount: {type: "number", des: "Reward amount"},
+                    applyTimes: {type: "number", des: "Maximum Apply Times"},
+                    expiredInDay: {type: "number", des: "Apply Due Date"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "number",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "text", des: "Remark"},
+                }
+            },
+            tblOptDynamic: {}
+        }
+    }
+}, {
+    upsert: true
+});
+
+var param110Cursor = db.rewardParam.find({"name": type110});
+var param110 = param110Cursor.next();
+
+db.rewardType.update({"name": type110}, {$set: {params: param110._id, des: type110, isGrouped: true}}, {upsert: true});

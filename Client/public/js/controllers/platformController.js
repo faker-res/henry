@@ -96,6 +96,12 @@ define(['js/app'], function (myApp) {
                 "realPrize": 6
             };
 
+            vm.festivalRewardType = {
+                "festivalType1": 1,
+                "festivalType2": 2,
+                "festivalType3": 3,
+                "birthday": 4
+            }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
             //     "UpdatePlayerCredit",
@@ -22408,6 +22414,104 @@ define(['js/app'], function (myApp) {
                             value: prizeValue
                         });
                         vm.repackageRandomRewardGroup();
+                    } else if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup'){
+
+                        vm.rewardMainParamTableBirthday = [];
+                        vm.rewardMainParamTableFestivalType1 = [];
+                        vm.rewardMainParamTableFestivalType2 = [];
+                        vm.rewardMainParamTableFestivalType3 = [];
+
+                        let birthdayValue = [];
+                        let festivalType1Value = [];
+                        let festivalType2Value = [];
+                        let festivalType3Value = [];
+
+                        if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam[0] && vm.rewardParams.rewardParam[0].value && vm.rewardParams.rewardParam[0].value.length){
+                            birthdayValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthdayValue);
+                            festivalType1Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType1);
+                            festivalType2Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType2);
+                            festivalType3Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType3);
+                        }
+
+                        // birthday
+                        if (birthdayValue && !birthdayValue.length){
+                            birthdayValue = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthdayValue}];
+                        }
+
+                        let birthdayHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(birthdayHeader.totalConsumptionInInterval){
+                            delete birthdayHeader.totalConsumptionInInterval
+                        }
+
+                        vm.rewardMainParamTableBirthday.push({
+                            header: birthdayHeader,
+                            value: birthdayValue
+                        });
+
+                        // festival type1
+                        if (festivalType1Value && !festivalType1Value.length){
+                            festivalType1Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.festivalType1Value}];
+                        }
+                        let festivalType1Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(festivalType1Header.totalConsumptionInInterval){
+                            delete festivalType1Header.totalConsumptionInInterval
+                        }
+                        if(festivalType1Header.minTopUpAmount){
+                            delete festivalType1Header.minTopUpAmount
+                        }
+
+                        if(festivalType1Header.topUpReturnReward){
+                            delete festivalType1Header.topUpReturnReward
+                        }
+
+                        vm.rewardMainParamTableFestivalType1.push({
+                            header: festivalType1Header,
+                            value: festivalType1Value
+                        });
+
+
+                        // festival type2
+                        if (festivalType2Value && !festivalType2Value.length){
+                            festivalType2Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.festivalType2Value}];
+                        }
+
+                        let festivalType2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(festivalType2Header.totalConsumptionInInterval){
+                            delete festivalType2Header.totalConsumptionInInterval
+                        }
+
+                        vm.rewardMainParamTableFestivalType2.push({
+                            header: festivalType2Header,
+                            value: festivalType2Value
+                        });
+                        // festival type3
+                        if (festivalType3Value && !festivalType3Value.length){
+                            festivalType3Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.festivalType3Value}];
+                        }
+
+                        let festivalType3Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(festivalType3Header.minTopUpAmount){
+                            delete festivalType3Header.minTopUpAmount
+                        }
+                        if(festivalType3Header.applyTimes){
+                            delete festivalType3Header.applyTimes
+                        }
+                        if(festivalType3Header.requiredConsumption){
+                            delete festivalType3Header.requiredConsumption
+                        }
+                        if(festivalType3Header.expiredInDay){
+                            delete festivalType3Header.expiredInDay
+                        }
+                        if(festivalType3Header.topUpReturnReward){
+                            delete festivalType3Header.topUpReturnReward
+                        }
+
+                        vm.rewardMainParamTableFestivalType3.push({
+                            header: festivalType3Header,
+                            value: festivalType3Value
+                        });
+
+
                     }
                     // for rewardType != PlayerRetentionRewardGroup
                     else {
@@ -22457,6 +22561,10 @@ define(['js/app'], function (myApp) {
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
                 newEntryData.id = createObjectId();
+                row.push(newEntryData);
+            }
+
+            vm.addNewFestivalTypeRow = (row, entry, newEntryData) => {
                 row.push(newEntryData);
             }
 
@@ -23239,6 +23347,24 @@ define(['js/app'], function (myApp) {
                 vm.rewardMainParamTable.push({value: []});
                 vm.rewardMainParamTable[0].value = rewardParamPromoCode1.concat(rewardParamPromoCode2).concat(rewardParamPromoCode3).concat(rewardParamCredit).concat(rewardParamPrize).concat(rewardParamRewardPoints);
                 vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title && Number.isFinite(p.possibility))
+            }
+
+            vm.repackageFestivalRewardGroup = function() {
+
+                let rewardParamFestivalType1 = vm.rewardMainParamTableFestivalType1 && vm.rewardMainParamTableFestivalType1[0] &&
+                vm.rewardMainParamTableFestivalType1[0].value ? vm.rewardMainParamTableFestivalType1[0].value : [];
+                let rewardParamFestivalType2 = vm.rewardMainParamTableFestivalType2 && vm.rewardMainParamTableFestivalType2[0] &&
+                vm.rewardMainParamTableFestivalType2[0].value ? vm.rewardMainParamTableFestivalType2[0].value : [];
+                let rewardParamFestivalType3 = vm.rewardMainParamTableFestivalType3 && vm.rewardMainParamTableFestivalType3[0] &&
+                vm.rewardMainParamTableFestivalType3[0].value ? vm.rewardMainParamTableFestivalType3[0].value : [];
+                let rewardParamBirthday = vm.rewardMainParamTableBirthday && vm.rewardMainParamTableBirthday[0] &&
+                vm.rewardMainParamTableBirthday[0].value ? vm.rewardMainParamTableBirthday[0].value : [];
+
+                // redefine
+                vm.rewardMainParamTable = [];
+                vm.rewardMainParamTable.push({value: []});
+                vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3).concat(rewardParamBirthday);
+                vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title)
             }
 
             vm.editReward = function (i) {

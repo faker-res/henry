@@ -16208,6 +16208,7 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                                 case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                                 case constRewardType.BACCARAT_REWARD_GROUP:
+                                case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
                                     // Check whether platform allowed for reward group
                                     // if (!playerInfo.platform.useProviderGroup) {
                                     //     return Q.reject({
