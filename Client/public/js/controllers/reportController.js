@@ -6411,6 +6411,13 @@ define(['js/app'], function (myApp) {
                 newproposalQuery.relatedAccount = null;
             }
 
+            if (!newproposalQuery.platformList || !newproposalQuery.platformList.length) {
+                if (!vm.platformList || !vm.platformList.length) {
+                    return;
+                }
+                newproposalQuery.platformList = vm.platformList.map(platform => platform._id);
+            }
+
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {

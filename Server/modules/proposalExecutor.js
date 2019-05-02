@@ -118,6 +118,7 @@ var proposalExecutor = {
             || executionType === 'executePlayerBonusDoubledRewardGroup'
             || executionType === 'executeBaccaratRewardGroup'
             || executionType === 'executePlayerRandomRewardGroup'
+            || executionType === 'executePlayerFestivalRewardGroup'
 
             // Auction reward
             || executionType === 'executeAuctionPromoCode'
@@ -317,6 +318,7 @@ var proposalExecutor = {
             this.executions.executePlayerAuctionPromotionReward.des = "player Auction Reward Promotion";
             this.executions.executeAuctionRealPrize.des = "Auction Real Prize";
             this.executions.executeAuctionRewardPointChange.des = "Auction Reward Point Change";
+            this.executions.executePlayerFestivalRewardGroup.des = 'Player Festival Reward';
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -406,6 +408,7 @@ var proposalExecutor = {
             this.rejections.rejectePlayerAuctionPromotionReward.des = "Reject Player Auction Reward Promotion";
             this.rejections.rejectAuctionRealPrize.des = "Reject Auction Real Prize";
             this.rejections.rejectAuctionRewardPointChange.des = "Reject Auction Reward Point Change";
+            this.rejections.rejectPlayerFestivalRewardGroup.des = "Reject Player Festival";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -3028,7 +3031,9 @@ var proposalExecutor = {
                     deferred.reject({name: "DataError", message: "Incorrect player top up return group proposal data"});
                 }
             },
-
+            executePlayerFestivalRewardGroup: function (proposalData) {
+                console.log('MT --executePlayerFestivalRewardGroup', proposalData)
+            },
             executePlayerRandomRewardGroup: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty('rewardType')) {
                     let rtgData;
@@ -5074,6 +5079,10 @@ var proposalExecutor = {
                 }
 
                 refundProm.then(() => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject));
+            },
+
+            rejectPlayerFestivalRewardGroup: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
             },
 
             rejectPlayerRandomRewardGroup: function (proposalData, deferred) {

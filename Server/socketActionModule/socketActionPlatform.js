@@ -848,7 +848,7 @@ function socketActionPlatform(socketIO, socket) {
         },
         getAllAutoFeedback: function getAllAutoFeedback(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
+            let isValidData = Boolean(data);
             let ignoreLimit = true;
             socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data, null, null, ignoreLimit], actionName, isValidData);
         },

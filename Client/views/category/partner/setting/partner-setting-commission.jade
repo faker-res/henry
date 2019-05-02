@@ -1,5 +1,5 @@
 include ./partner-setting-platform-select
-form.margin-top-5(name="formPartnerCommission", novalidate)
+form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' novalidate)
     .col-md-12
         .panel(style="box-shadow: none;")
             .panel-body
@@ -26,48 +26,8 @@ form.margin-top-5(name="formPartnerCommission", novalidate)
                         .panel-body.common-right-panel-body
                             div.tab-content
                                 h4 {{'Partner Commission Info' | translate}}
-                                table.simple-table(ng-if="!vm.partnerCommission.isGameProviderIncluded" style='width:auto;min-width:99.9%')
-                                    thead
-                                        tr
-                                            th(colspan=6)
-                                                label(style="color:red") {{'Total_Commission'| translate}}
-                                                label {{'Commission'| translate}}:{{vm.commissionSettingTab | translate}}
-                                        tr
-                                            th(colspan=2) {{vm.playerConsumptionTableHeader | translate}}
-                                            th(colspan=2) {{vm.activePlayerTableHeader | translate}}
-                                            th(rowspan=2) {{'Commission Rate' | translate}}
-                                            th(rowspan=2) {{'ACTION_BUTTON' | translate}}
-                                        tr
-                                            th {{'From' | translate}}
-                                            th {{'To' | translate}}
-                                            th {{'From' | translate}}
-                                            th {{'To' | translate}}
-                                    tbody
-                                        tr(ng-repeat='(idx,val) in vm.partnerCommission.showConfig.commissionSetting')
-                                            td
-                                                input.form-control(type='number', ng-model='val.playerConsumptionAmountFrom' ng-disabled='!val.isEditing')
-                                            td
-                                                input.form-control(type='number', ng-if='val.playerConsumptionAmountTo || val.isEditing || val.isCreateNew', ng-model='val.playerConsumptionAmountTo' ng-disabled='!val.isEditing')
-                                                input.form-control(style='text-align: right' type='text', ng-if='!val.playerConsumptionAmountTo && !val.isEditing && !val.isCreateNew', value='-', disabled)
-                                            td
-                                                input.form-control(type='number', ng-model='val.activePlayerValueFrom' ng-disabled='!val.isEditing')
-                                            td
-                                                input.form-control(type='number', ng-if='val.activePlayerValueTo || val.isEditing || val.isCreateNew', ng-model='val.activePlayerValueTo', ng-disabled='!val.isEditing')
-                                                input.form-control(style='text-align: right' type='text', ng-if='!val.activePlayerValueTo && !val.isEditing && !val.isCreateNew', value='-', disabled)
-                                            td
-                                                span.percentage
-                                                    input(type='number', percentage, style="display: inline-block", ng-model='val.commissionRate' ng-disabled='!val.isEditing')
-                                            td
-                                                a(href="" ng-if="!val.isEditing && !val.isCreateNew" ng-click="vm.commissionSettingEditRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
-                                                a(href="" ng-if="val.isEditing && !val.isCreateNew" ng-click="vm.commissionSettingCancelRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
-                                                text(ng-if="!val.isCreateNew") /
-                                                a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting, $index)", style="cursor:pointer") {{'INSERT' | translate}}
-                                                a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'INSERT' | translate}}
-                                                text /
-                                                a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingDeleteRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
-                                                a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'DELETE' | translate}}
 
-                                div(ng-repeat="gpg in vm.partnerCommission.gameProviderGroup track by $index" ng-if="vm.partnerCommission.isGameProviderIncluded")
+                                div(ng-repeat="gpg in vm.partnerCommission.gameProviderGroup track by $index")
                                     table.simple-table(style='width:auto;min-width:99.9%')
                                         thead
                                             tr
@@ -109,10 +69,6 @@ form.margin-top-5(name="formPartnerCommission", novalidate)
                                         br
                                 br
                                 .pull-right
-                                    button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.showConfig, false, false,vm.partnerCommission.srcConfig)') {{'CANCEL' | translate}}
-                                    button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.showConfig, true, false)') {{'Edit' | translate}}
-                                    button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.createUpdatePartnerCommissionConfig()') {{'SUBMIT' | translate}}
-
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, false, true, vm.partnerCommission.gameProviderGroup)') {{'CANCEL' | translate}}
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, true, true)') {{'Edit' | translate}}
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.submitPartnerCommissionConfigWithGameProviderGroup()') {{'SUBMIT' | translate}}

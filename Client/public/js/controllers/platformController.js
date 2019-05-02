@@ -96,6 +96,12 @@ define(['js/app'], function (myApp) {
                 "realPrize": 6
             };
 
+            vm.festivalRewardType = {
+                "festivalType1": 1,
+                "festivalType2": 2,
+                "festivalType3": 3,
+                "birthday": 4
+            }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
             //     "UpdatePlayerCredit",
@@ -1017,7 +1023,7 @@ define(['js/app'], function (myApp) {
                 // check if using new data list, else show up the old data
                 let newListBoolean = false;
                 for(let i = 0; i <newList.length; i++){
-                    if (platformData[newList[i]].length > 0) {
+                    if (platformData[newList[i]] && platformData[newList[i]].length > 0) {
                         newListBoolean = true;
                         break;
                     }
@@ -1159,7 +1165,7 @@ define(['js/app'], function (myApp) {
                  vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
                  vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
                  [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList],
-                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions, vm.smsTemplate
+                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions, vm.autoFeedbackMissionsAcrossPlatform, vm.smsTemplate
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -1179,6 +1185,7 @@ define(['js/app'], function (myApp) {
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                     commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []])),
                     commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getAllAutoFeedback($scope).catch(err => Promise.resolve([])),
                     commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
                 ]);
 
@@ -6350,11 +6357,6 @@ define(['js/app'], function (myApp) {
                 });
                 vm.advancedQueryObj = vm.advancedQueryObj || {};
                 vm.drawPlayerTable([]);
-
-                if (!initPage) {
-                    vm.advancedPlayerQuery(newSearch);
-                }
-
             };
 
             vm.searchForExactPlayerDebounced = $scope.debounceSearch(function (playerExactSearchText) {
@@ -22412,6 +22414,104 @@ define(['js/app'], function (myApp) {
                             value: prizeValue
                         });
                         vm.repackageRandomRewardGroup();
+                    } else if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup'){
+
+                        vm.rewardMainParamTableBirthday = [];
+                        vm.rewardMainParamTableFestivalType1 = [];
+                        vm.rewardMainParamTableFestivalType2 = [];
+                        vm.rewardMainParamTableFestivalType3 = [];
+
+                        let birthdayValue = [];
+                        let festivalType1Value = [];
+                        let festivalType2Value = [];
+                        let festivalType3Value = [];
+
+                        if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam[0] && vm.rewardParams.rewardParam[0].value && vm.rewardParams.rewardParam[0].value.length){
+                            birthdayValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthdayValue);
+                            festivalType1Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType1);
+                            festivalType2Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType2);
+                            festivalType3Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType3);
+                        }
+
+                        // birthday
+                        if (birthdayValue && !birthdayValue.length){
+                            birthdayValue = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthdayValue}];
+                        }
+
+                        let birthdayHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(birthdayHeader.totalConsumptionInInterval){
+                            delete birthdayHeader.totalConsumptionInInterval
+                        }
+
+                        vm.rewardMainParamTableBirthday.push({
+                            header: birthdayHeader,
+                            value: birthdayValue
+                        });
+
+                        // festival type1
+                        if (festivalType1Value && !festivalType1Value.length){
+                            festivalType1Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.festivalType1Value}];
+                        }
+                        let festivalType1Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(festivalType1Header.totalConsumptionInInterval){
+                            delete festivalType1Header.totalConsumptionInInterval
+                        }
+                        if(festivalType1Header.minTopUpAmount){
+                            delete festivalType1Header.minTopUpAmount
+                        }
+
+                        if(festivalType1Header.topUpReturnReward){
+                            delete festivalType1Header.topUpReturnReward
+                        }
+
+                        vm.rewardMainParamTableFestivalType1.push({
+                            header: festivalType1Header,
+                            value: festivalType1Value
+                        });
+
+
+                        // festival type2
+                        if (festivalType2Value && !festivalType2Value.length){
+                            festivalType2Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.festivalType2Value}];
+                        }
+
+                        let festivalType2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(festivalType2Header.totalConsumptionInInterval){
+                            delete festivalType2Header.totalConsumptionInInterval
+                        }
+
+                        vm.rewardMainParamTableFestivalType2.push({
+                            header: festivalType2Header,
+                            value: festivalType2Value
+                        });
+                        // festival type3
+                        if (festivalType3Value && !festivalType3Value.length){
+                            festivalType3Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.festivalType3Value}];
+                        }
+
+                        let festivalType3Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                        if(festivalType3Header.minTopUpAmount){
+                            delete festivalType3Header.minTopUpAmount
+                        }
+                        if(festivalType3Header.applyTimes){
+                            delete festivalType3Header.applyTimes
+                        }
+                        if(festivalType3Header.requiredConsumption){
+                            delete festivalType3Header.requiredConsumption
+                        }
+                        if(festivalType3Header.expiredInDay){
+                            delete festivalType3Header.expiredInDay
+                        }
+                        if(festivalType3Header.topUpReturnReward){
+                            delete festivalType3Header.topUpReturnReward
+                        }
+
+                        vm.rewardMainParamTableFestivalType3.push({
+                            header: festivalType3Header,
+                            value: festivalType3Value
+                        });
+
+
                     }
                     // for rewardType != PlayerRetentionRewardGroup
                     else {
@@ -22461,6 +22561,10 @@ define(['js/app'], function (myApp) {
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
                 newEntryData.id = createObjectId();
+                row.push(newEntryData);
+            }
+
+            vm.addNewFestivalTypeRow = (row, entry, newEntryData) => {
                 row.push(newEntryData);
             }
 
@@ -22933,6 +23037,12 @@ define(['js/app'], function (myApp) {
                         // }
 
                         Object.keys(data).forEach(e => {
+                            if (e && e === 'platformObjId') {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === data[e].toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    newObj.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
                             newObj[e] = data[e];
                         });
 
@@ -22990,7 +23100,7 @@ define(['js/app'], function (myApp) {
                     else {
 
                         let sendData = {
-                            platformObjId: vm.selectedPlatform.id,
+                            platformObjId: collection[data].platformObjId,
                             promoCodeTypeObjId: collection[data]._id
                         };
 
@@ -23243,6 +23353,24 @@ define(['js/app'], function (myApp) {
                 vm.rewardMainParamTable.push({value: []});
                 vm.rewardMainParamTable[0].value = rewardParamPromoCode1.concat(rewardParamPromoCode2).concat(rewardParamPromoCode3).concat(rewardParamCredit).concat(rewardParamPrize).concat(rewardParamRewardPoints);
                 vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title && Number.isFinite(p.possibility))
+            }
+
+            vm.repackageFestivalRewardGroup = function() {
+
+                let rewardParamFestivalType1 = vm.rewardMainParamTableFestivalType1 && vm.rewardMainParamTableFestivalType1[0] &&
+                vm.rewardMainParamTableFestivalType1[0].value ? vm.rewardMainParamTableFestivalType1[0].value : [];
+                let rewardParamFestivalType2 = vm.rewardMainParamTableFestivalType2 && vm.rewardMainParamTableFestivalType2[0] &&
+                vm.rewardMainParamTableFestivalType2[0].value ? vm.rewardMainParamTableFestivalType2[0].value : [];
+                let rewardParamFestivalType3 = vm.rewardMainParamTableFestivalType3 && vm.rewardMainParamTableFestivalType3[0] &&
+                vm.rewardMainParamTableFestivalType3[0].value ? vm.rewardMainParamTableFestivalType3[0].value : [];
+                let rewardParamBirthday = vm.rewardMainParamTableBirthday && vm.rewardMainParamTableBirthday[0] &&
+                vm.rewardMainParamTableBirthday[0].value ? vm.rewardMainParamTableBirthday[0].value : [];
+
+                // redefine
+                vm.rewardMainParamTable = [];
+                vm.rewardMainParamTable.push({value: []});
+                vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3).concat(rewardParamBirthday);
+                vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title)
             }
 
             vm.editReward = function (i) {
@@ -24035,6 +24163,8 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeTemplateData = [];
                 vm.deletedPromoCodeTemplateData = [];
                 vm.newPromoCode = {};
+
+                vm.promoCodeTemplateSetting = [];
 
                 vm.openPromoCodeTemplateData = [];
                 vm.deletedOpenPromoCodeTemplateData = [];
@@ -25289,7 +25419,6 @@ define(['js/app'], function (myApp) {
 
             function loadPromoCodeTypes() {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {
-                    platformObjId: vm.selectedPlatform.id,
                     deleteFlag: false
                 }, function (data) {
                     $scope.$evalAsync(() => {
@@ -25307,6 +25436,12 @@ define(['js/app'], function (myApp) {
                                 vm.promoCodeType3.push(entry);
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                             }
+                            if (entry.platformObjId) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === entry.platformObjId.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    entry.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
                         });
 
                         vm.promoCodeTypeB = JSON.parse(JSON.stringify(vm.promoCodeType1.concat(vm.promoCodeType2)));
@@ -25323,8 +25458,6 @@ define(['js/app'], function (myApp) {
                             })
                         }
                     })
-
-
                     // $scope.safeApply();
                 });
             }
@@ -31832,16 +31965,15 @@ define(['js/app'], function (myApp) {
                     });
                 } else {
                     let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
                         promoCodeSMSContent: promoCodeSMSContent,
                         isDelete: false
                     };
 
-                        socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                            loadPlatformData({loadAll: false});
-                        });
-                    }
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                        loadPlatformData({loadAll: false});
+                    });
                 }
+            }
 
             function updateProviderGroup() {
                 let totalProviderCount = vm.platformProviderList.length;
@@ -35371,7 +35503,7 @@ define(['js/app'], function (myApp) {
             // Batch Permit Edit
             vm.initBatchPermit = function () {
                 setTimeout(() => {
-                    vm.prepareCredibilityConfig();
+                    vm.prepareCredibilityConfig(vm.selectedPlatform.id || null);
                     vm.initBatchParams();
                     vm.drawBatchPermitTable();
                 }, 0);
@@ -35434,7 +35566,7 @@ define(['js/app'], function (myApp) {
                         vm.playerCredibilityRemarksUpdated = true;
                         vm.credibilityRemarkUpdateMessage = "SUCCESS";
                         vm.getPlatformPlayersData();
-                        vm.prepareCredibilityConfig();
+                        vm.prepareCredibilityConfig(vm.selectedPlatform.id);
                     })
                 }, function (error) {
                     $scope.$evalAsync(() => {
@@ -35446,8 +35578,15 @@ define(['js/app'], function (myApp) {
             };
             vm.resetCredibilityOption = function () {
                 // reset credibitlity checkbox
-                vm.playerCredibilityRemarksUpdated = false;
-                vm.credibilityRemarkUpdateMessage="";
+                $scope.$evalAsync(() => {
+                    vm.forbidCredibilityAddList = [];
+                    vm.forbidCredibilityRemoveList = [];
+                    vm.prepareCredibilityConfig(vm.selectedPlatform.id);
+                    $('.selectRemark').attr('checked', false);
+                    $('.creditUpdateStatus').html('');
+                    vm.playerCredibilityRemarksUpdated = false;
+                    vm.credibilityRemarkUpdateMessage="";
+                })
             };
             vm.resetBatchEditData = function () {
                 //generate a sample to render in datatable, only using for edit multi purpose.
@@ -37072,6 +37211,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAutoFeedback = function() {
+                vm.allPlayerLvl = {};
+                vm.filterCredibilityRemarks = {};
                 vm.autoFeedbackTriggerHours = [];
                 vm.autoFeedbackTriggerMinutes = [];
                 for(let x=0; x<24; x++) {
@@ -37131,7 +37272,6 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.autoFeedbackCreateMission = function() {
-                vm.autoFeedbackMission.platformObjId = vm.selectedPlatform.id;
                 vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
@@ -37157,11 +37297,16 @@ define(['js/app'], function (myApp) {
                 vm.selectedAutoFeedbackTab = "create";
                 vm.autoFeedbackEditStatus = true;
                 vm.autoFeedbackUpdateMissionStatus = '';
+                vm.autoFeedbackMission = {};
+                vm.autoFeedbackMission.platformObjId = data.platformObjId;
+                vm.getAllPlayerLevelsLocal();
+                vm.getCredibilityRemarksLocal();
+                vm.getAllGameProvidersLocal();
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
-                    vm.setupRemarksMultiInputFeedback();
-                    vm.setupRemarksMultiInputFeedbackFilter();
+                    // vm.setupRemarksMultiInputFeedback();
+                    // vm.setupRemarksMultiInputFeedbackFilter();
                     vm.setupMultiInputFeedbackTopicFilter();
-                    vm.setupGameProviderMultiInputFeedback();
+                    // vm.setupGameProviderMultiInputFeedback();
                     vm.autoFeedbackMission = data;
                     if(!vm.autoFeedbackMission.schedule) {
                         vm.autoFeedbackMission.schedule = [];
@@ -37264,12 +37409,11 @@ define(['js/app'], function (myApp) {
             };
             vm.autoFeedbackSearchMission = function(newSearch) {
                 $('#autoFeedbackOverviewSpin').show();
-                vm.autoFeedbackMissionSearch.platformObjId = vm.selectedPlatform.id;
                 vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
                 let sendData = {
                     query: {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.autoFeedbackMissionSearch.platformObjId,
                         createTimeStart: vm.autoFeedbackMissionSearch.createTimeStart,
                         createTimeEnd: vm.autoFeedbackMissionSearch.createTimeEnd
                     }
@@ -37472,12 +37616,11 @@ define(['js/app'], function (myApp) {
             };
             vm.autoFeedbackSearchMissionDetail = function () {
                 $('#autoFeedbackDetailSpin').show();
-                vm.autoFeedbackMissionSearchDetail.platformObjId = vm.selectedPlatform.id;
                 vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearchDetail.name = !vm.autoFeedbackMissionSearchDetail.name ? vm.autoFeedbackMissions[0].name : vm.autoFeedbackMissionSearchDetail.name;
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.autoFeedbackMissionSearchDetail.platformObjId,
                     name: vm.autoFeedbackMissionSearchDetail.name,
                     startTime: vm.autoFeedbackMissionSearchDetail.startTime,
                     endTime: vm.autoFeedbackMissionSearchDetail.endTime
@@ -37982,11 +38125,20 @@ define(['js/app'], function (myApp) {
                 utilService.createDatatableWithFooter('#autoFeedbackPromoCodeTable', tableOptions, {}, true);
                 $('#autoFeedbackPromoCodeTable').resize();
             };
-            vm.getAllAutoFeedback = function() {
-                socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
-                    console.log("getAllAutoFeedbackMissions ret",data);
-                    vm.autoFeedbackMissions = data.data.data;
-                });
+            vm.getAutoFeedbackLocal = function(category) {
+                let platformObjId;
+                switch(category) {
+                    case 'overview':
+                        platformObjId = vm.autoFeedbackMissionSearch.platformObjId;
+                        vm.autoFeedbackMissionsOverview = vm.autoFeedbackMissionsAcrossPlatform.filter(item =>{return item.platformObjId == platformObjId});
+                        break;
+
+                    case 'detail':
+                        platformObjId = vm.autoFeedbackMissionSearchDetail.platformObjId;
+                        vm.autoFeedbackMissionsDetail = vm.autoFeedbackMissionsAcrossPlatform.filter(item =>{return item.platformObjId == platformObjId});
+                        break;
+                }
+                $scope.$evalAsync();
             };
 
             vm.updateImageUrl = function(uploaderName){
@@ -39257,7 +39409,11 @@ define(['js/app'], function (myApp) {
                         selectedPlatformObjId = vm.playerFeedbackQuery.selectedPlatform;
                         break;
                     case "autofeedback":
-                        // selectedPlatformObjId = vm.autoFeedbackMission.platformObjId;
+                        if(vm.selectedAutoFeedbackTab.toLowerCase() == "create") {
+                            selectedPlatformObjId = vm.autoFeedbackMission.platformObjId;
+                        } else if(vm.selectedAutoFeedbackTab.toLowerCase() == "overview") {
+                            selectedPlatformObjId = vm.autoFeedbackMissionSearchDetail.platformObjId;
+                        }
                         break;
                 }
                 if(selectedPlatformObjId) {
