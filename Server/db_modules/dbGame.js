@@ -530,6 +530,20 @@ var dbGame = {
             {new: true}
         ).exec();
     },
+    updatePlatformGameOrientation: function(platformObjId, game, orientation){
+        // update fpms game status
+        let gameData = {};
+        let updateData=  { orientation: orientation};
+
+        if(game._id){
+            gameData._id = game._id;
+        }
+        return dbconfig.collection_game.findOneAndUpdate(
+            gameData,
+            updateData,
+            {new: true}
+        ).exec();
+    },
     getGamesByProviders: function (ids) {
         var returnData = [];
         var proms = [];

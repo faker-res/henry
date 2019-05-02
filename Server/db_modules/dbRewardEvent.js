@@ -2549,7 +2549,7 @@ var dbRewardEvent = {
         return dbconfig.collection_rewardEvent.find(query).populate({
             path: "type",
             model: dbconfig.collection_rewardType
-        }).sort({updateTime: -1}).exec();
+        }).sort({updateTime: -1}).lean().exec();
     },
 
     getRewardEventGroup: function (query) {

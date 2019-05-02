@@ -165,6 +165,12 @@ function socketActionGame(socketIO, socket) {
             let isValidData = Boolean(data && data.game && data.platform);
             socketUtil.emitter(self.socket, dbGame.updatePlatformGameDisplay, [data.platform, data.game, data.gameDisplay], actionName, isValidData);
         },
+
+        updatePlatformGameOrientation: function updatePlatformGameOrientation(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.game && data.platform);
+            socketUtil.emitter(self.socket, dbGame.updatePlatformGameOrientation, [data.platform, data.game, data.orientation], actionName, isValidData);
+        },
         /**
          * Get game consumption record
          * @param {json} data - Query data. It has to contain providerObjId

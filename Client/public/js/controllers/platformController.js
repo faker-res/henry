@@ -1365,6 +1365,7 @@ define(['js/app'], function (myApp) {
                     if (storedPlatform) {
                         searchAndSelectPlatform(storedPlatform, option);
                     }
+                    $scope.$evalAsync();
                 }, function (err) {
                     $('#platformRefresh').removeClass('fa-spin');
                 });
@@ -2623,6 +2624,7 @@ define(['js/app'], function (myApp) {
 
             vm.initSendMultiMessage = function () {
                 vm.getAllDepartment();
+                vm.getPlatformCredibilityRemarks();
                 vm.smsLog = {index: 0, limit: 10};
                 //vm.getSMSTemplate();
                 vm.sendMultiMessage = {
@@ -3163,12 +3165,12 @@ define(['js/app'], function (myApp) {
                                 let output = "";
                                 let remarkMatches = false;
                                 data.map(function (remarkId) {
-                                    for (let i = 0; i < vm.credibilityRemarks.length; i++) {
-                                        if (vm.credibilityRemarks[i]._id === remarkId) {
+                                    for (let i = 0; i < vm.platformCredibilityRemarks.length; i++) {
+                                        if (vm.platformCredibilityRemarks[i]._id === remarkId) {
                                             if (output) {
                                                 output += "<br>";
                                             }
-                                            output += vm.credibilityRemarks[i].name;
+                                            output += vm.platformCredibilityRemarks[i].name;
                                             remarkMatches = true;
                                         }
                                     }
@@ -3940,7 +3942,7 @@ define(['js/app'], function (myApp) {
                 // }
                 //console.log("getGames", gameIds);
                 let sendData = {
-                    _id: platformObjId || null
+                    _id: platformObjId || vm.selectedPlatform.id || null
                 }
                 socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                     console.log('getPlatform', data.data);
@@ -6354,11 +6356,6 @@ define(['js/app'], function (myApp) {
                 });
                 vm.advancedQueryObj = vm.advancedQueryObj || {};
                 vm.drawPlayerTable([]);
-
-                if (!initPage) {
-                    vm.advancedPlayerQuery(newSearch);
-                }
-
             };
 
             vm.searchForExactPlayerDebounced = $scope.debounceSearch(function (playerExactSearchText) {
@@ -16783,7 +16780,9 @@ define(['js/app'], function (myApp) {
                 vm.hasFeedbackPlatformChange = true;
             };
             vm.searchPlayerFeedback = (isNewSearch, currentTimeBoolean) => {
-                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
+                if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) {
+                    return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+                }
                 if(vm.hasFeedbackPlatformChange) {
                     vm.getCtiData().then(()=>{
                         vm.submitPlayerFeedbackQuery(isNewSearch, currentTimeBoolean);
@@ -18117,7 +18116,7 @@ define(['js/app'], function (myApp) {
                     j.amount$ = j.amount ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
 
                     if (j.playerId.credibilityRemarks && j.playerId.credibilityRemarks.length > 0) {
-                        j.playerId.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
+                        j.playerId.credibilityRemarks = vm.allCredibilityRemarks.filter(remark => {
                             return j.playerId.credibilityRemarks.includes(remark._id);
                         });
                         j.playerId.credibilityRemarks.forEach(function (value, index) {
@@ -24896,8 +24895,8 @@ define(['js/app'], function (myApp) {
             }
 
 
-            vm.getRewardPointsLvlConfig = (platformObjId) => {
-                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: platformObjId}).then((data) => {
+            vm.getRewardPointsLvlConfig = () => {
+                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: vm.selectedPlatform.id}).then((data) => {
                     vm.rewardPointsLvlConfig = data.data;
                     $scope.safeApply();
                 });
@@ -30139,6 +30138,26 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getAllCredibilityRemarks', {}, function (data) {
                         console.log('all credibilityRemarks', data);
                         vm.allCredibilityRemarks = data.data;
+                        resolve();
+                    }, function (err) {
+                        reject(err);
+                    });
+                });
+            };
+
+            vm.getPlatformCredibilityRemarks = (platformList) => {
+                let sendData = {
+                    platformList: platformList && platformList.length ? platformList : []
+                }
+                return new Promise((resolve, reject) => {
+                    socketService.$socket($scope.AppSocket, 'getPlatformCredibilityRemarks', sendData, function (data) {
+                        console.log('getPlatformCredibilityRemarks', data);
+                        vm.platformCredibilityRemarks = data.data;
+                        vm.platformCredibilityRemarks.map(remark => {
+                            if (remark && remark.platform && remark.platform.name) {
+                                remark.platformName = remark.platform.name;
+                            }
+                        });
                         resolve();
                     }, function (err) {
                         reject(err);
@@ -35473,7 +35492,7 @@ define(['js/app'], function (myApp) {
             // Batch Permit Edit
             vm.initBatchPermit = function () {
                 setTimeout(() => {
-                    vm.prepareCredibilityConfig();
+                    vm.prepareCredibilityConfig(vm.selectedPlatform.id || null);
                     vm.initBatchParams();
                     vm.drawBatchPermitTable();
                 }, 0);
@@ -35536,7 +35555,7 @@ define(['js/app'], function (myApp) {
                         vm.playerCredibilityRemarksUpdated = true;
                         vm.credibilityRemarkUpdateMessage = "SUCCESS";
                         vm.getPlatformPlayersData();
-                        vm.prepareCredibilityConfig();
+                        vm.prepareCredibilityConfig(vm.selectedPlatform.id);
                     })
                 }, function (error) {
                     $scope.$evalAsync(() => {
@@ -35548,8 +35567,15 @@ define(['js/app'], function (myApp) {
             };
             vm.resetCredibilityOption = function () {
                 // reset credibitlity checkbox
-                vm.playerCredibilityRemarksUpdated = false;
-                vm.credibilityRemarkUpdateMessage="";
+                $scope.$evalAsync(() => {
+                    vm.forbidCredibilityAddList = [];
+                    vm.forbidCredibilityRemoveList = [];
+                    vm.prepareCredibilityConfig(vm.selectedPlatform.id);
+                    $('.selectRemark').attr('checked', false);
+                    $('.creditUpdateStatus').html('');
+                    vm.playerCredibilityRemarksUpdated = false;
+                    vm.credibilityRemarkUpdateMessage="";
+                })
             };
             vm.resetBatchEditData = function () {
                 //generate a sample to render in datatable, only using for edit multi purpose.
@@ -37008,6 +37034,7 @@ define(['js/app'], function (myApp) {
             })
 
             function initFeedbackAdmin (callback) {
+                vm.getAllCredibilityRemarks();
                 vm.feedbackAdminQuery = vm.feedbackAdminQuery || {};
                 vm.feedbackAdminQuery.total = 0;
                 vm.feedbackAdminQuery.cs = '';

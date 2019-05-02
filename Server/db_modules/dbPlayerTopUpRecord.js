@@ -36,6 +36,7 @@ const dbPromoCode = require("../db_modules/dbPromoCode");
 const constRewardType = require("./../const/constRewardType");
 const dbRewardTask = require('./../db_modules/dbRewardTask');
 const dbPlayerReward = require('../db_modules/dbPlayerReward');
+const dbReportUtil = require("./../db_common/dbReportUtility");
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
 const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const rewardUtility = require("../modules/rewardUtility");
@@ -112,7 +113,7 @@ var dbPlayerTopUpRecord = {
         return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
             platformData => {
                 if (platformData && platformData.platformId) {
-                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}, platformData.topUpSystemType).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
@@ -774,7 +775,7 @@ var dbPlayerTopUpRecord = {
      * Get total top up amount in a certain period of time
      * @param {Date} startTime,endTime - The date info
      */
-    topupReport: async (query, index, limit, sortObj) => {
+    topupReport: async (query, index, limit, sortObj, isExport) => {
         let topupRecords = [];
         let queryObj = {};
 
@@ -831,7 +832,11 @@ var dbPlayerTopUpRecord = {
                 let totalAmountResult = data[1][0];
                 let totalPlayerResult = data[3] && data[3].length || 0;
 
-                return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
+                if (isExport) {
+                    return dbReportUtil.generateExcelFile("TopupReport", topupRecords);
+                } else {
+                    return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
+                }
             }
         );
 
@@ -1725,7 +1730,7 @@ var dbPlayerTopUpRecord = {
                 rewardEvent = eventData;
                 if (player && player.platform) {
                     let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
-                    let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId});
+                    let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId}, player.platform.topUpSystemType);
 
                     let merchantTypeProm = Promise.resolve(false);
                     // if (bPMSGroup === true || bPMSGroup === "true") {

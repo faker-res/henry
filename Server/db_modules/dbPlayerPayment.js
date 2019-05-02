@@ -103,7 +103,7 @@ const dbPlayerPayment = {
                 if (data && data.platform && data.merchantGroup) {
                     playerData = data;
 
-                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId}, data.platform.topUpSystemType);
                 } else {
                     return Q.reject({name: "DataError", message: "Invalid player data"})
                 }
