@@ -2624,7 +2624,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "providerId": providerIds,
                         "goal": reward.consecutiveCount,
-                        "currentGoal": reward && reward.hasOwnProperty('consecutiveCount') && currentGoal && currentGoal > reward.consecutiveCount ? reward.consecutiveCount : currentGoal,
+                        "currentGoal": currentGoal,
                         "turnQualifiedLoginDate": turnQualifiedLoginDate
                     }
                     break;
@@ -2646,7 +2646,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "point": reward.rewardPoints,
                         "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "goal": reward.consecutiveCount,
-                        "currentGoal": reward && reward.hasOwnProperty('consecutiveCount') && currentGoal && currentGoal > reward.consecutiveCount ? reward.consecutiveCount : currentGoal
+                        "currentGoal": currentGoal
                     }
                     break;
                 }
@@ -2685,7 +2685,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "dailyWinBetCounts": reward.target && reward.target.dailyWinGameCount ? reward.target.dailyWinGameCount : 0,
                         "providerId": providerIds,
                         "goal": reward.consecutiveCount,
-                        "currentGoal": reward && reward.hasOwnProperty('consecutiveCount') && currentGoal && currentGoal > reward.consecutiveCount ? reward.consecutiveCount : currentGoal
+                        "currentGoal": currentGoal
                     }
                     break;
                 }
