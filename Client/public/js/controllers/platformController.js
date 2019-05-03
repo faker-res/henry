@@ -1279,7 +1279,7 @@ define(['js/app'], function (myApp) {
                             vm.phoneNumFilterClicked();
                             vm.rewardPointsTabClicked();
                             vm.initAuctionSystem();
-                            loadPromoCodeTemplate();
+                            vm.loadPromoCodeTemplate();
                             vm.onGoingLoadPlatformData = false;
 
                             if (!vm.platformPageName) {
@@ -24314,8 +24314,9 @@ define(['js/app'], function (myApp) {
                             vm.getPromoCodeAnalysis2(true)
                         });
                     case "promoCodeTemplate":
+                        vm.filterPromoCodeTemplatePlatform = '';
                         vm.promoCodeTemplateEdit = false;
-                        loadPromoCodeTemplate();
+                        vm.loadPromoCodeTemplate();
                         vm.endLoadWeekDay();
                         break;
                     case 'openPromoCodeTemplate':
@@ -25408,7 +25409,7 @@ define(['js/app'], function (myApp) {
                 return allNames.includes(name);
             };
 
-            vm.loadPromoCodeTypes = (platformObjId) => {
+            vm.loadPromoCodeTypes = function (platformObjId) {
                 vm.promoCodeType1 = [];
                 vm.promoCodeType2 = [];
                 vm.promoCodeType3 = [];
@@ -25462,18 +25463,21 @@ define(['js/app'], function (myApp) {
                 vm.getAllPromoCodeUserGroup();
             }
 
-            function loadPromoCodeTemplate() {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTemplate', {
-                    platformObjId: vm.selectedPlatform.id,
-                    isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup),
-                }, function (data) {
+            vm.loadPromoCodeTemplate = function (platformObjId) {
+                vm.promoCodeTemplateData = [];
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
+                    isProviderGroup: true,
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTemplate', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         vm.promoCodeTemplateSetting = (data && data.data) ? data.data : [];
 
                         if (vm.promoCodeTemplateSetting && vm.promoCodeTemplateSetting.length > 0){
 
                             vm.promoCodeTemplateSetting.forEach(p => {
-                                if (p){
+                                if (p) {
                                     if (p.isProviderGroup) {
                                         p.allowedProviders = (p.allowedProviders && p.allowedProviders.length > 0)? p.allowedProviders[0] :  '' ;
                                     }
@@ -30823,8 +30827,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            function updatePromoCodeTemplate (){
-
+            function updatePromoCodeTemplate () {
                 if (vm.promoCodeTemplateData && vm.promoCodeTemplateData.length > 0 ){
                     vm.promoCodeTemplateData.forEach(p => {
                         if (p && p.hasOwnProperty('allowedProviders')) {
@@ -30852,12 +30855,13 @@ define(['js/app'], function (myApp) {
 
 
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterPromoCodeTemplatePlatform || vm.selectedPlatform.id,
                     promoCodeTemplate: vm.promoCodeTemplateData
                 };
+                console.log('sendData', sendData);
 
                 socketService.$socket($scope.AppSocket, 'updatePromoCodeTemplate', sendData, function (data) {
-                    loadPlatformData({loadAll: false});
+                    vm.loadPromoCodeTemplate(vm.filterPromoCodeTemplatePlatform);
                     vm.deletedPromoCodeTemplateData = [];
                 });
             }
@@ -31963,7 +31967,7 @@ define(['js/app'], function (myApp) {
                     };
 
                     socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                        loadPlatformData({loadAll: false});
+                        vm.loadPromoCodeTypes(vm.filterPromoSMSContentPlatform);
                     });
                 }
             }
