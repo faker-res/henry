@@ -30759,7 +30759,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initNewPromoCodeTemplate = function(type, tag) {
-
                 if (!vm.promoCodeFieldCheckFlag) {
 
                     let id;
@@ -30769,7 +30768,8 @@ define(['js/app'], function (myApp) {
                         vm.newPromoCodeTemplate1 = {
                             disableWithdraw: false,
                             isSharedWithXIMA: true,
-                            isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            // isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            isProviderGroup: true
                         };
 
                         if (tag == 'openPromoCode') {
@@ -30790,7 +30790,8 @@ define(['js/app'], function (myApp) {
                         vm.newPromoCodeTemplate2 = {
                             disableWithdraw: false,
                             isSharedWithXIMA: true,
-                            isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            // isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            isProviderGroup: true
                         };
 
                         if (tag == 'openPromoCode') {
@@ -30810,7 +30811,8 @@ define(['js/app'], function (myApp) {
                         vm.newPromoCodeTemplate3 = {
                             disableWithdraw: false,
                             isSharedWithXIMA: true,
-                            isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            // isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            isProviderGroup: true
                         };
 
                         if (tag == 'openPromoCode') {
