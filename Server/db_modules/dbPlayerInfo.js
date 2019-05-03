@@ -20291,43 +20291,6 @@ let dbPlayerInfo = {
                         }
                     );
 
-                    // let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
-                    //     {
-                    //         "$match": {
-                    //             "data.playerObjId": ObjectId(playerObjId),
-                    //             "createTime": {
-                    //                 "$gte": new Date(startTime),
-                    //                 "$lte": new Date(endTime)
-                    //             },
-                    //             "mainType": "TopUp",
-                    //             "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                    //             "type": ObjectId(onlineTopUpTypeId),
-                    //         }
-                    //     },
-                    //     {
-                    //         "$group": {
-                    //             "_id": {
-                    //                 "merchantName": "$data.merchantName",
-                    //                 "merchantNo": "$data.merchantNo"
-                    //             },
-                    //             "amount": {"$sum": "$data.amount"}
-                    //         }
-                    //     },
-                    //     {
-                    //         "$project": {
-                    //             _id: 0,
-                    //             merchantName: "$_id.merchantName",
-                    //             merchantNo: "$_id.merchantNo",
-                    //             amount: 1
-                    //         }
-                    //     }
-                    // ]).allowDiskUse(true).read("secondaryPreferred").then(
-                    //     data => {
-                    //         console.log('onlineTopUpByMerchantProm done', playerObjId);
-                    //         return data;
-                    //     }
-                    // );
-
                     // Promise domain CS and promote way
                     let filteredDomain = dbUtility.filterDomainName(domain);
                     let regExpDomain = /[a-zA-Z]+.[a-zA-Z]+/;
@@ -20526,7 +20489,6 @@ let dbPlayerInfo = {
                             result.bonusTimes = bonusDetail && bonusDetail.count ? bonusDetail.count : 0;
 
                             let rewardDetail = data[2];
-                            console.log('rewardDetail', rewardDetail);
                             result.rewardAmount = 0;
                             result.consumptionReturnAmount = 0;
 
