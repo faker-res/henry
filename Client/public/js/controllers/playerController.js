@@ -7722,9 +7722,13 @@ define(['js/app'], function (myApp) {
             form.$setValidity('euPrefixNotExist', !vm.euPrefixNotExist);
             $scope.safeApply();
 
+            let platformObjId = vm.selectedPlatform.id;
+            if(form && form.$name == "form_new_player" && vm.newPlayer && vm.newPlayer.platform){
+                platformObjId = vm.newPlayer.platform;
+            }
 
             socketService.$socket($scope.AppSocket, 'checkPlayerNameValidity', {
-                platform: vm.selectedPlatform.id,
+                platform: platformObjId,
                 name: name
             }, function (data) {
                 if (data && data.data.isPlayerNameValid == false) {
@@ -8828,7 +8832,7 @@ define(['js/app'], function (myApp) {
 
         vm.createTrialPlayerAccount = function () {
             //createTestPlayerForPlatform
-            socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.selectedPlatform.data.platformId}, function (data) {
+            socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.testPlayerPlatform}, function (data) {
                 vm.createtrail = data.data;
                 vm.testPlayerName = data.data.playerData.name;
                 vm.testPlayerPassword = data.data.playerData.password;
@@ -22428,8 +22432,11 @@ define(['js/app'], function (myApp) {
                 $("select#selectCredibilityRemark").multipleSelect("uncheckAll");
                 vm.playerAdvanceSearchQuery = {
                     creditOperator: ">=",
-                    playerType: 'Real Player (all)'
+                    playerType: 'Real Player (all)',
+                    platformList: []
                 };
+                setTimeout(function(){$("select#productName").selectpicker('refresh')},100);
+
                 $scope.$evalAsync();
                 vm.getPlayersByAdvanceQueryDebounced(function () {
                 });
