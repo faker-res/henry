@@ -20269,7 +20269,7 @@ let dbPlayerInfo = {
                     let rewardProm = dbconfig.collection_proposal.aggregate([
                         {
                             "$match": {
-                                "data.playerObjId": ObjectId(playerObjId),
+                                "data.playerObjId": {$in: [playerObjId, ObjectId(playerObjId)]},
                                 "createTime": {
                                     "$gte": new Date(startTime),
                                     "$lte": new Date(endTime)
@@ -20526,6 +20526,7 @@ let dbPlayerInfo = {
                             result.bonusTimes = bonusDetail && bonusDetail.count ? bonusDetail.count : 0;
 
                             let rewardDetail = data[2];
+                            console.log('rewardDetail', rewardDetail);
                             result.rewardAmount = 0;
                             result.consumptionReturnAmount = 0;
 
