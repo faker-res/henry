@@ -76,8 +76,8 @@ var dbQualityInspection = {
 
             console.log("checking queryObj", queryObj)
 
-            let sqlCSProm = dbQualityInspection.SqlExecutionAndReturnJsonParse(connection1,queryObj + " ORDER BY seasonal_time desc");
-            let sqlJiaBoProm = dbQualityInspection.SqlExecutionAndReturnJsonParse(connection2,queryObj + " ORDER BY seasonal_time desc");
+            let sqlCSProm = dbQualityInspection.sqlExecutionAndReturnJsonParse(connection1,queryObj + " ORDER BY seasonal_time desc");
+            let sqlJiaBoProm = dbQualityInspection.sqlExecutionAndReturnJsonParse(connection2,queryObj + " ORDER BY seasonal_time desc");
 
             return Promise.all([sqlCSProm, sqlJiaBoProm]).then(
                 data => {
@@ -103,7 +103,7 @@ var dbQualityInspection = {
         }
     },
 
-    SqlExecutionAndReturnJsonParse: function (connection, query){
+    sqlExecutionAndReturnJsonParse: function (connection, query){
         connection.connect();
 
         return new Promise((resolve,reject)=>{
