@@ -132,7 +132,9 @@ div.nav-statistic
     span {{ 'Revenue (Day)' | translate }}: {{ profitDetailIncome }} &emsp;
     span(ng-if='selectedPlatform.data.financialSettlement && !selectedPlatform.data.financialSettlement.financialSettlementToggle') {{ 'financialPoints' | translate }}: {{ financialPoints | noRoundTwoDecimalPlaces}} &emsp;
     button.btn-primary(ng-click="loadAllProfitDetail()") {{'See More' | translate }}
-
+    span.pull-right
+        label.margin-right-5 {{"New Tab" | translate}}
+            input.input-sm.pull-left.margin-right-5(style='height:inherit;margin-top:0', type='checkbox', ng-model='openInNewTab')
 #modalAllProfitData.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
@@ -142,7 +144,7 @@ div.nav-statistic
             .modal-body
                 .panel.panel-primary
                     .panel-body
-                        div(ng-repeat="profitDetail in allProfitDetailList track by $index", style="border:1px solid; margin:.5em; padding:.5em;")
+                        div.profitData(ng-repeat="profitDetail in allProfitDetailList track by $index", style="border:1px solid; margin:.5em; padding:.5em;")
                             span(style="color:blue;") {{profitDetail.platformTexts}} : &emsp;
                             span {{ 'Total Monthly Revenue' | translate }}: {{ profitDetail.netProfitDetailIncome }} &emsp;
                             span {{ 'Consumption Amount (Day)' | translate }}: {{ profitDetail.profitDetailConsumptionAmount }} &emsp;
@@ -151,13 +153,7 @@ div.nav-statistic
                             span {{ 'Number of Consumer (Day)' | translate}}:{{ profitDetail.profitDetailConsumptionPlayer }} &emsp;
                             span {{ 'Withdrawal Amount (Day)' | translate }}: -{{ profitDetail.profitDetailBonusAmount }} &emsp;
                             span {{ 'Revenue (Day)' | translate }}: {{ profitDetail.profitDetailIncome }} &emsp;
-                            span(ng-if='selectedPlatform.data.financialSettlement && !selectedPlatform.data.financialSettlement.financialSettlementToggle') {{ 'financialPoints' | translate }}: {{ profitDetail.financialPoints | noRoundTwoDecimalPlaces}} &emsp;
-
-
-
-    span.pull-right
-        label.margin-right-5 {{"New Tab" | translate}}
-            input.input-sm.pull-left.margin-right-5(style='height:inherit;margin-top:0', type='checkbox', ng-model='openInNewTab')
+                            span {{ 'financialPoints' | translate }}: {{ profitDetail.financialPoints | noRoundTwoDecimalPlaces}} &emsp;
 
 ez-modal(modal-id="modalDisplayAdminMails", modal-title="{{'MAIL' | translate}}")
     ez-modal-body
