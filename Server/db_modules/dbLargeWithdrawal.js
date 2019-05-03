@@ -7,6 +7,7 @@ module.exports = new dbLargeWithdrawalFunc();
 const dbconfig = require("./../modules/dbproperties");
 const dbutility = require("./../modules/dbutility");
 const dbProposalUtility = require("./../db_common/dbProposalUtility");
+const dbAdminInfo = require("./../db_modules/dbAdminInfo");
 const emailer = require("./../modules/emailer");
 const constSystemParam = require('./../const/constSystemParam');
 const constProposalStatus = require('./../const/constProposalStatus');
@@ -294,25 +295,21 @@ const dbLargeWithdrawal = {
                 }
                 largeWithdrawalSetting = largeWithdrawalSettingData;
 
+                let recipientsProm = dbAdminInfo.getAdminsByPermission(largeWithdrawalLog.platform, "Platform.Config.CanReceiveLargeWithdrawalEmail");
+                let auditorsProm = dbAdminInfo.getAdminsByPermission(largeWithdrawalLog.platform, "Platform.Config.CanAuditLargeWithdrawal");
 
-                let recipientsProm = Promise.resolve();
-                if (largeWithdrawalSetting.recipient && largeWithdrawalSetting.recipient.length) {
-                    recipientsProm = dbconfig.collection_admin.find({_id: {$in: largeWithdrawalSetting.recipient}}).lean();
-                }
-
-                return recipientsProm;
+                return Promise.all([recipientsProm, auditorsProm]);
             }
         ).then(
-            recipientsData => {
-                let allRecipientEmail = recipientsData.map(recipient => {
-                    return recipient.email;
-                });
-
+            ([recipientsData, auditorsData]) => {
                 let proms = [];
+                if (recipientsData && recipientsData.length) {
+                    let allRecipientEmail = recipientsData.map(recipient => {
+                        return recipient.email;
+                    });
 
-                if (largeWithdrawalSetting.recipient && largeWithdrawalSetting.recipient.length) {
-                    largeWithdrawalSetting.recipient.map(recipient => {
-                        let isReviewer = Boolean(largeWithdrawalSetting.reviewer && largeWithdrawalSetting.reviewer.length && largeWithdrawalSetting.reviewer.map(reviewer => String(reviewer)).includes(String(recipient)));
+                    recipientsData.map(recipient => {
+                        let isReviewer = Boolean(auditorsData && auditorsData.length && auditorsData.map(reviewer => String(reviewer._id)).includes(String(recipient._id)));
 
                         let prom = sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, recipient, isReviewer, host, allRecipientEmail).catch(err => {
                             console.log('large withdrawal mail to admin failed', recipient, err);
@@ -516,27 +513,23 @@ const dbLargeWithdrawal = {
                 }
                 largeWithdrawalSetting = largeWithdrawalSettingData;
 
+                let recipientsProm = dbAdminInfo.getAdminsByPermission(largeWithdrawalLog.platform, "Platform.Config.CanReceivePartnerLargeWithdrawalEmail");
+                let auditorsProm = dbAdminInfo.getAdminsByPermission(largeWithdrawalLog.platform, "Platform.Config.CanAuditPartnerLargeWithdrawal");
 
-                let recipientsProm = Promise.resolve([]);
-                if (largeWithdrawalSetting.recipient && largeWithdrawalSetting.recipient.length) {
-                    recipientsProm = dbconfig.collection_admin.find({_id: {$in: largeWithdrawalSetting.recipient}}).lean();
-                }
-
-                return recipientsProm;
+                return Promise.all([recipientsProm, auditorsProm]);
             }
         ).then(
-            recipientsData => {
-                let allRecipientEmail = recipientsData.map(recipient => {
-                    return recipient.email;
-                });
-
+            ([recipientsData, auditorsData]) => {
                 let proms = [];
+                if (recipientsData && recipientsData.length) {
+                    let allRecipientEmail = recipientsData.map(recipient => {
+                        return recipient.email;
+                    });
 
-                if (largeWithdrawalSetting.recipient && largeWithdrawalSetting.recipient.length) {
-                    largeWithdrawalSetting.recipient.map(recipient => {
-                        let isReviewer = Boolean(largeWithdrawalSetting.reviewer && largeWithdrawalSetting.reviewer.length && largeWithdrawalSetting.reviewer.map(reviewer => String(reviewer)).includes(String(recipient)));
+                    recipientsData.map(recipient => {
+                        let isReviewer = Boolean(auditorsData && auditorsData.length && auditorsData.map(reviewer => String(reviewer._id)).includes(String(recipient._id)));
 
-                        let prom = sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, recipient, isReviewer, host, allRecipientEmail).catch(err => {
+                        let prom = sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, recipient._id, isReviewer, host, allRecipientEmail).catch(err => {
                             console.log('partner large withdrawal mail to admin failed', recipient, err);
                             return errorUtils.reportError(err);
                         });
