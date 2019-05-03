@@ -12,6 +12,8 @@ var localConfig = {
         logs2DBUrl: 'Z2R+aljpWDOYZR3TfRjRPjuH3wbpWRPsX6jPy3uOlkwOLfPPf30RkhKNL0E95ECfglDQLxq3ExKlO7FnZzyUIYIAbQ4ju+iU5TAIgAa3wA0oHPzlHRF6GgHUvQYoRZbtkfRlWrERR0TGcfbvQNil3NTbLcLV0u2wClD9G9lpGc8='
     },
     live800Port: '33060',
+    tel400CsIp: '205.177.199.7',
+    tel400JiaBoIp: '101.78.133.213',
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',
     redisPort : '6379',
@@ -225,6 +227,8 @@ var prodConfig = {
 	    logs2DBUrl: 'TZXworYj1JKgQva2YnDE5iwBVDy5vbCoDfn8ovuo2g0F+oMn5xQ0ztI3XbPWTbhmv4IDY6H9fdJYxId+YDO8dQqSSBE432BdaN/79ef+7mJZ6TrSQ/4JT+DBgSkp4B2zEfLEKHfS4m3AQSD0pqjWo2fRXlI/Vil7XDypRw76oig='
     },
     live800Port: '33060',
+    tel400CsIp: '205.177.199.7',
+    tel400JiaBoIp: '101.78.133.213',
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',
     redisPort : '6379',

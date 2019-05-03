@@ -3767,6 +3767,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getAudioRecordData = function (newSearch){
+                $('#csAudioRecordTableSpin').show();
                 let searchQuery = {
                     startDate: $("#audioRecordStartDatetimePicker").data('datetimepicker').getLocalDate(),
                     endDate: $("#audioRecordEndDatetimePicker").data('datetimepicker').getLocalDate(),
@@ -4013,8 +4014,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getManualProcessRecord = function (newSearch){
+                $('#manualProcessReportTableSpin').show();
                 let searchQuery = {
-
                     startDate: $("#manualProcessRecordStartDatetimePicker").data('datetimepicker').getLocalDate(),
                     endDate: $("#manualProcessRecordEndDatetimePicker").data('datetimepicker').getLocalDate(),
                     adminObjId: vm.csList.map(cs => {return cs._id}),

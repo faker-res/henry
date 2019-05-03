@@ -66,6 +66,12 @@ function socketActionPlayerLevel(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerLevel.getPlayerLevel, [{}], actionName, true);
         },
 
+        getPlayerLevelByAllPlatforms: function getPlayerLevelByAllPlatforms(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            socketUtil.emitter(self.socket, dbPlayerLevel.getPlayerLevelByAllPlatforms, [], actionName, isValidData);
+        },
+
         getPlayerLvlPeriodConst: function getPlayerLvlPeriodConst() {
             var actionName = arguments.callee.name;
             self.socket.emit("_" + actionName, {success: true, data: constPlayerLevelPeriod});

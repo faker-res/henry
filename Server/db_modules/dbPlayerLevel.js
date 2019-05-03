@@ -43,6 +43,34 @@ let dbPlayerLevelInfo = {
         return dbconfig.collection_playerLevel.find(query).sort({value: 1});
     },
 
+    getPlayerLevelByAllPlatforms: function(){
+        let platformObjIdList = [];
+        let levelPromList = [];
+        return dbconfig.collection_platform.find({},{_id: 1}).lean().then(
+            platformDetails => {
+                if(platformDetails && platformDetails.length){
+                    platformObjIdList = platformDetails.map(p => p._id);
+                }
+
+                platformObjIdList.forEach(
+                    platform => {
+                        levelPromList.push(dbPlayerLevelInfo.getPlayerLevelWithPlatform(platform));
+                    }
+                );
+
+                return Promise.all(levelPromList);
+            }
+        )
+    },
+
+    getPlayerLevelWithPlatform: function(platformObjId) {
+        return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).then(
+            playerLevel => {
+                return {platform: platformObjId, playerLevel: playerLevel};
+            }
+        );
+    },
+
     /**
      * Delete playerLevel information
      * @param {String}  - ObjectId of the playerLevel

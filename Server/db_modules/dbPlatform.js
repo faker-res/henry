@@ -353,6 +353,45 @@ var dbPlatform = {
     },
 
     /**
+     * Search the platform list information of the platform by  platformName or _id
+     * @param {Object} platformData - Query
+     */
+    getProviderListByPlatform: function (data) {
+        let query = {};
+        let providerList = [];
+        if(data && data.platformObjIdList && data.platformObjIdList.length){
+            query._id = {$in: data.platformObjIdList}
+        }
+
+        return dbconfig.collection_platform.find(query)
+            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().exec().then(
+                platformDetails => {
+                    if(platformDetails && platformDetails.length){
+                        platformDetails.forEach(
+                            platform => {
+                                if(platform && platform.gameProviders && platform.gameProviders.length){
+                                    platform.gameProviders.forEach(
+                                        gameProvider => {
+                                            if(gameProvider && gameProvider._id){
+                                                let indexNo = providerList.findIndex(p => p._id.toString() == gameProvider._id.toString());
+
+                                                if(indexNo == -1){
+                                                    providerList.push(gameProvider);
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+
+                    return providerList;
+                }
+            );
+    },
+
+    /**
      * Search the platform information API
      * @param {String} platformData - query data
      */
@@ -6268,20 +6307,28 @@ var dbPlatform = {
                         //encrypt player phone number
                         try {
                             let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
-                            let decGuestDeviceId = rsaCrypto.decrypt(playerData.guestDeviceId);
+                            let decGuestDeviceId;
+
+                            if (playerData.guestDeviceId) {
+                                decGuestDeviceId = rsaCrypto.decrypt(playerData.guestDeviceId);
+                            }
+
 
                             if (decPhoneNumber && decPhoneNumber.length < 20) {
                                 let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
-                                let reEncGuestDeviceId = rsaCrypto.encrypt(decGuestDeviceId);
+                                let setObj = {
+                                    phoneNumber: reEncPhoneNumber
+                                };
+
+                                if (decGuestDeviceId) {
+                                    setObj.guestDeviceId = rsaCrypto.encrypt(decGuestDeviceId);
+                                }
 
                                 // Make sure it's encrypted
                                 if (reEncPhoneNumber && reEncPhoneNumber.length > 20) {
                                     dbconfig.collection_players.findOneAndUpdate(
                                         {_id: playerData._id, platform: playerData.platform},
-                                        {$set: {
-                                            phoneNumber: reEncPhoneNumber,
-                                            guestDeviceId: reEncGuestDeviceId
-                                        }}
+                                        {$set: setObj}
                                     ).then();
                                 }
                             }
@@ -6289,6 +6336,7 @@ var dbPlatform = {
                             console.log("index", platformData.name, i);
                             i++;
                         } catch (err) {
+                            console.log('err', err);
                             console.log(`Failed to re-encrypt ${playerData.name}`);
                         }
 

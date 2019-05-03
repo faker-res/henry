@@ -592,7 +592,6 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
-        console.log("checking raw inputData when create new player", inputData)
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -655,8 +654,6 @@ let dbPlayerInfo = {
                         // sms(not require) && captchaCode (incorrect) => invalid image
 
                         // check if the create function initiated by a partner -> yes - check captcha only
-                        console.log("yH checking---connPartnerId", connPartnerId)
-                        console.log("yH checking---bypassSMSVerify", bypassSMSVerify)
                         if (connPartnerId){
                             if (bypassSMSVerify){
                                 return true;
@@ -888,7 +885,7 @@ let dbPlayerInfo = {
                     // /* new reqeust from Yuki: the csOfficer is only binded by domain */
                     let checkTsPhone = Promise.resolve();
                     if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
-                        checkTsPhone = checkIsTelesales(inputData.phoneNumber, platformObjId);
+                        checkTsPhone = checkIsTelesales(inputData.phoneNumber, platformObjId, adminId);
                     }
                     return checkTsPhone.then(
                         tsPhoneData => {
@@ -901,7 +898,7 @@ let dbPlayerInfo = {
                                 if (tsPhoneData.tsPhoneList) {
                                     inputData.tsPhoneList = tsPhoneData.tsPhoneList;
                                 }
-                                if (tsPhoneData.assignee) { // no tsAssignee if tsPhone have not distribute
+                                if (tsPhoneData.assignee) {
                                     inputData.tsAssignee = tsPhoneData.assignee;
                                 }
 
@@ -1853,7 +1850,8 @@ let dbPlayerInfo = {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
 
-                    console.log("checking playerData before saving", playerdata)
+                    console.log(`Saving player ${playerdata.name} to database.`);
+
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -1880,11 +1878,24 @@ let dbPlayerInfo = {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
                             tsPhoneData => {
                                 if (tsPhoneData && tsPhoneData.tsPhoneList) {
-                                    if (adminId && playerData.tsAssignee && String(adminId) == String(playerData.tsAssignee)) {
+                                    if (adminId) {
                                         dbconfig.collection_tsAssignee.findOneAndUpdate({
                                             admin: adminId,
                                             tsPhoneList: tsPhoneData.tsPhoneList
-                                        }, {$inc: {registrationCount: 1}}).lean().catch(errorUtils.reportError);
+                                        }, {$inc: {registrationCount: 1}}).lean().then(
+                                            tsAssigneeData => {
+                                                if (!tsAssigneeData) {
+                                                    return dbconfig.collection_tsAssignee({
+                                                        admin: adminId,
+                                                        adminName: playerdata.accAdmin? playerdata.accAdmin: "",
+                                                        tsPhoneList: tsPhoneData.tsPhoneList,
+                                                        platform: playerdata.platform,
+                                                        registrationCount: 1,
+                                                        noDistribute: true
+                                                    }).save();
+                                                }
+                                            }
+                                        ).catch(errorUtils.reportError);
                                     }
                                     dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneData.tsPhoneList}, {$inc: {totalRegistration: 1}}).lean().catch(errorUtils.reportError);
                                 }
@@ -5774,7 +5785,6 @@ let dbPlayerInfo = {
                     }
                     db_password = String(data.password); // hashedPassword from db
                     if (dbUtility.isMd5(db_password)) {
-                        console.log('rt playerLogin 2.1');
                         if (md5(playerData.password) == db_password) {
                             return Promise.resolve(true);
                         }
@@ -5788,7 +5798,6 @@ let dbPlayerInfo = {
                                 let bcrypt = require('bcrypt');
 
                                 bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
-                                    console.log('rt playerLogin 2.2.2', err, isMatch);
                                     if (err) {
                                         reject({
                                             name: "DataError",
@@ -6007,7 +6016,7 @@ let dbPlayerInfo = {
                 retObj.bankAccountDistrict = zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
-                console.log('rt playerLogin end');
+                console.log(`Player ${playerObj.name} logged in.`);
                 return retObj;
             }
         );
@@ -6095,7 +6104,6 @@ let dbPlayerInfo = {
             }
         ).then(
             playerState => {
-                console.log('playerState===11', playerState);
                 if (playerState) {
                     return dbconfig.collection_playerRetentionRewardGroupRecord.find(query).populate({
                         path: "rewardEventObjId",
@@ -6400,7 +6408,6 @@ let dbPlayerInfo = {
                     }
                     db_password = String(data.password); // hashedPassword from db
                     if (dbUtility.isMd5(db_password)) {
-                        console.log('rt playerLogin 2.1');
                         if (md5(playerData.password) == db_password) {
                             return Promise.resolve(true);
                         }
@@ -6414,7 +6421,6 @@ let dbPlayerInfo = {
                                 let bcrypt = require('bcrypt');
 
                                 bcrypt.compare(String(playerData.password), db_password, function (err, isMatch) {
-                                    console.log('rt playerLogin 2.2.2', err, isMatch);
                                     if (err) {
                                         reject({
                                             name: "DataError",
@@ -6425,7 +6431,6 @@ let dbPlayerInfo = {
                                     resolve(isMatch);
                                 });
                             } catch (err) {
-                                console.log('err', err);
                                 throw err;
                             }
 
@@ -6634,7 +6639,6 @@ let dbPlayerInfo = {
                 retObj.bankAccountDistrict = zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                 retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
 
-                console.log('rt playerLogin end');
                 return retObj;
             }
         );
@@ -20624,12 +20628,16 @@ let dbPlayerInfo = {
                             // player related
                             let playerDetail = data[3];
                             if (playerDetail.credibilityRemarks && playerDetail.credibilityRemarks.length) {
-                                result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e._id);
+                                result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e && e._id);
                                 result.credibilityRemarksName = playerDetail.credibilityRemarks.reduce((i, n, idx, arr) => {
-                                    if (arr.length === idx + 1) {
-                                        return i += n.name
+                                    if (n && n.name) {
+                                        if (arr.length === idx + 1) {
+                                            return i += n.name
+                                        } else {
+                                            return i += n.name + "\n"
+                                        }
                                     } else {
-                                        return i += n.name + "\n"
+                                        return i;
                                     }
                                 }, "");
                             }
@@ -26585,7 +26593,7 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
     );
 }
 
-function checkIsTelesales(phoneNumber, platformObjId) {
+function checkIsTelesales(phoneNumber, platformObjId, adminId) {
     let latestTsPhone;
     let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
     return dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).sort({createTime: 1}).lean().then(
@@ -26640,7 +26648,7 @@ function checkIsTelesales(phoneNumber, platformObjId) {
             }
 
             if (latestTsPhone && latestTsPhone._id && latestTsPhone.tsPhoneList) {
-                return dbconfig.collection_tsDistributedPhone.findOneAndRemove({
+                return dbconfig.collection_tsDistributedPhone.findOne({
                     tsPhone: latestTsPhone._id,
                     tsPhoneList: latestTsPhone.tsPhoneList,
                     endTime: {$gte: new Date()},
@@ -26655,6 +26663,7 @@ function checkIsTelesales(phoneNumber, platformObjId) {
                         } else {
                             returnData.tsPhone = latestTsPhone._id;
                             returnData.tsPhoneList = latestTsPhone.tsPhoneList;
+                            returnData.assignee = adminId;
                         }
                         return returnData;
                     }
