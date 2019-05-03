@@ -31,7 +31,9 @@ let tsAssignee = new Schema({
     // number of holding phone that have not been register
     // holdingCount: {type: Number, default: 0},
     // status of TsAssignee - constTsAssigneeStatus
-    status: {type: Number, default: 0, index: true}
+    status: {type: Number, default: 0, index: true},
+    // true - will not distribute tsPhone to this assignee. (phoneNumber which in tsPhone registered by assignee who does not involved in telesales)
+    noDistribute: {type: Boolean, default: false, index: true},
 
 });
 

@@ -109,7 +109,6 @@ let PlayerServiceImplement = function () {
                     data.partnerId = playerData.partnerId;
                 }
 
-                console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
                 dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
                     isUpdateData=> {
                         if (!(isUpdateData[0] && isUpdateData[0]._id)) {
@@ -163,7 +162,7 @@ let PlayerServiceImplement = function () {
                     resObj.errorMessage = err.errMessage || resObj.errorMessage;
                     wsFunc.response(conn, resObj, data);
                 }
-                console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
+                console.log("createPlayerRegistrationIntentRecordAPI FAIL", err);
                 if (err && err.status != constServerCode.USERNAME_ALREADY_EXIST) {
                     if(data && data.partnerName && data.partnerName != ""){
                         dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();

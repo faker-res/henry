@@ -4470,8 +4470,8 @@
 
   "Distribution": "参与派发",
   "Distribution Name List Settings": "名单派发设定",
-  "Distribution Name List Details": "名单派发详情（曾经派发过的电销员状况）",
-  "CS Officer (Assignee)": "曾经派发过的电销人员",
+  "Distribution Name List Details": "名单派发详情",
+  "CS Officer (Assignee)": "电销人员",
   "Distributed Count": "个人曾经已派发量",
   "Fulfilled Count": "个人曾经已使用量",
   "Success Count": "个人曾经成功接听人数",
