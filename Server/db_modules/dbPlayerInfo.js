@@ -17687,7 +17687,8 @@ let dbPlayerInfo = {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                             return playerIdObj._id;
                                         }),
-                                        option: null
+                                        option: null,
+                                        isPromoteWay: true
                                     });
                                 },
                                 processResponse: function (record) {
@@ -19793,16 +19794,15 @@ let dbPlayerInfo = {
                                 platformId: platform,
                                 startTime: query.start,
                                 endTime: query.days? moment(query.start).add(query.days, "day"): new Date(),
+                                customStartTime: consumptionStartTime,
+                                customEndTime: consumptionEndTime,
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     playerData = playerIdObjs;
                                     return playerIdObj._id;
                                 }),
                                 option: {
-                                    isDX: true,
-                                    days: query.days,
-                                    customStartTime: consumptionStartTime,
-                                    customEndTime: consumptionEndTime,
+                                    isDX: true
                                 }
                             });
                         },
@@ -19956,7 +19956,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay, customStartTime, customEndTime) {
         console.log('getConsumptionDetailOfPlayers - start', playerObjIds.length);
         option = option || {};
         let proms = [];
@@ -19983,7 +19983,28 @@ let dbPlayerInfo = {
                     proposalTypeData => {
                         proposalType = proposalTypeData;
 
-                        if (option.isFeedback) {
+                        if (option.isDX) {
+                            for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
+                                let prom;
+
+                                prom = dbconfig.collection_players.findOne({
+                                    _id: playerObjIds[p]
+                                }, 'registrationTime domain').lean().then(
+                                    playerData => {
+                                        let qStartTime = new Date(playerData.registrationTime);
+                                        let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
+                                        if (customStartTime && customEndTime) {
+                                            qStartTime = customStartTime;
+                                            qEndTime = customEndTime;
+                                        }
+
+                                        return getPlayerRecord([playerObjIds[p]], qStartTime, qEndTime, playerData.domain, true);
+                                    }
+                                );
+
+                                proms.push(prom);
+                            }
+                        } else if (option.isFeedback) {
                             let feedBackIds = playerObjIds;
                             let feedbackData;
 
@@ -20012,7 +20033,7 @@ let dbPlayerInfo = {
                             }
                         }
                         else {
-                            return getPlayerRecord(playerObjIds, new Date(startTime), new Date(endTime), option, true);
+                            return getPlayerRecord(playerObjIds, new Date(startTime), new Date(endTime));
                         }
 
                         return Promise.all(proms.map(p => Promise.resolve(p)));
@@ -20031,7 +20052,7 @@ let dbPlayerInfo = {
             }
         );
 
-        async function getPlayerRecord(playerObjId, startTime, endTime, option, showPlatformFeeEstimate) {
+        async function getPlayerRecord(playerObjId, startTime, endTime, domain, showPlatformFeeEstimate) {
             // //recalculate player value
             // dbPlayerCredibility.calculatePlayerValue(playerObjId).catch(errorUtils.reportError);
 
@@ -20152,24 +20173,12 @@ let dbPlayerInfo = {
                 return "";
             }
 
-            // set search time
-            let searchStartTime = startTime;
-            let searchEndTime = endTime;
-            if (option.customStartTime && option.customEndTime) {
-                searchStartTime = option.customStartTime;
-                searchEndTime = option.customEndTime;
-            }
-            else if (option.isDX) {
-                searchStartTime = new Date(playerData.registrationTime);
-                searchEndTime = option.days? moment(searchStartTime).add(option.days, 'day'): new Date();
-            }
-
             let playerObjIds = playerData.map(e => e._id);
             let consumptionPromMatchObj = {
                 playerId: {$in: playerObjIds},
                 createTime: {
-                    $gte: searchStartTime,
-                    $lt: searchEndTime
+                    $gte: new Date(startTime),
+                    $lt: new Date(endTime)
                 },
                 isDuplicate: {$ne: true}
             };
@@ -20226,9 +20235,9 @@ let dbPlayerInfo = {
                 {
                     "$match": {
                         "data.playerObjId": {$in: playerObjIds},
-                        createTime: {
-                            $gte: searchStartTime,
-                            $lt: searchEndTime
+                        "createTime": {
+                            "$gte": new Date(startTime),
+                            "$lte": new Date(endTime)
                         },
                         "mainType": {$in: ["TopUp", "PlayerBonus"]},
                         "status": option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
@@ -20266,9 +20275,9 @@ let dbPlayerInfo = {
                 {
                     "$match": {
                         "data.playerObjId": {$in: playerObjIds},
-                        createTime: {
-                            $gte: searchStartTime,
-                            $lt: searchEndTime
+                        "createTime": {
+                            "$gte": new Date(startTime),
+                            "$lte": new Date(endTime)
                         },
                         "mainType": "Reward",
                         "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -20306,19 +20315,13 @@ let dbPlayerInfo = {
                     }
                 ) : Promise.resolve(false);
 
-            // Platform Fee Estimation
-            let platformFeeProm = dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).populate({
-                path: 'platformFee.gameProvider',
-                model: dbconfig.collection_gameProvider
-            }).lean();
-
-            let [players, gameDetail, topUpAndBonusDetail, rewardDetail, csOfficerDetail, platformFeeDetail] = await Promise.all([
-                Promise.resolve(playerData), consumptionProm, topupAndBonusProm, rewardProm, promoteWayProm, platformFeeProm]);
+            let [players, gameDetail, topUpAndBonusDetail, rewardDetail, csOfficerDetail] = await Promise.all([
+                Promise.resolve(playerData), consumptionProm, topupAndBonusProm, rewardProm, promoteWayProm]);
 
             if (players && players.length) {
                 let retArr = [];
 
-                players.map(playerDetail => {
+                players.map(async playerDetail => {
                     let result = {_id: playerDetail._id};
                     // player related
                     if (playerDetail.credibilityRemarks && playerDetail.credibilityRemarks.length) {
@@ -20636,11 +20639,13 @@ let dbPlayerInfo = {
                         result.platformFeeEstimate = {};
                         result.totalPlatformFeeEstimate = 0;
 
-                        if (
-                            result.providerDetail && Object.keys(result.providerDetail).length && platformFeeDetail
-                            && platformFeeDetail.platformFee && platformFeeDetail.platformFee.length
-                        ) {
-                            platformFeeDetail.platformFee.forEach(provider => {
+                        let feeData = await dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).populate({
+                            path: 'platformFee.gameProvider',
+                            model: dbconfig.collection_gameProvider
+                        }).lean();
+
+                        if (result.providerDetail && Object.keys(result.providerDetail).length && feeData && feeData.platformFee && feeData.platformFee.length) {
+                            feeData.platformFee.forEach(provider => {
                                 if (provider.gameProvider && provider.gameProvider._id && result.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
                                     let gameProviderName = String(provider.gameProvider.name);
                                     result.platformFeeEstimate[gameProviderName] = (result.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
@@ -20653,8 +20658,9 @@ let dbPlayerInfo = {
                         }
                     }
 
+                    console.log('getConsumptionDetailOfPlayers getPlayerRecord - returning', result);
                     retArr.push(result);
-                });
+                })
 
                 return retArr;
             }
