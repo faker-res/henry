@@ -1414,6 +1414,8 @@ db.rewardParam.update({
                 rewardParam: {
                     festivalName: {type: "text", des: "Festival Name"},
                     title: {type: "text", des: "Festival Title"},
+                    month: { type: "text", des: "Festival Month"},
+                    day: { type: "text", des: "Festival Day"},
                     topUpReturnReward: {type: "text", des: "Top Up Return Reward"},
                     amount: {type: "text", des: "REWARD_AMOUNT"},
                     minTopUpAmount: {type: "number", des: "Minimal top up amount"},

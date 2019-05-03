@@ -3060,7 +3060,7 @@ var proposalExecutor = {
                                     providerGroup: proposalData.data.providerGroup
                                 };
 
-                                createRTGProm = createRTGForProposal(proposalData, taskData, constRewardType.PLAYER_RANDOM_REWARD_GROUP, proposalData).then(
+                                createRTGProm = createRTGForProposal(proposalData, taskData, constRewardType.PLAYER_FESTIVAL_REWARD_GROUP, proposalData).then(
                                     data => {
                                         rtgData = data;
                                         let updateData = {$set: {}};
@@ -3087,9 +3087,9 @@ var proposalExecutor = {
                                     }
                                 )
                             }
+                        })
 
-
-
+                    }
             },
             executePlayerRandomRewardGroup: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty('rewardType')) {

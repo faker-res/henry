@@ -22438,7 +22438,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         let birthdayHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
-                        if(birthdayHeader.totalConsumptionInInterval){
+                        if (birthdayHeader.totalConsumptionInInterval) {
                             delete birthdayHeader.totalConsumptionInInterval
                         }
 
@@ -22452,7 +22452,7 @@ define(['js/app'], function (myApp) {
                             festivalType1Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.festivalType1Value}];
                         }
                         let festivalType1Header = Object.assign({}, vm.rewardMainParam.rewardParam);
-                        if(festivalType1Header.totalConsumptionInInterval){
+                        if (festivalType1Header.totalConsumptionInInterval) {
                             delete festivalType1Header.totalConsumptionInInterval
                         }
                         if(festivalType1Header.minTopUpAmount){

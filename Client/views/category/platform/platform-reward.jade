@@ -519,7 +519,7 @@
                 .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerFestivalRewardGroup'")
                     div(style="margin-bottom: 20px;")
                         label(style="color: red") *{{ "PlayerFestivalRewardGroup" | translate }}
-                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableBirthday track by $index" ng-cloak)
+                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableBirthday track by $index" ng-cloak, ng-if="vm.showReward.condition.festivalType == '2'")
                         thead
                             th
                             th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
