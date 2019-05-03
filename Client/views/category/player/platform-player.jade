@@ -9,7 +9,7 @@
     .col-md-12.search-filters-container#playerTable-search-filter.well
         .search-filters-item
             label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-            select.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+            select#productName.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'PLAYER_ID' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
@@ -549,6 +549,7 @@ include modalGameCreditLog
                     .panel-body
                         .well
                             .form-group
+                                select.form-control(ng-model='vm.testPlayerPlatform', ng-options='v.platformId as v.name$ for v in vm.allPlatformData', required)
                                 text.control-label(ng-if='!vm.createtrail') {{"Create Trail Player" | translate}}?
                                 text.control-label(ng-if='vm.createtrail') {{"Trail Player Created" | translate}}
                         .well(ng-if='vm.createtrail')
@@ -558,7 +559,7 @@ include modalGameCreditLog
                                 label.control-label {{'TEST_PLAYER_PASSWORD' | translate}}
                                 label.form-control {{vm.testPlayerPassword}}
             .modal-footer
-                button.btn.btn-success.btn-space(ng-if='!vm.createtrail', ng-click='vm.createTrialPlayerAccount()') {{'CREATE_TRIAL' | translate}}
+                button.btn.btn-success.btn-space(ng-if='!vm.createtrail', ng-disabled='!vm.testPlayerPlatform', ng-click='vm.createTrialPlayerAccount()') {{'CREATE_TRIAL' | translate}}
                 button.btn.btn-success.btn-space(ng-if='vm.createtrail', data-dismiss='modal') {{'OK' | translate}}
                 button.btn.btn-warning.btn-space(ng-if='!vm.createtrail', data-dismiss='modal') {{"CANCEL" | translate}}
 #modalPlayerForbidTopupTypes.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
