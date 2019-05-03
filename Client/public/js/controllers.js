@@ -1922,7 +1922,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.loadAllProfitDetail = function () {
         $("#modalAllProfitData").modal('show');
-    }
+        filterProfitDetail();
+    };
 
 
     async function sendAllProfitData() {
@@ -1932,10 +1933,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 setTimeout(() => {
                     $scope.allProfitDetailList.push(loadProfitDetail($scope.platformList[i].id, $scope.platformList[i].text));
                     resolve('success');
-                }, 2000);
+                }, 2500);
             });
         }
         sendProfitData();
+        filterProfitDetail();
     }
 
     async function sendProfitData(){
@@ -1959,9 +1961,28 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
         sendProfitData();
     }
+    
+
+    function filterProfitDetail() {
+        for (let i = 0; i < $scope.allProfitDetailList.length; i++) {
+            const data = $scope.allProfitDetailList;
+            if ((data[i].netProfitDetailIncome === "0" || typeof data[i].netProfitDetailIncome === 'undefined') &&
+                (data[i].profitDetailConsumptionAmount === "0" || typeof data[i].profitDetailConsumptionAmount === 'undefined') &&
+                (data[i].profitDetailNewPlayer === 0 || typeof data[i].profitDetailNewPlayer === 'undefined') &&
+                (data[i].profitDetailTopUpAmount === "0" || typeof data[i].profitDetailTopUpAmount === 'undefined') &&
+                (data[i].profitDetailConsumptionPlayer === 0 || typeof data[i].profitDetailConsumptionPlayer === 'undefined') &&
+                (data[i].profitDetailBonusAmount === "0" || typeof data[i].profitDetailBonusAmount === 'undefined') &&
+                (data[i].profitDetailIncome === "0" || typeof data[i].profitDetailIncome === 'undefined') &&
+                (data[i].financialPoints === 0 || typeof data[i].financialPoints === 'undefined')) {
+
+                const x = document.getElementsByClassName("profitData");
+                x[i].style.display = "none";
+            }
+        }
+    }
 
 
-    function loadProfitDetail(id, text) {
+     function loadProfitDetail(id, text) {
 
         clearTimeout(callBackTimeOut);
         clearTimeout(profileDetailTimeOut);
