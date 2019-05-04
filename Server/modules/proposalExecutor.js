@@ -130,6 +130,7 @@ var proposalExecutor = {
             || executionType === 'executeAuctionRewardPointChange'
 
         if (isNewFunc) {
+            console.log('executionType, rejectionType, bApprove, proposalData, rejectIfMissing', executionType, rejectionType, bApprove, proposalData, rejectIfMissing)
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
         } else {
             "use strict";
@@ -188,6 +189,7 @@ var proposalExecutor = {
         "use strict";
         if (bApprove) {
             if (proposalExecutor.executions[executionType]) {
+                console.log('**executionType', executionType, proposalData)
                 return proposalExecutor.executions[executionType](proposalData).then(
                     responseData => {
                         return dbconfig.collection_proposal.findOneAndUpdate({
@@ -3038,13 +3040,14 @@ var proposalExecutor = {
                     let rtgData;
                     let providerGroup$;
                     let createRTGProm = Promise.resolve(true);
-
+                    console.log('----->proposalData.data.providerGroup', proposalData.data.providerGroup);
                     return dbconfig.collection_gameProviderGroup.findOne({_id: ObjectId(proposalData.data.providerGroup)}).lean().then(
                         providerGroup => {
                             proposalData.data.allowedProvider$ = providerGroup && providerGroup.name ? providerGroup.name : "自由额度";
                             providerGroup$ = proposalData.data.allowedProvider$;
                             // type 1 festival
-                            if (proposalData.data && proposalData.data.rewardType && proposalData.data.rewardType == constFestivalRewardType.FESTIVAL_TYPE_1 && (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                            console.log('----->1 created');
+                            if (proposalData.data && proposalData.data.rewardType && (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
                                 let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : (proposalData.data.applyAmount || 0);
                                 let taskData = {
                                     playerId: proposalData.data.playerObjId,
@@ -3062,6 +3065,7 @@ var proposalExecutor = {
 
                                 createRTGProm = createRTGForProposal(proposalData, taskData, constRewardType.PLAYER_FESTIVAL_REWARD_GROUP, proposalData).then(
                                     data => {
+                                        console.log('-----> 2created');
                                         rtgData = data;
                                         let updateData = {$set: {}};
 
@@ -3082,7 +3086,7 @@ var proposalExecutor = {
                                             let remark = "优惠提案：" + proposalData.proposalId + "(领取优惠后禁用提款)";
                                             dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
                                         }
-
+                                        console.log('-----> 特别节日created');
                                         return rtgData;
                                     }
                                 )
