@@ -228,16 +228,16 @@ function postDistrictList (reqData) {
     return postRequest(reqData, 'getDistrictList', 'POST')
 }
 
-function postPlatformAdd (reqData) {
-    return postRequest(reqData, 'platform', 'POST')
+function postPlatformAdd (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'platform', 'POST', paymentSystemKey)
 }
 
-function deletePlatformDelete (reqData) {
-    return postRequest(reqData, 'platform', 'DELETE')
+function deletePlatformDelete (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'platform', 'DELETE', paymentSystemKey)
 }
 
-function patchPlatformUpdate (reqData) {
-    return postRequest(reqData, 'platform', 'PATCH')
+function patchPlatformUpdate (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'platform', 'PATCH', paymentSystemKey)
 }
 
 function postOnlineTopupType (reqData) {
