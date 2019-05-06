@@ -14320,8 +14320,8 @@ let dbPlayerInfo = {
                     closeMusic: closeMusic || false
                 };
 
-                if (gameData && gameData.orientation) {
-                    sendData.orientation = gameData.orientation;
+                if (gameData && gameData.orientationSetting && gameData.orientationSetting[playerData.platform._id]) {
+                    sendData.orientation = gameData.orientationSetting[playerData.platform.platformId];
                 }
                 if (tableCode) {
                     sendData.tableCode = tableCode
@@ -14433,8 +14433,8 @@ let dbPlayerInfo = {
                         clientType: clientType || 1
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
-                    if (gameData && gameData.orientation) {
-                        sendData.orientation = gameData.orientation;
+                    if (gameData && gameData.orientationSetting && gameData.orientationSetting[platformData._id]) {
+                        sendData.orientation = gameData.orientationSetting[platformData._id];
                     }
                     console.log("LH check getLoginUrl err -----test login ", sendData);
                     return cpmsAPI.player_getTestLoginURL(sendData);
@@ -14481,8 +14481,8 @@ let dbPlayerInfo = {
                         ip: ip,
                         clientType: clientType || 1
                     };
-                    if (gameData && gameData.orientation) {
-                        sendData.orientation = gameData.orientation;
+                    if (gameData && gameData.orientationSetting && gameData.orientationSetting[platformData._id]) {
+                        sendData.orientation = gameData.orientationSetting[platformData._id];
                     }
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     return cpmsAPI.player_getTestLoginURLWithOutUser(sendData);
