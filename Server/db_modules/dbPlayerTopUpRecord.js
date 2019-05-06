@@ -3949,7 +3949,7 @@ var dbPlayerTopUpRecord = {
                                     depositType: constAccountType.WECHAT
                                 };
 
-                                prom = RESTUtils.getPMS2Services("postDepositTypeByUsername", reqData);
+                                prom = RESTUtils.getPMS2Services("postDepositTypeByUsername", reqData, playerData.platform.topUpSystemType);
                             }
                             else {
                                 let reqData = {
@@ -4064,7 +4064,7 @@ var dbPlayerTopUpRecord = {
                                     depositType: constAccountType.ALIPAY
                                 };
 
-                                aliPayProm = RESTUtils.getPMS2Services("postDepositTypeByUsername", reqData);
+                                aliPayProm = RESTUtils.getPMS2Services("postDepositTypeByUsername", reqData, playerData.platform.topUpSystemType);
                             } else {
                                 let reqData = {
                                     platformId: playerData.platform.platformId,

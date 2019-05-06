@@ -252,8 +252,8 @@ function postCreateOnlineTopup (reqData, paymentSystemKey) {
     return postRequest(reqData, 'requestOnlineMerchant', 'POST', paymentSystemKey)
 }
 
-function postDepositTypeByUsername (reqData) {
-    return postRequest(reqData, 'requestDepositTypeByUsername', 'POST')
+function postDepositTypeByUsername (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'requestDepositTypeByUsername', 'POST', paymentSystemKey)
 }
 
 function postOnlineCashinList (reqData) {
