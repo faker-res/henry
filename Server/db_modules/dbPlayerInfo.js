@@ -14583,7 +14583,7 @@ let dbPlayerInfo = {
                                 clientType: clientType
                             };
 
-                            return RESTUtils.getPMS2Services("postOnlineTopupType", query);
+                            return RESTUtils.getPMS2Services("postOnlineTopupType", query, data.platform.topUpSystemType);
                         }
                         // if (bPMSGroup == true || bPMSGroup == "true") {
                         //     pmsQuery.username = data.name;

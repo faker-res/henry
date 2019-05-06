@@ -240,16 +240,16 @@ function patchPlatformUpdate (reqData, paymentSystemKey) {
     return postRequest(reqData, 'platform', 'PATCH', paymentSystemKey)
 }
 
-function postOnlineTopupType (reqData) {
-    return postRequest(reqData, 'getOnlineTopupType', 'POST')
+function postOnlineTopupType (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getOnlineTopupType', 'POST', paymentSystemKey)
 }
 
-function postMerchantInfo (reqData) {
-    return postRequest(reqData, 'getMerchantInfo', 'POST')
+function postMerchantInfo (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getMerchantInfo', 'POST', paymentSystemKey)
 }
 
-function postCreateOnlineTopup (reqData) {
-    return postRequest(reqData, 'requestOnlineMerchant', 'POST')
+function postCreateOnlineTopup (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'requestOnlineMerchant', 'POST', paymentSystemKey)
 }
 
 function postDepositTypeByUsername (reqData) {

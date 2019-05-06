@@ -1751,7 +1751,7 @@ var dbPlayerTopUpRecord = {
                             clientType: clientType
                         };
 
-                        merchantTypeProm = RESTUtils.getPMS2Services("postOnlineTopupType", query);
+                        merchantTypeProm = RESTUtils.getPMS2Services("postOnlineTopupType", query, player.platform.topUpSystemType);
                     }
 
                     let proms = [limitedOfferProm, merchantGroupProm(), merchantTypeProm];
@@ -2013,7 +2013,7 @@ var dbPlayerTopUpRecord = {
                     //     return pmsAPI.payment_requestOnlineMerchant(requestData);
                     // }
                     if (topupRequest && topupRequest.merchantName) {
-                        return RESTUtils.getPMS2Services("postCreateOnlineTopup", requestData);
+                        return RESTUtils.getPMS2Services("postCreateOnlineTopup", requestData, player.platform.topUpSystemType);
                     } else {
                         let errorMsg = "No Any MerchantNo Are Available, Please Change TopUp Method";
                         updateProposalRemark(proposalData, localization.localization.translate(errorMsg)).catch(errorUtils.reportError);
@@ -2141,7 +2141,7 @@ var dbPlayerTopUpRecord = {
                 let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
                 // updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo).catch(errorUtils.reportError);
-                updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantName).catch(errorUtils.reportError);
+                updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantName, player.platform.topUpSystemType).catch(errorUtils.reportError);
 
                 let checkProposalStatus = Promise.resolve();
                 if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
@@ -5273,7 +5273,7 @@ function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, p
     );
 }
 
-function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo) {
+function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo, paymentSystemId) {
     // let merchantObj;
     // return pmsAPI.merchant_getMerchant({merchantNo: merchantNo}).then(
     //     merchantData => {
@@ -5294,7 +5294,7 @@ function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo) {
     //     }
     // )
 
-    return RESTUtils.getPMS2Services("postMerchantInfo", {merchantName: merchantNo}).then(
+    return RESTUtils.getPMS2Services("postMerchantInfo", {merchantName: merchantNo}, paymentSystemId).then(
         merchantData => {
             if (merchantData) {
                 return dbconfig.collection_proposal.update(proposalQuery, {
