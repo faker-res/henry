@@ -95,6 +95,14 @@ var dbPlatform = {
             // }
         }
 
+        if (platformData && platformData.topUpSystemType) {
+            platformData.topUpSystemType = Number(platformData.topUpSystemType);
+        }
+
+        if (platformData && platformData.bonusSystemType) {
+            platformData.bonusSystemType = Number(platformData.bonusSystemType);
+        }
+
         var platform = new dbconfig.collection_platform(platformData);
 
         dbconfig.collection_platform.findOne({platformId: platformData.platformId}).then(data => {
@@ -207,7 +215,15 @@ var dbPlatform = {
                                 code: platformData.code
                             };
 
-                            RESTUtils.getPMS2Services("postPlatformAdd", data);
+                            let paymentSystemId;
+
+                            if (platformData && platformData.topUpSystemType) {
+                                paymentSystemId = platformData.topUpSystemType;
+                            } else if (platformData && platformData.bonusSystemType) {
+                                paymentSystemId = platformData.bonusSystemType;
+                            }
+
+                            RESTUtils.getPMS2Services("postPlatformAdd", data, paymentSystemId);
                         }
                         deferred.resolve(platformData);
                     },
@@ -455,7 +471,7 @@ var dbPlatform = {
                         description: data.description
                     };
                     //externalUtil.request(pmsAPI.platform_update(platformData));
-                    RESTUtils.getPMS2Services("patchPlatformUpdate", platformData);
+                    RESTUtils.getPMS2Services("patchPlatformUpdate", platformData, data.topUpSystemType);
                 }
                 return data;
             }
@@ -573,13 +589,15 @@ var dbPlatform = {
         var proposalTypeProm = dbconfig.collection_proposalType.remove({platformId: {$in: platformObjIds}}).exec();
         var proposalTypeProcessProm = dbconfig.collection_proposalTypeProcess.remove({platformId: {$in: platformObjIds}}).exec();
 
-        var platformId = null;
+        let platformId = null;
+        let paymentSystemId;
 
         return dbconfig.collection_platform.findOne({_id: platformObjIds[0]})
             .then(
                 data => {
                     if (data && data.platformId) {
                         platformId = data.platformId;
+                        paymentSystemId = data.topUpSystemType;
                     }
                     var platformProm = dbconfig.collection_platform.remove({_id: {$in: platformObjIds}}).exec();
                     return Q.all([platformProm, playerProm, playerNameProm, partnerProm, departmentProm, partnerLvlConfigProm, partnerLvlProm, playerLevelProm, proposalTypeProm, proposalTypeProcessProm]);
@@ -589,7 +607,7 @@ var dbPlatform = {
                 data => {
                     if (platformId && env.mode != "local" && env.mode != "qa") {
                         //externalUtil.request(pmsAPI.platform_delete({platformId: platformId}));
-                        RESTUtils.getPMS2Services("deletePlatformDelete", {platformId: platformId});
+                        RESTUtils.getPMS2Services("deletePlatformDelete", {platformId: platformId}, paymentSystemId);
                     }
                     return data;
                 }

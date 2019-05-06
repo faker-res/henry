@@ -491,6 +491,10 @@ var roleChecker = {
                 AutoExportListOrMaxNumOfTxnEveryday: [],
                 WinnerMonitor: ['setWinnerMonitorConfig'],
                 defaultFeedbackConfig: ['updatePlatform'],
+                CanReceiveLargeWithdrawalEmail: [],
+                CanAuditLargeWithdrawal: [],
+                CanReceivePartnerLargeWithdrawalEmail: [],
+                CanAuditPartnerLargeWithdrawal: [],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],

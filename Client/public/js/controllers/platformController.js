@@ -24161,7 +24161,7 @@ define(['js/app'], function (myApp) {
 
                 vm.loadPromoCodeTypes();
                 loadPromoCodeUserGroup();
-                loadOpenPromoCodeTemplate();
+                // vm.loadOpenPromoCodeTemplate();
                 // loadPromoCodeTemplate();
 
                 vm.promoCodeSmsChannel = null;
@@ -24316,12 +24316,13 @@ define(['js/app'], function (myApp) {
                     case "promoCodeTemplate":
                         vm.filterPromoCodeTemplatePlatform = '';
                         vm.promoCodeTemplateEdit = false;
-                        vm.loadPromoCodeTemplate();
+                        // vm.loadPromoCodeTemplate();
                         vm.endLoadWeekDay();
                         break;
                     case 'openPromoCodeTemplate':
+                        vm.filterOpenPromoCodeTemplatePlatform = '';
                         vm.openPromoCodeTemplateEdit = false;
-                        loadOpenPromoCodeTemplate();
+                        // vm.loadOpenPromoCodeTemplate();
                         vm.endLoadWeekDay();
                         break;
 
@@ -25489,12 +25490,14 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            function loadOpenPromoCodeTemplate() {
-                socketService.$socket($scope.AppSocket, 'getOpenPromoCodeTemplate', {
-                    platformObjId: vm.selectedPlatform.id,
-                    isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup),
+            vm.loadOpenPromoCodeTemplate = function (platformObjId) {
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
+                    isProviderGroup: true,
                     deleteFlag: false
-                }, function (data) {
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getOpenPromoCodeTemplate', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         vm.openPromoCodeTemplateData = data.data;
                         vm.openPromoCodeTemplate1 = [];
@@ -27236,21 +27239,21 @@ define(['js/app'], function (myApp) {
                 vm.selectedBlockPromoCodeUserGroup = null;
 
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterPromoCodeUserGroupConfigPlatform,
                     groupData: vm.userGroupConfig
                 };
 
                 if (isDelete) {
                     let deleteData = {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.filterPromoCodeUserGroupConfigPlatform,
                         deleteData: index
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData, function () {
-                        vm.getPromoCodeUserGroup();
-                        vm.getBlockPromoCodeUserGroup();
-                        vm.getAllPromoCodeUserGroup();
+                        vm.getPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
+                        vm.getBlockPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
+                        vm.getAllPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
                         $scope.safeApply();
                     });
                     vm.saveUserFromGroupToGroup(1, vm.userGroupAllConfig, vm.userGroupBlockConfig)
@@ -27282,7 +27285,7 @@ define(['js/app'], function (myApp) {
 
                 let modifyData = {
                     adminId: authService.adminId,
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterPromoCodeUserGroupConfigPlatform || vm.selectedPlatform.id,
                     addedPlayerNameArr,
                     deletedPlayerNameArr
                 }
@@ -27296,22 +27299,22 @@ define(['js/app'], function (myApp) {
                 vm.selectedBlockPromoCodeUserGroup = null;
 
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterPromoCodeUserGroupConfigPlatform,
                     groupData: vm.userGroupBlockConfig
                 };
 
                 if (isDelete) {
                     let deleteData = {
                         adminId: authService.adminId,
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.filterPromoCodeUserGroupConfigPlatform,
                         deleteData: index
                     };
                     socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', deleteData);
                 } else {
                     socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', sendData, function () {
-                        vm.getPromoCodeUserGroup();
-                        vm.getBlockPromoCodeUserGroup();
-                        vm.getAllPromoCodeUserGroup();
+                        vm.getPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
+                        vm.getBlockPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
+                        vm.getAllPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
                         $scope.safeApply();
                     });
                     vm.saveUserFromGroupToGroup(2, vm.userGroupAllConfig, vm.userGroupConfig)
@@ -27323,7 +27326,7 @@ define(['js/app'], function (myApp) {
             vm.saveUserFromGroupToGroup = function (type, originalConfig, currentConfig) {
                 if (originalConfig && originalConfig.length > 0 && currentConfig && currentConfig.length > 0) {
                     let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.filterPromoCodeUserGroupConfigPlatform || vm.selectedPlatform.id,
                         groupData: currentConfig
                     };
                     originalConfig.forEach(originalItem => {
@@ -27682,8 +27685,13 @@ define(['js/app'], function (myApp) {
                 return filteredData;
             }
 
-            vm.getPromoCodeUserGroup = function () {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
+            vm.getPromoCodeUserGroup = function (platformObjId) {
+                vm.selectedPromoCodeUserGroup = null;
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.id
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getPromoCodeUserGroup', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getPromoCodeUserGroup', data);
 
@@ -27692,8 +27700,13 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getBlockPromoCodeUserGroup = function () {
-                socketService.$socket($scope.AppSocket, 'getBlockPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
+            vm.getBlockPromoCodeUserGroup = function (platformObjId) {
+                vm.selectedPromoCodeUserGroup = null;
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.id
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getBlockPromoCodeUserGroup', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getBlockPromoCodeUserGroup', data);
                         vm.userGroupBlockConfig = data.data;
@@ -27701,8 +27714,11 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getAllPromoCodeUserGroup = function () {
-                socketService.$socket($scope.AppSocket, 'getAllPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
+            vm.getAllPromoCodeUserGroup = function (platformObjId) {
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.id
+                }
+                socketService.$socket($scope.AppSocket, 'getAllPromoCodeUserGroup', sendData, function (data) {
                     vm.userGroupAllConfig = data.data; // note: do not modify playerNames in this variable, promocode may not function properly
                 });
             };
@@ -30702,7 +30718,6 @@ define(['js/app'], function (myApp) {
                             vm.deletedOpenPromoCodeTemplateData.push({_id: data._id, deletedStatus: true});
                         }
 
-
                         collection.splice(index, 1);
 
                         if(collection && collection.length > 0){
@@ -30758,7 +30773,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initNewPromoCodeTemplate = function(type, tag) {
-
                 if (!vm.promoCodeFieldCheckFlag) {
 
                     let id;
@@ -30768,7 +30782,8 @@ define(['js/app'], function (myApp) {
                         vm.newPromoCodeTemplate1 = {
                             disableWithdraw: false,
                             isSharedWithXIMA: true,
-                            isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            // isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            isProviderGroup: true
                         };
 
                         if (tag == 'openPromoCode') {
@@ -30789,7 +30804,8 @@ define(['js/app'], function (myApp) {
                         vm.newPromoCodeTemplate2 = {
                             disableWithdraw: false,
                             isSharedWithXIMA: true,
-                            isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            // isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            isProviderGroup: true
                         };
 
                         if (tag == 'openPromoCode') {
@@ -30809,7 +30825,8 @@ define(['js/app'], function (myApp) {
                         vm.newPromoCodeTemplate3 = {
                             disableWithdraw: false,
                             isSharedWithXIMA: true,
-                            isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            // isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                            isProviderGroup: true
                         };
 
                         if (tag == 'openPromoCode') {
@@ -30867,12 +30884,11 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            function updateOpenPromoCodeTemplate (){
-
+            function updateOpenPromoCodeTemplate () {
                 vm.openPromoCodeTemplateSetting = [];
-                vm.openPromoCodeTemplateSetting =vm.openPromoCodeTemplateSetting.concat(vm.openPromoCodeTemplate1, vm.openPromoCodeTemplate2, vm.openPromoCodeTemplate3);
+                vm.openPromoCodeTemplateSetting = vm.openPromoCodeTemplateSetting.concat(vm.openPromoCodeTemplate1, vm.openPromoCodeTemplate2, vm.openPromoCodeTemplate3);
 
-                if(vm.openPromoCodeTemplateSetting.length > 0){
+                if(vm.openPromoCodeTemplateSetting.length > 0) {
                     vm.openPromoCodeTemplateSetting.forEach(p => {
 
                         if (p) {
@@ -30881,12 +30897,12 @@ define(['js/app'], function (myApp) {
                             if (p.hasOwnProperty('allowedProviders')) {
                                 let usingGroup = p.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
-                                if (p.isProviderGroup ) {
+                                if (p.isProviderGroup) {
                                     p.allowedProviders = p.allowedProviders == '' ? [] : p.allowedProviders;
                                 }
                                 else {
                                     p.allowedProviders = p.allowedProviders && p.allowedProviders.length == usingGroup.length ? [] : p.allowedProviders;
-                                    if (p.allowedProviders.length > 0){
+                                    if (p.allowedProviders.length > 0) {
                                         let removedIndex = p.allowedProviders.indexOf("");
                                         if (removedIndex != -1){
                                             p.allowedProviders.splice(removedIndex, 1);
@@ -30916,12 +30932,12 @@ define(['js/app'], function (myApp) {
 
                 vm.openPromoCodeTemplateSetting = vm.openPromoCodeTemplateSetting.concat(vm.deletedOpenPromoCodeTemplateData);
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterOpenPromoCodeTemplatePlatform || vm.selectedPlatform.id,
                     openPromoCodeTemplate: vm.openPromoCodeTemplateSetting,
                 };
 
                 socketService.$socket($scope.AppSocket, 'updateOpenPromoCodeTemplate', sendData, function (data) {
-                    loadPlatformData({loadAll: false});
+                    vm.loadOpenPromoCodeTemplate(vm.filterOpenPromoCodeTemplatePlatform);
                     vm.deletedOpenPromoCodeTemplateData = [];
                 });
             }
@@ -30955,12 +30971,13 @@ define(['js/app'], function (myApp) {
                 if (returnedMsg === true) {
 
                     if (!sendData.hasOwnProperty("isProviderGroup")){
-                        sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                        // sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                        sendData.isProviderGroup = true;
                     }
 
                     sendData.expirationTime = vm.dateReformat(sendData.expirationTime$.data('datetimepicker').getLocalDate());
 
-                    sendData.platformObjId = vm.selectedPlatform.id;
+                    sendData.platformObjId = vm.filterOpenPromoCodeTemplatePlatform;
 
                     if (sendData.hasOwnProperty('allowedProviders')) {
                         let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
@@ -30986,7 +31003,7 @@ define(['js/app'], function (myApp) {
                     sendData.type = type;
                     console.log('sendData', sendData);
                     return $scope.$socketPromise('generateOpenPromoCode', {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.filterOpenPromoCodeTemplatePlatform,
                         newPromoCodeEntry: sendData,
                         adminName: authService.adminName,
                         adminId: authService.adminId
@@ -31045,7 +31062,7 @@ define(['js/app'], function (myApp) {
                 });
 
                 return p.then( () => {
-                    loadOpenPromoCodeTemplate();
+                    vm.loadOpenPromoCodeTemplate(vm.filterOpenPromoCodeTemplatePlatform);
                 });
             };
 
