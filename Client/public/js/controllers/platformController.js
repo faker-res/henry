@@ -30175,14 +30175,16 @@ define(['js/app'], function (myApp) {
                 }
                 return new Promise((resolve, reject) => {
                     socketService.$socket($scope.AppSocket, 'getPlatformCredibilityRemarks', sendData, function (data) {
-                        console.log('getPlatformCredibilityRemarks', data);
-                        vm.platformCredibilityRemarks = data.data;
-                        vm.platformCredibilityRemarks.map(remark => {
-                            if (remark && remark.platform && remark.platform.name) {
-                                remark.platformName = remark.platform.name;
-                            }
+                        $scope.$evalAsync(() => {
+                            console.log('getPlatformCredibilityRemarks', data);
+                            vm.platformCredibilityRemarks = data.data;
+                            vm.platformCredibilityRemarks.map(remark => {
+                                if (remark && remark.platform && remark.platform.name) {
+                                    remark.platformName = remark.platform.name;
+                                }
+                            });
+                            resolve();
                         });
-                        resolve();
                     }, function (err) {
                         reject(err);
                     });
