@@ -519,7 +519,23 @@
                 .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerFestivalRewardGroup'")
                     div(style="margin-bottom: 20px;")
                         label(style="color: red") *{{ "PlayerFestivalRewardGroup" | translate }}
-                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableBirthday track by $index" ng-cloak, ng-if="vm.showReward.condition.festivalType == '1'")
+                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index" ng-cloak, ng-if="vm.showReward.condition.festivalType == '1'")
+                        thead
+                            th
+                            th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
+                        tbody(ng-repeat="entry in cond.value track by $index")
+                            td
+                                i.fa.fa-plus(ng-click='vm.addNewFestivalTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.birthday})' ng-if='!vm.platformRewardShowEdit()')
+                                i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                            td(ng-repeat="(i,v) in cond.header track by $index")
+                                div {{v}}
+                                input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
+                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
+                                    option(value='') {{'LOCAL_CREDIT' | translate}}
+                                span.percentage(ng-if="v.type == 'percentage'")
+                                    input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+                    //table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableBirthday track by $index" ng-cloak, ng-if="vm.showReward.condition.festivalType == '1'")
                         thead
                             th
                             th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
@@ -536,7 +552,7 @@
 
                     br
                     br
-                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType1 track by $index" ng-cloak)
+                    //table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType1 track by $index" ng-cloak)
                         thead
                             th
                             th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
@@ -553,7 +569,7 @@
 
                     br
                     br
-                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType2 track by $index" ng-cloak)
+                    //table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType2 track by $index" ng-cloak)
                         thead
                             th
                             th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
@@ -570,7 +586,7 @@
 
                     br
                     br
-                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType3 track by $index" ng-cloak)
+                    //table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType3 track by $index" ng-cloak)
                         thead
                             th
                             th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
