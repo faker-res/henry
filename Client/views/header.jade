@@ -144,7 +144,7 @@ div.nav-statistic
             .modal-body
                 .panel.panel-primary
                     .panel-body
-                        div.profitData(ng-repeat="profitDetail in allProfitDetailList track by $index", style="border:1px solid; margin:.5em; padding:.5em;")
+                        div.profitData(ng-repeat="profitDetail in allProfitDetailList | filter: filterProfitDetail ", style="border:1px solid; margin:.5em; padding:.5em;")
                             span(style="color:blue;") {{profitDetail.platformTexts}} : &emsp;
                             span {{ 'Total Monthly Revenue' | translate }}: {{ profitDetail.netProfitDetailIncome }} &emsp;
                             span {{ 'Consumption Amount (Day)' | translate }}: {{ profitDetail.profitDetailConsumptionAmount }} &emsp;
