@@ -27238,21 +27238,21 @@ define(['js/app'], function (myApp) {
                 vm.selectedBlockPromoCodeUserGroup = null;
 
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterPromoCodeUserGroupConfigPlatform,
                     groupData: vm.userGroupConfig
                 };
 
                 if (isDelete) {
                     let deleteData = {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.filterPromoCodeUserGroupConfigPlatform,
                         deleteData: index
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData, function () {
-                        vm.getPromoCodeUserGroup();
-                        vm.getBlockPromoCodeUserGroup();
-                        vm.getAllPromoCodeUserGroup();
+                        vm.getPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
+                        vm.getBlockPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
+                        vm.getAllPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
                         $scope.safeApply();
                     });
                     vm.saveUserFromGroupToGroup(1, vm.userGroupAllConfig, vm.userGroupBlockConfig)
@@ -27284,7 +27284,7 @@ define(['js/app'], function (myApp) {
 
                 let modifyData = {
                     adminId: authService.adminId,
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterPromoCodeUserGroupConfigPlatform || vm.selectedPlatform.id,
                     addedPlayerNameArr,
                     deletedPlayerNameArr
                 }
@@ -27298,22 +27298,22 @@ define(['js/app'], function (myApp) {
                 vm.selectedBlockPromoCodeUserGroup = null;
 
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterPromoCodeUserGroupConfigPlatform,
                     groupData: vm.userGroupBlockConfig
                 };
 
                 if (isDelete) {
                     let deleteData = {
                         adminId: authService.adminId,
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.filterPromoCodeUserGroupConfigPlatform,
                         deleteData: index
                     };
                     socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', deleteData);
                 } else {
                     socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', sendData, function () {
-                        vm.getPromoCodeUserGroup();
-                        vm.getBlockPromoCodeUserGroup();
-                        vm.getAllPromoCodeUserGroup();
+                        vm.getPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
+                        vm.getBlockPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
+                        vm.getAllPromoCodeUserGroup(vm.filterPromoCodeUserGroupConfigPlatform);
                         $scope.safeApply();
                     });
                     vm.saveUserFromGroupToGroup(2, vm.userGroupAllConfig, vm.userGroupConfig)
@@ -27325,7 +27325,7 @@ define(['js/app'], function (myApp) {
             vm.saveUserFromGroupToGroup = function (type, originalConfig, currentConfig) {
                 if (originalConfig && originalConfig.length > 0 && currentConfig && currentConfig.length > 0) {
                     let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.filterPromoCodeUserGroupConfigPlatform || vm.selectedPlatform.id,
                         groupData: currentConfig
                     };
                     originalConfig.forEach(originalItem => {
@@ -27684,8 +27684,13 @@ define(['js/app'], function (myApp) {
                 return filteredData;
             }
 
-            vm.getPromoCodeUserGroup = function () {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
+            vm.getPromoCodeUserGroup = function (platformObjId) {
+                vm.selectedPromoCodeUserGroup = null;
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.id
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getPromoCodeUserGroup', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getPromoCodeUserGroup', data);
 
@@ -27694,8 +27699,13 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getBlockPromoCodeUserGroup = function () {
-                socketService.$socket($scope.AppSocket, 'getBlockPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
+            vm.getBlockPromoCodeUserGroup = function (platformObjId) {
+                vm.selectedPromoCodeUserGroup = null;
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.id
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getBlockPromoCodeUserGroup', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getBlockPromoCodeUserGroup', data);
                         vm.userGroupBlockConfig = data.data;
@@ -27703,8 +27713,11 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getAllPromoCodeUserGroup = function () {
-                socketService.$socket($scope.AppSocket, 'getAllPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
+            vm.getAllPromoCodeUserGroup = function (platformObjId) {
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.id
+                }
+                socketService.$socket($scope.AppSocket, 'getAllPromoCodeUserGroup', sendData, function (data) {
                     vm.userGroupAllConfig = data.data; // note: do not modify playerNames in this variable, promocode may not function properly
                 });
             };
