@@ -25627,7 +25627,7 @@ define(['js/app'], function (myApp) {
                 collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true, allowedSendSms: true});
 
                 if (!isMultiple) {
-                    vm.endLoadWeekDay();
+                    // vm.endLoadWeekDay();
                 }
 
                 let index = collection.length - 1;
@@ -25690,7 +25690,8 @@ define(['js/app'], function (myApp) {
 
                         });
 
-                        return p.then(vm.endLoadWeekDay);
+                        // return p.then(vm.endLoadWeekDay);
+                        return p;
                     } else {
                         let searchQ = {
                             platformObjId: vm.selectedPlatform.id,
