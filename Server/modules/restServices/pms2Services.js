@@ -72,6 +72,7 @@ function sendRequest (paramStr) {
 }
 
 function postRequest (reqData, urlName, method, paymentSystemKey) {
+    //console.log('reqData ::',urlName, reqData);
     let options = {
         method: method,
         uri: getMainDomain(paymentSystemKey).concat(urlName),
@@ -163,8 +164,8 @@ function postCreateTopup (reqData, paymentSystemKey) {
     return postRequest(reqData, 'deposit-proposal/create', 'POST', paymentSystemKey);
 }
 
-function postBankCardList (reqData) {
-    return postRequest(reqData, 'getBankCardList', 'POST')
+function postBankCardList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getBankCardList', 'POST', paymentSystemKey)
 }
 
 function postBankCard (reqData, paymentSystemKey) {
@@ -175,32 +176,32 @@ function postBankType (reqData, paymentSystemKey) {
     return postRequest(reqData, 'bankType', 'POST', paymentSystemKey);
 }
 
-function postBankTypeList (reqData) {
-    return postRequest(reqData, 'bankTypes', 'POST')
+function postBankTypeList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'bankTypes', 'POST', paymentSystemKey)
 }
 
-function postSyncPlatform (reqData) {
-    return postRequest(reqData, 'sync-platform', 'POST')
+function postSyncPlatform (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'sync-platform', 'POST', paymentSystemKey);
 }
 
 function postTopupForceMatch (reqData, paymentSystemKey) {
     return postRequest(reqData, 'deposit-proposal/force-match', 'POST', paymentSystemKey)
 }
 
-function postMerchantList (reqData) {
-    return postRequest(reqData, 'getMerchantList', 'POST')
+function postMerchantList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getMerchantList', 'POST', paymentSystemKey)
 }
 
-function postMerchantTypeList (reqData) {
-    return postRequest(reqData, 'getMerchantTypeList', 'POST')
+function postMerchantTypeList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getMerchantTypeList', 'POST', paymentSystemKey)
 }
 
-function postPaymentGroup (reqData) {
-    return postRequest(reqData, 'getPlayerRankByType', 'POST')
+function postPaymentGroup (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getPlayerRankByType', 'POST', paymentSystemKey)
 }
 
-function postPaymentGroupByPlayer (reqData) {
-    return postRequest(reqData, 'getPlayerRankByPlayer', 'POST')
+function postPaymentGroupByPlayer (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getPlayerRankByPlayer', 'POST', paymentSystemKey)
 }
 
 function postProvince (reqData) {
@@ -227,16 +228,16 @@ function postDistrictList (reqData) {
     return postRequest(reqData, 'getDistrictList', 'POST')
 }
 
-function postPlatformAdd (reqData) {
-    return postRequest(reqData, 'platform', 'POST')
+function postPlatformAdd (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'platform', 'POST', paymentSystemKey)
 }
 
-function deletePlatformDelete (reqData) {
-    return postRequest(reqData, 'platform', 'DELETE')
+function deletePlatformDelete (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'platform', 'DELETE', paymentSystemKey)
 }
 
-function patchPlatformUpdate (reqData) {
-    return postRequest(reqData, 'platform', 'PATCH')
+function patchPlatformUpdate (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'platform', 'PATCH', paymentSystemKey)
 }
 
 function postOnlineTopupType (reqData) {

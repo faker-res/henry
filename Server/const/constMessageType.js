@@ -29,6 +29,7 @@ const constMessageType = {
     PLAYER_LEVEL_UP_MIGRATION_SUCCESS: "PlayerLevelUpMigrationSuccess",
     PLAYER_LEVEL_DOWN_MIGRATION_SUCCESS: "PlayerLevelDownMigrationSuccess",
     PLAYER_LEVEL_UP_SUCCESS: "PlayerLevelUpSuccess",
+    PLAYER_LEVEL_MAINTAIN_SUCCESS: "PlayerLevelMaintainSuccess",
     PROMO_CODE_SEND: "PromoCodeSend",
 
     // Auction

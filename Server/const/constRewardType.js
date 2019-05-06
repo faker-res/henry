@@ -14,6 +14,7 @@ const constRewardType = {
     PLAYER_TOP_UP_RETURN: "PlayerTopUpReturn",
     PLAYER_CONSUMPTION_INCENTIVE: "PlayerConsumptionIncentive",
     PLAYER_LEVEL_UP: "PlayerLevelUp",
+    PLAYER_LEVEL_MAINTAIN: "PlayerLevelMaintain",
     PARTNER_TOP_UP_RETURN: "PartnerTopUpReturn",
     PLAYER_TOP_UP_REWARD: "PlayerTopUpReward",
     PLAYER_REFERRAL_REWARD: "PlayerReferralReward",
@@ -38,6 +39,7 @@ const constRewardType = {
     PLAYER_CONSUMPTION_SLIP_REWARD_GROUP: "PlayerConsumptionSlipRewardGroup",
     PLAYER_RETENTION_REWARD_GROUP: "PlayerRetentionRewardGroup",
     PLAYER_BONUS_DOUBLED_REWARD_GROUP: "PlayerBonusDoubledRewardGroup",
+    PLAYER_FESTIVAL_REWARD_GROUP: "PlayerFestivalRewardGroup",
     BACCARAT_REWARD_GROUP: "BaccaratRewardGroup",
 };
 

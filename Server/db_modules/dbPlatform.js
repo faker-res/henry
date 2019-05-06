@@ -95,6 +95,14 @@ var dbPlatform = {
             // }
         }
 
+        if (platformData && platformData.topUpSystemType) {
+            platformData.topUpSystemType = Number(platformData.topUpSystemType);
+        }
+
+        if (platformData && platformData.bonusSystemType) {
+            platformData.bonusSystemType = Number(platformData.bonusSystemType);
+        }
+
         var platform = new dbconfig.collection_platform(platformData);
 
         dbconfig.collection_platform.findOne({platformId: platformData.platformId}).then(data => {
@@ -207,7 +215,15 @@ var dbPlatform = {
                                 code: platformData.code
                             };
 
-                            RESTUtils.getPMS2Services("postPlatformAdd", data);
+                            let paymentSystemId;
+
+                            if (platformData && platformData.topUpSystemType) {
+                                paymentSystemId = platformData.topUpSystemType;
+                            } else if (platformData && platformData.bonusSystemType) {
+                                paymentSystemId = platformData.bonusSystemType;
+                            }
+
+                            RESTUtils.getPMS2Services("postPlatformAdd", data, paymentSystemId);
                         }
                         deferred.resolve(platformData);
                     },
@@ -353,6 +369,45 @@ var dbPlatform = {
     },
 
     /**
+     * Search the platform list information of the platform by  platformName or _id
+     * @param {Object} platformData - Query
+     */
+    getProviderListByPlatform: function (data) {
+        let query = {};
+        let providerList = [];
+        if(data && data.platformObjIdList && data.platformObjIdList.length){
+            query._id = {$in: data.platformObjIdList}
+        }
+
+        return dbconfig.collection_platform.find(query)
+            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().exec().then(
+                platformDetails => {
+                    if(platformDetails && platformDetails.length){
+                        platformDetails.forEach(
+                            platform => {
+                                if(platform && platform.gameProviders && platform.gameProviders.length){
+                                    platform.gameProviders.forEach(
+                                        gameProvider => {
+                                            if(gameProvider && gameProvider._id){
+                                                let indexNo = providerList.findIndex(p => p._id.toString() == gameProvider._id.toString());
+
+                                                if(indexNo == -1){
+                                                    providerList.push(gameProvider);
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+
+                    return providerList;
+                }
+            );
+    },
+
+    /**
      * Search the platform information API
      * @param {String} platformData - query data
      */
@@ -416,7 +471,7 @@ var dbPlatform = {
                         description: data.description
                     };
                     //externalUtil.request(pmsAPI.platform_update(platformData));
-                    RESTUtils.getPMS2Services("patchPlatformUpdate", platformData);
+                    RESTUtils.getPMS2Services("patchPlatformUpdate", platformData, data.topUpSystemType);
                 }
                 return data;
             }
@@ -534,13 +589,15 @@ var dbPlatform = {
         var proposalTypeProm = dbconfig.collection_proposalType.remove({platformId: {$in: platformObjIds}}).exec();
         var proposalTypeProcessProm = dbconfig.collection_proposalTypeProcess.remove({platformId: {$in: platformObjIds}}).exec();
 
-        var platformId = null;
+        let platformId = null;
+        let paymentSystemId;
 
         return dbconfig.collection_platform.findOne({_id: platformObjIds[0]})
             .then(
                 data => {
                     if (data && data.platformId) {
                         platformId = data.platformId;
+                        paymentSystemId = data.topUpSystemType;
                     }
                     var platformProm = dbconfig.collection_platform.remove({_id: {$in: platformObjIds}}).exec();
                     return Q.all([platformProm, playerProm, playerNameProm, partnerProm, departmentProm, partnerLvlConfigProm, partnerLvlProm, playerLevelProm, proposalTypeProm, proposalTypeProcessProm]);
@@ -550,7 +607,7 @@ var dbPlatform = {
                 data => {
                     if (platformId && env.mode != "local" && env.mode != "qa") {
                         //externalUtil.request(pmsAPI.platform_delete({platformId: platformId}));
-                        RESTUtils.getPMS2Services("deletePlatformDelete", {platformId: platformId});
+                        RESTUtils.getPMS2Services("deletePlatformDelete", {platformId: platformId}, paymentSystemId);
                     }
                     return data;
                 }
@@ -629,34 +686,39 @@ var dbPlatform = {
     },
 
     syncHTTPPMSPlatform: function () {
+        let proms = [];
         if (env.mode != "local" && env.mode != "qa") {
-            if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
-                Object.keys(extConfig).forEach(key => {
-                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS2') {
-                        return dbconfig.collection_platform.find().then(
-                            platformArr => {
-                                var sendObj = [];
-                                if (platformArr && platformArr.length > 0) {
-                                    for (var i in platformArr) {
-                                        var obj = {
-                                            platformId: platformArr[i].platformId,
-                                            name: platformArr[i].name,
-                                            code: platformArr[i].code
-                                        }
-                                        sendObj.push(obj)
-                                    }
-
-                                    let data = {
-                                        platforms: sendObj
-                                    };
-
-                                    return RESTUtils.getPMS2Services("postSyncPlatform", data);
-                                }
+            return dbconfig.collection_platform.find().then(
+                platformArr => {
+                    var sendObj = [];
+                    if (platformArr && platformArr.length > 0) {
+                        for (var i in platformArr) {
+                            var obj = {
+                                platformId: platformArr[i].platformId,
+                                name: platformArr[i].name,
+                                code: platformArr[i].code
                             }
-                        );
+                            sendObj.push(obj)
+                        }
+
+                        let data = {
+                            platforms: sendObj
+                        };
+
+                        if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                            Object.keys(extConfig).forEach(key => {
+                                if (key && extConfig[key] && extConfig[key].name && (extConfig[key].name === 'PMS2' || extConfig[key].name === 'DAYOU')) {
+                                    if (extConfig[key].mainDomain) {
+                                        proms.push(RESTUtils.getPMS2Services("postSyncPlatform", data, Number(key)));
+                                    }
+                                }
+                            });
+                        }
                     }
-                });
-            }
+
+                    return Promise.all(proms);
+                }
+            );
         }
     },
 
@@ -5255,6 +5317,7 @@ var dbPlatform = {
         let platformObjId;
         let todayTime = dbUtility.getTodaySGTime();
 
+        console.log("checking sourceUrl", sourceUrl)
         return dbconfig.collection_platform.findOne({
             platformId: platformId
         }, '_id').lean().then(
@@ -5290,6 +5353,7 @@ var dbPlatform = {
                         updateQuery.partnerId = partnerId;
                     }
 
+                    console.log("checking updateQuery", ipDomainLog)
                     return dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, updateQuery).then(
                         () => {
                             // hide the detail in the return msg
@@ -5312,6 +5376,7 @@ var dbPlatform = {
                         newLog.sourceUrl = sourceUrl;
                     }
 
+                    console.log("checking newLog", newLog)
                     return dbconfig.collection_ipDomainLog(newLog).save().then(
                         () => {
                             // hide the detail in the return msg
@@ -6145,7 +6210,7 @@ var dbPlatform = {
     },
 
     getPaymentSystemName: function (systemTypeId) {
-        let paymentSystemName = 'PMS';
+        let paymentSystemName = 'PMS2';
 
         if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
             Object.keys(extConfig).forEach(key => {
@@ -6260,21 +6325,36 @@ var dbPlatform = {
                         //encrypt player phone number
                         try {
                             let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+                            let decGuestDeviceId;
+
+                            if (playerData.guestDeviceId) {
+                                decGuestDeviceId = rsaCrypto.decrypt(playerData.guestDeviceId);
+                            }
+
 
                             if (decPhoneNumber && decPhoneNumber.length < 20) {
                                 let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
+                                let setObj = {
+                                    phoneNumber: reEncPhoneNumber
+                                };
+
+                                if (decGuestDeviceId) {
+                                    setObj.guestDeviceId = rsaCrypto.encrypt(decGuestDeviceId);
+                                }
 
                                 // Make sure it's encrypted
                                 if (reEncPhoneNumber && reEncPhoneNumber.length > 20) {
                                     dbconfig.collection_players.findOneAndUpdate(
                                         {_id: playerData._id, platform: playerData.platform},
-                                        {phoneNumber: reEncPhoneNumber}
+                                        {$set: setObj}
                                     ).then();
                                 }
                             }
+
                             console.log("index", platformData.name, i);
                             i++;
                         } catch (err) {
+                            console.log('err', err);
                             console.log(`Failed to re-encrypt ${playerData.name}`);
                         }
 

@@ -26,6 +26,7 @@ var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
+const dbReportUtil = require("./../db_common/dbReportUtility");
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
 var dbProposalUtility = require('./../db_common/dbProposalUtility');
 var pmsAPI = require('../externalAPI/pmsAPI');
@@ -2882,9 +2883,16 @@ var proposal = {
     },
 
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0, unlockSizeLimit = false) {//need
-        platformId = Array.isArray(platformId) ? platformId : [platformId];
+        platformId = Array.isArray(platformId) || !platformId ? platformId : [platformId];
+
+        let proposalTypeQuery = {};
+
+        if(platformId && platformId.length){
+            proposalTypeQuery.platformId = {$in: platformId};
+        }
+
         //check proposal without process
-        let prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
+        let prom1 = dbconfig.collection_proposalType.find(proposalTypeQuery).lean();
         let playerProm = [];
         return Q.all([prom1]).then(//removed , prom2
             data => {
@@ -2950,7 +2958,7 @@ var proposal = {
                                 return pdata;
                             })
                             .then(proposals => {
-                                proposals = insertPlayerRepeatCount(proposals, platformId[0]);
+                                proposals = insertPlayerRepeatCount(proposals);
                                 return proposals
                             });
 
@@ -3058,15 +3066,23 @@ var proposal = {
         var returnArr = [];
         var recordArr = [];
         var prom = [];
-        return dbconfig.collection_proposalType.findOne({platformId : {$in: platformObjId}, name: "PlayerRegistrationIntention"}).then(proposalType =>{
-            if(proposalType && proposalType._id){
-                let proposalTypesId = proposalType._id;
+        let proposalTypeQuery = {
+            name: "PlayerRegistrationIntention"
+        };
+
+        if(platformObjId && platformObjId.length > 0){
+            proposalTypeQuery.platformId = {$in: platformObjId};
+        }
+
+        return dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(proposalType =>{
+            if(proposalType && proposalType.length){
+                let proposalTypesId = proposalType.map(p => ObjectId(p._id));
                 var queryObj = {
                     createTime: {
                         $gte: new Date(startTime),
                         $lt: new Date(endTime)
                     },
-                    type: proposalType._id,
+                    type: {$in: proposalTypesId},
                     data: {$exists: true, $ne: null}
                 };
 
@@ -3076,7 +3092,7 @@ var proposal = {
 
                 return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
                     dataList.map(phoneNumber => {
-                        prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
+                        prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: {$in: proposalTypesId}, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
                         //totalHeadCount += 1;
                     })
                     return Q.all(prom);
@@ -3213,15 +3229,23 @@ var proposal = {
         var recordArr = [];
         var prom = [];
 
-        return dbconfig.collection_proposalType.findOne({platformId : {$in: platformObjId}, name: "PlayerRegistrationIntention"}).then(proposalType =>{
-            if(proposalType && proposalType._id){
-                let proposalTypesId = proposalType._id;
+        let proposalTypeQuery = {
+            name: "PlayerRegistrationIntention"
+        };
+
+        if(platformObjId && platformObjId.length > 0){
+            proposalTypeQuery.platformId = {$in: platformObjId};
+        }
+
+        return dbconfig.collection_proposalType.find(proposalTypeQuery).then(proposalType =>{
+            if(proposalType && proposalType.length){
+                let proposalTypesId = proposalType.map(p => ObjectId(p._id));
                 var queryObj = {
                     createTime: {
                         $gte: new Date(startTime),
                         $lt: new Date(endTime)
                     },
-                    type: proposalType._id,
+                    type: {$in: proposalTypesId},
                     data: {$exists: true, $ne: null}
                 };
 
@@ -3231,7 +3255,7 @@ var proposal = {
 
                 return dbconfig.collection_proposal.distinct("data.phoneNumber", queryObj).lean().then(dataList => {
                     dataList.map(phoneNumber => {
-                        prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: proposalTypesId, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
+                        prom.push(dbconfig.collection_proposal.find({'data.phoneNumber': phoneNumber, type: {$in: proposalTypesId}, data: {$exists: true, $ne: null}}).lean().sort({createTime: 1}));
                     })
                     return Q.all(prom);
                 })
@@ -3443,7 +3467,7 @@ var proposal = {
      * @param {JSON} -  startTime, endTime, platformId (ObjectId), type{ObjectId), status
      *
      */
-    getProposalsByAdvancedQuery: function (reqData, index, count, sortObj) {
+    getProposalsByAdvancedQuery: function (reqData, index, count, sortObj, isExport) {
         sortObj = sortObj || {};
         let proposalTypeList = [];
         let approveProposalTypeList = [];
@@ -3880,12 +3904,16 @@ var proposal = {
                 }
                 total = dbutility.decimalAdjust("floor", total, -2);
 
-                return {
-                    size: totalSize,
-                    totalPlayer: totalPlayer,
-                    data: resultArray,
-                    summary: {amount: total}, //parseFloat(total).toFixed(2)
-                };
+                if (isExport) {
+                    return dbReportUtil.generateExcelFile("ProposalReport", resultArray);
+                } else {
+                    return {
+                        size: totalSize,
+                        totalPlayer: totalPlayer,
+                        data: resultArray,
+                        summary: {amount: total}, //parseFloat(total).toFixed(2)
+                    };
+                }
             },
             function (error) {
                 return Promise.reject({

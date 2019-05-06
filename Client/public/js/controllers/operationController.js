@@ -2215,7 +2215,6 @@ define(['js/app'], function (myApp) {
                     vm.havePartnerLargeWithdrawalLog = false;
                     if (vm.selectedProposal.data.platformId) {
                         vm.largeWithdrawalSetting = vm.largeWithdrawalSettings[vm.selectedProposal.data.platformId] || {};
-                        vm.isLargeWithdrawalReviewer = Boolean(authService.adminId && vm.largeWithdrawalSetting.reviewer && vm.largeWithdrawalSetting.reviewer.length && vm.largeWithdrawalSetting.reviewer.includes(authService.adminId));
                     }
                     vm.getLargeWithdrawalLog(vm.selectedProposal.data.largeWithdrawalLog);
                 } else {
@@ -2224,7 +2223,6 @@ define(['js/app'], function (myApp) {
                     vm.haveLargeWithdrawalLog = false;
                     if (vm.selectedProposal.data.platformId) {
                         vm.partnerLargeWithdrawalSetting = vm.partnerLargeWithdrawalSettings[vm.selectedProposal.data.platformId] || {};
-                        vm.isPartnerLargeWithdrawalReviewer = Boolean(authService.adminId && vm.partnerLargeWithdrawalSetting.reviewer && vm.partnerLargeWithdrawalSetting.reviewer.length && vm.partnerLargeWithdrawalSetting.reviewer.includes(authService.adminId));
                     }
                     vm.getPartnerLargeWithdrawalLog(vm.selectedProposal.data.partnerLargeWithdrawalLog);
                 }
@@ -2863,8 +2861,11 @@ define(['js/app'], function (myApp) {
                         case "PlayerLevelUp":
                             vm.allProposalType[x].seq = 3.02;
                             break;
-                        case "PlayerPromoCodeReward":
+                        case "PlayerLevelMaintain":
                             vm.allProposalType[x].seq = 3.03;
+                            break;
+                        case "PlayerPromoCodeReward":
+                            vm.allProposalType[x].seq = 3.04;
                             break;
                         case "UpdatePlayerInfo":
                             vm.allProposalType[x].seq = 4.01;

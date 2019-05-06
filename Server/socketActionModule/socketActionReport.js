@@ -18,6 +18,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbUtil = require('./../modules/dbutility');
 var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+var dbPlayerTopUpDaySummary = require('./../db_modules/dbPlayerTopUpDaySummary');
 
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 const dbReport = require('./../db_modules/dbReport');
@@ -41,7 +42,7 @@ function socketActionReport(socketIO, socket) {
             data["endTime"] = endTime;
             query = utility.buildProposalReportQueryString(data);
 
-            socketUtil.emitter(self.socket, dbProposal.getProposalsByAdvancedQuery, [query, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getProposalsByAdvancedQuery, [query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
         },
 
         getFinancialPointsReport: function getFinancialPointsReport(data) {
@@ -85,7 +86,7 @@ function socketActionReport(socketIO, socket) {
             var actionName = arguments.callee.name;
             query.limit = query.limit || 10;
             var isValidData = Boolean(query);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.topupReport, [query, query.index, query.limit, query.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.topupReport, [query, query.index, query.limit, query.sortCol, query.isExport], actionName, isValidData);
         },
 
         /**
@@ -386,7 +387,7 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.platformId);
             var platformId = ObjectId(data.platformId);
 
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
         },
 
         getPlayerReportFromSummary: function getPlayerReportFromSummary(data) {
@@ -395,6 +396,14 @@ function socketActionReport(socketIO, socket) {
             var platformId = ObjectId(data.platformId);
 
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReportFromSummary, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        reCalculatePlayerReportSummary: function reCalculatePlayerReportSummary(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            var platformId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerTopUpDaySummary.reCalculatePlayerReportSummary, [platformId, data.start, data.end], actionName, isValidData);
         },
 
         getPlayerDepositAnalysisReport: function getPlayerDepositAnalysisReport(data) {

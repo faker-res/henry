@@ -503,7 +503,7 @@ var dbDepartment = {
         return deferred.promise;
     },
 
-    getAllDepartmentUsers: function (platforms) {
+    getAllDepartment: function (platforms) {
         let query = {};
         if (platforms && platforms.length) {
             query = {
@@ -512,7 +512,12 @@ var dbDepartment = {
         }
         return dbconfig.collection_department.find(query)
         .populate({path: 'users', model: dbconfig.collection_admin})
-        .lean().then(data => {
+        .populate({path: "roles", model: dbconfig.collection_role,
+            populate: {
+                path: "users",
+                model: dbconfig.collection_admin
+            }
+        }).lean().then(data => {
             if (!data) {
                 return Promise.reject({name: "DataError", message: "Can't find all departments"});
             }

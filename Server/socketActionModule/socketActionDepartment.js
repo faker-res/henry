@@ -232,10 +232,10 @@ function socketActionDepartment(socketIO, socket) {
             socketUtil.emitter(self.socket, dbDepartment.getDepartmentById, [data.departmentObjId, data.departmentIds], actionName, isDataValid);
         },
 
-        getAllDepartmentUsers: function getAllDepartmentUsers(data) {
+        getAllDepartment: function getAllDepartment(data) {
             let actionName = arguments.callee.name;
             let isDataValid = Boolean(data);
-            socketUtil.emitter(self.socket, dbDepartment.getAllDepartmentUsers, [data.platforms], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbDepartment.getAllDepartment, [data.platforms], actionName, isDataValid);
         },
 
     };

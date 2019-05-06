@@ -43,6 +43,34 @@ let dbPlayerLevelInfo = {
         return dbconfig.collection_playerLevel.find(query).sort({value: 1});
     },
 
+    getPlayerLevelByAllPlatforms: function(){
+        let platformObjIdList = [];
+        let levelPromList = [];
+        return dbconfig.collection_platform.find({},{_id: 1}).lean().then(
+            platformDetails => {
+                if(platformDetails && platformDetails.length){
+                    platformObjIdList = platformDetails.map(p => p._id);
+                }
+
+                platformObjIdList.forEach(
+                    platform => {
+                        levelPromList.push(dbPlayerLevelInfo.getPlayerLevelWithPlatform(platform));
+                    }
+                );
+
+                return Promise.all(levelPromList);
+            }
+        )
+    },
+
+    getPlayerLevelWithPlatform: function(platformObjId) {
+        return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).then(
+            playerLevel => {
+                return {platform: platformObjId, playerLevel: playerLevel};
+            }
+        );
+    },
+
     /**
      * Delete playerLevel information
      * @param {String}  - ObjectId of the playerLevel
@@ -144,7 +172,7 @@ let dbPlayerLevelInfo = {
      */
     processPlayerLevelMigration: (playerObjId, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward) => {
         // let consumptionTime = dbUtil.getLastMonthConsumptionReturnSGTime();
-
+        let lvlDownPeriod;
         let playerProm = dbconfig.collection_players.findOne({_id: playerObjId})
             .populate(
                 {path: "playerLevel", model: dbconfig.collection_playerLevel}
@@ -207,7 +235,7 @@ let dbPlayerLevelInfo = {
         let promArr = [playerProm, topUpProm, consumptionProm];
 
         if (!upOrDown) {
-            let lvlDownPeriod = dbUtil.getNextDaySGTime(endTime);
+            lvlDownPeriod = dbUtil.getNextDaySGTime(endTime);
             if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
                 lvlDownPeriod = dbUtil.getNextDaySGTime(endTime);
             } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
@@ -419,7 +447,7 @@ let dbPlayerLevelInfo = {
                                     // if this is level up and player has not reach this level before
                                     // create level up reward proposal
 
-                                    if(playerData.permission && playerData.permission.banReward) {
+                                    if(playerData.forbidLevelUpReward || (playerData.permission && playerData.permission.banReward)) {
                                         return Promise.resolve();
                                     }
 
@@ -440,10 +468,75 @@ let dbPlayerLevelInfo = {
                         );
                     }
 
+                } else if (!levelObjId && !upOrDown && !(playerData.permission && playerData.permission.banReward) && !playerData.forbidLevelMaintainReward && playerData.playerLevel && playerData.playerLevel.value > 0
+                    && playerData.playerLevel.reward && playerData.playerLevel.reward.bonusCreditLevelDown && !(playerData.permission && playerData.permission.banReward)) { // distribute level maintain reward
+                    checkLevelMaintainReward(playerData, lvlDownPeriod).catch(errorUtils.reportError);
                 }
             }
         );
     }
 };
+
+async function checkLevelMaintainReward (playerObj, lvlDownPeriod) {
+    let proposalTypes = await dbconfig.collection_proposalType.find({
+        platformId: playerObj.platform,
+        name: {$in: [constProposalType.PLAYER_LEVEL_MAINTAIN, constProposalType.PLAYER_LEVEL_MIGRATION, constProposalType.UPDATE_PLAYER_INFO_LEVEL]}
+    }).lean();
+
+    if (!(proposalTypes && proposalTypes.length && proposalTypes.length == 3)) {
+        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+    }
+
+    let rewardProm = await dbconfig.collection_proposal.findOne({
+        $or: [
+            {
+                $and: [
+                    {'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}},
+                    {'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]}}
+                ]
+            },
+            {
+                $and: [
+                    {'data._id': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}},
+                    {'data.platformId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]}}
+                ]
+            }
+        ],
+        type: {$in: proposalTypes.map(proposalType => proposalType._id)},
+        createTime: {
+            $gte: lvlDownPeriod.startTime,
+            $lt: lvlDownPeriod.endTime
+        },
+        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
+    }).lean();
+
+    if (rewardProm) {
+        return Promise.resolve(); // player claimed reward in the period / player level changed in period
+    }
+
+    let proposalData = {
+        levelOldName: playerObj.playerLevel.name,
+        upOrDown: "LEVEL_MAINTAIN",
+        playerObjId: playerObj._id,
+        playerName: playerObj.name,
+        playerId: playerObj.playerId,
+        platformObjId: playerObj.platform,
+        levelValue: playerObj.playerLevel.value,
+        levelName: playerObj.playerLevel.name,
+        levelObjId: playerObj.playerLevel._id,
+        rewardAmount: playerObj.playerLevel.reward.bonusCreditLevelDown,
+        isRewardTask: playerObj.playerLevel.reward.isRewardTaskLevelDown,
+
+    };
+
+    if (proposalData.isRewardTask) {
+        if (playerObj.playerLevel.reward.providerGroupLevelDown && playerObj.playerLevel.reward.providerGroupLevelDown !== "free") {
+            proposalData.providerGroup = playerObj.playerLevel.reward.providerGroupLevelDown;
+        }
+        proposalData.requiredUnlockAmount = playerObj.playerLevel.reward.requiredUnlockTimesLevelDown * playerObj.playerLevel.reward.bonusCreditLevelDown;
+    }
+    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MAINTAIN, {data: proposalData});
+}
+
 
 module.exports = dbPlayerLevelInfo;

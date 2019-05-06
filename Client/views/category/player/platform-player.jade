@@ -9,7 +9,7 @@
     .col-md-12.search-filters-container#playerTable-search-filter.well
         .search-filters-item
             label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-            select.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+            select#productName.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'PLAYER_ID' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
@@ -82,22 +82,11 @@
                 div.symbol(ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'") ~
                 input.form-control.threeBoxes(type="number" ng-model="vm.playerAdvanceSearchQuery.creditAmountTwo" ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'" ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
         .col-xs-12.text-right
+            button#searchPlayer.btn.btn-success.margin-right-5(ng-click='vm.advancedPlayerQuery()') {{'SEARCH' | translate}}
             button#resetPlayerQuery.btn.btn-primary {{'Reset' | translate}}
-
-
 
 .col-md-12
     label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.platformPlayerCount}} ({{"Search Result" | translate}} : {{vm.searchPlayerCount}})
-    i#loadingPlayerTableSpin.fa.fa-spin.fa-refresh.margin-left-5.text-danger.collapse
-    .pull-right
-        .inlineBlk.hidden
-            text {{"Time left until next refresh" | translate}} :&nbsp;
-            text#timeLeftRefreshPlayer
-            text s
-        label.inlineBlk {{'Auto Refresh' | translate}}
-            input#autoRefreshPlayerFlag.margin-left-5(type='checkbox')
-        a.fa.fa-refresh.margin-top-5(ng-click='vm.getPlayersByAdvanceQuery(vm.playerAdvanceSearchQuery)')
-            text.margin-right-5.pull-left {{"Refresh" | translate}}
 .col-md-12
     table.common-table#playerDataTable.display.paymentGroup-btn
         thead
@@ -200,7 +189,7 @@ include modalGameCreditLog
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='contactInfo';prepareEditCritical('player');")
                                             text.span {{"CONTACT_INFO" | translate}}
                                     li(ng-show="editWithdrawPermission",ng-class="selectedTab=='withdrawInfo'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPlayerPayment();")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPlayerPayment();vm.loadBankCard();")
                                             text.span {{"WITHDRAW_INFO" | translate}}
                                     li(ng-show="editMultipleWithdrawPermission",ng-class="selectedTab=='withdrawInfo2'?'active':''")
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo2';prepareEditPlayerPayment2();")
@@ -380,6 +369,12 @@ include modalGameCreditLog
                 div
                     label {{"优惠代码" | translate}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode', ng-checked='vm.forbidPromoCode || vm.selectedAllForbidRewardEvent')
+                div
+                    label {{"PlayerLevelUp" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelUpReward', ng-checked='vm.forbidLevelUpReward || vm.selectedAllForbidRewardEvent')
+                div
+                    label {{"PlayerLevelMaintain" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelMaintainReward', ng-checked='vm.forbidLevelMaintainReward || vm.selectedAllForbidRewardEvent')
                 div(ng-repeat='(i,v) in vm.allRewardEvent')
                     label {{v.name}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1 || vm.selectedAllForbidRewardEvent')
@@ -554,6 +549,7 @@ include modalGameCreditLog
                     .panel-body
                         .well
                             .form-group
+                                select.form-control(ng-model='vm.testPlayerPlatform', ng-options='v.platformId as v.name$ for v in vm.allPlatformData', required)
                                 text.control-label(ng-if='!vm.createtrail') {{"Create Trail Player" | translate}}?
                                 text.control-label(ng-if='vm.createtrail') {{"Trail Player Created" | translate}}
                         .well(ng-if='vm.createtrail')
@@ -563,7 +559,7 @@ include modalGameCreditLog
                                 label.control-label {{'TEST_PLAYER_PASSWORD' | translate}}
                                 label.form-control {{vm.testPlayerPassword}}
             .modal-footer
-                button.btn.btn-success.btn-space(ng-if='!vm.createtrail', ng-click='vm.createTrialPlayerAccount()') {{'CREATE_TRIAL' | translate}}
+                button.btn.btn-success.btn-space(ng-if='!vm.createtrail', ng-disabled='!vm.testPlayerPlatform', ng-click='vm.createTrialPlayerAccount()') {{'CREATE_TRIAL' | translate}}
                 button.btn.btn-success.btn-space(ng-if='vm.createtrail', data-dismiss='modal') {{'OK' | translate}}
                 button.btn.btn-warning.btn-space(ng-if='!vm.createtrail', data-dismiss='modal') {{"CANCEL" | translate}}
 #modalPlayerForbidTopupTypes.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
@@ -931,6 +927,9 @@ include modalGameCreditLog
                     #newPlayerListPanel.panel-body(ng-if="vm.playerModalTab === 'newPlayerListPanel'")
                         #newPlayerRecords.adminLogQueryDiv
                             .search-filters-item
+                                label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                                select.form-control(ng-model='vm.queryPara.newPlayerList.platform', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', required)
+                            .search-filters-item
                                 label {{'PLAYERNAME' | translate}}
                                 input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
                             .search-filters-item
@@ -959,6 +958,9 @@ include modalGameCreditLog
 
                     #attemptNumberListPanel.panel-body(ng-if="vm.playerModalTab === 'attemptNumberListPanel'")
                         #attemptNumberRecords.adminLogQueryDiv
+                            .search-filters-item
+                                label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                                    select.form-control(ng-model='vm.queryPara.attemptNumberRecords.platform', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', required)
                             .search-filters-item
                                 label {{'START_DATE' | translate}}
                                 .startTime
@@ -1111,12 +1113,12 @@ include modalGameCreditLog
                         #providerExpenseQuery.well
                             .search-filters-item
                                 label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-                                select.form-control(ng-model='vm.consumptionRecordPlatformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                                select.form-control(ng-model='vm.consumptionRecordPlatformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change="vm.getProviderListByPlatform(vm.consumptionRecordPlatformList)", multiple, bsp, data-actions-box='true')
                             .search-filters-item
                                 .control-label {{"Provider" | translate}}
                                 select.form-control(ng-model='vm.selectedProviderID', ng-init='vm.selectedProviderID="all"')
                                     option(value='all') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{v.name}}
+                                    option(ng-repeat='(i,v) in vm.providerListByPlatform', value='{{v._id}}') {{v.name}}
                             .search-filters-item
                                 .control-label {{"Start date" | translate}}
                                 .startTime

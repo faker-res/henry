@@ -54,8 +54,8 @@ const thirdPartyAPIConfig = {
         description: '我是说明4',
     },
     5: {
-        mainDomain: "",
-        subDomain: "",
+        mainDomain: "http://jbet.pay.clh66.com/api/cashout.jhtml/",
+        subDomain: "http://jbet.pay.clh66.com/api/cashout.jhtml/",
 
         topUpAPIAddr: "http://jbet.pay.clh66.com/api/pay.jhtml/",
         topUpAPICallback: "http://devtest.wsweb.me:7000",

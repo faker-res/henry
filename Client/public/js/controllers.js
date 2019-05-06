@@ -623,6 +623,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "TEST_PLAYERS"
     };
 
+    $scope.festivalType = {
+        '1': 'MemberBirthday',
+        '2': 'SpecialEvent(Custom)'
+    }
     $scope.commissionTypeList = {
         1: "DAILY_BONUS_AMOUNT",
         2: "WEEKLY_BONUS_AMOUNT",
@@ -2021,7 +2025,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                  // queryDone[3] = true;
 
              return $scope.$socketPromise('getPlayerConsumptionDetailByPlatform', sendData)
-
+              
          }).then(function success(data) {
                  let consumptionAmount = data.data[0] != undefined ? data.data[0].totalAmount : 0;
 

@@ -294,6 +294,18 @@ function socketActionQualityInspection(socketIO, socket) {
             let isDataValid = Boolean(data && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbQualityInspection.summarizeManualProcessRecord, [data.startTime,data.endTime], actionName, isDataValid);
         },
+
+        getCsByCsDepartment: function (data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.csDepartmentObjIdList);
+            socketUtil.emitter(self.socket, dbQualityInspection.getCsByCsDepartment, [data.csDepartmentObjIdList], actionName, isDataValid);
+        },
+
+        getAudioRecordData: function(data){
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.startDate && data.endDate && data.data );
+            socketUtil.emitter(self.socket, dbQualityInspection.getAudioRecordData, [data.startDate, data.endDate, data.data, data.limit, data.index, data.sortCol], actionName, isDataValid);
+        }
     };
 
     socketActionQualityInspection.actions = this.actions;

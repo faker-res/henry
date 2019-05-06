@@ -1,6 +1,10 @@
 form(name="form_new_player", novalidate)
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-6
+			label *{{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+			select.form-control(ng-model='vm.newPlayer.platform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player)', data-actions-box='true', required)
+	.row.margin-left-5.margin-right-5
+		.form-group.col-md-6
 			label.control-label *{{"PLAYER_NAME" | translate}}
 			input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="vm.newPlayer.name", ng-change='vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player)', required)
 			span.help-block.colorRed(ng-show='vm.duplicateNameFound') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}

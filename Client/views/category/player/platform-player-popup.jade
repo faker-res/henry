@@ -631,7 +631,7 @@
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'proposal-log' ? 'active' : null")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('proposal-log');vm.prepareShowProposal();") {{"PLAYER_PROPOSAL_LOG" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'bet-log' ? 'active' : null", ng-show="checkViewPermission('Player', 'Player', 'PlayerExpenses');")
-                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('bet-log');vm.prepareShowPlayerExpense();") {{"PLAYER_BET_LOG" | translate}}
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('bet-log');vm.prepareShowPlayerExpense(); vm.getProviderListByPlatform();") {{"PLAYER_BET_LOG" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'credit-log' ? 'active' : null", ng-show="checkViewPermission('Player', 'Credit', 'CreditChangeLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('credit-log');vm.showPagedPlayerCreditChangeLog();") {{"PLAYER_CREDIT_LOG" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log' ? 'active' : null", ng-show="checkViewPermission('Player', 'Player', 'PlatformCreditTransferLog')")
@@ -722,7 +722,7 @@
                                 //    input.form-control(ng-model='vm.queryPara.playerExpense.gameName')
                                 .inlineBlk
                                     label {{'GAME_PROVIDER' | translate}}
-                                    select.form-control(ng-model='vm.queryPara.playerExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.platformProviderList')
+                                    select.form-control(ng-model='vm.queryPara.playerExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.providerListByPlatform')
                                         option(value='') {{'any' | translate}}
                                 .inlineBlk
                                     label {{'ROUND_NUMBER OR PLAY_NUMBER' | translate}}
@@ -1311,8 +1311,9 @@
                             .form-group(ng-show='vm.showApplyRewardEvent')
                                 label.control-label {{"REWARD_EVENT" | translate}}
                                 select.form-control(ng-model='vm.playerApplyRewardPara.rewardObj',ng-change='vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara.rewardObj)', required)
-                                    optgroup(ng-repeat='(key,value) in vm.rewardEventGroup', ng-if='value.hasCount', label='{{value.name}}')
+                                    optgroup(ng-repeat='(key,value) in vm.rewardEventGroup', ng-if='value.hasCount', label='{{value._id? value.name: (value.name | translate)}}')
                                         option(ng-show='!value._id', value='{"name": "系统升级优惠", "code": "MANUAL_PLAYER_LEVEL_UP_REWARD"}') {{"系统升级优惠"}}
+                                        option(ng-show='!value._id', value='{"name": "系统保级优惠", "code": "MANUAL_PLAYER_LEVEL_MAINTAIN_REWARD"}') {{"系统保级优惠"}}
                                         option(ng-repeat='(i,v) in vm.allRewardEvent | filter: vm.filterEndedRewardEvent', ng-show='v.rewardGroup == value.name', ng-if='v.needApply || v.condition.applyType == 1 || v.condition.applyType == 4', value='{{v}}') {{v.name}}({{v.code}})
                             .form-group(ng-if='vm.playerApplyRewardShow.TopupRecordSelect')
                                 label.control-label {{'TOP_UP_LIST' | translate}}

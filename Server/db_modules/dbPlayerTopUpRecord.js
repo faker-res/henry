@@ -36,6 +36,7 @@ const dbPromoCode = require("../db_modules/dbPromoCode");
 const constRewardType = require("./../const/constRewardType");
 const dbRewardTask = require('./../db_modules/dbRewardTask');
 const dbPlayerReward = require('../db_modules/dbPlayerReward');
+const dbReportUtil = require("./../db_common/dbReportUtility");
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
 const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const rewardUtility = require("../modules/rewardUtility");
@@ -112,7 +113,7 @@ var dbPlayerTopUpRecord = {
         return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
             platformData => {
                 if (platformData && platformData.platformId) {
-                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}).then(
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}, platformData.topUpSystemType).then(
                         data => {
                             console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
@@ -306,6 +307,7 @@ var dbPlayerTopUpRecord = {
 
                 return Promise.all([topUpProm, consumptionProm, bonusProm, consumptionReturnProm, rewardProm, onlineTopUpByMerchantProm]).then(
                     result => {
+                        console.log("LH check player report 3------");
                         let topUpDetails = result[0];
                         let consumptionDetails = result[1];
                         let bonusDetails = result[2];
@@ -316,6 +318,7 @@ var dbPlayerTopUpRecord = {
                         let playerReportDaySummary = [];
 
                         if(topUpDetails && topUpDetails.length > 0){
+                            console.log("LH check player report 4------", topUpDetails.length);
                             topUpDetails.forEach(
                                 topUp => {
                                     if(topUp && topUp._id && topUp._id.playerId){
@@ -358,6 +361,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if(consumptionDetails && consumptionDetails.length > 0){
+                            console.log("LH check player report 5------", consumptionDetails.length);
                             consumptionDetails.forEach(
                                 consumption => {
                                     if(consumption && consumption._id && consumption._id.playerId){
@@ -437,6 +441,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if(bonusDetails && bonusDetails.length > 0){
+                            console.log("LH check player report 6------", bonusDetails.length);
                             bonusDetails.forEach(
                                 bonus => {
                                     if(bonus && bonus._id && bonus._id.playerId){
@@ -459,6 +464,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if(consumptionReturnDetails && consumptionReturnDetails.length > 0){
+                            console.log("LH check player report 7------", consumptionReturnDetails.length);
                             consumptionReturnDetails.forEach(
                                 consumptionReturn => {
                                     if(consumptionReturn && consumptionReturn._id && consumptionReturn._id.playerId){
@@ -479,6 +485,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if(rewardDetails && rewardDetails.length > 0){
+                            console.log("LH check player report 8------", rewardDetails.length);
                             rewardDetails.forEach(
                                 reward => {
                                     if(reward && reward._id && reward._id.playerId){
@@ -501,6 +508,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if(onlineTopUpByMerchantDetails && onlineTopUpByMerchantDetails.length > 0){
+                            console.log("LH check player report 9------", onlineTopUpByMerchantDetails.length);
                             onlineTopUpByMerchantDetails.forEach(
                                 onlineTopUpByMerchant => {
                                     if(onlineTopUpByMerchant && onlineTopUpByMerchant.playerId){
@@ -557,10 +565,20 @@ var dbPlayerTopUpRecord = {
                             )
                         }
 
+                        console.log("LH check player report 10------", playerReportDaySummary.length);
                         return playerReportDaySummary;
+                    },
+                    error => {
+                        console.log("player report data summary error 1- ", error);
+                        return Promise.reject({
+                            name: "DataError",
+                            errorMessage: "player report data summary error 1",
+                            error: error
+                        });
                     }
                 ).then(
                     playerReportDaySummary => {
+                        console.log("LH check player report 11------");
                         playerReportSummary = playerReportDaySummary;
                         let platformFeeProm = [];
                         if(playerReportDaySummary && playerReportDaySummary.length > 0){
@@ -573,11 +591,22 @@ var dbPlayerTopUpRecord = {
                             );
                         }
 
+                        console.log("LH check player report 12------", platformFeeProm.length);
                         return Promise.all(platformFeeProm);
+                    },
+                    error => {
+                        console.log("player report data summary error 2- ", error);
+                        return Promise.reject({
+                            name: "DataError",
+                            errorMessage: "player report data summary error 2",
+                            error: error
+                        });
                     }
                 ).then(
                     playerPlatformFeeDetail => {
+                        console.log("LH check player report 13------");
                         if(playerPlatformFeeDetail && playerPlatformFeeDetail.length > 0){
+                            console.log("LH check player report 14------", playerPlatformFeeDetail.length);
                             playerPlatformFeeDetail.forEach(
                                 platformFee => {
                                     if(platformFee){
@@ -593,11 +622,23 @@ var dbPlayerTopUpRecord = {
                         }
 
                         return playerReportSummary;
+                    },
+                    error => {
+                        console.log("player report data summary error 3- ", error);
+                        return Promise.reject({
+                            name: "DataError",
+                            errorMessage: "player report data summary error 3",
+                            error: error
+                        });
                     }
                 ).catch(
                     error => {
                         console.log("player report data summary error - ", error);
-                        return;
+                        return Promise.reject({
+                            name: "DataError",
+                            errorMessage: "player report data summary error",
+                            error: error
+                        });
                     }
                 )
             }
@@ -734,7 +775,7 @@ var dbPlayerTopUpRecord = {
      * Get total top up amount in a certain period of time
      * @param {Date} startTime,endTime - The date info
      */
-    topupReport: async (query, index, limit, sortObj) => {
+    topupReport: async (query, index, limit, sortObj, isExport) => {
         let topupRecords = [];
         let queryObj = {};
 
@@ -791,7 +832,11 @@ var dbPlayerTopUpRecord = {
                 let totalAmountResult = data[1][0];
                 let totalPlayerResult = data[3] && data[3].length || 0;
 
-                return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
+                if (isExport) {
+                    return dbReportUtil.generateExcelFile("TopupReport", topupRecords);
+                } else {
+                    return {data: topupRecords, size: totalCount, total: totalAmountResult ? totalAmountResult.totalAmount : 0, totalPlayer: totalPlayerResult};
+                }
             }
         );
 
@@ -1685,7 +1730,7 @@ var dbPlayerTopUpRecord = {
                 rewardEvent = eventData;
                 if (player && player.platform) {
                     let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
-                    let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId});
+                    let merchantGroupProm = () => RESTUtils.getPMS2Services("postMerchantList", {platformId: player.platform.platformId}, player.platform.topUpSystemType);
 
                     let merchantTypeProm = Promise.resolve(false);
                     // if (bPMSGroup === true || bPMSGroup === "true") {
@@ -3868,9 +3913,9 @@ var dbPlayerTopUpRecord = {
                     topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
                     if ((playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) || bPMSGroup
-                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
+                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS')) {
 
-                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                        if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS') {
                             bPMSGroup = false;
                         } else if (playerData.platform.wechatPayGroupIsPMS) {
                             bPMSGroup = true
@@ -3912,7 +3957,7 @@ var dbPlayerTopUpRecord = {
                                     accountType: constAccountType.WECHAT
                                 };
 
-                                prom = RESTUtils.getPMS2Services("postBankCardList", reqData);
+                                prom = RESTUtils.getPMS2Services("postBankCardList", reqData, playerData.platform.topUpSystemType);
                             }
                         }
 
@@ -3983,7 +4028,7 @@ var dbPlayerTopUpRecord = {
 
                     topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
-                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2') {
+                    if (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS') {
                         bPMSGroup = false;
                     } else if (playerData && playerData.platform && playerData.platform.aliPayGroupIsPMS) {
                         bPMSGroup = true
@@ -3992,7 +4037,7 @@ var dbPlayerTopUpRecord = {
                     }
 
                     if ((playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) || bPMSGroup
-                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name === 'PMS2')) {
+                        || (topUpSystemConfig && topUpSystemConfig.name && topUpSystemConfig.name !== 'PMS')) {
                         let aliPayProm;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
@@ -4026,7 +4071,7 @@ var dbPlayerTopUpRecord = {
                                     accountType: constAccountType.ALIPAY
                                 };
 
-                                aliPayProm = RESTUtils.getPMS2Services("postBankCardList", reqData);
+                                aliPayProm = RESTUtils.getPMS2Services("postBankCardList", reqData, playerData.platform.topUpSystemType);
                             }
                         }
 

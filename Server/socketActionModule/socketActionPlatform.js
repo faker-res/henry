@@ -52,6 +52,15 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getPlatform, [data], actionName, isValidData);
         },
         /**
+         * Get provider list by platformName or _id
+         * @param {json} data - Query data. It has to contain platformName or _id
+         */
+        getProviderListByPlatform: function getProviderListByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            socketUtil.emitter(self.socket, dbPlatform.getProviderListByPlatform, [data], actionName, isValidData);
+        },
+        /**
          * Get all  platforms
          * @param {json} data - It has to contain platform data - refer the "platform" schema
          */
@@ -414,6 +423,12 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = true;
             socketUtil.emitter(self.socket, dbPlayerCredibility.getAllCredibilityRemarks, [], actionName, isValidData);
+        },
+
+        getPlatformCredibilityRemarks: function getPlatformCredibilityRemarks(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.getPlatformCredibilityRemarks, [data.platformList], actionName, isValidData);
         },
 
         setFixedCredibilityRemarks: function setFixedCredibilityRemarks(data) {
@@ -842,7 +857,7 @@ function socketActionPlatform(socketIO, socket) {
         },
         getAllAutoFeedback: function getAllAutoFeedback(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
+            let isValidData = Boolean(data);
             let ignoreLimit = true;
             socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data, null, null, ignoreLimit], actionName, isValidData);
         },

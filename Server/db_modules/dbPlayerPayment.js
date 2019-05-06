@@ -61,7 +61,7 @@ const dbPlayerPayment = {
                             accountType: constAccountType.ALIPAY
                         };
 
-                        return RESTUtils.getPMS2Services("postBankCardList", reqData);
+                        return RESTUtils.getPMS2Services("postBankCardList", reqData, data.platform.topUpSystemType);
                     }
                 } else {
                     return Promise.reject({name: "DataError", message: "Invalid player data"})
@@ -103,7 +103,7 @@ const dbPlayerPayment = {
                 if (data && data.platform && data.merchantGroup) {
                     playerData = data;
 
-                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId});
+                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: data.platform.platformId}, data.platform.topUpSystemType);
                 } else {
                     return Q.reject({name: "DataError", message: "Invalid player data"})
                 }
@@ -201,7 +201,7 @@ const dbPlayerPayment = {
                                         bankCardFilterList.push(compareObj[key])
                                     }
 
-                                    return getBankTypeNameArr(bankCardFilterList, maxDeposit);
+                                    return getBankTypeNameArr(bankCardFilterList, maxDeposit, platformData);
 
                                 } else {
                                     return {data: []}
@@ -228,10 +228,13 @@ const dbPlayerPayment = {
                                 //         queryId: serverInstance.getQueryId()
                                 //     }
                                 // )
-                                return RESTUtils.getPMS2Services("postBankCardList", {
+
+                                let query = {
                                     platformId: platformData.platformId,
                                     accountType: constAccountType.BANK_CARD
-                                }).then(
+                                };
+
+                                return RESTUtils.getPMS2Services("postBankCardList", query, platformData.topUpSystemType).then(
                                     bankCardListData => {
                                         if (bankCardListData && bankCardListData.data && bankCardListData.data.length
                                             && playerObj.bankCardGroup && playerObj.bankCardGroup.banks && playerObj.bankCardGroup.banks.length) {
@@ -262,7 +265,7 @@ const dbPlayerPayment = {
                                                 bankCardFilterList.push(compareObj[key])
                                             }
                                             if (bankCardFilterList.length) {
-                                                return getBankTypeNameArr(bankCardFilterList, maxDeposit);
+                                                return getBankTypeNameArr(bankCardFilterList, maxDeposit, platformData);
                                             } else {
                                                 return {data: []};
                                             }
@@ -793,9 +796,9 @@ async function checkFailTopUp (player, returnData) {
     return returnData;
 }
 
-function getBankTypeNameArr (bankCardFilterList, maxDeposit) {
+function getBankTypeNameArr (bankCardFilterList, maxDeposit, platformData) {
     let bankListArr = [];
-    return RESTUtils.getPMS2Services("postBankTypeList", {}).then(
+    return RESTUtils.getPMS2Services("postBankTypeList", {}, platformData.topUpSystemType).then(
         bankTypeList => {
             if (!(bankTypeList && bankTypeList.data && bankTypeList.data.length)) {
                 return Q.reject({
