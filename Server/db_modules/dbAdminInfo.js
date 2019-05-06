@@ -659,7 +659,40 @@ var dbAdminInfo = {
                 return data;
             }
         )
-    }
+    },
+
+    getAdminsByPermission: function (platformObjId, permission) {
+        // permission should be listed from parent category to specific, separated with dot
+        // (e.g. "Platform.Config.CanReceiveLargeWithdrawalEmail")
+        let roleObjIds = [];
+        let path = "views." + permission;
+        let query = {};
+        query[path] = true;
+        return dbconfig.collection_role.find(query, {departments: 1}).lean().then(
+            roles => {
+                let departments = [];
+                if (!roles || !roles.length) {
+                    return [];
+                }
+
+                for (let i = 0; i < roles.length; i++) {
+                    let role = roles[i];
+                    roleObjIds.push(role._id);
+                    if (role.departments && role.departments.length) {
+                        departments = departments.concat(role.departments);
+                    }
+                }
+
+                return dbconfig.collection_department.find({_id: {$in: departments}, platforms: platformObjId}).lean();
+            }
+        ).then(
+            departments => {
+                let departmentObjIds = departments.map(department => department._id);
+
+                return dbconfig.collection_admin.find({departments: {$in: departmentObjIds}, roles: {$in: roleObjIds}}).lean();
+            }
+        );
+    },
 
 };
 
