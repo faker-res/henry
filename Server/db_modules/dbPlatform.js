@@ -95,6 +95,14 @@ var dbPlatform = {
             // }
         }
 
+        if (platformData && platformData.topUpSystemType) {
+            platformData.topUpSystemType = Number(platformData.topUpSystemType);
+        }
+
+        if (platformData && platformData.bonusSystemType) {
+            platformData.bonusSystemType = Number(platformData.bonusSystemType);
+        }
+
         var platform = new dbconfig.collection_platform(platformData);
 
         dbconfig.collection_platform.findOne({platformId: platformData.platformId}).then(data => {
