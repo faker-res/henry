@@ -44,7 +44,8 @@ div(ng-if="vm.curPlatformText")
                             .search-filters-item
                                 label {{'Duration' | translate}}
                                 div
-                                    select.form-control.threeBoxes(ng-model='vm.audioRecordSearching.durationOperator')
+                                    select.form-control.threeBoxes(ng-model='vm.audioRecordSearching.durationOperator', ng-change="vm.durationOperatorChange()")
+                                        option(value='none')
                                         option(value='>=') >=
                                         option(value='=') =
                                         option(value='<=') <=

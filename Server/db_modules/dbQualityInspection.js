@@ -124,6 +124,23 @@ var dbQualityInspection = {
     getAudioRecordData: function (startDate, endDate, data){
         let index = data.index || 0;
         let limit = data.limit || 50;
+        let callerIdStringList = "";
+
+        if (data && data.callerId && data.callerId.length){
+            data.callerId.forEach(
+                id => {
+                    if (id){
+                        callerIdStringList += "('" + id + "'),";
+                    }
+                }
+            )
+        }
+        else{
+            return {
+                data: [],
+                size: 0
+            }
+        }
 
         if (startDate && endDate) {
             let connection1 = dbQualityInspection.connectTel400CSMysql();
@@ -134,17 +151,6 @@ var dbQualityInspection = {
 
             let startTime = dbUtility.getLocalTimeString(startDate);
             let endTime = dbUtility.getLocalTimeString(endDate);
-            let callerIdStringList = "";
-
-            if (data && data.callerId && data.callerId.length){
-                data.callerId.forEach(
-                    id => {
-                        if (id){
-                            callerIdStringList += "('" + id + "'),";
-                        }
-                    }
-                )
-            }
 
             let queryObj = "SELECT * FROM cti_record AS A JOIN cti_cdr_call AS B ON A.record_uuid = B.callleg_uuid WHERE A.begintime BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME) AND A.record_status = '2'";
             let queryCount = "SELECT COUNT(*) AS total FROM cti_record as A JOIN cti_cdr_call AS B ON A.record_uuid = B.callleg_uuid WHERE A.begintime BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME) AND A.record_status = '2'";

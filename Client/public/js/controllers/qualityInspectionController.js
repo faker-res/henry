@@ -3985,8 +3985,50 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.durationOperatorChange = function () {
+                if (vm.audioRecordSearching && vm.audioRecordSearching.durationOperator && vm.audioRecordSearching.durationOperator == 'none'){
+                    vm.audioRecordSearching.durationOne = null;
+                    vm.audioRecordSearching.durationTwo = null;
+                }
+            };
+
             vm.getAudioRecordData = function (newSearch){
                 $('#csAudioRecordTableSpin').show();
+
+                if(!vm.audioRecordSearching || (vm.audioRecordSearching && !vm.audioRecordSearching.platform) || (vm.audioRecordSearching && vm.audioRecordSearching.platform && vm.audioRecordSearching.platform.length == 0)){
+                    $('#csAudioRecordTableSpin').hide();
+                    return socketService.showErrorMessage($translate("Please select platform to search the data"))
+                }
+
+                let tempCallerIdList = [];
+                if ((vm.audioRecordSearching && !vm.audioRecordSearching.callerId) || (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length == 0)) {
+                    if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length) {
+                        vm.audioRecordSearching.callerId = vm.callerIdList || [];
+                    } else if (vm.audioRecordSearching.platform && vm.audioRecordSearching.platform.length) {
+                        vm.csAccountList.forEach(
+                            csData => {
+                                if (csData && csData.callerId && csData.platformObjId && vm.audioRecordSearching.platform.includes(csData.platformObjId)) {
+                                    tempCallerIdList.push(csData.callerId)
+                                }
+                            }
+                        );
+                        if (tempCallerIdList && tempCallerIdList.length) {
+                            vm.audioRecordSearching.callerId = tempCallerIdList;
+                        }
+                    } else {
+                        vm.csAccountList.forEach(
+                            csData => {
+                                if (csData && csData.callerId) {
+                                    tempCallerIdList.push(csData.callerId)
+                                }
+                            }
+                        );
+                        if (tempCallerIdList && tempCallerIdList.length) {
+                            vm.audioRecordSearching.callerId = tempCallerIdList;
+                        }
+                    }
+                }
+
                 let searchQuery = {
                     startDate: $("#audioRecordStartDatetimePicker").data('datetimepicker').getLocalDate(),
                     endDate: $("#audioRecordEndDatetimePicker").data('datetimepicker').getLocalDate(),
