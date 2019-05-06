@@ -544,13 +544,14 @@ var dbGame = {
             if (data) {
                 orientationSetting = data.orientationSetting ? data.orientationSetting : {};
                 orientationSetting[platformObjId] = orientation;
+                updateData = { 'orientationSetting': orientationSetting }
+
+                return dbconfig.collection_game.findOneAndUpdate(
+                    gameData,
+                    updateData,
+                    {new: true}
+                ).exec();
             }
-            updateData = { 'orientationSetting': orientationSetting }
-            return dbconfig.collection_game.findOneAndUpdate(
-                gameData,
-                updateData,
-                {new: true}
-            ).exec();
         })
     },
     getGamesByProviders: function (ids) {
