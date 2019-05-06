@@ -7736,6 +7736,10 @@ define(['js/app'], function (myApp) {
             form.$setValidity('wrongPrefix', !vm.wrongPrefix);
             $scope.safeApply();
 
+            if (vm.wrongPrefix) {
+                return;
+            }
+
             socketService.$socket($scope.AppSocket, 'checkPlayerNameValidity', {
                 platform: platformObjId,
                 name: name
