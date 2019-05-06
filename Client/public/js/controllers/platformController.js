@@ -22420,6 +22420,8 @@ define(['js/app'], function (myApp) {
                         vm.rewardMainParamTableFestivalType2 = [];
                         vm.rewardMainParamTableFestivalType3 = [];
 
+                        vm.remainMainParamTableFestival = {};
+
                         let birthdayValue = [];
                         let festivalType1Value = [];
                         let festivalType2Value = [];

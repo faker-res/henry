@@ -7305,13 +7305,15 @@ let dbPlayerReward = {
                         spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
                         console.log('***rewardAmount, spendingAmount', rewardAmount, spendingAmount);
                         //check if fulfil any of reward can apply
-                        console.log('isAnyRewardLeft',isAnyRewardLeft)
-                        if (!isAnyRewardLeft || !isAnyRewardLeft.count <= 0) {
+                        console.log('isAnyRewardLeft', isAnyRewardLeft)
+                        if (!isAnyRewardLeft || isAnyRewardLeft.count <= 0) {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
                                 message: localization.localization.translate("dont have any reward leave")
                             });
+                        } else {
+                            console.log('isAnyRewardLeft.count', isAnyRewardLeft.count);
                         }
 
                         let participationCount = eventData.condition && eventData.condition.hasOwnProperty('numberParticipation') ? eventData.condition.numberParticipation : 1;
@@ -10037,12 +10039,19 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
         let result = { count:0 , festivals:[] };
         if (eventData.condition && eventData.condition.festivalType == '1') {
             // if is birthday
+            console.log('**********************************festival 1');
+            console.log('eventData.param.rewardParam[0].value',eventData.param.rewardParam[0].value)
             if (eventData.param && eventData.param.rewardParam[0] && eventData.param.rewardParam[0].value && eventData.param.rewardParam[0].value.length > 0) {
                 eventData.param.rewardParam[0].value.forEach(item=> {
                     if (item.rewardType == '4') {
-                        // check if it over the apply times
-                        let prom = checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id);
-                        proms.push(prom);
+                        // check if it in between of apply period
+                        let isRightApplyTime = checkIfRightApplyTime(item);
+                        console.log('***isRightApplyTime', isRightApplyTime)
+                        if (isRightApplyTime) {
+                            let prom = checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id);
+                            proms.push(prom);
+                        }
+
                     }
                 })
             }
@@ -10051,7 +10060,7 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
                     console.log('======>', data);
                     if (data && data.length > 0) {
                         data.forEach(item => {
-                            if (item) {
+                            if (item && item.status) {
                                 result.count += 1;
                                 result.festivals.push(item.festivalObjId)
                             }
@@ -10062,11 +10071,17 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
             )
         } else if (eventData.condition && eventData.condition.festivalType == '2') {
             // if is festival
+            console.log('**********************************festival 2');
             if (eventData.param && eventData.param.rewardParam[0] && eventData.param.rewardParam[0].value && eventData.param.rewardParam[0].value.length > 0) {
                 eventData.param.rewardParam[0].value.forEach(item=> {
-                    // check if it over the apply times
-                    let prom = checkFestivalProposal(item, platformId, playerObjId, eventData._id, item._id);
-                    proms.push(prom);
+                    // check if it in between of apply period
+                    console.log(item);
+                    let isRightApplyTime = checkIfRightApplyTime(item);
+                    console.log('***isRightApplyTime', isRightApplyTime)
+                    if (isRightApplyTime) {
+                        let prom = checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id);
+                        proms.push(prom);
+                    }
                 })
             }
             return Promise.all(proms).then(
@@ -10088,28 +10103,78 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
     })
 }
 
+function checkIfRightApplyTime(specificDate) {
+    // reconstruct the month/time to a timestamp to verify if fulfil the apply time
+    let result = false;
+    let currentTime = moment(new Date()).format('YYYY-MM-DD HH:mm:ss.sss');
+    console.log('*****specificDate', specificDate);
+    let period = getTimePeriod(specificDate.expiredInDay || 0, specificDate);
+    console.log('…startTime -- …endTime', period.startTime, period.endTime);
+    console.log('…currentTime', currentTime);
+
+    if ( currentTime > period.startTime  &&  currentTime < period.endTime ) {
+        result = true;
+    }
+    console.log(result);
+    return result;
+}
+
+function getTimePeriod(expiredInDay, specificDate) {
+    let todayTime, year, month, day, startTime, endTime;
+    let fullDate = [];
+
+    if (specificDate && specificDate.month && specificDate.day) {
+        year = new Date().getFullYear();
+        console.log(specificDate);
+        month = getPlural(specificDate.month);
+        day = getPlural(specificDate.day);
+        fullDate = [year, month, day];
+        fullDate = fullDate.join('-')
+
+        //date convertion
+        console.log('*****fullDate', fullDate);
+        todayTime = {
+            "startTime": moment(fullDate).format('YYYY-MM-DD HH:mm:ss.sss'),
+            "endTime": moment(startTime).add(1, 'days')
+        }
+
+    } else {
+        todayTime = dbUtility.getDayTime(new Date());
+    }
+
+    let expiredDay = expiredInDay ? Number(expiredInDay) : 0;
+    let applyPeriod = {
+        "startTime": todayTime.startTime,
+        "endTime": moment(todayTime.endTime).add(expiredDay, 'days').format('YYYY-MM-DD HH:mm:ss.sss')
+    }
+    return applyPeriod;
+}
+
+function getPlural (num) {
+    console.log('start', num);
+    num = (num < 9) ? "0" + num : num;
+    console.log('end', num);
+    return num;
+}
+
 function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, festivalId) {
     return new Promise((resolve, reject) => {
         let result = false;
         let todayTime = dbUtility.getDayTime(new Date());
-        console.log('***** todayTime', todayTime);
         console.log('***festivalID', festivalId)
 
         let expiredInDay = rewardParam.expiredInDay ? rewardParam.expiredInDay : 0;
-        let applyTimePeriod = {
-            "startTime": todayTime.startTime, //moment(todayTime.startTime).add(expiredInDay, 'days').toDate(),
-            "endTime": moment(todayTime.endTime).add(expiredInDay, 'days').toDate()
-        }
+        let applyPeriod = getTimePeriod(expiredInDay, todayTime)
         let festivalPeriod = null;
-        console.log('***** applyTimePeriod', applyTimePeriod);
+
         // console.log('***** rewardParam', rewardParam);
         let sendQuery = {
             "data.platformObjId": platformId,
             "data.playerObjId": playerObjId,
             "data.eventId": eventId,
             "createTime": {
-                '$gte':applyTimePeriod.startTime,
-                '$lte':applyTimePeriod.endTime
+                '$gte':applyPeriod.startTime,
+                '$lte':applyPeriod.endTime
             },
             "data.festivalObjId": festivalId,
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -10119,11 +10184,11 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
         .then( data => {
             if (data) {
                 console.log('***proposal data', data);
-                if (rewardParam.spendingTimes && data.length < rewardParam.spendingTimes) {
-                    console.log('***proposal->data1', rewardParam.spendingTimes, data.length, rewardParam.spendingTimes);
+                if (rewardParam.applyTimes && data.length < rewardParam.applyTimes) {
+                    console.log('***proposal->data1', rewardParam.applyTimes, data.length, rewardParam.applyTimes);
                     resolve({status: true , festivalObjId: festivalId})
                 } else {
-                    console.log('***proposal->data2', rewardParam.spendingTimes, data.length, rewardParam.spendingTimes);
+                    console.log('***proposal->data2', rewardParam.applyTimes, data.length, rewardParam.applyTimes);
                     resolve({status: false, festivalObjId: festivalId});
                 }
             } else {
