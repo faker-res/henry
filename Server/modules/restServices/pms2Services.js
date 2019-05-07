@@ -256,16 +256,16 @@ function postDepositTypeByUsername (reqData, paymentSystemKey) {
     return postRequest(reqData, 'requestDepositTypeByUsername', 'POST', paymentSystemKey)
 }
 
-function postOnlineCashinList (reqData) {
-    return postRequest(reqData, 'getOnlineCashinList', 'POST')
+function postOnlineCashinList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getOnlineCashinList', 'POST', paymentSystemKey)
 }
 
-function postCashinList (reqData) {
-    return postRequest(reqData, 'getCashinList', 'POST')
+function postCashinList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getCashinList', 'POST', paymentSystemKey)
 }
 
-function postCashoutList (reqData) {
-    return postRequest(reqData, 'getCashoutList', 'POST')
+function postCashoutList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getCashoutList', 'POST', paymentSystemKey)
 }
 
 module.exports = {
