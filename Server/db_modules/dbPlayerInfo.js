@@ -20057,10 +20057,6 @@ let dbPlayerInfo = {
         );
 
         async function getPlayerRecord(playerObjId, startTime, endTime, option, showPlatformFeeEstimate) {
-            // //recalculate player value
-            // dbPlayerCredibility.calculatePlayerValue(playerObjId).catch(errorUtils.reportError);
-
-            console.log('getPlayerRecord - start', playerObjId.length);
             let onlineTopUpTypeId = "";
             let manualTopUpTypeId = "";
             let weChatTopUpTypeId = "";
@@ -20332,6 +20328,10 @@ let dbPlayerInfo = {
 
                 players.map(playerDetail => {
                     let result = {_id: playerDetail._id};
+
+                    // recalculate player value
+                    dbPlayerCredibility.calculatePlayerValue(playerDetail._id).catch(errorUtils.reportError);
+
                     // player related
                     if (playerDetail.credibilityRemarks && playerDetail.credibilityRemarks.length) {
                         result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e && e._id);
@@ -20542,7 +20542,7 @@ let dbPlayerInfo = {
 
                     if (selfRewardDetail && selfRewardDetail.length) {
                         selfRewardDetail.forEach(e => {
-                            if (e._id.toString() === consumptionReturnTypeId) {
+                            if (e._id.type.toString() === consumptionReturnTypeId) {
                                 result.consumptionReturnAmount = Number(e.amount) || 0;
                             } else {
                                 result.rewardAmount += Number(e.amount) || 0;
