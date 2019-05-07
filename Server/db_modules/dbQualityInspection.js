@@ -45,6 +45,23 @@ var dbQualityInspection = {
     getAudioReportData: function (startDate, endDate, data){
         let index = data.index || 0;
         let limit = data.limit || 50;
+        let callerIdStringList = "";
+
+        if (data && data.callerId && data.callerId.length){
+            data.callerId.forEach(
+                id => {
+                    if (id){
+                        callerIdStringList += "('" + id + "'),";
+                    }
+                }
+            )
+        }
+        else{
+            return {
+                data: [],
+                size: 0
+            }
+        }
 
         if (startDate && endDate) {
             let connection1 = dbQualityInspection.connectTel400CSMysql();
@@ -55,17 +72,6 @@ var dbQualityInspection = {
 
             let startTime = dbUtility.getLocalTimeString(startDate);
             let endTime = dbUtility.getLocalTimeString(endDate);
-            let callerIdStringList = "";
-
-            if (data && data.callerId && data.callerId.length){
-                data.callerId.forEach(
-                    id => {
-                        if (id){
-                            callerIdStringList += "('" + id + "'),";
-                        }
-                    }
-                )
-            }
 
             let queryObj = "SELECT * FROM cti_cdr_agentcall_statis WHERE seasonal_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
             callerIdStringList = callerIdStringList && callerIdStringList.length > 0 ? callerIdStringList.substring(0,callerIdStringList.length - 1) : callerIdStringList;
@@ -80,15 +86,24 @@ var dbQualityInspection = {
             let sqlJiaBoProm = dbQualityInspection.sqlExecutionAndReturnJsonParse(connection2,queryObj + " ORDER BY seasonal_time desc");
 
             return Promise.all([sqlCSProm, sqlJiaBoProm]).then(
-                data => {
-                    let csData = data && data[0] ? data[0] : [];
-                    let jiaBoData = data && data[1] ? data[1] : [];
-                    let totalSize = csData.length + jiaBoData.length;
+                retData => {
+                    let csData = retData && retData[0] ? retData[0] : [];
+                    let jiaBoData = retData && retData[1] ? retData[1] : [];
                     let dataset = [];
                     dataset = dataset.concat(csData, jiaBoData);
+
+                    // process based on time scale
+                    if (dataset && dataset.length){
+                        dataset = timeScaleProcess(dataset, data.timeScale, startDate, endDate);
+                    }
+
                     // sorting
-                    if (csData.length && jiaBoData.length){
-                        dataset.sort(function(a, b){return new Date(b.seasonal_time).getTime() - new Date(a.seasonal_time).getTime()});
+                    let totalSize = dataset && dataset.length ? dataset.length : 0;
+                    console.log("checking process time scale dataset", totalSize);
+                    if (dataset && dataset.length) {
+                        dataset.sort(function (a, b) {
+                            return new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+                        });
                     }
 
                     if (dataset && dataset.length > limit){
@@ -100,6 +115,155 @@ var dbQualityInspection = {
                     }
                 }
             )
+        }
+
+        function timeScaleProcess (data, timeScale, startTime, endTime){
+            let arrData = [];
+            let retData;
+            console.log("checking timeScale", timeScale);
+
+            if (timeScale == 1){
+                data.forEach(
+                    detail => {
+                        if (detail && detail.agentnum){
+                            arrData.push({
+                                agentNum:  detail.agentnum,
+                                agentGroupName: detail.agent_group_name,
+                                startDate: detail.seasonal_time,
+                                totalCallTime: detail.total_call_time || 0,
+                                totalEavesdroppingTime: detail.total_eavesdroper_time || 0,
+                                totalIncallNum: detail.total_incall_num || 0,
+                                totalIncallFailedNum: detail.total_incallfailed_num || 0,
+                                totalAnswerTime: detail.total_answer_time || 0,
+                                totalOutcallNum: detail.total_outcall_num || 0,
+                                totalOutcallFailedNum: detail.total_outcallfailed_num || 0,
+                                totalCallingTime: detail.calling_time || 0,
+                                totalCalloutHangoutNum: detail.total_callout_agent_first_hangup_num || 0,
+                                totalCallinHangoutNum: detail.total_callin_agent_first_hangup_num || 0
+                            })
+                        }
+                    }
+                )
+                return arrData
+            }
+            else{
+                let csList = data.map( x => x.agentnum);
+                let distinctCsList = csList.filter((x, i, a) => a.indexOf(x) == i);
+                let dayStartTime = new Date (startTime);
+                switch (timeScale) {
+                    // every hour
+                    case '2':
+                        let totalHour = dbUtility.getNumberOfHours(startTime, endTime);
+                        console.log("checking number of hours", totalHour)
+                        retData = processDataBasedOnTimeScale(dayStartTime, totalHour, data, timeScale, distinctCsList);
+                        break;
+                    // every day
+                    case '3':
+                        let totalDay = dbUtility.getNumberOfDays(startTime, endTime);
+                        console.log("checking number of totalDay", totalDay)
+                        retData = processDataBasedOnTimeScale(dayStartTime, totalDay, data, timeScale, distinctCsList);
+                        break;
+                    case '4':
+                        let totalMonth = dbUtility.getNumberOfMonths(startTime, endTime);
+                        console.log("checking number of totalMonth", totalMonth)
+                        retData = processDataBasedOnTimeScale(dayStartTime, totalMonth, data, timeScale, distinctCsList);
+                        break;
+                }
+                return retData
+            }
+        }
+
+        function processDataBasedOnTimeScale (dayStartTime, iteratationNum, data, timeScale, distinctCsList) {
+            let iterNum = iteratationNum || 0;
+            let timeScaleData = [];
+            console.log("checking iteratationNum", iteratationNum)
+            let getNextDate = function (date) {
+                let newDate = new Date(date);
+                return new Date(newDate.setDate(newDate.getDate() + 1));
+            };
+
+            let getNextHour = function (date) {
+                let newDate = new Date(date);
+                return new Date(newDate.setHours(newDate.getHours() + 1));
+            };
+
+            let getNextMonth = function (date) {
+                let newDate = new Date(date);
+                return new Date(newDate.setMonth(newDate.getMonth() + 1));
+            };
+
+            for(let x = 0; x < iterNum; x++){
+                let dayEndTime;
+
+                if (timeScale && timeScale == 2) {
+                    dayEndTime = getNextHour.call(this, dayStartTime);
+                }
+                else if (timeScale && timeScale == 3) {
+                    dayEndTime = getNextDate.call(this, dayStartTime);
+                }
+                else if (timeScale && timeScale == 4) {
+                    dayEndTime = getNextMonth.call(this, dayStartTime);
+                }
+
+                console.log("checking dayStartTime", dayStartTime)
+                console.log("checking dayEndTime", dayEndTime)
+
+                let preDataList = data.filter(d => new Date(d.seasonal_time) >= new Date(dayStartTime) && new Date(d.seasonal_time) < new Date(dayEndTime) );
+                console.log("checking preDataList", preDataList && preDataList.length ? preDataList.length : 'undefined');
+                distinctCsList.forEach(
+                    csAdmin => {
+                        let adminData = preDataList.filter(d => d.agentnum == csAdmin);
+                        let totalCallTime = 0;
+                        let totalEavesdroppingTime = 0;
+                        let totalIncallNum = 0;
+                        let totalIncallFailedNum = 0;
+                        let totalAnswerTime = 0;
+                        let totalOutcallNum = 0;
+                        let totalOutcallFailedNum = 0;
+                        let totalCallingTime = 0;
+                        let totalCalloutHangoutNum = 0;
+                        let totalCallinHangoutNum = 0;
+
+                        console.log('checking adminData', adminData && adminData.length ? adminData.length : 'undefined');
+                        adminData.forEach(
+                            detail => {
+                                totalCallTime = totalCallTime + (parseInt(detail.total_call_time || 0) );
+                                totalEavesdroppingTime = totalEavesdroppingTime + (parseInt(detail.total_eavesdroper_time || 0) );
+                                totalIncallNum = totalIncallNum + (parseInt(detail.total_incall_num || 0) );
+                                totalIncallFailedNum = totalIncallFailedNum + (parseInt(detail.total_incallfailed_num || 0) );
+                                totalAnswerTime = totalAnswerTime + (parseInt(detail.total_answer_time || 0) );
+                                totalOutcallNum = totalOutcallNum + (parseInt(detail.total_outcall_num || 0) );
+                                totalOutcallFailedNum = totalOutcallFailedNum + (parseInt(detail.total_outcallfailed_num || 0) );
+                                totalCallingTime = totalCallingTime + (parseInt(detail.calling_time || 0) );
+                                totalCalloutHangoutNum = totalCalloutHangoutNum + (parseInt(detail.total_callout_agent_first_hangup_num || 0) );
+                                totalCallinHangoutNum = totalCallinHangoutNum + (parseInt(detail.total_callin_agent_first_hangup_num || 0) );
+                            }
+                        );
+
+                        if (adminData && adminData.length && adminData[0].agentnum){
+                            timeScaleData.push({
+                                agentNum:  adminData[0].agentnum,
+                                agentGroupName: adminData[0].agent_group_name,
+                                startDate: dayStartTime,
+                                totalCallTime: totalCallTime,
+                                totalEavesdroppingTime: totalEavesdroppingTime,
+                                totalIncallNum: totalIncallNum,
+                                totalIncallFailedNum: totalIncallFailedNum,
+                                totalAnswerTime: totalAnswerTime,
+                                totalOutcallNum: totalOutcallNum,
+                                totalOutcallFailedNum: totalOutcallFailedNum,
+                                totalCallingTime: totalCallingTime,
+                                totalCalloutHangoutNum: totalCalloutHangoutNum,
+                                totalCallinHangoutNum: totalCallinHangoutNum
+                            })
+                        }
+                    }
+                );
+
+                dayStartTime = dayEndTime;
+            }
+
+            return timeScaleData
         }
     },
 
