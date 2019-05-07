@@ -3763,18 +3763,22 @@ define(['js/app'], function (myApp) {
                     $('#csAudioReportTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
-                        let index = vm.csAccountList.findIndex(p => p.callerId == item.agentnum)
+                        let index = vm.csAccountList.findIndex(p => p.callerId == item.agentNum)
                         if (index != -1){
                             item.adminName = vm.csAccountList[index].adminName;
                             item.platformName = vm.csAccountList[index].platformName;
                         }
-                        item.displayTime =  utilService.$getTimeFromStdTimeFormat(item.seasonal_time);
-                        item.totalConversationTimeWithoutEavesdropping = item.total_call_time  - item.total_eavesdroper_time;
-                        item.totalIncomingAcceptedCall = item.total_incall_num  - item.total_incallfailed_num;
-                        item.totalAcceptedCallOut = item.total_outcall_num  - item. total_outcallfailed_num;
-                        item.totalCallOutTimeIncludeRingingTime = item.total_call_time - item.total_answer_time + item.calling_time;
-                        item.totalCallOutTime = item.total_call_time - item.total_answer_time;
-                        item.totalMissCall = item.total_incallfailed_num + item.total_outcallfailed_num;
+
+                        if(item.startDate){
+                            item.displayTime =  utilService.$getTimeFromStdTimeFormat(item.startDate);
+                        }
+
+                        item.totalConversationTimeWithoutEavesdropping = item.totalCallTime  - item.totalEavesdroppingTime;
+                        item.totalIncomingAcceptedCall = item.totalIncallNum  - item.totalIncallFailedNum;
+                        item.totalAcceptedCallOut = item.totalOutcallNum  - item. totalOutcallFailedNum;
+                        item.totalCallOutTimeIncludeRingingTime = item.totalCallTime - item.totalAnswerTime + item.totalCallingTime;
+                        item.totalCallOutTime = item.totalCallTime - item.totalAnswerTime;
+                        item.totalMissCall = item.totalIncallFailedNum + item.totalOutcallFailedNum;
                         return item;
                     });
                     vm.audioReportSearching.size = data.data.size;
@@ -3800,11 +3804,11 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('Caller ID'),
-                            data: "agentnum",
+                            data: "agentNum",
                         },
                         {
                             title: $translate('Caller Group'),
-                            data: "agent_group_name",
+                            data: "agentGroupName",
                         },
                         {
                             title: $translate('Time Scale') ,
@@ -3812,7 +3816,7 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('Total Conversation Time'),
-                            data: "total_call_time",
+                            data: "totalCallTime",
                         },
                         {
                             title: $translate('Total Conversation Time (Exclude Eavesdropping Time'),
@@ -3824,11 +3828,11 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('Total Incoming Accepted Call Time'),
-                            data: "total_answer_time",
+                            data: "totalAnswerTime",
                         },
                         {
                             title: $translate('Total Call Out'),
-                            data: "total_outcall_num",
+                            data: "totalOutcallNum",
                         },
                         {
                             title: $translate('Total Accepted Call Out'),
@@ -3839,7 +3843,7 @@ define(['js/app'], function (myApp) {
                             data: "totalCallOutTimeIncludeRingingTime",
                         },
                         {
-                            title: $translate('Total Time Spent in Call Out'),
+                            title: $translate('Total Call Out Time'),
                             data: "totalCallOutTime",
                         },
                         {
@@ -3848,19 +3852,19 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('Miss Call In'),
-                            data: "total_incallfailed_num",
+                            data: "totalIncallFailedNum",
                         },
                         {
                             title: $translate('Miss Call Out'),
-                            data: "total_outcallfailed_num",
+                            data: "totalOutcallFailedNum",
                         },
                         {
                             title: $translate('Total Hang-up Call Out Number'),
-                            data: "total_callout_agent_first_hangup_num",
+                            data: "totalCalloutHangoutNum",
                         },
                         {
                             title: $translate('Total Hang-up Call In Number'),
-                            data: "total_callin_agent_first_hangup_num",
+                            data: "totalCallinHangoutNum",
                         },
                     ],
                     // destroy: true,
@@ -4043,7 +4047,7 @@ define(['js/app'], function (myApp) {
                     $('#csAudioRecordTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
-                        let index = vm.csAccountList.findIndex(p => p.callerId == item.exten_num)
+                        let index = vm.csAccountList.findIndex(p => p.callerId == item.agent_num)
                         if (index != -1){
                             item.adminName = vm.csAccountList[index].adminName;
                             item.platformName = vm.csAccountList[index].platformName;

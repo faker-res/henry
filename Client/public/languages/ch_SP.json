@@ -2862,6 +2862,7 @@
   "Total Incoming Accepted Call Time": "接听通话总时长",
   "Total Call Out": "外呼总量",
   "Total Accepted Call Out": "外呼接通量",
+  "Total Call Out Time": "外呼通话总时长",
   "Total Call Out Time (Including Ringing Time": "外呼总通话时长(包括被叫振铃)",
   "Miss Call": "未接总量",
   "Miss Call In": "呼入未接量",
