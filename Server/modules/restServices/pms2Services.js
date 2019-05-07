@@ -240,32 +240,32 @@ function patchPlatformUpdate (reqData, paymentSystemKey) {
     return postRequest(reqData, 'platform', 'PATCH', paymentSystemKey)
 }
 
-function postOnlineTopupType (reqData) {
-    return postRequest(reqData, 'getOnlineTopupType', 'POST')
+function postOnlineTopupType (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getOnlineTopupType', 'POST', paymentSystemKey)
 }
 
-function postMerchantInfo (reqData) {
-    return postRequest(reqData, 'getMerchantInfo', 'POST')
+function postMerchantInfo (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getMerchantInfo', 'POST', paymentSystemKey)
 }
 
-function postCreateOnlineTopup (reqData) {
-    return postRequest(reqData, 'requestOnlineMerchant', 'POST')
+function postCreateOnlineTopup (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'requestOnlineMerchant', 'POST', paymentSystemKey)
 }
 
-function postDepositTypeByUsername (reqData) {
-    return postRequest(reqData, 'requestDepositTypeByUsername', 'POST')
+function postDepositTypeByUsername (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'requestDepositTypeByUsername', 'POST', paymentSystemKey)
 }
 
-function postOnlineCashinList (reqData) {
-    return postRequest(reqData, 'getOnlineCashinList', 'POST')
+function postOnlineCashinList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getOnlineCashinList', 'POST', paymentSystemKey)
 }
 
-function postCashinList (reqData) {
-    return postRequest(reqData, 'getCashinList', 'POST')
+function postCashinList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getCashinList', 'POST', paymentSystemKey)
 }
 
-function postCashoutList (reqData) {
-    return postRequest(reqData, 'getCashoutList', 'POST')
+function postCashoutList (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getCashoutList', 'POST', paymentSystemKey)
 }
 
 module.exports = {
