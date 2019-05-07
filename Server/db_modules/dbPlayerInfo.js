@@ -20005,27 +20005,21 @@ let dbPlayerInfo = {
                         } else if (option.isFeedback) {
                             return Promise.all(
                                 playerObjIds.map(async id => {
-                                    let playerFeedBackData;
+                                    let playerFeedBackData = await dbconfig.collection_playerFeedback.findById(id, 'createTime playerId adminId topic result content')
+                                        .populate({
+                                            path: 'adminId',
+                                            select: '_id adminName',
+                                            model: dbconfig.collection_admin
+                                        }).lean();
 
-                                    return await dbconfig.collection_playerFeedback.findById(id, 'createTime playerId adminId topic result content')
-                                        .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin}).lean()
-                                        .then(
-                                            feedbackData => {
-                                                playerFeedBackData = feedbackData;
-                                                let qStartTime = new Date(feedbackData.createTime);
-                                                let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
+                                    let qStartTime = new Date(playerFeedBackData.createTime);
+                                    let qEndTime = query.days ? moment(qStartTime).add(query.days, 'day') : new Date();
 
-                                                return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime, null, true);
-                                            }
-                                        ).then(
-                                            data => {
-                                                data.feedback = playerFeedBackData;
+                                    let retData = await getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true);
+                                    retData.feedback = playerFeedBackData;
 
-                                                return data;
-                                            }
-                                        );
-                                    }
-                                )
+                                    return retData;
+                                })
                             );
                         }
                         else {
