@@ -10399,16 +10399,20 @@ let dbPlayerInfo = {
                                                 && playerObj.playerLevel.reward.bonusCreditLevelDown && !(playerObj.permission && playerObj.permission.banReward)) { // for player level maintain reward
                                                 if (platformPeriod) { // level down period same (both top up and consumption)
                                                     let rewardPeriodTime;
+                                                    let checkLevelDownPeriod; // period for checking consumption and top up
                                                     if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
                                                         rewardPeriodTime = dbUtil.getTodaySGTime();
+                                                        checkLevelDownPeriod = dbUtil.getYesterdaySGTime();
                                                     } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
                                                         rewardPeriodTime = dbUtil.getCurrentWeekSGTime();
+                                                        checkLevelDownPeriod = dbUtil.getLastWeekSGTime();
                                                     } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
                                                         rewardPeriodTime = dbUtil.getCurrentMonthSGTIme();
+                                                        checkLevelDownPeriod = dbUtil.getLastMonthSGTime();
                                                     }
 
                                                     if (rewardPeriodTime) {
-                                                        checkLevelMaintainReward(playerObj, rewardPeriodTime).catch(errorUtils.reportError);
+                                                        checkLevelMaintainReward(playerObj, rewardPeriodTime, checkLevelDownPeriod).catch(errorUtils.reportError);
                                                     }
                                                 }
                                             }
@@ -25418,40 +25422,73 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
     return recordSum;
 }
 
-async function checkLevelMaintainReward (playerObj, lvlDownPeriod) {
-    let proposalTypes = await dbconfig.collection_proposalType.find({
+async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDownPeriod) {
+    let levelMaintainProposalType = await dbconfig.collection_proposalType.findOne({
         platformId: playerObj.platform,
-        name: {$in: [constProposalType.PLAYER_LEVEL_MAINTAIN, constProposalType.PLAYER_LEVEL_MIGRATION, constProposalType.UPDATE_PLAYER_INFO_LEVEL]}
+        name: constProposalType.PLAYER_LEVEL_MAINTAIN
     }).lean();
 
-    if (!(proposalTypes && proposalTypes.length && proposalTypes.length == 3)) {
-        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
-    }
-
-    let rewardProm = await dbconfig.collection_proposal.findOne({
-        $or: [
-            {
-                $and: [
-                    {'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}},
-                    {'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]}}
-                ]
-            },
-            {
-                $and: [
-                    {'data._id': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}},
-                    {'data.platformId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]}}
-                ]
+    let levelProposalTypes = dbconfig.collection_proposalType.find({
+        platformId: playerObj.platform,
+        name: {$in: [constProposalType.PLAYER_LEVEL_MIGRATION, constProposalType.UPDATE_PLAYER_INFO_LEVEL]}
+    }).lean();
+    let canApplyLevelMaintain = await Promise.all([levelMaintainProposalType, levelProposalTypes]).then(
+        ([levelMaintainType, levelType]) => {
+            if (!levelMaintainType || !(levelType && levelType.length && levelType.length == 2)) {
+                return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
             }
-        ],
-        type: {$in: proposalTypes.map(proposalType => proposalType._id)},
-        createTime: {
-            $gte: lvlDownPeriod.startTime,
-            $lt: lvlDownPeriod.endTime
-        },
-        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
-    }).lean();
 
-    if (rewardProm) {
+            let rewardProm = dbconfig.collection_proposal.findOne({
+                'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
+                type: levelMaintainType._id,
+                createTime: {
+                    $gte: lvlDownPeriod.startTime,
+                    $lt: lvlDownPeriod.endTime
+                },
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
+            }).lean();
+
+            let levelProm = dbconfig.collection_proposal.findOne({
+                $or: [
+                    {
+                        $and: [
+                            {'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}},
+                            {'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]}}
+                        ]
+                    },
+                    {
+                        $and: [
+                            {'data._id': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}},
+                            {'data.platformId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]}}
+                        ]
+                    }
+                ],
+                type: {$in: levelType.map(proposalType => proposalType._id)},
+                createTime: {
+                    $gte: checkLevelDownPeriod.startTime,
+                    $lt: checkLevelDownPeriod.endTime
+                },
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
+            }).lean();
+
+            return Promise.all([rewardProm, levelProm]);
+        }
+    ).then(
+        ([rewardProposal, levelProposal]) => {
+            if (rewardProposal || levelProposal) {
+                return Promise.reject({name: "DataError", message: "Player claimed or level changed in the period"});
+            } else {
+                return true;
+            }
+        }
+    ).catch(
+        err => {
+            return false;
+        }
+    )
+
+    if (!canApplyLevelMaintain) {
         return Promise.resolve(); // player claimed reward in the period / player level changed in period
     }
 
