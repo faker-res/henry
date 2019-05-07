@@ -20003,39 +20003,34 @@ let dbPlayerInfo = {
                                 })
                             );
                         } else if (option.isFeedback) {
-                            let feedBackIds = playerObjIds;
-                            let feedbackData;
+                            return Promise.all(
+                                playerObjIds.map(async id => {
+                                    let playerFeedBackData;
 
-                            for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
-                                let prom;
+                                    return await dbconfig.collection_playerFeedback.findById(id, 'createTime playerId adminId topic result content')
+                                        .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin}).lean()
+                                        .then(
+                                            feedbackData => {
+                                                playerFeedBackData = feedbackData;
+                                                let qStartTime = new Date(feedbackData.createTime);
+                                                let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
 
-                                prom = dbconfig.collection_playerFeedback.findById(feedBackIds[p], 'createTime playerId adminId topic result content')
-                                    .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
-                                    .lean().then(
-                                        data => {
-                                            feedbackData = JSON.parse(JSON.stringify(data));
-                                            let qStartTime = new Date(feedbackData.createTime);
-                                            let qEndTime = query.days? moment(qStartTime).add(query.days, 'day'): new Date();
-                                            return getPlayerRecord([feedbackData.playerId], qStartTime, qEndTime, null, true);
-                                        }
-                                    ).then(
-                                        data => {
-                                            let playerRecord = JSON.parse(JSON.stringify(data));
-                                            if (typeof playerRecord === "object") {
-                                                playerRecord.feedback = feedbackData;
+                                                return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime, null, true);
                                             }
-                                            return playerRecord;
-                                        }
-                                    );
-                                proms.push(prom);
-                            }
+                                        ).then(
+                                            data => {
+                                                data.feedback = playerFeedBackData;
+
+                                                return data;
+                                            }
+                                        );
+                                    }
+                                )
+                            );
                         }
                         else {
                             return getPlayerRecord(playerObjIds, new Date(startTime), new Date(endTime), option, true);
                         }
-
-                        console.log('proms', proms);
-                        return Promise.all(proms.map(async e => await e));
                     },
                     error => {
                         return Promise.reject(error)
