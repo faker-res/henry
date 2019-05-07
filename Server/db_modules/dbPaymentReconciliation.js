@@ -16,6 +16,7 @@ const dbPaymentReconciliation = {
         let platformListQuery;
         let proposalTypeQuery;
         let platformIds = [];
+        let platformIdsList = [];
         let platformRecord = [];
 
         if(platformList && platformList.length > 0) {
@@ -27,11 +28,11 @@ const dbPaymentReconciliation = {
             proposalTypeQuery = {name: name};
         }
 
-        return dbconfig.collection_platform.find(platformListQuery, {platformId: 1, name: 1}).then(
+        return dbconfig.collection_platform.find(platformListQuery, {platformId: 1, name: 1, bonusSystemType: 1}).then(
             platformData => {
                 if (platformData && platformData.length > 0) {
                     for (let i = 0, len = platformData.length; i < len; i++) {
-                        platformIds.push(platformData[i].platformId);
+                        platformIdsList.push({platformId: platformData[i].platformId, paymentSystemId: platformData[i].bonusSystemType});
                         platformRecord.push({platformId: platformData[i].platformId, platformName: platformData[i].name});
                     }
 
@@ -51,39 +52,65 @@ const dbPaymentReconciliation = {
                     proposalTypeIds.push(proposalType[i]._id);
                 }
 
+                if (platformIdsList && platformIdsList.length > 0) {
+                    platformIdsList.forEach(platform => {
+                        if (platform && platform.platformId && platform.paymentSystemId) {
+                            let index = platformIds.map(e => e.paymentSystemId).indexOf(platform.paymentSystemId);
+
+                            if (index != -1) {
+                                platformIds[index].platforms.push(platform.platformId);
+                            } else {
+                                platformIds.push({paymentSystemId: platform.paymentSystemId, platforms: [platform.platformId]});
+                            }
+                        } else {
+                            let index = platformIds.map(e => e.paymentSystemId).indexOf(4);
+
+                            if (index != -1) {
+                                platformIds[index].platforms.push(platform.platformId);
+                            } else {
+                                platformIds.push({paymentSystemId: 4, platforms: [platform.platformId]});
+                            }
+                        }
+                    });
+                }
+
                 for (let t = 0, tLength = timeFrames.length; t < tLength; t++) {
                     let promises = [];
                     let start = timeFrames[t].startTime;
                     let end = timeFrames[t].endTime;
 
-                    let reqData = {
-                        platformIds: platformIds,
-                        startTime: getPMSTimeFormat(start),
-                        endTime: getPMSTimeFormat(end)
-                    };
+                    if (platformIds && platformIds.length > 0) {
+                        platformIds.forEach(payment => {
+                            let reqData = {
+                                platformIds: payment.platforms,
+                                startTime: getPMSTimeFormat(start),
+                                endTime: getPMSTimeFormat(end)
+                            };
 
-                    let pmsProm = RESTUtils.getPMS2Services("postCashoutList", reqData).then(
-                        data => {
-                            if (data && data.data && data.data.length > 0) {
-                                data.data.forEach(proposal => {
-                                    if (proposal && proposal.platformId && platformRecord && platformRecord.length > 0) {
-                                        let index = platformRecord.map(e => e.plaformId).indexOf(proposal.plaformId);
+                            let pmsProm = RESTUtils.getPMS2Services("postCashoutList", reqData, payment.paymentSystemId).then(
+                                data => {
+                                    if (data && data.data && data.data.length > 0) {
+                                        data.data.forEach(proposal => {
+                                            if (proposal && proposal.platformId && platformRecord && platformRecord.length > 0) {
+                                                let index = platformRecord.map(e => e.plaformId).indexOf(proposal.plaformId);
 
-                                        if (index != -1) {
-                                            proposal.platformName = platformRecord[index].platformName;
-                                        }
+                                                if (index != -1) {
+                                                    proposal.platformName = platformRecord[index].platformName;
+                                                }
+                                            }
+                                        });
+
+                                        return data.data;
+
+                                    } else {
+                                        return [];
                                     }
-                                });
+                                }
+                            );
 
-                                return data.data;
-
-                            } else {
-                                return [];
-                            }
-                        }
-                    );
-
-                    promises.push(pmsProm);
+                            promises.push(pmsProm);
+                        })
+                    }
 
                     let proposalQuery = {
                         type: {$in: proposalTypeIds},
@@ -109,7 +136,9 @@ const dbPaymentReconciliation = {
                             }
                         );
 
-                    allProm.push(Promise.all([pmsProm, proposalProm]));
+                    promises.push(proposalProm);
+
+                    allProm.push(Promise.all(promises));
                 }
 
                 return Promise.all(allProm);
@@ -169,6 +198,7 @@ const dbPaymentReconciliation = {
         let platformListQuery;
         let proposalTypeQuery;
         let platformIds = [];
+        let platformIdsList = [];
         let platformRecord = [];
         let name;
 
@@ -195,11 +225,11 @@ const dbPaymentReconciliation = {
             proposalTypeQuery = {name: name};
         }
 
-        return dbconfig.collection_platform.find(platformListQuery, {platformId: 1, name: 1}).then(
+        return dbconfig.collection_platform.find(platformListQuery, {platformId: 1, name: 1, topUpSystemType: 1}).then(
             platformData => {
                 if (platformData && platformData.length > 0) {
                     for (let i = 0, len = platformData.length; i < len; i++) {
-                        platformIds.push(platformData[i].platformId);
+                        platformIdsList.push({platformId: platformData[i].platformId, paymentSystemId: platformData[i].topUpSystemType});
                         platformRecord.push({platformId: platformData[i].platformId, platformName: platformData[i].name});
                     }
 
@@ -219,44 +249,70 @@ const dbPaymentReconciliation = {
                     proposalTypeIds.push(proposalType[i]._id);
                 }
 
+                if (platformIdsList && platformIdsList.length > 0) {
+                    platformIdsList.forEach(platform => {
+                       if (platform && platform.platformId && platform.paymentSystemId) {
+                           let index = platformIds.map(e => e.paymentSystemId).indexOf(platform.paymentSystemId);
+
+                           if (index != -1) {
+                               platformIds[index].platforms.push(platform.platformId);
+                           } else {
+                               platformIds.push({paymentSystemId: platform.paymentSystemId, platforms: [platform.platformId]});
+                           }
+                       } else {
+                           let index = platformIds.map(e => e.paymentSystemId).indexOf(4);
+
+                           if (index != -1) {
+                               platformIds[index].platforms.push(platform.platformId);
+                           } else {
+                               platformIds.push({paymentSystemId: 4, platforms: [platform.platformId]});
+                           }
+                       }
+                    });
+                }
+
                 for (let t = 0, tLength = timeFrames.length; t < tLength; t++) {
                     let promises = [];
                     let start = timeFrames[t].startTime;
                     let end = timeFrames[t].endTime;
-
-                    let reqData = {
-                        platformIds: platformIds,
-                        startTime: getPMSTimeFormat(start),
-                        endTime: getPMSTimeFormat(end)
-                    };
 
                     let serviceName = "postCashinList";
                     if (option === 'online') {
                         serviceName = "postOnlineCashinList";
                     }
 
-                    let pmsProm = RESTUtils.getPMS2Services(serviceName, reqData).then(
-                        data => {
-                            if (data && data.data && data.data.length > 0) {
-                                data.data.forEach(proposal => {
-                                    if (proposal && proposal.platformId && platformRecord && platformRecord.length > 0) {
-                                        let index = platformRecord.map(e => e.plaformId).indexOf(proposal.plaformId);
+                    if (platformIds && platformIds.length > 0) {
+                        platformIds.forEach(payment => {
+                            let reqData = {
+                                platformIds: payment.platforms,
+                                startTime: getPMSTimeFormat(start),
+                                endTime: getPMSTimeFormat(end)
+                            };
 
-                                        if (index != -1) {
-                                            proposal.platformName = platformRecord[index].platformName;
-                                        }
+                            let pmsProm = RESTUtils.getPMS2Services(serviceName, reqData, payment.paymentSystemId).then(
+                                data => {
+                                    if (data && data.data && data.data.length > 0) {
+                                        data.data.forEach(proposal => {
+                                            if (proposal && proposal.platformId && platformRecord && platformRecord.length > 0) {
+                                                let index = platformRecord.map(e => e.plaformId).indexOf(proposal.plaformId);
+
+                                                if (index != -1) {
+                                                    proposal.platformName = platformRecord[index].platformName;
+                                                }
+                                            }
+                                        });
+
+                                        return data.data;
+
+                                    } else {
+                                        return [];
                                     }
-                                });
+                                }
+                            );
 
-                                return data.data;
-
-                            } else {
-                                return [];
-                            }
-                        }
-                    );
-
-                    promises.push(pmsProm);
+                            promises.push(pmsProm);
+                        })
+                    }
 
                     let proposalQuery = {
                         type: {$in: proposalTypeIds},
@@ -430,15 +486,15 @@ function getMismatchFromProposalGroup(proposals, option) {
                 proposalId: localProposal.proposalId,
                 missing: "PMS",
                 createTime: localProposal.createTime,
-                amount: localProposal.data.amount,
+                amount: localProposal && localProposal.data && localProposal.data.amount ? localProposal.data.amount : 0,
                 platformId: localProposal.platformId,
                 platformName: localProposal.platformName
             });
             localMismatchCount++;
-            localMismatchAmount += localProposal.data.amount;
+            localMismatchAmount += localProposal && localProposal.data && localProposal.data.amount ? localProposal.data.amount : 0;
         }
         localCount++;
-        localAmount += localProposal.data.amount;
+        localAmount += localProposal && localProposal.data && localProposal.data.amount ? localProposal.data.amount : 0;
     }
 
     return {

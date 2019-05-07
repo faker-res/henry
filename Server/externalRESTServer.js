@@ -15,7 +15,9 @@ const constMessageClientTypes = require("./const/constMessageClientTypes");
 const skipTokenVerificationPaths = [
     "fkpNotify",
     "loginKeyServer",
-    "login"
+    "login",
+    "notifyPayment",
+    "notifyWithdrawal"
 ];
 
 app.use(function (req, res, next) {
