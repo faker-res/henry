@@ -42,7 +42,7 @@ var dbQualityInspection = {
         return connection;
     },
 
-    getAudioRecordData: function (startDate, endDate, data){
+    getAudioReportData: function (startDate, endDate, data){
         let index = data.index || 0;
         let limit = data.limit || 50;
 
@@ -67,13 +67,98 @@ var dbQualityInspection = {
                 )
             }
 
+            let queryObj = "SELECT * FROM cti_cdr_agentcall_statis WHERE seasonal_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
+            callerIdStringList = callerIdStringList && callerIdStringList.length > 0 ? callerIdStringList.substring(0,callerIdStringList.length - 1) : callerIdStringList;
+
+            if (callerIdStringList && callerIdStringList.length > 0){
+                queryObj = queryObj + " AND agentnum IN (" + callerIdStringList + ")";
+            }
+
+            console.log("checking queryObj", queryObj)
+
+            let sqlCSProm = dbQualityInspection.sqlExecutionAndReturnJsonParse(connection1,queryObj + " ORDER BY seasonal_time desc");
+            let sqlJiaBoProm = dbQualityInspection.sqlExecutionAndReturnJsonParse(connection2,queryObj + " ORDER BY seasonal_time desc");
+
+            return Promise.all([sqlCSProm, sqlJiaBoProm]).then(
+                data => {
+                    let csData = data && data[0] ? data[0] : [];
+                    let jiaBoData = data && data[1] ? data[1] : [];
+                    let totalSize = csData.length + jiaBoData.length;
+                    let dataset = [];
+                    dataset = dataset.concat(csData, jiaBoData);
+                    // sorting
+                    if (csData.length && jiaBoData.length){
+                        dataset.sort(function(a, b){return new Date(b.seasonal_time).getTime() - new Date(a.seasonal_time).getTime()});
+                    }
+
+                    if (dataset && dataset.length > limit){
+                        dataset = dataset.slice(index, index+limit)
+                    }
+                    return {
+                        data: dataset,
+                        size: totalSize
+                    }
+                }
+            )
+        }
+    },
+
+    sqlExecutionAndReturnJsonParse: function (connection, query){
+        connection.connect();
+
+        return new Promise((resolve,reject)=>{
+            connection.query(query, function (error, results, fields) {
+                if (error) {
+                    console.log(error);
+                }
+
+                connection.end();
+                resolve(results);
+
+            })
+        }).then(results => {
+            return results ? JSON.parse(JSON.stringify(results)) : [];
+        });
+    },
+
+    getAudioRecordData: function (startDate, endDate, data){
+        let index = data.index || 0;
+        let limit = data.limit || 50;
+        let callerIdStringList = "";
+
+        if (data && data.callerId && data.callerId.length){
+            data.callerId.forEach(
+                id => {
+                    if (id){
+                        callerIdStringList += "('" + id + "'),";
+                    }
+                }
+            )
+        }
+        else{
+            return {
+                data: [],
+                size: 0
+            }
+        }
+
+        if (startDate && endDate) {
+            let connection1 = dbQualityInspection.connectTel400CSMysql();
+            let connection2 = dbQualityInspection.connectTel400JiaBoMysql();
+
+            endDate = new Date(endDate);
+            endDate = endDate.getTime() - 1000;
+
+            let startTime = dbUtility.getLocalTimeString(startDate);
+            let endTime = dbUtility.getLocalTimeString(endDate);
+
             let queryObj = "SELECT * FROM cti_record AS A JOIN cti_cdr_call AS B ON A.record_uuid = B.callleg_uuid WHERE A.begintime BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME) AND A.record_status = '2'";
             let queryCount = "SELECT COUNT(*) AS total FROM cti_record as A JOIN cti_cdr_call AS B ON A.record_uuid = B.callleg_uuid WHERE A.begintime BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME) AND A.record_status = '2'";
             callerIdStringList = callerIdStringList && callerIdStringList.length > 0 ? callerIdStringList.substring(0,callerIdStringList.length - 1) : callerIdStringList;
 
             if (callerIdStringList && callerIdStringList.length > 0){
-                queryObj = queryObj + " AND A.exten_num IN (" + callerIdStringList + ")";
-                queryCount = queryCount + " AND A.exten_num IN (" + callerIdStringList + ")";
+                queryObj = queryObj + " AND A.agent_num IN (" + callerIdStringList + ")";
+                queryCount = queryCount + " AND A.agent_num IN (" + callerIdStringList + ")";
             }
 
             if (data && data.hasOwnProperty('callType')) {
