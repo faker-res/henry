@@ -9,7 +9,7 @@
     .col-md-12.search-filters-container#playerTable-search-filter.well
         .search-filters-item
             label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-            select#productName.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.selectLevelOnProductChange()', multiple, bsp, data-actions-box='true')
+            select#productName.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'PLAYER_ID' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
@@ -30,7 +30,7 @@
             label {{'LEVEL' | translate}}
             select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerLevel', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
                 option(value='') —
-                option(ng-repeat="(i,v) in vm.playerTableLevelOptions", value='{{v._id}}' ng-if='vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.platformList && vm.playerAdvanceSearchQuery.platformList.length == 1') {{v.name | translate}}
+                option(ng-repeat="(i,v) in vm.allPlayerLvl", value='{{v._id}}') {{v.name | translate}}
         .search-filters-item
             label {{'REGISTRATION_TIME' | translate}}
             #regDateTimePicker.datetimepicker.form-control

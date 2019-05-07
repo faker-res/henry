@@ -23673,25 +23673,6 @@ define(['js/app'], function (myApp) {
             })
         }
 
-        vm.selectLevelOnProductChange = function() {
-            if (vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.playerLevel) {
-                vm.playerAdvanceSearchQuery.playerLevel = "";
-            }
-
-            if (!(vm.playerLevelByAllPlatform && vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.platformList && vm.playerAdvanceSearchQuery.platformList.length == 1)) {
-                return;
-            }
-
-            for (let key in vm.playerLevelByAllPlatform) {
-                if (vm.playerLevelByAllPlatform[key].platform && vm.playerLevelByAllPlatform[key].playerLevel
-                    && vm.playerAdvanceSearchQuery.platformList[0] ==  String(vm.playerLevelByAllPlatform[key].platform)) {
-                    vm.playerTableLevelOptions = vm.playerLevelByAllPlatform[key].playerLevel;
-                    break;
-                }
-            }
-
-        }
-
     };
 
     let injectParams = [
