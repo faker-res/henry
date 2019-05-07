@@ -7710,21 +7710,34 @@ define(['js/app'], function (myApp) {
 
         vm.checkPlayerNameValidity = function (name, form, type) {
             if (!name) return;
-            vm.euPrefixNotExist = false;
+            // vm.euPrefixNotExist = false;
+            vm.wrongPrefix = false;
             if (type == 'edit' && name == vm.selectedSinglePlayer.name) {
                 vm.duplicateNameFound = false;
                 return;
             }
 
-            if (type !== 'edit' && vm.selectedPlatform.data.name === "EU8" && name && name.charAt(0) !== "e") {
-                vm.euPrefixNotExist = true;
-            }
-            form.$setValidity('euPrefixNotExist', !vm.euPrefixNotExist);
-            $scope.safeApply();
+            // if (type !== 'edit' && vm.selectedPlatform.data.name === "EU8" && name && name.charAt(0) !== "e") {
+            //     vm.euPrefixNotExist = true;
+            // }
+            // form.$setValidity('euPrefixNotExist', !vm.euPrefixNotExist);
 
             let platformObjId = vm.selectedPlatform.id;
             if(form && form.$name == "form_new_player" && vm.newPlayer && vm.newPlayer.platform){
                 platformObjId = vm.newPlayer.platform;
+
+                if (type !== 'edit') {
+                    let platformData = vm.allPlatformData.find(platform => platform._id == platformObjId);
+                    if (platformData.prefix && !name.startsWith(platformData.prefix)) {
+                        vm.wrongPrefix = true;
+                    }
+                }
+            }
+            form.$setValidity('wrongPrefix', !vm.wrongPrefix);
+            $scope.safeApply();
+
+            if (vm.wrongPrefix) {
+                return;
             }
 
             socketService.$socket($scope.AppSocket, 'checkPlayerNameValidity', {
