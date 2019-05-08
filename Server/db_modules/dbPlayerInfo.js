@@ -20037,7 +20037,7 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     data => {
-                        console.log('getConsumptionDetailOfPlayers - end', data);
+                        console.log('getConsumptionDetailOfPlayers - end');
                         data = data.filter(result => {
                             return result !== "";
                         });
@@ -20045,8 +20045,12 @@ let dbPlayerInfo = {
                         let retArr = [];
                         data.forEach(
                             e => {
-                                if (e && e.length) {
-                                    e.forEach(f => f && f.length && retArr.push(f))
+                                if (Array.isArray(e)) {
+                                    if (e && e.length) {
+                                        e.forEach(f => {
+                                            retArr.push(f);
+                                        })
+                                    }
                                 }
                                 else {
                                     retArr.push(e);
