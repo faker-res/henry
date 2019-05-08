@@ -3715,27 +3715,12 @@ define(['js/app'], function (myApp) {
             vm.getAudioReportData = function (newSearch){
                 $('#csAudioReportTableSpin').show();
 
-                if(!vm.audioReportSearching || (vm.audioReportSearching && !vm.audioReportSearching.platform) || (vm.audioReportSearching && vm.audioReportSearching.platform && vm.audioReportSearching.platform.length == 0)){
-                    $('#csAudioReportTableSpin').hide();
-                    return socketService.showErrorMessage($translate("Please select platform to search the data"))
-                }
-
                 let tempCallerIdList = [];
                 if ((vm.audioReportSearching && !vm.audioReportSearching.callerId) || (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length == 0)) {
                     if (vm.audioReportSearching && vm.audioReportSearching.csObjId && vm.audioReportSearching.csObjId.length) {
                         vm.audioReportSearching.callerId = vm.callerIdList || [];
-                    } else if (vm.audioReportSearching.platform && vm.audioReportSearching.platform.length) {
-                        vm.csAccountList.forEach(
-                            csData => {
-                                if (csData && csData.callerId && csData.platformObjId && vm.audioReportSearching.platform.includes(csData.platformObjId)) {
-                                    tempCallerIdList.push(csData.callerId)
-                                }
-                            }
-                        );
-                        if (tempCallerIdList && tempCallerIdList.length) {
-                            vm.audioReportSearching.callerId = tempCallerIdList;
-                        }
-                    } else {
+                    }
+                    else {
                         vm.csAccountList.forEach(
                             csData => {
                                 if (csData && csData.callerId) {
@@ -3766,7 +3751,7 @@ define(['js/app'], function (myApp) {
                         let index = vm.csAccountList.findIndex(p => p.callerId == item.agentNum)
                         if (index != -1){
                             item.adminName = vm.csAccountList[index].adminName;
-                            item.platformName = vm.csAccountList[index].platformName;
+                            // item.platformName = vm.csAccountList[index].platformName;
                         }
 
                         if(item.startDate){
@@ -3794,10 +3779,10 @@ define(['js/app'], function (myApp) {
                     ],
 
                     columns: [
-                        {
-                            title: $translate('PRODUCT_NAME'),
-                            data: "platformName",
-                        },
+                        // {
+                        //     title: $translate('PRODUCT_NAME'),
+                        //     data: "platformName",
+                        // },
                         {
                             title: 'FPMS' + $translate('CS Account'),
                             data: "adminName",
@@ -3888,6 +3873,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initCSAudioSystem = function(){
+                // to get the cs admin
+                vm.getCSList();
                 vm.initAudioRecordingReport();
             };
 
@@ -3920,20 +3907,14 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.getCsByPlatform = function (selectedPlatformList){
+            vm.getCSList = function () {
                 let csDepartmentObjIdList = [];
                 vm.csAccountList = [];
-                if (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length){
-                    vm.audioReportSearching.callerId = [];
-                }
-                if (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length){
-                    vm.audioRecordSearching.callerId = [];
-                }
 
-                if(selectedPlatformList && selectedPlatformList.length){
+                if(vm.platformList && vm.platformList.length){
                     vm.platformList.forEach(
                         platformData => {
-                            if (platformData && platformData.data && platformData.data._id && selectedPlatformList.includes(platformData.data._id.toString()) && platformData.data.csDepartment && platformData.data.csDepartment.length){
+                            if (platformData && platformData.data && platformData.data.csDepartment && platformData.data.csDepartment.length){
                                 platformData.data.csDepartment.forEach(
                                     csDepartmentData => {
                                         if (csDepartmentData && csDepartmentData._id){
@@ -3998,28 +3979,12 @@ define(['js/app'], function (myApp) {
 
             vm.getAudioRecordData = function (newSearch){
                 $('#csAudioRecordTableSpin').show();
-
-                if(!vm.audioRecordSearching || (vm.audioRecordSearching && !vm.audioRecordSearching.platform) || (vm.audioRecordSearching && vm.audioRecordSearching.platform && vm.audioRecordSearching.platform.length == 0)){
-                    $('#csAudioRecordTableSpin').hide();
-                    return socketService.showErrorMessage($translate("Please select platform to search the data"))
-                }
-
                 let tempCallerIdList = [];
                 if ((vm.audioRecordSearching && !vm.audioRecordSearching.callerId) || (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length == 0)) {
                     if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length) {
                         vm.audioRecordSearching.callerId = vm.callerIdList || [];
-                    } else if (vm.audioRecordSearching.platform && vm.audioRecordSearching.platform.length) {
-                        vm.csAccountList.forEach(
-                            csData => {
-                                if (csData && csData.callerId && csData.platformObjId && vm.audioRecordSearching.platform.includes(csData.platformObjId)) {
-                                    tempCallerIdList.push(csData.callerId)
-                                }
-                            }
-                        );
-                        if (tempCallerIdList && tempCallerIdList.length) {
-                            vm.audioRecordSearching.callerId = tempCallerIdList;
-                        }
-                    } else {
+                    }
+                    else {
                         vm.csAccountList.forEach(
                             csData => {
                                 if (csData && csData.callerId) {
@@ -4067,10 +4032,10 @@ define(['js/app'], function (myApp) {
                     ],
 
                     columns: [
-                        {
-                            title: $translate('PRODUCT_NAME'),
-                            data: "platformName",
-                        },
+                        // {
+                        //     title: $translate('PRODUCT_NAME'),
+                        //     data: "platformName",
+                        // },
                         {
                             title: 'FPMS' + $translate('CS Account'),
                             data: "adminName",

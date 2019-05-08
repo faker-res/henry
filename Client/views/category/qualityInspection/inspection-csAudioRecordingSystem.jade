@@ -20,9 +20,9 @@ div(ng-if="vm.curPlatformText")
                 .panel-body.common-right-panel-body
                     div(ng-show="vm.audioSystemTab == 'audioRecord'")
                         #audioRecordDiv.tab-pane.fade.in.active.well
-                            .search-filters-item
-                                label {{"PRODUCT" |translate}}
-                                select.form-control(ng-change='vm.getCsByPlatform(vm.audioRecordSearching.platform)',ng-model='vm.audioRecordSearching.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
+                            //.search-filters-item
+                            //    label {{"PRODUCT" |translate}}
+                            //    select.form-control(ng-change='vm.getCsByPlatform(vm.audioRecordSearching.platform)',ng-model='vm.audioRecordSearching.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
                             .search-filters-item
                                 label FPMS {{"CS Account" | translate}}
                                 select.form-control(ng-model='vm.audioRecordSearching.csObjId', ng-change='vm.getCallerId(vm.audioRecordSearching.csObjId)', ng-options='admin._id as admin.adminName for admin in vm.csAccountList', multiple, bsp, data-actions-box='true')
@@ -68,9 +68,9 @@ div(ng-if="vm.curPlatformText")
                         #AudioRecordTablePage
                     div(ng-show="vm.audioSystemTab == 'audioReport'" )
                         #audioReportDiv.tab-pane.fade.in.active.well
-                            .search-filters-item
-                                label {{"PRODUCT" |translate}}
-                                select.form-control(ng-change='vm.getCsByPlatform(vm.audioReportSearching.platform)',ng-model='vm.audioReportSearching.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
+                            //.search-filters-item
+                            //    label {{"PRODUCT" |translate}}
+                            //    select.form-control(ng-change='vm.getCsByPlatform(vm.audioReportSearching.platform)',ng-model='vm.audioReportSearching.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
                             .search-filters-item
                                 label FPMS {{"CS Account" | translate}}
                                 select.form-control(ng-model='vm.audioReportSearching.csObjId', ng-change='vm.getCallerId(vm.audioReportSearching.csObjId)', ng-options='admin._id as admin.adminName for admin in vm.csAccountList', multiple, bsp, data-actions-box='true')
