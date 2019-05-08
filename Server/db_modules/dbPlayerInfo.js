@@ -20016,7 +20016,9 @@ let dbPlayerInfo = {
                                     let qEndTime = query.days ? moment(qStartTime).add(query.days, 'day') : new Date();
 
                                     let retData = await getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true);
-                                    retData[0].feedback = playerFeedBackData;
+                                    if (retData && retData[0]) {
+                                        retData[0].feedback = playerFeedBackData;
+                                    }
 
                                     return retData;
                                 })
