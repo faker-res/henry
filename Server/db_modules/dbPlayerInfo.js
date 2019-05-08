@@ -14324,12 +14324,17 @@ let dbPlayerInfo = {
                     closeMusic: closeMusic || false
                 };
 
+                if (gameData && gameData.orientationSetting) {
+                    console.log('MT --checking orientation setting', gameData.orientationSetting);
+                }
+
                 if (gameData && gameData.orientationSetting && gameData.orientationSetting[playerData.platform._id]) {
                     sendData.orientation = gameData.orientationSetting[playerData.platform.platformId];
                 }
                 if (tableCode) {
                     sendData.tableCode = tableCode
                 }
+                console.log('MT --checking sendData', sendData);
 
                 return cpmsAPI.player_getLoginURL(sendData);
             },
@@ -14485,9 +14490,13 @@ let dbPlayerInfo = {
                         ip: ip,
                         clientType: clientType || 1
                     };
+                    if (gameData && gameData.orientationSetting) {
+                        console.log('MT --checking orientation setting', gameData.orientationSetting);
+                    }
                     if (gameData && gameData.orientationSetting && gameData.orientationSetting[platformData._id]) {
                         sendData.orientation = gameData.orientationSetting[platformData._id];
                     }
+                    console.log('MT --checking sendData', sendData);
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     return cpmsAPI.player_getTestLoginURLWithOutUser(sendData);
                 } else {
@@ -20045,16 +20054,18 @@ let dbPlayerInfo = {
                         let retArr = [];
                         data.forEach(
                             e => {
-                                if (e && e.length) {
-                                    e.forEach(f => {
-                                        retArr.push(f);
-                                    })
+                                if (Array.isArray(e)) {
+                                    if (e && e.length) {
+                                        e.forEach(f => {
+                                            retArr.push(f);
+                                        })
+                                    }
                                 }
                                 else {
                                     retArr.push(e);
                                 }
                             }
-                        )
+                        );
 
                         return retArr;
                     }
@@ -20541,6 +20552,82 @@ let dbPlayerInfo = {
                     result.bonusAmount = bonusDetail && bonusDetail.amount ? bonusDetail.amount : 0;
                     result.bonusTimes = bonusDetail && bonusDetail.count ? bonusDetail.count : 0;
 
+                    if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator && query.topUpTimesValue !== null) {
+                        let isRelevant = false;
+
+                        switch (query.topUpTimesOperator) {
+                            case '>=':
+                                isRelevant = result.topUpTimes >= query.topUpTimesValue;
+                                break;
+                            case '=':
+                                isRelevant = result.topUpTimes === Number(query.topUpTimesValue);
+                                break;
+                            case '<=':
+                                isRelevant = result.topUpTimes >= query.topUpTimesValue;
+                                break;
+                            case 'range':
+                                if (query.topUpTimesValueTwo) {
+                                    isRelevant = result.topUpTimes >= query.topUpTimesValue && result.topUpTimes <= query.topUpTimesValueTwo;
+                                }
+                                break;
+                        }
+
+                        if (!isRelevant) {
+                            return "";
+                        }
+                    }
+
+                    if ((query.bonusTimesValue || Number(query.bonusTimesValue) === 0) && query.bonusTimesOperator && query.bonusTimesValue !== null) {
+                        let isRelevant = false;
+
+                        switch (query.bonusTimesOperator) {
+                            case '>=':
+                                isRelevant = result.bonusTimes >= query.bonusTimesValue;
+                                break;
+                            case '=':
+                                isRelevant = result.bonusTimes === Number(query.bonusTimesValue);
+                                break;
+                            case '<=':
+                                isRelevant =  result.bonusTimes <= query.bonusTimesValue;
+                                break;
+                            case 'range':
+                                if (query.bonusTimesValueTwo) {
+                                    isRelevant = result.bonusTimes >= query.bonusTimesValue && result.bonusTimes <= query.bonusTimesValueTwo;
+                                }
+                                break;
+                        }
+
+                        if (!isRelevant) {
+                            return "";
+                        }
+                    }
+
+                    if ((query.topUpAmountValue || Number(query.topUpAmountValue) === 0) && query.topUpAmountOperator && query.topUpAmountValue !== null) {
+                        let isRelevant = false;
+
+                        switch (query.topUpAmountOperator) {
+                            case '>=':
+                                isRelevant = result.topUpAmount >= query.topUpAmountValue;
+                                break;
+                            case '=':
+                                isRelevant = result.topUpAmount === Number(query.topUpAmountValue);
+                                break;
+                            case '<=':
+                                isRelevant = result.topUpAmount <= query.topUpAmountValue;
+                                break;
+                            case 'range':
+                                if (query.topUpAmountValueTwo) {
+                                    isRelevant = result.topUpAmount >= query.topUpAmountValue && result.topUpAmount <= query.topUpAmountValueTwo;
+                                }
+                                break;
+                        }
+
+                        if (!isRelevant) {
+                            return "";
+                        }
+                    }
+
+                    // reward related
                     result.rewardAmount = 0;
                     result.consumptionReturnAmount = 0;
 
