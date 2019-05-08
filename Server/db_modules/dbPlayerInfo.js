@@ -24690,7 +24690,7 @@ let dbPlayerInfo = {
                 requests: sendObjArr
             };
 
-            return RESTUtils.getPMS2Services("postBatchTopupStatus", data, topUpSystemType);
+            return RESTUtils.getPMS2Services("postBatchTopupStatus", data);
         }
 
         function getPlayerTopupChannelPermission (player) {
@@ -24705,7 +24705,7 @@ let dbPlayerInfo = {
                 if (sendObj) {
                     sendObj.timestamp = Date.now();
 
-                    return RESTUtils.getPMS2Services("patchTopupStatus", sendObj, topUpSystemType)
+                    return RESTUtils.getPMS2Services("patchTopupStatus", sendObj)
                 }
             }
         );

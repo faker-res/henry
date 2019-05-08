@@ -5258,7 +5258,7 @@ function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, p
             accountNumber: accNo
         };
 
-        prom = RESTUtils.getPMS2Services("postBankCard", options);
+        prom = RESTUtils.getPMS2Services("postBankCard", options, paymentSystemId);
     }
 
     return prom.then(
