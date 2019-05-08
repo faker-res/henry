@@ -20222,7 +20222,7 @@ let dbPlayerInfo = {
             }
 
             //use summary
-            console.log('consumptionProm start', playerObjId);
+            console.log('consumptionProm start', consumptionPromMatchObj);
             let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
                 {
                     $match: consumptionPromMatchObj
