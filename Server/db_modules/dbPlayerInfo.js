@@ -20242,8 +20242,10 @@ let dbPlayerInfo = {
                     }
                 }
             ]).allowDiskUse(true).read("secondaryPreferred").then(
-                console.log('consumptionProm done', playerObjId);
-                data => dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'})
+                data => {
+                    console.log('consumptionProm done', playerObjId);
+                    return dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'});
+                }
             );
 
             let topupAndBonusProm = dbconfig.collection_proposal.aggregate([
