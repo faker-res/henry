@@ -14324,12 +14324,17 @@ let dbPlayerInfo = {
                     closeMusic: closeMusic || false
                 };
 
+                if (gameData && gameData.orientationSetting) {
+                    console.log('MT --checking orientation setting', gameData.orientationSetting);
+                }
+
                 if (gameData && gameData.orientationSetting && gameData.orientationSetting[playerData.platform._id]) {
                     sendData.orientation = gameData.orientationSetting[playerData.platform.platformId];
                 }
                 if (tableCode) {
                     sendData.tableCode = tableCode
                 }
+                console.log('MT --checking sendData', sendData);
 
                 return cpmsAPI.player_getLoginURL(sendData);
             },
@@ -14485,9 +14490,13 @@ let dbPlayerInfo = {
                         ip: ip,
                         clientType: clientType || 1
                     };
+                    if (gameData && gameData.orientationSetting) {
+                        console.log('MT --checking orientation setting', gameData.orientationSetting);
+                    }
                     if (gameData && gameData.orientationSetting && gameData.orientationSetting[platformData._id]) {
                         sendData.orientation = gameData.orientationSetting[platformData._id];
                     }
+                    console.log('MT --checking sendData', sendData);
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     return cpmsAPI.player_getTestLoginURLWithOutUser(sendData);
                 } else {

@@ -543,7 +543,7 @@ var dbGame = {
         .then( data => {
             if (data) {
                 orientationSetting = data.orientationSetting ? data.orientationSetting : {};
-                orientationSetting[platformObjId] = orientation;
+                orientationSetting[platformObjId] = String(orientation);
                 updateData = { 'orientationSetting': orientationSetting }
 
                 return dbconfig.collection_game.findOneAndUpdate(
