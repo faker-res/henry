@@ -20046,9 +20046,7 @@ let dbPlayerInfo = {
                         data.forEach(
                             e => {
                                 if (e && e.length) {
-                                    e.forEach(f => {
-                                        retArr.push(f);
-                                    })
+                                    e.forEach(f => f && f.length && retArr.push(f))
                                 }
                                 else {
                                     retArr.push(e);
