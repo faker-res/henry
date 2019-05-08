@@ -20242,6 +20242,7 @@ let dbPlayerInfo = {
                     }
                 }
             ]).allowDiskUse(true).read("secondaryPreferred").then(
+                console.log('consumptionProm done', playerObjId);
                 data => dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'})
             );
 
@@ -20325,6 +20326,8 @@ let dbPlayerInfo = {
                 path: 'platformFee.gameProvider',
                 model: dbconfig.collection_gameProvider
             }).lean();
+
+            console.log('getConsumptionDetailOfPlayers getPlayerRecord - start promise all');
 
             let [players, gameDetail, topUpAndBonusDetail, rewardDetail, csOfficerDetail, feeDetail] = await Promise.all([
                 Promise.resolve(playerData), consumptionProm, topupAndBonusProm, rewardProm, promoteWayProm, feeProm]);
