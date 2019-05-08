@@ -14329,7 +14329,7 @@ let dbPlayerInfo = {
                 }
 
                 if (gameData && gameData.orientationSetting && gameData.orientationSetting[playerData.platform._id]) {
-                    sendData.orientation = gameData.orientationSetting[playerData.platform.platformId];
+                    sendData.orientation = gameData.orientationSetting[playerData.platform._id];
                 }
                 if (tableCode) {
                     sendData.tableCode = tableCode
