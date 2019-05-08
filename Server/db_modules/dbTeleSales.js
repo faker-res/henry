@@ -539,6 +539,7 @@ let dbTeleSales = {
                 return dbconfig.collection_tsAssignee.find({
                     platform: inputData.platform,
                     tsPhoneList: inputData.tsListObjId,
+                    noDistribute: {$in: [null, false]},
                     status: 1
                 }).lean();
             }
@@ -865,6 +866,7 @@ let dbTeleSales = {
                             adminName: assignee.adminName,
                             admin: assignee.admin || admin._id,
                             status: assignee.status,
+                            noDistribute: false,
                             createTime: assignee.createTime || new Date
                         };
                         let updateQuery = {
@@ -989,6 +991,7 @@ let dbTeleSales = {
         let assigneeProm = dbconfig.collection_tsAssignee.find({
             platform: platformObjId,
             tsPhoneList: tsPhoneListObjId,
+            // noDistribute: {$in: [null, true]},
             adminName: {
                 $in: adminNames
             }

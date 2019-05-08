@@ -216,12 +216,32 @@ var dbUtility = {
         };
     },
 
-    getNumberOfDays: function (startData, endDate) {
+    getNumberOfHours: function (startDate, endDate) {
+        // The number of milliseconds in one hour
+        let oneHour = 1000*60*60;
+
+        // Convert both dates to milliseconds
+        let date1 = new Date(startDate).getTime();
+        let date2 = new Date(endDate).getTime();
+
+        // Calculate the difference in milliseconds
+        let difference = Math.abs(date1 - date2);
+
+        // Convert back to days and return
+        return Math.ceil(difference/oneHour);
+    },
+
+    getNumberOfMonths: function (startDate, endDate) {
+
+        return new Date(endDate).getMonth() - new Date(startDate).getMonth() + (12 * (new Date(endDate).getFullYear() - new Date(startDate).getFullYear())) + 1;
+    },
+
+    getNumberOfDays: function (startDate, endDate) {
         // The number of milliseconds in one day
         let oneDay = 1000 * 60 * 60 * 24;
 
         // Convert both dates to milliseconds
-        let date1 = new Date(startData).getTime();
+        let date1 = new Date(startDate).getTime();
         let date2 = new Date(endDate).getTime();
 
         // Calculate the difference in milliseconds
@@ -1284,7 +1304,6 @@ var dbUtility = {
                     inputDevice = 2;
             }
             else {
-                console.log(userAgent);
                 if(userAgent.browser){
                     // WEB
                     inputDevice = 1;

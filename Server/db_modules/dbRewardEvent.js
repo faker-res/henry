@@ -557,6 +557,7 @@ var dbRewardEvent = {
                     case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                     case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                     case constRewardType.BACCARAT_REWARD_GROUP:
+                    case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
                         if (rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && rewardEvent.condition && !rewardEvent.condition.hasOwnProperty('definePlayerLoginMode')){
                             return Promise.reject({
                                 name: "DataError",

@@ -5845,7 +5845,7 @@ define(['js/app'], function (myApp) {
                     var gameDetail = [];
                     if (holder.gameDetail) {
                         for (let i = 0; i < holder.gameDetail.length; i++) {
-                            if (holder.gameDetail[i].providerId.toString() == data.providerId.toString()) {
+                            if (holder.gameDetail[i].providerId._id.toString() == data.providerId.toString()) {
                                 gameDetail.push(holder.gameDetail[i]);
                             }
                         }
@@ -6409,6 +6409,13 @@ define(['js/app'], function (myApp) {
             }
             else {
                 newproposalQuery.relatedAccount = null;
+            }
+
+            if (!newproposalQuery.platformList || !newproposalQuery.platformList.length) {
+                if (!vm.platformList || !vm.platformList.length) {
+                    return;
+                }
+                newproposalQuery.platformList = vm.platformList.map(platform => platform._id);
             }
 
             $('#proposalTableSpin').show();

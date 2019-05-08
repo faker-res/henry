@@ -52,6 +52,15 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getPlatform, [data], actionName, isValidData);
         },
         /**
+         * Get provider list by platformName or _id
+         * @param {json} data - Query data. It has to contain platformName or _id
+         */
+        getProviderListByPlatform: function getProviderListByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            socketUtil.emitter(self.socket, dbPlatform.getProviderListByPlatform, [data], actionName, isValidData);
+        },
+        /**
          * Get all  platforms
          * @param {json} data - It has to contain platform data - refer the "platform" schema
          */
