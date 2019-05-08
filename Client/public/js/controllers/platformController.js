@@ -25465,6 +25465,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.loadPromoCodeTemplate = function (platformObjId) {
+                vm.getPlatformProviderGroup(platformObjId);
                 vm.promoCodeTemplateData = [];
                 let sendData = {
                     platformObjId: platformObjId || vm.selectedPlatform.id,
@@ -25491,6 +25492,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.loadOpenPromoCodeTemplate = function (platformObjId) {
+                vm.getPlatformProviderGroup(platformObjId);
                 let sendData = {
                     platformObjId: platformObjId || vm.selectedPlatform.id,
                     isProviderGroup: true,
