@@ -1414,6 +1414,7 @@ db.rewardParam.update({
                 rewardParam: {
                     festivalName: {type: "text", des: "Festival Name"},
                     title: {type: "text", des: "Festival Title"},
+                    festivalId: {type: "select", options: "allFestivals", des: "festival"},
                     month: { type: "text", des: "Festival Month"},
                     day: { type: "text", des: "Festival Day"},
                     topUpReturnReward: {type: "text", des: "Top Up Return Reward"},
@@ -1432,7 +1433,8 @@ db.rewardParam.update({
                     remark: {type: "text", des: "Remark"},
                 }
             },
-            tblOptDynamic: {}
+            tblOptDynamic: {},
+            others:{}
         }
     }
 }, {
