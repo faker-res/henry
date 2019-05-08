@@ -20242,10 +20242,7 @@ let dbPlayerInfo = {
                     }
                 }
             ]).allowDiskUse(true).read("secondaryPreferred").then(
-                data => {
-                    console.log('consumptionProm done', data);
-                    return dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'});
-                }
+                data => dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'})
             );
 
             let topupAndBonusProm = dbconfig.collection_proposal.aggregate([
@@ -20273,14 +20270,6 @@ let dbPlayerInfo = {
                         amount: {"$sum": "$data.amount"}
                     }
                 }
-                // {
-                //     "$group": {
-                //         "_id": "$type",
-                //         "typeId": {"$first": "$type"},
-                //         "count": {"$sum": 1},
-                //         "amount": {"$sum": "$data.amount"}
-                //     }
-                // }
             ]).allowDiskUse(true).read("secondaryPreferred").then(
                 data => {
                     console.log('topupAndBonusProm done', playerObjId);
@@ -20339,6 +20328,8 @@ let dbPlayerInfo = {
 
             let [players, gameDetail, topUpAndBonusDetail, rewardDetail, csOfficerDetail, feeDetail] = await Promise.all([
                 Promise.resolve(playerData), consumptionProm, topupAndBonusProm, rewardProm, promoteWayProm, feeProm]);
+
+            console.log('getConsumptionDetailOfPlayers getPlayerRecord - all promise done');
 
             if (players && players.length) {
                 let retArr = [];
@@ -20755,7 +20746,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    console.log('getConsumptionDetailOfPlayers getPlayerRecord - returning', result);
+                    console.log('getConsumptionDetailOfPlayers getPlayerRecord - returning');
                     retArr.push(result);
                 })
 
