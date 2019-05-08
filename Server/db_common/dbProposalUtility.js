@@ -139,11 +139,15 @@ const dbProposalUtility = {
             console.log("checking intervalTimeForLoginMode3", intervalTimeForLoginMode3)
         }
 
-        if(rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && rewardEvent.condition
-            && rewardEvent.condition.definePlayerLoginMode && rewardEvent.condition.definePlayerLoginMode == 3 && retentionApplicationDate &&
-            intervalTimeForLoginMode3 && intervalTimeForLoginMode3.endTime > new Date()){
-
-            matchQuery['data.retentionApplicationDate'] = {$gte: intervalTimeForLoginMode3.startTime, $lte: intervalTimeForLoginMode3.endTime};
+        if(rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP ){
+            matchQuery['data.retentionApplicationDate'] = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            if (rewardEvent.condition && rewardEvent.condition.definePlayerLoginMode && rewardEvent.condition.definePlayerLoginMode == 3 && retentionApplicationDate &&
+                intervalTimeForLoginMode3 && intervalTimeForLoginMode3.endTime > new Date()) {
+                matchQuery['data.retentionApplicationDate'] = {
+                    $gte: intervalTimeForLoginMode3.startTime,
+                    $lte: intervalTimeForLoginMode3.endTime
+                };
+            }
         }
         else{
             matchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
