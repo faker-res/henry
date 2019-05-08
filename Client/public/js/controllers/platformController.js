@@ -30003,9 +30003,9 @@ define(['js/app'], function (myApp) {
                     vm.filterCredibilityRemarks = JSON.parse(JSON.stringify(vm.credibilityRemarks));
                     vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                     setTimeout(()=>{
-                        vm.setupRemarksMultiInputFeedback();
-                        vm.setupRemarksMultiInputFeedbackFilter();
-                    },1);
+                        $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                        $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
+                    },100);
                 }
             };
             vm.getAllCredibilityRemarks = () => {
@@ -37103,15 +37103,26 @@ define(['js/app'], function (myApp) {
                     playerType: 'Real Player (all)',
                     playerLevel: 'all',
                     callPermission: 'all',
-                    schedule: []
+                    schedule: [],
+                    credibilityRemarks: [],
+                    filterCredibilityRemarks: [],
+                    filterFeedbackTopic: [],
+                    gameProviderId: []
                 };
+                vm.allPlayerLvl = {};
+                vm.credibilityRemarks = {};
+                vm.filterCredibilityRemarks = {};
+                vm.allCurrentPlatformGameProviders = {};
+                vm.currentPlatformQueryDepartments = {};
+                vm.queryRoles = {};
+                vm.queryAdmins = {};
 
                 vm.autoFeedbackMission.channel = null;
                 if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
                     if ($scope.usableChannelList.includes(2)) {
                         vm.autoFeedbackMission.channel = 2; //set default sms channel
                     } else {
-                        vm.autoFeedbackMission.channel = $scope.usableChannelList[0];
+                        vm.autoFeedbackMission.channel = $scope.usableChannelList[0].toString();
                     }
                 }
 
@@ -37124,15 +37135,18 @@ define(['js/app'], function (myApp) {
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker',
                     utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
-                    vm.setupRemarksMultiInputFeedback();
-                    vm.setupRemarksMultiInputFeedbackFilter();
-                    vm.setupMultiInputFeedbackTopicFilter();
-                    vm.setupGameProviderMultiInputFeedback();
-
                     vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+
+                    vm.refreshSPicker();
+                    setTimeout(()=>{
+                        $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                        $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
+                        $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
+                        $('select#selectGameProvider').multipleSelect('refresh');
+                    },100)
                 });
             };
             vm.autoFeedbackCreateMission = function() {
@@ -37161,17 +37175,14 @@ define(['js/app'], function (myApp) {
                 vm.selectedAutoFeedbackTab = "create";
                 vm.autoFeedbackEditStatus = true;
                 vm.autoFeedbackUpdateMissionStatus = '';
-                vm.autoFeedbackMission = {};
-                vm.autoFeedbackMission.platformObjId = data.platformObjId;
-                vm.getAllPlayerLevelsLocal();
-                vm.getCredibilityRemarksLocal();
-                vm.getAllGameProvidersLocal();
+                vm.autoFeedbackMission = JSON.parse(JSON.stringify(data));
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
-                    // vm.setupRemarksMultiInputFeedback();
-                    // vm.setupRemarksMultiInputFeedbackFilter();
-                    vm.setupMultiInputFeedbackTopicFilter();
-                    // vm.setupGameProviderMultiInputFeedback();
-                    vm.autoFeedbackMission = data;
+                    vm.getAllPlayerLevelsLocal();
+                    vm.getCredibilityRemarksLocal();
+                    vm.getAllGameProvidersLocal();
+                    vm.loadDepartmentLocal();
+                    vm.setQueryRole(vm.autoFeedbackMission);
+                    vm.setQueryAdmins(vm.autoFeedbackMission);
                     if(!vm.autoFeedbackMission.schedule) {
                         vm.autoFeedbackMission.schedule = [];
                     }
@@ -37190,11 +37201,7 @@ define(['js/app'], function (myApp) {
                     vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
 
-                    $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
-                    $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
                     $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
-                    $('select#selectGameProvider').multipleSelect('refresh');
-                    vm.refreshSPicker();
                 });
             };
             vm.autoFeedbackUpdateMission = function() {
