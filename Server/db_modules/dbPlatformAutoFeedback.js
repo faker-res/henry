@@ -272,6 +272,9 @@ let dbPlatformAutoFeedback = {
                     let playerQuery = {platform: platformObjId};
 
                     let addMultipleOr = function (orArr) {
+                        if(!orArr || !orArr.length) {
+                            return;
+                        }
                         if (playerQuery.$and) {
                             playerQuery.$and.push({$or: orArr});
                         } else {
@@ -638,7 +641,8 @@ let dbPlatformAutoFeedback = {
                                                                 newPromoCodeEntry.hasAutoFeedbackMissionObjId = true;
                                                                 newPromoCodeEntry.autoFeedbackMissionScheduleNumber = curScheduleNumber;
                                                                 newPromoCodeEntry.allowedSendSms = true;
-                                                                return {
+
+                                                                let returnData = {
                                                                     platformObjId: player.platform,
                                                                     newPromoCodeEntry: newPromoCodeEntry,
                                                                     adminObjId: null,
@@ -650,7 +654,12 @@ let dbPlatformAutoFeedback = {
                                                                         result: item.feedbackResult,
                                                                         topic: item.feedbackTopic
                                                                     }
+                                                                };
+
+                                                                if (feedback.hasOwnProperty('channel')){
+                                                                    returnData.channel = feedback.channel;
                                                                 }
+                                                                return returnData;
                                                             } else {
                                                                 return null;
                                                             }

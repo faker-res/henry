@@ -3425,7 +3425,7 @@ let dbPlayerReward = {
         let generatePromoCodeProm = [];
         params.map(param => {
             generatePromoCodeProm.push(
-                dbPlayerReward.generatePromoCode(param.platformObjId, param.newPromoCodeEntry, param.adminObjId, param.adminName).then(promoCode => {
+                dbPlayerReward.generatePromoCode(param.platformObjId, param.newPromoCodeEntry, param.adminObjId, param.adminName, param.channel).then(promoCode => {
                     if(promoCode && param.feedbackData) {
                         let feedbackData = param.feedbackData;
                         feedbackData.createTime = new Date();
@@ -3442,6 +3442,7 @@ let dbPlayerReward = {
     },
 
     generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName, channel) => {
+        console.log('channel===11', channel);
         console.log('platformObjId===11', platformObjId);
         console.log('newPromoCodeEntry===11', newPromoCodeEntry);
         console.log('adminObjId===11', adminObjId);

@@ -86,12 +86,12 @@
                                 td
                                     input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
+                                    //select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}', ng-init="$last") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
-                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}') {{v.name}}
                                 td
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
@@ -178,12 +178,12 @@
                                 td
                                     input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup",data-width="150px", ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
+                                    //select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup",data-width="150px", ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
-                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}') {{v.name}}
                                 td
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
@@ -275,12 +275,12 @@
                                 td
                                     input.form-control(type='number', ng-model="promoCode.forbidWithdrawIfBalanceAfterUnlock", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
+                                    //select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
-                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}') {{v.name}}
                                 td
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
