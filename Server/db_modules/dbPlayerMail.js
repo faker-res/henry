@@ -505,7 +505,7 @@ const dbPlayerMail = {
                                     }
 
                                 } else {
-                                    if (purpose && purpose === constSMSPurpose.PLAYER_LOGIN) {
+                                    if (purpose && purpose === constSMSPurpose.PLAYER_LOGIN && inputDevice != constPlayerRegistrationInterface.APP_PLAYER && inputDevice != constPlayerRegistrationInterface.APP_AGENT) {
                                         return Promise.reject({
                                             name: "DataError",
                                             message: "Phone number not found, please register first!"
