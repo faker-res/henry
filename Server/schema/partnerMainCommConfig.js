@@ -24,15 +24,7 @@ let partnerMainCommConfigSchema = new Schema({
         activePlayerValueTo: {type: Number},
         //Commission Rate
         commissionRate: {type: Number}
-    }],
-    // Rates
-    rateAfterRebatePromo: {type: String},
-    rateAfterRebatePlatform: {type: String},
-    rateAfterRebateGameProviderGroup: [],
-    rateAfterRebateTotalDeposit: {type: String},
-    rateAfterRebateTotalWithdrawal: {type: String},
-    // parent partner commission rate
-    parentCommissionRate: {type: String}
+    }]
 });
 
 partnerMainCommConfigSchema.index({platform: 1, provider: 1, commissionType: 1, partner: 1});

@@ -1,11 +1,11 @@
-let dbPartnerCommissionFunc = function () {
+let dbPartnerCommissionConfigFunc = function () {
 };
-module.exports = new dbPartnerCommissionFunc();
+module.exports = new dbPartnerCommissionConfigFunc();
 
 const dbconfig = require('./../modules/dbproperties');
 const errorUtils = require('./../modules/errorUtils');
 
-const dbPartnerCommission = {
+const dbPartnerCommissionConfig = {
     getPlatformPartnerCommConfig: (platformObjId) => {
         console.log('platformObjId', platformObjId);
         return dbconfig.collection_platformPartnerCommConfig.find({platform: platformObjId}).lean().then(
@@ -59,6 +59,17 @@ const dbPartnerCommission = {
 
     getPartnerParentChain: (partnerObjId) => {
         return getPartnerParentChain(partnerObjId);
+    },
+
+    getPartnerCommRate: (partnerObjId) => {
+        return dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean().then(
+            config => {
+                if (config) {
+                    return config;
+                }
+                return createDefaultPartnerCommRate (partnerObjId);
+            }
+        )
     },
 };
 
@@ -196,7 +207,38 @@ function getPartnerParentChain (parentObjId, chainArray) {
     );
 }
 
+function createDefaultPartnerCommRate (partnerObjId) {
+    let partner;
+    return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
+        partnerData => {
+            if (!partnerData) {
+                return Promise.reject({message: "partner not found"});
+            }
 
-let proto = dbPartnerCommissionFunc.prototype;
-proto = Object.assign(proto, dbPartnerCommission);
-module.exports = dbPartnerCommission;
+            partner = partnerData;
+
+            return dbconfig.collection_partnerCommissionRateConfig.findOne({platform: partner.platform, partner: null}).lean();
+        }
+    ).then(
+        defaultConfig => {
+            if (!defaultConfig) {
+                return null;
+            }
+
+            let defaultConfigClone = JSON.parse(JSON.stringify(defaultConfig));
+            delete defaultConfigClone._id;
+            defaultConfigClone.partner = partner._id;
+
+            return dbconfig.collection_partnerMainCommRateConfig(defaultConfigClone).save();
+        }
+    ).then(
+        () => {
+            return dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean();
+        }
+    );
+}
+
+
+let proto = dbPartnerCommissionConfigFunc.prototype;
+proto = Object.assign(proto, dbPartnerCommissionConfig);
+module.exports = dbPartnerCommissionConfig;
