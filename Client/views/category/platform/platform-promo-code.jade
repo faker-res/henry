@@ -862,6 +862,9 @@
                 div(ng-if='vm.selectedPromoCodeTab=="promoCodeAnalysis" && checkViewPermission("Platform", "promoCode", "promoCodeAnalysis")')
                     #promoCodeAnalysisQuery.col-md-12.well
                         .search-filters-item
+                            label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
+                            select.form-control(ng-model='vm.promoCodeAnalysis.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                        .search-filters-item
                             label.control-label {{'START_CREATE_TIME' | translate}}
                             .startCreateTime
                         .search-filters-item

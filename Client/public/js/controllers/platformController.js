@@ -26744,19 +26744,19 @@ define(['js/app'], function (myApp) {
                         }
                         if (qName == "promoCodeAnalysis2") {
                             utilService.createDatatableWithFooter(tblId, tblOptions, {
-                                1: summary.sendCount,
-                                2: summary.acceptedCount,
-                                3: summaryRate,
-                                4: summary.acceptedAmount,
-                                5: summary.topUpAmount
+                                2: summary.sendCount,
+                                3: summary.acceptedCount,
+                                4: summaryRate,
+                                5: summary.acceptedAmount,
+                                6: summary.topUpAmount
                             });
                         } else {
                             utilService.createDatatableWithFooter(tblId, tblOptions, {
-                                1: summary.sendCount,
-                                2: summary.acceptedCount,
-                                3: summary.totalPlayer,
-                                4: summaryRate,
-                                5: summary.acceptedAmount
+                                2: summary.sendCount,
+                                3: summary.acceptedCount,
+                                4: summary.totalPlayer,
+                                5: summaryRate,
+                                6: summary.acceptedAmount
                             });
                         }
                     } else {
@@ -26979,16 +26979,22 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPromoCodeAnalysis = function (isNewSearch) {
-                vm.promoCodeAnalysis.platformId = vm.selectedPlatform.id;
                 $('#promoCodeAnaysisTableSpin').show();
 
                 vm.promoCodeAnalysis.index = isNewSearch ? 0 : (vm.promoCodeAnalysis.index || 0);
+
+                let platformIdList;
+                if (vm.promoCodeAnalysis && vm.promoCodeAnalysis.platformList && vm.promoCodeAnalysis.platformList.length) {
+                    platformIdList = vm.promoCodeAnalysis.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
 
                 let sendObj = {
                     startCreateTime: vm.promoCodeAnalysis.startCreateTime.data('datetimepicker').getLocalDate(),
                     endCreateTime: vm.promoCodeAnalysis.endCreateTime.data('datetimepicker').getLocalDate(),
                     playerName: vm.promoCodeAnalysis.playerName,
-                    platformObjId: vm.promoCodeAnalysis.platformId,
+                    platformObjId: platformIdList,
                     index: vm.promoCodeAnalysis.index || 0,
                     limit: vm.promoCodeAnalysis.limit || 10,
                     sortCol: vm.promoCodeAnalysis.sortCol
@@ -27022,6 +27028,13 @@ define(['js/app'], function (myApp) {
                                     elem.promoCodeTemplate = res.data;
                                     elem.promoCodeSubType$ = ( res.data && res.data.name ) ? res.data.name : '';
                                     elem.totalPlayer$ = elem.totalPlayer.length || 0;
+
+                                    if (res && res.data && res.data.platformObjId) {
+                                        let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === res.data.platformObjId.toString());
+                                        if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                            elem.platform$ = matchedPlatformData[0].name;
+                                        }
+                                    }
                                 })
                             });
                         } else if(elem._id && elem._id.promoCodeTypeObjId) {
@@ -27030,6 +27043,12 @@ define(['js/app'], function (myApp) {
                                     elem.promoCodeType = res.data;
                                     elem.promoCodeSubType$ = ( res.data && res.data.name ) ? res.data.name : '';
                                     elem.totalPlayer$ = elem.totalPlayer.length || 0;
+                                    if (res && res.data && res.data.platformObjId) {
+                                        let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === res.data.platformObjId.toString());
+                                        if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                            elem.platform$ = matchedPlatformData[0].name;
+                                        }
+                                    }
                                 })
                             });
                         }
@@ -27040,14 +27059,19 @@ define(['js/app'], function (myApp) {
                             data: table1Data,
                             // "order": vm.promoCodeAnalysis.aaSorting || [[0, 'desc']], //skip and limit cannot be done in this query if sort by name
                             aoColumnDefs: [
-                                {'sortCol': 'sendCount', bSortable: true, 'aTargets': [1]},
-                                {'sortCol': 'acceptedCount', bSortable: true, 'aTargets': [2]},
+                                {'sortCol': 'sendCount', bSortable: true, 'aTargets': [2]},
+                                {'sortCol': 'acceptedCount', bSortable: true, 'aTargets': [3]},
                                 {targets: '_all', defaultContent: ' ', bSortable: false}
                             ],
                             columns: [
                                 {
+                                    title: $translate('PRODUCT_NAME'),
+                                    data: "platform$"
+                                },
+                                {
                                     title: $translate('PROMO_CODE_SUB_TYPE'),
-                                    data: "promoCodeSubType$"
+                                    data: "promoCodeSubType$",
+                                    sClass: "sumText",
                                 },
                                 {
                                     title: $translate('sendCount'),
@@ -27087,16 +27111,22 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPromoCodeAnalysis2 = function (isNewSearch) {
-                vm.promoCodeAnalysis.platformId = vm.selectedPlatform.id;
                 $('#promoCodeAnaysis2TableSpin').show();
 
                 vm.promoCodeAnalysis.index = isNewSearch ? 0 : (vm.promoCodeAnalysis.index || 0);
+
+                let platformIdList;
+                if (vm.promoCodeAnalysis && vm.promoCodeAnalysis.platformList && vm.promoCodeAnalysis.platformList.length) {
+                    platformIdList = vm.promoCodeAnalysis.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
 
                 let sendObj = {
                     startCreateTime: vm.promoCodeAnalysis.startCreateTime.data('datetimepicker').getLocalDate(),
                     endCreateTime: vm.promoCodeAnalysis.endCreateTime.data('datetimepicker').getLocalDate(),
                     playerName: vm.promoCodeAnalysis.playerName,
-                    platformObjId: vm.promoCodeAnalysis.platformId,
+                    platformObjId: platformIdList,
                     index: vm.promoCodeAnalysis2.index || 0,
                     limit: vm.promoCodeAnalysis2.limit || 10,
                     sortCol: vm.promoCodeAnalysis2.sortCol
@@ -27127,6 +27157,12 @@ define(['js/app'], function (myApp) {
                         p1 = p1.then(function () {
                             return $scope.$socketPromise('getPlayerInfo', {_id: elem._id}).then(res => {
                                 elem.player = res.data;
+                                if (res && res.data && res.data.platform) {
+                                    let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === res.data.platform.toString());
+                                    if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                        elem.platform$ = matchedPlatformData[0].name;
+                                    }
+                                }
                             })
                         });
                     });
@@ -27137,11 +27173,15 @@ define(['js/app'], function (myApp) {
                             data: table2Data,
                             // "order": vm.promoCodeAnalysis2.aaSorting || [[0, 'desc']],
                             aoColumnDefs: [
-                                {'sortCol': 'sendCount', bSortable: true, 'aTargets': [1]},
-                                {'sortCol': 'acceptedCount', bSortable: true, 'aTargets': [2]},
+                                {'sortCol': 'sendCount', bSortable: true, 'aTargets': [2]},
+                                {'sortCol': 'acceptedCount', bSortable: true, 'aTargets': [3]},
                                 {targets: '_all', defaultContent: ' ', bSortable: false}
                             ],
                             columns: [
+                                {
+                                    title: $translate('PRODUCT_NAME'),
+                                    data: "platform$"
+                                },
                                 {
                                     title: $translate('playerAccount'),
                                     data: "player.name",

@@ -4662,10 +4662,12 @@ let dbPlayerReward = {
     },
 
     getPromoCodeAnalysis: (platformObjId, data, isByPlayer) => {
-        let playerProm = dbConfig.collection_players.findOne({
-            platform: platformObjId,
+        let playerProm = dbConfig.collection_players.find({
+            platform: {$in: platformObjId},
             name: data.playerName
         }).lean();
+
+        platformObjId = platformObjId.map(id => ObjectId(id));
 
         let index = data.index || 0;
         let limit = data.limit || 10;
@@ -4680,10 +4682,11 @@ let dbPlayerReward = {
         querySort._id = 1;
 
         let promoTypeQ = {
-            platformObjId: platformObjId,
-            type: data.promoCodeType
+            platformObjId: {$in: platformObjId}
         };
-
+        if (data.promoCodeType) {
+            promoTypeQ.type = data.promoCodeType;
+        }
         if (data.promoCodeSubType) {
             promoTypeQ.name = data.promoCodeSubType;
         }
@@ -4699,7 +4702,7 @@ let dbPlayerReward = {
             let promoCodeTemplateObjIds = promoCodeTemplateData.map(e => e._id);
 
             let matchObj = {
-                platformObjId: ObjectId(platformObjId),
+                platformObjId: {$in: platformObjId},
                 createTime: {$gte: new Date(data.startCreateTime), $lt: new Date(data.endCreateTime)}
             };
 
