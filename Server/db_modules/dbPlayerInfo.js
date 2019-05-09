@@ -4341,7 +4341,7 @@ let dbPlayerInfo = {
                         playerId: player._id,
                         platformId: player.platform,
                         amount: amount,
-                        oriAmount: oriAmount,
+                        oriAmount: oriAmount || amount,
                         topUpType: topUpType,
                         createTime: proposalData ? proposalData.createTime : new Date(),
                         bDirty: false
