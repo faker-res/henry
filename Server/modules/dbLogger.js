@@ -9,6 +9,7 @@ var constPlayerCreditTransferStatus = require('../const/constPlayerCreditTransfe
 var Q = require("q");
 var errorUtils = require("./errorUtils.js");
 var constProposalEntryType = require('./../const/constProposalEntryType');
+var constPartnerCommissionType = require('./../const/constPartnerCommissionType');
 var constProposalUserType = require('./../const/constProposalUserType');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var rsaCrypto = require('../modules/rsaCrypto');
@@ -743,6 +744,26 @@ var dbLogger = {
                 }else if(logAction == 'approveCsPendingAndChangeStatus' && data && data.proposalId){
                     adminActionRecordData.error = '提案号： ' + data.proposalId;
                     adminActionRecordData.platforms = adminActionRecordData.data[3] ? adminActionRecordData.data[3] : adminActionRecordData.platforms;
+                }else if(logAction == 'generatePartnerCommSettPreview' && adminActionRecordData.data[0] && adminActionRecordData.data[1]) {
+                    let commissionMode;
+                    for (let key in constPartnerCommissionType) {
+                        if (constPartnerCommissionType[key] == adminActionRecordData.data[1]) {
+                            commissionMode = localization.localization.translate(key);
+                            break;
+                        }
+                    }
+                    adminActionRecordData.error =  commissionMode;
+                    adminActionRecordData.platforms = adminActionRecordData.data[0] ? adminActionRecordData.data[0] : adminActionRecordData.platforms;
+                }else if(logAction == 'cancelPartnerCommissionPreview' && adminActionRecordData.data[0]) {
+                    let commissionMode;
+                    for (let key in constPartnerCommissionType) {
+                        if (adminActionRecordData.data[0].hasOwnProperty("settMode") && constPartnerCommissionType[key] == adminActionRecordData.data[0].settMode) {
+                            commissionMode = localization.localization.translate(key);
+                            break;
+                        }
+                    }
+                    adminActionRecordData.error =  commissionMode;
+                    adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platform ? adminActionRecordData.data[0].platform : adminActionRecordData.platforms;
                 }
 
 
