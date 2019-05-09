@@ -505,6 +505,7 @@ const dbPlayerMail = {
                                     }
 
                                 } else {
+                                    console.log('MT --checking purpose, device', purpose , inputDevice);
                                     if (purpose && purpose === constSMSPurpose.PLAYER_LOGIN && inputDevice != constPlayerRegistrationInterface.APP_PLAYER && inputDevice != constPlayerRegistrationInterface.APP_AGENT) {
                                         return Promise.reject({
                                             name: "DataError",
