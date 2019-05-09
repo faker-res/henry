@@ -17592,7 +17592,7 @@ let dbPlayerInfo = {
 
         return getPlayerProm.then(
             playerData => {
-                console.log('RT - getPlayerReport 1');
+                console.log('RT - getPlayerReport 1', playerData);
                 let relevantPlayerQuery = {platformId: platform};
 
                 // relevant players are the players who played any game within given time period
