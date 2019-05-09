@@ -17605,6 +17605,7 @@ define(['js/app'], function (myApp) {
                                     if (vm.playerFeedbackSearchType=="many") {
                                         let playerObjId = callee && callee.player && callee.player._id;
                                         if (playerObjId) {
+                                            $cookies.put('platform', getSelectedPlatform().name || vm.selectedPlatform.data.name);
                                             let url = window.location.origin + "/playerDetail/" + playerObjId;
                                             utilService.openInNewTab(url);
                                         }
