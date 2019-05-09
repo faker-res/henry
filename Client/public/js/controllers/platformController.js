@@ -22576,7 +22576,7 @@ define(['js/app'], function (myApp) {
                 vm.remainMainParamTableFestival[idx] = [];
 
                 if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam[idx] && vm.rewardParams.rewardParam[idx].value && vm.rewardParams.rewardParam[idx].value.length) {
-                    birthdayValue = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.birthdayValue);
+                    birthdayValue = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.birthday);
                     festivalType1Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType1);
                     festivalType2Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType2);
                     festivalType3Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType3);
@@ -22613,6 +22613,9 @@ define(['js/app'], function (myApp) {
                 if(festivalType2Header.totalConsumptionInInterval){
                     delete festivalType2Header.totalConsumptionInInterval
                 }
+                if(festivalType2Header.title){
+                    delete festivalType2Header.title
+                }
 
                 vm.remainMainParamTableFestival[idx].push({
                     header: festivalType2Header,
@@ -22639,7 +22642,9 @@ define(['js/app'], function (myApp) {
                 if(festivalType3Header.topUpReturnReward){
                     delete festivalType3Header.topUpReturnReward
                 }
-
+                if(festivalType3Header.title){
+                    delete festivalType3Header.title
+                }
                 vm.remainMainParamTableFestival[idx].push({
                     header: festivalType3Header,
                     value: festivalType3Value
@@ -22647,12 +22652,15 @@ define(['js/app'], function (myApp) {
 
                 // birthday
                 if (birthdayValue && !birthdayValue.length) {
-                    birthdayValue = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthdayValue}];
+                    birthdayValue = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday}];
                 }
 
                 let birthdayHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
                 if (birthdayHeader.totalConsumptionInInterval) {
                     delete birthdayHeader.totalConsumptionInInterval
+                }
+                if (birthdayHeader.title) {
+                    delete birthdayHeader.title;
                 }
 
                 vm.remainMainParamTableFestival[idx].push({
@@ -23674,14 +23682,19 @@ define(['js/app'], function (myApp) {
 
 
                     if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup') {
-                        // param table two
+                        // param table 2
                         Object.keys(vm.rewardMainParamTable2).forEach((e, idx) => {
                             curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable2[e].value)
                         });
-                        // param table three
+                        // param table 3
                         Object.keys(vm.rewardMainParamTable3).forEach((e, idx) => {
                             curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable3[e].value)
                         });
+                        // param table 4
+                        Object.keys(vm.rewardMainParamTable4).forEach((e, idx) => {
+                            curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable4[e].value)
+                        });
+
                     }
                 } else {
 

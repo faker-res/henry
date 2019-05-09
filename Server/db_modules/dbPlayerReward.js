@@ -10040,12 +10040,13 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
         if (eventData.condition && eventData.condition.festivalType == '1') {
             // if is birthday
             console.log('**********************************festival 1');
-            console.log('eventData.param.rewardParam[0].value',eventData.param.rewardParam[0].value)
+            console.log('eventData.param.rewardParam[0].value',eventData.param.rewardParam[0].value);
             if (eventData.param && eventData.param.rewardParam[0] && eventData.param.rewardParam[0].value && eventData.param.rewardParam[0].value.length > 0) {
                 eventData.param.rewardParam[0].value.forEach(item=> {
                     if (item.rewardType == '4') {
+                        let festival = getFestivalRewardDate(item, eventData.param.others);
                         // check if it in between of apply period
-                        let isRightApplyTime = checkIfRightApplyTime(item);
+                        let isRightApplyTime = checkIfRightApplyTime(item, festival);
                         console.log('***isRightApplyTime', isRightApplyTime)
                         if (isRightApplyTime) {
                             let prom = checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id);
@@ -10103,12 +10104,24 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
     })
 }
 
-function checkIfRightApplyTime(specificDate) {
+
+function getFestivalRewardDate(reward, festivals) {
+    //find the festival date inside the reward param
+    let result = [];
+    let rewardId = reward.festivalId ? reward.festivalId: null;
+    let festival = festivals.filter(item => {
+        return item.id == rewardId;
+    })
+    result = ( festival && festival[0] ) ? festival[0] : [];
+    return result
+}
+
+function checkIfRightApplyTime(specificDate, festival) {
     // reconstruct the month/time to a timestamp to verify if fulfil the apply time
     let result = false;
     let currentTime = moment(new Date()).format('YYYY-MM-DD HH:mm:ss.sss');
     console.log('*****specificDate', specificDate);
-    let period = getTimePeriod(specificDate.expiredInDay || 0, specificDate);
+    let period = getTimePeriod(specificDate.expiredInDay || 0, festival);
     console.log('…startTime -- …endTime', period.startTime, period.endTime);
     console.log('…currentTime', currentTime);
 
@@ -10119,15 +10132,15 @@ function checkIfRightApplyTime(specificDate) {
     return result;
 }
 
-function getTimePeriod(expiredInDay, specificDate) {
+function getTimePeriod(expiredInDay, festival) {
     let todayTime, year, month, day, startTime, endTime;
     let fullDate = [];
 
-    if (specificDate && specificDate.month && specificDate.day) {
+    if (festival && festival.month && festival.day) {
         year = new Date().getFullYear();
-        console.log(specificDate);
-        month = getPlural(specificDate.month);
-        day = getPlural(specificDate.day);
+        console.log(festival);
+        month = getPlural(festival.month);
+        day = getPlural(festival.day);
         fullDate = [year, month, day];
         fullDate = fullDate.join('-')
 

@@ -330,7 +330,7 @@
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;')
                                         option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
 
-                    #platformRewardSetting.col-md-12.well(ng-if="vm.isNewDisplay && vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name !== 'PlayerRandomRewardGroup')")
+                    #platformRewardSetting.col-md-12.well(ng-if="vm.isNewDisplay && vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name !== 'PlayerRandomRewardGroup' && vm.showRewardTypeData.name !== 'PlayerFestivalRewardGroup')")
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
                             label {{v.des | translate}}
                                 i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
@@ -375,16 +375,18 @@
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
                                                     option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
 
-                                //type2
-                                br
-                                br
-                                div(ng-repeat="cond in vm.rewardMainParamTable2 track by $index" ng-cloak)
-                                    table#rewardMainParamTable2.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index")
+
+                    // part-2
+                    #platformRewardSetting.col-md-12.well(ng-if="vm.isNewDisplay && vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup')")
+                        ul.nav.nav-tabs.common-nav-tabs(ng-if="vm.isPlayerLevelDiff")
+                            li(ng-repeat="(i,v) in vm.allPlayerLvl" ng-class="vm.selectedPlayerLvlTab == i ? 'active' : null")
+                                a.common-tab(data-toggle="tab" ng-click="vm.selectedPlayerLvlTab = i; vm.checkPlatformRewardIsView(vm.platformRewardIsEnabled);") {{v.name}}
+
+                        .panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
+                            .panel-body(style="min-width: fit-content;")
+                                div(ng-repeat="cond in vm.rewardMainParamTable track by $index" ng-cloak)
+                                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '2'")
                                         thead
-                                            th(ng-if="vm.isMultiStepReward")
-                                            th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
-                                            th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Source by provider' | translate}}
-                                            th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Single Selection)' | translate}}
                                             th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                                         tbody(ng-repeat="entry in cond.value")
                                             td(ng-if="vm.isMultiStepReward")
@@ -412,33 +414,51 @@
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
                                                     option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
 
+                                //type2
+                                br
+                                br
+                                div(ng-repeat="cond in vm.rewardMainParamTable2 track by $index" ng-cloak)
+                                    table#rewardMainParamTable2.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '2'")
+                                        thead
+                                            th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
+                                        tbody(ng-repeat="entry in cond.value")
+                                            td(ng-repeat="(i,v) in cond.header")
+                                                span(ng-if="i == 'loginDay'") {{entry[i]}}
+                                                input(ng-if="i != 'loginDay' && (v.type == 'text' || v.type == 'checkbox' || v.type == 'number')" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                                span.percentage(ng-if="v.type == 'percentage'")
+                                                    input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+                                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i != 'festivalId'", style='width:-webkit-fill-available;')
+                                                    option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
+                                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
+                                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
+
                                 //type3
                                 br
                                 br
                                 div(ng-repeat="cond in vm.rewardMainParamTable3 track by $index" ng-cloak)
-                                    table#rewardMainParamTable3.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index")
+                                    table#rewardMainParamTable3.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '2'")
                                         thead
-                                            th(ng-if="vm.isMultiStepReward")
-                                            th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
-                                            th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Source by provider' | translate}}
-                                            th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Single Selection)' | translate}}
                                             th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                                         tbody(ng-repeat="entry in cond.value")
-                                            td(ng-if="vm.isMultiStepReward")
-                                                i.fa.fa-plus(ng-click='cond.value.push({})' ng-if='!cond.header.hasOwnProperty("rewardPercentageAmount") && vm.isMultiStepReward && !vm.platformRewardShowEdit()')
-                                                i.fa.fa-plus(ng-click='cond.value.push({"rewardPercentageAmount":[{percentage: "", amount: ""}]})' ng-if='cond.header.hasOwnProperty("rewardPercentageAmount") && vm.isMultiStepReward && !vm.platformRewardShowEdit()')
-                                                i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
-                                            td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
-                                                i.fa.fa-plus(ng-click='cond.value.push({})' ng-if='!cond.header.hasOwnProperty("rewardPercentageAmount") && !vm.platformRewardShowEdit()')
-                                                i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
-                                            td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
-                                                div(style='width:200px;')
-                                                    select.form-control(ng-model='entry.sourceProvider', data-container="body" data-width='100%', static-bsp, data-actions-box='true')
-                                                        option(ng-repeat='(i,v) in vm.baccaratRewardGameProviders', value='{{v._id}}') {{ v.name }}
-                                            td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
-                                                div(style='width:280px;')
-                                                    select.form-control(ng-model='entry.betType')
-                                                        option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
+                                            td(ng-repeat="(i,v) in cond.header")
+                                                span(ng-if="i == 'loginDay'") {{entry[i]}}
+                                                input(ng-if="i != 'loginDay' && (v.type == 'text' || v.type == 'checkbox' || v.type == 'number')" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                                span.percentage(ng-if="v.type == 'percentage'")
+                                                    input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+                                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i != 'festivalId'", style='width:-webkit-fill-available;')
+                                                    option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
+                                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
+                                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
+
+
+                                //type4
+                                br
+                                br
+                                div(ng-repeat="cond in vm.rewardMainParamTable4 track by $index" ng-cloak)
+                                    table#rewardMainParamTable4.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '1'")
+                                        thead
+                                            th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
+                                        tbody(ng-repeat="entry in cond.value")
                                             td(ng-repeat="(i,v) in cond.header")
                                                 span(ng-if="i == 'loginDay'") {{entry[i]}}
                                                 input(ng-if="i != 'loginDay' && (v.type == 'text' || v.type == 'checkbox' || v.type == 'number')" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
@@ -616,7 +636,7 @@
 
 
                 // PlayerFestivalRewardGroup
-                .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerFestivalRewardGroup'")
+                .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerFestivalRewardGroup' &&  !vm.isPlayerLevelDiff")
                     div(style="margin-bottom: 20px;")
                         label(style="color: red") *{{ "PlayerFestivalRewardGroup" | translate }}
                     table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableBirthday track by $index" ng-cloak, ng-if="vm.festivalType == '1'")
