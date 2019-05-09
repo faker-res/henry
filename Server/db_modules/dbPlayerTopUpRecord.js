@@ -4484,7 +4484,7 @@ var dbPlayerTopUpRecord = {
                     start.setHours(0, 0, 0, 0);
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
-                    if (pmsData.result.weChatAccount) {
+                    if (pmsData && pmsData.result && pmsData.result.weChatAccount) {
                         queryObj['$or'] = [
                             {'data.wechatAccount': pmsData.result.weChatAccount},
                             {'data.weChatAccount': pmsData.result.weChatAccount}
@@ -4501,7 +4501,7 @@ var dbPlayerTopUpRecord = {
                             ]
                         }
                     }
-                    if (pmsData.result.weChatName) {
+                    if (pmsData && pmsData.result && pmsData.result.weChatName) {
                         queryObj['$or'] = [
                             {'data.wechatName': pmsData.result.weChatName},
                             {'data.weChatName': pmsData.result.weChatName}
