@@ -13,7 +13,7 @@
                 .full-width-input-block
                     label {{"PRODUCT_NAME"|translate}}
                     div.inline-block
-                        select.form-control.inline-block(ng-model="vm.autoFeedbackMission.platformObjId" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.getAllGameProvidersLocal();vm.loadDepartmentLocal();')
+                        select.form-control.inline-block(ng-model="vm.autoFeedbackMission.platformObjId" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-disabled="vm.autoFeedbackEditStatus" ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.getAllGameProvidersLocal();vm.loadDepartmentLocal();')
                 .full-width-input-block
                     label {{"Feedback Mission Name"|translate}}
                     div.inline-block
@@ -54,7 +54,8 @@
                 .full-width-input-block
                     label.control-label {{'CREDIBILITY' | translate}}
                     div.inline-block
-                        select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.autoFeedbackMission.credibilityRemarks')
+                        select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.credibilityRemarks', ng-model='vm.autoFeedbackMission.credibilityRemarks')
+                        //select.spicker.form-control#selectCredibilityRemarkFeedback(multiple bsp data-actions-box='true' style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.autoFeedbackMission.credibilityRemarks')
                 .full-width-input-block
                     label.control-label {{'CREDIBILITY_FILTER' | translate}}
                     div.inline-block
@@ -198,7 +199,8 @@
                 .full-width-input-block
                     label {{"SMS_CHANNEL"|translate}}
                     div.inline-block
-                        select.form-control(ng-model='vm.autoFeedbackMission.channel', ng-options='a for a in usableChannelList', style="width:105px;display:inline-block;")
+                        select.form-control(ng-model='vm.autoFeedbackMission.channel' style="width:105px;display:inline-block;")
+                            option(ng-repeat='(i,v) in usableChannelList', value='{{v}}') {{v}}
 
                 br
                 table#autoFeedbackMissionTable.simple-table(style='min-width:100%')
