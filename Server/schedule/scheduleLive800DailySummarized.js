@@ -19,22 +19,40 @@ let everyDayAtTwelveAMJob = new CronJob(
         startDate = dbUtility.getLocalTimeString(startDate);
         endDate = dbUtility.getLocalTimeString(endDate);
         // to get the summarized record of total record, effective record and non-effective record
-        dbQualityInspection.getSummarizedLive800RecordCount(startDate, endDate).then(
+        let getSummarizedProm = dbQualityInspection.getSummarizedLive800RecordCount(startDate, endDate).then(
             summarizedRecordCount => {
                 let summarizedRecord = summarizedRecordCount && summarizedRecordCount[0] ? summarizedRecordCount[0] : null;
                 if(!summarizedRecord || !summarizedRecord.mysqlLive800Record || !summarizedRecord.mongoLive800Record
                 || summarizedRecord.mysqlLive800Record != summarizedRecord.mongoLive800Record){
-                    dbQualityInspection.resummarizeLive800Record(startDate, endDate).catch(errorUtils.reportError);
+                    return dbQualityInspection.resummarizeLive800Record(startDate, endDate);
                 }
             }
-        )
-
+        );
+        // let getSummarizedProm = [];
         // to record down the conversation record for speeding up the searching time
-        dbQualityInspection.getLive800Records(startDate, endDate).then().catch(errorUtils.reportError);
+        let recordProm = dbQualityInspection.getLive800Records(startDate, endDate);
+        // let recordProm = [];
 
         // to get the proposal settled manually and save in daily summary record
-        // dbQualityInspection.getManualProposalDailySummaryRecord(dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().startTime, 1), dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().endTime, 1)).then().catch(errorUtils.reportError);
+        let manualProm = dbQualityInspection.getManualProposalDailySummaryRecord(dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().startTime, 1), dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().endTime, 1));
 
+        return Promise.all([getSummarizedProm, recordProm, manualProm]).then(
+        //     () => {
+        //         // get the tel400 data to compile to daily summarized data
+        //         return dbQualityInspection.compileTel400SummarizedData(startDate, endDate);
+        //     }
+        // ).then(
+        //     () => {
+        //         // get live800 inspection mark to compile to daily summarized data
+        //         return dbQualityInspection.compileLive800SummarizedData(startDate, endDate);
+        //     }
+        // ).then(
+        //     () => {
+        //         // get the daily summary of manual process data
+        //         return dbQualityInspection.compileManualProcessSummarizedData(startDate, endDate);
+        //
+        //     }
+        ).catch(errorUtils.reportError)
 
     }, function () {
         /* This function is executed when the job stops */
