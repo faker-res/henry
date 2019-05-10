@@ -220,6 +220,44 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         return authService.adminName;
     };
 
+    $scope.getServerTime = function (callback) {
+        socketService.$socket($scope.AppSocket, 'getServerTime', {}, onSuccess, onFail, true);
+
+        function onSuccess(data) {
+            $scope.serverTime = data.data;
+            console.log("serverTime:", $scope.serverTime);
+            if (callback) {
+                callback.call(this);
+            }
+        }
+
+        function onFail(error) {
+            console.error("Failed to get serverTime!", error);
+            if (callback) {
+                callback.call(this, error);
+            }
+        }
+    };
+
+    $scope.getServerDate = function (callback) {
+        socketService.$socket($scope.AppSocket, 'getServerDate', {}, onSuccess, onFail, true);
+
+        function onSuccess(data) {
+            $scope.serverDate = data.data;
+            console.log("serverDate:", $scope.serverDate);
+            if (callback) {
+                callback.call(this);
+            }
+        }
+
+        function onFail(error) {
+            console.error("Failed to get serverDate!", error);
+            if (callback) {
+                callback.call(this, error);
+            }
+        }
+    };
+
     // logout handler
     $scope.logout = function () {
         // disconnect socket
@@ -462,6 +500,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
         loadPlatformInfo();
         $scope.getUsableChannelList();
+        $scope.getServerTime();
+        $scope.getServerDate();
         $scope.$broadcast('switchPlatform');
         $scope.fontSizeAdaptive(document.getElementById('selectedPlatformNodeTitle'));
     };

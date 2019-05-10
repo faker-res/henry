@@ -72,6 +72,16 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                     i.fa.fa-picture-o
                     | {{ 'ThemeControl' | translate }}
         ul.navbar-right()
+            li(style='min-width:120px !important;font-size:1em;color:#ffffff;')
+                .row.margin-top-bottom-small(style='margin-left:0;margin-right:0')
+                    table.pull-right(style='width:100%')
+                        tbody
+                            tr
+                                th {{ 'SERVER_TIME' | translate }}
+                            tr
+                                th {{serverTime}}
+                            tr
+                                th {{serverDate}}
             //li(style='min-width:120px !important;font-size:0.8em;color:#ffffff;')
                 .row.margin-top-bottom-small(style='margin-left:0;margin-right:0')
                     table.pull-right(style='width:100%')
