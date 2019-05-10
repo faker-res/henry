@@ -45,7 +45,8 @@ var gameSchema = new Schema({
     // game display : 1.horizontal 2.vertical 3. horizontal/vertical 4. no need setup
     gameDisplay: {type: String},
     // orientation: 1=landscape , 2=Portrait 3=default
-    orientation: {type: String}
+    orientation: {type: String},
+    orientationSetting: {type: JSON}
 });
 
 //game is unique by provider and code

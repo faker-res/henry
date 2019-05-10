@@ -740,9 +740,9 @@ define([], function () {
                         htmlStr = gethtmlStr(pageValue, totalValue);
 
                         // Special handling for promo code analysis
-                        if (i == 1) {
+                        if (i == 2) {
                             totalPromoCode = pageValue;
-                        } else if (i == 2) {
+                        } else if (i == 3) {
                             totalAcceptedPromoCode = pageValue;
                         }
                         //special handling for consumptionModeReport

@@ -10,22 +10,22 @@ div(ng-if="vm.curPlatformText")
                         #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
 
                         li.active(ng-show="checkViewPermission('QualityInspection', 'CsAudioRecordingSystem', 'Read')" style="margin-left: 20px;")
-                            a.common-tab(data-toggle="tab", ng-click="vm.audioSystemTab ='audioRecord';vm.initUnreadEvaluation();" )
+                            a.common-tab(data-toggle="tab", ng-click="vm.audioSystemTab ='audioRecord'; vm.initAudioRecordingReport();" )
                                 .fa.fa-wrench.margin-right-5
                                 text.span {{"AUDIO RECORD" | translate}}
                         li(ng-show="checkViewPermission('QualityInspection', 'CsAudioRecordingSystem', 'Read')")
-                            a.common-tab(data-toggle="tab", ng-click="vm.audioSystemTab ='audioReport';vm.initReadEvaluation();")
+                            a.common-tab(data-toggle="tab", ng-click="vm.audioSystemTab ='audioReport';vm.initCsAudioReport();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"REPORT OF AUDIO RECORDING SYSTEM" | translate}}
                 .panel-body.common-right-panel-body
                     div(ng-show="vm.audioSystemTab == 'audioRecord'")
                         #audioRecordDiv.tab-pane.fade.in.active.well
-                            .search-filters-item
-                                label {{"PRODUCT" |translate}}
-                                select.form-control(ng-change='vm.getCsByPlatform()',ng-model='vm.audioRecordSearching.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
+                            //.search-filters-item
+                            //    label {{"PRODUCT" |translate}}
+                            //    select.form-control(ng-change='vm.getCsByPlatform(vm.audioRecordSearching.platform)',ng-model='vm.audioRecordSearching.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
                             .search-filters-item
                                 label FPMS {{"CS Account" | translate}}
-                                select.form-control(ng-model='vm.audioRecordSearching.csObjId', ng-change='vm.getCallerId()', ng-options='admin._id as admin.adminName for admin in vm.csAccountList', multiple, bsp, data-actions-box='true')
+                                select.form-control(ng-model='vm.audioRecordSearching.csObjId', ng-change='vm.getCallerId(vm.audioRecordSearching.csObjId)', ng-options='admin._id as admin.adminName for admin in vm.csAccountList', multiple, bsp, data-actions-box='true')
                             .search-filters-item
                                 label {{"Caller ID" | translate}}
                                 select.form-control(ng-model='vm.audioRecordSearching.callerId', ng-options='v for (i,v) in vm.callerIdList', multiple, bsp, data-actions-box='true')
@@ -44,7 +44,8 @@ div(ng-if="vm.curPlatformText")
                             .search-filters-item
                                 label {{'Duration' | translate}}
                                 div
-                                    select.form-control.threeBoxes(ng-model='vm.audioRecordSearching.durationOperator')
+                                    select.form-control.threeBoxes(ng-model='vm.audioRecordSearching.durationOperator', ng-change="vm.durationOperatorChange()")
+                                        option(value='none')
                                         option(value='>=') >=
                                         option(value='=') =
                                         option(value='<=') <=
@@ -66,6 +67,45 @@ div(ng-if="vm.curPlatformText")
                         table#AudioRecordTable.common-table.display(style="min-width:100% ;overflow: scroll")
                         #AudioRecordTablePage
                     div(ng-show="vm.audioSystemTab == 'audioReport'" )
+                        #audioReportDiv.tab-pane.fade.in.active.well
+                            //.search-filters-item
+                            //    label {{"PRODUCT" |translate}}
+                            //    select.form-control(ng-change='vm.getCsByPlatform(vm.audioReportSearching.platform)',ng-model='vm.audioReportSearching.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
+                            .search-filters-item
+                                label FPMS {{"CS Account" | translate}}
+                                select.form-control(ng-model='vm.audioReportSearching.csObjId', ng-change='vm.getCallerId(vm.audioReportSearching.csObjId)', ng-options='admin._id as admin.adminName for admin in vm.csAccountList', multiple, bsp, data-actions-box='true')
+                            .search-filters-item
+                                label {{"Caller ID" | translate}}
+                                select.form-control(ng-model='vm.audioReportSearching.callerId', ng-options='v for (i,v) in vm.callerIdList', multiple, bsp, data-actions-box='true')
+                            .search-filters-item
+                                label {{"Time Scale" | translate}}
+                                select.form-control(ng-model='vm.audioReportSearching.timeScale', ng-options='i as v | translate for (i,v) in vm.timeScale')
+                            .search-filters-item
+                                label {{'START_DATE' | translate}}
+                                #audioReportStartDatetimePicker.input-append.form-control
+                                    input(data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .search-filters-item
+                                label {{'END_DATE' | translate}}
+                                #audioReportEndDatetimePicker.input-append.form-control
+                                    input(data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            //.search-filters-item
+                            //    label {{"Call Type" |translate}}
+                            //    select.form-control(ng-model='vm.audioReportSearching.callType', ng-options=' i as v | translate for (i,v) in vm.callType')
+
+                            .text-right.widthto100(ng-show="checkViewPermission('QualityInspection', 'CsAudioRecordingSystem', 'Read')")
+                                button.btn.btn-primary.btn-space(ng-click='vm.getAudioReportData(true)') {{'SEARCH' | translate}}
+                                span#csAudioReportTableSpin.collapse
+                                    i.fa.fa-spinner.fa-spin
+
+                        .clearfix
+                        label {{"Total" | translate}} {{vm.audioReportSearching.size}} {{"records" | translate}}
+                        table#AudioReportTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                        #AudioReportTablePage
+
 
 #modalListeningAudioClip.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style="width:40%;", ng-if="vm.isReadyToPlay")

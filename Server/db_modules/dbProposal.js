@@ -55,8 +55,17 @@ var proposal = {
      * @param {json} proposalData - The data of the proposal. Refer to proposal schema.
      */
     createProposal: function (proposalData) {
+        // Proposal field enforcement
+        enforceFieldToObjId(proposalData.data, 'playerObjId');
+
         var proposal = new dbconfig.collection_proposal(proposalData);
         return proposal.save();
+
+        function enforceFieldToObjId(proposalData, field) {
+            if (proposalData && proposalData[field]) {
+                proposalData[field] = ObjectId(proposalData[field]);
+            }
+        }
     },
 
     /**

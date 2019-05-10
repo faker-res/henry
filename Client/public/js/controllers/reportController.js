@@ -155,6 +155,7 @@ define(['js/app'], function (myApp) {
         'updatePlatform',
         'startPlatformPlayerConsumptionReturnSettlement',
         'generatePartnerCommSettPreview',
+        'cancelPartnerCommissionPreview',
         'startPlatformPlayerConsumptionIncentiveSettlement',
         'startPlatformPlayerLevelSettlement',
         'startPlayerConsecutiveConsumptionSettlement',
@@ -5845,7 +5846,7 @@ define(['js/app'], function (myApp) {
                     var gameDetail = [];
                     if (holder.gameDetail) {
                         for (let i = 0; i < holder.gameDetail.length; i++) {
-                            if (holder.gameDetail[i].providerId.toString() == data.providerId.toString()) {
+                            if (holder.gameDetail[i].providerId._id.toString() == data.providerId.toString()) {
                                 gameDetail.push(holder.gameDetail[i]);
                             }
                         }
@@ -11048,7 +11049,7 @@ define(['js/app'], function (myApp) {
                     {group: "PLATFORM", text: "createPlatform", action: "createPlatform"},
                     {group: "PLATFORM", text: "DELETE_PLATFORM", action: "deletePlatformById"},
                     {group: "PLATFORM", text: "updatePlatform", action: "updatePlatform"},
-                    {group: "PLATFORM", text: "SYSTEM_SETTLEMENT", action: ["startPlatformPlayerConsumptionReturnSettlement", "generatePartnerCommSettPreview", "startPlatformPlayerConsumptionIncentiveSettlement", "startPlatformPlayerLevelSettlement", "startPlayerConsecutiveConsumptionSettlement"]},
+                    {group: "PLATFORM", text: "SYSTEM_SETTLEMENT", action: ["startPlatformPlayerConsumptionReturnSettlement", "startPlatformPlayerConsumptionIncentiveSettlement", "startPlatformPlayerLevelSettlement", "startPlayerConsecutiveConsumptionSettlement"]},
                     {group: "PLATFORM", text: "createNewPlayerAdvertisementRecord", action: "createNewPlayerAdvertisementRecord"},
                     {group: "PLATFORM", text: "savePlayerAdvertisementRecordChanges", action: "savePlayerAdvertisementRecordChanges"},
                     {group: "PLATFORM", text: "createNewPartnerAdvertisementRecord", action: "createNewPartnerAdvertisementRecord"},
@@ -11122,6 +11123,8 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "customizePartnerCommission", action: "customizePartnerCommission"},
                     {group: "PARTNER", text: "updatePartnerPermission", action: "updatePartnerPermission"},
                     {group: "PARTNER", text: "createUpdatePartnerRealNameProposal", action: "createUpdatePartnerRealNameProposal"},
+                    {group: "PARTNER", text: "generatePartnerCommSettPreview", action: "generatePartnerCommSettPreview"},
+                    {group: "PARTNER", text: "cancelPartnerCommissionPreview", action: "cancelPartnerCommissionPreview"},
 
                     {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
                     {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},

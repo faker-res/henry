@@ -24,6 +24,13 @@ define(['js/app'], function (myApp) {
                 3: "CALL_IN",
             };
 
+            vm.timeScale = {
+                1: "Per 15 Minutes",
+                2: "Per Hour",
+                3: "Per Day",
+                4: "Per Month",
+            };
+
             vm.getDepositMethodbyId = {
                 1: 'Online',
                 2: 'ATM',
@@ -3676,7 +3683,198 @@ define(['js/app'], function (myApp) {
 
 
             //////////////////////////////////////////////////////////Start of Audio System Tab///////////////////////////////////////////////////////////////////
+            vm.initCsAudioReport = function (){
+                vm.audioReportSearching = {};
+                vm.audioReportSearching.index = 0;
+                vm.audioReportSearching.limit = vm.audioReportSearching && vm.audioReportSearching.limit ? vm.audioReportSearching.limit : 50;
+                vm.audioReportSearching.timeScale = "1";
+                utilService.actionAfterLoaded('#audioReportEndDatetimePicker', function () {
+                    $('#audioReportStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#audioReportStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                    $('#audioReportEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#audioReportEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+
+                    vm.audioReportSearching.pageObj = utilService.createPageForPagingTable("#AudioReportTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "audioReportSearching", vm.getAudioReportData)
+                    });
+                });
+
+            };
+
+            vm.getAudioReportData = function (newSearch){
+                $('#csAudioReportTableSpin').show();
+
+                let tempCallerIdList = [];
+                if ((vm.audioReportSearching && !vm.audioReportSearching.callerId) || (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length == 0)) {
+                    if (vm.audioReportSearching && vm.audioReportSearching.csObjId && vm.audioReportSearching.csObjId.length) {
+                        vm.audioReportSearching.callerId = vm.callerIdList || [];
+                    }
+                    else {
+                        vm.csAccountList.forEach(
+                            csData => {
+                                if (csData && csData.callerId) {
+                                    tempCallerIdList.push(csData.callerId)
+                                }
+                            }
+                        );
+                        if (tempCallerIdList && tempCallerIdList.length) {
+                            vm.audioReportSearching.callerId = tempCallerIdList;
+                        }
+                    }
+                }
+
+                let searchQuery = {
+                    startDate: $("#audioReportStartDatetimePicker").data('datetimepicker').getLocalDate(),
+                    endDate: $("#audioReportEndDatetimePicker").data('datetimepicker').getLocalDate(),
+                    data: vm.audioReportSearching,
+                    limit: vm.audioReportSearching.limit || 50,
+                    index: newSearch ? 0 : (vm.audioReportSearching.index || 0),
+                    sortCol: vm.audioReportSearching.sortCol,
+                };
+
+                socketService.$socket($scope.AppSocket, 'getAudioReportData', searchQuery, function (data) {
+                    console.log('audioReportData', data);
+                    $('#csAudioReportTableSpin').hide();
+
+                    let drawData = data.data.data.map(item => {
+                        let index = vm.csAccountList.findIndex(p => p.callerId == item.agentNum)
+                        if (index != -1){
+                            item.adminName = vm.csAccountList[index].adminName;
+                            // item.platformName = vm.csAccountList[index].platformName;
+                        }
+
+                        if(item.startDate){
+                            item.displayTime =  utilService.$getTimeFromStdTimeFormat(item.startDate);
+                        }
+
+                        item.totalConversationTimeWithoutEavesdropping = item.totalCallTime  - item.totalEavesdroppingTime;
+                        item.totalIncomingAcceptedCall = item.totalIncallNum  - item.totalIncallFailedNum;
+                        item.totalAcceptedCallOut = item.totalOutcallNum  - item. totalOutcallFailedNum;
+                        item.totalCallOutTimeIncludeRingingTime = item.totalCallTime - item.totalAnswerTime + item.totalCallingTime;
+                        item.totalCallOutTime = item.totalCallTime - item.totalAnswerTime;
+                        item.totalMissCall = item.totalIncallFailedNum + item.totalOutcallFailedNum;
+                        return item;
+                    });
+                    vm.audioReportSearching.size = data.data.size;
+                    vm.drawCsAudioReportable(drawData, newSearch);
+                });
+            };
+
+            vm.drawCsAudioReportable = function (tblData, newSearch) {
+                let option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+
+                    columns: [
+                        // {
+                        //     title: $translate('PRODUCT_NAME'),
+                        //     data: "platformName",
+                        // },
+                        {
+                            title: 'FPMS' + $translate('CS Account'),
+                            data: "adminName",
+                        },
+                        {
+                            title: $translate('Caller ID'),
+                            data: "agentNum",
+                        },
+                        {
+                            title: $translate('Caller Group'),
+                            data: "agentGroupName",
+                        },
+                        {
+                            title: $translate('Time Scale') ,
+                            data: "displayTime",
+                        },
+                        {
+                            title: $translate('Total Conversation Time'),
+                            data: "totalCallTime",
+                        },
+                        {
+                            title: $translate('Total Conversation Time (Exclude Eavesdropping Time'),
+                            data: "totalConversationTimeWithoutEavesdropping",
+                        },
+                        {
+                            title: $translate('Total Incoming Accepted Call'),
+                            data: "totalIncomingAcceptedCall",
+                        },
+                        {
+                            title: $translate('Total Incoming Accepted Call Time'),
+                            data: "totalAnswerTime",
+                        },
+                        {
+                            title: $translate('Total Call Out'),
+                            data: "totalOutcallNum",
+                        },
+                        {
+                            title: $translate('Total Accepted Call Out'),
+                            data: "totalAcceptedCallOut",
+                        },
+                        {
+                            title: $translate('Total Call Out Time (Including Ringing Time'),
+                            data: "totalCallOutTimeIncludeRingingTime",
+                        },
+                        {
+                            title: $translate('Total Call Out Time'),
+                            data: "totalCallOutTime",
+                        },
+                        {
+                            title: $translate('Miss Call'),
+                            data: "totalMissCall",
+                        },
+                        {
+                            title: $translate('Miss Call In'),
+                            data: "totalIncallFailedNum",
+                        },
+                        {
+                            title: $translate('Miss Call Out'),
+                            data: "totalOutcallFailedNum",
+                        },
+                        {
+                            title: $translate('Total Hang-up Call Out Number'),
+                            data: "totalCalloutHangoutNum",
+                        },
+                        {
+                            title: $translate('Total Hang-up Call In Number'),
+                            data: "totalCallinHangoutNum",
+                        },
+                    ],
+                    // destroy: true,
+                    paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    },
+                });
+                option.language.emptyTable = $translate("No data available in table");
+
+                let a = utilService.createDatatableWithFooter('#AudioReportTable', option, {});
+                vm.audioReportSearching.pageObj.init({maxCount: vm.audioReportSearching.size}, newSearch);
+                $("#AudioReportTable").off('order.dt');
+                $("#AudioReportTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'audioReportSearching', vm.getAudioReportData);
+                });
+                // setTimeout(function () {
+                $('#AudioReportTable').resize();
+                // }, 300);
+                $scope.$evalAsync();
+            };
+
             vm.initCSAudioSystem = function(){
+                // to get the cs admin
+                vm.getCSList();
                 vm.initAudioRecordingReport();
             };
 
@@ -3709,49 +3907,55 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.getCsByPlatform = function (){
+            vm.getCSList = function () {
                 let csDepartmentObjIdList = [];
-                vm.platformList.forEach(
-                    platformData => {
-                        if (platformData && platformData.data && platformData.data.csDepartment && platformData.data.csDepartment.length){
-                            platformData.data.csDepartment.forEach(
-                                csDepartmentData => {
-                                    if (csDepartmentData && csDepartmentData._id){
-                                        csDepartmentObjIdList.push(csDepartmentData._id);
-                                    }
-                                }
-                            )
-                        }
-                    }
-                );
+                vm.csAccountList = [];
 
-                if (csDepartmentObjIdList && csDepartmentObjIdList.length){
-                    vm.csAccountList = [];
-                    socketService.$socket($scope.AppSocket, 'getCsByCsDepartment', {csDepartmentObjIdList: csDepartmentObjIdList}, function (data) {
-                        $scope.$evalAsync( () => {
-                            if (data && data.data && data.data.length){
-                                data.data.forEach(
-                                    department => {
-                                        if (department && department.users && department.users.length){
-                                            department.users.forEach(
-                                                user => {
-                                                    user.platformName = department.platforms && department.platforms[0] &&  department.platforms[0].name?  department.platforms[0].name : null
-                                                }
-                                            );
-                                            vm.csAccountList = vm.csAccountList.concat(department.users);
+                if(vm.platformList && vm.platformList.length){
+                    vm.platformList.forEach(
+                        platformData => {
+                            if (platformData && platformData.data && platformData.data.csDepartment && platformData.data.csDepartment.length){
+                                platformData.data.csDepartment.forEach(
+                                    csDepartmentData => {
+                                        if (csDepartmentData && csDepartmentData._id){
+                                            csDepartmentObjIdList.push(csDepartmentData._id);
                                         }
                                     }
                                 )
                             }
+                        }
+                    );
+
+                    if (csDepartmentObjIdList && csDepartmentObjIdList.length){
+                        socketService.$socket($scope.AppSocket, 'getCsByCsDepartment', {csDepartmentObjIdList: csDepartmentObjIdList}, function (data) {
+                            $scope.$evalAsync( () => {
+                                if (data && data.data && data.data.length){
+                                    data.data.forEach(
+                                        department => {
+                                            if (department && department.users && department.users.length){
+                                                department.users.forEach(
+                                                    user => {
+                                                        user.platformName = department.platforms && department.platforms[0] &&  department.platforms[0].name?  department.platforms[0].name : null;
+                                                        user.platformObjId = department.platforms && department.platforms[0] &&  department.platforms[0]._id?  department.platforms[0]._id : null;
+                                                    }
+                                                );
+                                                vm.csAccountList = vm.csAccountList.concat(department.users);
+                                            }
+                                        }
+                                    )
+                                }
+                            })
                         })
-                    })
+                    }
                 }
             };
 
-            vm.getCallerId = function () {
+            vm.getCallerId = function (csObjIdList) {
                 vm.callerIdList = [];
-                if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length && vm.csAccountList && vm.csAccountList.length){
-                    vm.audioRecordSearching.csObjId.forEach(
+
+                if (csObjIdList && csObjIdList.length && vm.csAccountList && vm.csAccountList.length){
+                // if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length && vm.csAccountList && vm.csAccountList.length){
+                    csObjIdList.forEach(
                         selectedCs => {
                             let index = vm.csAccountList.findIndex(p => p._id.toString() == selectedCs.toString());
                             if (index != -1){
@@ -3766,8 +3970,34 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.durationOperatorChange = function () {
+                if (vm.audioRecordSearching && vm.audioRecordSearching.durationOperator && vm.audioRecordSearching.durationOperator == 'none'){
+                    vm.audioRecordSearching.durationOne = null;
+                    vm.audioRecordSearching.durationTwo = null;
+                }
+            };
+
             vm.getAudioRecordData = function (newSearch){
                 $('#csAudioRecordTableSpin').show();
+                let tempCallerIdList = [];
+                if ((vm.audioRecordSearching && !vm.audioRecordSearching.callerId) || (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length == 0)) {
+                    if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length) {
+                        vm.audioRecordSearching.callerId = vm.callerIdList || [];
+                    }
+                    else {
+                        vm.csAccountList.forEach(
+                            csData => {
+                                if (csData && csData.callerId) {
+                                    tempCallerIdList.push(csData.callerId)
+                                }
+                            }
+                        );
+                        if (tempCallerIdList && tempCallerIdList.length) {
+                            vm.audioRecordSearching.callerId = tempCallerIdList;
+                        }
+                    }
+                }
+
                 let searchQuery = {
                     startDate: $("#audioRecordStartDatetimePicker").data('datetimepicker').getLocalDate(),
                     endDate: $("#audioRecordEndDatetimePicker").data('datetimepicker').getLocalDate(),
@@ -3782,7 +4012,7 @@ define(['js/app'], function (myApp) {
                     $('#csAudioRecordTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
-                        let index = vm.csAccountList.findIndex(p => p.callerId == item.exten_num)
+                        let index = vm.csAccountList.findIndex(p => p.callerId == item.agent_num)
                         if (index != -1){
                             item.adminName = vm.csAccountList[index].adminName;
                             item.platformName = vm.csAccountList[index].platformName;
@@ -3802,17 +4032,17 @@ define(['js/app'], function (myApp) {
                     ],
 
                     columns: [
-                        {
-                            title: $translate('PRODUCT_NAME'),
-                            data: "platformName",
-                        },
+                        // {
+                        //     title: $translate('PRODUCT_NAME'),
+                        //     data: "platformName",
+                        // },
                         {
                             title: 'FPMS' + $translate('CS Account'),
                             data: "adminName",
                         },
                         {
                             title: $translate('Caller ID'),
-                            data: "exten_num",
+                            data: "agent_num",
                         },
                         {
                             title: $translate('Start date'),

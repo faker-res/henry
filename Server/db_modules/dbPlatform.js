@@ -707,7 +707,7 @@ var dbPlatform = {
 
                         if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
                             Object.keys(extConfig).forEach(key => {
-                                if (key && extConfig[key] && extConfig[key].name && (extConfig[key].name === 'PMS2' || extConfig[key].name === 'DAYOU')) {
+                                if (key && extConfig[key] && extConfig[key].name && (extConfig[key].name === 'PMS2')) {
                                     if (extConfig[key].mainDomain) {
                                         proms.push(RESTUtils.getPMS2Services("postSyncPlatform", data, Number(key)));
                                     }
