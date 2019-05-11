@@ -16233,7 +16233,9 @@ let dbPlayerInfo = {
                                     if (data.hasOwnProperty('sortCol')){
                                         rewardData.sortCol = data.sortCol;
                                     }
-
+                                    if (data.festivalId) {
+                                        rewardData.festivalId = data.festivalId;
+                                    }
 
                                     if(data.appliedRewardList){
                                         rewardData.appliedRewardList = data.appliedRewardList

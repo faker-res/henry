@@ -582,7 +582,8 @@ define(['js/app'], function (myApp) {
                 2: '#newPlayerModal',
                 3: '#auctionItemModal',
                 4: '#promoUrlItemModal',
-                5: '#randomRewardItemModal'
+                5: '#randomRewardItemModal',
+                6: '#festivalItemModal'
             };
 
             vm.createInnerTable = function (id) {
@@ -22566,6 +22567,18 @@ define(['js/app'], function (myApp) {
                 }
                 $scope.safeApply();
             };
+            vm.addNewFestivalTitle = (festival) => {
+                let updateObj = {
+                    'id': createObjectId(),
+                    'name': festival.name,
+                    'month': festival.month,
+                    'day': festival.day
+                }
+                if (vm.rewardParams && vm.rewardParams.others) {
+                    vm.rewardParams.others.push(updateObj);
+                }
+                vm.editReward();
+            }
 
             vm.createFestivalRowByLevel = (idx) => {
                 // generate record by player level (if isPlayerLevelDiff is selected)
@@ -26349,6 +26362,20 @@ define(['js/app'], function (myApp) {
 
             vm.showRandomRewardModal = function(id, templateNo, data){
                 templateNo = 5;
+                vm.selectedRandomReward = ( data && data.data ) ? data.data : [];
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.$evalAsync();
+                })
+            }
+
+            vm.showFestivalRewardModal = function(id, templateNo, data){
+                templateNo = 6;
                 vm.selectedRandomReward = ( data && data.data ) ? data.data : [];
                 let tmpt = vm.proposalTemplate[templateNo];
                 $(tmpt).modal('show');

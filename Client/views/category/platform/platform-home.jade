@@ -370,6 +370,46 @@
                                         td {{ vm.randomRewardConvertorStatus[v.status] | translate}}
             .modal-footer
 
+#festivalItemModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                {{ 'DETAILS' | translate }}
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            table.common-table.display(style='min-width:100%')
+                                thead
+                                    th {{'节日名称' | translate}}
+                                    th {{'时间' | translate}}
+
+                                tbody
+                                    tr(ng-repeat="v in vm.showReward.param.others")
+                                        td {{v.name || ''}}
+                                        td {{v.month || ''}}月{{v.day || ''}}日
+
+                                table.common-table.display(style='min-width:100%')
+                                    thead
+                                        th {{'节日名称' | translate}}
+                                        th {{'时间' | translate}}
+                                        th
+
+                                    tbody
+                                        tr
+                                            td
+                                                input(ng-model='vm.festival.name')
+                                                //ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{ i | translate}}
+                                            td
+                                                select.form-control(ng-model='vm.festival.month', style='inline-block')
+                                                    option(ng-repeat="i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]", value='{{i}}')  {{i}}
+                                                select.form-control(ng-model='vm.festival.day', style='inline-block')
+                                                    option(ng-repeat="i in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]", value='{{i}}')  {{i}}
+                                            td
+                                                button.btn-primary.common-button(ng-click="vm.addNewFestivalTitle(vm.festival)") 确定
+            .modal-footer
+
 
 
 #rewardLockModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
