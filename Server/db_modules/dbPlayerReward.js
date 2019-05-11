@@ -6026,31 +6026,23 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
-            if (eventData.condition.rewardAppearPeriod && eventData.condition.rewardAppearPeriod[0] && eventData.condition.rewardAppearPeriod[0].startTime) {
-                let isValid = false;
-                let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
-                let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
-                eventData.condition.rewardAppearPeriod.forEach(appearPeriod => {
-                    if (appearPeriod.startDate <= todayWeekOfDay && appearPeriod.startTime <= dayOfHour &&
-                        appearPeriod.endDate >= todayWeekOfDay && appearPeriod.endTime > dayOfHour
-                    ) {
-                        isValid = true;
+            intervalTime.startTime = moment().startOf('year');
+            intervalTime.endTime = moment().endOf('year');
+            eventData.festivalItemId = '5cd6777fb41b21a9ccb31955';
+            console.log('intervalTime Start', intervalTime.startTime);
+            console.log('intervalTime endTime', intervalTime.endTime);
 
-                        // to display reward event appear time in proposal
-                        showRewardPeriod.startDate = appearPeriod.startDate;
-                        showRewardPeriod.startTime = appearPeriod.startTime;
-                        showRewardPeriod.endDate = appearPeriod.endDate;
-                        showRewardPeriod.endTime = appearPeriod.endTime;
-                    }
-                });
+            if (!eventData.festivalItemId) {
+                return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});
+            }
 
-                if (!isValid) {
-                    return Q.reject({
-                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        name: "DataError",
-                        message: "The period of the reward has not yet opened"
-                    });
-                }
+            selectedRewardParam = selectedRewardParam.filter( item => {
+                return item.id == eventData.festivalItemId;
+            })
+            selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
+
+            if (!selectedRewardParam || selectedRewardParam.length == 0) {
+                return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});
             }
             let consumptionMatchQuery = {
                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
@@ -6067,7 +6059,7 @@ let dbPlayerReward = {
                     {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
                 ];
 
-                topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                topupMatchQuery.createTime = {$gte: todayTime.startTime, $lt: todayTime.endTime};
             }
 
             if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
@@ -6123,7 +6115,7 @@ let dbPlayerReward = {
                 rewardEvent: eventData._id,
                 status: 1
             }).sort({createTime: 1}).lean());
-            let festivalAvailableProm = checkFestivalOverApplyTimes(eventData, playerData.platform._id, playerData._id);
+            let festivalAvailableProm = checkFestivalOverApplyTimes(eventData, playerData.platform._id, playerData._id, selectedRewardParam);
             promArr.push(festivalAvailableProm);
         }
 
@@ -7301,7 +7293,16 @@ let dbPlayerReward = {
                         let checkIsReceived = rewardSpecificData[3];
                         isAnyRewardLeft = rewardSpecificData[6];
                         let applyRewardCount = (periodData && periodData.length ) ? periodData.length :0;
+                        console.log('***************************************************')
+                        console.log('***************************************************')
+                        console.log('***************************************************')
+                        console.log('***************************************************')
+                        console.log('***************************************************')
+                        console.log('***************************************************')
+                        console.log('***************************************************')
 
+                        console.log('****consumptionData', consumptionData);
+                        console.log('*****topUpData',topUpData);
                         //check if fulfil any of reward can apply
                         console.log('isAnyRewardLeft', isAnyRewardLeft)
                         if (!isAnyRewardLeft || isAnyRewardLeft.count <= 0) {
@@ -7312,14 +7313,8 @@ let dbPlayerReward = {
                             });
 
 
-                        } else {
-                            console.log('isAnyRewardLeft.count', isAnyRewardLeft.count);
-                            console.log('***shot ...')
-                            selectedRewardParam = selectedRewardParam.filter( item => {
-                                return item.id == isAnyRewardLeft.festivals[0];
-                            })
-                            selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
                         }
+
                         console.log('#############################')
                         console.log('#############################')
                         console.log('player get this reward', selectedRewardParam);
@@ -8189,6 +8184,8 @@ let dbPlayerReward = {
 
                             proposalData.data.festivalObjId = ( isAnyRewardLeft && isAnyRewardLeft.festivals && isAnyRewardLeft.festivals[0] ) ? isAnyRewardLeft.festivals[0] : '-';  //selectedRewardParam.id || null;
                             proposalData.data.rewardType = selectedRewardParam.rewardType || null;
+                            // keep this for debug
+                            proposalData.data.rewardInfo = selectedRewardParam;
                             // festivals:
                         }
                         if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
@@ -10048,16 +10045,15 @@ function handlingBaccaratBetTypeList (betType) {
 
 }
 
-function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
+function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, selectedRewardParam) {
     let proms = [];
-    eventData.festivalItemId = '5cd6777f1372ecd94f61c7dd';
 
     console.log('#############################')
     console.log('#############################')
     console.log('playerApply this id', eventData.festivalItemId);
     console.log('#############################')
     console.log('#############################')
-
+    console.log(selectedRewardParam);
 
 
     return new Promise((resolve, reject) => {
@@ -10067,7 +10063,7 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
             console.log('**********************************festival 1');
             console.log('eventData.param.rewardParam[0].value',eventData.param.rewardParam[0].value);
             if (eventData.festivalItemId) {
-                let festivalItem = getFestivalRewardInfo(eventData.festivalItemId, eventData);
+                let festivalItem = selectedRewardParam;
                 console.log(festivalItem);
                 let festivalDate = getFestivalRewardDate(festivalItem, eventData.param.others);
                 let isRightApplyTime = checkIfRightApplyTime(festivalItem, festivalDate);
@@ -10076,21 +10072,8 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
                     let prom = checkFestivalProposal(festivalItem, platformId, playerObjId, eventData._id, festivalItem.id);
                     proms.push(prom);
                 }
-            } else if (eventData.param && eventData.param.rewardParam[0] && eventData.param.rewardParam[0].value && eventData.param.rewardParam[0].value.length > 0) {
-                eventData.param.rewardParam[0].value.forEach(item=> {
-                    if (item.rewardType == '4') {
-                        let festival = getFestivalRewardDate(item, eventData.param.others);
-                        // check if it in between of apply period
-                        let isRightApplyTime = checkIfRightApplyTime(item, festival);
-                        console.log('***isRightApplyTime', isRightApplyTime)
-                        if (isRightApplyTime) {
-                            let prom = checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id);
-                            proms.push(prom);
-                        }
-
-                    }
-                })
             }
+
             return Promise.all(proms).then(
                 data => {
                     console.log('======>', data);
@@ -10109,7 +10092,7 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
             // if is festival
             console.log('**********************************festival 2');
             if (eventData.festivalItemId) {
-                let festivalItem = getFestivalRewardInfo(eventData.festivalItemId, eventData);
+                let festivalItem = selectedRewardParam;
                 console.log(festivalItem);
                 let festivalDate = getFestivalRewardDate(festivalItem, eventData.param.others);
                 let isRightApplyTime = checkIfRightApplyTime(festivalItem, festivalDate);
@@ -10118,17 +10101,6 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
                     let prom = checkFestivalProposal(festivalItem, platformId, playerObjId, eventData._id, festivalItem.id);
                     proms.push(prom);
                 }
-            } else if (eventData.param && eventData.param.rewardParam[0] && eventData.param.rewardParam[0].value && eventData.param.rewardParam[0].value.length > 0) {
-                eventData.param.rewardParam[0].value.forEach(item=> {
-                    // check if it in between of apply period
-                    console.log(item);
-                    let isRightApplyTime = checkIfRightApplyTime(item);
-                    console.log('***isRightApplyTime', isRightApplyTime)
-                    if (isRightApplyTime) {
-                        let prom = checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id);
-                        proms.push(prom);
-                    }
-                })
             }
             return Promise.all(proms).then(
                 data => {
@@ -10148,19 +10120,6 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId) {
         // return result;
     })
 }
-
-function getFestivalRewardInfo (festivalId, eventData) {
-    let result = [];
-    if ( eventData.param && eventData.param.rewardParam && eventData.param.rewardParam[0] && eventData.param.rewardParam[0].value ) {
-        let rewardParam = eventData.param.rewardParam[0].value;
-        result = rewardParam.filter( item => { return item.id == festivalId });
-        result = ( result && result[0] ) ? result[0] : []
-    }
-
-    return result
-}
-
-
 
 function getFestivalRewardDate(reward, festivals) {
     //find the festival date inside the reward param
@@ -10237,8 +10196,6 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
         let expiredInDay = rewardParam.expiredInDay ? rewardParam.expiredInDay : 0;
         let applyPeriod = getTimePeriod(expiredInDay, todayTime)
         let festivalPeriod = null;
-        let topUpProm = new Promise(resolve, reject => { resolve() });
-        let consumptionProm = new Promise(resolve, reject => { resolve() });
         // console.log('***** rewardParam', rewardParam);
         let sendQuery = {
             "data.platformObjId": platformId,
@@ -10252,16 +10209,6 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
         }
         console.log('sendQuery####################################################################',sendQuery)
-
-        topUpProm().then(
-            data=>{
-
-            }
-        ).consumptionProm().then(
-            data =>{
-
-        })
-        consumptionPromp
 
         return dbConfig.collection_proposal.find(sendQuery).lean()
         .then( data => {
