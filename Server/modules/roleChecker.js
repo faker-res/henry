@@ -888,6 +888,10 @@ var roleChecker = {
             ManualProcessReport: {
                 Read: ['getManualProcessRecord', 'getManualProcessProposalDetail'],
                 Edit: ['summarizeManualProcessRecord'],
+            },
+           CsRankingReport: {
+                Read: [],
+                Edit: [],
             }
         },
         TeleMarketing: {

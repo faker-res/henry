@@ -235,7 +235,7 @@ define(['js/app'], function (myApp) {
                 platforms.map(item => {
 
                     //store live800companyId;
-                    if (item.data.live800CompanyId.length > 0) {
+                    if (item && item.data && item.data.live800CompanyId && item.data.live800CompanyId.length > 0) {
                         item.data.live800CompanyId.forEach(cId => {
                             if (companyIds.indexOf(cId) == -1) {
                                 companyIds.push(cId);
@@ -250,16 +250,20 @@ define(['js/app'], function (myApp) {
 
                     if (item.data.livecompanyIds && item.data.livecompanyIds.indexOf(item.data.live800CompanyId) == -1)
                         companyIds = companyIds.concat(item.data.live800CompanyId);
+
                     //store CS department
-                    item.data.csDepartment.forEach(cItem => {
-                        csDepartmentMember = csDepartmentMember.concat(cItem.users);
-                    })
+                    if (item && item.data && item.data.csDepartment && item.data.csDepartment.length) {
+                        item.data.csDepartment.forEach(cItem => {
+                            csDepartmentMember = csDepartmentMember.concat(cItem.users);
+                        })
+                    }
 
                     //store QI department
-                    item.data.qiDepartment.forEach(qItem=>{
-                        qiDepartmentMember = qiDepartmentMember.concat(qItem.users);
-                    })
-
+                    if (item && item.data && item.data.qiDepartment && item.data.qiDepartment.length) {
+                        item.data.qiDepartment.forEach(qItem => {
+                            qiDepartmentMember = qiDepartmentMember.concat(qItem.users);
+                        })
+                    }
                 })
               vm.getCSDepartmentMember(csDepartmentMember,companyIds);
               vm.getQIDepartmentMember(qiDepartmentMember);
@@ -4193,7 +4197,7 @@ define(['js/app'], function (myApp) {
 
 
             //////////////////////////////////////////////////////////Start of Manual Approval Report Tab///////////////////////////////////////////////////////////////////
-            vm.initManualProcessReport = function(){
+            vm.getCSAdminList = function () {
                 vm.selectedCS = [];
                 vm.csDepartmentMember = [];
                 vm.platformList.forEach(
@@ -4208,13 +4212,16 @@ define(['js/app'], function (myApp) {
 
                 if (vm.csDepartmentMember && vm.csDepartmentMember.length) {
                     socketService.$socket($scope.AppSocket, 'getCSAdmins', {admins: vm.csDepartmentMember}, function (cdata) {
-                       $scope.$evalAsync( () => {
-                           console.log('all admin data', cdata.data);
-                           vm.csList = cdata.data;
-                       })
+                        $scope.$evalAsync( () => {
+                            console.log('all admin data', cdata.data);
+                            vm.csList = cdata.data;
+                        })
                     })
                 };
+            };
 
+            vm.initManualProcessReport = function(){
+                vm.getCSAdminList();
                 vm.manualProcessRecordData = {totalCount: 0};
                 vm.manualProcessRecordData.index = 0;
                 vm.manualProcessRecordData.limit = vm.manualProcessRecordData && vm.manualProcessRecordData.limit ? vm.manualProcessRecordData.limit : 50;
@@ -4841,6 +4848,137 @@ define(['js/app'], function (myApp) {
 
             //////////////////////////////////////////////////////////End of Manual Approval Report Tab///////////////////////////////////////////////////////////////////
 
+            //////////////////////////////////////////////////////////Start of Cs Ranking Report Tab///////////////////////////////////////////////////////////////////
+            vm.initCsRankingReport = function () {
+                vm.getCSAdminList();
+                vm.csRankingReportData = {totalCount: 0};
+                vm.csRankingReportData.index = 0;
+                vm.csRankingReportData.limit = vm.csRankingReportData && vm.csRankingReportData.limit ? vm.csRankingReportData.limit : 50;
+                utilService.actionAfterLoaded(('#csRankingReportEndDatetimePicker'), function () {
+
+                    $('#csRankingReportStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#csRankingReportStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                    $('#csRankingReportEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#csRankingReportEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+
+
+                    vm.csRankingReportData.pageObj = utilService.createPageForPagingTable("#csRankingReportTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "csRankingReportData", vm.getCsRankingReport)
+                    });
+                })
+            };
+
+            vm.getCsRankingReport = function (newSearch){
+                $('#csRankingReportTableSpin').show();
+                let searchQuery = {
+                    startDate: $("#csRankingReportStartDatetimePicker").data('datetimepicker').getLocalDate(),
+                    endDate: $("#csRankingReportEndDatetimePicker").data('datetimepicker').getLocalDate(),
+                    adminObjId: vm.csList.map(cs => {return cs._id}),
+                    limit: vm.csRankingReportData.limit || 50,
+                    index: newSearch ? 0 : (vm.csRankingReportData.index || 0),
+                    sortCol: vm.csRankingReportData.sortCol,
+                };
+
+                if (vm.selectedCS && vm.selectedCS.length){
+                    searchQuery.adminObjId = vm.selectedCS
+                }
+
+                socketService.$socket($scope.AppSocket, 'getCsRankingReport', searchQuery, function (data) {
+                    console.log('csRankingRecord', data);
+                    $('#csRankingReportTableSpin').hide();
+
+                    let drawData = data.data.data.map(item => {
+                        let index = vm.csList.findIndex(p =>p._id.toString() == item._id.toString())
+                        if (index != -1){
+                            item.adminName = vm.csList[index].adminName;
+                        }
+
+                        return item;
+                    });
+                    vm.csRankingReportData.totalCount = data.data.data.length;
+                    vm.csRankingReportData.size = data.data.size;
+                    vm.drawCsRankingTable(drawData, newSearch);
+                });
+            };
+
+            vm.drawCsRankingTable = function (tblData, newSearch) {
+                console.log(newSearch);
+                let option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    // "aaSorting": vm.manualProcessRecordData.aaSorting,
+                    aoColumnDefs: [
+                        {'sortCol': 'adminName', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'live800TotalConversationNumber', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'live800TotalEffectiveConversationNumber', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'live800TotalInspectionMark', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'totalAcceptedCallInNumber', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'totalAcceptedCallInTime', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'totalManualProcessNumber', bSortable: true, 'aTargets': [6]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+
+                    columns: [
+                        {
+                            title: 'FPMS' + $translate('CS Account'),
+                            data: "adminName",
+                        },
+                        {
+                            title: $translate('Live800 Total Conversation Number'),
+                            data: "live800TotalConversationNumber",
+                        },
+                        {
+                            title: $translate('Live800 Total Effective Conversation Number'),
+                            data: "live800TotalEffectiveConversationNumber",
+                        },
+                        {
+                            title: $translate('Live800 Total Inspection Mark'),
+                            data: "live800TotalInspectionMark",
+                        },
+                        {
+                            title: $translate('Total Accepted Call In Number'),
+                            data: "totalAcceptedCallInNumber",
+                        },
+                        {
+                            title: $translate('Total Accepted Call In Time'),
+                            data: "totalAcceptedCallInTime",
+                        },
+                        {
+                            title: $translate('Total Manual Process Number'),
+                            data: "totalManualProcessNumber",
+                        },
+                    ],
+                    // destroy: true,
+                    paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                option.language.emptyTable = $translate("No data available in table");
+
+                let a = utilService.createDatatableWithFooter('#csRankingReportTable', option, {});
+                vm.manualProcessRecordData.pageObj.init({maxCount: vm.csRankingReportData.size}, newSearch);
+                $("#csRankingReportTable").off('order.dt');
+                $("#csRankingReportTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'csRankingReportData', vm.getCsRankingReport);
+                });
+                // setTimeout(function () {
+                $('#csRankingReportTable').resize();
+                // }, 300);
+                $scope.$evalAsync();
+            };
+
+            //////////////////////////////////////////////////////////End of Cs Ranking Report Tab///////////////////////////////////////////////////////////////////
         };
     qualityInspectionController.$inject = injectParams;
         myApp.register.controller('qualityInspectionCtrl', qualityInspectionController);
