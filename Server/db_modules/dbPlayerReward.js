@@ -6028,7 +6028,7 @@ let dbPlayerReward = {
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
             intervalTime.startTime = moment().startOf('year');
             intervalTime.endTime = moment().endOf('year');
-            eventData.festivalItemId = '5cd6777f5cdd8b87c75d6b56';
+            eventData.festivalItemId = '5cd6777f2f14280aca982381';
             console.log('intervalTime Start', intervalTime.startTime);
             console.log('intervalTime endTime', intervalTime.endTime);
 
@@ -6115,7 +6115,7 @@ let dbPlayerReward = {
                 rewardEvent: eventData._id,
                 status: 1
             }).sort({createTime: 1}).lean());
-            let festivalAvailableProm = checkFestivalOverApplyTimes(eventData, playerData.platform._id, playerData._id, selectedRewardParam);
+            let festivalAvailableProm = checkFestivalOverApplyTimes(eventData, playerData.platform._id, playerData._id, selectedRewardParam, playerData.DOB);
             promArr.push(festivalAvailableProm);
         }
 
@@ -10044,7 +10044,7 @@ function handlingBaccaratBetTypeList (betType) {
 
 }
 
-function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, selectedRewardParam) {
+function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, selectedRewardParam, playerBirthday) {
     let proms = [];
 
     console.log('#############################')
@@ -10056,11 +10056,21 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
     return new Promise((resolve, reject) => {
         let result = { count:0 , festivals:[] };
         if (eventData.condition && eventData.condition.festivalType) {
+
             // if is birthday
             if (eventData.festivalItemId) {
+                let festivalDate;
                 let festivalItem = selectedRewardParam;
                 console.log(festivalItem);
-                let festivalDate = getFestivalRewardDate(festivalItem, eventData.param.others);
+
+                if (selectedRewardParam.rewardType == 2 || selectedRewardParam.rewardType == 4) {
+                    let birthday = getBirthday(playerBirthday);
+                    console.log('--birthday', birthday);
+                    festivalDate = birthday;
+                } else {
+                    festivalDate = getFestivalRewardDate(festivalItem, eventData.param.others);
+                }
+
                 let isRightApplyTime = checkIfRightApplyTime(festivalItem, festivalDate);
                 if (isRightApplyTime) {
                     let prom = checkFestivalProposal(festivalItem, platformId, playerObjId, eventData._id, festivalItem.id);
@@ -10083,6 +10093,17 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
             )
         }
     })
+}
+
+function getBirthday(playerBirthday) {
+    let result = { month: null, day: null};
+    console.log(playerBirthday);
+
+    var month = new Date(playerBirthday).getMonth() + 1;
+    var day = new Date(playerBirthday).getDate();
+    result.month = month;
+    result.day = day;
+    return result;
 }
 
 function getFestivalRewardDate(reward, festivals) {
