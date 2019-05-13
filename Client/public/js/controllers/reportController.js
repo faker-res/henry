@@ -2640,8 +2640,6 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function(data) {
                 // hide 'loading' gif
-                console.log("walaosocket", socketName)
-                console.log("walaodata",data)
                 $('#winRateTableSpin').hide();
                 // calculate the sum of non-repeat participant;
                 if (data.data && data.data.summaryData && data.data.summaryData.participantArr) {
