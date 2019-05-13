@@ -51,7 +51,11 @@ let playerBStateSchema = new Schema({
     // update the player's payment info
     updatePaymentInfo: {type: Boolean, default: false},
     // the time when updating the player's payment info
-    updatePaymentInfoUpdatedTime: {type: Date, default: Date.now}
+    updatePaymentInfoUpdatedTime: {type: Date, default: Date.now},
+    // player withdrawal
+    playerBonus: {type: Boolean, default: false},
+    // the time when player request withdrawal
+    playerBonusUpdatedTime: {type: Date, default: Date.now}
 });
 
 module.exports = playerBStateSchema;
