@@ -239,25 +239,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
     };
 
-    $scope.getServerDate = function (callback) {
-        socketService.$socket($scope.AppSocket, 'getServerDate', {}, onSuccess, onFail, true);
-
-        function onSuccess(data) {
-            $scope.serverDate = data.data;
-            console.log("serverDate:", $scope.serverDate);
-            if (callback) {
-                callback.call(this);
-            }
-        }
-
-        function onFail(error) {
-            console.error("Failed to get serverDate!", error);
-            if (callback) {
-                callback.call(this, error);
-            }
-        }
-    };
-
     // logout handler
     $scope.logout = function () {
         // disconnect socket
