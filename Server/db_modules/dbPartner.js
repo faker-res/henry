@@ -3369,7 +3369,7 @@ let dbPartner = {
             {
                 $group: {
                     _id: {playerId: "$playerId"},
-                    amount: {$sum: "$oriAmount"},
+                    amount: {$sum: "$amount"},
                     times: {$sum: 1}
                 }
             }
@@ -3455,7 +3455,7 @@ let dbPartner = {
             {
                 $group: {
                     _id: {playerId: "$playerId"},
-                    amount: {$sum: "$oriAmount"},
+                    amount: {$sum: "$amount"},
                     times: {$sum: 1}
                 }
             }
