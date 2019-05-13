@@ -17605,6 +17605,7 @@ define(['js/app'], function (myApp) {
                                     if (vm.playerFeedbackSearchType=="many") {
                                         let playerObjId = callee && callee.player && callee.player._id;
                                         if (playerObjId) {
+                                            $cookies.put('platform', getSelectedPlatform().name || vm.selectedPlatform.data.name);
                                             let url = window.location.origin + "/playerDetail/" + playerObjId;
                                             utilService.openInNewTab(url);
                                         }
@@ -26744,19 +26745,19 @@ define(['js/app'], function (myApp) {
                         }
                         if (qName == "promoCodeAnalysis2") {
                             utilService.createDatatableWithFooter(tblId, tblOptions, {
-                                1: summary.sendCount,
-                                2: summary.acceptedCount,
-                                3: summaryRate,
-                                4: summary.acceptedAmount,
-                                5: summary.topUpAmount
+                                2: summary.sendCount,
+                                3: summary.acceptedCount,
+                                4: summaryRate,
+                                5: summary.acceptedAmount,
+                                6: summary.topUpAmount
                             });
                         } else {
                             utilService.createDatatableWithFooter(tblId, tblOptions, {
-                                1: summary.sendCount,
-                                2: summary.acceptedCount,
-                                3: summary.totalPlayer,
-                                4: summaryRate,
-                                5: summary.acceptedAmount
+                                2: summary.sendCount,
+                                3: summary.acceptedCount,
+                                4: summary.totalPlayer,
+                                5: summaryRate,
+                                6: summary.acceptedAmount
                             });
                         }
                     } else {
@@ -26979,16 +26980,22 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPromoCodeAnalysis = function (isNewSearch) {
-                vm.promoCodeAnalysis.platformId = vm.selectedPlatform.id;
                 $('#promoCodeAnaysisTableSpin').show();
 
                 vm.promoCodeAnalysis.index = isNewSearch ? 0 : (vm.promoCodeAnalysis.index || 0);
+
+                let platformIdList;
+                if (vm.promoCodeAnalysis && vm.promoCodeAnalysis.platformList && vm.promoCodeAnalysis.platformList.length) {
+                    platformIdList = vm.promoCodeAnalysis.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
 
                 let sendObj = {
                     startCreateTime: vm.promoCodeAnalysis.startCreateTime.data('datetimepicker').getLocalDate(),
                     endCreateTime: vm.promoCodeAnalysis.endCreateTime.data('datetimepicker').getLocalDate(),
                     playerName: vm.promoCodeAnalysis.playerName,
-                    platformObjId: vm.promoCodeAnalysis.platformId,
+                    platformObjId: platformIdList,
                     index: vm.promoCodeAnalysis.index || 0,
                     limit: vm.promoCodeAnalysis.limit || 10,
                     sortCol: vm.promoCodeAnalysis.sortCol
@@ -27022,6 +27029,13 @@ define(['js/app'], function (myApp) {
                                     elem.promoCodeTemplate = res.data;
                                     elem.promoCodeSubType$ = ( res.data && res.data.name ) ? res.data.name : '';
                                     elem.totalPlayer$ = elem.totalPlayer.length || 0;
+
+                                    if (res && res.data && res.data.platformObjId) {
+                                        let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === res.data.platformObjId.toString());
+                                        if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                            elem.platform$ = matchedPlatformData[0].name;
+                                        }
+                                    }
                                 })
                             });
                         } else if(elem._id && elem._id.promoCodeTypeObjId) {
@@ -27030,6 +27044,12 @@ define(['js/app'], function (myApp) {
                                     elem.promoCodeType = res.data;
                                     elem.promoCodeSubType$ = ( res.data && res.data.name ) ? res.data.name : '';
                                     elem.totalPlayer$ = elem.totalPlayer.length || 0;
+                                    if (res && res.data && res.data.platformObjId) {
+                                        let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === res.data.platformObjId.toString());
+                                        if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                            elem.platform$ = matchedPlatformData[0].name;
+                                        }
+                                    }
                                 })
                             });
                         }
@@ -27040,14 +27060,19 @@ define(['js/app'], function (myApp) {
                             data: table1Data,
                             // "order": vm.promoCodeAnalysis.aaSorting || [[0, 'desc']], //skip and limit cannot be done in this query if sort by name
                             aoColumnDefs: [
-                                {'sortCol': 'sendCount', bSortable: true, 'aTargets': [1]},
-                                {'sortCol': 'acceptedCount', bSortable: true, 'aTargets': [2]},
+                                {'sortCol': 'sendCount', bSortable: true, 'aTargets': [2]},
+                                {'sortCol': 'acceptedCount', bSortable: true, 'aTargets': [3]},
                                 {targets: '_all', defaultContent: ' ', bSortable: false}
                             ],
                             columns: [
                                 {
+                                    title: $translate('PRODUCT_NAME'),
+                                    data: "platform$"
+                                },
+                                {
                                     title: $translate('PROMO_CODE_SUB_TYPE'),
-                                    data: "promoCodeSubType$"
+                                    data: "promoCodeSubType$",
+                                    sClass: "sumText",
                                 },
                                 {
                                     title: $translate('sendCount'),
@@ -27087,16 +27112,22 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPromoCodeAnalysis2 = function (isNewSearch) {
-                vm.promoCodeAnalysis.platformId = vm.selectedPlatform.id;
                 $('#promoCodeAnaysis2TableSpin').show();
 
                 vm.promoCodeAnalysis.index = isNewSearch ? 0 : (vm.promoCodeAnalysis.index || 0);
+
+                let platformIdList;
+                if (vm.promoCodeAnalysis && vm.promoCodeAnalysis.platformList && vm.promoCodeAnalysis.platformList.length) {
+                    platformIdList = vm.promoCodeAnalysis.platformList;
+                } else {
+                    platformIdList = vm.allPlatformData.map(a => a._id);
+                }
 
                 let sendObj = {
                     startCreateTime: vm.promoCodeAnalysis.startCreateTime.data('datetimepicker').getLocalDate(),
                     endCreateTime: vm.promoCodeAnalysis.endCreateTime.data('datetimepicker').getLocalDate(),
                     playerName: vm.promoCodeAnalysis.playerName,
-                    platformObjId: vm.promoCodeAnalysis.platformId,
+                    platformObjId: platformIdList,
                     index: vm.promoCodeAnalysis2.index || 0,
                     limit: vm.promoCodeAnalysis2.limit || 10,
                     sortCol: vm.promoCodeAnalysis2.sortCol
@@ -27127,6 +27158,12 @@ define(['js/app'], function (myApp) {
                         p1 = p1.then(function () {
                             return $scope.$socketPromise('getPlayerInfo', {_id: elem._id}).then(res => {
                                 elem.player = res.data;
+                                if (res && res.data && res.data.platform) {
+                                    let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === res.data.platform.toString());
+                                    if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                        elem.platform$ = matchedPlatformData[0].name;
+                                    }
+                                }
                             })
                         });
                     });
@@ -27137,11 +27174,15 @@ define(['js/app'], function (myApp) {
                             data: table2Data,
                             // "order": vm.promoCodeAnalysis2.aaSorting || [[0, 'desc']],
                             aoColumnDefs: [
-                                {'sortCol': 'sendCount', bSortable: true, 'aTargets': [1]},
-                                {'sortCol': 'acceptedCount', bSortable: true, 'aTargets': [2]},
+                                {'sortCol': 'sendCount', bSortable: true, 'aTargets': [2]},
+                                {'sortCol': 'acceptedCount', bSortable: true, 'aTargets': [3]},
                                 {targets: '_all', defaultContent: ' ', bSortable: false}
                             ],
                             columns: [
+                                {
+                                    title: $translate('PRODUCT_NAME'),
+                                    data: "platform$"
+                                },
                                 {
                                     title: $translate('playerAccount'),
                                     data: "player.name",
@@ -30155,9 +30196,9 @@ define(['js/app'], function (myApp) {
                     vm.filterCredibilityRemarks = JSON.parse(JSON.stringify(vm.credibilityRemarks));
                     vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                     setTimeout(()=>{
-                        vm.setupRemarksMultiInputFeedback();
-                        vm.setupRemarksMultiInputFeedbackFilter();
-                    },1);
+                        $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                        $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
+                    },100);
                 }
             };
             vm.getAllCredibilityRemarks = () => {
@@ -37258,15 +37299,26 @@ define(['js/app'], function (myApp) {
                     playerType: 'Real Player (all)',
                     playerLevel: 'all',
                     callPermission: 'all',
-                    schedule: []
+                    schedule: [],
+                    credibilityRemarks: [],
+                    filterCredibilityRemarks: [],
+                    filterFeedbackTopic: [],
+                    gameProviderId: []
                 };
+                vm.allPlayerLvl = {};
+                vm.credibilityRemarks = {};
+                vm.filterCredibilityRemarks = {};
+                vm.allCurrentPlatformGameProviders = {};
+                vm.currentPlatformQueryDepartments = {};
+                vm.queryRoles = {};
+                vm.queryAdmins = {};
 
                 vm.autoFeedbackMission.channel = null;
                 if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
                     if ($scope.usableChannelList.includes(2)) {
                         vm.autoFeedbackMission.channel = 2; //set default sms channel
                     } else {
-                        vm.autoFeedbackMission.channel = $scope.usableChannelList[0];
+                        vm.autoFeedbackMission.channel = $scope.usableChannelList[0].toString();
                     }
                 }
 
@@ -37279,15 +37331,18 @@ define(['js/app'], function (myApp) {
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker',
                     utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
-                    vm.setupRemarksMultiInputFeedback();
-                    vm.setupRemarksMultiInputFeedbackFilter();
-                    vm.setupMultiInputFeedbackTopicFilter();
-                    vm.setupGameProviderMultiInputFeedback();
-
                     vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+
+                    vm.refreshSPicker();
+                    setTimeout(()=>{
+                        $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                        $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
+                        $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
+                        $('select#selectGameProvider').multipleSelect('refresh');
+                    },100)
                 });
             };
             vm.autoFeedbackCreateMission = function() {
@@ -37316,17 +37371,14 @@ define(['js/app'], function (myApp) {
                 vm.selectedAutoFeedbackTab = "create";
                 vm.autoFeedbackEditStatus = true;
                 vm.autoFeedbackUpdateMissionStatus = '';
-                vm.autoFeedbackMission = {};
-                vm.autoFeedbackMission.platformObjId = data.platformObjId;
-                vm.getAllPlayerLevelsLocal();
-                vm.getCredibilityRemarksLocal();
-                vm.getAllGameProvidersLocal();
+                vm.autoFeedbackMission = JSON.parse(JSON.stringify(data));
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
-                    // vm.setupRemarksMultiInputFeedback();
-                    // vm.setupRemarksMultiInputFeedbackFilter();
-                    vm.setupMultiInputFeedbackTopicFilter();
-                    // vm.setupGameProviderMultiInputFeedback();
-                    vm.autoFeedbackMission = data;
+                    vm.getAllPlayerLevelsLocal();
+                    vm.getCredibilityRemarksLocal();
+                    vm.getAllGameProvidersLocal();
+                    vm.loadDepartmentLocal();
+                    vm.setQueryRole(vm.autoFeedbackMission);
+                    vm.setQueryAdmins(vm.autoFeedbackMission);
                     if(!vm.autoFeedbackMission.schedule) {
                         vm.autoFeedbackMission.schedule = [];
                     }
@@ -37345,11 +37397,7 @@ define(['js/app'], function (myApp) {
                     vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
 
-                    $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
-                    $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
                     $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
-                    $('select#selectGameProvider').multipleSelect('refresh');
-                    vm.refreshSPicker();
                 });
             };
             vm.autoFeedbackUpdateMission = function() {
@@ -37427,6 +37475,9 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.autoFeedbackSearchMission = function(newSearch) {
+                if (!vm.autoFeedbackMissionSearch || !vm.autoFeedbackMissionSearch.platformObjId) {
+                    return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+                }
                 $('#autoFeedbackOverviewSpin').show();
                 vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
@@ -37634,6 +37685,9 @@ define(['js/app'], function (myApp) {
                 };
             };
             vm.autoFeedbackSearchMissionDetail = function () {
+                if (!vm.autoFeedbackMissionSearchDetail || !vm.autoFeedbackMissionSearchDetail.platformObjId) {
+                    return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+                }
                 $('#autoFeedbackDetailSpin').show();
                 vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();

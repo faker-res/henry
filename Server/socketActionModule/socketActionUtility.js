@@ -40,7 +40,13 @@ function socketActionUtility(socketIO, socket) {
         getLastBiWeekSGTime: function getLastBiWeekSGTime() {
             let actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, dbUtility.getLastBiWeekSGTime, [], actionName, true);
-        }
+        },
+
+        getServerTime: function getServerTime() {
+            let actionName = arguments.callee.name;
+            let serverTime = new Date();
+            socketUtil.emitter(self.socket, dbUtility.getSGTimeToString, [serverTime], actionName, true);
+        },
     };
     socketActionUtility.actions = this.actions;
 };

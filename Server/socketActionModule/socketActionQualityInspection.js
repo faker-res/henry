@@ -311,7 +311,13 @@ function socketActionQualityInspection(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isDataValid = Boolean(data && data.startDate && data.endDate && data.data );
             socketUtil.emitter(self.socket, dbQualityInspection.getAudioReportData, [data.startDate, data.endDate, data.data, data.limit, data.index, data.sortCol], actionName, isDataValid);
-        }
+        },
+
+        getCsRankingReport: function(data){
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.startDate && data.endDate && data.data );
+            socketUtil.emitter(self.socket, dbQualityInspection.getCsRankingReport, [data], actionName, isDataValid);
+        },
     };
 
     socketActionQualityInspection.actions = this.actions;

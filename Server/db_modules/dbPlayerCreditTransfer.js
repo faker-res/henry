@@ -1,5 +1,7 @@
 const Q = require("q");
 
+const env = require('../config/env').config();
+
 const constPlayerCreditChangeType = require('../const/constPlayerCreditChangeType');
 const constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
@@ -27,6 +29,10 @@ let dbPlayerCreditTransfer = {
         return cpmsAPI.player_queryCredit(obj);
     },
     playerTransferIn: (obj) => {
+        // Block real player transfer in on cstest environment
+        if (env.mode === 'development' && Number(obj.playerId) >= 400000) {
+            return Promise.reject({name: "SystemError", message: "Not allowed to transfer from test environment."});
+        }
         return cpmsAPI.player_transferIn(obj);
     },
     playerTransferOut: (obj) => {
@@ -266,6 +272,7 @@ let dbPlayerCreditTransfer = {
                                 id, providerShortId, transferAmount, lockedTransferAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return dPCT.playerTransferIn(
                                 {
+                                    playerId: playerData.playerId,
                                     username: userName,
                                     platformId: platformId,
                                     providerId: providerShortId,
@@ -940,6 +947,7 @@ let dbPlayerCreditTransfer = {
                                 id, providerShortId, transferAmount, lockedTransferAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return dPCT.playerTransferIn(
                                 {
+                                    playerId: player.playerId,
                                     username: userName,
                                     platformId: platformId,
                                     providerId: providerShortId,
@@ -1614,6 +1622,7 @@ let dbPlayerCreditTransfer = {
                             console.log("dPCT.playerTransferIn transferWallet", transferWallet);
                             return dPCT.playerTransferIn(
                                 {
+                                    playerId: player.playerId,
                                     username: userName,
                                     platformId: platformId,
                                     providerId: providerShortId,

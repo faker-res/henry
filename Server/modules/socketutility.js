@@ -56,7 +56,13 @@ var socketUtility = {
                     level: constSystemLogLevel.ACTION,
                     localIp: socket.decoded_token.localIp
                 };
-                console.log("action request: ", logData);
+
+                let ignoreEventLog = ['getProfitDisplayDetailByPlatform'];
+
+                if (!ignoreEventLog.includes(event)) {
+                    console.log("action request: ", logData);
+                }
+
                 Q.resolve().then(
                     function () {
                         return dbCall.apply(null, args)

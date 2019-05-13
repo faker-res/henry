@@ -3701,15 +3701,15 @@ var dbPlayerTopUpRecord = {
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
                     if (alipayAccount) {
-                        if (pmsResult.result.alipayAccount) {
+                        if (pmsResult && pmsResult.result && pmsResult.result.alipayAccount) {
                             queryObj['data.alipayAccount'] = pmsResult.result.alipayAccount;
-                        } else if (pmsResult.result.bankCardNo) {
+                        } else if (pmsResult && pmsResult.result && pmsResult.result.bankCardNo) {
                             queryObj['data.alipayAccount'] = pmsResult.result.bankCardNo;
                         }
                     } else if (alipayName) {
-                        if (pmsResult.result.alipayName) {
+                        if (pmsResult && pmsResult.result && pmsResult.result.alipayName) {
                             queryObj['data.alipayName'] = pmsResult.result.alipayName;
-                        } else if (pmsData.result.cardOwner) {
+                        } else if (pmsResult && pmsResult.result && pmsData.result.cardOwner) {
                             queryObj['data.alipayName'] = pmsResult.result.cardOwner;
                         }
                     } else {
@@ -4484,7 +4484,7 @@ var dbPlayerTopUpRecord = {
                     start.setHours(0, 0, 0, 0);
                     let end = new Date();
                     end.setHours(23, 59, 59, 999);
-                    if (pmsData.result.weChatAccount) {
+                    if (pmsData && pmsData.result && pmsData.result.weChatAccount) {
                         queryObj['$or'] = [
                             {'data.wechatAccount': pmsData.result.weChatAccount},
                             {'data.weChatAccount': pmsData.result.weChatAccount}
@@ -4501,7 +4501,7 @@ var dbPlayerTopUpRecord = {
                             ]
                         }
                     }
-                    if (pmsData.result.weChatName) {
+                    if (pmsData && pmsData.result && pmsData.result.weChatName) {
                         queryObj['$or'] = [
                             {'data.wechatName': pmsData.result.weChatName},
                             {'data.weChatName': pmsData.result.weChatName}
