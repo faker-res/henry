@@ -5065,7 +5065,54 @@ var dbQualityInspection = {
     getCsRankingReport: function (data) {
         let index = data.index || 0;
         let limit = data.limit || 50;
+        let sort = {};
 
+        if (!data.sortCol){
+            sort = {_id: 1};
+        }
+        else if (data.sortCol && data.sortCol.adminName){
+            sort._id= data.sortCol.adminName;
+        }else{
+            sort = data.sortCol
+        }
+
+        let prom = Promise.resolve();
+
+        if (data && data.adminObjId && data.adminObjId.length){
+            prom = dbconfig.collection_scheduledCsRankingRecord.aggregate(
+                {
+                    $match: {
+                        adminObjId: {$in: data.adminObjId.map(p => {return ObjectId(p)})},
+                        createTime: {$gte: new Date(data.startDate), $lt: new Date(data.endDate)}
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$adminName",
+                        live800TotalConversationNumber:  {$sum: "$live800TotalConversationNumber"},
+                        live800TotalEffectiveConversationNumber: {$sum: "$live800TotalEffectiveConversationNumber"},
+                        live800TotalInspectionMark: {$sum: "$live800TotalInspectionMark"},
+                        totalAcceptedCallInNumber: {$sum: "$totalAcceptedCallInNumber"},
+                        totalAcceptedCallInTime: {$sum: "$totalAcceptedCallInTime"},
+                        totalManualProcessNumber: {$sum: "$totalManualProcessNumber"},
+                    }
+                }
+            ).read("secondaryPreferred").sort(sort);
+        }
+
+        return prom.then(
+            retData =>{
+                let totalSize = retData && retData.length ? retData.length : 0;
+
+                if (retData && retData.length > limit){
+                    retData = retData.slice(index, index+limit)
+                }
+                return {
+                    data: retData,
+                    size: totalSize
+                }
+            }
+        )
     },
 
     compileTel400SummarizedData: function (startDate, endDate) {
@@ -5428,7 +5475,52 @@ var dbQualityInspection = {
                 return Promise.all(prom)
             }
         )
-    }
+    },
+
+    summarizeCsRankingData: function (startDate, endDate) {
+        let totalDays = dbUtility.getNumberOfDays(startDate, endDate);
+        let dayStartTime = new Date (startDate);
+        let getNextDate = function (date) {
+            let newDate = new Date(date);
+            return new Date(newDate.setDate(newDate.getDate() + 1));
+        };
+        let partialProcessProm = Promise.resolve();
+        for(let x = 0; x < totalDays; x++){
+            let newStartTime = dayStartTime;
+            let dayEndTime = getNextDate.call(this, dayStartTime);
+            partialProcessProm = partialProcessProm.then(() => {return dbQualityInspection.compileCsRankingData(newStartTime, dayEndTime)});
+            dayStartTime = dayEndTime;
+        }
+        return partialProcessProm.catch(
+            err => {
+                console.log("Error when summarizing CS ranking data; Error: ", err);
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Error when summarizing CS ranking data",
+                    error: err
+                })
+            }
+        )
+    },
+
+    compileCsRankingData: function (startDate, endDate) {
+        console.log("checking compileCsRankingData startDate", startDate)
+        console.log("checking compileCsRankingData endDate", endDate)
+            // get the tel400 data to compile to daily summarized data
+            return dbQualityInspection.compileTel400SummarizedData(startDate, endDate).then(
+                () => {
+                    // get live800 inspection mark to compile to daily summarized data
+                    return dbQualityInspection.compileLive800SummarizedData(startDate, endDate);
+                }
+            ).then(
+                () => {
+                    // get the daily summary of manual process data
+                    return dbQualityInspection.compileManualProcessSummarizedData(startDate, endDate);
+                }
+            )
+    },
+
+
 
 };
 module.exports = dbQualityInspection;
