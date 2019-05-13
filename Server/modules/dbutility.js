@@ -1566,37 +1566,6 @@ var dbUtility = {
         return yyyymmdd;
     },
 
-    getServerTime: function () {
-        let hour = new Date().getUTCHours() + 8;
-        let minute = new Date().getUTCMinutes();
-        let amPm = hour >= 12 ? 'PM' : 'AM';
-        if (hour >= 12) {
-            hour = hour - 12;
-        }
-        if (hour < 10) {
-            hour = '0' + hour;
-        }
-        if (minute < 10) {
-            minute = '0' + minute;
-        }
-        let serverTime = hour + ':' + minute + amPm;
-        return serverTime;
-    },
-
-    getServerDate: function () {
-        let year = new Date().getUTCFullYear();
-        let month = new Date().getUTCMonth() + 1;
-        let day = new Date().getUTCDate();
-        if (month < 10) {
-            month = '0' + month;
-        }
-        if (day < 10) {
-            day = '0' + day;
-        }
-        let serverDate = day + '/' + month + '/' + year;
-        return serverDate;
-    },
-
     getIpAddress: (conn) => {
         let ipAddress = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');

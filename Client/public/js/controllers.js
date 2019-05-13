@@ -482,7 +482,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         loadPlatformInfo();
         $scope.getUsableChannelList();
         $scope.getServerTime();
-        $scope.getServerDate();
         $scope.$broadcast('switchPlatform');
         $scope.fontSizeAdaptive(document.getElementById('selectedPlatformNodeTitle'));
     };
