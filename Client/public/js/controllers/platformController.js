@@ -21465,6 +21465,13 @@ define(['js/app'], function (myApp) {
                                }
                             }
 
+
+                            if (v && v.name && (v.name == "PlayerFestivalRewardGroup") && vm.allPlayerLvl && vm.allPlayerLvl.length) {
+                               if (!vm.selectedPlayerLvlTab){
+                                    // set the default as the first level
+                                    vm.selectedPlayerLvlTab = 0;
+                               }
+                            }
                             if (v && v.name && (v.name == "PlayerRetentionRewardGroup" || v.name == "PlayerBonusDoubledRewardGroup")) {
                                  // set to the new display style
                                 vm.isNewDisplay = true;
@@ -22576,8 +22583,11 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.rewardParams && vm.rewardParams.others) {
                     vm.rewardParams.others.push(updateObj);
+                } else if (vm.rewardParams && !vm.rewardParams.others) {
+                    vm.rewardParams.others = [updateObj];
                 }
                 vm.editReward();
+                $("#festivalItemModal").modal('hide');
             }
 
             vm.createFestivalRowByLevel = (idx) => {
@@ -26376,6 +26386,11 @@ define(['js/app'], function (myApp) {
 
             vm.showFestivalRewardModal = function(id, templateNo, data){
                 templateNo = 6;
+                vm.festival = {
+                    name : '',
+                    month : '',
+                    day : ''
+                }
                 vm.selectedRandomReward = ( data && data.data ) ? data.data : [];
                 let tmpt = vm.proposalTemplate[templateNo];
                 $(tmpt).modal('show');

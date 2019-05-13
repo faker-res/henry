@@ -1412,7 +1412,7 @@ db.rewardParam.update({
                 isSteppingReward: {type: "checkbox", des: "Reward step needed"},
                 countInRewardInterval: {type: "number", des: "Reward limit in interval"},
                 rewardParam: {
-                    festivalId: {type: "select", options: "allFestivals", des: "festival"},
+                    festivalId: {type: "select", options: "allFestivals", des: "Festival Name"},
                     title: {type: "text", des: "Festival Title"},
                     topUpReturnReward: {type: "text", des: "Top Up Return Reward"},
                     minTopUpAmount: {type: "number", des: "Minimal top up amount"},

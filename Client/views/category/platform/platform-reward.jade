@@ -382,9 +382,12 @@
 
                     // part-2
                     #platformRewardSetting.col-md-12.well(ng-if="vm.isNewDisplay && vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup')")
+                        .div
+                            button.btn.btn-primary.common-button(ng-click='vm.showFestivalRewardModal()') 特别节日设置
                         ul.nav.nav-tabs.common-nav-tabs(ng-if="vm.isPlayerLevelDiff")
                             li(ng-repeat="(i,v) in vm.allPlayerLvl" ng-class="vm.selectedPlayerLvlTab == i ? 'active' : null")
                                 a.common-tab(data-toggle="tab" ng-click="vm.selectedPlayerLvlTab = i; vm.checkPlatformRewardIsView(vm.platformRewardIsEnabled);") {{v.name}}
+
 
                         .panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
                             .panel-body(style="min-width: fit-content;")
@@ -420,7 +423,7 @@
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i != 'festivalId'", style='width:-webkit-fill-available;')
                                                     option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
+                                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
 
                                 //type2
                                 br
@@ -442,7 +445,7 @@
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i != 'festivalId'", style='width:-webkit-fill-available;')
                                                     option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
+                                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
 
                                 //type3
                                 br
@@ -450,7 +453,7 @@
                                 div(ng-repeat="cond in vm.rewardMainParamTable3 track by $index" ng-cloak)
                                     table#rewardMainParamTable3.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '2'")
                                         thead
-                                            td
+                                            th
                                             th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                                         tbody(ng-repeat="entry in cond.value")
                                             td
@@ -464,7 +467,7 @@
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i != 'festivalId'", style='width:-webkit-fill-available;')
                                                     option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
+                                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
 
 
                                 //type4
@@ -487,7 +490,7 @@
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i != 'festivalId'", style='width:-webkit-fill-available;')
                                                     option(ng-repeat='(ind,val) in this[v.options] track by $index', value='{{val}}') {{ val }}
                                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
+                                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
 
                     .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerRandomRewardGroup'")
                         div(style="margin-bottom: 20px;")
@@ -635,7 +638,7 @@
                 .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerFestivalRewardGroup' &&  !vm.isPlayerLevelDiff")
                     div(style="margin-bottom: 20px;")
                         label(style="color: red") *{{ "PlayerFestivalRewardGroup" | translate }}
-                        btn.btn-primary(ng-click='vm.showFestivalRewardModal()') 特别节日设置
+                        button.btn.btn-primary.common-button(ng-click='vm.showFestivalRewardModal()') 特别节日设置
                     table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableBirthday track by $index" ng-cloak, ng-if="vm.festivalType == '1'")
                         thead
                             th
@@ -649,7 +652,7 @@
                                 //select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
                                     option(value='') {{'LOCAL_CREDIT' | translate}}
                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
+                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
                                 span.percentage(ng-if="v.type == 'percentage'")
                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
@@ -666,7 +669,7 @@
                             td(ng-repeat="(i,v) in cond.header track by $index")
                                 input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
+                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
 
                                 span.percentage(ng-if="v.type == 'percentage'")
                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
@@ -684,7 +687,7 @@
                             td(ng-repeat="(i,v) in cond.header track by $index")
                                 input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
+                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
                                 span.percentage(ng-if="v.type == 'percentage'")
                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
@@ -701,7 +704,7 @@
                             td(ng-repeat="(i,v) in cond.header track by $index")
                                 input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{val.month}} / {{val.day}})
+                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
                                 span.percentage(ng-if="v.type == 'percentage'")
                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 

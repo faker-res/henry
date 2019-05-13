@@ -3040,13 +3040,13 @@ var proposalExecutor = {
                     let rtgData;
                     let providerGroup$;
                     let createRTGProm = Promise.resolve(true);
-                    console.log('----->proposalData.data.providerGroup', proposalData.data.providerGroup);
+                    console.log('MT --checking proposalData.data.providerGroup', proposalData.data.providerGroup);
                     return dbconfig.collection_gameProviderGroup.findOne({_id: ObjectId(proposalData.data.providerGroup)}).lean().then(
                         providerGroup => {
                             proposalData.data.allowedProvider$ = providerGroup && providerGroup.name ? providerGroup.name : "自由额度";
                             providerGroup$ = proposalData.data.allowedProvider$;
                             // type 1 festival
-                            console.log('----->1 created');
+                            console.log('MT --checking festival created');
                             if (proposalData.data && proposalData.data.rewardType && (proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
                                 let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : (proposalData.data.applyAmount || 0);
                                 let taskData = {
@@ -3065,7 +3065,7 @@ var proposalExecutor = {
 
                                 createRTGProm = createRTGForProposal(proposalData, taskData, constRewardType.PLAYER_FESTIVAL_REWARD_GROUP, proposalData).then(
                                     data => {
-                                        console.log('-----> 2created');
+                                        console.log('MT --checking reward task group created', data);
                                         rtgData = data;
                                         let updateData = {$set: {}};
 
