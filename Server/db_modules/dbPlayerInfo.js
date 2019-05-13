@@ -592,6 +592,7 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
+        console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp] : 'undefined');
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
