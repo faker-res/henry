@@ -21399,7 +21399,6 @@ define(['js/app'], function (myApp) {
                 vm.rewardParamsFilter = vm.rewardParams.reward;
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.rewardDisabledParam = [];
-                // vm.allFestivals = v.others;
                 $scope.allFestivals = v.param.others;
                 $scope.$evalAsync(() => {
                     vm.platformRewardTypeChanged();
@@ -23510,49 +23509,16 @@ define(['js/app'], function (myApp) {
                     // for loop -> every player level
                     vm.allPlayerLvl.forEach((e, idx) => {
                         // for loop -> each player level -> rewardParam
-                        let chainData = [];
                         let headers = [];
                         if (vm.remainMainParamTableFestival[idx] && vm.remainMainParamTableFestival[idx].length > 0 ) {
-                            // vm.remainMainParamTableFestival[idx].forEach( (item, index) => {
-                            //     let festivalType = vm.remainMainParamTableFestival[idx] && vm.remainMainParamTableFestival[idx] &&
-                            //     vm.remainMainParamTableFestival[idx][index].value ? vm.remainMainParamTableFestival[idx][index].value : [];
-                            //     chainData.push(festivalType);
-                            // })
-                            vm.remainMainParamTableFestival[idx].forEach( (item, index) => {
-                                // vm.rewardMainParamTable[idx] = item[index];
-                                chainData = chainData.concat(item.value);
-                                // chainData = chainData.concat(item.value);
-                            })
-
-                            // vm.rewardMainParamTable[idx] = vm.remainMainParamTableFestival[idx][0] || [];
                             vm.rewardMainParamTable[idx] = vm.remainMainParamTableFestival[idx][0];
                             vm.rewardMainParamTable2[idx] = vm.remainMainParamTableFestival[idx][1];
                             vm.rewardMainParamTable3[idx] = vm.remainMainParamTableFestival[idx][2];
                             vm.rewardMainParamTable4[idx] = vm.remainMainParamTableFestival[idx][3];
-
                         }
-
-                        // let rewardParamFestivalType1 = vm.remainMainParamTableFestival && vm.remainMainParamTableFestival[idx] &&
-                        // vm.remainMainParamTableFestival[idx].value ? vm.remainMainParamTableFestival[idx].value : [];
-                        // let rewardParamFestivalType2 = vm.remainMainParamTableFestival && vm.remainMainParamTableFestival[0] &&
-                        // vm.remainMainParamTableFestival[0].value ? vm.remainMainParamTableFestival[0].value : [];
-                        // let rewardParamFestivalType3 = vm.rewardMainParamTableFestivalType3 && vm.rewardMainParamTableFestivalType3[0] &&
-                        // vm.rewardMainParamTableFestivalType3[0].value ? vm.rewardMainParamTableFestivalType3[0].value : [];
-                        // let rewardParamBirthday = vm.rewardMainParamTableBirthday && vm.rewardMainParamTableBirthday[0] &&
-                        // vm.rewardMainParamTableBirthday[0].value ? vm.rewardMainParamTableBirthday[0].value : [];
-
                     });
                 }
                 else {
-                    // console.log(vm.rewardMainParamTable);
-                    // vm.rewardMainParamTableFestivalType1 = [ { value: [] } ];
-                    // vm.rewardMainParamTableFestivalType1[0].value = [ vm.remainMainParamTableFestival[0][0].value ] || [];
-                    // vm.rewardMainParamTableFestivalType2 = [{value: []}];
-                    // vm.rewardMainParamTableFestivalType2[0].value = [ vm.remainMainParamTableFestival[0][1].value ] || [];
-                    // vm.rewardMainParamTableFestivalType3 = [{value: []}];
-                    // vm.rewardMainParamTableFestivalType3[0].value = [ vm.remainMainParamTableFestival[0][2].value ]|| [];
-                    // vm.rewardMainParamTableBirthday = [{value: []}];
-                    // vm.rewardMainParamTableBirthday[0].value= vm.remainMainParamTableFestival[0][3].value || [];
 
                     let rewardParamFestivalType1 = vm.rewardMainParamTableFestivalType1 && vm.rewardMainParamTableFestivalType1[0] &&
                     vm.rewardMainParamTableFestivalType1[0].value ? vm.rewardMainParamTableFestivalType1[0].value : [];
@@ -23567,16 +23533,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamTable = [];
                     vm.rewardMainParamTable.push({value: []});
                     vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3).concat(rewardParamBirthday);
-                    //vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title)
-
                 }
-
-
-                // redefine
-
-
-                // vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3).concat(rewardParamBirthday);
-                // vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title)
             }
 
             vm.editReward = function (i) {

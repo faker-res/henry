@@ -7367,13 +7367,6 @@ let dbPlayerReward = {
                             });
                         }
 
-                        // if (participationCount && applyRewardCount >= participationCount){
-                        //     return Promise.reject({
-                        //         name: "DataError",
-                        //         message: "This player has applied for max reward times in event period"
-                        //     })
-                        // }
-
                         let reachTopUpCondition = false;
                         let reachConsumptionCondition = false;
 
@@ -8392,7 +8385,6 @@ let dbPlayerReward = {
             if (eventData.condition.isPlayerLevelDiff) {
                 retObj = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
             } else {
-                console.log('eventData.param******', eventData.param)
                 retObj = eventData.param.rewardParam[0].value;
             }
 
