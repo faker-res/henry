@@ -592,6 +592,7 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
+        console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp] : 'undefined');
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -4341,7 +4342,7 @@ let dbPlayerInfo = {
                         playerId: player._id,
                         platformId: player.platform,
                         amount: amount,
-                        oriAmount: oriAmount,
+                        oriAmount: oriAmount || amount,
                         topUpType: topUpType,
                         createTime: proposalData ? proposalData.createTime : new Date(),
                         bDirty: false
@@ -12907,80 +12908,93 @@ let dbPlayerInfo = {
                     if (playerData) {
                         player = playerData;
 
-                        bonusSystemConfig =
-                            extConfig && player.platform.bonusSystemType && extConfig[player.platform.bonusSystemType];
+                        return dbPlayerUtil.setPlayerBState(player._id, "playerBonus", true);
 
-                        if (player.ximaWithdraw) {
-                            ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
-
-                            if (amount <= player.ximaWithdraw) {
-                                isUsingXima = true;
-                            }
-                        }
-
-                        let permissionProm = Promise.resolve(true);
-                        let disablePermissionProm = Promise.resolve(true);
-                        if (!player.permission.applyBonus) {
-                            permissionProm = dbconfig.collection_playerPermissionLog.find(
-                                {
-                                    player: player._id,
-                                    platform: platform._id,
-                                    // "oldData.applyBonus": true,
-                                    "newData.applyBonus": false,
-                                },
-                                {remark: 1}
-                            ).sort({createTime: -1}).limit(1).lean().then(
-                                log => {
-                                    if (log && log.length > 0) {
-                                        lastBonusRemark = log[0].remark;
-                                    }
-                                }
-                            );
-
-                            disablePermissionProm = dbconfig.collection_playerPermissionLog.findOne({
-                                player: player._id,
-                                platform: platform._id,
-                                isSystem: false
-                            }).sort({createTime: -1}).lean().then(
-                                manualPermissionSetting => {
-
-                                    if (manualPermissionSetting && manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
-                                        && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
-                                        return dbconfig.collection_proposal.find({
-                                            'data.platformId': platform._id,
-                                            'data.playerObjId': player._id,
-                                            mainType: constProposalType.PLAYER_BONUS,
-                                            status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                            'data.remark': '禁用提款: '+ lastBonusRemark
-                                        }).sort({createTime: -1}).limit(1).then(proposalData => {
-                                            if (proposalData && proposalData.length > 0) {
-                                                lastBonusRemark = manualPermissionSetting.remark;
-                                            }
-                                        });
-                                    }
-                                }
-                            )
-                        }
-                        return Promise.all([permissionProm, disablePermissionProm]).then(
-                            res => {
-                                if (player.platform && player.platform.useProviderGroup) {
-                                    let unlockAllGroups = Promise.resolve(true);
-                                    if (bForce) {
-                                        unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id, adminInfo).catch(errorUtils.reportError);
-                                    }
-                                    return unlockAllGroups.then(
-                                        () => {
-                                            return dbRewardUtil.findStartedRewardTaskGroup(playerData.platform, playerData._id);
-                                        }
-                                    );
-                                } else {
-                                    return false;
-                                }
-                            }
-                        );
                     } else {
                         return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
                     }
+                }
+            ).then(
+                playerState => {
+                    if (!playerState) {
+                        return Promise.reject({
+                            status: constServerCode.CONCURRENT_DETECTED,
+                            name: "DBError",
+                            message: "withdrawal fail, please contact cs"
+                        })
+                    }
+
+                    bonusSystemConfig =
+                        extConfig && player.platform.bonusSystemType && extConfig[player.platform.bonusSystemType];
+
+                    if (player.ximaWithdraw) {
+                        ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
+
+                        if (amount <= player.ximaWithdraw) {
+                            isUsingXima = true;
+                        }
+                    }
+
+                    let permissionProm = Promise.resolve(true);
+                    let disablePermissionProm = Promise.resolve(true);
+                    if (!player.permission.applyBonus) {
+                        permissionProm = dbconfig.collection_playerPermissionLog.find(
+                            {
+                                player: player._id,
+                                platform: platform._id,
+                                // "oldData.applyBonus": true,
+                                "newData.applyBonus": false,
+                            },
+                            {remark: 1}
+                        ).sort({createTime: -1}).limit(1).lean().then(
+                            log => {
+                                if (log && log.length > 0) {
+                                    lastBonusRemark = log[0].remark;
+                                }
+                            }
+                        );
+
+                        disablePermissionProm = dbconfig.collection_playerPermissionLog.findOne({
+                            player: player._id,
+                            platform: platform._id,
+                            isSystem: false
+                        }).sort({createTime: -1}).lean().then(
+                            manualPermissionSetting => {
+
+                                if (manualPermissionSetting && manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
+                                    && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
+                                    return dbconfig.collection_proposal.find({
+                                        'data.platformId': platform._id,
+                                        'data.playerObjId': player._id,
+                                        mainType: constProposalType.PLAYER_BONUS,
+                                        status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                        'data.remark': '禁用提款: '+ lastBonusRemark
+                                    }).sort({createTime: -1}).limit(1).then(proposalData => {
+                                        if (proposalData && proposalData.length > 0) {
+                                            lastBonusRemark = manualPermissionSetting.remark;
+                                        }
+                                    });
+                                }
+                            }
+                        )
+                    }
+                    return Promise.all([permissionProm, disablePermissionProm]).then(
+                        res => {
+                            if (player.platform && player.platform.useProviderGroup) {
+                                let unlockAllGroups = Promise.resolve(true);
+                                if (bForce) {
+                                    unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(player._id, adminInfo).catch(errorUtils.reportError);
+                                }
+                                return unlockAllGroups.then(
+                                    () => {
+                                        return dbRewardUtil.findStartedRewardTaskGroup(player.platform, player._id);
+                                    }
+                                );
+                            } else {
+                                return false;
+                            }
+                        }
+                    );
                 }
             ).then(
                 RTG => {
@@ -13252,6 +13266,24 @@ let dbPlayerInfo = {
                     else {
                         return Q.reject(error);
                     }
+                }
+            ).then(
+                returnData => {
+                    if (player) {
+                        dbPlayerUtil.setPlayerBState(player._id, "playerBonus", false).catch(errorUtils.reportError);
+                    }
+                    return returnData;
+                }
+            ).catch(
+                err => {
+                    if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                        // Ignore concurrent request for now
+                    } else {
+                        // Set BState back to false
+                        dbPlayerUtil.setPlayerBState(player._id, "playerBonus", false).catch(errorUtils.reportError);
+                    }
+
+                    throw err;
                 }
             );
     },

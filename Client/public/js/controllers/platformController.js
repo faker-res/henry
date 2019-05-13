@@ -17605,6 +17605,7 @@ define(['js/app'], function (myApp) {
                                     if (vm.playerFeedbackSearchType=="many") {
                                         let playerObjId = callee && callee.player && callee.player._id;
                                         if (playerObjId) {
+                                            $cookies.put('platform', getSelectedPlatform().name || vm.selectedPlatform.data.name);
                                             let url = window.location.origin + "/playerDetail/" + playerObjId;
                                             utilService.openInNewTab(url);
                                         }
@@ -37474,6 +37475,9 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.autoFeedbackSearchMission = function(newSearch) {
+                if (!vm.autoFeedbackMissionSearch || !vm.autoFeedbackMissionSearch.platformObjId) {
+                    return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+                }
                 $('#autoFeedbackOverviewSpin').show();
                 vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
@@ -37681,6 +37685,9 @@ define(['js/app'], function (myApp) {
                 };
             };
             vm.autoFeedbackSearchMissionDetail = function () {
+                if (!vm.autoFeedbackMissionSearchDetail || !vm.autoFeedbackMissionSearchDetail.platformObjId) {
+                    return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+                }
                 $('#autoFeedbackDetailSpin').show();
                 vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();
