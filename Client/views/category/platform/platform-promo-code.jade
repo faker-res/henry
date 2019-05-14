@@ -855,6 +855,9 @@
                 div(ng-if='vm.selectedPromoCodeTab=="activatePromoCode" && checkViewPermission("Platform", "promoCode", "activatePromoCode")')
                     #promoCodeActivate.col-md-12.well
                         .search-filters-item
+                            label {{'PRODUCT_NAME' | translate}}
+                            select.form-control(ng-model='vm.promoCodeActivate.platformObjId', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getActivatePromoCodePlatform()')
+                        .search-filters-item
                             label.control-label {{'START_ACCEPTED_TIME' | translate}}
                             .startCreateTime
                         .search-filters-item

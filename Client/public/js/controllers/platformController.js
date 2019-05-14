@@ -24254,6 +24254,7 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case 'activatePromoCode':
+                        vm.selectedActivatePromoCodePlatform = '';
                         vm.promoCodeActivate = {};
                         vm.promoCodeActivate.flag = vm.selectedPlatform.data.hasOwnProperty('promoCodeIsActive') ? vm.selectedPlatform.data.promoCodeIsActive.toString() : 'false';
                         utilService.actionAfterLoaded('#promoCodeActivate', function () {
@@ -24281,8 +24282,9 @@ define(['js/app'], function (myApp) {
                         vm.filterPromoSMSContentPlatform = '';
                         break;
                     case 'userGroupConfig':
-                        vm.getPromoCodeUserGroup();
-                        vm.getBlockPromoCodeUserGroup();
+                        vm.filterPromoCodeUserGroupConfigPlatform = '';
+                        // vm.getPromoCodeUserGroup();
+                        // vm.getBlockPromoCodeUserGroup();
 
                         vm.newPromoCodeUserGroup = {};
                         vm.newUserPromoCodeUserGroup = {};
@@ -26922,12 +26924,25 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.getActivatePromoCodePlatform = function () {
+                vm.selectedActivatePromoCodePlatform = null;
+                let sendData = {
+                    _id: vm.promoCodeActivate.platformObjId
+                }
+                socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getActivatePromoCodePlatform--getPlatform', data.data);
+                        vm.selectedActivatePromoCodePlatform = data.data;
+                    });
+                });
+            };
+
             vm.setPromoCodeActivate = function () {
                 let sendObj = {
                     startAcceptedTime: vm.promoCodeActivate.startCreateTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeActivate.endCreateTime.data('datetimepicker').getLocalDate(),
                     flag: vm.promoCodeActivate.flag,
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.promoCodeActivate.platformObjId
                 };
                 console.log('sendObj', sendObj);
 
@@ -26945,22 +26960,22 @@ define(['js/app'], function (myApp) {
                 let sendObj = {
                     promoCodeStartTime: vm.promoCodeActivate.startCreateTime.data('datetimepicker').getLocalDate(),
                     promoCodeEndTime: vm.promoCodeActivate.endCreateTime.data('datetimepicker').getLocalDate(),
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.promoCodeActivate.platformObjId,
                     promoCodeIsActive: vm.promoCodeActivate.flag
                 };
 
                 let isUpdatePlatform = false;
-                if (!vm.selectedPlatform.data.promoCodeStartTime || !vm.selectedPlatform.data.promoCodeEndTime) {
+                if (!vm.selectedActivatePromoCodePlatform.promoCodeStartTime || !vm.selectedActivatePromoCodePlatform.promoCodeEndTime) {
                     isUpdatePlatform = true;
-                } else if (vm.selectedPlatform.data.promoCodeStartTime && vm.selectedPlatform.data.promoCodeEndTime) {
-                    if (sendObj.promoCodeStartTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeStartTime).toISOString() ||
-                        sendObj.promoCodeEndTime.toISOString() !== new Date(vm.selectedPlatform.data.promoCodeEndTime).toISOString()) {
+                } else if (vm.selectedActivatePromoCodePlatform.promoCodeStartTime && vm.selectedActivatePromoCodePlatform.promoCodeEndTime) {
+                    if (sendObj.promoCodeStartTime.toISOString() !== new Date(vm.selectedActivatePromoCodePlatform.promoCodeStartTime).toISOString() ||
+                        sendObj.promoCodeEndTime.toISOString() !== new Date(vm.selectedActivatePromoCodePlatform.promoCodeEndTime).toISOString()) {
                         isUpdatePlatform = true;
                     }
                 }
 
-                if (vm.selectedPlatform.data.hasOwnProperty('promoCodeIsActive')) {
-                    if (vm.promoCodeActivate.flag != vm.selectedPlatform.data.promoCodeIsActive.toString()) {
+                if (vm.selectedActivatePromoCodePlatform.hasOwnProperty('promoCodeIsActive')) {
+                    if (vm.promoCodeActivate.flag != vm.selectedActivatePromoCodePlatform.promoCodeIsActive.toString()) {
                         isUpdatePlatform = true;
                     }
                 } else {
@@ -26970,9 +26985,9 @@ define(['js/app'], function (myApp) {
                 if (isUpdatePlatform) {
                     socketService.$socket($scope.AppSocket, 'updatePromoCodeSetting', sendObj, function (data) {
                         console.log('updatePromoCodeSetting', data);
-                        vm.selectedPlatform.data.promoCodeStartTime = data.data.promoCodeStartTime;
-                        vm.selectedPlatform.data.promoCodeEndTime = data.data.promoCodeEndTime;
-                        vm.selectedPlatform.data.promoCodeIsActive = data.data.promoCodeIsActive;
+                        vm.selectedActivatePromoCodePlatform.promoCodeStartTime = data.data.promoCodeStartTime;
+                        vm.selectedActivatePromoCodePlatform.promoCodeEndTime = data.data.promoCodeEndTime;
+                        vm.selectedActivatePromoCodePlatform.promoCodeIsActive = data.data.promoCodeIsActive;
                         $scope.safeApply();
                     }, function (err) {
                         console.error(err);
