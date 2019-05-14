@@ -16527,6 +16527,7 @@ define(['js/app'], function (myApp) {
 
         vm.resetBulkActiveConfig = function () {
             vm.bulkActiveConfig = {};
+            vm.bulkActiveConfigPlatforms = [];
         }
 
         vm.getPlatformCommissionRate = function () {
