@@ -315,8 +315,14 @@ function socketActionQualityInspection(socketIO, socket) {
 
         getCsRankingReport: function(data){
             let actionName = arguments.callee.name;
-            let isDataValid = Boolean(data && data.startDate && data.endDate && data.data );
+            let isDataValid = Boolean(data && data.startDate && data.endDate);
             socketUtil.emitter(self.socket, dbQualityInspection.getCsRankingReport, [data], actionName, isDataValid);
+        },
+
+        summarizeCsRankingData: function(data){
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbQualityInspection.summarizeCsRankingData, [data.startTime, data.endTime], actionName, isDataValid);
         },
     };
 
