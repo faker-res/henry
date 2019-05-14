@@ -1411,7 +1411,6 @@ let dbPlayerCreditTransfer = {
         ).lean().then(groups => {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
-                    console.log('playerCreditTransferToEbetWallets group', group);
                     if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0) {
                         hasEbetWalletSettings = true;
                         checkAmountProm.push(
@@ -1443,7 +1442,8 @@ let dbPlayerCreditTransfer = {
                                     providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync).then(ret => {
                                     transferInSuccessData.push(ret);
                                 }).catch(err => {
-                                    return errorUtils.reportError(err);
+                                    errorUtils.reportError(err);
+                                    return Promise.reject(err);
                                 });
                             });
                         }

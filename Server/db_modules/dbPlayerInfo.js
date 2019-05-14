@@ -7485,7 +7485,6 @@ let dbPlayerInfo = {
                     // Platform supporting provider group
                     if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
                         // if use eBet Wallet
-                        console.log("MT --checking --transfer to ebet wallets", providerData);
                         return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     } else {
