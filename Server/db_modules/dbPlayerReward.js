@@ -5712,7 +5712,19 @@ let dbPlayerReward = {
             recordQuery.lastApplyDate = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
         }
 
-        return dbConfig.collection_playerBonusDoubledRewardGroupRecord.findOne(recordQuery).lean().then(
+        return dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData).then(
+            proceedReward => {
+                if (!proceedReward) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: localization.localization.translate("This player has applied for other reward in event period")
+                    });
+                } else {
+                    return dbConfig.collection_playerBonusDoubledRewardGroupRecord.findOne(recordQuery).lean();
+                }
+            }
+        ).then(
             recordData => {
                 console.log("checking playerBonusDoubledRewardGroupRecord when settle the reward bonus", recordData)
                 playerBonusDoubledRewardGroupRecord = recordData;
@@ -5831,6 +5843,7 @@ let dbPlayerReward = {
         let selectedReward = null;
         let updatePresetList = null;
         let isPresetRandomReward = false;
+        let forbidRewardProm = Promise.resolve(true);
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
@@ -5891,17 +5904,23 @@ let dbPlayerReward = {
                     }
                     dailyMaxRewardPointProm = dbConfig.collection_proposal.find(eventQuery).lean();
                 }
+
+                forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
             }
         }
 
         if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
             let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate, null, isBulkApply);
             promArr.push(playerRewardDetailProm);
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.BACCARAT_REWARD_GROUP) {
             let playerRewardDetailProm = dbPlayerReward.getPlayerBaccaratRewardDetail(null, playerData.playerId, eventData.code, true, rewardData.applyTargetDate);
             promArr.push(playerRewardDetailProm);
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
@@ -5927,6 +5946,8 @@ let dbPlayerReward = {
             rewardDetailProm = dbPlayerReward.getPlayerConsumptionSlipRewardDetail(rewardData, playerData.playerId, eventData.code, rewardData.applyTargetDate, isBulkApply);
 
             promArr.push(rewardDetailProm);
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
@@ -6027,6 +6048,8 @@ let dbPlayerReward = {
                 rewardEvent: eventData._id,
                 status: 1
             }).sort({createTime: 1}).lean());
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
 
@@ -6319,6 +6342,7 @@ let dbPlayerReward = {
                 // reject error
             }
             eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
 
@@ -6339,6 +6363,8 @@ let dbPlayerReward = {
             promArr.push(consumptions);
 
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).sort({createTime: -1}).limit(1).lean();
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
@@ -6592,7 +6618,7 @@ let dbPlayerReward = {
             promArr.push(checkForbidRewardProm.then(data => {console.log('checkForbidRewardProm'); return data;}).catch(errorUtils.reportError));
         }
 
-        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm, dailyMaxRewardPointProm]).then(
+        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm, dailyMaxRewardPointProm, forbidRewardProm]).then(
             data => {
                 let topupInPeriodData = data[0];
                 console.log("LH Check Player Free Trial Reward 2-----", topupInPeriodData);
@@ -6603,6 +6629,8 @@ let dbPlayerReward = {
                 let eventInPeriodCount = eventInPeriodData.length;
                 console.log('MT --checking eventInPeriodDataCount',eventInPeriodCount);
                 let dailyRewardPointData = data[4];
+                let forbidRewardData = data[5];
+                console.log('forbidRewardData check', forbidRewardData);
 
                 let rewardAmountInPeriod = 0;
                 if (dailyRewardPointData && dailyRewardPointData.length > 0) {
@@ -6673,6 +6701,14 @@ let dbPlayerReward = {
                                         message: "This is not the latest top up record"
                                     });
                                 }
+                            }
+
+                            if (!forbidRewardData) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: localization.localization.translate("This player has applied for other reward in event period")
+                                });
                             }
 
                             // check correct topup type
@@ -6765,6 +6801,14 @@ let dbPlayerReward = {
                     case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                         let lastTopUpRecord = null;
 
+                        if (!forbidRewardData) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
+                        }
+
                         // rewardSpecificData[2] is the result of the checking list; return true if pass all the checks
                         if (rewardData && rewardData.selectedTopup && rewardSpecificData[2]) {
                             if (intervalTime && !isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
@@ -6849,6 +6893,14 @@ let dbPlayerReward = {
                         let playerRewardFinalList = rewardSpecificData[0];
 
                         console.log("checking this playerRewardFinalList", [playerData.playerId, playerRewardFinalList])
+
+                        if (!forbidRewardData) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
+                        }
 
                         if (playerRewardFinalList.appliedCount >= playerRewardFinalList.availableQuantity){
                             return Promise.reject({
@@ -6943,6 +6995,14 @@ let dbPlayerReward = {
                         isMultiApplication = true;
                         applyAmount = 0;
 
+                        if (!forbidRewardData) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
+                        }
+
                         if (!rewardSpecificData || !rewardSpecificData[0]) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -7011,6 +7071,14 @@ let dbPlayerReward = {
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
                                 message: "Reward already hit maximum number of apply. Please contact cs."
+                            });
+                        }
+
+                        if (!forbidRewardData) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player has applied for other reward in event period")
                             });
                         }
 
@@ -7117,6 +7185,14 @@ let dbPlayerReward = {
                             }
                         } else {
                             selectedRewardParam = selectedRewardParam[0];
+                        }
+
+                        if (!forbidRewardData) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
                         }
 
                         if (!selectedRewardParam || totalConsumption < selectedRewardParam.totalConsumptionInInterval) {
@@ -7465,6 +7541,14 @@ let dbPlayerReward = {
                             meetConsumptionCondition = true;
                         }
 
+                        if (!forbidRewardData) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
+                        }
+
                         if (operationOption) { // true = and, false = or
                             if (!meetTopUpCondition) {
                                 return Promise.reject({
@@ -7606,6 +7690,14 @@ let dbPlayerReward = {
                     // baccarat reward
                     case constRewardType.BACCARAT_REWARD_GROUP:
                         applyAmount = 0;
+
+                        if (!forbidRewardData) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
+                        }
 
                         if (!rewardSpecificData || !rewardSpecificData[0]) {
                             return Q.reject({

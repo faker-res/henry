@@ -3768,6 +3768,12 @@ define(['js/app'], function (myApp) {
                         item.totalCallOutTimeIncludeRingingTime = item.totalCallTime - item.totalAnswerTime + item.totalCallingTime;
                         item.totalCallOutTime = item.totalCallTime - item.totalAnswerTime;
                         item.totalMissCall = item.totalIncallFailedNum + item.totalOutcallFailedNum;
+
+                        item.totalCallTime$ = utilService.convertSecondsToStandardFormat(item.totalCallTime);
+                        item.totalConversationTimeWithoutEavesdropping$ = utilService.convertSecondsToStandardFormat(item.totalConversationTimeWithoutEavesdropping);
+                        item.totalAnswerTime$ = utilService.convertSecondsToStandardFormat(item.totalAnswerTime);
+                        item.totalCallOutTimeIncludeRingingTime$ = utilService.convertSecondsToStandardFormat(item.totalCallOutTimeIncludeRingingTime);
+                        item.totalCallOutTime$ = utilService.convertSecondsToStandardFormat(item.totalCallOutTime);
                         return item;
                     });
                     vm.audioReportSearching.size = data.data.size;
@@ -3805,11 +3811,11 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('Total Conversation Time'),
-                            data: "totalCallTime",
+                            data: "totalCallTime$",
                         },
                         {
                             title: $translate('Total Conversation Time (Exclude Eavesdropping Time'),
-                            data: "totalConversationTimeWithoutEavesdropping",
+                            data: "totalConversationTimeWithoutEavesdropping$",
                         },
                         {
                             title: $translate('Total Incoming Accepted Call'),
@@ -3817,7 +3823,7 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('Total Incoming Accepted Call Time'),
-                            data: "totalAnswerTime",
+                            data: "totalAnswerTime$",
                         },
                         {
                             title: $translate('Total Call Out'),
@@ -3829,11 +3835,11 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('Total Call Out Time (Including Ringing Time'),
-                            data: "totalCallOutTimeIncludeRingingTime",
+                            data: "totalCallOutTimeIncludeRingingTime$",
                         },
                         {
                             title: $translate('Total Call Out Time'),
-                            data: "totalCallOutTime",
+                            data: "totalCallOutTime$",
                         },
                         {
                             title: $translate('Miss Call'),
@@ -4020,6 +4026,7 @@ define(['js/app'], function (myApp) {
                         if (index != -1){
                             item.adminName = vm.csAccountList[index].adminName;
                             item.platformName = vm.csAccountList[index].platformName;
+                            item.billSec$ = utilService.convertSecondsToStandardFormat(item.billsec);
                         }
                         return item;
                     });
@@ -4058,7 +4065,7 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('Calling Duration (s)'),
-                            data: "billsec",
+                            data: "billSec$",
                         },
                         {
                             title: $translate('Calling Record'),
@@ -4838,13 +4845,14 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'summarizeManualProcessRecord', sendData, function (data) {
                     $scope.$evalAsync(() => {
+                        console.log("Summarized Manual Processing Data has gathered completely");
                         vm.loadingSummarizeManualProcessRecord = false;
                     })
                 }, function (error){
                     vm.loadingSummarizeManualProcessRecord = false;
                     console.log("Error when gather summarized manual process record data:", error)
                 });
-            }
+            };
 
             //////////////////////////////////////////////////////////End of Manual Approval Report Tab///////////////////////////////////////////////////////////////////
 
@@ -4899,16 +4907,20 @@ define(['js/app'], function (myApp) {
                     $('#csRankingReportTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
-                        let index = vm.csList.findIndex(p =>p._id.toString() == item._id.toString())
-                        if (index != -1){
-                            item.adminName = vm.csList[index].adminName;
+
+                        if (item.hasOwnProperty('totalAcceptedCallInTime')){
+                            item.totalAcceptedCallInTime$ = utilService.convertSecondsToStandardFormat(item.totalAcceptedCallInTime);
                         }
+                        item.adminName = item._id;
 
                         return item;
                     });
-                    vm.csRankingReportData.totalCount = data.data.data.length;
                     vm.csRankingReportData.size = data.data.size;
                     vm.drawCsRankingTable(drawData, newSearch);
+                },
+                err => {
+                    console.log("Error when searching csRanking Report", err);
+                    $('#csRankingReportTableSpin').hide();
                 });
             };
 
@@ -4951,7 +4963,7 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('Total Accepted Call In Time'),
-                            data: "totalAcceptedCallInTime",
+                            data: "totalAcceptedCallInTime$",
                         },
                         {
                             title: $translate('Total Manual Process Number'),
@@ -4967,7 +4979,7 @@ define(['js/app'], function (myApp) {
                 option.language.emptyTable = $translate("No data available in table");
 
                 let a = utilService.createDatatableWithFooter('#csRankingReportTable', option, {});
-                vm.manualProcessRecordData.pageObj.init({maxCount: vm.csRankingReportData.size}, newSearch);
+                vm.csRankingReportData.pageObj.init({maxCount: vm.csRankingReportData.size}, newSearch);
                 $("#csRankingReportTable").off('order.dt');
                 $("#csRankingReportTable").on('order.dt', function (event, a, b) {
                     vm.commonSortChangeHandler(a, 'csRankingReportData', vm.getCsRankingReport);
@@ -4976,6 +4988,49 @@ define(['js/app'], function (myApp) {
                 $('#csRankingReportTable').resize();
                 // }, 300);
                 $scope.$evalAsync();
+            };
+
+            vm.initSummarizeCsRankingData = function () {
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#summarizeCsRankingEndDatetimePicker', function () {
+                        $('#summarizeCsRankingStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#summarizeCsRankingStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                        $('#summarizeCsRankingEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#summarizeCsRankingEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    });
+                }
+            };
+
+            vm.summarizeCsRankingData = function () {
+                vm.loadingSummarizeCsRankingData = true;
+                let startTime = $('#summarizeCsRankingStartDatetimePicker').data('datetimepicker').getLocalDate();
+                let endTime = $('#summarizeCsRankingEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                };
+
+                socketService.$socket($scope.AppSocket, 'summarizeCsRankingData', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log("Summarized CsRanking Data has gathered completely");
+                        vm.loadingSummarizeCsRankingData = false;
+                    })
+                }, function (error){
+                    vm.loadingSummarizeCsRankingData = false;
+                    console.log("Error when gather summarized CS ranking data:", error)
+                });
             };
 
             //////////////////////////////////////////////////////////End of Cs Ranking Report Tab///////////////////////////////////////////////////////////////////
