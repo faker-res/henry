@@ -573,7 +573,7 @@ var dbPlatformMerchantGroup = {
                             if(!data[0].merchants){
                                 data[0].merchants = []
                             }
-                            result.merchants = data[0].merchants.concat(data[1].data).concat(data[2].data).concat(data[3].data);
+                            result.merchants = data[0].merchants.concat(data[1] && data[1].data ? data[1].data : []).concat(data[2] && data[2].data ? data[2].data : []).concat(data[3] && data[3].data ? data[3].data : []);
                             return result
                         })
                 }
