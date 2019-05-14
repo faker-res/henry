@@ -1,5 +1,5 @@
 var socketUtil = require('./../modules/socketutility');
-const dbPartnerCommissionConfig = require('../db_modules/dbPartnerCommissionConfigConfig')
+const dbPartnerCommissionConfig = require('../db_modules/dbPartnerCommissionConfig')
 
 function socketActionPartnerCommission(socketIO, socket) {
 
