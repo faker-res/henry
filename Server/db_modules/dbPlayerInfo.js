@@ -17709,7 +17709,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                console.log('RT - getPlayerReport 4');
+                console.log('RT - getPlayerReport 4', playerObjArrData && playerObjArrData.length);
                 let playerProm = dbconfig.collection_players.find({
                     _id: {$in: playerObjArrData},
                     isRealPlayer: true
