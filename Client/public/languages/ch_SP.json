@@ -5553,5 +5553,6 @@
   "Landscape": "橫向",
   "Portrait": "纵向",
   "default": "预设",
-  "RECALCULATE": "重新收录"
+  "RECALCULATE": "重新收录",
+  "BULK_SETTING_CONFIG": "批量配置调整"
 }

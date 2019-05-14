@@ -16407,6 +16407,7 @@ define(['js/app'], function (myApp) {
         vm.configTabClicked = function (choice) {
             vm.selectedConfigTab = choice;
             vm.configTableEdit = false;
+            vm.configTableBulkEdit = false;
             vm.blacklistIpConfigTableEdit = false;
             vm.financialSettlementSystemTableEdit = false;
             vm.newBlacklistIpConfig = [];
@@ -16439,6 +16440,7 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'validActive':
                     vm.getActiveConfig();
+                    vm.resetBulkActiveConfig();
                     break;
                 case 'partnerBasic':
                     vm.getPartnerBasic();
@@ -16522,6 +16524,10 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
         };
+
+        vm.resetBulkActiveConfig = function () {
+            vm.bulkActiveConfig = {};
+        }
 
         vm.getPlatformCommissionRate = function () {
             vm.partnerCommission.isGameProviderIncluded = true;
@@ -16702,15 +16708,29 @@ define(['js/app'], function (myApp) {
 
         function updateActiveConfig () {
             delete vm.activeConfigEdit._id;
+            delete vm.activeConfigEdit.__v;
             var sendData = {
                 query: {platform: vm.platformInSetting._id},
                 updateData: vm.activeConfigEdit
             };
+
             socketService.$socket($scope.AppSocket, 'updateActiveConfig', sendData, function (data) {
                 console.log('updateActiveConfig', data)
                 vm.activeConfig = vm.activeConfigEdit;
                 vm.configTabClicked("validActive");
                 $scope.safeApply();
+            });
+        }
+
+         vm.updatePlatformsActiveConfig = function () {
+            var sendData = {
+                query: {platform: vm.bulkActiveConfigPlatforms},
+                updateData: vm.bulkActiveConfig
+            };
+
+            socketService.$socket($scope.AppSocket, 'updatePlatformsActiveConfig', sendData, function (data) {
+                vm.configTabClicked("validActive");
+                $scope.$evalAsync()
             });
         }
 

@@ -1,6 +1,6 @@
 include ./partner-setting-platform-select
 div.margin-top-5(ng-if='vm.platformInSetting')
-    div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
+    div(style="margin-bottom:5px")
         form(name="formValidActivePlayer", novalidate)
             table.simple-table.validActiveTable(style='width:auto;min-width:99.9%')
                 thead
@@ -109,9 +109,132 @@ div.margin-top-5(ng-if='vm.platformInSetting')
                         td
                             text(ng-if='!vm.configTableEdit') {{vm.activeConfig.validPlayerValue}}
                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.validPlayerValue')
-    .pull-right
-        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'ValidActiveUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.activeConfigEdit=vm.activeConfig')
-            text {{'EDIT' | translate}}
-            img.img-edit
-        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;') {{"CANCEL" | translate}}
-        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-disabled="formValidActivePlayer.$invalid", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"CONFIRM" | translate}}
+    div(style='overflow:hidden')
+        .pull-right
+            button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'ValidActiveUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.activeConfigEdit=vm.activeConfig')
+                text {{'EDIT' | translate}}
+                img.img-edit
+            button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit; vm.getActiveConfig()') {{"CANCEL" | translate}}
+            button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-disabled="formValidActivePlayer.$invalid", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"CONFIRM" | translate}}
+
+    div(style="margin-bottom:5px; width:100%")
+        text(style='font-weight:bold') {{'BULK_SETTING_CONFIG' | translate}}
+        form(name="formBulkValidActivePlayer", novalidate)
+            table.simple-table.validActiveTable(style='width:auto;min-width:99.9%')
+                thead
+                    tr
+                        th {{'MIN_REQUIREMENT' | translate}}
+                        th {{'TOP_UP_TIMES' | translate}}
+                        th {{'TOP_UP_AMOUNT' | translate}}
+                        th {{'consumptionTimes' | translate}}
+                        th {{'VALID_CONSUMPTION' | translate}}
+                        th {{'Player Value' | translate}}
+                tbody
+                    tr
+                        td {{'DAILY_ACTIVE_PLAYER' | translate}}
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.dailyActivePlayerTopUpTimes}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.dailyActivePlayerTopUpTimes')
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.dailyActivePlayerTopUpAmount}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.dailyActivePlayerTopUpAmount')
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.dailyActivePlayerConsumptionTimes}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.dailyActivePlayerConsumptionTimes')
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.dailyActivePlayerConsumptionAmount}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.dailyActivePlayerConsumptionAmount')
+                        td
+                            text -
+                    tr
+                        td {{'WEEKLY_ACTIVE_PLAYER' | translate}}
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.weeklyActivePlayerTopUpTimes}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.weeklyActivePlayerTopUpTimes')
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.weeklyActivePlayerTopUpAmount}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.weeklyActivePlayerTopUpAmount')
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.weeklyActivePlayerConsumptionTimes}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.weeklyActivePlayerConsumptionTimes')
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.weeklyActivePlayerConsumptionAmount}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.weeklyActivePlayerConsumptionAmount')
+                        td
+                            text -
+                    //tr
+                    //    td {{'HALFMONTH_ACTIVE_PLAYER' | translate}}
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.halfMonthActivePlayerTopUpTimes}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.halfMonthActivePlayerTopUpTimes')
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.halfMonthActivePlayerTopUpAmount}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.halfMonthActivePlayerTopUpAmount')
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.halfMonthActivePlayerConsumptionTimes}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.halfMonthActivePlayerConsumptionTimes')
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.halfMonthActivePlayerConsumptionAmount}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.halfMonthActivePlayerConsumptionAmount')
+                    //    td
+                    //        text -
+                    //tr
+                    //    td {{'MONTHLY_ACTIVE_PLAYER' | translate}}
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.monthlyActivePlayerTopUpTimes}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.monthlyActivePlayerTopUpTimes')
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.monthlyActivePlayerTopUpAmount}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.monthlyActivePlayerTopUpAmount')
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.monthlyActivePlayerConsumptionTimes}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.monthlyActivePlayerConsumptionTimes')
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.monthlyActivePlayerConsumptionAmount}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.monthlyActivePlayerConsumptionAmount')
+                    //    td
+                    //        text -
+                    //tr
+                    //    td {{'SEASON_ACTIVE_PLAYER' | translate}}
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.seasonActivePlayerTopUpTimes}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.seasonActivePlayerTopUpTimes')
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.seasonActivePlayerTopUpAmount}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.seasonActivePlayerTopUpAmount')
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.seasonActivePlayerConsumptionTimes}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.seasonActivePlayerConsumptionTimes')
+                    //    td
+                    //        text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.seasonActivePlayerConsumptionAmount}}
+                    //        input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.seasonActivePlayerConsumptionAmount')
+                    //    td
+                    //        text -
+                    tr
+                        td {{'VALID_PLAYER' | translate}}
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.validPlayerTopUpTimes}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.validPlayerTopUpTimes')
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.validPlayerTopUpAmount}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.validPlayerTopUpAmount')
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.validPlayerConsumptionTimes}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.validPlayerConsumptionTimes')
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.validPlayerConsumptionAmount}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.validPlayerConsumptionAmount')
+                        td
+                            text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.validPlayerValue}}
+                            input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.validPlayerValue')
+
+    div
+        .pull-left
+            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                select#productName.form-control(ng-model='vm.bulkActiveConfigPlatforms', ng-options='v._id as v.name for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+        .pull-right
+            button.btn.btn-primary.common-button(ng-if="!vm.configTableBulkEdit && checkViewPermission('Platform', 'Config', 'ValidActiveUpdate')", ng-click='vm.configTableBulkEdit=!vm.configTableBulkEdit;vm.resetBulkActiveConfig()')
+                text {{'EDIT' | translate}}
+                img.img-edit
+            button.btn.btn-danger.common-button(ng-if='vm.configTableBulkEdit', ng-click='vm.configTableBulkEdit=!vm.configTableBulkEdit; vm.resetBulkActiveConfig()') {{"CANCEL" | translate}}
+            button.btn.btn-primary.common-button(ng-if='vm.configTableBulkEdit', ng-disabled="formBulkValidActivePlayer.$invalid || !vm.bulkActiveConfigPlatforms || !vm.bulkActiveConfigPlatforms.length", ng-click='vm.configTableBulkEdit=!vm.configTableBulkEdit;vm.updatePlatformsActiveConfig()') {{"CONFIRM" | translate}}
