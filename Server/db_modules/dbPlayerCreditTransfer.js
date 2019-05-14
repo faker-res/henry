@@ -30,7 +30,6 @@ let dbPlayerCreditTransfer = {
     },
     playerTransferIn: (obj) => {
         // Block real player transfer in on cstest environment
-        console.log('playerTransferIn', env.mode, obj.playerId);
         if (env.mode === 'development' && Number(obj.playerId) >= 400000) {
             return Promise.reject({name: "SystemError", message: "Not allowed to transfer from test environment."});
         }
