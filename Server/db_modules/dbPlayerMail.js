@@ -471,6 +471,7 @@ const dbPlayerMail = {
                             && (
                                 purpose === constSMSPurpose.INQUIRE_ACCOUNT
                                 || purpose === constSMSPurpose.PLAYER_LOGIN
+                                || purpose === constSMSPurpose.PLAYER_APP_LOGIN
                             )
                         ) {
                             playerQuery.phoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
@@ -544,6 +545,7 @@ const dbPlayerMail = {
                         purpose === constSMSPurpose.REGISTRATION
                         || purpose === constSMSPurpose.PARTNER_REGISTRATION
                         || purpose === constSMSPurpose.PLAYER_LOGIN
+                        || purpose === constSMSPurpose.PLAYER_APP_LOGIN
                     )
                 ) {
                     return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
