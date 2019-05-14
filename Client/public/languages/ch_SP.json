@@ -1,4 +1,5 @@
 {
+  "SERVER_TIME": "服务器时间",
   "GENDER": "性别",
   "DOB": "生日",
   "Male": "男",
@@ -2869,6 +2870,15 @@
   "Miss Call Out": "呼出未接量",
   "Total Hang-up Call Out Number": "呼出坐席主动挂断量",
   "Total Hang-up Call In Number": "呼入坐席主动挂断量",
+  "CsRankingReport": "客服排行榜",
+  "CS RANKING": "客服排行榜",
+  "SUMMARIZE_CS_RANKING_DATA": "手动收录客服旁行榜结算记录",
+  "Live800 Total Conversation Number": "Live800（总对话量）",
+  "Live800 Total Effective Conversation Number": "Live800（有效对话量）",
+  "Live800 Total Inspection Mark": "lIve800（总质检评分）",
+  "Total Accepted Call In Number": "客户来电（总接通量）",
+  "Total Accepted Call In Time": "接听通话（总时长）",
+  "Total Manual Process Number": "人工处理个数（总）",
   "ALL": "全选",
   "CALL_IN": "呼入",
   "Download": "下載",
@@ -5550,5 +5560,6 @@
   "Landscape": "橫向",
   "Portrait": "纵向",
   "default": "预设",
-  "RECALCULATE": "重新收录"
+  "RECALCULATE": "重新收录",
+  "BULK_SETTING_CONFIG": "批量配置调整"
 }

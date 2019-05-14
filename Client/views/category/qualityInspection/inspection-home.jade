@@ -43,6 +43,10 @@
                             a.common-tab(data-toggle="tab", href="#ManualProcessReport", ng-click="vm.qualityInspectionPageName='MANUAL PROCESS REPORT';vm.updatePageTile(); vm.initManualProcessReport();")
                                 .fa.fa-table.margin-right-5
                                 text.span {{"MANUAL PROCESS REPORT" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'CsRankingReport', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#csRanking", ng-click="vm.qualityInspectionPageName='CS RANKING';vm.updatePageTile(); vm.initCsRankingReport();")
+                                .fa.fa-table.margin-right-5
+                                text.span {{"CS RANKING" | translate}}
 
                 .panel-body.common-right-panel-body
                     div.tab-content
@@ -64,3 +68,5 @@
                             include ./inspection-csAudioRecordingSystem
                         #ManualProcessReport.tab-pane.fade
                             include ./inspection-manualProcessReport
+                        #csRanking.tab-pane.fade
+                            include ./inspection-csRankingReport

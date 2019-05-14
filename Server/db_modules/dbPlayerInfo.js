@@ -592,6 +592,7 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
+        console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp] : 'undefined');
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -4341,7 +4342,7 @@ let dbPlayerInfo = {
                         playerId: player._id,
                         platformId: player.platform,
                         amount: amount,
-                        oriAmount: oriAmount,
+                        oriAmount: oriAmount || amount,
                         topUpType: topUpType,
                         createTime: proposalData ? proposalData.createTime : new Date(),
                         bDirty: false
@@ -12907,80 +12908,93 @@ let dbPlayerInfo = {
                     if (playerData) {
                         player = playerData;
 
-                        bonusSystemConfig =
-                            extConfig && player.platform.bonusSystemType && extConfig[player.platform.bonusSystemType];
+                        return dbPlayerUtil.setPlayerBState(player._id, "playerBonus", true);
 
-                        if (player.ximaWithdraw) {
-                            ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
-
-                            if (amount <= player.ximaWithdraw) {
-                                isUsingXima = true;
-                            }
-                        }
-
-                        let permissionProm = Promise.resolve(true);
-                        let disablePermissionProm = Promise.resolve(true);
-                        if (!player.permission.applyBonus) {
-                            permissionProm = dbconfig.collection_playerPermissionLog.find(
-                                {
-                                    player: player._id,
-                                    platform: platform._id,
-                                    // "oldData.applyBonus": true,
-                                    "newData.applyBonus": false,
-                                },
-                                {remark: 1}
-                            ).sort({createTime: -1}).limit(1).lean().then(
-                                log => {
-                                    if (log && log.length > 0) {
-                                        lastBonusRemark = log[0].remark;
-                                    }
-                                }
-                            );
-
-                            disablePermissionProm = dbconfig.collection_playerPermissionLog.findOne({
-                                player: player._id,
-                                platform: platform._id,
-                                isSystem: false
-                            }).sort({createTime: -1}).lean().then(
-                                manualPermissionSetting => {
-
-                                    if (manualPermissionSetting && manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
-                                        && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
-                                        return dbconfig.collection_proposal.find({
-                                            'data.platformId': platform._id,
-                                            'data.playerObjId': player._id,
-                                            mainType: constProposalType.PLAYER_BONUS,
-                                            status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                            'data.remark': '禁用提款: '+ lastBonusRemark
-                                        }).sort({createTime: -1}).limit(1).then(proposalData => {
-                                            if (proposalData && proposalData.length > 0) {
-                                                lastBonusRemark = manualPermissionSetting.remark;
-                                            }
-                                        });
-                                    }
-                                }
-                            )
-                        }
-                        return Promise.all([permissionProm, disablePermissionProm]).then(
-                            res => {
-                                if (player.platform && player.platform.useProviderGroup) {
-                                    let unlockAllGroups = Promise.resolve(true);
-                                    if (bForce) {
-                                        unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id, adminInfo).catch(errorUtils.reportError);
-                                    }
-                                    return unlockAllGroups.then(
-                                        () => {
-                                            return dbRewardUtil.findStartedRewardTaskGroup(playerData.platform, playerData._id);
-                                        }
-                                    );
-                                } else {
-                                    return false;
-                                }
-                            }
-                        );
                     } else {
                         return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
                     }
+                }
+            ).then(
+                playerState => {
+                    if (!playerState) {
+                        return Promise.reject({
+                            status: constServerCode.CONCURRENT_DETECTED,
+                            name: "DBError",
+                            message: "withdrawal fail, please contact cs"
+                        })
+                    }
+
+                    bonusSystemConfig =
+                        extConfig && player.platform.bonusSystemType && extConfig[player.platform.bonusSystemType];
+
+                    if (player.ximaWithdraw) {
+                        ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
+
+                        if (amount <= player.ximaWithdraw) {
+                            isUsingXima = true;
+                        }
+                    }
+
+                    let permissionProm = Promise.resolve(true);
+                    let disablePermissionProm = Promise.resolve(true);
+                    if (!player.permission.applyBonus) {
+                        permissionProm = dbconfig.collection_playerPermissionLog.find(
+                            {
+                                player: player._id,
+                                platform: platform._id,
+                                // "oldData.applyBonus": true,
+                                "newData.applyBonus": false,
+                            },
+                            {remark: 1}
+                        ).sort({createTime: -1}).limit(1).lean().then(
+                            log => {
+                                if (log && log.length > 0) {
+                                    lastBonusRemark = log[0].remark;
+                                }
+                            }
+                        );
+
+                        disablePermissionProm = dbconfig.collection_playerPermissionLog.findOne({
+                            player: player._id,
+                            platform: platform._id,
+                            isSystem: false
+                        }).sort({createTime: -1}).lean().then(
+                            manualPermissionSetting => {
+
+                                if (manualPermissionSetting && manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
+                                    && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
+                                    return dbconfig.collection_proposal.find({
+                                        'data.platformId': platform._id,
+                                        'data.playerObjId': player._id,
+                                        mainType: constProposalType.PLAYER_BONUS,
+                                        status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                        'data.remark': '禁用提款: '+ lastBonusRemark
+                                    }).sort({createTime: -1}).limit(1).then(proposalData => {
+                                        if (proposalData && proposalData.length > 0) {
+                                            lastBonusRemark = manualPermissionSetting.remark;
+                                        }
+                                    });
+                                }
+                            }
+                        )
+                    }
+                    return Promise.all([permissionProm, disablePermissionProm]).then(
+                        res => {
+                            if (player.platform && player.platform.useProviderGroup) {
+                                let unlockAllGroups = Promise.resolve(true);
+                                if (bForce) {
+                                    unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(player._id, adminInfo).catch(errorUtils.reportError);
+                                }
+                                return unlockAllGroups.then(
+                                    () => {
+                                        return dbRewardUtil.findStartedRewardTaskGroup(player.platform, player._id);
+                                    }
+                                );
+                            } else {
+                                return false;
+                            }
+                        }
+                    );
                 }
             ).then(
                 RTG => {
@@ -13252,6 +13266,24 @@ let dbPlayerInfo = {
                     else {
                         return Q.reject(error);
                     }
+                }
+            ).then(
+                returnData => {
+                    if (player) {
+                        dbPlayerUtil.setPlayerBState(player._id, "playerBonus", false).catch(errorUtils.reportError);
+                    }
+                    return returnData;
+                }
+            ).catch(
+                err => {
+                    if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                        // Ignore concurrent request for now
+                    } else {
+                        // Set BState back to false
+                        dbPlayerUtil.setPlayerBState(player._id, "playerBonus", false).catch(errorUtils.reportError);
+                    }
+
+                    throw err;
                 }
             );
     },
@@ -17593,45 +17625,27 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let relevantPlayerQuery = {platformId: platform};
-
-                // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
-                let collection;
-                let distinctField = 'playerId';
 
                 if (isSinglePlayer) {
-                    relevantPlayerQuery.playerId = playerData._id;
+                    return [playerData._id];
                 } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
-                    relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
+                    return playerData.map(p => p._id);
                 }
 
-                if (endDate.getTime() > todayDate.startTime.getTime()) {
-                    console.log('RT - getPlayerReport 1.1');
-                    collection = dbconfig.collection_playerConsumptionHourSummary;
-                    relevantPlayerQuery = {platform: platform};
-                    relevantPlayerQuery.startTime = {$gte: startDate, $lt: endDate};
+                let relevantPlayerQuery = {
+                    platform: platform,
+                    startTime: {$gte: startDate, $lt: endDate}
+                };
 
-                    if (isSinglePlayer) {
-                        relevantPlayerQuery.player = playerData._id;
-                    } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
-                        relevantPlayerQuery.player = {$in: playerData.map(p => p._id)}
-                    }
-
-                    // Limit records search to provider
-                    if (query && query.providerId) {
-                        relevantPlayerQuery.providerId = ObjectId(query.providerId);
-                    }
-
-                    distinctField = 'player';
-                } else {
-                    collection = dbconfig.collection_playerConsumptionDaySummary;
-                    relevantPlayerQuery.date = {$gte: startDate, $lt: endDate};
+                // Limit records search to provider
+                if (query && query.providerId) {
+                    relevantPlayerQuery.providerId = ObjectId(query.providerId);
                 }
 
-                return collection.distinct(distinctField, relevantPlayerQuery).then(
+                return dbconfig.collection_playerConsumptionHourSummary.distinct('player', relevantPlayerQuery).then(
                     consumptionData => {
-                        console.log('RT - getPlayerReport 2');
+                        console.log('RT - getPlayerReport 2', consumptionData && consumptionData.length);
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj);
@@ -17677,7 +17691,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                console.log('RT - getPlayerReport 4');
+                console.log('RT - getPlayerReport 4', playerObjArrData && playerObjArrData.length);
                 let playerProm = dbconfig.collection_players.find({
                     _id: {$in: playerObjArrData},
                     isRealPlayer: true
@@ -26187,6 +26201,7 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
     ];
     let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate).startTime : dbUtility.getTodaySGTime();
     rewardData.applyTargetDate = rewardData.applyTargetDate || todayTime.startTime;
+    let forbidRewardProm = Promise.resolve(true);
 
     // Get interval time
     if (eventData.condition.interval) {
@@ -26319,8 +26334,20 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
         lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.findOne(consumptionQuery).sort({createTime: -1}).lean();
     }
 
-    return Promise.all([pendingCount, topupInPeriodProm, checkHasReceivedProm, timesHasApplied, getPlayerApplyingRecordProm, lastConsumptionProm]).then(
+    forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+
+    return Promise.all([pendingCount, topupInPeriodProm, checkHasReceivedProm, timesHasApplied, getPlayerApplyingRecordProm, lastConsumptionProm, forbidRewardProm]).then(
         checkList => {
+            let forbidRewardData = checkList[6];
+
+            if (!forbidRewardData) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: localization.localization.translate("This player has applied for other reward in event period")
+                });
+            }
+
             if (type && type == 1) {
                 // check the requirement
                 return checkBeforeApplyingBonusDoubled(checkList, rewardTypeWithProposalList, eventData, playerData);
@@ -26764,6 +26791,87 @@ function calculateGameCredit (amountGameProviderList, gameCreditList) {
         }
     })
     return result
+}
+
+function checkForbidReward (eventData, intervalTime, playerData) {
+    let createTime = {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime};
+
+    // check during this period interval
+    if (intervalTime) {
+        createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+    }
+
+    // check if player has applied for other forbidden reward
+    if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
+
+        let forbidRewardEventIds = eventData.condition.forbidApplyReward;
+        let promoCodeRewardExist = false;
+
+        for (let x = 0; x  < forbidRewardEventIds.length; x++) {
+            forbidRewardEventIds[x] = ObjectId(forbidRewardEventIds[x]);
+
+            // check if promo code reward (优惠代码) included in forbid reward, ID was hardcoded
+            if (forbidRewardEventIds[x].toString() === '59ca08a3ef187c1ccec863b9') {
+                promoCodeRewardExist = true;
+            }
+        }
+
+        let queryMatch = {
+            "createTime": createTime,
+            "data.eventId": {$in: forbidRewardEventIds},
+            "status": constProposalStatus.APPROVED,
+            "data.playerObjId": playerData._id
+        };
+
+        if (promoCodeRewardExist) {
+            queryMatch = {
+                "createTime": createTime,
+                "status": constProposalStatus.APPROVED,
+                "data.playerObjId": playerData._id,
+                $or: [
+                    {
+                        "data.eventId": {$in: forbidRewardEventIds}
+                    },
+                    {
+                        "data.eventCode" : "YHDM",
+                        "data.eventName" : "优惠代码"
+                    },
+                ]
+            };
+        }
+
+        // check other reward apply in period
+        return dbconfig.collection_proposal.aggregate(
+            {
+                $match: queryMatch
+            },
+            {
+                $project: {
+                    createTime: 1,
+                    status: 1,
+                    'data.playerObjId': 1,
+                    'data.eventId': 1,
+                    'data.eventCode': 1,
+                    'data.eventName': 1,
+                    _id: 0
+                }
+            }
+        ).read("secondaryPreferred").then(
+            countReward => {
+                if (countReward && countReward.length > 0) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        ).catch(
+            error => {
+                //add debug log
+                console.error("checkForbidRewardProm:", error);
+                throw error;
+            }
+        );
+    }
 }
 
 var proto = dbPlayerInfoFunc.prototype;

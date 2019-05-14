@@ -95,6 +95,7 @@ let promoCodeTemplateSchema = require('./../schema/promoCodeTemplate');
 let depositGroupSchema = require('./../schema/depositGroup');
 let qualityInspectionSchema = require('./../schema/qualityInspection');
 let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary');
+let scheduledCsRankingRecordSchema = require('./../schema/logs2/scheduledCsRankingRecord');
 let scheduledLive800DailyRecordSchema = require('./../schema/logs2/scheduledLive800DailyRecords');
 let wcDeviceSchema = require('./../schema/admindb/wcDevice');
 let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig');
@@ -549,6 +550,7 @@ let qualityInspectionModel = dbLogs.model('qualityInspection', qualityInspection
 let live800RecordDaySummaryModel = dbLogs.model('live800RecordDaySummary', live800RecordDaySummarySchema, 'live800RecordDaySummary');
 
 let scheduledLive800DailyRecordModel = dbLogs2.model('scheduledLive800DailyRecord', scheduledLive800DailyRecordSchema, 'scheduledLive800DailyRecord');
+let scheduledCsRankingRecordModel = dbLogs2.model('scheduledCsRankingRecord', scheduledCsRankingRecordSchema, 'scheduledCsRankingRecord');
 
 let playerInfoFromExternalSourceSchema = require('./../schema/logs2/playerInfoFromExternalSource');
 let playerInfoFromExternalSourceModel = dbLogs2.model('playerInfoFromExternalSource', playerInfoFromExternalSourceSchema, 'playerInfoFromExternalSource');
@@ -820,6 +822,7 @@ var dbProperties = {
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
     collection_live800RecordDayRecord: scheduledLive800DailyRecordModel,
+    collection_scheduledCsRankingRecord: scheduledCsRankingRecordModel,
     collection_playerDataFromExternalSource: playerInfoFromExternalSourceModel,
     collection_queryCreditTimeout: queryCreditTimeoutModel,
     collection_playerRandomReward: playerRandomRewardSchemaModel,

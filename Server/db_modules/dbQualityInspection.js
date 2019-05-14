@@ -94,7 +94,7 @@ var dbQualityInspection = {
 
                     // process based on time scale
                     if (dataset && dataset.length){
-                        dataset = timeScaleProcess(dataset, data.timeScale, startDate, endDate);
+                        dataset = dbQualityInspection.timeScaleProcess(dataset, data.timeScale, startDate, endDate);
                     }
 
                     // sorting
@@ -116,155 +116,155 @@ var dbQualityInspection = {
                 }
             )
         }
+    },
 
-        function timeScaleProcess (data, timeScale, startTime, endTime){
-            let arrData = [];
-            let retData;
-            console.log("checking timeScale", timeScale);
+    timeScaleProcess: function (data, timeScale, startTime, endTime){
+        let arrData = [];
+        let retData;
+        console.log("checking timeScale", timeScale);
 
-            if (timeScale == 1){
-                data.forEach(
-                    detail => {
-                        if (detail && detail.agentnum){
-                            arrData.push({
-                                agentNum:  detail.agentnum,
-                                agentGroupName: detail.agent_group_name,
-                                startDate: detail.seasonal_time,
-                                totalCallTime: detail.total_call_time || 0,
-                                totalEavesdroppingTime: detail.total_eavesdroper_time || 0,
-                                totalIncallNum: detail.total_incall_num || 0,
-                                totalIncallFailedNum: detail.total_incallfailed_num || 0,
-                                totalAnswerTime: detail.total_answer_time || 0,
-                                totalOutcallNum: detail.total_outcall_num || 0,
-                                totalOutcallFailedNum: detail.total_outcallfailed_num || 0,
-                                totalCallingTime: detail.calling_time || 0,
-                                totalCalloutHangoutNum: detail.total_callout_agent_first_hangup_num || 0,
-                                totalCallinHangoutNum: detail.total_callin_agent_first_hangup_num || 0
-                            })
-                        }
+        if (timeScale == 1){
+            data.forEach(
+                detail => {
+                    if (detail && detail.agentnum){
+                        arrData.push({
+                            agentNum:  detail.agentnum,
+                            agentGroupName: detail.agent_group_name,
+                            startDate: detail.seasonal_time,
+                            totalCallTime: detail.total_call_time || 0,
+                            totalEavesdroppingTime: detail.total_eavesdroper_time || 0,
+                            totalIncallNum: detail.total_incall_num || 0,
+                            totalIncallFailedNum: detail.total_incallfailed_num || 0,
+                            totalAnswerTime: detail.total_answer_time || 0,
+                            totalOutcallNum: detail.total_outcall_num || 0,
+                            totalOutcallFailedNum: detail.total_outcallfailed_num || 0,
+                            totalCallingTime: detail.calling_time || 0,
+                            totalCalloutHangoutNum: detail.total_callout_agent_first_hangup_num || 0,
+                            totalCallinHangoutNum: detail.total_callin_agent_first_hangup_num || 0
+                        })
                     }
-                )
-                return arrData
-            }
-            else{
-                let csList = data.map( x => x.agentnum);
-                let distinctCsList = csList.filter((x, i, a) => a.indexOf(x) == i);
-                let dayStartTime = new Date (startTime);
-                switch (timeScale) {
-                    // every hour
-                    case '2':
-                        let totalHour = dbUtility.getNumberOfHours(startTime, endTime);
-                        console.log("checking number of hours", totalHour)
-                        retData = processDataBasedOnTimeScale(dayStartTime, totalHour, data, timeScale, distinctCsList);
-                        break;
-                    // every day
-                    case '3':
-                        let totalDay = dbUtility.getNumberOfDays(startTime, endTime);
-                        console.log("checking number of totalDay", totalDay)
-                        retData = processDataBasedOnTimeScale(dayStartTime, totalDay, data, timeScale, distinctCsList);
-                        break;
-                    case '4':
-                        let totalMonth = dbUtility.getNumberOfMonths(startTime, endTime);
-                        console.log("checking number of totalMonth", totalMonth)
-                        retData = processDataBasedOnTimeScale(dayStartTime, totalMonth, data, timeScale, distinctCsList);
-                        break;
                 }
-                return retData
+            )
+            return arrData
+        }
+        else{
+            let csList = data.map( x => x.agentnum);
+            let distinctCsList = csList.filter((x, i, a) => a.indexOf(x) == i);
+            let dayStartTime = new Date (startTime);
+            switch (timeScale) {
+                // every hour
+                case '2':
+                    let totalHour = dbUtility.getNumberOfHours(startTime, endTime);
+                    console.log("checking number of hours", totalHour)
+                    retData = dbQualityInspection.processDataBasedOnTimeScale(dayStartTime, totalHour, data, timeScale, distinctCsList);
+                    break;
+                // every day
+                case '3':
+                    let totalDay = dbUtility.getNumberOfDays(startTime, endTime);
+                    console.log("checking number of totalDay", totalDay)
+                    retData = dbQualityInspection.processDataBasedOnTimeScale(dayStartTime, totalDay, data, timeScale, distinctCsList);
+                    break;
+                case '4':
+                    let totalMonth = dbUtility.getNumberOfMonths(startTime, endTime);
+                    console.log("checking number of totalMonth", totalMonth)
+                    retData = dbQualityInspection.processDataBasedOnTimeScale(dayStartTime, totalMonth, data, timeScale, distinctCsList);
+                    break;
             }
+            return retData
+        }
+    },
+
+    processDataBasedOnTimeScale: function (dayStartTime, iteratationNum, data, timeScale, distinctCsList) {
+        let iterNum = iteratationNum || 0;
+        let timeScaleData = [];
+        console.log("checking iteratationNum", iteratationNum)
+        let getNextDate = function (date) {
+            let newDate = new Date(date);
+            return new Date(newDate.setDate(newDate.getDate() + 1));
+        };
+
+        let getNextHour = function (date) {
+            let newDate = new Date(date);
+            return new Date(newDate.setHours(newDate.getHours() + 1));
+        };
+
+        let getNextMonth = function (date) {
+            let newDate = new Date(date);
+            return new Date(newDate.setMonth(newDate.getMonth() + 1));
+        };
+
+        for(let x = 0; x < iterNum; x++){
+            let dayEndTime;
+
+            if (timeScale && timeScale == 2) {
+                dayEndTime = getNextHour.call(this, dayStartTime);
+            }
+            else if (timeScale && timeScale == 3) {
+                dayEndTime = getNextDate.call(this, dayStartTime);
+            }
+            else if (timeScale && timeScale == 4) {
+                dayEndTime = getNextMonth.call(this, dayStartTime);
+            }
+
+            console.log("checking dayStartTime", dayStartTime)
+            console.log("checking dayEndTime", dayEndTime)
+
+            let preDataList = data.filter(d => new Date(d.seasonal_time) >= new Date(dayStartTime) && new Date(d.seasonal_time) < new Date(dayEndTime) );
+            console.log("checking preDataList", preDataList && preDataList.length ? preDataList.length : 'undefined');
+            distinctCsList.forEach(
+                csAdmin => {
+                    let adminData = preDataList.filter(d => d.agentnum == csAdmin);
+                    let totalCallTime = 0;
+                    let totalEavesdroppingTime = 0;
+                    let totalIncallNum = 0;
+                    let totalIncallFailedNum = 0;
+                    let totalAnswerTime = 0;
+                    let totalOutcallNum = 0;
+                    let totalOutcallFailedNum = 0;
+                    let totalCallingTime = 0;
+                    let totalCalloutHangoutNum = 0;
+                    let totalCallinHangoutNum = 0;
+
+                    console.log('checking adminData', adminData && adminData.length ? adminData.length : 'undefined');
+                    adminData.forEach(
+                        detail => {
+                            totalCallTime = totalCallTime + (parseInt(detail.total_call_time || 0) );
+                            totalEavesdroppingTime = totalEavesdroppingTime + (parseInt(detail.total_eavesdroper_time || 0) );
+                            totalIncallNum = totalIncallNum + (parseInt(detail.total_incall_num || 0) );
+                            totalIncallFailedNum = totalIncallFailedNum + (parseInt(detail.total_incallfailed_num || 0) );
+                            totalAnswerTime = totalAnswerTime + (parseInt(detail.total_answer_time || 0) );
+                            totalOutcallNum = totalOutcallNum + (parseInt(detail.total_outcall_num || 0) );
+                            totalOutcallFailedNum = totalOutcallFailedNum + (parseInt(detail.total_outcallfailed_num || 0) );
+                            totalCallingTime = totalCallingTime + (parseInt(detail.calling_time || 0) );
+                            totalCalloutHangoutNum = totalCalloutHangoutNum + (parseInt(detail.total_callout_agent_first_hangup_num || 0) );
+                            totalCallinHangoutNum = totalCallinHangoutNum + (parseInt(detail.total_callin_agent_first_hangup_num || 0) );
+                        }
+                    );
+
+                    if (adminData && adminData.length && adminData[0].agentnum){
+                        timeScaleData.push({
+                            agentNum:  adminData[0].agentnum,
+                            agentGroupName: adminData[0].agent_group_name,
+                            startDate: dayStartTime,
+                            totalCallTime: totalCallTime,
+                            totalEavesdroppingTime: totalEavesdroppingTime,
+                            totalIncallNum: totalIncallNum,
+                            totalIncallFailedNum: totalIncallFailedNum,
+                            totalAnswerTime: totalAnswerTime,
+                            totalOutcallNum: totalOutcallNum,
+                            totalOutcallFailedNum: totalOutcallFailedNum,
+                            totalCallingTime: totalCallingTime,
+                            totalCalloutHangoutNum: totalCalloutHangoutNum,
+                            totalCallinHangoutNum: totalCallinHangoutNum
+                        })
+                    }
+                }
+            );
+
+            dayStartTime = dayEndTime;
         }
 
-        function processDataBasedOnTimeScale (dayStartTime, iteratationNum, data, timeScale, distinctCsList) {
-            let iterNum = iteratationNum || 0;
-            let timeScaleData = [];
-            console.log("checking iteratationNum", iteratationNum)
-            let getNextDate = function (date) {
-                let newDate = new Date(date);
-                return new Date(newDate.setDate(newDate.getDate() + 1));
-            };
-
-            let getNextHour = function (date) {
-                let newDate = new Date(date);
-                return new Date(newDate.setHours(newDate.getHours() + 1));
-            };
-
-            let getNextMonth = function (date) {
-                let newDate = new Date(date);
-                return new Date(newDate.setMonth(newDate.getMonth() + 1));
-            };
-
-            for(let x = 0; x < iterNum; x++){
-                let dayEndTime;
-
-                if (timeScale && timeScale == 2) {
-                    dayEndTime = getNextHour.call(this, dayStartTime);
-                }
-                else if (timeScale && timeScale == 3) {
-                    dayEndTime = getNextDate.call(this, dayStartTime);
-                }
-                else if (timeScale && timeScale == 4) {
-                    dayEndTime = getNextMonth.call(this, dayStartTime);
-                }
-
-                console.log("checking dayStartTime", dayStartTime)
-                console.log("checking dayEndTime", dayEndTime)
-
-                let preDataList = data.filter(d => new Date(d.seasonal_time) >= new Date(dayStartTime) && new Date(d.seasonal_time) < new Date(dayEndTime) );
-                console.log("checking preDataList", preDataList && preDataList.length ? preDataList.length : 'undefined');
-                distinctCsList.forEach(
-                    csAdmin => {
-                        let adminData = preDataList.filter(d => d.agentnum == csAdmin);
-                        let totalCallTime = 0;
-                        let totalEavesdroppingTime = 0;
-                        let totalIncallNum = 0;
-                        let totalIncallFailedNum = 0;
-                        let totalAnswerTime = 0;
-                        let totalOutcallNum = 0;
-                        let totalOutcallFailedNum = 0;
-                        let totalCallingTime = 0;
-                        let totalCalloutHangoutNum = 0;
-                        let totalCallinHangoutNum = 0;
-
-                        console.log('checking adminData', adminData && adminData.length ? adminData.length : 'undefined');
-                        adminData.forEach(
-                            detail => {
-                                totalCallTime = totalCallTime + (parseInt(detail.total_call_time || 0) );
-                                totalEavesdroppingTime = totalEavesdroppingTime + (parseInt(detail.total_eavesdroper_time || 0) );
-                                totalIncallNum = totalIncallNum + (parseInt(detail.total_incall_num || 0) );
-                                totalIncallFailedNum = totalIncallFailedNum + (parseInt(detail.total_incallfailed_num || 0) );
-                                totalAnswerTime = totalAnswerTime + (parseInt(detail.total_answer_time || 0) );
-                                totalOutcallNum = totalOutcallNum + (parseInt(detail.total_outcall_num || 0) );
-                                totalOutcallFailedNum = totalOutcallFailedNum + (parseInt(detail.total_outcallfailed_num || 0) );
-                                totalCallingTime = totalCallingTime + (parseInt(detail.calling_time || 0) );
-                                totalCalloutHangoutNum = totalCalloutHangoutNum + (parseInt(detail.total_callout_agent_first_hangup_num || 0) );
-                                totalCallinHangoutNum = totalCallinHangoutNum + (parseInt(detail.total_callin_agent_first_hangup_num || 0) );
-                            }
-                        );
-
-                        if (adminData && adminData.length && adminData[0].agentnum){
-                            timeScaleData.push({
-                                agentNum:  adminData[0].agentnum,
-                                agentGroupName: adminData[0].agent_group_name,
-                                startDate: dayStartTime,
-                                totalCallTime: totalCallTime,
-                                totalEavesdroppingTime: totalEavesdroppingTime,
-                                totalIncallNum: totalIncallNum,
-                                totalIncallFailedNum: totalIncallFailedNum,
-                                totalAnswerTime: totalAnswerTime,
-                                totalOutcallNum: totalOutcallNum,
-                                totalOutcallFailedNum: totalOutcallFailedNum,
-                                totalCallingTime: totalCallingTime,
-                                totalCalloutHangoutNum: totalCalloutHangoutNum,
-                                totalCallinHangoutNum: totalCallinHangoutNum
-                            })
-                        }
-                    }
-                );
-
-                dayStartTime = dayEndTime;
-            }
-
-            return timeScaleData
-        }
+        return timeScaleData
     },
 
     sqlExecutionAndReturnJsonParse: function (connection, query){
@@ -5061,6 +5061,466 @@ var dbQualityInspection = {
             model: dbconfig.collection_platform
         }).lean();
     },
+
+    getCsRankingReport: function (data) {
+        let index = data.index || 0;
+        let limit = data.limit || 50;
+        let sort = {};
+
+        if (!data.sortCol){
+            sort = {_id: 1};
+        }
+        else if (data.sortCol && data.sortCol.adminName){
+            sort._id= data.sortCol.adminName;
+        }else{
+            sort = data.sortCol
+        }
+
+        let prom = Promise.resolve();
+
+        if (data && data.adminObjId && data.adminObjId.length){
+            prom = dbconfig.collection_scheduledCsRankingRecord.aggregate(
+                {
+                    $match: {
+                        adminObjId: {$in: data.adminObjId.map(p => {return ObjectId(p)})},
+                        createTime: {$gte: new Date(data.startDate), $lt: new Date(data.endDate)}
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$adminName",
+                        live800TotalConversationNumber:  {$sum: "$live800TotalConversationNumber"},
+                        live800TotalEffectiveConversationNumber: {$sum: "$live800TotalEffectiveConversationNumber"},
+                        live800TotalInspectionMark: {$sum: "$live800TotalInspectionMark"},
+                        totalAcceptedCallInNumber: {$sum: "$totalAcceptedCallInNumber"},
+                        totalAcceptedCallInTime: {$sum: "$totalAcceptedCallInTime"},
+                        totalManualProcessNumber: {$sum: "$totalManualProcessNumber"},
+                    }
+                }
+            ).read("secondaryPreferred").sort(sort);
+        }
+
+        return prom.then(
+            retData =>{
+                let totalSize = retData && retData.length ? retData.length : 0;
+
+                if (retData && retData.length > limit){
+                    retData = retData.slice(index, index+limit)
+                }
+                return {
+                    data: retData,
+                    size: totalSize
+                }
+            }
+        )
+    },
+
+    compileTel400SummarizedData: function (startDate, endDate) {
+        console.log("checking startDate in tel400", startDate);
+        console.log("checking endDate in tel400", endDate);
+
+        // get all cs detail
+        let csDepartmentList = [];
+        let csList;
+        let getDepartmentProm = Promise.resolve();
+        return dbconfig.collection_platform.find({}, {csDepartment: 1}).lean().then(
+            platformData => {
+                if (!platformData || platformData.length == 0){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "No platform is found"
+                    })
+                }
+
+                platformData.forEach(
+                    platform => {
+                        if (platform && platform.csDepartment){
+                            csDepartmentList = csDepartmentList.concat(platform.csDepartment);
+
+                        }
+                    }
+                );
+
+                if (csDepartmentList && csDepartmentList.length){
+                    getDepartmentProm = dbconfig.collection_department.find({
+                        _id: {$in: csDepartmentList.map(p =>  {return ObjectId(p)}) }
+                    }, {users: 1}).lean();
+                }
+
+                return getDepartmentProm
+            }
+        ).then(
+            departmentData => {
+                if (!departmentData || departmentData.length == 0){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "No CS department is found"
+                    })
+                }
+
+                let adminList = [];
+
+                departmentData.forEach(
+                    department => {
+                        if (department && department.users && department.users.length){
+                            adminList = adminList.concat(department.users);
+                        }
+                    }
+                );
+
+                if (adminList && adminList.length){
+                    return dbconfig.collection_admin.find({
+                        _id: {$in: adminList.map(p => {return ObjectId(p)})}
+                    }, {adminName: 1, callerId: 1}).lean();
+                }
+
+                return Promise.resolve();
+            }
+        ).then(
+            adminList => {
+                if (!adminList || adminList.length == 0){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "No cs admin is found"
+                    })
+                }
+                csList = adminList;
+
+                let connection1 = dbQualityInspection.connectTel400CSMysql();
+                let connection2 = dbQualityInspection.connectTel400JiaBoMysql();
+
+                let tempEndDate = new Date(endDate);
+                tempEndDate = tempEndDate.getTime() - 1000;
+
+                let startTime = dbUtility.getLocalTimeString(startDate);
+                let endTime = dbUtility.getLocalTimeString(tempEndDate);
+
+                let queryObj = "SELECT * FROM cti_cdr_agentcall_statis WHERE seasonal_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
+
+                console.log("checking queryObj", queryObj)
+
+                let sqlCSProm = dbQualityInspection.sqlExecutionAndReturnJsonParse(connection1,queryObj + " ORDER BY seasonal_time desc");
+                let sqlJiaBoProm = dbQualityInspection.sqlExecutionAndReturnJsonParse(connection2,queryObj + " ORDER BY seasonal_time desc");
+
+                return Promise.all([sqlCSProm, sqlJiaBoProm])
+            }
+        ).then(
+            retData => {
+                let csData = retData && retData[0] ? retData[0] : [];
+                let jiaBoData = retData && retData[1] ? retData[1] : [];
+                let dataset = [];
+                dataset = dataset.concat(csData, jiaBoData);
+
+                console.log("checking tel400 dataset.length", dataset && dataset.length ? dataset.length : 0)
+                // process based on time scale
+                if (dataset && dataset.length){
+                    let timeScaleData = dbQualityInspection.timeScaleProcess(dataset, '3', startDate, endDate);
+                    console.log("checking tel400 timeScaleData.length", timeScaleData && timeScaleData.length ? timeScaleData.length : 0)
+                    if (timeScaleData && timeScaleData.length){
+                        let lengthPerChunk = 500;
+                        let numberOfChunk = Math.ceil(timeScaleData.length/lengthPerChunk);
+                        let sqlArray = [];
+
+                        for (let i = 0; i < numberOfChunk; i++){
+                            sqlArray.push(timeScaleData.slice(i*lengthPerChunk, (i+1)*lengthPerChunk));
+                        }
+
+                        let partialProcessProm = Promise.resolve();
+                        sqlArray.forEach(arr=>{
+                            partialProcessProm = partialProcessProm.then(()=>{return dbQualityInspection.insertTel400DataToDB(arr, csList)});
+                        });
+                        return partialProcessProm;
+                    }
+                }
+            }
+        )
+    },
+
+    insertTel400DataToDB: function (arr, csList) {
+        let saveProm = [];
+        console.log("checking tel400 arr", arr && arr.length ? arr.length: 0);
+        console.log("checking tel400 csList", csList && csList.length ? csList.length : 0);
+
+        arr.forEach(
+            tel400Data =>{
+                if (tel400Data && tel400Data.hasOwnProperty('agentNum')){
+                    let index = csList.findIndex( p=> p.callerId == tel400Data.agentNum);
+                    if (index != -1){
+                        let saveData = {
+                            adminObjId: csList[index]._id,
+                            adminName: csList[index].adminName,
+                            totalAcceptedCallInTime: tel400Data.totalAnswerTime || 0,
+                            totalAcceptedCallInNumber: (tel400Data.totalIncallNum || 0) - (tel400Data.totalIncallFailedNum || 0),
+                            createTime: tel400Data.startDate
+                        };
+
+                        let query = {
+                            createTime: tel400Data.startDate,
+                            adminObjId: ObjectId(csList[index]._id)
+                        };
+
+                        saveProm.push(
+                            dbconfig.collection_scheduledCsRankingRecord.findOneAndUpdate(query, saveData, {upsert: true}).lean()
+                        )
+                    }
+                }
+            }
+        )
+        return Promise.all(saveProm);
+    },
+
+    compileLive800SummarizedData: function (startDate, endDate){
+        console.log("checking startDate in live800", startDate);
+        console.log("checking endDate in live800", endDate);
+        let inspectionCount;
+        let inspectionMark;
+
+        let dayRecordProm = dbconfig.collection_live800RecordDaySummary.aggregate(
+            {
+                $match: {
+                    createTime: {$gte: new Date(startDate), $lt: new Date(endDate)}
+                }
+            },
+            {
+                $group: {
+                    _id: "$live800Acc.name",
+                    totalEffectiveRecord: {$sum: "$effectiveRecord"},
+                    totalRecord: {$sum: "$totalRecord"},
+                }
+            }
+        ).read("secondaryPreferred");
+
+        let summaryProm = dbconfig.collection_live800RecordDayRecord.aggregate(
+            {
+                $match: {
+                    processTime: {$gte: new Date(startDate), $lt: new Date(endDate)}
+                }
+            },
+            {
+                $group: {
+                    _id: "$live800Acc.name",
+                    totalInspectionRate: {$sum: "$totalInspectionRate"},
+                }
+            }
+        ).read("secondaryPreferred");
+
+        return Promise.all([dayRecordProm, summaryProm]).then(
+            retData => {
+                if (retData && retData.length) {
+                    inspectionCount = retData[0];
+                    inspectionMark = retData[1];
+                    return processInspectionMarking(inspectionMark, startDate, endDate)
+                }
+            }
+        ).then(
+            () => {
+                return processInspectionCounting(inspectionCount, startDate, endDate)
+            }
+        )
+
+        function processInspectionCounting (countDataArr, startDate, endDate) {
+            let prom = [];
+            console.log("checking countDataArr.length", countDataArr ? countDataArr.length : 'undefined');
+            countDataArr.forEach(
+                countDetail => {
+                    if (countDetail._id){
+                        prom.push(
+                            dbconfig.collection_admin.findOne({adminName: {$regex: countDetail._id, $options: "xi"}}).then(
+                                admin => {
+                                    if (admin){
+                                        let query = {
+                                            createTime: new Date(startDate),
+                                            adminObjId: ObjectId(admin._id)
+                                        };
+
+                                        let updateObj = {
+                                            $set: {
+                                                live800TotalConversationNumber: countDetail.totalRecord,
+                                                live800TotalEffectiveConversationNumber: countDetail.totalEffectiveRecord,
+                                            }
+                                        };
+
+                                        return dbconfig.collection_scheduledCsRankingRecord.findOne(query).then(
+                                            record => {
+                                                if (!record){
+                                                    let newObj = {
+                                                        createTime: new Date(startDate),
+                                                        adminObjId: ObjectId(admin._id),
+                                                        adminName: admin.adminName,
+                                                        live800TotalConversationNumber: countDetail.totalRecord,
+                                                        live800TotalEffectiveConversationNumber: countDetail.effectiveRecord,
+                                                    };
+                                                    let newRecord = new dbconfig.collection_scheduledCsRankingRecord(newObj);
+                                                    return newRecord.save();
+                                                }
+                                                else{
+                                                    return dbconfig.collection_scheduledCsRankingRecord.findOneAndUpdate(query, updateObj).lean()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        )
+                    }
+                }
+            )
+            return Promise.all(prom)
+        }
+
+        function processInspectionMarking (markDataArr, startDate, endDate) {
+            let prom = [];
+            console.log("checking markDataArr.length", markDataArr ? markDataArr.length : 'undefined');
+
+            markDataArr.forEach(
+                markDetail => {
+                    if (markDetail._id){
+                        prom.push(
+                            dbconfig.collection_admin.findOne({adminName: {$regex: markDetail._id, $options: "xi"}}).then(
+                                admin => {
+                                    if (admin){
+                                        let query = {
+                                            createTime: new Date(startDate),
+                                            adminObjId: ObjectId(admin._id)
+                                        };
+
+                                        let updateObj = {
+                                            $set: {
+                                                live800TotalInspectionMark: markDetail.totalInspectionRate,
+                                            }
+                                        };
+
+                                        return dbconfig.collection_scheduledCsRankingRecord.findOne(query).then(
+                                            record => {
+                                                if (!record){
+                                                    let newObj = {
+                                                        createTime: new Date(startDate),
+                                                        adminObjId: ObjectId(admin._id),
+                                                        adminName: admin.adminName,
+                                                        live800TotalInspectionMark: markDetail.totalInspectionRate
+                                                    };
+                                                    let newRecord = new dbconfig.collection_scheduledCsRankingRecord(newObj);
+                                                    return newRecord.save();
+                                                }
+                                                else{
+                                                    return dbconfig.collection_scheduledCsRankingRecord.findOneAndUpdate(query, updateObj).lean()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        )
+                    }
+                }
+            )
+            return Promise.all(prom)
+        }
+    },
+
+    compileManualProcessSummarizedData: function (startDate, endDate) {
+        console.log("checking startDate in manual process record", startDate);
+        console.log("checking endDate in manual process record", endDate);
+        let prom = [];
+
+        let query = {
+            createTime: {$gte: new Date(startDate), $lt: new Date(endDate)}
+        }
+        return dbconfig.collection_manualProcessDailySummaryRecord.find(query).lean().then(
+            manualProcessRecord => {
+                console.log("checking manualProcessRecord.length", manualProcessRecord ? manualProcessRecord.length : 'undefined')
+                manualProcessRecord.forEach(
+                    record => {
+                        if (record && record.adminObjId){
+                            let totalManualProcessNumber = (record.manualApprovalCount || 0) + (record.manualSubmitCount || 0) + (record.manualCancelCount || 0)
+                            prom.push(
+                                dbconfig.collection_admin.findOne({_id: ObjectId(record.adminObjId)}).then(
+                                    admin => {
+                                        if (admin){
+                                            let query = {
+                                                createTime: new Date(startDate),
+                                                adminObjId: ObjectId(admin._id)
+                                            };
+
+                                            let updateObj = {
+                                                $set: {
+                                                    totalManualProcessNumber: totalManualProcessNumber,
+                                                }
+                                            };
+
+                                            return dbconfig.collection_scheduledCsRankingRecord.findOne(query).then(
+                                                record => {
+                                                    if (!record){
+                                                        let newObj = {
+                                                            createTime: new Date(startDate),
+                                                            adminObjId: ObjectId(admin._id),
+                                                            adminName: admin.adminName,
+                                                            totalManualProcessNumber: totalManualProcessNumber
+                                                        };
+                                                        let newRecord = new dbconfig.collection_scheduledCsRankingRecord(newObj);
+                                                        return newRecord.save();
+                                                    }
+                                                    else{
+                                                        return dbconfig.collection_scheduledCsRankingRecord.findOneAndUpdate(query, updateObj).lean()
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
+                            )
+                        }
+                    }
+                )
+                return Promise.all(prom)
+            }
+        )
+    },
+
+    summarizeCsRankingData: function (startDate, endDate) {
+        let totalDays = dbUtility.getNumberOfDays(startDate, endDate);
+        let dayStartTime = new Date (startDate);
+        let getNextDate = function (date) {
+            let newDate = new Date(date);
+            return new Date(newDate.setDate(newDate.getDate() + 1));
+        };
+        let partialProcessProm = Promise.resolve();
+        for(let x = 0; x < totalDays; x++){
+            let newStartTime = dayStartTime;
+            let dayEndTime = getNextDate.call(this, dayStartTime);
+            partialProcessProm = partialProcessProm.then(() => {return dbQualityInspection.compileCsRankingData(newStartTime, dayEndTime)});
+            dayStartTime = dayEndTime;
+        }
+        return partialProcessProm.catch(
+            err => {
+                console.log("Error when summarizing CS ranking data; Error: ", err);
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Error when summarizing CS ranking data",
+                    error: err
+                })
+            }
+        )
+    },
+
+    compileCsRankingData: function (startDate, endDate) {
+        console.log("checking compileCsRankingData startDate", startDate)
+        console.log("checking compileCsRankingData endDate", endDate)
+            // get the tel400 data to compile to daily summarized data
+            return dbQualityInspection.compileTel400SummarizedData(startDate, endDate).then(
+                () => {
+                    // get live800 inspection mark to compile to daily summarized data
+                    return dbQualityInspection.compileLive800SummarizedData(startDate, endDate);
+                }
+            ).then(
+                () => {
+                    // get the daily summary of manual process data
+                    return dbQualityInspection.compileManualProcessSummarizedData(startDate, endDate);
+                }
+            )
+    },
+
+
 
 };
 module.exports = dbQualityInspection;

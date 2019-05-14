@@ -1,0 +1,29 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+div(ng-if="vm.curPlatformText")
+    .col-md-12.well(ng-show="checkViewPermission('QualityInspection', 'CsRankingReport', 'Read')")
+        .search-filters-item
+            label FPMS {{'CS Account' | translate}}
+            select.spicker.form-control(ng-model='vm.selectedCS', ng-options='v._id as v.adminName for v in vm.csList', multiple, data-actions-box='true', bsp,ng-init='vm.endLoadMultipleSelect()')
+        .search-filters-item
+            label {{'START_DATE' | translate}}
+            #csRankingReportStartDatetimePicker.input-append.form-control
+                input(data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                span.add-on
+                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filters-item
+            label {{'END_DATE' | translate}}
+            #csRankingReportEndDatetimePicker.input-append.form-control
+                input(data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                span.add-on
+                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .text-right.widthto100
+            label &nbsp;
+            button.btn.btn-primary.btn-space(ng-click='vm.getCsRankingReport(true)' ng-show="checkViewPermission('QualityInspection', 'CsRankingReport', 'Read')") {{'SEARCH' | translate}}
+            span#csRankingReportTableSpin.collapse
+                i.fa.fa-spinner.fa-spin
+    .clearfix
+    label {{"Total" | translate}} {{vm.csRankingReportData.size}} {{"records" | translate}}
+    table#csRankingReportTable.common-table.display(style="min-width:100% ;overflow: scroll")
+    #csRankingReportTablePage
