@@ -5029,7 +5029,7 @@ define(['js/app'], function (myApp) {
         function getMerchantList() {
             return new Promise(function (resolve) {
                 socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
-                    if (data.data && data.data.merchants) {
+                    if (data && data.data && data.data.merchants) {
                         resolve(data.data.merchants);
                     }
                 }, function (error) {

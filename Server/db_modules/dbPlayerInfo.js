@@ -7485,7 +7485,6 @@ let dbPlayerInfo = {
                     // Platform supporting provider group
                     if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
                         // if use eBet Wallet
-                        console.log("MT --checking --transfer to ebet wallets", providerData);
                         return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     } else {
@@ -17625,45 +17624,27 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let relevantPlayerQuery = {platformId: platform};
-
-                // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
-                let collection;
-                let distinctField = 'playerId';
 
                 if (isSinglePlayer) {
-                    relevantPlayerQuery.playerId = playerData._id;
+                    return [playerData._id];
                 } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
-                    relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
+                    return playerData.map(p => p._id);
                 }
 
-                if (endDate.getTime() > todayDate.startTime.getTime()) {
-                    console.log('RT - getPlayerReport 1.1');
-                    collection = dbconfig.collection_playerConsumptionHourSummary;
-                    relevantPlayerQuery = {platform: platform};
-                    relevantPlayerQuery.startTime = {$gte: startDate, $lt: endDate};
+                let relevantPlayerQuery = {
+                    platform: platform,
+                    startTime: {$gte: startDate, $lt: endDate}
+                };
 
-                    if (isSinglePlayer) {
-                        relevantPlayerQuery.player = playerData._id;
-                    } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
-                        relevantPlayerQuery.player = {$in: playerData.map(p => p._id)}
-                    }
-
-                    // Limit records search to provider
-                    if (query && query.providerId) {
-                        relevantPlayerQuery.providerId = ObjectId(query.providerId);
-                    }
-
-                    distinctField = 'player';
-                } else {
-                    collection = dbconfig.collection_playerConsumptionDaySummary;
-                    relevantPlayerQuery.date = {$gte: startDate, $lt: endDate};
+                // Limit records search to provider
+                if (query && query.providerId) {
+                    relevantPlayerQuery.providerId = ObjectId(query.providerId);
                 }
 
-                return collection.distinct(distinctField, relevantPlayerQuery).then(
+                return dbconfig.collection_playerConsumptionHourSummary.distinct('player', relevantPlayerQuery).then(
                     consumptionData => {
-                        console.log('RT - getPlayerReport 2');
+                        console.log('RT - getPlayerReport 2', consumptionData && consumptionData.length);
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj);
@@ -17709,7 +17690,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                console.log('RT - getPlayerReport 4');
+                console.log('RT - getPlayerReport 4', playerObjArrData && playerObjArrData.length);
                 let playerProm = dbconfig.collection_players.find({
                     _id: {$in: playerObjArrData},
                     isRealPlayer: true
@@ -25434,7 +25415,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
 }
 
 async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDownPeriod) {
-    let levelMaintainProposalType = await dbconfig.collection_proposalType.findOne({
+    let levelMaintainProposalType = dbconfig.collection_proposalType.findOne({
         platformId: playerObj.platform,
         name: constProposalType.PLAYER_LEVEL_MAINTAIN
     }).lean();
@@ -25475,6 +25456,7 @@ async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDow
                         ]
                     }
                 ],
+                'data.upOrDown': {$in:["LEVEL_UP", null]},
                 type: {$in: levelType.map(proposalType => proposalType._id)},
                 createTime: {
                     $gte: checkLevelDownPeriod.startTime,
@@ -26219,6 +26201,7 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
     ];
     let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate).startTime : dbUtility.getTodaySGTime();
     rewardData.applyTargetDate = rewardData.applyTargetDate || todayTime.startTime;
+    let forbidRewardProm = Promise.resolve(true);
 
     // Get interval time
     if (eventData.condition.interval) {
@@ -26351,8 +26334,20 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
         lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.findOne(consumptionQuery).sort({createTime: -1}).lean();
     }
 
-    return Promise.all([pendingCount, topupInPeriodProm, checkHasReceivedProm, timesHasApplied, getPlayerApplyingRecordProm, lastConsumptionProm]).then(
+    forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+
+    return Promise.all([pendingCount, topupInPeriodProm, checkHasReceivedProm, timesHasApplied, getPlayerApplyingRecordProm, lastConsumptionProm, forbidRewardProm]).then(
         checkList => {
+            let forbidRewardData = checkList[6];
+
+            if (!forbidRewardData) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: localization.localization.translate("This player has applied for other reward in event period")
+                });
+            }
+
             if (type && type == 1) {
                 // check the requirement
                 return checkBeforeApplyingBonusDoubled(checkList, rewardTypeWithProposalList, eventData, playerData);
@@ -26796,6 +26791,87 @@ function calculateGameCredit (amountGameProviderList, gameCreditList) {
         }
     })
     return result
+}
+
+function checkForbidReward (eventData, intervalTime, playerData) {
+    let createTime = {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime};
+
+    // check during this period interval
+    if (intervalTime) {
+        createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+    }
+
+    // check if player has applied for other forbidden reward
+    if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
+
+        let forbidRewardEventIds = eventData.condition.forbidApplyReward;
+        let promoCodeRewardExist = false;
+
+        for (let x = 0; x  < forbidRewardEventIds.length; x++) {
+            forbidRewardEventIds[x] = ObjectId(forbidRewardEventIds[x]);
+
+            // check if promo code reward (优惠代码) included in forbid reward, ID was hardcoded
+            if (forbidRewardEventIds[x].toString() === '59ca08a3ef187c1ccec863b9') {
+                promoCodeRewardExist = true;
+            }
+        }
+
+        let queryMatch = {
+            "createTime": createTime,
+            "data.eventId": {$in: forbidRewardEventIds},
+            "status": constProposalStatus.APPROVED,
+            "data.playerObjId": playerData._id
+        };
+
+        if (promoCodeRewardExist) {
+            queryMatch = {
+                "createTime": createTime,
+                "status": constProposalStatus.APPROVED,
+                "data.playerObjId": playerData._id,
+                $or: [
+                    {
+                        "data.eventId": {$in: forbidRewardEventIds}
+                    },
+                    {
+                        "data.eventCode" : "YHDM",
+                        "data.eventName" : "优惠代码"
+                    },
+                ]
+            };
+        }
+
+        // check other reward apply in period
+        return dbconfig.collection_proposal.aggregate(
+            {
+                $match: queryMatch
+            },
+            {
+                $project: {
+                    createTime: 1,
+                    status: 1,
+                    'data.playerObjId': 1,
+                    'data.eventId': 1,
+                    'data.eventCode': 1,
+                    'data.eventName': 1,
+                    _id: 0
+                }
+            }
+        ).read("secondaryPreferred").then(
+            countReward => {
+                if (countReward && countReward.length > 0) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        ).catch(
+            error => {
+                //add debug log
+                console.error("checkForbidRewardProm:", error);
+                throw error;
+            }
+        );
+    }
 }
 
 var proto = dbPlayerInfoFunc.prototype;

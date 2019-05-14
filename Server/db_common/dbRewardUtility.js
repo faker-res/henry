@@ -1,5 +1,7 @@
 const dbUtil = require('./../modules/dbutility');
 const dbConfig = require('./../modules/dbproperties');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 const dbPropUtil = require('./../db_common/dbProposalUtility');
 
@@ -813,8 +815,89 @@ const dbRewardUtility = {
         }
 
         return isForbidInterface;
-    }
+    },
     // endregion
+
+    checkForbidReward: (eventData, intervalTime, playerData) => {
+        let createTime = {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime};
+
+        // check during this period interval
+        if (intervalTime) {
+            createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+        }
+
+        // check if player has applied for other forbidden reward
+        if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
+
+            let forbidRewardEventIds = eventData.condition.forbidApplyReward;
+            let promoCodeRewardExist = false;
+
+            for (let x = 0; x  < forbidRewardEventIds.length; x++) {
+                forbidRewardEventIds[x] = ObjectId(forbidRewardEventIds[x]);
+
+                // check if promo code reward (优惠代码) included in forbid reward, ID was hardcoded
+                if (forbidRewardEventIds[x].toString() === '59ca08a3ef187c1ccec863b9') {
+                    promoCodeRewardExist = true;
+                }
+            }
+
+            let queryMatch = {
+                "createTime": createTime,
+                "data.eventId": {$in: forbidRewardEventIds},
+                "status": constProposalStatus.APPROVED,
+                "data.playerObjId": playerData._id
+            };
+
+            if (promoCodeRewardExist) {
+                queryMatch = {
+                    "createTime": createTime,
+                    "status": constProposalStatus.APPROVED,
+                    "data.playerObjId": playerData._id,
+                    $or: [
+                        {
+                            "data.eventId": {$in: forbidRewardEventIds}
+                        },
+                        {
+                            "data.eventCode" : "YHDM",
+                            "data.eventName" : "优惠代码"
+                        },
+                    ]
+                };
+            }
+
+            // check other reward apply in period
+            return dbConfig.collection_proposal.aggregate(
+                {
+                    $match: queryMatch
+                },
+                {
+                    $project: {
+                        createTime: 1,
+                        status: 1,
+                        'data.playerObjId': 1,
+                        'data.eventId': 1,
+                        'data.eventCode': 1,
+                        'data.eventName': 1,
+                        _id: 0
+                    }
+                }
+            ).read("secondaryPreferred").then(
+                countReward => {
+                    if (countReward && countReward.length > 0) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+            ).catch(
+                error => {
+                    //add debug log
+                    console.error("checkForbidRewardProm:", error);
+                    throw error;
+                }
+            );
+        }
+    }
 };
 
 module.exports = dbRewardUtility;
