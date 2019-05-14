@@ -1709,7 +1709,19 @@ var dbUtility = {
             }
         }
         return registrationInterface;
-    }
+    },
+
+    getObjectKeysByValue: (object, value) => {
+        let propArray = [];
+        for (let prop in object) {
+            if (object.hasOwnProperty(prop)) {
+                if (object[ prop ] === value) {
+                    propArray.push(prop);
+                }
+            }
+        }
+        return propArray;
+    },
 };
 
 var proto = dbUtilityFunc.prototype;

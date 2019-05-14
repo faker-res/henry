@@ -561,6 +561,9 @@ let queryCreditTimeoutModel = dbLogs2.model('queryCreditTimeout', queryCreditTim
 let platformPartnerCommConfigSchema = require('../schema/platformPartnerCommConfig');
 let platformPartnerCommConfigModel = db_admin.model('platformPartnerCommConfig', platformPartnerCommConfigSchema, 'platformPartnerCommConfig');
 
+let activeValidDailyPlayerSchema = require('../schema/activeValidDailyPlayer');
+let activeValidDailyPlayerModel = db_admin.model('activeValidDailyPlayer', activeValidDailyPlayerSchema, 'activeValidDailyPlayer');
+
 let partnerMainCommConfigSchema = require('./../schema/partnerMainCommConfig');
 let partnerMainCommConfigModel = dbLogs2.model('partnerMainCommConfig', partnerMainCommConfigSchema, 'partnerMainCommConfig');
 
@@ -832,6 +835,7 @@ var dbProperties = {
     collection_partnerDefDownLineCommConfig: partnerDefDownLineCommConfigModel,
     collection_partnerDownLineCommConfig: partnerDownLineCommConfigModel,
     collection_partnerMainCommRateConfig: partnerMainCommRateConfigModel,
+    collection_activeValidDailyPlayer: activeValidDailyPlayerModel,
 
     //unique
     collection_playerName: playerNameModal,

@@ -9939,6 +9939,7 @@ function getAllCommissionRateTable (platformObjId, commissionType, partnerObjId,
 }
 
 function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, providerGroups) {
+    // todo :: if hour summary is stable, refactor to use hour summary instead
     return dbconfig.collection_playerConsumptionRecord.aggregate([
         {
             $match: {

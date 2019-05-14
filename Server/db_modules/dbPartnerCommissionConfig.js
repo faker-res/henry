@@ -28,7 +28,9 @@ const dbPartnerCommissionConfig = {
         }).lean();
     },
 
-    getPartnerCommConfig: (partnerObjId) => {
+    getPartnerCommConfig: (partnerObjId, commissionType) => {
+        // return current partner commission config, if not exist, create new base on parent/platform default base on provider
+        // if still not exist, return empty array (or not included if individual provider group config not exist)
         let partner;
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
             partnerData => {
@@ -48,16 +50,20 @@ const dbPartnerCommissionConfig = {
                 }
 
                 if (parentData) {
-                    return getDownLineCommConfig(partner._id, parentData._id);
+                    return getDownLineCommConfig(partner._id, parentData._id, commissionType);
                 }
                 else {
-                    return getMainCommConfig(partner._id, partner.platform);
+                    return getMainCommConfig(partner._id, partner.platform, commissionType);
                 }
             }
         )
     },
 
     getPartnerParentChain: (partnerObjId) => {
+        // it will return an array of partners' obj id
+        // the first one will always be the partnerObjId inserted
+        // the following will the parent of previous partner
+        // the last one will always be the main partner that does not have parent
         return getPartnerParentChain(partnerObjId);
     },
 
@@ -77,9 +83,9 @@ function clearParent (partnerObjId, platformObjId) {
     return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObjId, platform: platformObjId}, {$unset: {parent: ""}}, {new:true}).lean();
 }
 
-function getMainCommConfig (partnerObjId, platformObjId) {
+function getMainCommConfig (partnerObjId, platformObjId, commissionType) {
     let configs = [], providerGroups = [];
-    let configProm = dbconfig.collection_partnerMainCommConfig.find({platform: platformObjId, partner: partnerObjId}).lean();
+    let configProm = dbconfig.collection_partnerMainCommConfig.find({platform: platformObjId, partner: partnerObjId, commissionType}).lean();
     let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformObjId} , {_id: 1}).lean();
 
     return Promise.all([configProm, providerGroupProm]).then(
@@ -106,7 +112,7 @@ function getMainCommConfig (partnerObjId, platformObjId) {
                     configs.push(config);
                 }
                 else {
-                    let prom = dbconfig.collection_platformPartnerCommConfig.findOne({provider: providerGroups[i]._id, platform: platformObjId}).lean();
+                    let prom = dbconfig.collection_platformPartnerCommConfig.findOne({provider: providerGroups[i]._id, platform: platformObjId, commissionType}).lean();
                     proms.push(prom);
                 }
             }
@@ -132,9 +138,9 @@ function getMainCommConfig (partnerObjId, platformObjId) {
     );
 }
 
-function getDownLineCommConfig (partnerObjId, parentObjId) {
+function getDownLineCommConfig (partnerObjId, parentObjId, commissionType) {
     let configs = [], providerGroups = [];
-    let configProm = dbconfig.collection_partnerDownLineCommConfig.find({platform: platformObjId, partner: partnerObjId}).lean();
+    let configProm = dbconfig.collection_partnerDownLineCommConfig.find({platform: platformObjId, partner: partnerObjId, commissionType}).lean();
     let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformObjId} , {_id: 1}).lean();
 
     return Promise.all([configProm, providerGroupProm]).then(
@@ -161,7 +167,7 @@ function getDownLineCommConfig (partnerObjId, parentObjId) {
                     configs.push(config);
                 }
                 else {
-                    let prom = dbconfig.collection_partnerDefDownLineCommConfig.findOne({provider: providerGroups[i]._id, platform: platformObjId, partner: parentObjId}).lean();
+                    let prom = dbconfig.collection_partnerDefDownLineCommConfig.findOne({provider: providerGroups[i]._id, platform: platformObjId, partner: parentObjId, commissionType}).lean();
                     proms.push(prom);
                 }
             }
