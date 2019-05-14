@@ -4008,6 +4008,8 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                vm.endLoadMultipleSelect();
+
                 let searchQuery = {
                     startDate: $("#audioRecordStartDatetimePicker").data('datetimepicker').getLocalDate(),
                     endDate: $("#audioRecordEndDatetimePicker").data('datetimepicker').getLocalDate(),
