@@ -18,6 +18,7 @@ const constSMSPurpose = {
     UPDATE_PLAYER_INFO: 'updatePlayerInfo',
     INQUIRE_ACCOUNT: 'inquireAccount',
     PLAYER_LOGIN: 'playerLogin',
+    PLAYER_APP_LOGIN: 'playerAppLogin',
     SET_PHONE_NUMBER: 'setPhoneNumber',
 };
 
