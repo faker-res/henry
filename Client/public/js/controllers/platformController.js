@@ -24176,6 +24176,7 @@ define(['js/app'], function (myApp) {
 
                 switch (choice) {
                     case 'create':
+                        vm.filterCreatePromoCodePlatform = '';
                         vm.promoCodeNewRow(vm.newPromoCode1, 1);
                         vm.promoCodeNewRow(vm.newPromoCode2, 2);
                         vm.promoCodeNewRow(vm.newPromoCode3, 3);
@@ -25700,7 +25701,7 @@ define(['js/app'], function (myApp) {
                         return p;
                     } else {
                         let searchQ = {
-                            platformObjId: vm.selectedPlatform.id,
+                            platformObjId: vm.filterCreatePromoCodePlatform,
                             playerName: data.playerName.trim(),
                             status: 1
                         };
@@ -25745,7 +25746,7 @@ define(['js/app'], function (myApp) {
                                         sendData.playerName = sendData.playerName.trim();
                                         sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
                                         sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
-                                        sendData.platformObjId = vm.selectedPlatform.id;
+                                        sendData.platformObjId = vm.filterCreatePromoCodePlatform;
                                         sendData.smsContent = sendData.promoCodeType.smsContent;
 
                                         if(!sendData.allowedProviders){
@@ -25757,7 +25758,7 @@ define(['js/app'], function (myApp) {
                                         delete sendData.isBlockPromoCodeUser;
                                         console.log('sendData', sendData);
                                         return $scope.$socketPromise('generatePromoCode', {
-                                            platformObjId: vm.selectedPlatform.id,
+                                            platformObjId: vm.filterCreatePromoCodePlatform,
                                             newPromoCodeEntry: sendData,
                                             adminName: authService.adminName,
                                             adminId: authService.adminId,
