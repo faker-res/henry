@@ -6026,11 +6026,8 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
-            intervalTime.startTime = moment().startOf('year');
-            intervalTime.endTime = moment().endOf('year');
+            console.log('MT --checking intervalTime', intervalTime);
             eventData.festivalItemId = '5cd6777f2f14280aca982381';
-            console.log('intervalTime Start', intervalTime.startTime);
-            console.log('intervalTime endTime', intervalTime.endTime);
 
             if (!eventData.festivalItemId) {
                 return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});

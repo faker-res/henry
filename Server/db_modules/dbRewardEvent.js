@@ -1306,6 +1306,9 @@ var dbRewardEvent = {
             promArr.push(periodPropsProm);
         }
 
+        if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+            
+        }
 
         if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
             let promiseUsed = [];
@@ -2516,6 +2519,26 @@ var dbRewardEvent = {
                         returnData.condition.bet.status = returnData.result.canApplyAmount ? 1 : 2;
                         returnData.status = returnData.condition.bet.status === 1 && returnData.condition.deposit && returnData.condition.deposit.status === 1 ? 1 : 2;
                         returnData.result.rewardAmount = returnData.result.canApplyAmount;
+                        break;
+
+
+                    case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
+                        selectedRewardParam = selectedRewardParam[0];
+                        console.log('rewardSpecificData', rewardSpecificData);
+                        var consumptionRecords1 = rewardSpecificData[0];
+                        var topUpRecords1 = rewardSpecificData[1];
+                        var periodProps1 = rewardSpecificData[2];
+                        var applyRewardTimes1 =  0;
+                        // var topUpAmount1 = topUpRecords1.reduce((sum, value) => sum + value.amount, 0);
+                        // var consumptionAmount1 = consumptionRecords1.reduce((sum, value) => sum + value.validAmount, 0);
+                        // var applyRewardAmount1 = periodProps1.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
+                        console.log('====selectedRewardParam',selectedRewardParam);
+                        console.log('====topUpRecords', topUpRecords1);
+                        console.log('====periodProps', periodProps1);
+                        console.log('==applyRewardTimes', applyRewardTimes1);
+                        // console.log('==topUpAmount', topUpAmount1);
+                        // console.log('==consumptionAmount', consumptionAmount1);
+                        // console.log('==applyRewardAmount', applyRewardAmount1);
                         break;
 
                     default:

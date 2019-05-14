@@ -48,6 +48,9 @@ const dbRewardUtility = {
                 case "6":
                     intervalTime = rewardData.applyTargetDate ? dbUtil.getLastMonthSGTImeFromDate(rewardData.applyTargetDate) : dbUtil.getLastMonthSGTime();
                     break;
+                case "7":
+                    intervalTime = rewardData.applyTargetDate ? dbUtil.getYearlySGTIme() : {};
+                    break;
                 default:
                     if (eventData.validStartTime && eventData.validEndTime) {
                         intervalTime = {startTime: eventData.validStartTime, endTime: eventData.validEndTime};
