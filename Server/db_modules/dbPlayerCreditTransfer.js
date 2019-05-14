@@ -36,6 +36,9 @@ let dbPlayerCreditTransfer = {
         return cpmsAPI.player_transferIn(obj);
     },
     playerTransferOut: (obj) => {
+        if (env.mode === 'development' && Number(obj.playerId) >= 400000) {
+            return Promise.reject({name: "SystemError", message: "Not allowed to transfer from test environment."});
+        }
         return cpmsAPI.player_transferOut(obj)
     },
 
