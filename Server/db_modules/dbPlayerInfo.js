@@ -25415,7 +25415,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
 }
 
 async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDownPeriod) {
-    let levelMaintainProposalType = await dbconfig.collection_proposalType.findOne({
+    let levelMaintainProposalType = dbconfig.collection_proposalType.findOne({
         platformId: playerObj.platform,
         name: constProposalType.PLAYER_LEVEL_MAINTAIN
     }).lean();
@@ -25456,6 +25456,7 @@ async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDow
                         ]
                     }
                 ],
+                'data.upOrDown': {$in:["LEVEL_UP", null]},
                 type: {$in: levelType.map(proposalType => proposalType._id)},
                 createTime: {
                     $gte: checkLevelDownPeriod.startTime,

@@ -6618,6 +6618,10 @@ let dbPlayerReward = {
             promArr.push(checkForbidRewardProm.then(data => {console.log('checkForbidRewardProm'); return data;}).catch(errorUtils.reportError));
         }
 
+        if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
+        }
+
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm, dailyMaxRewardPointProm, forbidRewardProm]).then(
             data => {
                 let topupInPeriodData = data[0];
@@ -7295,6 +7299,14 @@ let dbPlayerReward = {
                             topUpData.sort(function(a, b){
                                 return a.amount - b.amount;
                             })
+                        }
+
+                        if (!forbidRewardData) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
                         }
 
                         let sameIPAddressIsReceived = checkIsReceived && checkIsReceived.sameIPAddressIsReceived ? checkIsReceived.sameIPAddressIsReceived : "";
