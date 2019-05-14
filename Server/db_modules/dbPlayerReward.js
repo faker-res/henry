@@ -7309,15 +7309,9 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: localization.localization.translate("dont have any reward leave")
+                                message: localization.localization.translate("Over the apply limit already")
                             });
-
-
                         }
-
-                        console.log('#############################')
-                        console.log('player get this reward', selectedRewardParam);
-                        console.log('#############################')
 
                         rewardAmount = selectedRewardParam.rewardAmount;
                         spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
@@ -7370,13 +7364,13 @@ let dbPlayerReward = {
                         let reachTopUpCondition = false;
                         let reachConsumptionCondition = false;
 
-                        if (topUpAmountToParticipates && (!topUpData || topUpData.length < 1)) {
-                            return Promise.reject({
-                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                name: "DataError",
-                                message: "Not valid for the reward; Top-up is required."
-                            });
-                        }
+                        // if (topUpAmountToParticipates && (!topUpData || topUpData.length < 1)) {
+                        //     return Promise.reject({
+                        //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        //         name: "DataError",
+                        //         message: "Not valid for the reward; Top-up is required."
+                        //     });
+                        // }
 
                         if (topUpAmountToParticipates == 0){
                             reachTopUpCondition  = true;
@@ -7433,13 +7427,13 @@ let dbPlayerReward = {
                                 });
                             }
                         } else {
-                            if (!(reachTopUpCondition || reachConsumptionCondition)) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Player does not have enough top up or consumption amount"
-                                });
-                            }
+                            // if (!(reachTopUpCondition || reachConsumptionCondition)) {
+                            //     return Promise.reject({
+                            //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            //         name: "DataError",
+                            //         message: "Player does not have enough top up or consumption amount"
+                            //     });
+                            // }
                             //Only use one of the condition, reset another
                             if (reachTopUpCondition && reachConsumptionCondition) {
                                 // if both condition true, then use TopUpAmount first
@@ -10061,11 +10055,11 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
             if (eventData.festivalItemId) {
                 let festivalDate;
                 let festivalItem = selectedRewardParam;
-                console.log(festivalItem);
+                console.log('MT --checking selectedRewardParam',festivalItem);
 
                 if (selectedRewardParam.rewardType == 2 || selectedRewardParam.rewardType == 4) {
                     let birthday = getBirthday(playerBirthday);
-                    console.log('--birthday', birthday);
+                    console.log('MT --checking --birthday', birthday);
                     festivalDate = birthday;
                 } else {
                     festivalDate = getFestivalRewardDate(festivalItem, eventData.param.others);
@@ -10075,6 +10069,12 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
                 if (isRightApplyTime) {
                     let prom = checkFestivalProposal(festivalItem, platformId, playerObjId, eventData._id, festivalItem.id);
                     proms.push(prom);
+                } else {
+                    reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: localization.localization.translate("Not the Period of this Reward")
+                    });
                 }
             }
 
@@ -10144,10 +10144,11 @@ function getTimePeriod(expiredInDay, festival) {
         fullDate = fullDate.join('-')
 
         //date convertion
+        console.log('expiredInDay', expiredInDay)
         console.log('MT --checking fullDate', fullDate);
         todayTime = {
             "startTime": moment(fullDate).format('YYYY-MM-DD HH:mm:ss.sss'),
-            "endTime": moment(startTime).add(1, 'days')
+            "endTime": moment(fullDate).add(1, 'days')
         }
     } else {
         todayTime = dbUtility.getDayTime(new Date());
@@ -10158,6 +10159,7 @@ function getTimePeriod(expiredInDay, festival) {
         "startTime": todayTime.startTime,
         "endTime": moment(todayTime.endTime).add(expiredDay, 'days').format('YYYY-MM-DD HH:mm:ss.sss')
     }
+    console.log('after->todayTime', applyPeriod);
     return applyPeriod;
 }
 
@@ -10195,11 +10197,11 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
                     rewardParam.applyTimes = 1;
                 }
                 console.log('rewardParam...', rewardParam)
-                if (rewardParam.applyTimes && data.length < rewardParam.applyTimes) {
-                    console.log('***MT --checking can apply', rewardParam.applyTimes, 'now:', data.length, 'max:', rewardParam.applyTimes);
+                if (rewardParam.applyTimes && data.length <= rewardParam.applyTimes) {
+                    console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
                     resolve({status: true , festivalObjId: festivalId})
                 } else {
-                    console.log('***MT --checking cannot apply', rewardParam.applyTimes, 'now:', data.length, 'max:', rewardParam.applyTimes);
+                    console.log('***MT --checking cannot apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
                     resolve({status: false, festivalObjId: festivalId});
                 }
             } else {

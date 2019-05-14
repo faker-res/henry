@@ -5522,6 +5522,8 @@
   "SpecialEvent(Custom)": "特别节日（可自定义）",
   "Top Up Return Reward": "存送金奖励",
   "PlayerFestivalRewardGroup": "特别节日（组）",
+  "Not the Period of this Reward": "不在此优惠的申请时间中",
+  "Over the apply limit already": "超过了此优惠的申请上限",
   "playerBirthday": "会员生日",
   "Landscape": "橫向",
   "Portrait": "纵向",
