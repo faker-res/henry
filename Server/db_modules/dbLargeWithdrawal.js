@@ -311,8 +311,8 @@ const dbLargeWithdrawal = {
                     recipientsData.map(recipient => {
                         let isReviewer = Boolean(auditorsData && auditorsData.length && auditorsData.map(reviewer => String(reviewer._id)).includes(String(recipient._id)));
 
-                        let prom = sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, recipient, isReviewer, host, allRecipientEmail).catch(err => {
-                            console.log('large withdrawal mail to admin failed', recipient, err);
+                        let prom = sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, String(recipient._id), isReviewer, host, allRecipientEmail).catch(err => {
+                            console.log('large withdrawal mail to admin failed', String(recipient._id), err);
                             return errorUtils.reportError(err);
                         });
                         proms.push(prom);
@@ -529,8 +529,8 @@ const dbLargeWithdrawal = {
                     recipientsData.map(recipient => {
                         let isReviewer = Boolean(auditorsData && auditorsData.length && auditorsData.map(reviewer => String(reviewer._id)).includes(String(recipient._id)));
 
-                        let prom = sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, recipient._id, isReviewer, host, allRecipientEmail).catch(err => {
-                            console.log('partner large withdrawal mail to admin failed', recipient, err);
+                        let prom = sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, String(recipient._id), isReviewer, host, allRecipientEmail).catch(err => {
+                            console.log('partner large withdrawal mail to admin failed', String(recipient._id), err);
                             return errorUtils.reportError(err);
                         });
                         proms.push(prom);
