@@ -17625,45 +17625,26 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let relevantPlayerQuery = {platformId: platform};
-
-                // relevant players are the players who played any game within given time period
-                let playerObjArr = [];
-                let collection;
-                let distinctField = 'playerId';
 
                 if (isSinglePlayer) {
-                    relevantPlayerQuery.playerId = playerData._id;
+                    return [playerData._id];
                 } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
-                    relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
+                    return playerData.map(p => p._id);
                 }
 
-                if (endDate.getTime() > todayDate.startTime.getTime()) {
-                    console.log('RT - getPlayerReport 1.1');
-                    collection = dbconfig.collection_playerConsumptionHourSummary;
-                    relevantPlayerQuery = {platform: platform};
-                    relevantPlayerQuery.startTime = {$gte: startDate, $lt: endDate};
+                let relevantPlayerQuery = {
+                    platform: platform,
+                    startTime: {$gte: startDate, $lt: endDate}
+                };
 
-                    if (isSinglePlayer) {
-                        relevantPlayerQuery.player = playerData._id;
-                    } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
-                        relevantPlayerQuery.player = {$in: playerData.map(p => p._id)}
-                    }
-
-                    // Limit records search to provider
-                    if (query && query.providerId) {
-                        relevantPlayerQuery.providerId = ObjectId(query.providerId);
-                    }
-
-                    distinctField = 'player';
-                } else {
-                    collection = dbconfig.collection_playerConsumptionDaySummary;
-                    relevantPlayerQuery.date = {$gte: startDate, $lt: endDate};
+                // Limit records search to provider
+                if (query && query.providerId) {
+                    relevantPlayerQuery.providerId = ObjectId(query.providerId);
                 }
 
-                return collection.distinct(distinctField, relevantPlayerQuery).then(
+                return dbconfig.collection_playerConsumptionHourSummary.distinct('player', relevantPlayerQuery).then(
                     consumptionData => {
-                        console.log('RT - getPlayerReport 2');
+                        console.log('RT - getPlayerReport 2', consumptionData && consumptionData.length);
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj);
