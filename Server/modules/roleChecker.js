@@ -883,15 +883,15 @@ var roleChecker = {
                 Read: ['getWechatDeviceNickNameList', 'getWechatConversationReport']
             },
             CsAudioRecordingSystem: {
-                Read: []
+                Read: ['getAudioRecordData', 'getAudioReportData']
             },
             ManualProcessReport: {
                 Read: ['getManualProcessRecord', 'getManualProcessProposalDetail'],
                 Edit: ['summarizeManualProcessRecord'],
             },
            CsRankingReport: {
-                Read: [],
-                Edit: [],
+                Read: ['getCsRankingReport'],
+                Edit: ['summarizeCsRankingData'],
             }
         },
         TeleMarketing: {

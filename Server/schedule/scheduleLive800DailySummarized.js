@@ -28,30 +28,17 @@ let everyDayAtTwelveAMJob = new CronJob(
                 }
             }
         );
-        // let getSummarizedProm = [];
+
         // to record down the conversation record for speeding up the searching time
         let recordProm = dbQualityInspection.getLive800Records(startDate, endDate);
-        // let recordProm = [];
 
         // to get the proposal settled manually and save in daily summary record
         let manualProm = dbQualityInspection.getManualProposalDailySummaryRecord(dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().startTime, 1), dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().endTime, 1));
 
         return Promise.all([getSummarizedProm, recordProm, manualProm]).then(
-        //     () => {
-        //         // get the tel400 data to compile to daily summarized data
-        //         return dbQualityInspection.compileTel400SummarizedData(startDate, endDate);
-        //     }
-        // ).then(
-        //     () => {
-        //         // get live800 inspection mark to compile to daily summarized data
-        //         return dbQualityInspection.compileLive800SummarizedData(startDate, endDate);
-        //     }
-        // ).then(
-        //     () => {
-        //         // get the daily summary of manual process data
-        //         return dbQualityInspection.compileManualProcessSummarizedData(startDate, endDate);
-        //
-        //     }
+            () => {
+                return dbQualityInspection.summarizeCsRankingData(startDate, endDate)
+            }
         ).catch(errorUtils.reportError)
 
     }, function () {
