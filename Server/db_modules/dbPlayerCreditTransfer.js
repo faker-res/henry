@@ -445,6 +445,7 @@ let dbPlayerCreditTransfer = {
         let notEnoughCredit = false;
         let bUpdateTask = false;
         let transferId = new Date().getTime();
+        let player;
 
         let initFunc;
         if (forSync) {
@@ -467,6 +468,7 @@ let dbPlayerCreditTransfer = {
                         if (bResolve) {
                             return dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(
                                 playerData => {
+                                    player = playerData;
                                     deferred.resolve(
                                         {
                                             playerId: playerId,
@@ -596,6 +598,7 @@ let dbPlayerCreditTransfer = {
                                 providerShortId, amount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return pCTFP.playerTransferOut(
                                 {
+                                    playerId: player.playerId,
                                     username: userName,
                                     platformId: platformId,
                                     providerId: providerShortId,
@@ -1200,6 +1203,7 @@ let dbPlayerCreditTransfer = {
                                 dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
                                     providerShortId, amount, updateObj.rewardAmt, adminName, null, constPlayerCreditTransferStatus.SEND, isEbet);
                                 let playerTransferOutRequestData = {
+                                    playerId: playerId,
                                     username: userName,
                                     platformId: platformId,
                                     providerId: providerShortId,
