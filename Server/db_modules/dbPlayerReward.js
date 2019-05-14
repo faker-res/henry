@@ -5712,7 +5712,7 @@ let dbPlayerReward = {
             recordQuery.lastApplyDate = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
         }
 
-        return checkForbidReward(eventData, intervalTime, playerData).then(
+        return dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData).then(
             proceedReward => {
                 if (!proceedReward) {
                     return Promise.reject({
@@ -5905,7 +5905,7 @@ let dbPlayerReward = {
                     dailyMaxRewardPointProm = dbConfig.collection_proposal.find(eventQuery).lean();
                 }
 
-                forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+                forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
             }
         }
 
@@ -5913,14 +5913,14 @@ let dbPlayerReward = {
             let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate, null, isBulkApply);
             promArr.push(playerRewardDetailProm);
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.BACCARAT_REWARD_GROUP) {
             let playerRewardDetailProm = dbPlayerReward.getPlayerBaccaratRewardDetail(null, playerData.playerId, eventData.code, true, rewardData.applyTargetDate);
             promArr.push(playerRewardDetailProm);
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
@@ -5947,7 +5947,7 @@ let dbPlayerReward = {
 
             promArr.push(rewardDetailProm);
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
@@ -6049,7 +6049,7 @@ let dbPlayerReward = {
                 status: 1
             }).sort({createTime: 1}).lean());
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
 
@@ -6342,7 +6342,7 @@ let dbPlayerReward = {
                 // reject error
             }
             eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
 
@@ -6364,7 +6364,7 @@ let dbPlayerReward = {
 
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).sort({createTime: -1}).limit(1).lean();
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
@@ -6616,6 +6616,10 @@ let dbPlayerReward = {
             promArr.push(countInRewardInterval.then(data => {console.log('countInRewardInterval'); return data;}));
             promArr.push(checkSMSProm.then(data => {console.log('checkSMSProm'); return data;}));
             promArr.push(checkForbidRewardProm.then(data => {console.log('checkForbidRewardProm'); return data;}).catch(errorUtils.reportError));
+        }
+
+        if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm, dailyMaxRewardPointProm, forbidRewardProm]).then(
@@ -7295,6 +7299,14 @@ let dbPlayerReward = {
                             topUpData.sort(function(a, b){
                                 return a.amount - b.amount;
                             })
+                        }
+
+                        if (!forbidRewardData) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
                         }
 
                         let sameIPAddressIsReceived = checkIsReceived && checkIsReceived.sameIPAddressIsReceived ? checkIsReceived.sameIPAddressIsReceived : "";
@@ -8202,131 +8214,137 @@ let dbPlayerReward = {
                             }
                         }
 
-                        return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
-                            proposalData => {
-                                let postPropPromArr = [];
-                                // save a record for the playerRetentionRewardGroup
-                                if (eventData && eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP){
+                        if (!(eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP && rewardAmount == 0)) {
+                            console.log('creating proposal...');
+                            return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
+                                proposalData => {
+                                    let postPropPromArr = [];
+                                    // save a record for the playerRetentionRewardGroup
+                                    if (eventData && eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP){
 
-                                    let newRetentionData = {
-                                        playerObjId: playerData._id,
-                                        platformObjId: playerData.platform._id,
-                                        rewardEventObjId: eventData._id,
-                                        topUpRecordObjId: rewardData.selectedTopup._id,
-                                        applyTopUpAmount: applyAmount,
-                                        actualTopUpAmount: actualAmount,
-                                        lastApplyDate: todayTime.startTime,
-                                        lastReceivedDate: todayTime.startTime,
-                                        accumulativeDay: 1
-                                    };
-                                    let newRecord = new dbConfig.collection_playerRetentionRewardGroupRecord(newRetentionData);
+                                        let newRetentionData = {
+                                            playerObjId: playerData._id,
+                                            platformObjId: playerData.platform._id,
+                                            rewardEventObjId: eventData._id,
+                                            topUpRecordObjId: rewardData.selectedTopup._id,
+                                            applyTopUpAmount: applyAmount,
+                                            actualTopUpAmount: actualAmount,
+                                            lastApplyDate: todayTime.startTime,
+                                            lastReceivedDate: todayTime.startTime,
+                                            accumulativeDay: 1
+                                        };
+                                        let newRecord = new dbConfig.collection_playerRetentionRewardGroupRecord(newRetentionData);
 
-                                    postPropPromArr.push(newRecord.save());
-                                }
-
-                                // update playerRandonReward record
-                                console.log("checking isPresetRandomReward", isPresetRandomReward)
-                                console.log("checking updatePresetList", updatePresetList)
-                                if (isPresetRandomReward && updatePresetList && updatePresetList.platformId && updatePresetList.playerId && updatePresetList.randomReward &&
-                                    eventData && eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP){
-                                    let searchQuery = {
-                                        playerId: ObjectId(updatePresetList.playerId),
-                                        platformId: ObjectId(updatePresetList.platformId),
-                                        rewardEvent: ObjectId(eventData._id),
-                                        randomReward: updatePresetList.randomReward,
-                                        status: 1
-                                    };
-
-                                    postPropPromArr.push(dbConfig.collection_playerRandomReward.findOneAndUpdate(searchQuery, {status: 2}).lean());
-                                }
-
-                                if (proposalData && proposalData._id) {
-                                    if (isUpdateTopupRecord) {
-                                        postPropPromArr.push(dbConfig.collection_playerTopUpRecord.findOneAndUpdate(
-                                            {
-                                                _id: rewardData.selectedTopup._id,
-                                                createTime: rewardData.selectedTopup.createTime,
-                                                // bDirty: {$ne: true}
-                                            },
-                                            {
-                                                bDirty: true,
-                                                usedType: eventData.type.name,
-                                                $push: {usedEvent: eventData._id}
-                                            },
-                                            {new: true}
-                                        ));
+                                        postPropPromArr.push(newRecord.save());
                                     }
 
-                                    if (isUpdateMultiTopupRecord && updateTopupRecordIds.length > 0) {
-                                        postPropPromArr.push(dbConfig.collection_playerTopUpRecord.update(
-                                            {_id: {$in: updateTopupRecordIds}},
-                                            {
-                                                bDirty: true,
-                                                usedType: eventData.type.name,
-                                                $push: {usedEvent: eventData._id}
-                                            },
-                                            {multi: true}
-                                        ));
+                                    // update playerRandonReward record
+                                    console.log("checking isPresetRandomReward", isPresetRandomReward)
+                                    console.log("checking updatePresetList", updatePresetList)
+                                    if (isPresetRandomReward && updatePresetList && updatePresetList.platformId && updatePresetList.playerId && updatePresetList.randomReward &&
+                                        eventData && eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP){
+                                        let searchQuery = {
+                                            playerId: ObjectId(updatePresetList.playerId),
+                                            platformId: ObjectId(updatePresetList.platformId),
+                                            rewardEvent: ObjectId(eventData._id),
+                                            randomReward: updatePresetList.randomReward,
+                                            status: 1
+                                        };
+
+                                        postPropPromArr.push(dbConfig.collection_playerRandomReward.findOneAndUpdate(searchQuery, {status: 2}).lean());
                                     }
 
-                                    if (isUpdateMultiConsumptionRecord && updateConsumptionRecordIds.length > 0) {
-                                        postPropPromArr.push(dbConfig.collection_playerConsumptionRecord.update(
-                                            {_id: {$in: updateConsumptionRecordIds}},
-                                            {
-                                                bDirty: true,
-                                            },
-                                            {multi: true}
-                                        ));
-                                    }
-
-                                    if (isSetUsedTopUpRecord) {
-                                        if (intervalTime) {
-                                            postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, null, null, ignoreTopUpBdirtyEvent));
-                                        } else {
-                                            postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, intervalTime.startTime, intervalTime.endTime, ignoreTopUpBdirtyEvent));
-                                        }
-                                    }
-                                    if(eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
-
-                                        if ( selectedReward && selectedReward.possibility ) {
-                                            delete selectedReward.possibility;
-                                        }
-                                        if ( selectedReward && selectedReward.totalProbability ) {
-                                            delete selectedReward.totalProbability;
+                                    if (proposalData && proposalData._id) {
+                                        if (isUpdateTopupRecord) {
+                                            postPropPromArr.push(dbConfig.collection_playerTopUpRecord.findOneAndUpdate(
+                                                {
+                                                    _id: rewardData.selectedTopup._id,
+                                                    createTime: rewardData.selectedTopup.createTime,
+                                                    // bDirty: {$ne: true}
+                                                },
+                                                {
+                                                    bDirty: true,
+                                                    usedType: eventData.type.name,
+                                                    $push: {usedEvent: eventData._id}
+                                                },
+                                                {new: true}
+                                            ));
                                         }
 
-                                        if (selectedReward && selectedReward.expiredInDay){
-                                            let todayEndTime = dbUtility.getTodaySGTime().endTime;
-                                            selectedReward.expirationTime = dbUtility.getNdaylaterFromSpecificStartTime(selectedReward.expiredInDay, todayEndTime);
+                                        if (isUpdateMultiTopupRecord && updateTopupRecordIds.length > 0) {
+                                            postPropPromArr.push(dbConfig.collection_playerTopUpRecord.update(
+                                                {_id: {$in: updateTopupRecordIds}},
+                                                {
+                                                    bDirty: true,
+                                                    usedType: eventData.type.name,
+                                                    $push: {usedEvent: eventData._id}
+                                                },
+                                                {multi: true}
+                                            ));
                                         }
 
-                                        if (proposalData && proposalData.data && proposalData.promoCode){
-                                            selectedReward.promoCode = proposalData.promoCode
+                                        if (isUpdateMultiConsumptionRecord && updateConsumptionRecordIds.length > 0) {
+                                            postPropPromArr.push(dbConfig.collection_playerConsumptionRecord.update(
+                                                {_id: {$in: updateConsumptionRecordIds}},
+                                                {
+                                                    bDirty: true,
+                                                },
+                                                {multi: true}
+                                            ));
                                         }
 
-                                        let randomRewardRes = {
-                                            selectedReward: selectedReward,
-                                            rewardName: eventData.name,
-                                            code: eventData.code
-                                        }
-                                        return Promise.all(postPropPromArr).then(
-                                            () => {
-                                                return Promise.resolve(randomRewardRes);
+                                        if (isSetUsedTopUpRecord) {
+                                            if (intervalTime) {
+                                                postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, null, null, ignoreTopUpBdirtyEvent));
+                                            } else {
+                                                postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, intervalTime.startTime, intervalTime.endTime, ignoreTopUpBdirtyEvent));
                                             }
-                                        );
-                                    }
-
-                                    return Promise.all(postPropPromArr).then(() => {
-                                        return {
-                                            rewardAmount: rewardAmount
                                         }
-                                    });
+                                        if(eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+
+                                            if ( selectedReward && selectedReward.possibility ) {
+                                                delete selectedReward.possibility;
+                                            }
+                                            if ( selectedReward && selectedReward.totalProbability ) {
+                                                delete selectedReward.totalProbability;
+                                            }
+
+                                            if (selectedReward && selectedReward.expiredInDay){
+                                                let todayEndTime = dbUtility.getTodaySGTime().endTime;
+                                                selectedReward.expirationTime = dbUtility.getNdaylaterFromSpecificStartTime(selectedReward.expiredInDay, todayEndTime);
+                                            }
+
+                                            if (proposalData && proposalData.data && proposalData.promoCode){
+                                                selectedReward.promoCode = proposalData.promoCode
+                                            }
+
+                                            let randomRewardRes = {
+                                                selectedReward: selectedReward,
+                                                rewardName: eventData.name,
+                                                code: eventData.code
+                                            }
+                                            return Promise.all(postPropPromArr).then(
+                                                () => {
+                                                    return Promise.resolve(randomRewardRes);
+                                                }
+                                            );
+                                        }
+
+                                        return Promise.all(postPropPromArr).then(() => {
+                                            return {
+                                                rewardAmount: rewardAmount
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        return proposalData;
+                                    }
                                 }
-                                else {
-                                    return proposalData;
-                                }
-                            }
-                        );
+                            );
+                        } else {
+                            console.log('skip create proposal...');
+                            return proposalData;
+                        }
                     }
                 }
             }
@@ -10005,87 +10023,6 @@ function handlingBaccaratBetTypeList (betType) {
 
     return betType;
 
-}
-
-function checkForbidReward (eventData, intervalTime, playerData) {
-    let createTime = {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime};
-
-    // check during this period interval
-    if (intervalTime) {
-        createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-    }
-
-    // check if player has applied for other forbidden reward
-    if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
-
-        let forbidRewardEventIds = eventData.condition.forbidApplyReward;
-        let promoCodeRewardExist = false;
-
-        for (let x = 0; x  < forbidRewardEventIds.length; x++) {
-            forbidRewardEventIds[x] = ObjectId(forbidRewardEventIds[x]);
-
-            // check if promo code reward (优惠代码) included in forbid reward, ID was hardcoded
-            if (forbidRewardEventIds[x].toString() === '59ca08a3ef187c1ccec863b9') {
-                promoCodeRewardExist = true;
-            }
-        }
-
-        let queryMatch = {
-            "createTime": createTime,
-            "data.eventId": {$in: forbidRewardEventIds},
-            "status": constProposalStatus.APPROVED,
-            "data.playerObjId": playerData._id
-        };
-
-        if (promoCodeRewardExist) {
-            queryMatch = {
-                "createTime": createTime,
-                "status": constProposalStatus.APPROVED,
-                "data.playerObjId": playerData._id,
-                $or: [
-                    {
-                        "data.eventId": {$in: forbidRewardEventIds}
-                    },
-                    {
-                        "data.eventCode" : "YHDM",
-                        "data.eventName" : "优惠代码"
-                    },
-                ]
-            };
-        }
-
-        // check other reward apply in period
-        return dbConfig.collection_proposal.aggregate(
-            {
-                $match: queryMatch
-            },
-            {
-                $project: {
-                    createTime: 1,
-                    status: 1,
-                    'data.playerObjId': 1,
-                    'data.eventId': 1,
-                    'data.eventCode': 1,
-                    'data.eventName': 1,
-                    _id: 0
-                }
-            }
-        ).read("secondaryPreferred").then(
-            countReward => {
-                if (countReward && countReward.length > 0) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        ).catch(
-            error => {
-                //add debug log
-                console.error("checkForbidRewardProm:", error);
-                throw error;
-            }
-        );
-    }
 }
 
 var proto = dbPlayerRewardFunc.prototype;

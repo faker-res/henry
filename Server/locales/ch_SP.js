@@ -548,6 +548,7 @@ var simplifiedChinese = {
     "Phone number already set": "电话号码已设置",
     "Your phone number is registered, please verify and login.": "您的手机号已注册账号，请核实后登入",
     "Your device has registered. Use your original phone number to login.": "您的设备已注册过",
+    "Not allowed to transfer from test environment.": "只允许测试账号操作转入"
 
     //todo::add missing messages here
 
