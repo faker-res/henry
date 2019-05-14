@@ -17625,6 +17625,7 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
+                let playerObjArr = [];
 
                 if (isSinglePlayer) {
                     return [playerData._id];
