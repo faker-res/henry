@@ -1145,7 +1145,7 @@ var dbRewardEvent = {
 
                 promArr.push(dbProposalUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery));
 
-                forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+                forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
             }
         }
 
@@ -1218,7 +1218,7 @@ var dbRewardEvent = {
                     consumptionProm = dbconfig.collection_playerConsumptionRecord.findOne(consumptionPropQuery).lean();
                 }
 
-                forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+                forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
             }
             promArr.push(appliedCountProm);
             promArr.push(withdrawalProm);
@@ -1232,14 +1232,14 @@ var dbRewardEvent = {
             let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate, true);
             promArr.push(playerRewardDetailProm);
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
             let consumptionSlipRewardProm = dbPlayerReward.getPlayerConsumptionSlipRewardDetail(rewardData, playerData.playerId, eventData.code, rewardData.applyTargetDate, false, true);
             promArr.push(consumptionSlipRewardProm);
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
@@ -1315,7 +1315,7 @@ var dbRewardEvent = {
             let periodPropsProm = dbconfig.collection_proposal.find(eventQuery).lean();
             promArr.push(periodPropsProm);
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
 
@@ -1538,7 +1538,7 @@ var dbRewardEvent = {
                 // reject error
             }
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
 
@@ -1559,7 +1559,7 @@ var dbRewardEvent = {
             let consumptions = dbconfig.collection_playerConsumptionRecord.find(consumptionQuery).lean();
             promArr.push(consumptions);
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
@@ -1783,7 +1783,7 @@ var dbRewardEvent = {
             let prom  = dbPlayerReward.getPlayerBaccaratRewardDetail(null, playerData.playerId, eventData.code, false, rewardData.applyTargetDate);
             promArr.push(prom);
 
-            forbidRewardProm = checkForbidReward(eventData, intervalTime, playerData);
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), forbidRewardProm]).then(
@@ -3425,87 +3425,6 @@ function getIntervalPeriodFromEvent(event, applyTargetTime) {
     }
 
     return intervalTime;
-}
-
-function checkForbidReward (eventData, intervalTime, playerData) {
-    let createTime = {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime};
-
-    // check during this period interval
-    if (intervalTime) {
-        createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-    }
-
-    // check if player has applied for other forbidden reward
-    if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
-
-        let forbidRewardEventIds = eventData.condition.forbidApplyReward;
-        let promoCodeRewardExist = false;
-
-        for (let x = 0; x  < forbidRewardEventIds.length; x++) {
-            forbidRewardEventIds[x] = ObjectId(forbidRewardEventIds[x]);
-
-            // check if promo code reward (优惠代码) included in forbid reward, ID was hardcoded
-            if (forbidRewardEventIds[x].toString() === '59ca08a3ef187c1ccec863b9') {
-                promoCodeRewardExist = true;
-            }
-        }
-
-        let queryMatch = {
-            "createTime": createTime,
-            "data.eventId": {$in: forbidRewardEventIds},
-            "status": constProposalStatus.APPROVED,
-            "data.playerObjId": playerData._id
-        };
-
-        if (promoCodeRewardExist) {
-            queryMatch = {
-                "createTime": createTime,
-                "status": constProposalStatus.APPROVED,
-                "data.playerObjId": playerData._id,
-                $or: [
-                    {
-                        "data.eventId": {$in: forbidRewardEventIds}
-                    },
-                    {
-                        "data.eventCode" : "YHDM",
-                        "data.eventName" : "优惠代码"
-                    },
-                ]
-            };
-        }
-
-        // check other reward apply in period
-        return dbconfig.collection_proposal.aggregate(
-            {
-                $match: queryMatch
-            },
-            {
-                $project: {
-                    createTime: 1,
-                    status: 1,
-                    'data.playerObjId': 1,
-                    'data.eventId': 1,
-                    'data.eventCode': 1,
-                    'data.eventName': 1,
-                    _id: 0
-                }
-            }
-        ).read("secondaryPreferred").then(
-            countReward => {
-                if (countReward && countReward.length > 0) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        ).catch(
-            error => {
-                //add debug log
-                console.error("checkForbidRewardProm:", error);
-                throw error;
-            }
-        );
-    }
 }
 
 var proto = dbRewardEventFunc.prototype;
