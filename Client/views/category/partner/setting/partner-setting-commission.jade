@@ -8,15 +8,15 @@ form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' nova
                         .panel-heading.common-left-panel-heading
                             ul.nav.nav-tabs.common-nav-tabs
                                 li.active
-                                    a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');")
-                                        text.span {{"DAILY_BONUS_AMOUNT" | translate}}
-                                li
+                                    a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('DAILY_CONSUMPTION');")
+                                        text.span {{"DAILY_CONSUMPTION" | translate}}
+                                //li
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('WEEKLY_BONUS_AMOUNT');")
                                         text.span {{"WEEKLY_BONUS_AMOUNT" | translate}}
-                                li
+                                //li
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('BIWEEKLY_BONUS_AMOUNT');")
                                         text.span {{"BIWEEKLY_BONUS_AMOUNT" | translate}}
-                                li
+                                //li
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('MONTHLY_BONUS_AMOUNT');")
                                         text.span {{"MONTHLY_BONUS_AMOUNT" | translate}}
                                 li
@@ -78,7 +78,7 @@ form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' nova
 
 
 
-    .col-md-12
+    .col-md-12(ng-if='vm.commissionSettingTab != "DAILY_CONSUMPTION"')
         .panel(style="box-shadow: none;")
             .panel-body
                 .padding-all-5
