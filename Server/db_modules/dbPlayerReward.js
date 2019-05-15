@@ -10151,22 +10151,23 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
         let result = { count:0 , festivals:[] };
         if (eventData.condition && eventData.condition.festivalType) {
 
-            // if is birthday
             if (eventData.festivalItemId) {
                 let festivalDate;
                 let festivalItem = selectedRewardParam;
                 console.log('MT --checking selectedRewardParam',festivalItem);
-
+                // if is birthday
                 if (selectedRewardParam.rewardType == 2 || selectedRewardParam.rewardType == 4) {
                     let birthday = getBirthday(playerBirthday);
                     console.log('MT --checking --birthday', birthday);
                     festivalDate = birthday;
                 } else {
+                    // if is festival
                     festivalDate = getFestivalRewardDate(festivalItem, eventData.param.others);
                 }
 
                 let isRightApplyTime = checkIfRightApplyTime(festivalItem, festivalDate);
                 if (isRightApplyTime) {
+                    // if date match , check if the proposal match topup / consumption
                     let prom = checkFestivalProposal(festivalItem, platformId, playerObjId, eventData._id, festivalItem.id);
                     proms.push(prom);
                 } else {
@@ -10197,7 +10198,7 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
 
 function getBirthday(playerBirthday) {
     let result = { month: null, day: null};
-    console.log(playerBirthday);
+    console.log('MT --checking birthday', playerBirthday);
 
     var month = new Date(playerBirthday).getMonth() + 1;
     var day = new Date(playerBirthday).getDate();
@@ -10221,13 +10222,14 @@ function checkIfRightApplyTime(specificDate, festival) {
     // reconstruct the month/time to a timestamp to verify if fulfil the apply time
     let result = false;
     let currentTime = moment(new Date()).toDate();
+    // time conversion , add expiredInDay / convert month ,day to a proper date
     let period = getTimePeriod(specificDate.expiredInDay || 0, festival);
     if ( currentTime > moment(period.startTime).toDate() &&  currentTime < moment(period.endTime).toDate() ) {
         result = true;
     }
     console.log('MT --checking …startTime -- …endTime', moment(period.startTime).toDate() , moment(period.endTime).toDate());
     console.log('MT --checking …startTime -- …endTime currentTime', currentTime);
-    console.log(result);
+    console.log('MT --checking --is time match ', result);
     return result;
 }
 
@@ -10274,6 +10276,7 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
         let todayTime = dbUtility.getDayTime(new Date());
         console.log('MT --checking festivalId', festivalId)
         let expiredInDay = rewardParam.expiredInDay ? rewardParam.expiredInDay : 0;
+        // time conversion , add expiredInDay / convert month ,day to a proper date
         let applyPeriod = getTimePeriod(expiredInDay, todayTime)
         let festivalPeriod = null;
         let sendQuery = {
