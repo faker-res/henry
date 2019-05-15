@@ -6055,7 +6055,6 @@ let dbPlayerReward = {
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
             console.log('MT --checking intervalTime', intervalTime);
-            eventData.festivalItemId = '5cd6777f2f14280aca982381';
 
             if (!eventData.festivalItemId) {
                 return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});
@@ -7367,24 +7366,15 @@ let dbPlayerReward = {
                         break;
 
                     case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
-                        // selectedRewardParam = selectedRewardParam[0];
-
                         let consumptionData = rewardSpecificData[0];
                         let topUpData = rewardSpecificData[1];
                         let periodData = rewardSpecificData[2];
                         let checkIsReceived = rewardSpecificData[3];
                         isAnyRewardLeft = rewardSpecificData[6];
                         let applyRewardCount = (periodData && periodData.length ) ? periodData.length :0;
-                        console.log('***************************************************')
-                        console.log('***************************************************')
-                        console.log('***************************************************')
-                        console.log('***************************************************')
-                        console.log('***************************************************')
-                        console.log('***************************************************')
-                        console.log('***************************************************')
 
-                        console.log('****consumptionData', consumptionData);
-                        console.log('*****topUpData',topUpData);
+                        console.log('MT --checking -dbplayerReward consumptionData', consumptionData);
+                        console.log('MT --checking -dbplayerReward topUpData',topUpData);
                         //check if fulfil any of reward can apply
                         console.log('isAnyRewardLeft', isAnyRewardLeft)
                         if (!isAnyRewardLeft || isAnyRewardLeft.count <= 0) {
@@ -7397,7 +7387,7 @@ let dbPlayerReward = {
 
                         rewardAmount = selectedRewardParam.rewardAmount;
                         spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
-                        console.log('***rewardAmount, spendingAmount', rewardAmount, spendingAmount);
+                        console.log('MT --checking -dbplayerReward rewardAmount, spendingAmount', rewardAmount, spendingAmount);
 
                         let participationCount = eventData.condition && eventData.condition.hasOwnProperty('numberParticipation') ? eventData.condition.numberParticipation : 1;
                         let consumptionToParticipates = selectedRewardParam && selectedRewardParam.hasOwnProperty('totalConsumptionInInterval') ? selectedRewardParam.totalConsumptionInInterval : 0;
@@ -7454,13 +7444,13 @@ let dbPlayerReward = {
                         let reachTopUpCondition = false;
                         let reachConsumptionCondition = false;
 
-                        // if (topUpAmountToParticipates && (!topUpData || topUpData.length < 1)) {
-                        //     return Promise.reject({
-                        //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        //         name: "DataError",
-                        //         message: "Not valid for the reward; Top-up is required."
-                        //     });
-                        // }
+                        if (topUpAmountToParticipates && (!topUpData || topUpData.length < 1)) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Not valid for the reward; Top-up is required."
+                            });
+                        }
 
                         if (topUpAmountToParticipates == 0){
                             reachTopUpCondition  = true;
@@ -7517,13 +7507,13 @@ let dbPlayerReward = {
                                 });
                             }
                         } else {
-                            // if (!(reachTopUpCondition || reachConsumptionCondition)) {
-                            //     return Promise.reject({
-                            //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                            //         name: "DataError",
-                            //         message: "Player does not have enough top up or consumption amount"
-                            //     });
-                            // }
+                            if (!(reachTopUpCondition || reachConsumptionCondition)) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Player does not have enough top up or consumption amount"
+                                });
+                            }
                             //Only use one of the condition, reset another
                             if (reachTopUpCondition && reachConsumptionCondition) {
                                 // if both condition true, then use TopUpAmount first
@@ -8270,7 +8260,6 @@ let dbPlayerReward = {
                             }
                         }
                         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
-                            console.log('****selectedRewardParam', selectedRewardParam);
                             proposalData.data.lastLoginIp = playerData.lastLoginIp;
                             proposalData.data.phoneNumber = playerData.phoneNumber;
                             if (playerData.deviceId) {
@@ -8286,7 +8275,6 @@ let dbPlayerReward = {
                             proposalData.data.rewardType = selectedRewardParam.rewardType || null;
                             // keep this for debug
                             proposalData.data.rewardInfo = selectedRewardParam;
-                            // festivals:
                         }
                         if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
                             if (eventData.condition && eventData.condition.defineLoseValue && typeof(eventData.condition.defineLoseValue) != 'undefined') {
@@ -10232,7 +10220,7 @@ function getFestivalRewardDate(reward, festivals) {
 function checkIfRightApplyTime(specificDate, festival) {
     // reconstruct the month/time to a timestamp to verify if fulfil the apply time
     let result = false;
-    let currentTime = moment(new Date()).toDate()//.format('YYYY-MM-DD HH:mm:ss.sss');
+    let currentTime = moment(new Date()).toDate();
     let period = getTimePeriod(specificDate.expiredInDay || 0, festival);
     if ( currentTime > moment(period.startTime).toDate() &&  currentTime < moment(period.endTime).toDate() ) {
         result = true;
@@ -10308,10 +10296,10 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
                 if (rewardParam.rewardType == 3) {
                     rewardParam.applyTimes = 1;
                 }
-                console.log('rewardParam...', rewardParam)
+                console.log('***MT --checking rewardParam...', rewardParam);
                 if (rewardParam.applyTimes && data.length <= rewardParam.applyTimes) {
                     console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
-                    resolve({status: true , festivalObjId: festivalId})
+                    resolve({status: true , festivalObjId: festivalId});
                 } else {
                     console.log('***MT --checking cannot apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
                     resolve({status: false, festivalObjId: festivalId});
