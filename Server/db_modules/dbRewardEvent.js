@@ -2760,11 +2760,10 @@ var dbRewardEvent = {
             result.name = festival.name;
             result.month = festival.month;
             result.day = festival.day;
-            console.log('result', result);
-        }
 
+        }
         if (rewardType == 2 || rewardType == 4) {
-            result = '会员生日';
+            result.name = '会员生日';
         }
         return result
     },
