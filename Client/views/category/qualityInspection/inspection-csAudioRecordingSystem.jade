@@ -25,10 +25,10 @@ div(ng-if="vm.curPlatformText")
                             //    select.form-control(ng-change='vm.getCsByPlatform(vm.audioRecordSearching.platform)',ng-model='vm.audioRecordSearching.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
                             .search-filters-item
                                 label FPMS {{"CS Account" | translate}}
-                                select.form-control(ng-model='vm.audioRecordSearching.csObjId', ng-change='vm.getCallerId(vm.audioRecordSearching.csObjId)', ng-options='admin._id as admin.adminName for admin in vm.csAccountList', multiple, bsp, data-actions-box='true')
+                                select.form-control(ng-model='vm.audioRecordSearching.csObjId', ng-change='vm.getCallerId(vm.audioRecordSearching.csObjId)', ng-options='admin._id as admin.adminName for admin in vm.csList', multiple, bsp, data-actions-box='true')
                             .search-filters-item
                                 label {{"Caller ID" | translate}}
-                                select.form-control(ng-model='vm.audioRecordSearching.callerId', ng-options='v for (i,v) in vm.callerIdList', multiple, bsp, data-actions-box='true')
+                                select.spicker.form-control(ng-model='vm.audioRecordSearching.callerId', ng-options='v for (i,v) in vm.callerIdList', multiple, bsp, data-actions-box='true', ng-init='vm.endLoadMultipleSelect()')
                             .search-filters-item
                                 label {{'START_DATE' | translate}}
                                 #audioRecordStartDatetimePicker.input-append.form-control
@@ -68,15 +68,15 @@ div(ng-if="vm.curPlatformText")
                         #AudioRecordTablePage
                     div(ng-show="vm.audioSystemTab == 'audioReport'" )
                         #audioReportDiv.tab-pane.fade.in.active.well
-                            //.search-filters-item
-                            //    label {{"PRODUCT" |translate}}
-                            //    select.form-control(ng-change='vm.getCsByPlatform(vm.audioReportSearching.platform)',ng-model='vm.audioReportSearching.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
+                            .search-filters-item
+                                label {{'CS DEPARTMENT' | translate}}
+                                select.spicker.form-control(ng-model='vm.audioReportSearching.selectedCSDepartment', ng-change="vm.filterCsBasedOnDepartment(vm.audioReportSearching.selectedCSDepartment)" ng-options='v.departmentName as v.departmentName for v in vm.csDepartmentGroup', multiple, data-actions-box='true', bsp,ng-init='vm.endLoadMultipleSelect()')
                             .search-filters-item
                                 label FPMS {{"CS Account" | translate}}
-                                select.form-control(ng-model='vm.audioReportSearching.csObjId', ng-change='vm.getCallerId(vm.audioReportSearching.csObjId)', ng-options='admin._id as admin.adminName for admin in vm.csAccountList', multiple, bsp, data-actions-box='true')
+                                select.spicker.form-control(ng-model='vm.audioReportSearching.csObjId', ng-change='vm.getCallerId(vm.audioReportSearching.csObjId)', ng-options='admin._id as admin.adminName for admin in vm.csList', multiple, bsp, data-actions-box='true', ng-init='vm.endLoadMultipleSelect()')
                             .search-filters-item
                                 label {{"Caller ID" | translate}}
-                                select.form-control(ng-model='vm.audioReportSearching.callerId', ng-options='v for (i,v) in vm.callerIdList', multiple, bsp, data-actions-box='true')
+                                select.spicker.form-control(ng-model='vm.audioReportSearching.callerId', ng-options='v for (i,v) in vm.callerIdList', multiple, bsp, data-actions-box='true', ng-init='vm.endLoadMultipleSelect()')
                             .search-filters-item
                                 label {{"Time Scale" | translate}}
                                 select.form-control(ng-model='vm.audioReportSearching.timeScale', ng-options='i as v | translate for (i,v) in vm.timeScale')

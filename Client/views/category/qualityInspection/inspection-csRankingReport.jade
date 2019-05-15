@@ -4,8 +4,11 @@
 div(ng-if="vm.curPlatformText")
     .col-md-12.well(ng-show="checkViewPermission('QualityInspection', 'CsRankingReport', 'Read')")
         .search-filters-item
+            label {{'CS DEPARTMENT' | translate}}
+            select.spicker.form-control(ng-model='vm.selectedCSDepartment', ng-change="vm.filterCsBasedOnDepartment(vm.selectedCSDepartment)" ng-options='v.departmentName as v.departmentName for v in vm.csDepartmentGroup', multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()')
+        .search-filters-item
             label FPMS {{'CS Account' | translate}}
-            select.spicker.form-control(ng-model='vm.selectedCS', ng-options='v._id as v.adminName for v in vm.csList', multiple, data-actions-box='true', bsp,ng-init='vm.endLoadMultipleSelect()')
+            select.spicker.form-control(ng-model='vm.selectedCS', ng-options='v._id as v.adminName for v in vm.csList', multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()')
         .search-filters-item
             label {{'START_DATE' | translate}}
             #csRankingReportStartDatetimePicker.input-append.form-control
