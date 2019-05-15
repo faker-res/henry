@@ -35,7 +35,8 @@ define(['js/app'], function (myApp) {
             BIWEEKLY_BONUS_AMOUNT: 3,
             MONTHLY_BONUS_AMOUNT: 4,
             WEEKLY_CONSUMPTION: 5,
-            OPTIONAL_REGISTRATION: 6
+            OPTIONAL_REGISTRATION: 6,
+            DAILY_CONSUMPTION: 7
         };
 
         vm.constPartnerCommisionTypeOption = {
@@ -44,6 +45,7 @@ define(['js/app'], function (myApp) {
             BIWEEKLY_BONUS_AMOUNT: 3,
             MONTHLY_BONUS_AMOUNT: 4,
             WEEKLY_CONSUMPTION: 5,
+            DAILY_CONSUMPTION: 7
         };
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
@@ -711,7 +713,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommission = {};
                 vm.getPlatformPartnersData();
                 vm.getCommissionRateGameProviderGroup();
-                vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
+                vm.selectedCommissionTab('DAILY_CONSUMPTION');
                 vm.onGoingLoadPlatformData = false;
             })
         }
@@ -11288,15 +11290,15 @@ define(['js/app'], function (myApp) {
 
         function getActivePlayerTableHeader(commissionSettingTab) {
             switch (vm.commissionSettingTab) {
-                case 'DAILY_BONUS_AMOUNT':
+                case 'DAILY_CONSUMPTION':
                     return 'DAILY_ACTIVE_PLAYER';
-                case 'WEEKLY_BONUS_AMOUNT':
+                // case 'WEEKLY_BONUS_AMOUNT':
                 case 'WEEKLY_CONSUMPTION':
                     return 'WEEKLY_ACTIVE_PLAYER';
-                case 'BIWEEKLY_BONUS_AMOUNT':
-                    return 'HALFMONTH_ACTIVE_PLAYER';
-                case 'MONTHLY_BONUS_AMOUNT':
-                    return 'MONTHLY_ACTIVE_PLAYER';
+                // case 'BIWEEKLY_BONUS_AMOUNT':
+                //     return 'HALFMONTH_ACTIVE_PLAYER';
+                // case 'MONTHLY_BONUS_AMOUNT':
+                //     return 'MONTHLY_ACTIVE_PLAYER';
                 default:
                     return '';
             }
@@ -11315,38 +11317,41 @@ define(['js/app'], function (myApp) {
 
         vm.selectedCommissionTab = function (tab, partnerObjId) {
             let isGetConfig = true;
-            vm.commissionSettingTab = tab ? tab : 'DAILY_BONUS_AMOUNT';
+            vm.commissionSettingTab = tab ? tab : 'DAILY_CONSUMPTION';
             vm.partnerCommission.isEditing = false;
             vm.partnerCommission.isCustomized = false;
 
-            if (vm.commissionSettingTab != 'WEEKLY_CONSUMPTION') {
-                vm.playerConsumptionTableHeader = 'TotalPlayerConsumptionBonusAmount';
-            } else {
+            // if (vm.commissionSettingTab != 'WEEKLY_CONSUMPTION') {
+            //     vm.playerConsumptionTableHeader = 'TotalPlayerConsumptionBonusAmount';
+            // } else {
                 vm.playerConsumptionTableHeader = 'TotalPlayerValidAmount';
-            }
+            // }
 
             switch (vm.commissionSettingTab) {
-                case 'DAILY_BONUS_AMOUNT':
+                case 'DAILY_CONSUMPTION':
                     vm.activePlayerTableHeader = 'DAILY_ACTIVE_PLAYER';
                     break;
-                case 'WEEKLY_BONUS_AMOUNT':
+                // case 'WEEKLY_BONUS_AMOUNT':
                 case 'WEEKLY_CONSUMPTION':
                     vm.activePlayerTableHeader = 'WEEKLY_ACTIVE_PLAYER';
                     break;
-                case 'BIWEEKLY_BONUS_AMOUNT':
-                    vm.activePlayerTableHeader = 'HALFMONTH_ACTIVE_PLAYER';
-                    break;
-                case 'MONTHLY_BONUS_AMOUNT':
-                    vm.activePlayerTableHeader = 'MONTHLY_ACTIVE_PLAYER';
-                    break;
+                // case 'BIWEEKLY_BONUS_AMOUNT':
+                //     vm.activePlayerTableHeader = 'HALFMONTH_ACTIVE_PLAYER';
+                //     break;
+                // case 'MONTHLY_BONUS_AMOUNT':
+                //     vm.activePlayerTableHeader = 'MONTHLY_ACTIVE_PLAYER';
+                //     break;
                 default:
                     isGetConfig = false;
+            }
+
+            if (vm.currentTab == 'Config') {
+                return vm.getPlatformCommissionRate();
             }
 
             if (isGetConfig) {
                 if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                     vm.getPartnerCommissionConfigWithGameProviderConfig(partnerObjId);
-                    // vm.getPlatformCommissionRate(partnerObjId);
                 } else {
                     vm.getPartnerCommisionConfig();
                 }
@@ -11561,57 +11566,7 @@ define(['js/app'], function (myApp) {
                 }
             }
         };
-        vm.submitPartnerCommissionConfigWithGameProviderGroup = function () {
-            if (vm.partnerCommission && vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length) {
-                let p = Promise.resolve();
 
-                vm.partnerCommission.gameProviderGroup.forEach(gameProviderGroup => {
-                    if (gameProviderGroup && gameProviderGroup.showConfig && gameProviderGroup.showConfig.commissionSetting.length > 0) {
-                        if (JSON.stringify(gameProviderGroup.showConfig) != JSON.stringify(gameProviderGroup.srcConfig)) {
-                            let tempShowConfig = gameProviderGroup.showConfig;
-
-                            // Convert back commissionRate to percentage
-                            tempShowConfig.commissionSetting.forEach(e => {
-                                e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
-                            });
-
-                            if (tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
-                                for (let i = 0; i < tempShowConfig.commissionSetting.length; i++) {
-                                    if ((tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
-                                        (tempShowConfig.commissionSetting[i].activePlayerValueFrom == '' || tempShowConfig.commissionSetting[i].activePlayerValueFrom == null) &&
-                                        (tempShowConfig.commissionSetting[i].commissionRate == '' || tempShowConfig.commissionSetting[i].commissionRate == null)) {
-
-                                        tempShowConfig.commissionSetting.splice(i, 1);
-                                    }
-                                }
-                            }
-
-                            if (tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
-                                gameProviderGroup.showConfig.provider = gameProviderGroup._id;
-
-                                var sendData = {
-                                    query: {
-                                        platform: tempShowConfig.platform ? tempShowConfig.platform : vm.selectedPlatform.id,
-                                        _id: tempShowConfig._id
-                                    },
-                                    updateData: tempShowConfig
-                                }
-
-                                p = p.then(function () {
-                                    return $scope.$socketPromise('createUpdatePartnerCommissionConfigWithGameProviderGroup', sendData).then(res => {
-                                        console.log('success', res);
-                                    })
-                                });
-                            }
-                        }
-                    }
-                });
-
-                return p.then(() => {
-                    $scope.$evalAsync(vm.getPartnerCommissionConfigWithGameProviderConfig);
-                });
-            }
-        }
         vm.createUpdatePartnerCommissionConfig = function () {
             var sendData = {
                 query: {
@@ -16454,6 +16409,7 @@ define(['js/app'], function (myApp) {
         vm.configTabClicked = function (choice) {
             vm.selectedConfigTab = choice;
             vm.configTableEdit = false;
+            vm.configTableBulkEdit = false;
             vm.blacklistIpConfigTableEdit = false;
             vm.financialSettlementSystemTableEdit = false;
             vm.newBlacklistIpConfig = [];
@@ -16486,6 +16442,7 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'validActive':
                     vm.getActiveConfig();
+                    vm.resetBulkActiveConfig();
                     break;
                 case 'partnerBasic':
                     vm.getPartnerBasic();
@@ -16570,81 +16527,60 @@ define(['js/app'], function (myApp) {
                 });
         };
 
+        vm.resetBulkActiveConfig = function () {
+            vm.bulkActiveConfig = {};
+            vm.bulkActiveConfigPlatforms = [];
+        }
+
         vm.getPlatformCommissionRate = function () {
             vm.partnerCommission.isGameProviderIncluded = true;
             vm.partnerCommission.gameProviderGroup = [];
 
-            return $scope.$socketPromise("getPlatformPartnerCommConfig", {platformObjId: vm.platformInSetting._id})
-                .then(function (data) {
-                    $scope.$evalAsync(() => {
-                        console.log("getPlatformPartnerCommConfig", data.data);
-                        let emptyData = JSON.parse(JSON.stringify(data.data));
+            return $scope.$socketPromise("getPlatformPartnerCommConfig", {platformObjId: vm.platformInSetting._id}).then(
+                function (data) {
+                    console.log("getPlatformPartnerCommConfig", data.data);
+                    let commConfigs = data && data.data && data.data.length ? data.data : [];
 
-                        if (data && data.data && data.data.length) {
-                            vm.gameProviderGroup.forEach(gameProviderGroup => {
-                                vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
-                            })
-                            vm.partnerCommission.gameProviderGroup.forEach(partnerGameProviderGroup => {
-                                data.data.forEach(data => {
-                                    emptyData.forEach(emptyData => {
-                                        emptyData.commissionSetting.forEach(empty => {
-                                            empty = [];
-                                            empty.push({
-                                                playerConsumptionAmountFrom: "",
-                                                playerConsumptionAmountTo: "",
-                                                activePlayerValueFrom: "",
-                                                activePlayerValueTo: "",
-                                                commissionRate: "",
-                                                isEditing: false,
-                                                isCreateNew: true
-                                            });
-                                            if (data.commissionType == vm.constPartnerCommisionType[vm.commissionSettingTab].toString() && partnerGameProviderGroup._id == data.provider) {
-                                                partnerGameProviderGroup.showConfig = data;
-                                            }else{
-                                                partnerGameProviderGroup.showConfig = {};
-                                                partnerGameProviderGroup.showConfig.commissionSetting = empty;
-                                                partnerGameProviderGroup.showConfig.platform = vm.platformInSetting._id;
-                                                partnerGameProviderGroup.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
-                                            }
-                                        })
-                                    })
-                                })
-                            })
-                        }else{
-                            vm.gameProviderGroup.forEach(gameProviderGroup => {
-                                vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
-                            })
-                            vm.partnerCommission.gameProviderGroup.forEach(partnerGameProviderGroup => {
-                                partnerGameProviderGroup.showConfig = {};
-                                partnerGameProviderGroup.showConfig.commissionSetting = []
-                                partnerGameProviderGroup.showConfig.commissionSetting.push({
-                                    playerConsumptionAmountFrom: "",
-                                    playerConsumptionAmountTo: "",
-                                    activePlayerValueFrom: "",
-                                    activePlayerValueTo: "",
-                                    commissionRate: "",
-                                    isEditing: false,
-                                    isCreateNew: true
+                    vm.partnerCommission.gameProviderGroup = $.extend(true, [], vm.gameProviderGroup);
+                    let gameProviderGroups = vm.partnerCommission.gameProviderGroup;
+                    gameProviderGroups.map(group => {
+                        group.showConfig = {commissionSetting: []};
+                        group.srcConfig = {commissionSetting: []};
+                    });
+
+                    commConfigs.map(commConfig => {
+
+                        let group = gameProviderGroups.find(gameProviderGroup => gameProviderGroup._id == commConfig.provider)
+                        if (group && commConfig && commConfig.commissionType == vm.constPartnerCommisionType[vm.commissionSettingTab]) {
+                            group.srcConfig = $.extend(true, {}, commConfig);
+                            if (commConfig.commissionSetting) {
+                                commConfig.commissionSetting.map(setting => {
+                                    setting.commissionRate = parseFloat(setting.commissionRate * 100);
                                 });
-                                partnerGameProviderGroup.showConfig.platform = vm.platformInSetting._id;
-                                partnerGameProviderGroup.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
-                            })
+                            }
+                            group.showConfig = $.extend(true, {}, commConfig);
                         }
+                    });
 
-                        if (vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length > 0) {
-                            vm.partnerCommission.gameProviderGroup.forEach(grp => {
-                                if (grp.showConfig && grp.showConfig.commissionSetting && grp.showConfig.commissionSetting.length > 0) {
-                                    grp.showConfig.commissionSetting.forEach(e => {
-                                        // Change to percentage format
-                                        e.commissionRate = parseFloat((e.commissionRate * 100).toFixed(2));
-                                    });
+                    let emptyRow = {
+                        playerConsumptionAmountFrom: "",
+                        playerConsumptionAmountTo: "",
+                        activePlayerValueFrom: "",
+                        activePlayerValueTo: "",
+                        commissionRate: "",
+                        isEditing: false,
+                        isCreateNew: true
+                    };
 
-                                    //clone a copy of original customized config for cancel setting purpose
-                                    grp.srcCustomConfig = grp.showConfig ? JSON.parse(JSON.stringify(grp.showConfig)) : {};
-                                }
-                            });
+                    gameProviderGroups.map(group => {
+
+                        if (group.showConfig.commissionSetting.length < 1) {
+                            group.showConfig.commissionSetting.push($.extend(true, {}, emptyRow));
+                            group.srcConfig.commissionSetting.push($.extend(true, {}, emptyRow))
                         }
-                    })
+                    });
+
+                    $scope.$evalAsync();
                 }
             )
         };
@@ -16775,15 +16711,29 @@ define(['js/app'], function (myApp) {
 
         function updateActiveConfig () {
             delete vm.activeConfigEdit._id;
+            delete vm.activeConfigEdit.__v;
             var sendData = {
                 query: {platform: vm.platformInSetting._id},
                 updateData: vm.activeConfigEdit
             };
+
             socketService.$socket($scope.AppSocket, 'updateActiveConfig', sendData, function (data) {
                 console.log('updateActiveConfig', data)
                 vm.activeConfig = vm.activeConfigEdit;
                 vm.configTabClicked("validActive");
                 $scope.safeApply();
+            });
+        }
+
+         vm.updatePlatformsActiveConfig = function () {
+            var sendData = {
+                query: {platform: vm.bulkActiveConfigPlatforms},
+                updateData: vm.bulkActiveConfig
+            };
+
+            socketService.$socket($scope.AppSocket, 'updatePlatformsActiveConfig', sendData, function (data) {
+                vm.configTabClicked("validActive");
+                $scope.$evalAsync()
             });
         }
 
@@ -16860,10 +16810,72 @@ define(['js/app'], function (myApp) {
                 console.log("updateLargeWithdrawalPartnerSetting complete")
             });
         }
+
+        vm.submitPartnerCommissionConfigWithGameProviderGroup = function () {
+
+            if (!(vm.partnerCommission && vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length)) {
+                return;
+            }
+
+            let promChain = Promise.resolve();
+
+            let gameProviderGroups = vm.partnerCommission.gameProviderGroup;
+
+            gameProviderGroups.forEach(gameProviderGroup => {
+                if (!(gameProviderGroup && gameProviderGroup.showConfig && gameProviderGroup.showConfig.commissionSetting.length > 0)) {
+                    return;
+                }
+
+                if (JSON.stringify(gameProviderGroup.showConfig) == JSON.stringify(gameProviderGroup.srcConfig)) {
+                    return;
+                }
+
+                let tempShowConfig = $.extend(true, {}, gameProviderGroup.showConfig);
+                tempShowConfig.commissionSetting = tempShowConfig.commissionSetting || [];
+                tempShowConfig.commissionSetting.forEach(e => {
+                    e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
+                });
+
+                for (let i = 0; i < tempShowConfig.commissionSetting.length; i++) {
+                    if ((tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
+                        (tempShowConfig.commissionSetting[i].activePlayerValueFrom == '' || tempShowConfig.commissionSetting[i].activePlayerValueFrom == null) &&
+                        (tempShowConfig.commissionSetting[i].commissionRate == '' || tempShowConfig.commissionSetting[i].commissionRate == null)) {
+
+                        tempShowConfig.commissionSetting.splice(i, 1);
+                    }
+                }
+
+                if (tempShowConfig.commissionSetting.length <= 0) {
+                    return;
+                }
+
+                let sendData = {
+                    platformObjId: tempShowConfig.platform ? tempShowConfig.platform : vm.platformInSetting._id,
+                    commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab].toString(),
+                    providerObjId: gameProviderGroup._id,
+                    commissionSetting: tempShowConfig.commissionSetting
+                };
+
+                promChain = promChain.then(function () {
+                    console.log('sendData', sendData)
+                    return $scope.$socketPromise('updatePlatformPartnerCommConfig', sendData).then(res => {
+                        console.log('updatePlatformPartnerCommConfig return', res);
+                    })
+                });
+            });
+
+            return promChain.then(() => {
+                vm.getPlatformCommissionRate();
+                vm.partnerCommission.isEditing = false;
+            });
+        };
         //endregion config
 
         vm.loadTab = (tab) => {
+            vm.currentTab = tab || 'Infolist';
             switch (tab) {
+                case 'Config':
+                    vm.selectedConfigTab = '';
                 case 'Report':
 
                     break;

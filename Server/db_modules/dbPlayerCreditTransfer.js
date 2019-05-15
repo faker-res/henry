@@ -1,5 +1,7 @@
 const Q = require("q");
 
+const env = require('../config/env').config();
+
 const constPlayerCreditChangeType = require('../const/constPlayerCreditChangeType');
 const constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
@@ -27,9 +29,16 @@ let dbPlayerCreditTransfer = {
         return cpmsAPI.player_queryCredit(obj);
     },
     playerTransferIn: (obj) => {
+        // Block real player transfer in on cstest environment
+        if (env.mode === 'development' && Number(obj.playerId) >= 400000) {
+            return Promise.reject({name: "SystemError", message: "Not allowed to transfer from test environment."});
+        }
         return cpmsAPI.player_transferIn(obj);
     },
     playerTransferOut: (obj) => {
+        if (env.mode === 'development' && Number(obj.playerId) >= 400000) {
+            return Promise.reject({name: "SystemError", message: "Not allowed to transfer from test environment."});
+        }
         return cpmsAPI.player_transferOut(obj)
     },
 
@@ -266,6 +275,7 @@ let dbPlayerCreditTransfer = {
                                 id, providerShortId, transferAmount, lockedTransferAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return dPCT.playerTransferIn(
                                 {
+                                    playerId: playerData.playerId,
                                     username: userName,
                                     platformId: platformId,
                                     providerId: providerShortId,
@@ -435,6 +445,7 @@ let dbPlayerCreditTransfer = {
         let notEnoughCredit = false;
         let bUpdateTask = false;
         let transferId = new Date().getTime();
+        let player;
 
         let initFunc;
         if (forSync) {
@@ -457,6 +468,7 @@ let dbPlayerCreditTransfer = {
                         if (bResolve) {
                             return dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(
                                 playerData => {
+                                    player = playerData;
                                     deferred.resolve(
                                         {
                                             playerId: playerId,
@@ -586,6 +598,7 @@ let dbPlayerCreditTransfer = {
                                 providerShortId, amount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return pCTFP.playerTransferOut(
                                 {
+                                    playerId: player.playerId,
                                     username: userName,
                                     platformId: platformId,
                                     providerId: providerShortId,
@@ -940,6 +953,7 @@ let dbPlayerCreditTransfer = {
                                 id, providerShortId, transferAmount, lockedTransferAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return dPCT.playerTransferIn(
                                 {
+                                    playerId: player.playerId,
                                     username: userName,
                                     platformId: platformId,
                                     providerId: providerShortId,
@@ -1189,6 +1203,7 @@ let dbPlayerCreditTransfer = {
                                 dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
                                     providerShortId, amount, updateObj.rewardAmt, adminName, null, constPlayerCreditTransferStatus.SEND, isEbet);
                                 let playerTransferOutRequestData = {
+                                    playerId: playerId,
                                     username: userName,
                                     platformId: platformId,
                                     providerId: providerShortId,
@@ -1400,7 +1415,6 @@ let dbPlayerCreditTransfer = {
         ).lean().then(groups => {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
-                    console.log('playerCreditTransferToEbetWallets group', group);
                     if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0) {
                         hasEbetWalletSettings = true;
                         checkAmountProm.push(
@@ -1432,7 +1446,8 @@ let dbPlayerCreditTransfer = {
                                     providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync).then(ret => {
                                     transferInSuccessData.push(ret);
                                 }).catch(err => {
-                                    return errorUtils.reportError(err);
+                                    errorUtils.reportError(err);
+                                    return Promise.reject(err);
                                 });
                             });
                         }
@@ -1614,6 +1629,7 @@ let dbPlayerCreditTransfer = {
                             console.log("dPCT.playerTransferIn transferWallet", transferWallet);
                             return dPCT.playerTransferIn(
                                 {
+                                    playerId: player.playerId,
                                     username: userName,
                                     platformId: platformId,
                                     providerId: providerShortId,

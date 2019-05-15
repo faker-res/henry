@@ -16,6 +16,8 @@
                         span {{"MANUAL_SUMMARIZE_LIVE800RECORD" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "manualSummarizedManualProcessRecord"}', ng-click='vm.configTabClicked("manualSummarizedManualProcessRecord");vm.initManualSummarizeManualProcessRecord();')
                         span {{"MANUAL_SUMMARIZE_MANUAL_PROCESS_RECORD" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "summarizeCsRankingData"}', ng-click='vm.configTabClicked("summarizeCsRankingData");vm.initSummarizeCsRankingData();')
+                        span {{"SUMMARIZE_CS_RANKING_DATA" | translate}}
 
     .col-md-9
         .panel.panel-primary
@@ -190,6 +192,26 @@
                             img.img-edit
                             text {{'SUBMIT' | translate}}
                     .inlineBlk(ng-show='vm.loadingSummarizeManualProcessRecord')
+                        i.fa.fa-spin.fa-spinner
+                div(ng-if='vm.selectedConfigTab=="summarizeCsRankingData" && checkViewPermission("QualityInspection", "CsRankingReport", "Edit")')
+                    .search-filters-item
+                        label {{'START_DATE' | translate}}
+                        #summarizeCsRankingStartDatetimePicker.input-append.form-control
+                            input(data-format="yyyy/MM/dd", type='text')
+                            span.add-on
+                                i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                    .search-filters-item
+                        label {{'END_DATE' | translate}}
+                        br
+                        #summarizeCsRankingEndDatetimePicker.input-append.form-control
+                            input(data-format='yyyy/MM/dd', type='text')
+                            span.add-on
+                                i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                    .text-right.widthto100
+                        button.btn.btn-primary.btn-space(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'CsRankingReport', 'Edit')", ng-click='vm.summarizeCsRankingData()')
+                            img.img-edit
+                            text {{'SUBMIT' | translate}}
+                    .inlineBlk(ng-show='vm.loadingSummarizeCsRankingData')
                         i.fa.fa-spin.fa-spinner
 //
 //.row(ng-if="checkViewPermission('Platform', 'Config', 'DownloadTranslationCSV')")

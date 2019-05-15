@@ -11,7 +11,9 @@ var localConfig = {
         logsDBUrl: 'hqu+G0VPZ1d7NnFEU2WfoQ8MBPndUtwbIfImkw8F9jfh2oxAFIU9PYJksK2UHqUhJYPuq2Wgp4nAtkU6RGpO+viUNGT7JAVMVJAY07mKsAQeHDBiEXs+QCRY2m1LaPqx/2EoPiszCxitLpSO4pyZOosyhVx9LrJgGA/Ok0v46u0=',
         logs2DBUrl: 'Z2R+aljpWDOYZR3TfRjRPjuH3wbpWRPsX6jPy3uOlkwOLfPPf30RkhKNL0E95ECfglDQLxq3ExKlO7FnZzyUIYIAbQ4ju+iU5TAIgAa3wA0oHPzlHRF6GgHUvQYoRZbtkfRlWrERR0TGcfbvQNil3NTbLcLV0u2wClD9G9lpGc8='
     },
-    live800Port: '33060',
+    live800Port: '3306',
+    tel400CsIp: '205.177.199.7',
+    tel400JiaBoIp: '101.78.133.213',
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',
     redisPort : '6379',
@@ -224,7 +226,9 @@ var prodConfig = {
         logsDBUrl: 'MTF0rMRYQSjy1fkL9GGUXNWyeTUGzEZnEM3bJAIDmPgjIr+K/MvkOKpNr1X12cHXYYhBQmX9dCHIqIifB2ou0W26ydCz1Vd9tlElZtSTW30e0nmJqi0cZXtsybgzYcaYKEARN+EA3yKqtpu3HisHPtM4GA81AwRYmurR8IH9MDk=',
 	    logs2DBUrl: 'TZXworYj1JKgQva2YnDE5iwBVDy5vbCoDfn8ovuo2g0F+oMn5xQ0ztI3XbPWTbhmv4IDY6H9fdJYxId+YDO8dQqSSBE432BdaN/79ef+7mJZ6TrSQ/4JT+DBgSkp4B2zEfLEKHfS4m3AQSD0pqjWo2fRXlI/Vil7XDypRw76oig='
     },
-    live800Port: '33060',
+    live800Port: '3306',
+    tel400CsIp: '205.177.199.7',
+    tel400JiaBoIp: '101.78.133.213',
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',
     redisPort : '6379',

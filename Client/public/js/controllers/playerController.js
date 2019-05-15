@@ -38,7 +38,8 @@ define(['js/app'], function (myApp) {
             BIWEEKLY_BONUS_AMOUNT: 3,
             MONTHLY_BONUS_AMOUNT: 4,
             WEEKLY_CONSUMPTION: 5,
-            OPTIONAL_REGISTRATION: 6
+            OPTIONAL_REGISTRATION: 6,
+            DAILY_CONSUMPTION: 7
         };
 
         vm.constPartnerCommisionTypeOption = {
@@ -47,6 +48,7 @@ define(['js/app'], function (myApp) {
             BIWEEKLY_BONUS_AMOUNT: 3,
             MONTHLY_BONUS_AMOUNT: 4,
             WEEKLY_CONSUMPTION: 5,
+            DAILY_CONSUMPTION: 7
         };
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
@@ -891,7 +893,7 @@ define(['js/app'], function (myApp) {
                 playerType: 'Real Player (all)'
             };
 
-            Q.all([vm.getAllPlayerLevels(), vm.getAllPartnerLevels()]).then(
+            Q.all([vm.getAllPlayerLevels(), vm.getAllPartnerLevels(), vm.getAllPlayerLevelByAllPlatform()]).then(
                 function (data) {
                     $scope.$evalAsync(() => {
                         vm.playersQueryCreated = false;
@@ -3654,7 +3656,7 @@ define(['js/app'], function (myApp) {
 
             var sendData = {
                 adminId: authService.adminId,
-                platformId: vm.selectedPlatform.id,
+                platformId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.platform : null,
                 type: ["PlayerRegistrationIntention"],
                 startDate: vm.queryPara.newPlayerRecords.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
@@ -3714,6 +3716,14 @@ define(['js/app'], function (myApp) {
                                 record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             }
                         }
+
+                        record.platform$ = "";
+
+                        if(record && record.data && (record.data.platform || record.data.platformId) && vm.allPlatformData && vm.allPlatformData.length){
+                            let platformObjId = record.data.platform ? record.data.platform : record.data.platformId;
+                            let filteredPlatform = vm.allPlatformData.filter(a => a._id.toString() == platformObjId.toString());
+                            record.platform$ = filteredPlatform && filteredPlatform[0] && filteredPlatform[0].name ? filteredPlatform[0].name : "";
+                        }
                         record.playerId = (record.data && record.data.playerId) ? record.data.playerId : "";
                         record.name = (record.data && record.data.name) ? record.data.name : "";
                         record.realName = (record.data && record.data.realName) ? record.data.realName : "";
@@ -3739,22 +3749,22 @@ define(['js/app'], function (myApp) {
             var option = $.extend({}, vm.generalDataTableOptions, {
                 data: tableData,
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
-                    {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                    {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
-                    {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
-                    {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
-                    {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
-                    {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
-                    {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'name', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'statusName', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'smsCode', bSortable: true, 'aTargets': [9]},
+                    {'sortCol': 'remarks', bSortable: true, 'aTargets': [10]},
+                    {'sortCol': 'device', bSortable: true, 'aTargets': [11]},
+                    {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [14]},
                 ],
                 columns: [
-                    // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {
                         title: $translate('proposalId'),
                         data: "proposalId",
@@ -3907,7 +3917,7 @@ define(['js/app'], function (myApp) {
             //var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
             var sendData = {
                 adminId: authService.adminId,
-                platformId: vm.selectedPlatform.id,
+                platformId: vm.queryPara.attemptNumberRecords.platform,
                 type: ["PlayerRegistrationIntention"],
                 startDate: vm.queryPara.attemptNumberRecords.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.attemptNumberRecords.endTime.data('datetimepicker').getLocalDate(),
@@ -4718,7 +4728,7 @@ define(['js/app'], function (myApp) {
                 vm.expenseQuery.endTime = utilService.createDatePicker('#providerExpenseQuery .endTime');
                 vm.expenseQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.expenseQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-
+                vm.getProviderListByPlatform();
                 utilService.actionAfterLoaded('#modalProviderExpenses.in #providerExpenseTablePage', function () {
                     vm.expenseQuery.pageObj = utilService.createPageForPagingTable("#providerExpenseTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "expenseQuery", vm.getProviderExpense)
@@ -4727,6 +4737,24 @@ define(['js/app'], function (myApp) {
                 });
             });
         }
+
+        vm.getProviderListByPlatform = function(platformObjIdList) {
+            let query = {};
+
+            if(platformObjIdList && platformObjIdList.length){
+                query.platformObjIdList = platformObjIdList;
+            }
+
+            vm.providerListByPlatform = [];
+            socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', query, function (providerList) {
+                $scope.$evalAsync(() => {
+                    console.log("Provider list ",providerList);
+                    if(providerList && providerList.data){
+                        vm.providerListByPlatform = providerList.data;
+                    }
+                });
+            });
+        };
 
         vm.getProviderExpense = function (newSearch) {
             let platformIdList;
@@ -5130,11 +5158,11 @@ define(['js/app'], function (myApp) {
                         orderable: false,
                         sClass: "remarkCol",
                         render: (data, type, row) => {
-                            let emptyOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
+                            let emptyOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks' ng-click='vm.getSelectedRowPlayerCredibility(" + JSON.stringify(row) + ");'> - </a>";
                             if (!data || data.length === 0) {
                                 return emptyOutput;
                             }
-                            let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'>";
+                            let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks' ng-click='vm.getSelectedRowPlayerCredibility(" + JSON.stringify(row) + ");'>";
                             let output = initOutput;
                             let remarkMatches = false;
                             data.map(function (remarkId) {
@@ -5188,12 +5216,12 @@ define(['js/app'], function (myApp) {
                             // todo :: #22
                             data = data || '';
                             if ($scope.checkViewPermission('Player', 'Player', 'Edit')) {
-                                return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
-                                    'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
-                                    'ng-click="vm.onClickPlayerCheck(\'' + row._id + '\', vm.openEditPlayerDialog, \'basicInfo\');"></a>')
-                                    .attr('data-row', JSON.stringify(row))
+                                return $("<a style='z-index: auto' data-toggle='modal' data-container= 'body' " +
+                                    "data-placement='bottom' data-trigger='focus' type='button' data-html='true' href='#' " +
+                                    "ng-click='vm.onClickPlayerCheck(\"" + row._id + "\", vm.openEditPlayerDialog, \"basicInfo\", " + JSON.stringify(row) + ")'></a>")
+                                    .attr("data-row", JSON.stringify(row))
                                     .text($translate(data.name))
-                                    .prop('outerHTML');
+                                    .prop("outerHTML");
                             } else {
                                 return $('<span style="z-index: auto" data-toggle="modal" data-container="body" ' +
                                     'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ></span>')
@@ -5395,7 +5423,7 @@ define(['js/app'], function (myApp) {
                             }));
                             link.append($('<a>', {
                                 'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
-                                'ng-click': 'vm.initSMSModal();' + "vm.onClickPlayerCheck('" +
+                                'ng-click': 'vm.initSMSModal(' + JSON.stringify(row) + ');' + "vm.onClickPlayerCheck('" +
                                 playerObjId + "', " + "vm.telorMessageToPlayerBtn" +
                                 ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
                                 'data-row': JSON.stringify(row),
@@ -5414,7 +5442,7 @@ define(['js/app'], function (myApp) {
                             if ($scope.checkViewPermission('Player', 'Feedback', 'AddFeedback')) {
                                 link.append($('<a>', {
                                     'class': 'fa fa-commenting margin-right-5',
-                                    'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
+                                    'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');vm.getSelectedFeedBackDetails(' + JSON.stringify(row) + ')',
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'modal',
                                     'data-target': '#modalAddPlayerFeedback',
@@ -5426,7 +5454,7 @@ define(['js/app'], function (myApp) {
                                 if ($scope.checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-plus-circle',
-                                        'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);vm.loadBankCard()',
+                                        'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);vm.getSelectedRowTopUpGroupDetails(' + JSON.stringify(row) + ');',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerTopUp',
@@ -5442,7 +5470,7 @@ define(['js/app'], function (myApp) {
                                         'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.initPlayerBonus();vm.getPlayerBankList();',
+                                        'ng-click': 'vm.initPlayerBonus(' + JSON.stringify(row) + ');vm.getPlayerBankList();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerBonus',
@@ -5456,7 +5484,7 @@ define(['js/app'], function (myApp) {
                                         'src': "images/icon/rewardBlue.png",
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.initRewardSettings();vm.initPlayerAddRewardTask();',
+                                        'ng-click': 'vm.initRewardSettings(' + JSON.stringify(row) + ');vm.initPlayerAddRewardTask();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerAddRewardTask',
@@ -5483,7 +5511,7 @@ define(['js/app'], function (myApp) {
                                         'src': "images/icon/creditAdjustBlue.png",
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
+                                        'ng-click': 'vm.getSelectedRowPlatformDetails(' + JSON.stringify(row) + ');vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerCreditAdjustment',
@@ -5497,7 +5525,7 @@ define(['js/app'], function (myApp) {
                                         'src': (row.permission.rewardPointsTask === false ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
+                                        'ng-click': 'vm.getSelectedRowPlatformDetails(' + JSON.stringify(row) + ');vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerRewardPointsAdjustment',
@@ -5518,13 +5546,13 @@ define(['js/app'], function (myApp) {
 
                             var link = $('<a>', {
                                 'class': 'playerPermissionPopover',
-                                'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
-                                + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
-                                + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
-                                + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
-                                + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
-                                + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
-                                + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;",
+                                'ng-click': 'vm.getSelectedRowPlatformDetails(' + JSON.stringify(row) + ');vm.permissionPlayer = ' + JSON.stringify(row)
+                                + '; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;'
+                                + '; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;'
+                                + '; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;'
+                                + '; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;'
+                                + '; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;'
+                                + '; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;',
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'popover',
                                 'data-trigger': 'focus',
@@ -6837,6 +6865,155 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getSelectedRowPlatformDetails = function(rowData){
+            let selectedPlatformData = vm.allPlatformData.filter(platform => platform._id == rowData.platform)[0];
+            vm.selectedPlatform = {
+                text: selectedPlatformData.name,
+                id: selectedPlatformData._id,
+                selectable: true,
+                data: selectedPlatformData,
+                image: {
+                    url: selectedPlatformData.icon,
+                    width: 30,
+                    height: 30,
+                }
+            };
+        };
+
+        vm.getSelectedRowPlayerCredibility = function(rowData) {
+            vm.getSelectedRowPlatformDetails(rowData);
+            vm.initPlayerCredibility();
+        };
+
+        vm.getSelectedRowProviderDetails = function(rowData){
+            vm.getSelectedRowPlatformDetails(rowData);
+            vm.platformProviderList = vm.selectedPlatform.data.gameProviderDetails || [];
+            vm.platformProviderList.forEach(item => {
+                if (item && item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
+                    item.batchCreditTransferOut = item.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                }
+            });
+        };
+
+        vm.getSelectedRowTopUpGroupDetails = function(rowData){
+            vm.getSelectedRowPlatformDetails(rowData);
+            vm.loadBankCard();
+            vm.loadAliPayAcc();
+            vm.loadWechatPayAcc();
+        };
+
+        vm.setPlayerLevelAccordingByPlatformId = function (platformObjId){
+            $scope.$evalAsync(() => {
+                vm.playerLevelByAllPlatform.forEach(
+                    playerLevel => {
+                        if (playerLevel && playerLevel.platform && playerLevel.platform == platformObjId) {
+                            vm.playerLevelPeriod = {};
+                            vm.allPlayerLvl = playerLevel.playerLevel;
+                            vm.platformBatchLevelUp = true;
+                            vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+                            vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
+                            vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
+                            vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod ? vm.selectedPlatform.data.playerLevelDownPeriod : vm.allPlayerLevelUpPeriod.MONTH;
+                            vm.allPlayerLvlReordered = false;
+                            vm.sortPlayerLevels();
+                            console.log("vm.allPlayerLvl", playerLevel);
+                            vm.playerLvlData = {};
+                            if (vm.allPlayerLvl) {
+                                $.each(vm.allPlayerLvl, function (i, v) {
+                                    vm.playerIDArr.push(v._id);
+                                    vm.playerLvlData[v._id] = v;
+                                })
+                            }
+                            vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod);
+                            vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod);
+                            vm.initiateLevelDownPeriodAllField();
+                        }
+                    }
+                );
+            });
+        };
+
+        vm.getSelectedFeedBackDetails = function (rowData){
+            vm.getSelectedRowPlatformDetails(rowData);
+            vm.loadFeedBackResult();
+            vm.loadFeedBackTopic();
+        };
+
+        vm.loadFeedBackResult = function () {
+            // 1st dependencies variable
+            return Promise.all([
+                commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]))
+            ]).then(
+                result => {
+                    $scope.$evalAsync(() => {
+                        if(result && result.length){
+                            vm.allPlayerFeedbackResults = result[0];
+                        }else{
+                            vm.allPlayerFeedbackResults = [];
+                        }
+                    });
+                }
+            );
+        };
+
+        vm.loadFeedBackTopic = function () {
+            // 1st dependencies variable
+            return Promise.all([
+                commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+            ]).then(
+                result => {
+                    $scope.$evalAsync(() => {
+                        if(result && result.length){
+                            vm.playerFeedbackTopic = result[0];
+                        }else{
+                            vm.playerFeedbackTopic = [];
+                        }
+                    });
+                }
+            );
+        };
+
+        vm.initRewardSettings = function (rowData){
+            vm.getSelectedRowPlatformDetails(rowData);
+            vm.getPlatformProviderGroup();
+            vm.getRewardEventGroupByPlatform();
+            vm.getRewardEventByPlatform();
+        };
+
+        vm.getRewardEventGroupByPlatform = function () {
+            // 1st dependencies variable
+            return Promise.all([
+                commonService.getRewardEventsGroupByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+            ]).then(
+                result => {
+                    $scope.$evalAsync(() => {
+                        if(result && result.length){
+                            vm.rewardEventGroup = result[0];
+                        }else{
+                            vm.rewardEventGroup = [];
+                        }
+                    });
+                }
+            );
+        };
+
+        vm.getRewardEventByPlatform = function () {
+            // 1st dependencies variable
+            return Promise.all([
+                commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+            ]).then(
+                result => {
+                    $scope.$evalAsync(() => {
+                        if(result && result.length){
+                            vm.allRewardEvent = result[0];
+                        }else{
+                            vm.allRewardEvent = [];
+                        }
+                    });
+                }
+            );
+        };
+
         vm.getEncPhoneNumber = function (playerData) {
             return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''
         };
@@ -7266,6 +7443,8 @@ define(['js/app'], function (myApp) {
         vm.sendMessageToPlayerBtn = function (type, data) {
             vm.telphonePlayer = data;
             $('#messagePlayerModal').modal('show');
+
+            vm.getSelectedRowPlatformDetails(data);
         };
 
         vm.callNewPlayerBtn = function (phoneNumber, data) {
@@ -7330,6 +7509,7 @@ define(['js/app'], function (myApp) {
                 $('#smsPlayerModal').modal('show');
                 vm.showSmsTab(null);
             } else if (type == 'tel') {
+                vm.getSelectedRowPlatformDetails(data);
                 var phoneCall = {
                     playerId: data.playerId,
                     name: data.name,
@@ -7532,21 +7712,38 @@ define(['js/app'], function (myApp) {
 
         vm.checkPlayerNameValidity = function (name, form, type) {
             if (!name) return;
-            vm.euPrefixNotExist = false;
+            // vm.euPrefixNotExist = false;
+            vm.wrongPrefix = false;
             if (type == 'edit' && name == vm.selectedSinglePlayer.name) {
                 vm.duplicateNameFound = false;
                 return;
             }
 
-            if (type !== 'edit' && vm.selectedPlatform.data.name === "EU8" && name && name.charAt(0) !== "e") {
-                vm.euPrefixNotExist = true;
+            // if (type !== 'edit' && vm.selectedPlatform.data.name === "EU8" && name && name.charAt(0) !== "e") {
+            //     vm.euPrefixNotExist = true;
+            // }
+            // form.$setValidity('euPrefixNotExist', !vm.euPrefixNotExist);
+
+            let platformObjId = vm.selectedPlatform.id;
+            if(form && form.$name == "form_new_player" && vm.newPlayer && vm.newPlayer.platform){
+                platformObjId = vm.newPlayer.platform;
+
+                if (type !== 'edit') {
+                    let platformData = vm.allPlatformData.find(platform => platform._id == platformObjId);
+                    if (platformData.prefix && !name.startsWith(platformData.prefix)) {
+                        vm.wrongPrefix = true;
+                    }
+                }
             }
-            form.$setValidity('euPrefixNotExist', !vm.euPrefixNotExist);
+            form.$setValidity('wrongPrefix', !vm.wrongPrefix);
             $scope.safeApply();
 
+            if (vm.wrongPrefix) {
+                return;
+            }
 
             socketService.$socket($scope.AppSocket, 'checkPlayerNameValidity', {
-                platform: vm.selectedPlatform.id,
+                platform: platformObjId,
                 name: name
             }, function (data) {
                 if (data && data.data.isPlayerNameValid == false) {
@@ -7609,9 +7806,13 @@ define(['js/app'], function (myApp) {
         };
 
         //check if value is pass in before data table function is call
-        vm.onClickPlayerCheck = function (recordId, callback, param) {
+        vm.onClickPlayerCheck = function (recordId, callback, param, row) {
             if (!(param instanceof Array)) {
                 param = param ? [param] : [];
+            }
+
+            if(row){
+                param.push(row);
             }
 
             if (vm.currentSelectedPlayerObjId && recordId === vm.currentSelectedPlayerObjId) {
@@ -7625,14 +7826,26 @@ define(['js/app'], function (myApp) {
         };
 
 
-        vm.openEditPlayerDialog = function (selectedTab) {
+        vm.openEditPlayerDialog = function (selectedTab, row) {
             vm.editSelectedTab = "";
             vm.editSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
             vm.prepareEditCritical('player');
             vm.prepareEditPlayerPayment();
             vm.prepareEditPlayerPayment2();
             vm.prepareEditPlayerPayment3();
-            dialogDetails();
+
+            if(row){
+                let platformObjId = row && row.platform ? row.platform : "";
+                vm.getSelectedRowPlatformDetails(row);
+                vm.setPlayerLevelAccordingByPlatformId(platformObjId);
+                Promise.all([vm.loadBankCardGroupData(), vm.loadMerchantGroupData(), vm.loadAlipayGroupData(), vm.loadWechatPayGroupData()]).then(
+                    () => {
+                        dialogDetails();
+                    }
+                );
+            }else{
+                dialogDetails();
+            }
 
             function dialogDetails() {
                 let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
@@ -8392,8 +8605,9 @@ define(['js/app'], function (myApp) {
         };
         //Create new player
         vm.createNewPlayer = function () {
-            vm.newPlayer.platform = vm.selectedPlatform.id;
-            vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
+            vm.newPlayer.platformId = vm.getPlatformIdFromByObjId(vm.newPlayer.platform);
+            vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
+            vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
 
             console.log('newPlayer', vm.newPlayer);
@@ -8429,6 +8643,17 @@ define(['js/app'], function (myApp) {
                 });
             }
         };
+
+        vm.getPlatformIdFromByObjId = function(platformObjId){
+            let currentPlatform = vm.allPlatformData.filter(a => a._id.toString() == platformObjId.toString());
+
+            if(currentPlatform && currentPlatform.length && currentPlatform[0].platformId){
+                return currentPlatform[0].platformId;
+            }
+
+            return null;
+        };
+
         vm.displayPhoneError = function (status) {
             if (status && status == 454) {
                 vm.existPhone = true;
@@ -8622,7 +8847,7 @@ define(['js/app'], function (myApp) {
 
         vm.createTrialPlayerAccount = function () {
             //createTestPlayerForPlatform
-            socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.selectedPlatform.data.platformId}, function (data) {
+            socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.testPlayerPlatform}, function (data) {
                 vm.createtrail = data.data;
                 vm.testPlayerName = data.data.playerData.name;
                 vm.testPlayerPassword = data.data.playerData.password;
@@ -9300,6 +9525,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initFeedbackModal = function (rowData) {
+            vm.getSelectedRowPlatformDetails(rowData);
             if (rowData && rowData.playerId) {
                 $('#addFeedbackTab').addClass('active');
                 $('#feedbackHistoryTab').removeClass('active');
@@ -9363,7 +9589,7 @@ define(['js/app'], function (myApp) {
             vm.messageForPlayer = {};
         };
 
-        vm.initSMSModal = function () {
+        vm.initSMSModal = function (rowData) {
             $('#smsToPlayerTab').addClass('active');
             $('#smsLogTab').removeClass('active');
             $('#smsSettingTab').removeClass('active');
@@ -9371,6 +9597,7 @@ define(['js/app'], function (myApp) {
             vm.playerSmsSetting = {smsGroup: {}};
             vm.getPlatformSmsGroups();
             vm.getAllMessageTypes();
+            vm.getSelectedRowPlatformDetails(rowData);
             $scope.$evalAsync();
         };
 
@@ -9573,7 +9800,7 @@ define(['js/app'], function (myApp) {
             vm.rewardTotalAmount = 0;
             vm.creditTransfer.needClose = false;
             vm.creditTransfer.transferResult = '';
-
+            vm.getSelectedRowProviderDetails(row);
             if (vm.selectedPlatform.data.useProviderGroup) {
                 vm.creditTransfer.showValidCredit = row.validCredit;
                 vm.creditTransfer.showRewardAmount = row.lockedCredit;
@@ -14635,13 +14862,15 @@ define(['js/app'], function (myApp) {
             $('#playerBonusHistoryTbl').resize();
             $scope.safeApply();
         }
-        vm.initPlayerBonus = function () {
+        vm.initPlayerBonus = function (rowData) {
             vm.playerBonus = {
                 resMsg: '',
                 showSubmit: true,
                 notSent: true,
                 bonusId: 1
             };
+
+            vm.getSelectedRowPlatformDetails(rowData);
         }
 
         vm.getPlayerBankList = function () {
@@ -16262,26 +16491,28 @@ define(['js/app'], function (myApp) {
             if (!vm.selectedPlatform) {
                 return
             }
-            socketService.$socket($scope.AppSocket, 'getPlatformBankCardGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                $scope.$evalAsync(() => {
-                    vm.platformBankCardGroupList = data.data;
-                    vm.platformBankCardGroupListCheck = {};
-                    $.each(vm.platformBankCardGroupList, function (i, v) {
-                        vm.platformBankCardGroupListCheck[v._id] = v.displayName ? v.displayName : true;
-                    })
-                })
-            })
+
+            return $scope.$socketPromise("getPlatformBankCardGroup", {platform: vm.selectedPlatform.id}).then(
+                data => {
+                    //$scope.$evalAsync(() => {
+                        vm.platformBankCardGroupList = data.data;
+                        vm.platformBankCardGroupListCheck = {};
+                        $.each(vm.platformBankCardGroupList, function (i, v) {
+                            vm.platformBankCardGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+                        })
+                    //})
+                },
+                error => {
+                    console.log(error)
+                }
+            )
         }
 
         vm.pickBankCardAcc = function (bankcard) {
             if (bankcard && bankcard.accountNumber) {
                 vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
                 vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
-                if(vm.paymentSystemName === 'PMS2') {
-                    vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 6);
-                } else {
-                    vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
-                }
+                vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 6);
             };
         }
         vm.getBankCardMaxAmount = function (bankAcc) {
@@ -16305,15 +16536,18 @@ define(['js/app'], function (myApp) {
             if (!vm.selectedPlatform) {
                 return
             }
-            socketService.$socket($scope.AppSocket, 'getPlatformMerchantGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                $scope.$evalAsync(() => {
-                    vm.platformMerchantGroupList = data.data;
-                    vm.platformMerchantGroupListCheck = {};
-                    $.each(vm.platformMerchantGroupList, function (i, v) {
-                        vm.platformMerchantGroupListCheck[v._id] = v.displayName ? v.displayName : true;
-                    })
-                })
-            })
+
+            return $scope.$socketPromise("getPlatformMerchantGroup", {platform: vm.selectedPlatform.id}).then(
+                data => {
+                    //$scope.$evalAsync(() => {
+                        vm.platformMerchantGroupList = data.data;
+                        vm.platformMerchantGroupListCheck = {};
+                        $.each(vm.platformMerchantGroupList, function (i, v) {
+                            vm.platformMerchantGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+                        })
+                    //})
+                }
+            )
         };
 
         /////////////////////////////////////// Merchant Group end  /////////////////////////////////////////////////
@@ -16329,18 +16563,19 @@ define(['js/app'], function (myApp) {
                 return
             }
             console.log("getAlipays", vm.selectedPlatform.id);
-            socketService.$socket($scope.AppSocket, 'getPlatformAlipayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                $scope.$evalAsync(() => {
-                    console.log('Alipaygroup', data);
-                    //provider list init
-                    vm.platformAlipayGroupList = data.data;
-                    vm.platformAlipayGroupListCheck = {};
-                    $.each(vm.platformAlipayGroupList, function (i, v) {
-                        vm.platformAlipayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+            return $scope.$socketPromise("getPlatformAlipayGroup", {platform: vm.selectedPlatform.id}).then(
+                data => {
+                    $scope.$evalAsync(() => {
+                        console.log('Alipaygroup', data);
+                        //provider list init
+                        vm.platformAlipayGroupList = data.data;
+                        vm.platformAlipayGroupListCheck = {};
+                        $.each(vm.platformAlipayGroupList, function (i, v) {
+                            vm.platformAlipayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+                        })
                     })
-                })
-                // $scope.safeApply();
-            })
+                }
+            )
         }
 
         vm.pickAlipayAcc = function () {
@@ -16391,14 +16626,18 @@ define(['js/app'], function (myApp) {
             if (!vm.selectedPlatform) {
                 return
             }
-            socketService.$socket($scope.AppSocket, 'getPlatformWechatPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                //provider list init
-                vm.platformWechatPayGroupList = data.data;
-                vm.platformWechatPayGroupListCheck = {};
-                $.each(vm.platformWechatPayGroupList, function (i, v) {
-                    vm.platformWechatPayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
-                });
-            })
+            return $scope.$socketPromise("getPlatformWechatPayGroup", {platform: vm.selectedPlatform.id}).then(
+                data => {
+                    $scope.$evalAsync(() => {
+                        //provider list init
+                        vm.platformWechatPayGroupList = data.data;
+                        vm.platformWechatPayGroupListCheck = {};
+                        $.each(vm.platformWechatPayGroupList, function (i, v) {
+                            vm.platformWechatPayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+                        });
+                    })
+                }
+            )
         };
 
         vm.pickWechatPayAcc = function () {
@@ -18126,7 +18365,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsLvlConfig = {};
                     vm.oldRewardPointsLvlConfigPeriod = null;
                     vm.oldRewardPointsLvlConfigCustomPeriodEndTime = null;
-                    Q.all([vm.getRewardPointsLvlConfig(), vm.getAllPlayerLevels(), vm.getPlatformProviderGroup()]).then(
+                    Q.all([vm.getRewardPointsLvlConfig(), vm.getAllPlayerLevels(), vm.getPlatformProviderGroup(), vm.getAllPlayerLevelByAllPlatform()]).then(
                         (data) => {
                             // Check is all player level already set rewardPointsLvlConfig
                             vm.allPlayerLvl.forEach((playerLvl) => {
@@ -19579,6 +19818,18 @@ define(['js/app'], function (myApp) {
                         vm.initiateLevelDownPeriodAllField();
                     })
                 });
+        };
+
+        vm.getAllPlayerLevelByAllPlatform = function() {
+            return $scope.$socketPromise('getPlayerLevelByAllPlatforms', {}).then(
+                data => {
+                    $scope.$evalAsync(() => {
+                        if(data && data.data){
+                            vm.playerLevelByAllPlatform = data.data;
+                        }
+                    });
+                }
+            )
         };
 
         vm.getPlayerLevelUpPeriodName = function (value) {
@@ -22192,8 +22443,11 @@ define(['js/app'], function (myApp) {
                 $("select#selectCredibilityRemark").multipleSelect("uncheckAll");
                 vm.playerAdvanceSearchQuery = {
                     creditOperator: ">=",
-                    playerType: 'Real Player (all)'
+                    playerType: 'Real Player (all)',
+                    platformList: []
                 };
+                setTimeout(function(){$("select#productName").selectpicker('refresh')},100);
+
                 $scope.$evalAsync();
                 vm.getPlayersByAdvanceQueryDebounced(function () {
                 });
@@ -23324,12 +23578,40 @@ define(['js/app'], function (myApp) {
         vm.loadBankCard = function(){
             // 1st dependencies variable
             return Promise.all([
-                commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])),
+                commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([]))
             ]).then(
                 result => {
                     $scope.$evalAsync(() => {
                         if(result && result.length){
                             vm.bankCards = result[0];
+                        }
+                    });
+                }
+            );
+        };
+
+        vm.loadAliPayAcc = function() {
+            return Promise.all([
+                commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([]))
+            ]).then(
+                result => {
+                    $scope.$evalAsync(() => {
+                        if(result && result.length){
+                            vm.allAlipaysAcc = result[0];
+                        }
+                    });
+                }
+            );
+        };
+
+        vm.loadWechatPayAcc = function() {
+            return Promise.all([
+                commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([]))
+            ]).then(
+                result => {
+                    $scope.$evalAsync(() => {
+                        if(result && result.length){
+                            vm.allWechatpaysAcc = result[0];
                         }
                     });
                 }
@@ -23387,6 +23669,25 @@ define(['js/app'], function (myApp) {
                 });
                 vm.submitAdminPlayerFeedbackQuery(true);
             })
+        }
+
+        vm.selectLevelOnProductChange = function() {
+            if (vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.playerLevel) {
+                vm.playerAdvanceSearchQuery.playerLevel = "";
+            }
+
+            if (!(vm.playerLevelByAllPlatform && vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.platformList && vm.playerAdvanceSearchQuery.platformList.length == 1)) {
+                return;
+            }
+
+            for (let key in vm.playerLevelByAllPlatform) {
+                if (vm.playerLevelByAllPlatform[key].platform && vm.playerLevelByAllPlatform[key].playerLevel
+                    && vm.playerAdvanceSearchQuery.platformList[0] ==  String(vm.playerLevelByAllPlatform[key].platform)) {
+                    vm.playerTableLevelOptions = vm.playerLevelByAllPlatform[key].playerLevel;
+                    break;
+                }
+            }
+
         }
 
     };

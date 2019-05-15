@@ -302,7 +302,11 @@ define([], () => {
         };
 
         self.getAllAutoFeedback = function($scope, platformObjId) {
-            return $scope.$socketPromise('getAllAutoFeedback', {platformObjId: platformObjId})
+            let sendData = {};
+            if(platformObjId) {
+                sendData.platformObjId = platformObjId;
+            }
+            return $scope.$socketPromise('getAllAutoFeedback', sendData)
                 .then(data => data.data.data);
         };
 

@@ -220,6 +220,25 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         return authService.adminName;
     };
 
+    $scope.getServerTime = function (callback) {
+        socketService.$socket($scope.AppSocket, 'getServerTime', {}, onSuccess, onFail, true);
+
+        function onSuccess(data) {
+            $scope.serverTime = data.data;
+            console.log("serverTime:", $scope.serverTime);
+            if (callback) {
+                callback.call(this);
+            }
+        }
+
+        function onFail(error) {
+            console.error("Failed to get serverTime!", error);
+            if (callback) {
+                callback.call(this, error);
+            }
+        }
+    };
+
     // logout handler
     $scope.logout = function () {
         // disconnect socket
@@ -412,7 +431,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $scope.$evalAsync($scope.selectPlatformNode(data));
             $scope.showPlatformDropDownList = false;
         });
-        sendProfitData()
+        sendAllProfitData();
     };
 
     $scope.createPlatformNode = function (v) {
@@ -462,6 +481,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
         loadPlatformInfo();
         $scope.getUsableChannelList();
+        $scope.getServerTime();
         $scope.$broadcast('switchPlatform');
         $scope.fontSizeAdaptive(document.getElementById('selectedPlatformNodeTitle'));
     };
@@ -1925,56 +1945,81 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     var profileDetailTimeOut;
 
 
-    async function sendProfitData(){
-        let amountLeft = 0;
-        for (let i=0; i<$scope.platformList.length; i++){
-            await new Promise((resolve,reject) => {
-                setTimeout(() => {
-                    // console.log($scope.platformList[i].id);
-                    loadProfitDetail($scope.platformList[i].id, $scope.platformList[i].text);
-                    amountLeft++;
-                    // console.log(amountLeft);
-                    resolve(amountLeft);
-                }, 30000);
-            });
+    $scope.loadAllProfitDetail = function () {
+        $("#modalAllProfitData").modal('show');
+    };
+
+
+    async function sendAllProfitData() {
+        $scope.allProfitDetailList = [];
+        for (let i = 0; i < $scope.platformList.length; i++) {
+            $scope.allProfitDetailList.push(await loadProfitDetail($scope.platformList[i].id, $scope.platformList[i].text));
         }
-        sendProfitData()
+        $scope.$evalAsync() ;
+        sendProfitData();
     }
 
+    async function sendProfitData(){
+        for (let i = 0; i < $scope.allProfitDetailList.length; i++) {
+            await new Promise((resolve) => {
+                $scope.$evalAsync(() => {
+                    setTimeout(() => {
+                        $scope.platformTexts = $scope.allProfitDetailList[i].platformTexts;
+                        $scope.netProfitDetailIncome = $scope.allProfitDetailList[i].netProfitDetailIncome;
+                        $scope.profitDetailConsumptionAmount = $scope.allProfitDetailList[i].profitDetailConsumptionAmount;
+                        $scope.profitDetailNewPlayer = $scope.allProfitDetailList[i].profitDetailNewPlayer;
+                        $scope.profitDetailTopUpAmount = $scope.allProfitDetailList[i].profitDetailTopUpAmount;
+                        $scope.profitDetailConsumptionPlayer = $scope.allProfitDetailList[i].profitDetailConsumptionPlayer;
+                        $scope.profitDetailBonusAmount = $scope.allProfitDetailList[i].profitDetailBonusAmount;
+                        $scope.profitDetailIncome = $scope.allProfitDetailList[i].profitDetailIncome;
+                        $scope.financialPoints = $scope.allProfitDetailList[i].financialPoints;
+                        resolve('success');
+                    }, 30000);
+                })
+            });
+        }
+        sendProfitData();
+    }
 
-    function loadProfitDetail(id, text) {
+    $scope.filterProfitDetail = function(data) {
+        return data.financialPoints !== 0 || data.netProfitDetailIncome !== "0" ||
+               data.profitDetailConsumptionAmount !== "0" || data.profitDetailNewPlayer !== 0 ||
+               data.profitDetailTopUpAmount !== "0" || data.profitDetailConsumptionPlayer !== 0 ||
+               data.profitDetailBonusAmount !== "0" || data.profitDetailIncome !== "0";
+    };
 
+
+     function loadProfitDetail(id, text) {
 
         clearTimeout(callBackTimeOut);
         clearTimeout(profileDetailTimeOut);
 
-        let queryDone = [false, false, false, false, false];
+        // let queryDone = [false, false, false, false, false];
         let sendData = {
             platformId: id,
             startDate: utilService.getTodayStartTime(),
             endDate: utilService.getTodayEndTime(),
         };
+        let allProfitDetail = {};
 
-        let sendData1 = {};
-        Object.assign(sendData1, sendData);
-        sendData1.topUpType = ['PlayerTopUp', 'ManualPlayerTopUp', 'PlayerAlipayTopUp', 'PlayerWechatTopUp'];
-        sendData1.playerBonusType = 'PlayerBonus';
-        sendData1.partnerBonusType = 'PartnerBonus';
+        sendData.topUpType = ['PlayerTopUp', 'ManualPlayerTopUp', 'PlayerAlipayTopUp', 'PlayerWechatTopUp'];
+        sendData.playerBonusType = 'PlayerBonus';
+        sendData.partnerBonusType = 'PartnerBonus';
 
-        socketService.$socket($scope.AppSocket, 'getProfitDisplayDetailByPlatform', sendData1, function (data) {
-            $scope.$evalAsync(() => {
-                $scope.profitDetailIncome = 0;
-                $scope.profitDetailBonusAmount =  0;
-                $scope.profitDetailTopUpAmount = 0;
-                $scope.platformTexts = text ;
+         return $scope.$socketPromise('getProfitDisplayDetailByPlatform', sendData).then(function (data) {
+
+                allProfitDetail.platformTexts = text;
+                allProfitDetail.profitDetailIncome = 0;
+                allProfitDetail.profitDetailBonusAmount = 0;
+                allProfitDetail.profitDetailTopUpAmount = 0;
 
                 let playerBonusAmount = data.data[0][0] !== undefined ? data.data[0][0].amount : 0;
                 let topUpAmount = data.data[1][0] !== undefined ? data.data[1][0].amount : 0;
                 let partnerBonusAmount = data.data[2][0] !== undefined ? data.data[2][0].amount : 0;
 
-                $scope.profitDetailIncome = noDecimalPlacesString(topUpAmount - playerBonusAmount - partnerBonusAmount);
-                $scope.profitDetailBonusAmount =  noDecimalPlacesString(playerBonusAmount + partnerBonusAmount);
-                $scope.profitDetailTopUpAmount = noDecimalPlacesString(topUpAmount);
+                allProfitDetail.profitDetailIncome = noDecimalPlacesString(topUpAmount - playerBonusAmount - partnerBonusAmount);
+                allProfitDetail.profitDetailBonusAmount = noDecimalPlacesString(playerBonusAmount + partnerBonusAmount);
+                allProfitDetail.profitDetailTopUpAmount = noDecimalPlacesString(topUpAmount);
 
                 let sendData3 = {
                     platformId: id,
@@ -1985,83 +2030,78 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     partnerBonusType: 'PartnerBonus',
                 };
 
-                socketService.$socket($scope.AppSocket, 'getProfitDisplayDetailByPlatform', sendData3, function (totalAmount) {
-                    $scope.$evalAsync(() => {
-                        $scope.netProfitDetailIncome = 0;
+                return $scope.$socketPromise('getProfitDisplayDetailByPlatform', sendData3)
 
-                        let totalPlayerBonusAmount = totalAmount.data[0][0] !== undefined ? totalAmount.data[0][0].amount : 0;
-                        let totalTopUpAmount = totalAmount.data[1][0] !== undefined ? totalAmount.data[1][0].amount : 0;
-                        let totalPartnerBonusAmount = totalAmount.data[2][0] !== undefined ? totalAmount.data[2][0].amount : 0;
+                // queryDone[0] = true;
 
-                        $scope.netProfitDetailIncome = noDecimalPlacesString(totalTopUpAmount - totalPlayerBonusAmount - totalPartnerBonusAmount);
+         }).then(function (totalAmount) {
+                 allProfitDetail.netProfitDetailIncome = 0;
 
-                        queryDone[3] = true;
-                    })
-                });
+                 let totalPlayerBonusAmount = totalAmount.data[0][0] !== undefined ? totalAmount.data[0][0].amount : 0;
+                 let totalTopUpAmount = totalAmount.data[1][0] !== undefined ? totalAmount.data[1][0].amount : 0;
+                 let totalPartnerBonusAmount = totalAmount.data[2][0] !== undefined ? totalAmount.data[2][0].amount : 0;
 
-                queryDone[0] = true;
-            })
-        });
+                 allProfitDetail.netProfitDetailIncome = noDecimalPlacesString(totalTopUpAmount - totalPlayerBonusAmount - totalPartnerBonusAmount);
+
+                 // queryDone[3] = true;
+
+             return $scope.$socketPromise('getPlayerConsumptionDetailByPlatform', sendData)
+              
+         }).then(function success(data) {
+                 let consumptionAmount = data.data[0] != undefined ? data.data[0].totalAmount : 0;
+
+                 allProfitDetail.profitDetailConsumptionAmount = noDecimalPlacesString(consumptionAmount);
+                 allProfitDetail.profitDetailConsumptionPlayer = data.data[0] != undefined ? data.data[0].userIds.length.toLocaleString() : 0;
+
+                 // queryDone[1] = true;
+
+             let sendData2 = {
+                 platform: id,
+                 startDate: utilService.getTodayStartTime(),
+                 endDate: utilService.getTodayEndTime(),
+             };
+
+             return $scope.$socketPromise('countNewPlayers', sendData2)
+
+         }).then(function success(data) {
+                 allProfitDetail.profitDetailNewPlayer = data.data[0] != undefined ? data.data[0].number.toLocaleString() : 0;
+
+                 // queryDone[2] = true;
+
+             return $scope.$socketPromise('getOnePlatformSetting', {_id: id})
+
+         }).then(function success(data) {
+                 allProfitDetail.financialPoints = data.data.financialPoints || 0;
+
+                 if (data.data.hasOwnProperty("financialPoints") && data.data.financialSettlement && !data.data.financialSettlement.financialSettlementToggle && data.data.financialSettlement.hasOwnProperty("minFinancialPointsNotification")
+                     && data.data.financialSettlement.financialPointsNotification && data.data.financialPoints < data.data.financialSettlement.minFinancialPointsNotification) {
+                     socketService.$socket($scope.AppSocket, 'getAdminInfo', {
+                         _id: authService.adminId
+                     },  data => {
+                         if (data.data && data.data.financialPointsNotificationShowed && data.data.financialPointsNotificationShowed.indexOf($scope.selectedPlatform.data.platformId) < 0) {
+                             // $("#modalFinancialPointsNotification").modal('show');
+                             updateFinancialNotificationShowed();
+                         }
+                     });
+                 }
+                 // queryDone[4] = true;
+             return allProfitDetail;
+         });
 
 
-        socketService.$socket($scope.AppSocket, 'getPlayerConsumptionDetailByPlatform', sendData, function success(data) {
-
-            console.log('getPlayerConsumptionDetailByPlatform data', data);
-
-            $scope.$evalAsync(() => {
-                let consumptionAmount = data.data[0] != undefined ? data.data[0].totalAmount : 0;
-                $scope.profitDetailConsumptionAmount = noDecimalPlacesString(consumptionAmount);
-                $scope.profitDetailConsumptionPlayer = data.data[0] != undefined ? data.data[0].userIds.length.toLocaleString() : 0;
-                queryDone[1] = true;
-            })
-        });
-
-        let sendData2 = {
-            platform: id,
-            startDate: utilService.getTodayStartTime(),
-            endDate: utilService.getTodayEndTime(),
-        };
-
-        socketService.$socket($scope.AppSocket, 'countNewPlayers', sendData2, function success(data) {
-            $scope.$evalAsync(() => {
-                $scope.profitDetailNewPlayer = data.data[0] != undefined ? data.data[0].number.toLocaleString() : 0;
-
-                queryDone[2] = true;
-            })
-        });
-
-        socketService.$socket($scope.AppSocket, 'getOnePlatformSetting', {_id: id}, function success(data) {
-            $scope.$evalAsync(() => {
-                $scope.financialPoints = data.data.financialPoints || 0;
-                if (data.data.hasOwnProperty("financialPoints") && data.data.financialSettlement && !data.data.financialSettlement.financialSettlementToggle && data.data.financialSettlement.hasOwnProperty("minFinancialPointsNotification")
-                    && data.data.financialSettlement.financialPointsNotification && data.data.financialPoints < data.data.financialSettlement.minFinancialPointsNotification) {
-                    socketService.$socket($scope.AppSocket, 'getAdminInfo', {
-                        _id: authService.adminId
-                    },  data => {
-                        if (data.data && data.data.financialPointsNotificationShowed && data.data.financialPointsNotificationShowed.indexOf($scope.selectedPlatform.data.platformId) < 0) {
-                            // $("#modalFinancialPointsNotification").modal('show');
-                            updateFinancialNotificationShowed();
-                        }
-                    });
-                }
-
-                queryDone[4] = true;
-            })
-        });
-
-        callback();
-
-        function callback() {
-
-            if (queryDone[0] && queryDone[1] && queryDone[2] && queryDone[3] && queryDone[4]){
-                profileDetailTimeOut = setTimeout(loadProfitDetail, 60000);
-                return profileDetailTimeOut; // update every minute
-            }
-            else{
-                callBackTimeOut = setTimeout(callback, 30000);
-                return callBackTimeOut;
-            }
-        }
+        //  callback();
+        //
+        // function callback() {
+        //
+        //     if (queryDone[0] && queryDone[1] && queryDone[2] && queryDone[3] && queryDone[4]){
+        //         profileDetailTimeOut = setTimeout(loadProfitDetail, 60000);
+        //         return profileDetailTimeOut; // update every minute
+        //     }
+        //     else{
+        //         callBackTimeOut = setTimeout(callback, 30000);
+        //         return callBackTimeOut;
+        //     }
+        // }
     }
 
     function loadPlatformInfo() {

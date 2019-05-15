@@ -550,6 +550,7 @@ var simplifiedChinese = {
     "Your device has registered. Use your original phone number to login.": "您的设备已注册过",
     "Not the Period of this Reward": "不在此优惠的申请时间中",
     "Over the apply limit already": "超过了此优惠的申请上限",
+    "Not allowed to transfer from test environment.": "只允许测试账号操作转入"
     //todo::add missing messages here
 
     /*

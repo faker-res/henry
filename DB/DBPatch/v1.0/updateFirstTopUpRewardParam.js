@@ -468,7 +468,13 @@ var periodCond = {
     // Reward apply interval
     interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval", detail: "REWARD_INTERVAL_DETAIL"},
     // Top up count between interval check type
-    topUpCountType: {index: 21, type: "interval", des: "Top up count between interval type", options: "intervalType"}
+    topUpCountType: {index: 21, type: "interval", des: "Top up count between interval type", options: "intervalType"},
+    forbidApplyReward: {
+        index: 22,
+        type: "multiSelect",
+        des: "Forbid to apply other reward within reward interval",
+        options: "allRewardEvent"
+    }
 };
 
 var loseValueCond = {
@@ -618,6 +624,12 @@ db.rewardParam.update({
             topUpCond: topUpCond,
             periodCond: {
                 interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval", detail: "REWARD_INTERVAL_DETAIL"},
+                forbidApplyReward: {
+                    index: 22,
+                    type: "multiSelect",
+                    des: "Forbid to apply other reward within reward interval",
+                    options: "allRewardEvent"
+                }
             },
             consumptionCond: consumptionCond,
             consumptionProviderCond: consumptionProviderCond,
@@ -778,7 +790,7 @@ db.rewardParam.update({
             consumptionCond: consumptionCond,
             customCond: {
                 consumptionProviderSource: {
-                    index: 22,
+                    index: 23,
                     type: "multiSelect",
                     des: "Check consumption source by provider",
                     options: "gameProviders"
@@ -823,7 +835,23 @@ db.rewardParam.update({
     $set: {
         condition: {
             generalCond: generalCond,
-            periodCond: periodCond,
+            periodCond: {
+                // Reward apply interval
+                interval: {
+                    index: 20,
+                    type: "select",
+                    des: "Reward interval",
+                    options: "rewardInterval",
+                    detail: "REWARD_INTERVAL_DETAIL"
+                },
+                // Top up count between interval check type
+                topUpCountType: {
+                    index: 21,
+                    type: "interval",
+                    des: "Top up count between interval type",
+                    options: "intervalType"
+                }
+            },
             consumptionCond: consumptionCond,
             customCond: {
                 checkIPFreeTrialReward: {
@@ -912,6 +940,12 @@ db.rewardParam.update({
             }),
             periodCond: {
                 interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval"},
+                forbidApplyReward: {
+                    index: 22,
+                    type: "multiSelect",
+                    des: "Forbid to apply other reward within reward interval",
+                    options: "allRewardEvent"
+                }
             },
             consumptionCond: consumptionCond,
             consumptionProviderCond: consumptionProviderCond,
@@ -1333,7 +1367,13 @@ db.rewardParam.update({
                 // Reward apply interval
                 interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval", detail: "REWARD_INTERVAL_DETAIL"},
                 // Top up count between interval check type
-                topUpCountType: {index: 21, type: "interval", des: "Top up count between interval type", options: "intervalType", detail: "REWARD_TOPUP_COUNT_TYPE_DETAIL"}
+                topUpCountType: {index: 21, type: "interval", des: "Top up count between interval type", options: "intervalType", detail: "REWARD_TOPUP_COUNT_TYPE_DETAIL"},
+                forbidApplyReward: {
+                    index: 22,
+                    type: "multiSelect",
+                    des: "Forbid to apply other reward within reward interval",
+                    options: "allRewardEvent"
+                }
             },
             consumptionCond: consumptionCond,
             customCond: {

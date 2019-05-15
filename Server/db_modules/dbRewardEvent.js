@@ -1026,6 +1026,7 @@ var dbRewardEvent = {
         rewardData = rewardData || {};
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0;
         let promArr = [];
+        let forbidRewardProm = Promise.resolve(true);
         let isMultiApplication = false;
         let allRewardProm;
         let selectedTopUp;
@@ -1050,7 +1051,8 @@ var dbRewardEvent = {
                 telephone: {status: 0},
                 ip: {status: 0},
                 SMSCode: {status: 0},
-                device: {status: 0}
+                device: {status: 0},
+                reward: {status: 0}
             },
             result: {
                 rewardAmount: 0,
@@ -1142,6 +1144,8 @@ var dbRewardEvent = {
                 };
 
                 promArr.push(dbProposalUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery));
+
+                forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
             }
         }
 
@@ -1213,6 +1217,8 @@ var dbRewardEvent = {
 
                     consumptionProm = dbconfig.collection_playerConsumptionRecord.findOne(consumptionPropQuery).lean();
                 }
+
+                forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
             }
             promArr.push(appliedCountProm);
             promArr.push(withdrawalProm);
@@ -1225,11 +1231,15 @@ var dbRewardEvent = {
         if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
             let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate, true);
             promArr.push(playerRewardDetailProm);
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
             let consumptionSlipRewardProm = dbPlayerReward.getPlayerConsumptionSlipRewardDetail(rewardData, playerData.playerId, eventData.code, rewardData.applyTargetDate, false, true);
             promArr.push(consumptionSlipRewardProm);
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
@@ -1304,6 +1314,8 @@ var dbRewardEvent = {
             promArr.push(periodTopupProm);
             let periodPropsProm = dbconfig.collection_proposal.find(eventQuery).lean();
             promArr.push(periodPropsProm);
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
@@ -1579,6 +1591,8 @@ var dbRewardEvent = {
                 default:
                 // reject error
             }
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
 
@@ -1598,6 +1612,8 @@ var dbRewardEvent = {
 
             let consumptions = dbconfig.collection_playerConsumptionRecord.find(consumptionQuery).lean();
             promArr.push(consumptions);
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
@@ -1820,13 +1836,16 @@ var dbRewardEvent = {
         if (eventData.type.name === constRewardType.BACCARAT_REWARD_GROUP) {
             let prom  = dbPlayerReward.getPlayerBaccaratRewardDetail(null, playerData.playerId, eventData.code, false, rewardData.applyTargetDate);
             promArr.push(prom);
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
-        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
+        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), forbidRewardProm]).then(
             data => {
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
                 let rewardSpecificData = data[2];
+                let forbidRewardData = data[3];
 
                 let topupInPeriodCount = topupInPeriodData.length;
                 let eventInPeriodCount = eventInPeriodData.length;
@@ -1891,6 +1910,11 @@ var dbRewardEvent = {
 
                         returnData.condition.deposit.list = [];
                         returnData.condition.bet.list = [];
+
+                        if (!forbidRewardData) {
+                            returnData.status = 2;
+                            returnData.condition.reward.status = 2;
+                        }
 
                         if (consumptionSlipRewardDetail.list && consumptionSlipRewardDetail.list.length){
 
@@ -2097,6 +2121,12 @@ var dbRewardEvent = {
                                 }
                             }
                         }
+
+                        if (!forbidRewardData) {
+                            returnData.status = 2;
+                            returnData.condition.reward.status = 2;
+                        }
+
                         // total number of applicants
                         returnData.result.appliedCount = rewardSpecificData[0] || 0;
 
@@ -2121,6 +2151,11 @@ var dbRewardEvent = {
                             // Check withdrawal after top up condition
                             if (!eventData.condition.allowApplyAfterWithdrawal && rewardSpecificData && rewardSpecificData[0]) {
                                 returnData.condition.deposit.status = 2;
+                            }
+
+                            if (!forbidRewardData) {
+                                returnData.status = 2;
+                                returnData.condition.reward.status = 2;
                             }
 
                             // check correct topup type
@@ -2233,6 +2268,11 @@ var dbRewardEvent = {
                             }
                         }
 
+                        if (!forbidRewardData) {
+                            returnData.status = 2;
+                            returnData.condition.reward.status = 2;
+                        }
+
                         returnData.result.rewardAmount = playerRewardDetail.list.bonus;
                         returnData.result.betAmount = playerRewardDetail.effectiveBet;
                         returnData.result.betTimes = playerRewardDetail.list.requestedTimes;
@@ -2246,6 +2286,11 @@ var dbRewardEvent = {
 
                         if (eventInPeriodData && eventInPeriodData.length > 0) {
                             returnData.status = 2;
+                        }
+
+                        if (!forbidRewardData) {
+                            returnData.status = 2;
+                            returnData.condition.reward.status = 2;
                         }
 
                         let topUpinPeriod = 0;
@@ -2359,6 +2404,11 @@ var dbRewardEvent = {
                             selectedRewardParam = selectedRewardParam[0];
                         }
 
+                        if (!forbidRewardData) {
+                            returnData.status = 2;
+                            returnData.condition.reward.status = 2;
+                        }
+
                         if (!selectedRewardParam || totalConsumption < selectedRewardParam.totalConsumptionInInterval) {
                             returnData.condition.bet.status = 2;
                         }
@@ -2407,7 +2457,8 @@ var dbRewardEvent = {
                             }
 
                             if (!matchForbidRewardEvent) {
-                                returnData.condition.telephone.status = 2;
+                                returnData.status = 2;
+                                returnData.condition.reward.status = 2;
                             }
                         }
                         else {
@@ -2455,6 +2506,11 @@ var dbRewardEvent = {
                             if ((consumptionAmount - applyRewardAmount) < selectedRewardParam.requiredConsumptionAmount) {
                                 returnData.condition.bet.status = 2;
                             }
+                        }
+
+                        if (!forbidRewardData) {
+                            returnData.status = 2;
+                            returnData.condition.reward.status = 2;
                         }
 
                         if (selectedRewardParam.numberParticipation && applyRewardTimes < selectedRewardParam.numberParticipation) {
@@ -2567,6 +2623,12 @@ var dbRewardEvent = {
                                 }
                             });
                         }
+
+                        if (!forbidRewardData) {
+                            returnData.status = 2;
+                            returnData.condition.reward.status = 2;
+                        }
+
                         returnData.condition.bet.status = returnData.result.canApplyAmount ? 1 : 2;
                         returnData.status = returnData.condition.bet.status === 1 && returnData.condition.deposit && returnData.condition.deposit.status === 1 ? 1 : 2;
                         returnData.result.rewardAmount = returnData.result.canApplyAmount;

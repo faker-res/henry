@@ -491,6 +491,10 @@ var roleChecker = {
                 AutoExportListOrMaxNumOfTxnEveryday: [],
                 WinnerMonitor: ['setWinnerMonitorConfig'],
                 defaultFeedbackConfig: ['updatePlatform'],
+                CanReceiveLargeWithdrawalEmail: [],
+                CanAuditLargeWithdrawal: [],
+                CanReceivePartnerLargeWithdrawalEmail: [],
+                CanAuditPartnerLargeWithdrawal: [],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -879,11 +883,15 @@ var roleChecker = {
                 Read: ['getWechatDeviceNickNameList', 'getWechatConversationReport']
             },
             CsAudioRecordingSystem: {
-                Read: []
+                Read: ['getAudioRecordData', 'getAudioReportData']
             },
             ManualProcessReport: {
                 Read: ['getManualProcessRecord', 'getManualProcessProposalDetail'],
                 Edit: ['summarizeManualProcessRecord'],
+            },
+           CsRankingReport: {
+                Read: ['getCsRankingReport'],
+                Edit: ['summarizeCsRankingData'],
             }
         },
         TeleMarketing: {

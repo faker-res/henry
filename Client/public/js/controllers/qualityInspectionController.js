@@ -24,6 +24,22 @@ define(['js/app'], function (myApp) {
                 3: "CALL_IN",
             };
 
+            vm.timeScale = {
+                1: "Per 15 Minutes",
+                2: "Per Hour",
+                3: "Per Day",
+                4: "Per Month",
+            };
+
+            vm.getDepositMethodbyId = {
+                1: 'Online',
+                2: 'ATM',
+                3: 'Counter',
+                4: 'AliPayTransfer',
+                5: 'weChatPayTransfer',
+                6: 'CloudFlashPay'
+            };
+
             vm.constQualityInspectionStatus = {
                 1: "PENDINGTOPROCESS",
                 2: "COMPLETED_UNREAD",
@@ -219,7 +235,7 @@ define(['js/app'], function (myApp) {
                 platforms.map(item => {
 
                     //store live800companyId;
-                    if (item.data.live800CompanyId.length > 0) {
+                    if (item && item.data && item.data.live800CompanyId && item.data.live800CompanyId.length > 0) {
                         item.data.live800CompanyId.forEach(cId => {
                             if (companyIds.indexOf(cId) == -1) {
                                 companyIds.push(cId);
@@ -234,16 +250,20 @@ define(['js/app'], function (myApp) {
 
                     if (item.data.livecompanyIds && item.data.livecompanyIds.indexOf(item.data.live800CompanyId) == -1)
                         companyIds = companyIds.concat(item.data.live800CompanyId);
+
                     //store CS department
-                    item.data.csDepartment.forEach(cItem => {
-                        csDepartmentMember = csDepartmentMember.concat(cItem.users);
-                    })
+                    if (item && item.data && item.data.csDepartment && item.data.csDepartment.length) {
+                        item.data.csDepartment.forEach(cItem => {
+                            csDepartmentMember = csDepartmentMember.concat(cItem.users);
+                        })
+                    }
 
                     //store QI department
-                    item.data.qiDepartment.forEach(qItem=>{
-                        qiDepartmentMember = qiDepartmentMember.concat(qItem.users);
-                    })
-
+                    if (item && item.data && item.data.qiDepartment && item.data.qiDepartment.length) {
+                        item.data.qiDepartment.forEach(qItem => {
+                            qiDepartmentMember = qiDepartmentMember.concat(qItem.users);
+                        })
+                    }
                 })
               vm.getCSDepartmentMember(csDepartmentMember,companyIds);
               vm.getQIDepartmentMember(qiDepartmentMember);
@@ -718,7 +738,7 @@ define(['js/app'], function (myApp) {
                         status: '1',
                         qiUser: 'all',
                         displayWay: 'true',
-                        searchBySummaryData: false
+                        searchBySummaryData: true
                     }
                 }
                 vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:100, count:0};
@@ -2636,7 +2656,7 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 selectedLiveAcc = data.data[0].live800Acc.filter( acc => {return vm.selectedCompanyId.indexOf(acc.split("-")[0]) != -1 });
-                            
+
                                 let params= {
                                     'operatorId': selectedLiveAcc,
                                     'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
@@ -2709,7 +2729,7 @@ define(['js/app'], function (myApp) {
 
                                                 return data;
                                             });
-                                        
+
                                         $scope.safeApply();
                                         vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
                                     }
@@ -3667,7 +3687,222 @@ define(['js/app'], function (myApp) {
 
 
             //////////////////////////////////////////////////////////Start of Audio System Tab///////////////////////////////////////////////////////////////////
+            vm.initCsAudioReport = function (){
+                vm.audioReportSearching = {};
+                vm.audioReportSearching.index = 0;
+                vm.audioReportSearching.limit = vm.audioReportSearching && vm.audioReportSearching.limit ? vm.audioReportSearching.limit : 50;
+                vm.audioReportSearching.timeScale = "1";
+                utilService.actionAfterLoaded('#audioReportEndDatetimePicker', function () {
+                    $('#audioReportStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#audioReportStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                    $('#audioReportEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#audioReportEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+
+                    vm.audioReportSearching.pageObj = utilService.createPageForPagingTable("#AudioReportTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "audioReportSearching", vm.getAudioReportData)
+                    });
+                });
+
+            };
+
+            vm.getAudioReportData = function (newSearch){
+                $('#csAudioReportTableSpin').show();
+
+                let tempCallerIdList = [];
+                if (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length){
+                    // do nothing
+                }
+                else if (vm.audioReportSearching && vm.audioReportSearching.csObjId && vm.audioReportSearching.csObjId.length && vm.callerIdList){
+                    // get the caller id based on the selected adminObjId
+                    vm.audioReportSearching.callerId = vm.callerIdList
+                }
+                else if (vm.audioReportSearching && vm.audioReportSearching.selectedCSDepartment && vm.audioReportSearching.selectedCSDepartment.length && vm.csList && vm.csList.length) {
+                    // get all the caller Id based on the selected department
+                    vm.csList.forEach(
+                        cs => {
+                            if (cs && cs.callerId){
+                                tempCallerIdList.push(cs.callerId);
+                            }
+                        }
+                    )
+
+                    if (tempCallerIdList && tempCallerIdList.length){
+                        vm.audioReportSearching.callerId = tempCallerIdList;
+                    }
+                }
+                else{
+                    // get all the caller id
+                    vm.allCsList.forEach(
+                        cs => {
+                            if (cs && cs.callerId){
+                                tempCallerIdList.push(cs.callerId);
+                            }
+                        }
+                    )
+
+                    if (tempCallerIdList && tempCallerIdList.length){
+                        vm.audioReportSearching.callerId = tempCallerIdList;
+                    }
+                }
+
+                let searchQuery = {
+                    startDate: $("#audioReportStartDatetimePicker").data('datetimepicker').getLocalDate(),
+                    endDate: $("#audioReportEndDatetimePicker").data('datetimepicker').getLocalDate(),
+                    data: vm.audioReportSearching,
+                    limit: vm.audioReportSearching.limit || 50,
+                    index: newSearch ? 0 : (vm.audioReportSearching.index || 0),
+                    sortCol: vm.audioReportSearching.sortCol,
+                };
+
+                socketService.$socket($scope.AppSocket, 'getAudioReportData', searchQuery, function (data) {
+                    console.log('audioReportData', data);
+                    $('#csAudioReportTableSpin').hide();
+
+                    let drawData = data.data.data.map(item => {
+                        let index = vm.allCsList.findIndex(p => p.callerId == item.agentNum)
+                        if (index != -1){
+                            item.adminName = vm.allCsList[index].adminName;
+                            // item.platformName = vm.csAccountList[index].platformName;
+                        }
+
+                        if(item.startDate){
+                            item.displayTime =  utilService.$getTimeFromStdTimeFormat(item.startDate);
+                        }
+
+                        item.totalConversationTimeWithoutEavesdropping = item.totalCallTime  - item.totalEavesdroppingTime;
+                        item.totalIncomingAcceptedCall = item.totalIncallNum  - item.totalIncallFailedNum;
+                        item.totalAcceptedCallOut = item.totalOutcallNum  - item. totalOutcallFailedNum;
+                        item.totalCallOutTimeIncludeRingingTime = item.totalCallTime - item.totalAnswerTime + item.totalCallingTime;
+                        item.totalCallOutTime = item.totalCallTime - item.totalAnswerTime;
+                        item.totalMissCall = item.totalIncallFailedNum + item.totalOutcallFailedNum;
+
+                        item.totalCallTime$ = utilService.convertSecondsToStandardFormat(item.totalCallTime);
+                        item.totalConversationTimeWithoutEavesdropping$ = utilService.convertSecondsToStandardFormat(item.totalConversationTimeWithoutEavesdropping);
+                        item.totalAnswerTime$ = utilService.convertSecondsToStandardFormat(item.totalAnswerTime);
+                        item.totalCallOutTimeIncludeRingingTime$ = utilService.convertSecondsToStandardFormat(item.totalCallOutTimeIncludeRingingTime);
+                        item.totalCallOutTime$ = utilService.convertSecondsToStandardFormat(item.totalCallOutTime);
+                        return item;
+                    });
+                    vm.audioReportSearching.size = data.data.size;
+                    vm.drawCsAudioReportable(drawData, newSearch);
+                });
+            };
+
+            vm.drawCsAudioReportable = function (tblData, newSearch) {
+                let option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+
+                    columns: [
+                        // {
+                        //     title: $translate('PRODUCT_NAME'),
+                        //     data: "platformName",
+                        // },
+                        {
+                            title: 'FPMS' + $translate('CS Account'),
+                            data: "adminName",
+                        },
+                        {
+                            title: $translate('Caller ID'),
+                            data: "agentNum",
+                        },
+                        {
+                            title: $translate('Caller Group'),
+                            data: "agentGroupName",
+                        },
+                        {
+                            title: $translate('Time Scale') ,
+                            data: "displayTime",
+                        },
+                        {
+                            title: $translate('Total Conversation Time'),
+                            data: "totalCallTime$",
+                        },
+                        {
+                            title: $translate('Total Conversation Time (Exclude Eavesdropping Time'),
+                            data: "totalConversationTimeWithoutEavesdropping$",
+                        },
+                        {
+                            title: $translate('Total Incoming Accepted Call'),
+                            data: "totalIncomingAcceptedCall",
+                        },
+                        {
+                            title: $translate('Total Incoming Accepted Call Time'),
+                            data: "totalAnswerTime$",
+                        },
+                        {
+                            title: $translate('Total Call Out'),
+                            data: "totalOutcallNum",
+                        },
+                        {
+                            title: $translate('Total Accepted Call Out'),
+                            data: "totalAcceptedCallOut",
+                        },
+                        {
+                            title: $translate('Total Call Out Time (Including Ringing Time'),
+                            data: "totalCallOutTimeIncludeRingingTime$",
+                        },
+                        {
+                            title: $translate('Total Call Out Time'),
+                            data: "totalCallOutTime$",
+                        },
+                        {
+                            title: $translate('Miss Call'),
+                            data: "totalMissCall",
+                        },
+                        {
+                            title: $translate('Miss Call In'),
+                            data: "totalIncallFailedNum",
+                        },
+                        {
+                            title: $translate('Miss Call Out'),
+                            data: "totalOutcallFailedNum",
+                        },
+                        {
+                            title: $translate('Total Hang-up Call Out Number'),
+                            data: "totalCalloutHangoutNum",
+                        },
+                        {
+                            title: $translate('Total Hang-up Call In Number'),
+                            data: "totalCallinHangoutNum",
+                        },
+                    ],
+                    // destroy: true,
+                    paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    },
+                });
+                option.language.emptyTable = $translate("No data available in table");
+
+                let a = utilService.createDatatableWithFooter('#AudioReportTable', option, {});
+                vm.audioReportSearching.pageObj.init({maxCount: vm.audioReportSearching.size}, newSearch);
+                $("#AudioReportTable").off('order.dt');
+                $("#AudioReportTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'audioReportSearching', vm.getAudioReportData);
+                });
+                // setTimeout(function () {
+                $('#AudioReportTable').resize();
+                // }, 300);
+                $scope.$evalAsync();
+            };
+
             vm.initCSAudioSystem = function(){
+                // to get the cs admin
+                vm.getCSAdminList();
                 vm.initAudioRecordingReport();
             };
 
@@ -3700,64 +3935,81 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.getCsByPlatform = function (){
-                let csDepartmentObjIdList = [];
-                vm.platformList.forEach(
-                    platformData => {
-                        if (platformData && platformData.data && platformData.data.csDepartment && platformData.data.csDepartment.length){
-                            platformData.data.csDepartment.forEach(
-                                csDepartmentData => {
-                                    if (csDepartmentData && csDepartmentData._id){
-                                        csDepartmentObjIdList.push(csDepartmentData._id);
+            vm.getCallerId = function (csObjIdList) {
+                if (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length){
+                    vm.audioReportSearching.callerId = [];
+                }
+
+                if (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length){
+                    vm.audioRecordSearching.callerId = [];
+                }
+
+                vm.callerIdList = [];
+
+                if (csObjIdList && csObjIdList.length && vm.allCsList && vm.allCsList.length){
+                // if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length && vm.csAccountList && vm.csAccountList.length){
+                    $scope.$evalAsync( () => {
+                        csObjIdList.forEach(
+                            selectedCs => {
+                                let index = vm.allCsList.findIndex(p => p._id.toString() == selectedCs.toString());
+                                if (index != -1){
+                                    let csData = vm.allCsList[index];
+                                    if (csData && csData.callerId){
+                                        vm.callerIdList.push(csData.callerId)
                                     }
                                 }
-                            )
-                        }
-                    }
-                );
-
-                if (csDepartmentObjIdList && csDepartmentObjIdList.length){
-                    vm.csAccountList = [];
-                    socketService.$socket($scope.AppSocket, 'getCsByCsDepartment', {csDepartmentObjIdList: csDepartmentObjIdList}, function (data) {
-                        $scope.$evalAsync( () => {
-                            if (data && data.data && data.data.length){
-                                data.data.forEach(
-                                    department => {
-                                        if (department && department.users && department.users.length){
-                                            department.users.forEach(
-                                                user => {
-                                                    user.platformName = department.platforms && department.platforms[0] &&  department.platforms[0].name?  department.platforms[0].name : null
-                                                }
-                                            );
-                                            vm.csAccountList = vm.csAccountList.concat(department.users);
-                                        }
-                                    }
-                                )
                             }
-                        })
+                        );
                     })
+                }
+
+                if (vm.callerIdList &&  vm.callerIdList.length == 0){
+                    $scope.$evalAsync( () => {
+                        if (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length){
+                            vm.audioReportSearching.callerId = [];
+                        }
+
+                        if (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length){
+                            vm.audioRecordSearching.callerId = [];
+                        }
+                    });
                 }
             };
 
-            vm.getCallerId = function () {
-                vm.callerIdList = [];
-                if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length && vm.csAccountList && vm.csAccountList.length){
-                    vm.audioRecordSearching.csObjId.forEach(
-                        selectedCs => {
-                            let index = vm.csAccountList.findIndex(p => p._id.toString() == selectedCs.toString());
-                            if (index != -1){
-                                let csData = vm.csAccountList[index];
-                                if (csData && csData.callerId){
-                                    vm.callerIdList.push(csData.callerId)
-                                }
-                            }
-                        }
-                    );
-                    $scope.$evalAsync();
+            vm.durationOperatorChange = function () {
+                if (vm.audioRecordSearching && vm.audioRecordSearching.durationOperator && vm.audioRecordSearching.durationOperator == 'none'){
+                    vm.audioRecordSearching.durationOne = null;
+                    vm.audioRecordSearching.durationTwo = null;
                 }
             };
 
             vm.getAudioRecordData = function (newSearch){
+                $('#csAudioRecordTableSpin').show();
+                let tempCallerIdList = [];
+                if (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length){
+                    // do nothing
+                }
+                else if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length && vm.callerIdList){
+                    // get the caller id based on the selected adminObjId
+                    vm.audioRecordSearching.callerId = vm.callerIdList
+                }
+                else{
+                    // get all the caller id
+                    vm.allCsList.forEach(
+                        cs => {
+                            if (cs && cs.callerId){
+                                tempCallerIdList.push(cs.callerId);
+                            }
+                        }
+                    )
+
+                    if (tempCallerIdList && tempCallerIdList.length){
+                        vm.audioRecordSearching.callerId = tempCallerIdList;
+                    }
+                }
+
+                vm.endLoadMultipleSelect();
+
                 let searchQuery = {
                     startDate: $("#audioRecordStartDatetimePicker").data('datetimepicker').getLocalDate(),
                     endDate: $("#audioRecordEndDatetimePicker").data('datetimepicker').getLocalDate(),
@@ -3772,10 +4024,11 @@ define(['js/app'], function (myApp) {
                     $('#csAudioRecordTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
-                        let index = vm.csAccountList.findIndex(p => p.callerId == item.exten_num)
+                        let index = vm.allCsList.findIndex(p => p.callerId == item.agent_num)
                         if (index != -1){
-                            item.adminName = vm.csAccountList[index].adminName;
-                            item.platformName = vm.csAccountList[index].platformName;
+                            item.adminName = vm.allCsList[index].adminName;
+                            item.platformName = vm.allCsList[index].platformName;
+                            item.billSec$ = utilService.convertSecondsToStandardFormat(item.billsec);
                         }
                         return item;
                     });
@@ -3792,17 +4045,17 @@ define(['js/app'], function (myApp) {
                     ],
 
                     columns: [
-                        {
-                            title: $translate('PRODUCT_NAME'),
-                            data: "platformName",
-                        },
+                        // {
+                        //     title: $translate('PRODUCT_NAME'),
+                        //     data: "platformName",
+                        // },
                         {
                             title: 'FPMS' + $translate('CS Account'),
                             data: "adminName",
                         },
                         {
                             title: $translate('Caller ID'),
-                            data: "exten_num",
+                            data: "agent_num",
                         },
                         {
                             title: $translate('Start date'),
@@ -3814,7 +4067,7 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('Calling Duration (s)'),
-                            data: "billsec",
+                            data: "billSec$",
                         },
                         {
                             title: $translate('Calling Record'),
@@ -3953,14 +4206,24 @@ define(['js/app'], function (myApp) {
 
 
             //////////////////////////////////////////////////////////Start of Manual Approval Report Tab///////////////////////////////////////////////////////////////////
-            vm.initManualProcessReport = function(){
+            vm.getCSAdminList = function () {
                 vm.selectedCS = [];
                 vm.csDepartmentMember = [];
+                vm.csDepartmentGroup = [];
                 vm.platformList.forEach(
                     platform => {
                         if (platform && platform.data && platform.data.csDepartment){
                             platform.data.csDepartment.forEach(cItem => {
-                                vm.csDepartmentMember = vm.csDepartmentMember.concat(cItem.users);
+                                let index = vm.csDepartmentGroup && vm.csDepartmentGroup.length ? vm.csDepartmentGroup.findIndex(p => p.departmentName == cItem.departmentName) : -1;
+                                if (index == -1){
+                                    vm.csDepartmentGroup.push(
+                                        {
+                                            departmentName: cItem.departmentName,
+                                            adminList: cItem.users,
+                                        }
+                                    )
+                                    vm.csDepartmentMember = vm.csDepartmentMember.concat(cItem.users);
+                                }
                             })
                         }
                     }
@@ -3968,13 +4231,57 @@ define(['js/app'], function (myApp) {
 
                 if (vm.csDepartmentMember && vm.csDepartmentMember.length) {
                     socketService.$socket($scope.AppSocket, 'getCSAdmins', {admins: vm.csDepartmentMember}, function (cdata) {
-                       $scope.$evalAsync( () => {
-                           console.log('all admin data', cdata.data);
-                           vm.csList = cdata.data;
-                       })
+                        $scope.$evalAsync( () => {
+                            console.log('all admin data', cdata.data);
+                            vm.csList = cdata.data;
+                            vm.allCsList = cdata.data;
+                        })
                     })
                 };
+            };
 
+            vm.filterCsBasedOnDepartment = function (selectedDepartment) {
+                let selectedCsObjIdList = [];
+                if (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length){
+                    vm.audioReportSearching.callerId = [];
+                }
+                if (vm.audioReportSearching && vm.audioReportSearching.csObjId && vm.audioReportSearching.csObjId.length){
+                    vm.audioReportSearching.csObjId = [];
+                }
+
+                if (selectedDepartment && selectedDepartment.length){
+                    let temp = vm.csDepartmentGroup.filter(d => selectedDepartment.includes(d.departmentName));
+                    if (temp && temp.length){
+                        temp.forEach(
+                            arr => {
+                                if (arr.adminList && arr.adminList.length) {
+                                    selectedCsObjIdList = selectedCsObjIdList.concat(arr.adminList);
+                                }
+                            }
+                        )
+                    }
+
+                    if (selectedCsObjIdList && selectedCsObjIdList.length){
+                        socketService.$socket($scope.AppSocket, 'getCSAdmins', {admins: selectedCsObjIdList}, function (cdata) {
+                            $scope.$evalAsync( () => {
+                                console.log('all admin data', cdata.data);
+
+                                vm.csList = cdata.data;
+                            })
+                        })
+                    }
+                }
+                else{
+
+                    $scope.$evalAsync( () => {
+                        vm.csList = [];
+                        vm.callerIdList = [];
+                    })
+                }
+            };
+
+            vm.initManualProcessReport = function(){
+                vm.getCSAdminList();
                 vm.manualProcessRecordData = {totalCount: 0};
                 vm.manualProcessRecordData.index = 0;
                 vm.manualProcessRecordData.limit = vm.manualProcessRecordData && vm.manualProcessRecordData.limit ? vm.manualProcessRecordData.limit : 50;
@@ -4004,8 +4311,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getManualProcessRecord = function (newSearch){
+                $('#manualProcessReportTableSpin').show();
                 let searchQuery = {
-
                     startDate: $("#manualProcessRecordStartDatetimePicker").data('datetimepicker').getLocalDate(),
                     endDate: $("#manualProcessRecordEndDatetimePicker").data('datetimepicker').getLocalDate(),
                     adminObjId: vm.csList.map(cs => {return cs._id}),
@@ -4327,66 +4634,77 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showProposalModal = function (proposalId, platformObjId, templateNo) {
-                socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
-                    platformId: platformObjId,
-                    proposalId: proposalId
-                }, function (data) {
-                    vm.selectedProposal = data.data;
-                    vm.proposalDetailStyle = {};
+                vm.allBankTypeList = {};
+                commonService.getBankTypeList($scope, platformObjId).catch(err => Promise.resolve({})).then(v => {
+                    vm.allBankTypeList = v;
+                    socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+                        platformId: platformObjId,
+                        proposalId: proposalId
+                    }, function (data) {
+                        vm.selectedProposal = data.data;
+                        vm.proposalDetailStyle = {};
 
-                    vm.selectedProposal.data = commonService.setFixedPropDetail($scope, $translate, $noRoundTwoDecimalPlaces, vm);
+                        vm.selectedProposal.data = commonService.setFixedPropDetail($scope, $translate, $noRoundTwoDecimalPlaces, vm);
 
-                    if (vm.selectedProposal && vm.selectedProposal.data) {
-                        delete vm.selectedProposal.data.betAmount;
-                        delete vm.selectedProposal.data.betTime;
-                        delete vm.selectedProposal.data.winAmount;
-                        delete vm.selectedProposal.data.winTimes;
-                    }
-
-                    if (vm.selectedProposal.data.inputData) {
-                        if (vm.selectedProposal.data.inputData.provinceId) {
-                            //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
-                            commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data.provinceName = data;
-                            });
+                        if (vm.selectedProposal && vm.selectedProposal.data) {
+                            delete vm.selectedProposal.data.betAmount;
+                            delete vm.selectedProposal.data.betTime;
+                            delete vm.selectedProposal.data.winAmount;
+                            delete vm.selectedProposal.data.winTimes;
                         }
-                        if (vm.selectedProposal.data.inputData.cityId) {
-                            //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
-                            commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data.cityName = data;
-                            });
-                        }
-                    } else {
-                        if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
-                            //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
-                            commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
-                            });
-                        }
-                        if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
-                            //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
-                            commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
-                            });
-                        }
-                    }
 
-                    if ( vm.selectedProposal.mainType && vm.selectedProposal.mainType == "PlayerBonus" && vm.selectedProposal.status && vm.selectedProposal.status == 'Approved' ) {
-                        vm.selectedProposal.status = 'approved';
-                    }
+                        if (vm.selectedProposal.data.inputData) {
+                            if (vm.selectedProposal.data.inputData.provinceId) {
+                                //vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+                                commonService.getProvinceName($scope, vm.selectedProposal.data.inputData.provinceId).catch(err => Promise.resolve('')).then(data => {
+                                    vm.selectedProposal.data.provinceName = data;
+                                });
+                            }
+                            if (vm.selectedProposal.data.inputData.cityId) {
+                                //vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                                commonService.getCityName($scope, vm.selectedProposal.data.inputData.cityId).catch(err => Promise.resolve('')).then(data => {
+                                    vm.selectedProposal.data.cityName = data;
+                                });
+                            }
+                        } else {
+                            if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
+                                //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
+                                commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
+                                    vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                                });
+                            }
+                            if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
+                                //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
+                                commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
+                                    vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                                });
+                            }
+                        }
 
-                    let tmpt = vm.proposalTemplate[templateNo];
-                    $(tmpt).modal('show');
-                    if (templateNo == 1) {
-                        $(tmpt).css('z-Index', 1051).modal();
-                    }
+                        if ( vm.selectedProposal.mainType && vm.selectedProposal.mainType == "PlayerBonus" && vm.selectedProposal.status && vm.selectedProposal.status == 'Approved' ) {
+                            vm.selectedProposal.status = 'approved';
+                        }
 
-                    $(tmpt).on('shown.bs.modal', function (e) {
-                        $scope.safeApply();
+                        let tmpt = vm.proposalTemplate[templateNo];
+                        $(tmpt).modal('show');
+                        if (templateNo == 1) {
+                            $(tmpt).css('z-Index', 1051).modal();
+                        }
+
+                        $(tmpt).on('shown.bs.modal', function (e) {
+                            $scope.safeApply();
+                        });
+
+                        // solving the scolling issue for the inner pop up after the outer pop up has closed
+                        $(tmpt).off('hidden.bs.modal');
+                        $(tmpt).on('hidden.bs.modal', function (event) {
+                            if ($('.modal.in').length > 0) {
+                                $("body").addClass('modal-open');
+                            }
+                            $scope.$evalAsync();
+                        });
                     })
-
-
-                })
+                });
             };
 
             // display proposal detail
@@ -4580,16 +4898,199 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'summarizeManualProcessRecord', sendData, function (data) {
                     $scope.$evalAsync(() => {
+                        console.log("Summarized Manual Processing Data has gathered completely");
                         vm.loadingSummarizeManualProcessRecord = false;
                     })
                 }, function (error){
                     vm.loadingSummarizeManualProcessRecord = false;
                     console.log("Error when gather summarized manual process record data:", error)
                 });
-            }
+            };
 
             //////////////////////////////////////////////////////////End of Manual Approval Report Tab///////////////////////////////////////////////////////////////////
 
+            //////////////////////////////////////////////////////////Start of Cs Ranking Report Tab///////////////////////////////////////////////////////////////////
+            vm.initCsRankingReport = function () {
+                vm.getCSAdminList();
+                vm.csRankingReportData = {totalCount: 0};
+                vm.csRankingReportData.index = 0;
+                vm.csRankingReportData.limit = vm.csRankingReportData && vm.csRankingReportData.limit ? vm.csRankingReportData.limit : 50;
+                utilService.actionAfterLoaded(('#csRankingReportEndDatetimePicker'), function () {
+
+                    $('#csRankingReportStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#csRankingReportStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                    $('#csRankingReportEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#csRankingReportEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+
+
+                    vm.csRankingReportData.pageObj = utilService.createPageForPagingTable("#csRankingReportTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "csRankingReportData", vm.getCsRankingReport)
+                    });
+                })
+            };
+
+            vm.getCsRankingReport = function (newSearch){
+                $('#csRankingReportTableSpin').show();
+                let searchQuery = {
+                    startDate: $("#csRankingReportStartDatetimePicker").data('datetimepicker').getLocalDate(),
+                    endDate: $("#csRankingReportEndDatetimePicker").data('datetimepicker').getLocalDate(),
+                    adminObjId: vm.csList.map(cs => {return cs._id}),
+                    limit: vm.csRankingReportData.limit || 50,
+                    index: newSearch ? 0 : (vm.csRankingReportData.index || 0),
+                    sortCol: vm.csRankingReportData.sortCol,
+                };
+
+                if (vm.selectedCS && vm.selectedCS.length){
+                    searchQuery.adminObjId = vm.selectedCS
+                }
+
+                if ((vm.selectedCSDepartment && vm.selectedCSDepartment.length == 0) || !vm.selectedCSDepartment){
+                    searchQuery.adminObjId = vm.allCsList.map(cs => {return cs._id});
+                }
+
+                socketService.$socket($scope.AppSocket, 'getCsRankingReport', searchQuery, function (data) {
+                    console.log('csRankingRecord', data);
+                    $('#csRankingReportTableSpin').hide();
+
+                    let drawData = data.data.data.map(item => {
+
+                        if (item.hasOwnProperty('totalAcceptedCallInTime')){
+                            item.totalAcceptedCallInTime$ = utilService.convertSecondsToStandardFormat(item.totalAcceptedCallInTime);
+                        }
+                        item.adminName = item._id;
+
+                        return item;
+                    });
+                    vm.csRankingReportData.size = data.data.size;
+                    vm.drawCsRankingTable(drawData, newSearch);
+                },
+                err => {
+                    console.log("Error when searching csRanking Report", err);
+                    $('#csRankingReportTableSpin').hide();
+                });
+            };
+
+            vm.drawCsRankingTable = function (tblData, newSearch) {
+                console.log(newSearch);
+                let option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    // "aaSorting": vm.manualProcessRecordData.aaSorting,
+                    aoColumnDefs: [
+                        {'sortCol': 'adminName', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'live800TotalConversationNumber', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'live800TotalEffectiveConversationNumber', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'live800TotalInspectionMark', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'totalAcceptedCallInNumber', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'totalAcceptedCallInTime', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'totalManualProcessNumber', bSortable: true, 'aTargets': [6]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+
+                    columns: [
+                        {
+                            title: 'FPMS' + $translate('CS Account'),
+                            data: "adminName",
+                        },
+                        {
+                            title: $translate('Live800 Total Conversation Number'),
+                            data: "live800TotalConversationNumber",
+                        },
+                        {
+                            title: $translate('Live800 Total Effective Conversation Number'),
+                            data: "live800TotalEffectiveConversationNumber",
+                        },
+                        {
+                            title: $translate('Live800 Total Inspection Mark'),
+                            data: "live800TotalInspectionMark",
+                        },
+                        {
+                            title: $translate('Total Accepted Call In Number'),
+                            data: "totalAcceptedCallInNumber",
+                        },
+                        {
+                            title: $translate('Total Accepted Call In Time'),
+                            data: "totalAcceptedCallInTime$",
+                        },
+                        {
+                            title: $translate('Total Manual Process Number'),
+                            data: "totalManualProcessNumber",
+                        },
+                    ],
+                    // destroy: true,
+                    paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                option.language.emptyTable = $translate("No data available in table");
+
+                let a = utilService.createDatatableWithFooter('#csRankingReportTable', option, {});
+                vm.csRankingReportData.pageObj.init({maxCount: vm.csRankingReportData.size}, newSearch);
+                $("#csRankingReportTable").off('order.dt');
+                $("#csRankingReportTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'csRankingReportData', vm.getCsRankingReport);
+                });
+                // setTimeout(function () {
+                $('#csRankingReportTable').resize();
+                // }, 300);
+                $scope.$evalAsync();
+            };
+
+            vm.initSummarizeCsRankingData = function () {
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#summarizeCsRankingEndDatetimePicker', function () {
+                        $('#summarizeCsRankingStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#summarizeCsRankingStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                        $('#summarizeCsRankingEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#summarizeCsRankingEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    });
+                }
+            };
+
+            vm.summarizeCsRankingData = function () {
+                vm.loadingSummarizeCsRankingData = true;
+                let startTime = $('#summarizeCsRankingStartDatetimePicker').data('datetimepicker').getLocalDate();
+                let endTime = $('#summarizeCsRankingEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                };
+
+                socketService.$socket($scope.AppSocket, 'summarizeCsRankingData', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log("Summarized CsRanking Data has gathered completely");
+                        vm.loadingSummarizeCsRankingData = false;
+                    })
+                }, function (error){
+                    vm.loadingSummarizeCsRankingData = false;
+                    console.log("Error when gather summarized CS ranking data:", error)
+                });
+            };
+
+            //////////////////////////////////////////////////////////End of Cs Ranking Report Tab///////////////////////////////////////////////////////////////////
         };
     qualityInspectionController.$inject = injectParams;
         myApp.register.controller('qualityInspectionCtrl', qualityInspectionController);

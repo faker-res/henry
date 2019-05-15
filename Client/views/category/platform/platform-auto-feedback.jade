@@ -11,6 +11,10 @@
                 label {{"Create Feedback Mission" | translate}}
             .panel-body.margin-all-5
                 .full-width-input-block
+                    label {{"PRODUCT_NAME"|translate}}
+                    div.inline-block
+                        select.form-control.inline-block(ng-model="vm.autoFeedbackMission.platformObjId" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-disabled="vm.autoFeedbackEditStatus" ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.getAllGameProvidersLocal();vm.loadDepartmentLocal();')
+                .full-width-input-block
                     label {{"Feedback Mission Name"|translate}}
                     div.inline-block
                         input.form-control(type="text" ng-model="vm.autoFeedbackMission.name" ng-disabled="vm.autoFeedbackEditStatus")
@@ -50,7 +54,8 @@
                 .full-width-input-block
                     label.control-label {{'CREDIBILITY' | translate}}
                     div.inline-block
-                        select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.autoFeedbackMission.credibilityRemarks')
+                        select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.credibilityRemarks', ng-model='vm.autoFeedbackMission.credibilityRemarks')
+                        //select.spicker.form-control#selectCredibilityRemarkFeedback(multiple bsp data-actions-box='true' style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.autoFeedbackMission.credibilityRemarks')
                 .full-width-input-block
                     label.control-label {{'CREDIBILITY_FILTER' | translate}}
                     div.inline-block
@@ -153,7 +158,7 @@
                 .full-width-input-block
                     label {{"GAME_LOBBY"|translate}}
                     div.inline-block
-                        select.form-control#selectGameProvider(multiple="multiple", style='min-width:100px;height:34px;', ng-options='provider._id as provider.name for provider in vm.allGameProviders', ng-model='vm.autoFeedbackMission.gameProviderId')
+                        select.form-control#selectGameProvider(multiple="multiple", style='min-width:100px;height:34px;', ng-options='provider._id as provider.name for provider in vm.allCurrentPlatformGameProviders', ng-model='vm.autoFeedbackMission.gameProviderId')
                 .full-width-input-block
                     label {{"SYSTEM_PLAYER" | translate}}
                     select.form-control(ng-model='vm.autoFeedbackMission.isNewSystem', style="width:100px;")
@@ -175,7 +180,7 @@
                 .full-width-input-block
                     label {{"REGISTRATION_DEPARTMENT"|translate}}
                     div.inline-block
-                        select.spicker.form-control(ng-model='vm.autoFeedbackMission.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.autoFeedbackMission)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
+                        select.spicker.form-control(ng-model='vm.autoFeedbackMission.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.autoFeedbackMission)", ng-options='dp._id as dp.departmentName | translate for dp in vm.currentPlatformQueryDepartments')
                 .full-width-input-block
                     label {{"REGISTRATION_ROLE"|translate}}
                     div.inline-block
@@ -194,7 +199,8 @@
                 .full-width-input-block
                     label {{"SMS_CHANNEL"|translate}}
                     div.inline-block
-                        select.form-control(ng-model='vm.autoFeedbackMission.channel', ng-options='a for a in usableChannelList', style="width:105px;display:inline-block;")
+                        select.form-control(ng-model='vm.autoFeedbackMission.channel' style="width:105px;display:inline-block;")
+                            option(ng-repeat='(i,v) in usableChannelList', value='{{v}}') {{v}}
 
                 br
                 table#autoFeedbackMissionTable.simple-table(style='min-width:100%')
@@ -311,10 +317,13 @@
             .panel-body
                 .well
                     .search-filters-item
+                        label {{"PRODUCT_NAME"|translate}}
+                        select.form-control(ng-model="vm.autoFeedbackMissionSearch.platformObjId" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getAutoFeedbackLocal("overview");')
+                    .search-filters-item
                         label {{"Feedback Mission Name"|translate}}
                         select.form-control(ng-model="vm.autoFeedbackMissionSearch.name")
                             option(value='') {{'any' | translate}}
-                            option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
+                            option(ng-repeat='(i,v) in vm.autoFeedbackMissionsOverview', value='{{v.name}}') {{v.name}}
                     .search-filters-item
                         label.control-label {{'Mission Create Start Time' | translate}}
                         #autoFeedbackOverviewCreateTimeStartPicker.datetimepicker
@@ -338,7 +347,7 @@
                     .text-right
                         button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','Overview')" ng-click='vm.autoFeedbackSearchMission(true)') {{"SEARCH" | translate}}
                         span#autoFeedbackOverviewSpin.collapse
-                        i.fa.fa-spinner.fa-spin
+                            i.fa.fa-spinner.fa-spin
 
                 br
                 table#autoFeedbackOverviewTable.display.paymentGroup-btn
@@ -350,9 +359,12 @@
             .panel-body
                 .well
                     .search-filters-item
+                        label {{"PRODUCT_NAME"|translate}}
+                        select.form-control(ng-model="vm.autoFeedbackMissionSearchDetail.platformObjId" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getAutoFeedbackLocal("detail");')
+                    .search-filters-item
                         label {{"Feedback Mission Name"|translate}}
                         select.form-control(ng-model="vm.autoFeedbackMissionSearchDetail.name")
-                            option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
+                            option(ng-repeat='(i,v) in vm.autoFeedbackMissionsDetail', value='{{v.name}}') {{v.name}}
                     .search-filters-item
                         label.control-label {{'Start date' | translate}}
                         #autoFeedbackListStartTimePicker.datetimepicker
@@ -368,7 +380,7 @@
                     .text-right
                         button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','Overview')" ng-click='vm.autoFeedbackSearchMissionDetail()') {{"SEARCH" | translate}}
                         span#autoFeedbackDetailSpin.collapse
-                        i.fa.fa-spinner.fa-spin
+                            i.fa.fa-spinner.fa-spin
 
                 br
                 br

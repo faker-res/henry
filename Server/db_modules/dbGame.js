@@ -533,16 +533,26 @@ var dbGame = {
     updatePlatformGameOrientation: function(platformObjId, game, orientation){
         // update fpms game status
         let gameData = {};
-        let updateData=  { orientation: orientation};
-
+        let updateData=  {};
+        let orientationSetting;
         if(game._id){
             gameData._id = game._id;
         }
-        return dbconfig.collection_game.findOneAndUpdate(
-            gameData,
-            updateData,
-            {new: true}
-        ).exec();
+
+        return dbconfig.collection_game.findOne({'_id':game._id})
+        .then( data => {
+            if (data) {
+                orientationSetting = data.orientationSetting ? data.orientationSetting : {};
+                orientationSetting[platformObjId] = String(orientation);
+                updateData = { 'orientationSetting': orientationSetting }
+
+                return dbconfig.collection_game.findOneAndUpdate(
+                    gameData,
+                    updateData,
+                    {new: true}
+                ).exec();
+            }
+        })
     },
     getGamesByProviders: function (ids) {
         var returnData = [];

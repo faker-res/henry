@@ -10,7 +10,6 @@ const dbPartnerCommission = {
         console.log('platformObjId', platformObjId);
         return dbconfig.collection_platformPartnerCommConfig.find({platform: platformObjId}).lean().then(
             data => {
-                console.log('ppcc', data)
                 return data;
             }
         )
@@ -69,7 +68,6 @@ function clearParent (partnerObjId, platformObjId) {
 
 function getMainCommConfig (partnerObjId, platformObjId) {
     let configs = [], providerGroups = [];
-    // get config, if not exist, generate one
     let configProm = dbconfig.collection_partnerMainCommConfig.find({platform: platformObjId, partner: partnerObjId}).lean();
     let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformObjId} , {_id: 1}).lean();
 
@@ -124,9 +122,7 @@ function getMainCommConfig (partnerObjId, platformObjId) {
 }
 
 function getDownLineCommConfig (partnerObjId, parentObjId) {
-    // get config, if not exist, generate one
     let configs = [], providerGroups = [];
-    // get config, if not exist, generate one
     let configProm = dbconfig.collection_partnerDownLineCommConfig.find({platform: platformObjId, partner: partnerObjId}).lean();
     let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformObjId} , {_id: 1}).lean();
 

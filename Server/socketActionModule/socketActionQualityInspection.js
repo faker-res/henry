@@ -305,7 +305,25 @@ function socketActionQualityInspection(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isDataValid = Boolean(data && data.startDate && data.endDate && data.data );
             socketUtil.emitter(self.socket, dbQualityInspection.getAudioRecordData, [data.startDate, data.endDate, data.data, data.limit, data.index, data.sortCol], actionName, isDataValid);
-        }
+        },
+
+        getAudioReportData: function(data){
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.startDate && data.endDate && data.data );
+            socketUtil.emitter(self.socket, dbQualityInspection.getAudioReportData, [data.startDate, data.endDate, data.data, data.limit, data.index, data.sortCol], actionName, isDataValid);
+        },
+
+        getCsRankingReport: function(data){
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.startDate && data.endDate);
+            socketUtil.emitter(self.socket, dbQualityInspection.getCsRankingReport, [data], actionName, isDataValid);
+        },
+
+        summarizeCsRankingData: function(data){
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbQualityInspection.summarizeCsRankingData, [data.startTime, data.endTime], actionName, isDataValid);
+        },
     };
 
     socketActionQualityInspection.actions = this.actions;

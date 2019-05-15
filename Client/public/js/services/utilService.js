@@ -216,7 +216,28 @@ define([], function () {
             });
 
             elems = null;
-        }
+        };
+
+        this.convertSecondsToStandardFormat = function (seconds) {
+            let h, m, s, result='';
+            // HOURs
+            h = Math.floor(seconds/3600);
+            seconds -= h * 3600;
+            if(h){
+                result = h <10 ? '0'+ h +':' : h +':';
+            }
+            else{
+                result = '00:';
+            }
+            // MINUTEs
+            m = Math.floor(seconds/60);
+            seconds -= m * 60;
+            result += m < 10 ? '0' + m + ':' : m + ':';
+            // SECONDs
+            s = seconds % 60;
+            result += s < 10 ? '0'+ s : s;
+            return result;
+        };
 
         // This function should be called once each time a fresh page is loaded.
         this.closeAllPopoversWhenClickingOnPage = function () {
@@ -740,9 +761,9 @@ define([], function () {
                         htmlStr = gethtmlStr(pageValue, totalValue);
 
                         // Special handling for promo code analysis
-                        if (i == 1) {
+                        if (i == 2) {
                             totalPromoCode = pageValue;
-                        } else if (i == 2) {
+                        } else if (i == 3) {
                             totalAcceptedPromoCode = pageValue;
                         }
                         //special handling for consumptionModeReport

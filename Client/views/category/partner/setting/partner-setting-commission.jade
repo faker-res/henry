@@ -1,5 +1,5 @@
 include ./partner-setting-platform-select
-form.margin-top-5(name="formPartnerCommission", novalidate)
+form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' novalidate)
     .col-md-12
         .panel(style="box-shadow: none;")
             .panel-body
@@ -8,15 +8,15 @@ form.margin-top-5(name="formPartnerCommission", novalidate)
                         .panel-heading.common-left-panel-heading
                             ul.nav.nav-tabs.common-nav-tabs
                                 li.active
-                                    a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');")
-                                        text.span {{"DAILY_BONUS_AMOUNT" | translate}}
-                                li
+                                    a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('DAILY_CONSUMPTION');")
+                                        text.span {{"DAILY_CONSUMPTION" | translate}}
+                                //li
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('WEEKLY_BONUS_AMOUNT');")
                                         text.span {{"WEEKLY_BONUS_AMOUNT" | translate}}
-                                li
+                                //li
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('BIWEEKLY_BONUS_AMOUNT');")
                                         text.span {{"BIWEEKLY_BONUS_AMOUNT" | translate}}
-                                li
+                                //li
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('MONTHLY_BONUS_AMOUNT');")
                                         text.span {{"MONTHLY_BONUS_AMOUNT" | translate}}
                                 li
@@ -27,7 +27,7 @@ form.margin-top-5(name="formPartnerCommission", novalidate)
                             div.tab-content
                                 h4 {{'Partner Commission Info' | translate}}
 
-                                div(ng-repeat="gpg in vm.partnerCommission.gameProviderGroup track by $index" ng-if="vm.partnerCommission.isGameProviderIncluded")
+                                div(ng-repeat="gpg in vm.partnerCommission.gameProviderGroup track by $index")
                                     table.simple-table(style='width:auto;min-width:99.9%')
                                         thead
                                             tr
@@ -69,10 +69,6 @@ form.margin-top-5(name="formPartnerCommission", novalidate)
                                         br
                                 br
                                 .pull-right
-                                    button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.showConfig, false, false,vm.partnerCommission.srcConfig)') {{'CANCEL' | translate}}
-                                    button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.showConfig, true, false)') {{'Edit' | translate}}
-                                    button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.createUpdatePartnerCommissionConfig()') {{'SUBMIT' | translate}}
-
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, false, true, vm.partnerCommission.gameProviderGroup)') {{'CANCEL' | translate}}
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, true, true)') {{'Edit' | translate}}
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.submitPartnerCommissionConfigWithGameProviderGroup()') {{'SUBMIT' | translate}}
@@ -82,7 +78,7 @@ form.margin-top-5(name="formPartnerCommission", novalidate)
 
 
 
-    .col-md-12
+    .col-md-12(ng-if='vm.commissionSettingTab != "DAILY_CONSUMPTION"')
         .panel(style="box-shadow: none;")
             .panel-body
                 .padding-all-5

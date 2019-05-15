@@ -69,12 +69,15 @@ let dbPlatformAutoFeedback = {
         limit = limit || 10;
         let curTime = new Date();
         let result;
+        if(query.createTimeStart || query.createTimeEnd) {
+            query.createTime = {};
+        }
         if(query.createTimeStart) {
-            query.createTime = {$gte: query.createTimeStart};
+            query.createTime['$gte'] = query.createTimeStart;
             delete query.createTimeStart;
         }
         if(query.createTimeEnd) {
-            query.createTime = {$lte: query.createTimeEnd};
+            query.createTime['$lte'] = query.createTimeEnd;
             delete query.createTimeEnd;
         }
         if(query.status) {
@@ -269,6 +272,9 @@ let dbPlatformAutoFeedback = {
                     let playerQuery = {platform: platformObjId};
 
                     let addMultipleOr = function (orArr) {
+                        if(!orArr || !orArr.length) {
+                            return;
+                        }
                         if (playerQuery.$and) {
                             playerQuery.$and.push({$or: orArr});
                         } else {
@@ -635,7 +641,8 @@ let dbPlatformAutoFeedback = {
                                                                 newPromoCodeEntry.hasAutoFeedbackMissionObjId = true;
                                                                 newPromoCodeEntry.autoFeedbackMissionScheduleNumber = curScheduleNumber;
                                                                 newPromoCodeEntry.allowedSendSms = true;
-                                                                return {
+
+                                                                let returnData = {
                                                                     platformObjId: player.platform,
                                                                     newPromoCodeEntry: newPromoCodeEntry,
                                                                     adminObjId: null,
@@ -647,7 +654,12 @@ let dbPlatformAutoFeedback = {
                                                                         result: item.feedbackResult,
                                                                         topic: item.feedbackTopic
                                                                     }
+                                                                };
+
+                                                                if (feedback.hasOwnProperty('channel')){
+                                                                    returnData.channel = feedback.channel;
                                                                 }
+                                                                return returnData;
                                                             } else {
                                                                 return null;
                                                             }
