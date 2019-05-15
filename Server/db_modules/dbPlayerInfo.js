@@ -20365,7 +20365,7 @@ let dbPlayerInfo = {
                     result.realName = playerDetail.realName;
 
                     console.log('gameDetail', gameDetail);
-                    result.gameDetail = gameDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id));
+                    result.gameDetail = gameDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id) && e.providerId);
                     result.consumptionTimes = 0;
                     result.consumptionAmount = 0;
                     result.validConsumptionAmount = 0;
