@@ -4214,13 +4214,16 @@ define(['js/app'], function (myApp) {
                     platform => {
                         if (platform && platform.data && platform.data.csDepartment){
                             platform.data.csDepartment.forEach(cItem => {
-                                vm.csDepartmentGroup.push(
-                                    {
-                                        departmentName: cItem.departmentName,
-                                        adminList: cItem.users,
-                                    }
-                                )
-                                vm.csDepartmentMember = vm.csDepartmentMember.concat(cItem.users);
+                                let index = vm.csDepartmentGroup && vm.csDepartmentGroup.length ? vm.csDepartmentGroup.findIndex(p => p.departmentName == cItem.departmentName) : -1;
+                                if (index == -1){
+                                    vm.csDepartmentGroup.push(
+                                        {
+                                            departmentName: cItem.departmentName,
+                                            adminList: cItem.users,
+                                        }
+                                    )
+                                    vm.csDepartmentMember = vm.csDepartmentMember.concat(cItem.users);
+                                }
                             })
                         }
                     }
