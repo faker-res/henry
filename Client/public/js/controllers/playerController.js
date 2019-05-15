@@ -38,7 +38,8 @@ define(['js/app'], function (myApp) {
             BIWEEKLY_BONUS_AMOUNT: 3,
             MONTHLY_BONUS_AMOUNT: 4,
             WEEKLY_CONSUMPTION: 5,
-            OPTIONAL_REGISTRATION: 6
+            OPTIONAL_REGISTRATION: 6,
+            DAILY_CONSUMPTION: 7
         };
 
         vm.constPartnerCommisionTypeOption = {
@@ -47,6 +48,7 @@ define(['js/app'], function (myApp) {
             BIWEEKLY_BONUS_AMOUNT: 3,
             MONTHLY_BONUS_AMOUNT: 4,
             WEEKLY_CONSUMPTION: 5,
+            DAILY_CONSUMPTION: 7
         };
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
