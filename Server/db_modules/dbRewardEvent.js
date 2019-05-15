@@ -2645,7 +2645,32 @@ var dbRewardEvent = {
                         let topUpSum = topUpDatas.reduce((sum, value) => sum + value.amount, 0);
                         let consumptionSum = consumptionData.reduce((sum, value) => sum + value.validAmount, 0);
                         let applyRewardSum = periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
+                        console.log('MT --checking before festivalData', festivalData);
+                        if (festivalData && festivalData.length > 0) {
+                            festivalData = festivalData.map( item => {
+                                let meetTopUp = false;
+                                let meetConsumption = false;
 
+                                if (item.rewardType == 2 || item.rewardType == 4) {
+                                    topUpDatas.forEach(topup => {
+                                        if (topup.minTopUpAmount) {
+                                            meetTopUp = true;
+                                        }
+                                    })
+                                    if (meetTopUp) {
+                                        return item;
+                                    }
+                                } else if (item.rewardType == 3) {
+                                    if (consumptionSum > item.totalConsumptionInInterval) {
+                                        meetConsumption = true;
+                                        return item;
+                                    }
+                                } else {
+                                    return item
+                                }
+                            })
+                        }
+                        console.log('MT --checking after festivalData', festivalData)
                         console.log('MT --checking selectedRewardParam',selectedRewardParam);
                         console.log('MT --checking topUpDatas', topUpDatas);
                         console.log('MT --checking periodData', periodData);
@@ -3642,7 +3667,7 @@ function getPlural (num) {
 function checkIfRightApplyTime(specificDate, festival) {
     // reconstruct the month/time to a timestamp to verify if fulfil the apply time
     let result = false;
-    let currentTime = moment(new Date()).toDate()//.format('YYYY-MM-DD HH:mm:ss.sss');
+    let currentTime = moment(new Date()).toDate();
     let period = dbRewardEvent.getTimePeriod(specificDate.expiredInDay || 0, festival);
     if ( currentTime > moment(period.startTime).toDate() &&  currentTime < moment(period.endTime).toDate() ) {
         result = true;

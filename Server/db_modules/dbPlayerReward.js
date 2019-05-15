@@ -6055,18 +6055,17 @@ let dbPlayerReward = {
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
             console.log('MT --checking intervalTime', intervalTime);
-
-            if (!eventData.festivalItemId) {
+            if (!rewardData.festivalItemId) {
                 return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});
             }
 
             selectedRewardParam = selectedRewardParam.filter( item => {
-                return item.id == eventData.festivalItemId;
+                return item.id == rewardData.festivalItemId;
             })
             selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
 
             if (!selectedRewardParam || selectedRewardParam.length == 0) {
-                return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});
+                return Q.reject({name: "DataError", message: "The Festival Item is Not Exist"});
             }
             let consumptionMatchQuery = {
                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
@@ -6139,7 +6138,7 @@ let dbPlayerReward = {
                 rewardEvent: eventData._id,
                 status: 1
             }).sort({createTime: 1}).lean());
-            let festivalAvailableProm = checkFestivalOverApplyTimes(eventData, playerData.platform._id, playerData._id, selectedRewardParam, playerData.DOB);
+            let festivalAvailableProm = checkFestivalOverApplyTimes(eventData, playerData.platform._id, playerData._id, selectedRewardParam, playerData.DOB, rewardData);
             promArr.push(festivalAvailableProm);
         }
 
@@ -10138,11 +10137,11 @@ function handlingBaccaratBetTypeList (betType) {
 
 }
 
-function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, selectedRewardParam, playerBirthday) {
+function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, selectedRewardParam, playerBirthday, rewardData) {
     let proms = [];
 
     console.log('#############################')
-    console.log('MT --checking playerApply this festivalItemId', eventData.festivalItemId);
+    console.log('MT --checking playerApply this festivalItemId', rewardData.festivalItemId);
     console.log('#############################')
     console.log(selectedRewardParam);
 
@@ -10151,7 +10150,7 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
         let result = { count:0 , festivals:[] };
         if (eventData.condition && eventData.condition.festivalType) {
 
-            if (eventData.festivalItemId) {
+            if (rewardData.festivalItemId) {
                 let festivalDate;
                 let festivalItem = selectedRewardParam;
                 console.log('MT --checking selectedRewardParam',festivalItem);

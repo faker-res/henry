@@ -16284,7 +16284,9 @@ let dbPlayerInfo = {
                                     if (data.festivalId) {
                                         rewardData.festivalId = data.festivalId;
                                     }
-
+                                    if (data.festivalItemId) {
+                                        rewardData.festivalItemId = data.festivalItemId;
+                                    }
                                     if(data.appliedRewardList){
                                         rewardData.appliedRewardList = data.appliedRewardList
                                     }
