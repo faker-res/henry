@@ -1498,6 +1498,10 @@ define([], () => {
                     proposalDetail["Player forbid apply bonus, apply bonus proposal need cs approval"] = vm.selectedProposal.data.approvedByCs;
                 }
 
+                if (vm.selectedProposal.status === 'Fail' && vm.selectedProposal.data.remarkPMS) {
+                    proposalDetail["remark"] = vm.selectedProposal.data.remarkPMS;
+                }
+
                 if(vm.selectedProposal.data.remarkPMS){
                     pmsRemark = vm.selectedProposal.data.remarkPMS;
                     indexOfDivider = pmsRemark.indexOf("#");
