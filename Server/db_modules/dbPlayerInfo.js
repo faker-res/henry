@@ -20331,6 +20331,7 @@ let dbPlayerInfo = {
                 let retArr = [];
 
                 players.map(playerDetail => {
+                    console.log('playerDetail', playerDetail);
                     let result = {_id: playerDetail._id};
 
                     // recalculate player value
@@ -20363,7 +20364,8 @@ let dbPlayerInfo = {
                     result.lastAccessTime = playerDetail.lastAccessTime;
                     result.realName = playerDetail.realName;
 
-                    result.gameDetail = gameDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id));
+                    console.log('gameDetail', gameDetail);
+                    result.gameDetail = gameDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id) && e.providerId);
                     result.consumptionTimes = 0;
                     result.consumptionAmount = 0;
                     result.validConsumptionAmount = 0;

@@ -738,7 +738,7 @@ define(['js/app'], function (myApp) {
                         status: '1',
                         qiUser: 'all',
                         displayWay: 'true',
-                        searchBySummaryData: false
+                        searchBySummaryData: true
                     }
                 }
                 vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:100, count:0};
@@ -3720,21 +3720,39 @@ define(['js/app'], function (myApp) {
                 $('#csAudioReportTableSpin').show();
 
                 let tempCallerIdList = [];
-                if ((vm.audioReportSearching && !vm.audioReportSearching.callerId) || (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length == 0)) {
-                    if (vm.audioReportSearching && vm.audioReportSearching.csObjId && vm.audioReportSearching.csObjId.length) {
-                        vm.audioReportSearching.callerId = vm.callerIdList || [];
-                    }
-                    else {
-                        vm.csAccountList.forEach(
-                            csData => {
-                                if (csData && csData.callerId) {
-                                    tempCallerIdList.push(csData.callerId)
-                                }
+                if (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length){
+                    // do nothing
+                }
+                else if (vm.audioReportSearching && vm.audioReportSearching.csObjId && vm.audioReportSearching.csObjId.length && vm.callerIdList){
+                    // get the caller id based on the selected adminObjId
+                    vm.audioReportSearching.callerId = vm.callerIdList
+                }
+                else if (vm.audioReportSearching && vm.audioReportSearching.selectedCSDepartment && vm.audioReportSearching.selectedCSDepartment.length && vm.csList && vm.csList.length) {
+                    // get all the caller Id based on the selected department
+                    vm.csList.forEach(
+                        cs => {
+                            if (cs && cs.callerId){
+                                tempCallerIdList.push(cs.callerId);
                             }
-                        );
-                        if (tempCallerIdList && tempCallerIdList.length) {
-                            vm.audioReportSearching.callerId = tempCallerIdList;
                         }
+                    )
+
+                    if (tempCallerIdList && tempCallerIdList.length){
+                        vm.audioReportSearching.callerId = tempCallerIdList;
+                    }
+                }
+                else{
+                    // get all the caller id
+                    vm.allCsList.forEach(
+                        cs => {
+                            if (cs && cs.callerId){
+                                tempCallerIdList.push(cs.callerId);
+                            }
+                        }
+                    )
+
+                    if (tempCallerIdList && tempCallerIdList.length){
+                        vm.audioReportSearching.callerId = tempCallerIdList;
                     }
                 }
 
@@ -3752,9 +3770,9 @@ define(['js/app'], function (myApp) {
                     $('#csAudioReportTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
-                        let index = vm.csAccountList.findIndex(p => p.callerId == item.agentNum)
+                        let index = vm.allCsList.findIndex(p => p.callerId == item.agentNum)
                         if (index != -1){
-                            item.adminName = vm.csAccountList[index].adminName;
+                            item.adminName = vm.allCsList[index].adminName;
                             // item.platformName = vm.csAccountList[index].platformName;
                         }
 
@@ -3884,7 +3902,7 @@ define(['js/app'], function (myApp) {
 
             vm.initCSAudioSystem = function(){
                 // to get the cs admin
-                vm.getCSList();
+                vm.getCSAdminList();
                 vm.initAudioRecordingReport();
             };
 
@@ -3917,66 +3935,44 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.getCSList = function () {
-                let csDepartmentObjIdList = [];
-                vm.csAccountList = [];
-
-                if(vm.platformList && vm.platformList.length){
-                    vm.platformList.forEach(
-                        platformData => {
-                            if (platformData && platformData.data && platformData.data.csDepartment && platformData.data.csDepartment.length){
-                                platformData.data.csDepartment.forEach(
-                                    csDepartmentData => {
-                                        if (csDepartmentData && csDepartmentData._id){
-                                            csDepartmentObjIdList.push(csDepartmentData._id);
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    );
-
-                    if (csDepartmentObjIdList && csDepartmentObjIdList.length){
-                        socketService.$socket($scope.AppSocket, 'getCsByCsDepartment', {csDepartmentObjIdList: csDepartmentObjIdList}, function (data) {
-                            $scope.$evalAsync( () => {
-                                if (data && data.data && data.data.length){
-                                    data.data.forEach(
-                                        department => {
-                                            if (department && department.users && department.users.length){
-                                                department.users.forEach(
-                                                    user => {
-                                                        user.platformName = department.platforms && department.platforms[0] &&  department.platforms[0].name?  department.platforms[0].name : null;
-                                                        user.platformObjId = department.platforms && department.platforms[0] &&  department.platforms[0]._id?  department.platforms[0]._id : null;
-                                                    }
-                                                );
-                                                vm.csAccountList = vm.csAccountList.concat(department.users);
-                                            }
-                                        }
-                                    )
-                                }
-                            })
-                        })
-                    }
-                }
-            };
-
             vm.getCallerId = function (csObjIdList) {
+                if (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length){
+                    vm.audioReportSearching.callerId = [];
+                }
+
+                if (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length){
+                    vm.audioRecordSearching.callerId = [];
+                }
+
                 vm.callerIdList = [];
 
-                if (csObjIdList && csObjIdList.length && vm.csAccountList && vm.csAccountList.length){
+                if (csObjIdList && csObjIdList.length && vm.allCsList && vm.allCsList.length){
                 // if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length && vm.csAccountList && vm.csAccountList.length){
-                    csObjIdList.forEach(
-                        selectedCs => {
-                            let index = vm.csAccountList.findIndex(p => p._id.toString() == selectedCs.toString());
-                            if (index != -1){
-                                let csData = vm.csAccountList[index];
-                                if (csData && csData.callerId){
-                                    vm.callerIdList.push(csData.callerId)
+                    $scope.$evalAsync( () => {
+                        csObjIdList.forEach(
+                            selectedCs => {
+                                let index = vm.allCsList.findIndex(p => p._id.toString() == selectedCs.toString());
+                                if (index != -1){
+                                    let csData = vm.allCsList[index];
+                                    if (csData && csData.callerId){
+                                        vm.callerIdList.push(csData.callerId)
+                                    }
                                 }
                             }
+                        );
+                    })
+                }
+
+                if (vm.callerIdList &&  vm.callerIdList.length == 0){
+                    $scope.$evalAsync( () => {
+                        if (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length){
+                            vm.audioReportSearching.callerId = [];
                         }
-                    );
-                    $scope.$evalAsync();
+
+                        if (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length){
+                            vm.audioRecordSearching.callerId = [];
+                        }
+                    });
                 }
             };
 
@@ -3990,23 +3986,29 @@ define(['js/app'], function (myApp) {
             vm.getAudioRecordData = function (newSearch){
                 $('#csAudioRecordTableSpin').show();
                 let tempCallerIdList = [];
-                if ((vm.audioRecordSearching && !vm.audioRecordSearching.callerId) || (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length == 0)) {
-                    if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length) {
-                        vm.audioRecordSearching.callerId = vm.callerIdList || [];
-                    }
-                    else {
-                        vm.csAccountList.forEach(
-                            csData => {
-                                if (csData && csData.callerId) {
-                                    tempCallerIdList.push(csData.callerId)
-                                }
+                if (vm.audioRecordSearching && vm.audioRecordSearching.callerId && vm.audioRecordSearching.callerId.length){
+                    // do nothing
+                }
+                else if (vm.audioRecordSearching && vm.audioRecordSearching.csObjId && vm.audioRecordSearching.csObjId.length && vm.callerIdList){
+                    // get the caller id based on the selected adminObjId
+                    vm.audioRecordSearching.callerId = vm.callerIdList
+                }
+                else{
+                    // get all the caller id
+                    vm.allCsList.forEach(
+                        cs => {
+                            if (cs && cs.callerId){
+                                tempCallerIdList.push(cs.callerId);
                             }
-                        );
-                        if (tempCallerIdList && tempCallerIdList.length) {
-                            vm.audioRecordSearching.callerId = tempCallerIdList;
                         }
+                    )
+
+                    if (tempCallerIdList && tempCallerIdList.length){
+                        vm.audioRecordSearching.callerId = tempCallerIdList;
                     }
                 }
+
+                vm.endLoadMultipleSelect();
 
                 let searchQuery = {
                     startDate: $("#audioRecordStartDatetimePicker").data('datetimepicker').getLocalDate(),
@@ -4022,10 +4024,10 @@ define(['js/app'], function (myApp) {
                     $('#csAudioRecordTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
-                        let index = vm.csAccountList.findIndex(p => p.callerId == item.agent_num)
+                        let index = vm.allCsList.findIndex(p => p.callerId == item.agent_num)
                         if (index != -1){
-                            item.adminName = vm.csAccountList[index].adminName;
-                            item.platformName = vm.csAccountList[index].platformName;
+                            item.adminName = vm.allCsList[index].adminName;
+                            item.platformName = vm.allCsList[index].platformName;
                             item.billSec$ = utilService.convertSecondsToStandardFormat(item.billsec);
                         }
                         return item;
@@ -4207,11 +4209,21 @@ define(['js/app'], function (myApp) {
             vm.getCSAdminList = function () {
                 vm.selectedCS = [];
                 vm.csDepartmentMember = [];
+                vm.csDepartmentGroup = [];
                 vm.platformList.forEach(
                     platform => {
                         if (platform && platform.data && platform.data.csDepartment){
                             platform.data.csDepartment.forEach(cItem => {
-                                vm.csDepartmentMember = vm.csDepartmentMember.concat(cItem.users);
+                                let index = vm.csDepartmentGroup && vm.csDepartmentGroup.length ? vm.csDepartmentGroup.findIndex(p => p.departmentName == cItem.departmentName) : -1;
+                                if (index == -1){
+                                    vm.csDepartmentGroup.push(
+                                        {
+                                            departmentName: cItem.departmentName,
+                                            adminList: cItem.users,
+                                        }
+                                    )
+                                    vm.csDepartmentMember = vm.csDepartmentMember.concat(cItem.users);
+                                }
                             })
                         }
                     }
@@ -4222,9 +4234,50 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync( () => {
                             console.log('all admin data', cdata.data);
                             vm.csList = cdata.data;
+                            vm.allCsList = cdata.data;
                         })
                     })
                 };
+            };
+
+            vm.filterCsBasedOnDepartment = function (selectedDepartment) {
+                let selectedCsObjIdList = [];
+                if (vm.audioReportSearching && vm.audioReportSearching.callerId && vm.audioReportSearching.callerId.length){
+                    vm.audioReportSearching.callerId = [];
+                }
+                if (vm.audioReportSearching && vm.audioReportSearching.csObjId && vm.audioReportSearching.csObjId.length){
+                    vm.audioReportSearching.csObjId = [];
+                }
+
+                if (selectedDepartment && selectedDepartment.length){
+                    let temp = vm.csDepartmentGroup.filter(d => selectedDepartment.includes(d.departmentName));
+                    if (temp && temp.length){
+                        temp.forEach(
+                            arr => {
+                                if (arr.adminList && arr.adminList.length) {
+                                    selectedCsObjIdList = selectedCsObjIdList.concat(arr.adminList);
+                                }
+                            }
+                        )
+                    }
+
+                    if (selectedCsObjIdList && selectedCsObjIdList.length){
+                        socketService.$socket($scope.AppSocket, 'getCSAdmins', {admins: selectedCsObjIdList}, function (cdata) {
+                            $scope.$evalAsync( () => {
+                                console.log('all admin data', cdata.data);
+
+                                vm.csList = cdata.data;
+                            })
+                        })
+                    }
+                }
+                else{
+
+                    $scope.$evalAsync( () => {
+                        vm.csList = [];
+                        vm.callerIdList = [];
+                    })
+                }
             };
 
             vm.initManualProcessReport = function(){
@@ -4900,6 +4953,10 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedCS && vm.selectedCS.length){
                     searchQuery.adminObjId = vm.selectedCS
+                }
+
+                if ((vm.selectedCSDepartment && vm.selectedCSDepartment.length == 0) || !vm.selectedCSDepartment){
+                    searchQuery.adminObjId = vm.allCsList.map(cs => {return cs._id});
                 }
 
                 socketService.$socket($scope.AppSocket, 'getCsRankingReport', searchQuery, function (data) {
