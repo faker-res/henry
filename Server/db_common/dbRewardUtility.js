@@ -896,6 +896,8 @@ const dbRewardUtility = {
                     throw error;
                 }
             );
+        } else {
+            return true;
         }
     }
 };

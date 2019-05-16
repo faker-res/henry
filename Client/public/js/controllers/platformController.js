@@ -34,7 +34,8 @@ define(['js/app'], function (myApp) {
                 BIWEEKLY_BONUS_AMOUNT: 3,
                 MONTHLY_BONUS_AMOUNT: 4,
                 WEEKLY_CONSUMPTION: 5,
-                OPTIONAL_REGISTRATION: 6
+                OPTIONAL_REGISTRATION: 6,
+                DAILY_CONSUMPTION: 7
             };
 
             vm.constSystemRewardEventGroup = {
@@ -56,6 +57,7 @@ define(['js/app'], function (myApp) {
                 BIWEEKLY_BONUS_AMOUNT: 3,
                 MONTHLY_BONUS_AMOUNT: 4,
                 WEEKLY_CONSUMPTION: 5,
+                DAILY_CONSUMPTION: 7
             };
             vm.proposalStatusList = { // removed APPROVED and REJECTED
                 PREPENDING: "PrePending",
@@ -30267,7 +30269,7 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformGameData(platformObjId);
                 return $scope.$socketPromise('getPlatformProviderGroup', sendData).then(
                     data => {
-                        console.log('getPlatformProviderGroup', data);
+                        console.log('getPlatformProviderGroup', JSON.stringify(data));
                         if (data) {
                             $scope.$evalAsync(() => {
                                 vm.gameProviderGroup = data.data;
@@ -38811,6 +38813,7 @@ define(['js/app'], function (myApp) {
 
             /***** Auction System - start *****/
             vm.initAuctionSystem = function() {
+                vm.filterAuctionPlatform = '';
                 vm.excludeAuctionItem = [];
                 vm.notAvailableAuctionItem = [];
                 let exclusiveQuery = {publish:true, status:1};
@@ -38829,11 +38832,11 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.listAuctionItem = function() {
+            vm.listAuctionItem = function (platformObjId) {
                 vm.excludeAuctionItem = [];
                 vm.notAvailableAuctionItem = [];
 
-                let exclusiveQuery = {platformObjId : vm.selectedPlatform.id, publish:true, status:1};
+                let exclusiveQuery = {platformObjId : platformObjId, publish:true, status:1};
                 let prom1 = new Promise((resolve, reject)=>{
                   socketService.$socket($scope.AppSocket, 'listAuctionItems', exclusiveQuery, function (data) {
                       if (data && data.data) {
@@ -38844,7 +38847,7 @@ define(['js/app'], function (myApp) {
                   });
                 })
 
-                let notAvailableQuery = {platformObjId : vm.selectedPlatform.id, publish:false, status:1};
+                let notAvailableQuery = {platformObjId : platformObjId, publish:false, status:1};
                 prom1.then(()=>{
                     socketService.$socket($scope.AppSocket, 'listAuctionItems', notAvailableQuery, function (data) {
                         if (data && data.data) {
@@ -38855,8 +38858,8 @@ define(['js/app'], function (myApp) {
                 })
             };
 
-            vm.listAuctionMonitor = function(){
-                let sendQuery = { publish : true, platformObjId : vm.selectedPlatform.id};
+            vm.listAuctionMonitor = function (platformObjId) {
+                let sendQuery = { publish : true, platformObjId : platformObjId};
                 let currentTime = new Date().getTime();
                 socketService.$socket($scope.AppSocket, 'listAuctionMonitor', sendQuery, function (data) {
                     if(data.data.length > 0){
@@ -39006,7 +39009,7 @@ define(['js/app'], function (myApp) {
             }
             vm.auctionSystemTabClicked = function (choice) {
                 vm.selectedAuctionSystemTab = choice;
-                vm.listAuctionItem();
+                vm.listAuctionItem(vm.filterAuctionPlatform);
                 switch (choice) {
                     case 'createProduct':
                         vm.auctionProductReward = {};
@@ -39037,7 +39040,7 @@ define(['js/app'], function (myApp) {
                         // };
                         break;
                     case 'monitoringSystem':
-                        vm.listAuctionMonitor();
+                        vm.listAuctionMonitor(vm.filterAuctionPlatform);
                         vm.monitoringLoop();
                         break;
                 }
@@ -39058,7 +39061,7 @@ define(['js/app'], function (myApp) {
                                 countDown = 11
                             }
                             if (countDown === 0) {
-                                vm.listAuctionMonitor();
+                                vm.listAuctionMonitor(vm.filterAuctionPlatform);
                                 countDown = 11;
                             }
                             countDown--;
@@ -39180,7 +39183,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.createAuctionProduct = function () {
-                vm.auctionSystemProduct.platformObjId = vm.selectedPlatform.id;
+                vm.auctionSystemProduct.platformObjId = vm.filterAuctionPlatform;
                 vm.auctionSystemProduct.registerStartTime = $('#auctionSystemProductRegisterStartTimePicker').data('datetimepicker').getLocalDate();
                 vm.auctionSystemProduct.registerEndTime = $('#auctionSystemProductRegisterEndTimePicker').data('datetimepicker').getLocalDate();
                 vm.auctionSystemProduct.rewardStartTime = $('#auctionSystemProductRewardStartTimePicker').data('datetimepicker').getLocalDate();
@@ -39205,7 +39208,7 @@ define(['js/app'], function (myApp) {
                     console.log("createAuctionProduct", data);
                     if (data.success) {
                         $scope.$evalAsync(() => {
-                            vm.listAuctionItem();
+                            vm.listAuctionItem(vm.filterAuctionPlatform);
                             vm.auctionSystemCreateProductStatus = 'success';
                         });
                     } else {
@@ -39386,21 +39389,21 @@ define(['js/app'], function (myApp) {
             vm.moveToNotAvailable = function(){
                 let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
                 let sendQuery = {
-                    platformId:vm.selectedPlatform.id,
-                    auctionItems:auctionItems
+                    platformId: vm.filterAuctionPlatform,
+                    auctionItems: auctionItems
                 };
                 socketService.$socket($scope.AppSocket, 'moveToNotAvailableItem', sendQuery, function (data) {
-                    vm.listAuctionItem();
+                    vm.listAuctionItem(vm.filterAuctionPlatform);
                 });
             }
             vm.moveToExclusive = function(){
                 let auctionItems = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');
                 let sendQuery = {
-                    platformId:vm.selectedPlatform.id,
-                    auctionItems:auctionItems
+                    platformId: vm.filterAuctionPlatform,
+                    auctionItems: auctionItems
                 };
                 socketService.$socket($scope.AppSocket, 'moveToExclusiveItem', sendQuery, function (data) {
-                    vm.listAuctionItem();
+                    vm.listAuctionItem(vm.filterAuctionPlatform);
                 });
             }
             vm.removeExclusiveAuction = function(){
@@ -39410,11 +39413,11 @@ define(['js/app'], function (myApp) {
                 }).then(function () {
                     let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
                     let sendQuery = {
-                        platformId:vm.selectedPlatform.id,
-                        auctionItems:auctionItems
+                        platformId: vm.filterAuctionPlatform,
+                        auctionItems: auctionItems
                     };
                     socketService.$socket($scope.AppSocket, 'removeExclusiveAuction', sendQuery, function (data) {
-                        vm.listAuctionItem();
+                        vm.listAuctionItem(vm.filterAuctionPlatform);
                     });
                 });
 
@@ -39441,11 +39444,11 @@ define(['js/app'], function (myApp) {
             vm.removeNotAvailableAuction = function(){
                 let auctionItems = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');
                 let sendQuery = {
-                    platformId:vm.selectedPlatform.id,
-                    auctionItems:auctionItems
+                    platformId: vm.filterAuctionPlatform,
+                    auctionItems: auctionItems
                 };
                 socketService.$socket($scope.AppSocket, 'removeNotAvailableAuction', sendQuery, function (data) {
-                    vm.listAuctionItem();
+                    vm.listAuctionItem(vm.filterAuctionPlatform);
                 });
             }
             vm.getAuctionCheckedItem = function(el){
