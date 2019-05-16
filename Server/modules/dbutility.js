@@ -202,15 +202,6 @@ var dbUtility = {
             endTime: endTime
         };
     },
-
-    getYearlySGTIme: function() {
-        var startTime = moment().tz('Asia/Singapore').startOf('year').toDate();
-        let endTime = moment().tz('Asia/Singapore').endOf('year').toDate();
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
-    },
     //endregion
     /**
      * Get past day time frame based on SGT
@@ -1704,7 +1695,7 @@ var dbUtility = {
     retrieveAgent: (agentInfo) => {
         let registrationInterface = '';
         let userAgent = agentInfo;
-
+      
         if (userAgent == '') {
             registrationInterface = 1;
         } else {
