@@ -16281,8 +16281,12 @@ let dbPlayerInfo = {
                                     if (data.hasOwnProperty('sortCol')){
                                         rewardData.sortCol = data.sortCol;
                                     }
-
-
+                                    if (data.festivalId) {
+                                        rewardData.festivalId = data.festivalId;
+                                    }
+                                    if (data.festivalItemId) {
+                                        rewardData.festivalItemId = data.festivalItemId;
+                                    }
                                     if(data.appliedRewardList){
                                         rewardData.appliedRewardList = data.appliedRewardList
                                     }
@@ -17561,7 +17565,6 @@ let dbPlayerInfo = {
 
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
-        let todayDate = dbUtility.getTodaySGTime();
         let getPlayerProm = Promise.resolve("");
         let result = [];
         let isSinglePlayer = false;
@@ -17625,17 +17628,16 @@ let dbPlayerInfo = {
             playerData => {
                 console.log('RT - getPlayerReport 1');
                 let playerObjArr = [];
-
-                if (isSinglePlayer) {
-                    return [playerData._id];
-                } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
-                    return playerData.map(p => p._id);
-                }
-
                 let relevantPlayerQuery = {
                     platform: platform,
                     startTime: {$gte: startDate, $lt: endDate}
                 };
+
+                if (isSinglePlayer) {
+                    relevantPlayerQuery.player = playerData._id;
+                } else if (((query.adminIds && query.adminIds.length) || query.credibilityRemarks && query.credibilityRemarks.length) && playerData.length) {
+                    relevantPlayerQuery.player = {$in: playerData.map(p => p._id)};
+                }
 
                 // Limit records search to provider
                 if (query && query.providerId) {

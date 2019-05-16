@@ -1,17 +1,23 @@
 //- .row(mouse-capture ng-keydown="vm.keyDown($event)" ng-keyup="vm.keyUp($event)")
 .row
-    .text-center
-        p(ng-if="!vm.curPlatformText")
-            label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-    .col-sm-3(ng-if="vm.curPlatformText")
+    .col-md-12
+        .well.col-xs-12
+            .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.filterClientQnAPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.buildClientQnATypeList()')
+.text-center(ng-if="!vm.filterClientQnAPlatform")
+    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
+.row(ng-if="vm.filterClientQnAPlatform")
+    .col-sm-3
         include ./clientQnA-left-panel
-    .col-md-6(ng-if="vm.curPlatformText", style='padding-left:0')
+    .col-md-6(style='padding-left:0')
         div(ng-if='!vm.selectedClientQnAType.text')
             .text-center
                 text.text-danger {{"Please select a type" | translate}}
         div(ng-if='vm.selectedClientQnAType.text')
             include ./clientQnA-mid-panel
-    .col-md-3(ng-if="vm.curPlatformText", style='padding-left:0')
+    .col-md-3(style='padding-left:0')
         div(ng-if='!vm.selectedClientQnAType.text')
             .text-center
                 text.text-danger {{"Please select a type" | translate}}

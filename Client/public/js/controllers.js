@@ -691,6 +691,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "Biweekly",
         4: "Monthly",
         6: "LastMonth",
+        7: "Yearly",
         5: "No Interval",
     };
 
