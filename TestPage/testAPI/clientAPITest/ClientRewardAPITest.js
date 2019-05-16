@@ -161,6 +161,7 @@
                 smsCode: requestData.smsCode,
                 type: requestData.type,
                 forceSettled: requestData.forceSettled,
+                festivalItemId: requestData.festivalItemId
             }
         }
         var data = sendReq ||
