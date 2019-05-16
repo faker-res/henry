@@ -10385,6 +10385,11 @@ define(['js/app'], function (myApp) {
             if (vm.appliedRewardList && vm.appliedRewardList.length){
                 sendQuery.data.appliedRewardList = vm.appliedRewardList;
             }
+
+            if (vm.playerApplyRewardPara && vm.playerApplyRewardPara.festivalItemId) {
+                sendQuery.data.festivalItemId = vm.playerApplyRewardPara.festivalItemId;
+            }
+
             if (isForceApply) {
                 if (vm.playerApplyEventResult && vm.playerApplyEventResult.error && vm.playerApplyEventResult.error.status === 466) {
                     sendQuery.data.isClearConcurrent = isForceApply;
@@ -10682,41 +10687,39 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getFestivalSelection = function ( playerLevel, DOB, rewardObj ) {
-            console.log(playerLevel);
-            console.log(rewardObj);
             let playerLevelId = playerLevel._id || '';
             if (rewardObj.param && rewardObj.param.rewardParam && rewardObj.param.rewardParam.length > 0) {
-                let rewardByPlayerLevel = rewardObj.param.rewardParam.forEach( item => {
+                let rewardByPlayerLevel = rewardObj.param.rewardParam.filter( item => {
                     return item.levelId == playerLevelId;
                 })
                 vm.festivalByPlayerLevel = ( rewardByPlayerLevel && rewardByPlayerLevel[0] && rewardByPlayerLevel[0].value ) ? rewardByPlayerLevel[0].value : [];
             }
 
-            if (festivalByPlayerLevel && festivalByPlayerLevel && festivalByPlayerLevel.length > 0) {
-                vm.festivalByPlayerLevel.forEach( item => {
-                    item.festivalName = vm.getFestivalName(item.festivalId, item.rewardType, rewardobj.param.others, DOB);
+            if (vm.festivalByPlayerLevel && vm.festivalByPlayerLevel && vm.festivalByPlayerLevel.length > 0) {
+                vm.festivalByPlayerLevel = vm.festivalByPlayerLevel.map( item => {
+                    item.festivalName = vm.getFestivalName(item.festivalId, item.rewardType, rewardObj.param.others, DOB);
                     return item;
                 })
             }
-
-            return result;
         }
 
         vm.getFestivalName = function(id, rewardType,  festivals, DOB) {
             let result = '';
+            let month, day;
             if (festivals && festivals.length > 0) {
                 let festival = festivals.filter( item => {
                     return item.id == id
                 })
                 festival = ( festival && festival[0] ) ? festival[0] : {};
-                let month = festival.month;
-                let day = festival.day;
+                month = festival.month;
+                day = festival.day;
                 result = festival.name + '(' + month + $translate('month') + day + $translate('day') + ')';
-
 
             }
             if (rewardType == 2 || rewardType == 4) {
-                result = '会员生日 (' + DOB + ')';
+                month = new Date(DOB).getMonth() + 1;
+                day =  new Date(DOB).getDate();
+                result = '会员生日' + '(' + month + $translate('month') + day + $translate('day') + ')';
             }
             return result
         }
@@ -10926,6 +10929,7 @@ define(['js/app'], function (myApp) {
             if (!rewardObj) return;
             vm.playerApplyRewardPara.code = rewardObj.code;
             vm.playerApplyRewardShow.TopupRecordSelect = false;
+            vm.playerApplyRewardShow.festivalSelect = false;
             let type = rewardObj.type ? rewardObj.type.name : null;
             vm.playerApplyRewardShow.returnData = {};
 
