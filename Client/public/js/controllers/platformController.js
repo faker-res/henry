@@ -34317,7 +34317,7 @@ define(['js/app'], function (myApp) {
                 let officeraddUrlMessageId = $("#officer-addUrl-message");
                 vm.initClearMessage();
                 let sendData = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.currentUrlEditSelect.platformId,
                     officerId: vm.addOfficerUrl.officer,
                     domain: vm.addOfficerUrl.url,
                     way: vm.addOfficerUrl.promoteWay
