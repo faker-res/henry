@@ -30,7 +30,7 @@ var proposalSchema = new Schema({
     // Determine type of entry from which submitted the proposal - 0 - client Side, 1 - admin side
     entryType: {type: String, default: constProposalEntryType.ADMIN, index: true},
     //User type - for whom create the proposal - real player/partners/system users/demoPlayers
-    userType: {type: String, default: constProposalUserType.SYSTEM_USERS, index: true},
+    userType: {type: String, default: constProposalUserType.SYSTEM_USERS},
     //if this proposal has any step
     noSteps: {type: Boolean, default: false, index: true},
     //status
@@ -67,6 +67,8 @@ proposalSchema.index({"data.weChatAccount": 1});
 proposalSchema.index({"data.playerObjId": 1, createTime: 1, mainType: 1, status: 1, type: 1});
 // Index based on type
 proposalSchema.index({type: 1, createTime: -1});
+// Merchant No related
+proposalSchema.index({createTime:1, "data.merchantNo": 1, status: 1, type: 1});
 
 proposalSchema.index({"data.playerName": 1});
 proposalSchema.index({"data.playerId": 1});

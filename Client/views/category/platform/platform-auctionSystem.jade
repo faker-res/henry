@@ -1,4 +1,13 @@
-form(name='form_auctionSystem').row
+.row
+    .col-md-12
+        .well.col-xs-12
+            .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.filterAuctionPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.listAuctionItem(vm.filterAuctionPlatform); vm.listAuctionMonitor(vm.filterAuctionPlatform)')
+.text-center(ng-if="!vm.filterAuctionPlatform")
+    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
+form(name='form_auctionSystem').row(ng-if="vm.filterAuctionPlatform")
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAuctionSystemTab === "createProduct"}', ng-click='vm.auctionSystemTabClicked("createProduct")')
             span {{"Create Product" | translate}}

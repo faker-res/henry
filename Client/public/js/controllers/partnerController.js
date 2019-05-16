@@ -35,7 +35,8 @@ define(['js/app'], function (myApp) {
             BIWEEKLY_BONUS_AMOUNT: 3,
             MONTHLY_BONUS_AMOUNT: 4,
             WEEKLY_CONSUMPTION: 5,
-            OPTIONAL_REGISTRATION: 6
+            OPTIONAL_REGISTRATION: 6,
+            DAILY_CONSUMPTION: 7
         };
 
         vm.constPartnerCommisionTypeOption = {
@@ -44,6 +45,7 @@ define(['js/app'], function (myApp) {
             BIWEEKLY_BONUS_AMOUNT: 3,
             MONTHLY_BONUS_AMOUNT: 4,
             WEEKLY_CONSUMPTION: 5,
+            DAILY_CONSUMPTION: 7
         };
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
@@ -711,7 +713,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommission = {};
                 vm.getPlatformPartnersData();
                 vm.getCommissionRateGameProviderGroup();
-                vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
+                vm.selectedCommissionTab('DAILY_CONSUMPTION');
                 vm.onGoingLoadPlatformData = false;
             })
         }
@@ -11288,15 +11290,15 @@ define(['js/app'], function (myApp) {
 
         function getActivePlayerTableHeader(commissionSettingTab) {
             switch (vm.commissionSettingTab) {
-                case 'DAILY_BONUS_AMOUNT':
+                case 'DAILY_CONSUMPTION':
                     return 'DAILY_ACTIVE_PLAYER';
-                case 'WEEKLY_BONUS_AMOUNT':
+                // case 'WEEKLY_BONUS_AMOUNT':
                 case 'WEEKLY_CONSUMPTION':
                     return 'WEEKLY_ACTIVE_PLAYER';
-                case 'BIWEEKLY_BONUS_AMOUNT':
-                    return 'HALFMONTH_ACTIVE_PLAYER';
-                case 'MONTHLY_BONUS_AMOUNT':
-                    return 'MONTHLY_ACTIVE_PLAYER';
+                // case 'BIWEEKLY_BONUS_AMOUNT':
+                //     return 'HALFMONTH_ACTIVE_PLAYER';
+                // case 'MONTHLY_BONUS_AMOUNT':
+                //     return 'MONTHLY_ACTIVE_PLAYER';
                 default:
                     return '';
             }
@@ -11315,30 +11317,30 @@ define(['js/app'], function (myApp) {
 
         vm.selectedCommissionTab = function (tab, partnerObjId) {
             let isGetConfig = true;
-            vm.commissionSettingTab = tab ? tab : 'DAILY_BONUS_AMOUNT';
+            vm.commissionSettingTab = tab ? tab : 'DAILY_CONSUMPTION';
             vm.partnerCommission.isEditing = false;
             vm.partnerCommission.isCustomized = false;
 
-            if (vm.commissionSettingTab != 'WEEKLY_CONSUMPTION') {
-                vm.playerConsumptionTableHeader = 'TotalPlayerConsumptionBonusAmount';
-            } else {
+            // if (vm.commissionSettingTab != 'WEEKLY_CONSUMPTION') {
+            //     vm.playerConsumptionTableHeader = 'TotalPlayerConsumptionBonusAmount';
+            // } else {
                 vm.playerConsumptionTableHeader = 'TotalPlayerValidAmount';
-            }
+            // }
 
             switch (vm.commissionSettingTab) {
-                case 'DAILY_BONUS_AMOUNT':
+                case 'DAILY_CONSUMPTION':
                     vm.activePlayerTableHeader = 'DAILY_ACTIVE_PLAYER';
                     break;
-                case 'WEEKLY_BONUS_AMOUNT':
+                // case 'WEEKLY_BONUS_AMOUNT':
                 case 'WEEKLY_CONSUMPTION':
                     vm.activePlayerTableHeader = 'WEEKLY_ACTIVE_PLAYER';
                     break;
-                case 'BIWEEKLY_BONUS_AMOUNT':
-                    vm.activePlayerTableHeader = 'HALFMONTH_ACTIVE_PLAYER';
-                    break;
-                case 'MONTHLY_BONUS_AMOUNT':
-                    vm.activePlayerTableHeader = 'MONTHLY_ACTIVE_PLAYER';
-                    break;
+                // case 'BIWEEKLY_BONUS_AMOUNT':
+                //     vm.activePlayerTableHeader = 'HALFMONTH_ACTIVE_PLAYER';
+                //     break;
+                // case 'MONTHLY_BONUS_AMOUNT':
+                //     vm.activePlayerTableHeader = 'MONTHLY_ACTIVE_PLAYER';
+                //     break;
                 default:
                     isGetConfig = false;
             }
@@ -16547,16 +16549,16 @@ define(['js/app'], function (myApp) {
                     });
 
                     commConfigs.map(commConfig => {
-                        if (commConfig.commissionSetting) {
-                            commConfig.commissionSetting.map(setting => {
-                                setting.commissionRate = parseFloat(setting.commissionRate * 100);
-                            });
-                        }
 
                         let group = gameProviderGroups.find(gameProviderGroup => gameProviderGroup._id == commConfig.provider)
-                        if (group) {
-                            group.showConfig = $.extend(true, {}, commConfig);
+                        if (group && commConfig && commConfig.commissionType == vm.constPartnerCommisionType[vm.commissionSettingTab]) {
                             group.srcConfig = $.extend(true, {}, commConfig);
+                            if (commConfig.commissionSetting) {
+                                commConfig.commissionSetting.map(setting => {
+                                    setting.commissionRate = parseFloat(setting.commissionRate * 100);
+                                });
+                            }
+                            group.showConfig = $.extend(true, {}, commConfig);
                         }
                     });
 

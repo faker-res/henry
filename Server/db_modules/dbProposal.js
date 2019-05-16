@@ -8633,6 +8633,14 @@ function insertRepeatCount(proposals, platformList) {
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
                     }
 
+                    if (proposal && proposal.type && proposal.type.name && proposal.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+                        let playerName = proposal.data.playerName;
+
+                        allCountQuery["data.playerName"] = playerName;
+                        currentCountQuery["data.playerName"] = playerName;
+                        firstInStreakQuery["data.playerName"] = playerName;
+                    }
+
                     // for debug usage
                     // pS = prevSuccess[0];
                     // nS = nextSuccess[0];
