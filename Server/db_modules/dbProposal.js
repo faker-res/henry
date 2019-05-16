@@ -8633,23 +8633,12 @@ function insertRepeatCount(proposals, platformList) {
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
                     }
 
-                    if (commonTopUpTypeIds && commonTopUpTypeIds.length > 0 && relevantTypeIds && relevantTypeIds.length > 0) {
+                    if (proposal && proposal.type && proposal.type.name && proposal.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
                         let playerName = proposal.data.playerName;
 
-                        for (let i = 0; i < commonTopUpTypeIds.length; i++) {
-                            let type = commonTopUpTypeIds[i];
-
-                            if (type) {
-                                let index = relevantTypeIds.map(x => x && x._id && x._id.toString()).indexOf(type.toString());
-
-                                if (index != -1) {
-                                    allCountQuery["data.playerName"] = playerName;
-                                    currentCountQuery["data.playerName"] = playerName;
-                                    firstInStreakQuery["data.playerName"] = playerName;
-                                    break;
-                                }
-                            }
-                        }
+                        allCountQuery["data.playerName"] = playerName;
+                        currentCountQuery["data.playerName"] = playerName;
+                        firstInStreakQuery["data.playerName"] = playerName;
                     }
 
                     // for debug usage
