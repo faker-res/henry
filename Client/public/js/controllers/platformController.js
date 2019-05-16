@@ -32446,7 +32446,7 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                     type: typeName,
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterClientQnAPlatform,
                     inputDataObj: vm.clientQnAInput,
                     qnaObjId: vm.playerClientQnAObjId
                 }
@@ -32564,7 +32564,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterClientQnAPlatform,
                     type: vm.selectedClientQnAType.data
                 }
                 socketService.$socket($scope.AppSocket, 'getClientQnASecurityQuesConfig', sendData,  function (data) {
@@ -32629,7 +32629,7 @@ define(['js/app'], function (myApp) {
                     {id: "6", name: "工商银行一卡通"},
                 ];
 
-                socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.filterClientQnAPlatform}, function (data) {
                     if (data && data.data && data.data.data) {
                         let allBankTypeList = {};
 
@@ -32752,7 +32752,7 @@ define(['js/app'], function (myApp) {
 
             vm.editClientQnAConfig = function () {
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterClientQnAPlatform,
                     type: vm.selectedClientQnAType.data,
                     updateObj: vm.clientQnASecurityQuesConfig.config
                 }
