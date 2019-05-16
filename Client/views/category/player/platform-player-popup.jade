@@ -1325,6 +1325,16 @@
                                 .form-control(ng-repeat='(i,v) in vm.playerAllTopupRecords', ng-if='vm.playerApplyRewardShow.selectTopupRecordsMulti')
                                     label {{vm.dateReformat(v.createTime)}} --- (${{v.amount}})
                                         input.margin-right-5.pull-left(type='checkbox', ng-model='vm.playerApplyRewardShow.topUpRecordIds[v._id]')
+                            .form-group(ng-if='vm.playerApplyRewardShow.festivalSelect')
+                                label.control-label {{'FESTIVAL_LIST' | translate}}
+                                .clearfix
+                                //label.control-label(ng-show='!vm.playerAllTopupRecords') {{'Loading' | translate}}
+                                    i.fa.fa-spin.fa-spinner
+                                select.form-control(ng-model='vm.playerApplyRewardPara.topUpRecordId', required)
+                                    option(ng-repeat='(i,v) in vm.festivalByPlayerLevel', ng-disabled="v.isDisabled ? true: false", value='{{v._id}}') {{v.festivalName}}
+                                //.form-control(ng-repeat='(i,v) in vm.festivalByPlayerLevel', ng-if='vm.playerApplyRewardShow.selectTopupRecordsMulti')
+                                    label {{vm.dateReformat(v.createTime)}} --- (${{v.amount}})
+                                        input.margin-right-5.pull-left(type='checkbox', ng-model='vm.playerApplyRewardShow.topUpRecordIds[v._id]')
                             .form-group(ng-if='vm.playerApplyRewardShow.AmountInput')
                                 label.control-label {{'CREDIT' | translate}}
                                 input.form-control(type='number', ng-model='vm.playerApplyRewardPara.amount', required)

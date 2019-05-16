@@ -10681,6 +10681,46 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.getFestivalSelection = function ( playerLevel, DOB, rewardObj ) {
+            console.log(playerLevel);
+            console.log(rewardObj);
+            let playerLevelId = playerLevel._id || '';
+            if (rewardObj.param && rewardObj.param.rewardParam && rewardObj.param.rewardParam.length > 0) {
+                let rewardByPlayerLevel = rewardObj.param.rewardParam.forEach( item => {
+                    return item.levelId == playerLevelId;
+                })
+                vm.festivalByPlayerLevel = ( rewardByPlayerLevel && rewardByPlayerLevel[0] && rewardByPlayerLevel[0].value ) ? rewardByPlayerLevel[0].value : [];
+            }
+
+            if (festivalByPlayerLevel && festivalByPlayerLevel && festivalByPlayerLevel.length > 0) {
+                vm.festivalByPlayerLevel.forEach( item => {
+                    item.festivalName = vm.getFestivalName(item.festivalId, item.rewardType, rewardobj.param.others, DOB);
+                    return item;
+                })
+            }
+
+            return result;
+        }
+
+        vm.getFestivalName = function(id, rewardType,  festivals, DOB) {
+            let result = '';
+            if (festivals && festivals.length > 0) {
+                let festival = festivals.filter( item => {
+                    return item.id == id
+                })
+                festival = ( festival && festival[0] ) ? festival[0] : {};
+                let month = festival.month;
+                let day = festival.day;
+                result = festival.name + '(' + month + $translate('month') + day + $translate('day') + ')';
+
+
+            }
+            if (rewardType == 2 || rewardType == 4) {
+                result = '会员生日 (' + DOB + ')';
+            }
+            return result
+        }
+
         vm.prepareShowConsumptionSlipReward = function () {
 
             vm.consumptionSlipReward = {totalCount: 0};
@@ -10978,6 +11018,11 @@ define(['js/app'], function (myApp) {
                 vm.playerApplyRewardShow.TopupRecordSelect = true;
                 vm.playerAllTopupRecords = null;
                 vm.getPlayerTopupRecord(null, rewardObj, type);
+            }
+
+            if (type == "PlayerFestivalRewardGroup") {
+                vm.playerApplyRewardShow.festivalSelect = true;
+                vm.getFestivalSelection(vm.isOneSelectedPlayer().playerLevel, vm.isOneSelectedPlayer().DOB, rewardObj);
             }
 
             vm.playerApplyRewardShow.AmountInput = type == "GameProviderReward";
