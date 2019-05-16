@@ -1402,6 +1402,48 @@ define([], () => {
             }
             // end region
 
+
+            // region random reward Proposal
+            if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "PlayerFestivalRewardGroup")) {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                let rewardType = vm.selectedProposal.data.rewardType;
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+                proposalDetail["MAIN_TYPE"] = $translate("PlayerFestivalRewardGroup");
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                // proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
+                // proposalDetail["proposalPlayerLevelValue"] = vm.selectedProposal.data.proposalPlayerLevelValue;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realName || " ";
+                proposalDetail["lastLoginIp"] = vm.selectedProposal.data.lastLoginIp || " ";
+                proposalDetail["phoneNumber"] = vm.selectedProposal.data.phoneNumber || " ";
+                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                proposalDetail["eventId"] = vm.selectedProposal.data.eventId;
+                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                proposalDetail["rewardInterval"] = vm.selectedProposal.data.intervalType;
+                proposalDetail["rewardName"] = vm.selectedProposal.data.rewardName;
+                //***
+                proposalDetail["playerBirthday"] =  vm.selectedProposal.data.playerBirthday ? $scope.timeReformat(vm.selectedProposal.data.playerBirthday) :'' ;
+                proposalDetail["applyTargetDate"] = vm.selectedProposal.data.applyTargetDate;
+                proposalDetail["forbidWithdrawAfterApply"] = vm.selectedProposal.data.forbidWithdrawAfterApply;
+                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                proposalDetail["isDynamicRewardAmount"] = vm.selectedProposal.data.isDynamicRewardAmount;
+                proposalDetail["isGroupReward"] = vm.selectedProposal.data.isGroupReward;
+                proposalDetail["isIgnoreAudit"] = vm.selectedProposal.data.isIgnoreAudit;
+                proposalDetail["providerGroup"] = vm.selectedProposal.data.providerGroup;
+                // proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
+                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
+                proposalDetail["useConsumptionAmount"] = vm.selectedProposal.data.useConsumptionAmount;
+                proposalDetail["useTopUpAmount"] = vm.selectedProposal.data.useTopUpAmount;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+            }
+
             // region Update Player Real Name Proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerRealName") {
                 proposalDetail = {};
