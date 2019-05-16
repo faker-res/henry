@@ -42,6 +42,8 @@
                                 span {{"platformSetting" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'FrontendConfiguration', 'Read')" ng-class='{active: vm.platformPageName === "FrontendConfiguration"}' ng-click="vm.loadTab('FrontendConfiguration');")
                                 span {{"FrontendConfiguration" | translate}}
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'FrontEndConfiguration', 'Read')" ng-class='{active: vm.platformPageName === "FrontEndConfiguration2"}' ng-click="vm.loadTab('FrontEndConfiguration2');")
+                                span {{"FrontEndConfiguration2" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')" ng-class='{active: vm.platformPageName === "PromoCode"}' ng-click="vm.loadTab('RegistrationUrlConfig');")
                                 span {{"RegistrationUrlConfig" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Proposal', 'Read')" ng-class='{active: vm.platformPageName === "Proposal"}' ng-click="vm.loadTab('Proposal');")
@@ -104,6 +106,8 @@
                         div(ng-switch-when="FrontendConfiguration")
                             div.tab-pane
                                 iframe(ng-src="{{vm.frontendConfigurationUrl}}" style='height: -webkit-fill-available;' width="100%", frameborder="0", id="configIframe", ng-onload="vm.changeFrameHeight()")
+                        div(ng-switch-when="FrontEndConfiguration2")
+                            include ./platform-frontEndConfiguration
                         div(ng-switch-when="AuctionSystem")
                             include ./platform-auctionSystem
 

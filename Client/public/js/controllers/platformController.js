@@ -37,6 +37,28 @@ define(['js/app'], function (myApp) {
                 OPTIONAL_REGISTRATION: 6
             };
 
+            vm.popularRecommendationCategory = {
+                "firstPagePopularRecommendation": 1,
+                "gameRecommendation": 2,
+                "bottomBanner": 3,
+            };
+
+            vm.frontEndSettingOnClickAction = {
+                "openNewPage": 1,
+                "activityDetail": 2,
+                "redirectToRewardWebPage": 3,
+                "redirectToOfficialWebPage": 4,
+                "startGame": 5,
+                "doNothing": 6,
+            };
+
+            vm.frontEndSettingDevices = {
+                "web": 1,
+                "iosApp": 2,
+                "androidApp": 3,
+                "H5": 4,
+            },
+
             vm.constSystemRewardEventGroup = {
                 DEFAULT: "defaultRewardEventGroup*",
                 ENDED: "endedRewardEventGroup*",
@@ -1492,6 +1514,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case "FrontendConfiguration":
                         vm.initFrontendConfiguration();
+                        break;
+                    case "FrontEndConfiguration2":
+                        // vm.initFrontendConfiguration();
                         break;
                     case "AuctionSystem":
                         vm.initAuctionSystem();
@@ -39488,6 +39513,15 @@ define(['js/app'], function (myApp) {
                 if (ifm) {
                     ifm.height = document.documentElement.clientHeight;
                 }
+            };
+
+            vm.addNewPopularRecommendationSetting = function() {
+                vm.popularRecommendationSetting = {
+                    pc: {},
+                    h5: {},
+                    app: {},
+                };
+                $('#popularRecommendationSetting').modal();
             };
 
             function getSelectedPlatform() {
