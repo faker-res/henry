@@ -2922,7 +2922,7 @@ var dbRewardEvent = {
                     })
                 }
 
-                return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData).exec();
+                return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData, {new: true}).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
             }
         ).catch(
             err => {
