@@ -1507,10 +1507,9 @@ db.rewardParam.update({
                 isSteppingReward: {type: "checkbox", des: "Reward step needed"},
                 countInRewardInterval: {type: "number", des: "Reward limit in interval"},
                 rewardParam: {
-                    festivalName: {type: "text", des: "Festival Name"},
+                    festivalId: {type: "select", options: "allFestivals", des: "Festival Name"},
                     title: {type: "text", des: "Festival Title"},
                     topUpReturnReward: {type: "text", des: "Top Up Return Reward"},
-                    amount: {type: "text", des: "REWARD_AMOUNT"},
                     minTopUpAmount: {type: "number", des: "Minimal top up amount"},
                     totalConsumptionInInterval: {type: "number", des: "Total consumption amount in interval"},
                     rewardAmount: {type: "number", des: "Reward amount"},
@@ -1525,7 +1524,8 @@ db.rewardParam.update({
                     remark: {type: "text", des: "Remark"},
                 }
             },
-            tblOptDynamic: {}
+            tblOptDynamic: {},
+            others:{}
         }
     }
 }, {

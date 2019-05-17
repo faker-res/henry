@@ -1128,7 +1128,7 @@ define(['js/app'], function (myApp) {
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
-                    if (v.mainType == 'Reward' && !(v.data && v.type && v.type.name && (v.type.name == "PlayerRandomRewardGroup" || v.type.name == "PlayerPromoCodeReward" || v.type.name == "PlayerBonusDoubledRewardGroup" || v.type.name == "BaccaratRewardGroup"))) {
+                    if (v.mainType == 'Reward' && !(v.data && v.type && v.type.name && (v.type.name == "PlayerRandomRewardGroup" || v.type.name == "PlayerFestivalRewardGroup" || v.type.name == "PlayerPromoCodeReward" || v.type.name == "PlayerBonusDoubledRewardGroup" || v.type.name == "BaccaratRewardGroup"))) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     if (v.mainType == 'Others')
@@ -2389,7 +2389,7 @@ define(['js/app'], function (myApp) {
             delete vm.selectedProposalDetailForDisplay.devCheckMsg;
             delete vm.selectedProposalDetailForDisplay.useLockedCredit;
             // delete vm.selectedProposalDetailForDisplay.remark;
-            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name !== "BaccaratRewardGroup") {
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name !== "BaccaratRewardGroup" && vm.selectedProposal.type.name !== "PlayerFestivalRewardGroup") {
                 delete vm.selectedProposalDetailForDisplay.isIgnoreAudit;
                 delete vm.selectedProposalDetailForDisplay.forbidWithdrawAfterApply;
             }
@@ -2422,7 +2422,8 @@ define(['js/app'], function (myApp) {
             }
 
             vm.selectedProposal.showCancel = canCancelProposal(vm.selectedProposal);
-            $scope.safeApply();
+            // $scope.safeApply();
+            $scope.$evalAsync();
             //console.log(data);
         }
 
