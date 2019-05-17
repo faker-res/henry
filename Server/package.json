@@ -28,6 +28,7 @@
     "jpush-sdk": "^3.4.1",
     "jsdom": "11.6.1",
     "jsonwebtoken": "^5.4.1",
+    "mathjs": "^5.10.0",
     "md5": "^2.2.1",
     "memory-cache": "^0.1.4",
     "mobile-detect": "^1.4.1",

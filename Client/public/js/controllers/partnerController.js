@@ -17408,6 +17408,12 @@ define(['js/app'], function (myApp) {
 
 
         // endregion report
+
+        vm.debugCommCalc = function (partnerObjId, startTime, endTime) {
+            socketService.$socket($scope.AppSocket, 'debugCommCalc', {partnerObjId, startTime, endTime}, function (data) {
+                console.log('debugCommCalc', data);
+            });
+        };
     };
 
     let injectParams = [

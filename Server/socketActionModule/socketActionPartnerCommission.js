@@ -1,5 +1,6 @@
 var socketUtil = require('./../modules/socketutility');
-const dbPartnerCommission = require('./../db_modules/dbPartnerCommission')
+const dbPartnerCommissionConfig = require('../db_modules/dbPartnerCommissionConfig');
+const dbPartnerCommission = require('../db_modules/dbPartnerCommission');
 
 function socketActionPartnerCommission(socketIO, socket) {
 
@@ -29,13 +30,19 @@ function socketActionPartnerCommission(socketIO, socket) {
         getPlatformPartnerCommConfig: function getPlatformPartnerCommConfig (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPartnerCommission.getPlatformPartnerCommConfig, [data.platformObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartnerCommissionConfig.getPlatformPartnerCommConfig, [data.platformObjId], actionName, isValidData);
         },
 
         updatePlatformPartnerCommConfig: function updatePlatformPartnerCommConfig (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPartnerCommission.updatePlatformPartnerCommConfig, [data.platformObjId, data.commissionType, data.providerObjId, data.commissionSetting], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartnerCommissionConfig.updatePlatformPartnerCommConfig, [data.platformObjId, data.commissionType, data.providerObjId, data.commissionSetting], actionName, isValidData);
+        },
+
+        debugCommCalc: function debugCommCalc (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.partnerObjId);
+            socketUtil.emitter(self.socket, dbPartnerCommission.calculatePartnerCommission, [data.partnerObjId, data.startTime, data.endTime], actionName, isValidData);
         },
 
     };
