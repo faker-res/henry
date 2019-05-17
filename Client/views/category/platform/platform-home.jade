@@ -42,6 +42,8 @@
                                 span {{"platformSetting" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'FrontendConfiguration', 'Read')" ng-class='{active: vm.platformPageName === "FrontendConfiguration"}' ng-click="vm.loadTab('FrontendConfiguration');")
                                 span {{"FrontendConfiguration" | translate}}
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'FrontEndConfiguration', 'Read')" ng-class='{active: vm.platformPageName === "FrontEndConfiguration2"}' ng-click="vm.loadTab('FrontEndConfiguration2');")
+                                span {{"FrontEndConfiguration2" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')" ng-class='{active: vm.platformPageName === "PromoCode"}' ng-click="vm.loadTab('RegistrationUrlConfig');")
                                 span {{"RegistrationUrlConfig" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Proposal', 'Read')" ng-class='{active: vm.platformPageName === "Proposal"}' ng-click="vm.loadTab('Proposal');")
@@ -104,6 +106,8 @@
                         div(ng-switch-when="FrontendConfiguration")
                             div.tab-pane
                                 iframe(ng-src="{{vm.frontendConfigurationUrl}}" style='height: -webkit-fill-available;' width="100%", frameborder="0", id="configIframe", ng-onload="vm.changeFrameHeight()")
+                        div(ng-switch-when="FrontEndConfiguration2")
+                            include ./platform-frontEndConfiguration
                         div(ng-switch-when="AuctionSystem")
                             include ./platform-auctionSystem
 
@@ -368,6 +372,52 @@
                                         td {{v.creator.name || ''}}
                                         td {{v.lastEditTime | date : 'yyyy-MM-dd HH:mm:ss'}}
                                         td {{ vm.randomRewardConvertorStatus[v.status] | translate}}
+            .modal-footer
+
+#festivalItemModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                {{ 'DETAILS' | translate }}
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            table.common-table.display(style='min-width:100%')
+                                thead
+                                    th {{'节日名称' | translate}}
+                                    th {{'时间' | translate}}
+
+                                tbody
+                                    tr(ng-repeat="v in vm.showReward.param.others")
+                                        td {{v.name || ''}}
+                                        td {{v.month || ''}}月{{v.day || ''}}日
+
+                                table.common-table.display(style='min-width:100%')
+                                    thead
+                                        th {{'节日名称' | translate}}
+                                        th {{'时间' | translate}}
+                                        th
+                                        th
+                                        th
+                                        th
+
+                                    tbody
+                                        tr
+                                            td
+                                                input(ng-model='vm.festival.name')
+                                                //ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{ i | translate}}
+                                            td
+                                                select.form-control(ng-model='vm.festival.month', style='inline-block')
+                                                    option(ng-repeat="i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]", value='{{i}}')  {{i}}
+                                            td 月
+                                            td
+                                                select.form-control(ng-model='vm.festival.day', style='inline-block')
+                                                    option(ng-repeat="i in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]", value='{{i}}')  {{i}}
+                                            td 日
+                                            td
+                                                button.btn.btn-primary.common-button(ng-click="vm.addNewFestivalTitle(vm.festival)") 确定
             .modal-footer
 
 

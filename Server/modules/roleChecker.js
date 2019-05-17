@@ -568,6 +568,10 @@ var roleChecker = {
             "FrontendConfiguration": {
                 Read: []
             },
+            "FrontEndConfiguration": {
+                Read: [],
+                popularRecommendation: [],
+            },
             "AuctionSystem": {
                 Read: [],
                 Create: [],

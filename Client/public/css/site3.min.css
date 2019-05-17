@@ -4402,6 +4402,23 @@ hr {
     background-color: #FFFF66;
 }
 
+.fronendConfigDiv {
+    background: #d3d3d34d;
+    padding: 10px;
+    margin: 10px;
+    position: relative;
+    border: 1px solid rgb(190,190,190);
+    border-radius: 10px;
+    min-height: 500px;
+    display: inline-block;
+    width: calc(100% / 3 - 20px);
+}
+
+.frontendConfigSeperator {
+    border-bottom: 2px solid #2B6698;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
 
 .navbar-right {
     padding-right: 10px !important;
