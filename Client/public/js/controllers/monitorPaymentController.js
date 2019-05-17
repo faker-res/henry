@@ -140,7 +140,11 @@ define(['js/app'], function (myApp) {
             if(authService && authService.adminId){
                 socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                     $scope.$evalAsync(() => {
-                        vm.platformByAdminId = data.data;
+                        vm.platformByAdminId = data.data.map(item => {
+                            item.platformId$ = item.platformId ? Number(item.platformId) : '';
+
+                            return item;
+                        });
                     })
                 }, function (error){
                     console.error(error);
