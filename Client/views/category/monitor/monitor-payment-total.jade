@@ -2,6 +2,9 @@
 div
     #paymentMonitorTotalQuery.col-md-12.well
         .search-filters-item
+            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+            select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.platformList', ng-options='v._id as v.name for v in vm.platformByAdminId', multiple, bsp, data-actions-box='true')
+        .search-filters-item
             label {{'PLAYER_NAME' | translate}}
             input.form-control(type='text', ng-model='vm.paymentMonitorTotalQuery.playerName')
         .search-filters-item
@@ -54,9 +57,6 @@ div
         .search-filters-item
             label.control-label {{'End date' | translate}}
             .endTime
-        .search-filters-item
-            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-            select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.platformList', ng-options='v._id as v.name for v in vm.platformByAdminId', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'Fail Counter' | translate}}
             select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.failCount', multiple, static-bsp, data-actions-box='true')
