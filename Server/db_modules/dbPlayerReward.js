@@ -8274,6 +8274,7 @@ let dbPlayerReward = {
                             proposalData.data.festivalObjId = ( isAnyRewardLeft && isAnyRewardLeft.festivals && isAnyRewardLeft.festivals[0] ) ? isAnyRewardLeft.festivals[0] : '-';  //selectedRewardParam.id || null;
                             proposalData.data.rewardType = selectedRewardParam.rewardType || null;
                             // keep this for debug
+                            proposalData.data.festivalName = getFestivalName(selectedRewardParam.festivalId, selectedRewardParam.rewardType,  eventData.param.others, playerData.DOB)
                             proposalData.data.rewardInfo = selectedRewardParam;
                         }
                         if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
@@ -10313,6 +10314,30 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
             }
         })
     })
+}
+
+function getFestivalName(id, rewardType,  festivals, DOB) {
+    let result = '';
+    let month, day;
+    console.log('festivals', festivals);
+    console.log(id);
+    if (festivals && festivals.length > 0) {
+        let festival = festivals.filter( item => {
+            return item.id == id
+        })
+        console.log('festival', festival);
+        festival = ( festival && festival[0] ) ? festival[0] : {};
+        month = festival.month;
+        day = festival.day;
+        result = festival.name + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+
+    }
+    if (rewardType == 2 || rewardType == 4) {
+        month = new Date(DOB).getMonth() + 1;
+        day =  new Date(DOB).getDate();
+        result = '会员生日' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+    }
+    return result
 }
 
 var proto = dbPlayerRewardFunc.prototype;
