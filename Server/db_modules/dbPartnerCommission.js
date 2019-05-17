@@ -440,13 +440,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
                     $lt: new Date(endTime)
                 },
                 $or: [
-                    {isDuplicate: {$exists: false}},
-                    {
-                        $and: [
-                            {isDuplicate: {$exists: true}},
-                            {isDuplicate: false}
-                        ]
-                    }
+                    {isDuplicate: {$ne: true}},
                 ]
             }
         },
