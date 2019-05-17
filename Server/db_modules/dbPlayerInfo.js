@@ -3719,7 +3719,7 @@ let dbPlayerInfo = {
         })
         return result;
     },
-    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents, disablePromoCode) {
+    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents, disablePromoCode, forbidLevelUpReward, forbidLevelMaintainReward) {
 
         let result = [];
         let addList = forbidRewardEvents.addList;
@@ -3731,6 +3731,13 @@ let dbPlayerInfo = {
                 .then(data => {
                     let playerForbidRewardEvents = data.forbidRewardEvents || [];
                     updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
+
+                    if (forbidLevelUpReward) {
+                        updateData.forbidLevelUpReward = forbidLevelUpReward;
+                    }
+                    if (forbidLevelMaintainReward) {
+                        updateData.forbidLevelMaintainReward = forbidLevelMaintainReward;
+                    }
                     if (disablePromoCode != undefined) {
                         updateData.forbidPromoCode = disablePromoCode ? true : false;
                     }
