@@ -9948,9 +9948,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
                 },
-                $or: [
-                    {isDuplicate: {$ne: true}},
-                ]
+                isDuplicate: {$ne: true},
             }
         },
         {
