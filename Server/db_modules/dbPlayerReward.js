@@ -5907,6 +5907,13 @@ let dbPlayerReward = {
                 }
 
                 forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
+
+                // check required phone number
+                let requiredPhoneNumber = true; // default as true if phone number is not required
+                if (eventData.condition.requiredPhoneNumber) {
+                    requiredPhoneNumber = Boolean(playerData.phoneNumber);
+                }
+                promArr.push(requiredPhoneNumber);
             }
         }
 
@@ -5915,6 +5922,13 @@ let dbPlayerReward = {
             promArr.push(playerRewardDetailProm);
 
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
+
+            // check required phone number
+            let requiredPhoneNumber = true; // default as true if phone number is not required
+            if (eventData.condition.requiredPhoneNumber) {
+                requiredPhoneNumber = Boolean(playerData.phoneNumber);
+            }
+            promArr.push(requiredPhoneNumber);
         }
 
         if (eventData.type.name === constRewardType.BACCARAT_REWARD_GROUP) {
@@ -5922,6 +5936,13 @@ let dbPlayerReward = {
             promArr.push(playerRewardDetailProm);
 
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
+
+            // check required phone number
+            let requiredPhoneNumber = true; // default as true if phone number is not required
+            if (eventData.condition.requiredPhoneNumber) {
+                requiredPhoneNumber = Boolean(playerData.phoneNumber);
+            }
+            promArr.push(requiredPhoneNumber);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
@@ -5949,6 +5970,13 @@ let dbPlayerReward = {
             promArr.push(rewardDetailProm);
 
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
+
+            // check required phone number
+            let requiredPhoneNumber = true; // default as true if phone number is not required
+            if (eventData.condition.requiredPhoneNumber) {
+                requiredPhoneNumber = Boolean(playerData.phoneNumber);
+            }
+            promArr.push(requiredPhoneNumber);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
@@ -6051,6 +6079,13 @@ let dbPlayerReward = {
             }).sort({createTime: 1}).lean());
 
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
+
+            // check required phone number
+            let requiredPhoneNumber = true; // default as true if phone number is not required
+            if (eventData.condition.requiredPhoneNumber) {
+                requiredPhoneNumber = Boolean(playerData.phoneNumber);
+            }
+            promArr.push(requiredPhoneNumber);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
@@ -6432,6 +6467,13 @@ let dbPlayerReward = {
             }
             eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
+
+            // check required phone number
+            let requiredPhoneNumber = true; // default as true if phone number is not required
+            if (eventData.condition.requiredPhoneNumber) {
+                requiredPhoneNumber = Boolean(playerData.phoneNumber);
+            }
+            promArr.push(requiredPhoneNumber);
         }
 
 
@@ -6454,6 +6496,13 @@ let dbPlayerReward = {
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).sort({createTime: -1}).limit(1).lean();
 
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
+
+            // check required phone number
+            let requiredPhoneNumber = true; // default as true if phone number is not required
+            if (eventData.condition.requiredPhoneNumber) {
+                requiredPhoneNumber = Boolean(playerData.phoneNumber);
+            }
+            promArr.push(requiredPhoneNumber);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
@@ -6702,9 +6751,16 @@ let dbPlayerReward = {
                 );
             }
 
+            // check required phone number
+            let requiredPhoneNumber = true; // default as true if phone number is not required
+            if (eventData.condition.requiredPhoneNumber) {
+                requiredPhoneNumber = Boolean(playerData.phoneNumber);
+            }
+
             promArr.push(countInRewardInterval.then(data => {console.log('countInRewardInterval'); return data;}));
             promArr.push(checkSMSProm.then(data => {console.log('checkSMSProm'); return data;}));
             promArr.push(checkForbidRewardProm.then(data => {console.log('checkForbidRewardProm'); return data;}).catch(errorUtils.reportError));
+            promArr.push(requiredPhoneNumber);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
@@ -6724,6 +6780,7 @@ let dbPlayerReward = {
                 let dailyRewardPointData = data[4];
                 let forbidRewardData = data[5];
                 console.log('forbidRewardData check', forbidRewardData);
+                let matchRequiredPhoneNumber = null;
 
                 let rewardAmountInPeriod = 0;
                 if (dailyRewardPointData && dailyRewardPointData.length > 0) {
@@ -6801,6 +6858,16 @@ let dbPlayerReward = {
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
                                     message: localization.localization.translate("This player has applied for other reward in event period")
+                                });
+                            }
+
+                            matchRequiredPhoneNumber = rewardSpecificData[1];
+
+                            if (!matchRequiredPhoneNumber) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: localization.localization.translate("This player does not have phone number to apply this reward")
                                 });
                             }
 
@@ -6893,12 +6960,21 @@ let dbPlayerReward = {
 
                     case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                         let lastTopUpRecord = null;
+                        matchRequiredPhoneNumber = rewardSpecificData[3];
 
                         if (!forbidRewardData) {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
                                 message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
+                        }
+
+                        if (!matchRequiredPhoneNumber) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player does not have phone number to apply this reward")
                             });
                         }
 
@@ -6984,6 +7060,7 @@ let dbPlayerReward = {
                         applyAmount = 0;
 
                         let playerRewardFinalList = rewardSpecificData[0];
+                        matchRequiredPhoneNumber = rewardSpecificData[1];
 
                         console.log("checking this playerRewardFinalList", [playerData.playerId, playerRewardFinalList])
 
@@ -7008,6 +7085,14 @@ let dbPlayerReward = {
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
                                 message: "No available consumption list for the reward"
+                            });
+                        }
+
+                        if (!matchRequiredPhoneNumber) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player does not have phone number to apply this reward")
                             });
                         }
 
@@ -7105,6 +7190,15 @@ let dbPlayerReward = {
                         }
 
                         let playerRewardDetail = rewardSpecificData[0];
+                        matchRequiredPhoneNumber = rewardSpecificData[1];
+
+                        if (!matchRequiredPhoneNumber) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player does not have phone number to apply this reward")
+                            });
+                        }
 
                         let rewardInfoList = playerRewardDetail.list;
 
@@ -7155,6 +7249,7 @@ let dbPlayerReward = {
                     // type 3
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                         let loseAmount = rewardSpecificData[0];
+                        matchRequiredPhoneNumber = rewardSpecificData[1];
                         let isReachedTopUpInPeriod = false;
 
                         if (eventInPeriodData && eventInPeriodData.length > 0) {
@@ -7172,6 +7267,14 @@ let dbPlayerReward = {
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
                                 message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
+                        }
+
+                        if (!matchRequiredPhoneNumber) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player does not have phone number to apply this reward")
                             });
                         }
 
@@ -7261,6 +7364,7 @@ let dbPlayerReward = {
                     // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
                         let consumptions = rewardSpecificData[0];
+                        matchRequiredPhoneNumber = rewardSpecificData[1];
                         let totalConsumption = 0;
                         for (let x in consumptions) {
                             totalConsumption += consumptions[x].validAmount;
@@ -7288,6 +7392,14 @@ let dbPlayerReward = {
                             });
                         }
 
+                        if (!matchRequiredPhoneNumber) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player does not have phone number to apply this reward")
+                            });
+                        }
+
                         if (!selectedRewardParam || totalConsumption < selectedRewardParam.totalConsumptionInInterval) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -7311,6 +7423,7 @@ let dbPlayerReward = {
                             let matchPhoneNum = rewardSpecificData[0][2];
                             let matchMobileDevice = rewardSpecificData[0][3];
                             let matchForbidRewardEvent = rewardSpecificData[2];
+                            matchRequiredPhoneNumber = rewardSpecificData[3];
 
                             if (!matchPlayerId) {
                                 return Q.reject({
@@ -7349,6 +7462,14 @@ let dbPlayerReward = {
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
                                     message: localization.localization.translate("This player has applied for other reward in event period")
+                                });
+                            }
+
+                            if (!matchRequiredPhoneNumber) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: localization.localization.translate("This player does not have phone number to apply this reward")
                                 });
                             }
                         }
@@ -7545,6 +7666,7 @@ let dbPlayerReward = {
                         let checkHasReceived = rewardSpecificData[3];
                         let applyRewardTimes = periodProps.length;
                         let presetList = rewardSpecificData[5];
+                        matchRequiredPhoneNumber = rewardSpecificData[6];
                         let gottenRewardInInterval = periodProps;
 
                         let participationTimes = eventData.condition && eventData.condition.hasOwnProperty('numberParticipation') ? eventData.condition.numberParticipation : 1;
@@ -7598,6 +7720,15 @@ let dbPlayerReward = {
                                 message: "This player has applied for max reward times in event period"
                             })
                         }
+
+                        if (!matchRequiredPhoneNumber) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player does not have phone number to apply this reward")
+                            });
+                        }
+
 
                         let meetTopUpCondition = false;
                         let meetConsumptionCondition = false;
@@ -7799,11 +7930,21 @@ let dbPlayerReward = {
                     case constRewardType.BACCARAT_REWARD_GROUP:
                         applyAmount = 0;
 
+                        matchRequiredPhoneNumber = rewardSpecificData[1];
+
                         if (!forbidRewardData) {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
                                 message: localization.localization.translate("This player has applied for other reward in event period")
+                            });
+                        }
+
+                        if (!matchRequiredPhoneNumber) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player does not have phone number to apply this reward")
                             });
                         }
 
