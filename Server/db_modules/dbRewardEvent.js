@@ -1348,7 +1348,6 @@ var dbRewardEvent = {
             ]);
 
             promArr.push(periodConsumptionProm);
-            topupMatchQuery.$or = [{'bDirty': false}];
 
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 let ignoreUsedTopupReward = [];

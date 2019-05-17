@@ -6098,15 +6098,14 @@ let dbPlayerReward = {
             ]);
 
             promArr.push(periodConsumptionProm);
-            topupMatchQuery.amount = {$gte: eventData.condition && eventData.condition.requiredTopUpAmount ? eventData.condition.requiredTopUpAmount : 0};
-            topupMatchQuery.$or = [{'bDirty': false}];
+            topupMatchQuery.amount = {$gte: selectedRewardParam && selectedRewardParam.minTopUpAmount ? selectedRewardParam.minTopUpAmount : 0};
 
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 let ignoreUsedTopupReward = [];
                 ignoreUsedTopupReward = eventData.condition.ignoreTopUpDirtyCheckForReward.map(function (rewardId) {
                     return ObjectId(rewardId)
                 });
-                topupMatchQuery.$or.push({'usedEvent': {$in: ignoreUsedTopupReward}});
+                // topupMatchQuery.$or.push({'usedEvent': {$in: ignoreUsedTopupReward}});
             }
 
             let periodTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
@@ -6117,7 +6116,7 @@ let dbPlayerReward = {
             promArr.push(periodTopupProm);
             let periodPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
             promArr.push(periodPropsProm);
-
+            console.log('MT --checking festival topupMatchQuery', topupMatchQuery);
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionMatchQuery).sort({createTime: -1}).limit(1).lean();
 
             // check reward apply restriction on ip, phone and IMEI
