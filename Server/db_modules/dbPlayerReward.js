@@ -7474,18 +7474,20 @@ let dbPlayerReward = {
                             reachConsumptionCondition = true;
                             isUpdateMultiConsumptionRecord = false;
                         }
+                        console.log('MT --checking --consumptionToParticipates', consumptionToParticipates)
+                        console.log('MT --checking --consumptionSum', consumptionSum);
 
                         if (consumptionToParticipates && consumptionSum >= consumptionToParticipates) {
                             let useConsumptionRecordAmount = 0;
                             //For set consumption bDirty Use
                             consumptionData.forEach((consumptionRecord) => {
-                                if (useConsumptionRecordAmount < consumptionToParticipate) {
+                                if (useConsumptionRecordAmount < consumptionToParticipates) {
                                     useConsumptionRecordAmount += consumptionRecord.validAmount;
                                     updateConsumptionRecordIds.push(consumptionRecord._id);
                                 }
                             });
                             isUpdateMultiConsumptionRecord = true;
-                            useConsumptionAmount = consumptionToParticipate;
+                            useConsumptionAmount = consumptionToParticipates;
                             reachConsumptionCondition = true;
                         }
 
@@ -7505,7 +7507,7 @@ let dbPlayerReward = {
                                 });
                             }
                         } else {
-                            if (!(reachTopUpCondition || reachConsumptionCondition)) {
+                            if ((!reachTopUpCondition || !reachConsumptionCondition)) {
                                 return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
@@ -10298,7 +10300,7 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
                     rewardParam.applyTimes = 1;
                 }
                 console.log('***MT --checking rewardParam...', rewardParam);
-                if (rewardParam.applyTimes && data.length <= rewardParam.applyTimes) {
+                if (rewardParam.applyTimes && data.length < rewardParam.applyTimes) {
                     console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
                     resolve({status: true , festivalObjId: festivalId});
                 } else {
