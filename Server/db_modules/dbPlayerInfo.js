@@ -3731,11 +3731,15 @@ let dbPlayerInfo = {
                 .then(data => {
                     let playerForbidRewardEvents = data.forbidRewardEvents || [];
                     updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
+                    console.log('****forbidLevelUpReward', forbidLevelUpReward);
+                    console.log('****typeof forbidLevelUpReward', typeof forbidLevelUpReward);
 
-                    if (forbidLevelUpReward) {
+                    console.log('****forbidLevelUpReward', forbidLevelMaintainReward);
+                    console.log('****typeof forbidLevelUpReward', typeof forbidLevelUpReward);
+                    if (forbidLevelUpReward === true || forbidLevelUpReward === false) {
                         updateData.forbidLevelUpReward = forbidLevelUpReward;
                     }
-                    if (forbidLevelMaintainReward) {
+                    if (forbidLevelMaintainReward === true || forbidLevelMaintainReward === false) {
                         updateData.forbidLevelMaintainReward = forbidLevelMaintainReward;
                     }
                     if (disablePromoCode != undefined) {

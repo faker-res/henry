@@ -275,7 +275,9 @@ function socketActionPlayer(socketIO, socket) {
         updateBatchPlayerForbidRewardEvents: function updateBatchPlayerForbidRewardEvents(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.playerNames && data.forbidRewardEvents);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidRewardEvents, [data.platformObjId, data.playerNames, data.forbidRewardEvents, data.forbidPromoCode, data.forbidLevelUpReward, data.forbidLevelMaintainReward], actionName, isValidData);
+            let forbidLevelUpReward = data.forbidLevelUpReward || null;
+            let forbidLevelMaintainReward = data.forbidLevelMaintainReward || null;
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidRewardEvents, [data.platformObjId, data.playerNames, data.forbidRewardEvents, data.forbidPromoCode, forbidLevelUpReward, forbidLevelMaintainReward], actionName, isValidData);
         },
 
         updatePlayerForbidRewardPointsEvent: function updatePlayerForbidRewardPointsEvent(data) {
