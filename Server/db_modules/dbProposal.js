@@ -6142,7 +6142,7 @@ var proposal = {
                 proposals = proposalData[1];
 
 
-                return insertRepeatCount(proposals, data.platformId);
+                return insertRepeatCount(proposals, data.platformId, data);
             }
         ).then(
             proposals => {
@@ -6315,7 +6315,7 @@ var proposal = {
         ).then(
             proposalData => {
                 console.log("LH Check payment monitor total 0----------------------", proposalData.length);
-                return insertRepeatCount(proposalData, data.platformList);
+                return insertRepeatCount(proposalData, data.platformList, data);
             }
         ).then(
             proposals => {
@@ -8443,7 +8443,7 @@ var proposal = {
  */
 
 // lets do the most basic version, refactor later
-function insertRepeatCount(proposals, platformList) {
+function insertRepeatCount(proposals, platformList, query) {
     return new Promise(function (resolve) {
         let typeIds = null;
         let commonTopUpTypeIds;
@@ -8556,13 +8556,13 @@ function insertRepeatCount(proposals, platformList) {
 
             let prevSuccessQuery = {
                 type: {$in: relevantTypeIds},
-                createTime: {$lte: new Date(proposal.createTime)},
+                createTime: {$gte: new Date(query.startTime), $lte: new Date(proposal.createTime)},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             };
 
             let nextSuccessQuery = {
                 type: {$in: relevantTypeIds},
-                createTime: {$gte: new Date(proposal.createTime)},
+                createTime: {$gte: new Date(proposal.createTime), $lt: new Date(query.endTime)},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             };
 
@@ -8630,11 +8630,21 @@ function insertRepeatCount(proposals, platformList) {
                         allCountQuery.createTime = {$gt: prevSuccessCreateTime};
                         currentCountQuery.createTime.$gt = prevSuccessCreateTime;
                         firstInStreakQuery.createTime = {$gt: prevSuccessCreateTime};
+                    } else {
+                        allCountQuery.createTime = {$gte: new Date(query.startTime)};
+                        currentCountQuery.createTime.$gte = new Date(query.startTime);
+                        firstInStreakQuery.createTime = {$gte: new Date(query.startTime)};
                     }
 
                     if (nextSuccess[0]) {
                         allCountQuery.createTime = allCountQuery.createTime ? allCountQuery.createTime : {};
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
+                        currentCountQuery.createTime.$lt = new Date(query.endTime);
+                        firstInStreakQuery.createTime.$lt = new Date(query.endTime);
+                    } else {
+                        allCountQuery.createTime.$lt = new Date(query.endTime);
+                        currentCountQuery.createTime.$lt = new Date(query.endTime);
+                        firstInStreakQuery.createTime.$lt = new Date(query.endTime);
                     }
 
                     if (proposal && proposal.type && proposal.type.name && proposal.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
@@ -8648,7 +8658,7 @@ function insertRepeatCount(proposals, platformList) {
                             type: {$in: typeIdsWithoutCommonTopUp},
                             status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                             "data.playerName": playerName,
-                            createTime: {$gte: new Date(proposal.createTime)}
+                            createTime: {$gte: new Date(proposal.createTime), $lt: new Date(query.endTime)}
                         };
 
                         lastSuccessTopUpProm = dbconfig.collection_proposal.findOne(lastSuccessTopUpQuery, {proposalId: 1, createTime: 1}).sort({createTime: 1}).lean();
@@ -8707,13 +8717,13 @@ function insertRepeatCount(proposals, platformList) {
 
             let prevSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
-                createTime: {$lte: proposal.createTime},
+                createTime: {$gte: new Date(query.startTime), $lte: proposal.createTime},
                 "data.playerName": playerName,
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
             let nextSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
-                createTime: {$gte: proposal.createTime},
+                createTime: {$gte: proposal.createTime, $lt: new Date(query.endTime)},
                 "data.playerName": playerName,
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }, {createTime: 1}).sort({createTime: 1}).limit(1).lean();
@@ -8746,11 +8756,19 @@ function insertRepeatCount(proposals, platformList) {
                         allCountQuery.createTime = {$gt: prevSuccessCreateTime};
                         currentCountQuery.createTime.$gt = prevSuccessCreateTime;
                         firstInStreakQuery.createTime = {$gt: prevSuccessCreateTime};
+                    } else {
+                        allCountQuery.createTime = {$gte: new Date(query.startTime)};
+                        currentCountQuery.createTime.$gte = new Date(query.startTime);
+                        firstInStreakQuery.createTime = {$gte: new Date(query.startTime)};
                     }
 
                     if (nextSuccess[0]) {
                         allCountQuery.createTime = allCountQuery.createTime ? allCountQuery.createTime : {};
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
+                    } else {
+                        allCountQuery.createTime.$lt = new Date(query.endTime);
+                        currentCountQuery.createTime.$lt = new Date(query.endTime);
+                        firstInStreakQuery.createTime.$lt = new Date(query.endTime);
                     }
 
                     if (proposal && proposal.type && proposal.type.name && proposal.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
@@ -8759,7 +8777,7 @@ function insertRepeatCount(proposals, platformList) {
                             type: {$in: typeIdsWithoutCommonTopUp},
                             status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                             "data.playerName": playerName,
-                            createTime: {$gte: new Date(proposal.createTime)}
+                            createTime: {$gte: new Date(proposal.createTime), $lt: new Date(query.endTime)}
                         };
 
                         lastSuccessTopUpProm = dbconfig.collection_proposal.findOne(lastSuccessTopUpQuery, {proposalId: 1, createTime: 1}).sort({createTime: 1}).lean();
