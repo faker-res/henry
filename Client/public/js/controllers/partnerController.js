@@ -11328,19 +11328,20 @@ define(['js/app'], function (myApp) {
             // }
 
             switch (vm.commissionSettingTab) {
+                case 'DAILY_BONUS_AMOUNT':
                 case 'DAILY_CONSUMPTION':
                     vm.activePlayerTableHeader = 'DAILY_ACTIVE_PLAYER';
                     break;
-                // case 'WEEKLY_BONUS_AMOUNT':
+                case 'WEEKLY_BONUS_AMOUNT':
                 case 'WEEKLY_CONSUMPTION':
                     vm.activePlayerTableHeader = 'WEEKLY_ACTIVE_PLAYER';
                     break;
-                // case 'BIWEEKLY_BONUS_AMOUNT':
-                //     vm.activePlayerTableHeader = 'HALFMONTH_ACTIVE_PLAYER';
-                //     break;
-                // case 'MONTHLY_BONUS_AMOUNT':
-                //     vm.activePlayerTableHeader = 'MONTHLY_ACTIVE_PLAYER';
-                //     break;
+                case 'BIWEEKLY_BONUS_AMOUNT':
+                    vm.activePlayerTableHeader = 'HALFMONTH_ACTIVE_PLAYER';
+                    break;
+                case 'MONTHLY_BONUS_AMOUNT':
+                    vm.activePlayerTableHeader = 'MONTHLY_ACTIVE_PLAYER';
+                    break;
                 default:
                     isGetConfig = false;
             }
