@@ -127,6 +127,11 @@ function getMainCommConfig (partnerObjId, platformObjId, commissionType) {
 
             for (let i = 0; i < defConfigs.length; i++) {
                 let defConfig = defConfigs[i];
+
+                if (!defConfig) {
+                    // this means platform haven't properly set default commission
+                    continue;
+                }
                 delete defConfig._id;
                 defConfig.partner = partnerObjId;
                 dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({platform: platformObjId, partner:partnerObjId, provider: defConfig.provider}, defConfig, {upsert: true, new: true}).lean();
