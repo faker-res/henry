@@ -14,6 +14,8 @@ div(ng-if="checkViewPermission('Partner', 'Report')")
                                         text {{'PLAYERPARTNER_REPORT' | translate}}
                                     li.list-group-item(class="{{vm.seleDataType.PARTNERPLAYERBOUNS_REPORT}}" ng-click='vm.loadPage("PARTNERPLAYERBOUNS_REPORT")', ng-if="checkViewPermission('Partner', 'Report', 'PARTNERPLAYERBOUNS_REPORT')")
                                         text {{'PARTNERPLAYERBOUNS_REPORT' | translate}}
+                                    li.list-group-item(class="{{vm.seleDataType.REAL_TIME_COMMISSION_REPORT}}" ng-click='vm.loadPage("REAL_TIME_COMMISSION_REPORT")', ng-if="checkViewPermission('Report', 'General', 'REAL_TIME_COMMISSION_REPORT')")
+                                        text {{'REAL_TIME_COMMISSION_REPORT' | translate}}
 
 
     div(ng-class='vm.hideLeftPanel ? "col-md-12" : "col-md-9"', style='padding-left:5px')
@@ -28,6 +30,8 @@ div(ng-if="checkViewPermission('Partner', 'Report')")
                     include ./player-partner
                 div(ng-if='vm.showPageName=="PARTNERPLAYERBOUNS_REPORT"')
                     include ./partner-player-bonus
+                div(ng-if='vm.showPageName=="REAL_TIME_COMMISSION_REPORT"')
+                    include ./real-time-commission
 
 
 link(rel='stylesheet', href='css/analysis.css')
