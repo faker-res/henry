@@ -433,7 +433,7 @@
                             .endAcceptedTime
                         .search-filters-item
                             label.control-label {{"PROMO_CODE_TYPE_3" | translate}}
-                            select.form-control(ng-model='vm.promoCodeMonitor.promoCodeTypeName' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: 3}")
+                            select.form-control(ng-model='vm.promoCodeMonitor.promoCodeTypeName' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: 3}", multiple, bsp, data-actions-box='true')
                                 option(value='') {{'any' | translate}}
                         .text-right.widthto100
                             button.btn.btn-success(ng-click='vm.getPromoCodeMonitor(true)') {{'SEARCH' | translate}}

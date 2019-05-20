@@ -4556,7 +4556,7 @@ let dbPlayerReward = {
         };
 
         if (promoCodeTypeName) {
-            promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeTypeName;
+            promoCodeQuery["data.PROMO_CODE_TYPE"] = { $in : promoCodeTypeName };
         }
 
         return dbConfig.collection_proposalType.find({
