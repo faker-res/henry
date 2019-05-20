@@ -310,6 +310,8 @@ var roleChecker = {
             "Report": {
                 PLAYERPARTNER_REPORT: [],
                 PARTNERPLAYERBOUNS_REPORT: [],
+                REAL_TIME_COMMISSION_REPORT: [],
+
             },
         },
         Platform: {

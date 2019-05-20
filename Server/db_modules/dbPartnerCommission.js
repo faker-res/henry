@@ -271,7 +271,7 @@ const dbPartnerCommission = {
                         depositCrewDetail: depositCrewDetail,
                         withdrawCrewDetail: withdrawCrewDetail,
                         bonusCrewDetail: bonusCrewDetail,
-                        parentPartnerCommissionDetail: parentComm,
+                        parentPartnerCommissionDetail: parentCommissionDetail,
                         remarks: remarks,
                     };
 
@@ -280,6 +280,105 @@ const dbPartnerCommission = {
                 }
             )
 
+    },
+
+    generateCurrentPartnersCommissionDetail: function (partnerObjIds, startTime, endTime) {
+        let proms = [];
+
+        partnerObjIds.map(partnerObjId => {
+            let commissionDetail = {};
+            let prom = dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime).then(
+                commissionData => {
+                    commissionDetail = commissionData;
+                    return getPreviousThreeDetailIfExist(partnerObjId, commissionData.commissionType, commissionData.startTime);
+                }
+            ).then(
+                pastData => {
+                    commissionDetail.pastActiveDownLines = pastData.pastThreeActiveDownLines;
+                    commissionDetail.pastNettCommission = pastData.pastThreeNettCommission;
+                    return commissionDetail;
+                }
+            ).catch(errorUtils.reportError);
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
+    },
+
+    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType, partnerName, startTime, endTime) {
+        let result = [];
+        let query = {platform: platformObjId};
+        commissionType = commissionType || constPartnerCommissionType.DAILY_CONSUMPTION;
+
+        if (partnerName) {
+            query.partnerName = partnerName;
+        }
+        else {
+            query.commissionType = commissionType;
+        }
+
+        let stream = dbconfig.collection_partner.find(query, {_id: 1}).cursor({batchSize: 100});
+
+        let balancer = new SettlementBalancer();
+        return balancer.initConns().then(function () {
+            return balancer.processStream(
+                {
+                    stream: stream,
+                    batchSize: constSystemParam.BATCH_SIZE,
+                    makeRequest: function (partners, request) {
+                        request("player", "generateCurrentPartnersCommissionDetail", {
+                            startTime: startTime,
+                            endTime: endTime,
+                            partnerObjIdArr: partners.map(function (partner) {
+                                return partner._id;
+                            })
+                        });
+                    },
+                    processResponse: function (record) {
+                        result = result.concat(record.data);
+                    }
+                }
+            );
+        }).then(
+            () => {
+                return result;
+            }
+        )
+    },
+
+    findPartnerCommissionLog: (query, isOne) => {
+        let request = dbconfig.collection_partnerCommissionLog.find(query);
+        if (isOne) {
+            request = request.limit(1);
+        }
+        request = request.lean().read("secondaryPreferred");
+
+        return request.then(
+            partnerCommissionLogs => {
+                let proms = [];
+                partnerCommissionLogs.map(partnerCommissionLog => {
+                    let prom = Promise.resolve(partnerCommissionLog);
+                    if (!partnerCommissionLog.downLinesRawCommissionDetail || partnerCommissionLog.downLinesRawCommissionDetail.length == 0) {
+                        prom = dbconfig.collection_downLinesRawCommissionDetail.find({platform: partnerCommissionLog.platform, partnerCommissionLog: partnerCommissionLog._id}).lean().read("secondaryPreferred").then(
+                            downLinesRawCommissionDetail => {
+                                partnerCommissionLog.downLinesRawCommissionDetail = downLinesRawCommissionDetail;
+                                return Promise.resolve(partnerCommissionLog)
+                            }
+                        );
+                    }
+                    proms.push(prom)
+                });
+
+                return Promise.all(proms);
+            }
+        ).then(
+            partnerCommissionLogs => {
+                if (isOne) {
+                    return partnerCommissionLogs[0];
+                }
+                return partnerCommissionLogs;
+            }
+        )
     },
 };
 
@@ -798,6 +897,23 @@ function getCommissionPeriod (commissionType) {
     }
 }
 
+function getTargetCommissionPeriod (commissionType, date) {
+    switch (Number(commissionType)) {
+        case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+        case constPartnerCommissionType.DAILY_CONSUMPTION:
+            return dbutility.getDayTime(date);
+        case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
+        case constPartnerCommissionType.WEEKLY_CONSUMPTION:
+            return dbutility.getWeekTime(date);
+        case constPartnerCommissionType.BIWEEKLY_BONUS_AMOUNT:
+            return dbutility.getBiWeekSGTIme(date);
+        case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+            return dbutility.getMonthSGTIme(date);
+        default:
+            return dbutility.getWeekTime(date);
+    }
+}
+
 function getCommissionRate (commissionRateTable, consumptionAmount, activeCount) {
     let lastValidCommissionRate = 0;
     let lastValidParentRatios = [];
@@ -902,4 +1018,56 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
         groupName: group.name,
         rateTable: rateTable || []
     };
+}
+
+function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime) {
+    let pastThreeActiveDownLines = [];
+    let pastThreeNettCommission = [];
+    startTime = new Date(startTime);
+    let firstLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(startTime).setMinutes(startTime.getMinutes()-5)));
+    let secondLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(firstLastPeriod.startTime).setMinutes(firstLastPeriod.startTime.getMinutes()-5)));
+    let thirdLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(secondLastPeriod.startTime).setMinutes(secondLastPeriod.startTime.getMinutes()-5)));
+
+    let firstLastRecordProm = dbPartnerCommission.findPartnerCommissionLog({
+        partner: partnerObjId,
+        commissionType: commissionType,
+        startTime: new Date(firstLastPeriod.startTime),
+        endTime: new Date(firstLastPeriod.endTime)
+    }, true);
+    let secondLastRecordProm = dbPartnerCommission.findPartnerCommissionLog({
+        partner: partnerObjId,
+        commissionType: commissionType,
+        startTime: new Date(secondLastPeriod.startTime),
+        endTime: new Date(secondLastPeriod.endTime)
+    }, true);
+    let thirdLastRecordProm = dbPartnerCommission.findPartnerCommissionLog({
+        partner: partnerObjId,
+        commissionType: commissionType,
+        startTime: new Date(thirdLastPeriod.startTime),
+        endTime: new Date(thirdLastPeriod.endTime)
+    }, true);
+
+    return Promise.all([firstLastRecordProm, secondLastRecordProm, thirdLastRecordProm]).then(
+        records => {
+            records.map(record => {
+                if  (!record) {
+                    pastThreeActiveDownLines.push("-");
+                    pastThreeNettCommission.push("-");
+                }
+                else if (record.status === constPartnerCommissionLogStatus.SKIPPED) {
+                    pastThreeActiveDownLines.push("SKIP");
+                    pastThreeNettCommission.push("SKIP");
+                }
+                else {
+                    pastThreeActiveDownLines.push(record.activeDownLines);
+                    pastThreeNettCommission.push(dbutility.twoDecimalPlacesToFixed(record.nettCommission));
+                }
+            });
+
+            return {
+                pastThreeActiveDownLines,
+                pastThreeNettCommission
+            }
+        }
+    );
 }

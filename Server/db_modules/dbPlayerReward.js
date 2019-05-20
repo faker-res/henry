@@ -4554,9 +4554,8 @@ let dbPlayerReward = {
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             "data.promoCodeTypeValue": isTypeCPromo? 3: {$ne: 3}
         };
-
         if (promoCodeTypeName) {
-            promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeTypeName;
+            promoCodeQuery["data.PROMO_CODE_TYPE"] = { $in : promoCodeTypeName };
         }
 
         return dbConfig.collection_proposalType.find({
@@ -4573,7 +4572,6 @@ let dbPlayerReward = {
         ).then(
             promoCodeData => {
                 let delProm = [];
-
                 monitorObjs = promoCodeData.map(p => {
                     return {
                         promoCodeProposalId: p.proposalId,
@@ -4645,7 +4643,7 @@ let dbPlayerReward = {
             }
         ).then(
             () => {
-                let beginIndex = index * limit;
+                let beginIndex = index;
                 let playerArr = []; // to count total player
                 monitorObjs.forEach(item => {
                     if (item.playerName && !playerArr.includes(item.playerName)) {
