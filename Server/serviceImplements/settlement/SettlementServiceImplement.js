@@ -22,6 +22,7 @@ const dbPlayerMail = require("./../../db_modules/dbPlayerMail");
 const dbPlayerRewardPoints = require('./../../db_modules/dbPlayerRewardPoints');
 const dbRewardTaskGroup = require('./../../db_modules/dbRewardTaskGroup');
 const dbPlayerTopUpRecord = require('./../../db_modules/dbPlayerTopUpRecord');
+const dbPartnerCommission = require('./../../db_modules/dbPartnerCommission');
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -344,6 +345,12 @@ var SettlementServiceImplement = function () {
         let isValidData = true;
         let args = [data.proposals, data.platformId];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.topupRecordInsertRepeatCount, args, isValidData);
+    };
+
+    this.generateCurrentPartnersCommissionDetail.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.partnerObjIdArr);
+        let args = [data.partnerObjIdArr, data.startTime, data.endTime];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommission.generateCurrentPartnersCommissionDetail, args, isValidData);
     };
 };
 
