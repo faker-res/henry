@@ -5611,5 +5611,6 @@
   "default": "预设",
   "RECALCULATE": "重新收录",
   "BULK_SETTING_CONFIG": "批量配置调整",
+  "You need to this reward first before create festival item": "你需要先储存此优惠才能开始添加节日",
   "Not allowed to transfer from test environment.": "只允许测试账号操作转入"
 }
