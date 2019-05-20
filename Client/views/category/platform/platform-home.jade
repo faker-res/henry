@@ -418,6 +418,9 @@
                                             td 日
                                             td
                                                 button.btn.btn-primary.common-button(ng-click="vm.addNewFestivalTitle(vm.festival)") 确定
+                                      tr
+                                            td( colspan ="6")
+                                                span.colorRed(ng-if='vm.addFestivalErrMsg') *{{vm.addFestivalErrMsg}}
             .modal-footer
 
 
