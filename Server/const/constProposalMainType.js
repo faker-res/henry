@@ -68,6 +68,7 @@ const constProposalMainType = {
     "PlayerRetentionRewardGroup": constMainType.REWARD,
     "PlayerBonusDoubledRewardGroup": constMainType.REWARD,
     "BaccaratRewardGroup": constMainType.REWARD,
+    "PlayerFestivalRewardGroup": constMainType.REWARD,
 
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,

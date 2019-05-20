@@ -151,6 +151,7 @@ var simplifiedChinese = {
     "PlayerLoseReturnRewardGroup": "输值反利（組）",
     "PlayerRandomRewardGroup": "随机抽奖（组）",
     "PlayerTopUpReturnGroup": "存送金(组)",
+    "PlayerFestivalRewardGroup": "特别节日（组）",
 
     "UpdatePlayerInfo": "编辑玩家基本资料",
     "UpdatePlayerCredit": "更改玩家额度",
