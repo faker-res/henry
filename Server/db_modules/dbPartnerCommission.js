@@ -271,7 +271,7 @@ const dbPartnerCommission = {
                         depositCrewDetail: depositCrewDetail,
                         withdrawCrewDetail: withdrawCrewDetail,
                         bonusCrewDetail: bonusCrewDetail,
-                        parentPartnerCommissionDetail: parentComm,
+                        parentPartnerCommissionDetail: parentCommissionDetail,
                         remarks: remarks,
                     };
 
@@ -287,11 +287,10 @@ const dbPartnerCommission = {
 
         partnerObjIds.map(partnerObjId => {
             let commissionDetail = {};
-            let prom = dbPartnerCommission.calculatePartnerCommission(partnerObjId, currentPeriod.startTime, currentPeriod.endTime).then(
+            let prom = dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime).then(
                 commissionData => {
                     commissionDetail = commissionData;
-                    // todo :: get previous three detail
-                    return getPreviousThreeDetailIfExist(partnerObjId, commissionType, currentPeriod.startTime);
+                    return getPreviousThreeDetailIfExist(partnerObjId, commissionData.commissionType, commissionData.startTime);
                 }
             ).then(
                 pastData => {
@@ -895,6 +894,23 @@ function getCommissionPeriod (commissionType) {
             return dbutility.getLastMonthSGTime();
         default:
             return dbutility.getLastWeekSGTime();
+    }
+}
+
+function getTargetCommissionPeriod (commissionType, date) {
+    switch (Number(commissionType)) {
+        case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+        case constPartnerCommissionType.DAILY_CONSUMPTION:
+            return dbutility.getDayTime(date);
+        case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
+        case constPartnerCommissionType.WEEKLY_CONSUMPTION:
+            return dbutility.getWeekTime(date);
+        case constPartnerCommissionType.BIWEEKLY_BONUS_AMOUNT:
+            return dbutility.getBiWeekSGTIme(date);
+        case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+            return dbutility.getMonthSGTIme(date);
+        default:
+            return dbutility.getWeekTime(date);
     }
 }
 

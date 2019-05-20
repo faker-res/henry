@@ -6,7 +6,6 @@ define(['js/app'], function (myApp) {
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let vm = this;
 
-        //<editor-fold desc="Fold temp">
 
         // For debugging:
         window.VM = vm;
@@ -17011,6 +17010,16 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync();
                     });
                     break;
+
+                case "REAL_TIME_COMMISSION_REPORT":
+                    vm.realTimeCommissionQuery = {};
+                    vm.realTimeCommissionLoadingStatus = "";
+                    vm.realTimeCommissionData = [];
+                    vm.partnerCommVar = {};
+                    vm.selectCommissionPeriod = '';
+                    vm.selectedCommissionPeriod = 0;
+                    vm.reportSearchTime = 0;
+                    break;
             }
         }
 
@@ -17399,7 +17408,147 @@ define(['js/app'], function (myApp) {
 
         };
 
+        ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
+        vm.getSelectedCommissionPeriod = () => {
+            if (vm.selectedCommissionPeriod) {
+                let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.selectedPlatform._id};
 
+                if (vm.realTimeCommissionQuery.partnerName) {
+                    query.partnerName = vm.realTimeCommissionQuery.partnerName;
+                } else if (vm.realTimeCommissionQuery.commissionType) {
+                    query.commissionType = vm.realTimeCommissionQuery.commissionType;
+                } else {
+                    return;
+                }
+
+                $scope.$socketPromise('getPreviousCommissionPeriod', query).then(
+                    data => {
+                        vm.commissionPeriodUsed = data.data;
+                        let startTime = utilService.$getTimeFromStdTimeFormat(vm.commissionPeriodUsed.startTime);
+                        let endTime = utilService.$getTimeFromStdTimeFormat(vm.commissionPeriodUsed.endTime);
+                        $scope.$evalAsync(() => {
+                            vm.realTimeCommissionLoadingStatus = startTime + " ~ " + endTime;
+                        });
+                    }
+                )
+            }
+            else {
+                vm.commissionPeriodUsed = false;
+                $scope.$evalAsync(() => {
+                    vm.realTimeCommissionLoadingStatus = '';
+                });
+            }
+        };
+
+        vm.searchRealTimePartnerCommissionData = function () {
+            vm.reportSearchTimeStart = new Date().getTime();
+            let loadingSpinner = $('#realTimeCommissionTableSpin');
+            loadingSpinner.show();
+            vm.realTimeCommissionLoadingStatus = "";
+            let query = {
+                platformObjId: vm.realTimeCommissionQuery.platformObjId,
+                commissionType: vm.realTimeCommissionQuery.commissionType,
+                partnerName: vm.realTimeCommissionQuery.partnerName ? vm.realTimeCommissionQuery.partnerName.trim() : "",
+            };
+
+            if (!(vm.realTimeCommissionQuery.commissionType || vm.realTimeCommissionQuery.partnerName && vm.realTimeCommissionQuery.partnerName.trim())) {
+                vm.realTimeCommissionLoadingStatus = $translate("Please insert either commission type or partner name for search");
+                loadingSpinner.hide();
+                return;
+            }
+
+            if (vm.commissionPeriodUsed && vm.commissionPeriodUsed.startTime && vm.commissionPeriodUsed.endTime) {
+                query.startTime = vm.commissionPeriodUsed.startTime;
+                query.endTime = vm.commissionPeriodUsed.endTime;
+            }
+            console.log('getNewCurrentPartnerCommissionDetail query', query)
+
+            socketService.$socket($scope.AppSocket, 'getNewCurrentPartnerCommissionDetail', query, function (data) {
+                findReportSearchTime();
+                loadingSpinner.hide();
+                console.log('getNewCurrentPartnerCommissionDetail', data);
+
+                $scope.$evalAsync(() => {
+                    vm.realTimeCommissionData = data.data || [];
+                    vm.realTimeCommissionData.forEach( partner => {
+                        if (partner) {
+                            partner.isAnyCustomPlatformFeeRate = false;
+                            (partner.rawCommissions).forEach( (group, idxgroup) => {
+                                group.commissionRate = +(group.commissionRate*100).toFixed(2);
+                                partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
+                                if (group.isCustomPlatformFeeRate == true){
+                                    vm.partnerCommVar.platformFeeTab = idxgroup;
+                                }
+                            });
+
+                            if (vm.realTimeCommissionQuery.partnerName && vm.selectedCommissionPeriod && vm.realTimeCommissionData.length == 1) {
+                                vm.showRealTimeCommissionSettlementButton = true;
+                            }
+                        }
+                    });
+                });
+            }, function (error) {
+                loadingSpinner.hide();
+                vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
+                console.log('getCurrentPartnerCommissionDetail error', error);
+            });
+        };
+
+        vm.settlePastCommission = () => {
+            socketService.showErrorMessage("此功能还未完成，若看到此消息可催出huat开发早点完成 - huat");
+            return;
+            //
+
+            if (!vm.realTimeCommissionQuery.partnerName || !vm.selectedCommissionPeriod) {
+                return;
+            }
+
+            let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.selectedPlatform._id, partnerName: vm.realTimeCommissionQuery.partnerName};
+            let loadingSpinner = $('#realTimeCommissionTableSpin');
+            loadingSpinner.show();
+
+            // todo :: change API soon
+            socketService.$socket($scope.AppSocket, 'settlePastCommission', query, function (data) {
+                loadingSpinner.hide();
+                console.log('settlePastCommission', data);
+
+                socketService.showConfirmMessage($translate("Apply Commission Succeed"), 10000)
+            }, function (error) {
+                loadingSpinner.hide();
+                vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
+                console.log('getCurrentPartnerCommissionDetail error', error);
+            });
+        };
+
+        vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail, detailType){
+            for (var i in vm.partnerDLCommDetailTotal){
+                delete vm.partnerDLCommDetailTotal[i];
+            }
+
+            if (partnerDownLineCommDetail && partnerDownLineCommDetail.length > 0) {
+                if (!partnerDownLineCommDetail[0]) {
+                    partnerDownLineCommDetail.push({});
+                }
+                (Object.keys(partnerDownLineCommDetail[0][detailType])).forEach( key => {
+                    if (key === "consumptionProviderDetail") {
+                        (Object.keys(partnerDownLineCommDetail[0][detailType][key])).forEach( subkey1 => {
+                            vm.partnerDLCommDetailTotal[subkey1] = {};
+
+                            (Object.keys(partnerDownLineCommDetail[0][detailType][key][subkey1])).forEach( subkey2 => {
+                                vm.partnerDLCommDetailTotal[subkey1][subkey2] =
+                                    partnerDownLineCommDetail.length !== 0 ? partnerDownLineCommDetail.reduce((a, item) =>
+                                        a + (Number.isFinite(item[detailType][key][subkey1][subkey2]) ? item[detailType][key][subkey1][subkey2] : 0), 0) : 0;
+                            });
+                        });
+                    }
+                    else {
+                        vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
+                        vm.partnerDLCommDetailTotal[key] = $scope.calculateTotalSum(partnerDownLineCommDetail, detailType, key);
+                    }
+                });
+            }
+            $scope.safeApply();
+        };
 
 
 
