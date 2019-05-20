@@ -1711,6 +1711,7 @@
   "Check if this IP address has received free trial": "（领优惠前）检查该IP是否曾经领过",
   "Check if this phone number has received free trial": "（领优惠前）检查该电话是否曾经领过",
   "Need SMS verification": "（领优惠中）玩家前端申请是否需要短信验证",
+  "Required phone number": "（领优惠中）是否有绑定手机号码",
   "Forbid to apply other reward within reward interval": "（领优惠前）检查周期内不允许同时领取其他优惠",
   "Check if this mobile device has received free trial": "（领优惠前）检查该移动设备是否曾经领过",
   "FREE_TRIAL_REWARD_AMOUNT": "固定优惠金额",
@@ -1721,6 +1722,7 @@
   "This phone number has applied for max reward times in event period": "此电话已经达到了该优惠周期内的申请上限",
   "This mobile device has applied for max reward times in event period": "此移动设备已经达到了该优惠周期内的申请上限",
   "This player has applied for other reward in event period": "此帐号已经在该优惠周期内领取其他优惠",
+  "This player does not have phone number to apply this reward": "此账号没有绑定手机号码，无法领取优惠",
   "Reward Amount and Spending Times cannot be empty. Please check reward condition.": "固定优惠金额和解锁流水不能为空。 请检查优惠条件",
   "Reward settlement will be triggered when there is a transferring-out process, after applying this reward": "申请参加活动后，如有转出金额，将触发结算优惠，生成提案",
   "The application limit of each player during the interval": "每人周期内优惠次数上限",
@@ -5223,6 +5225,7 @@
   "CanReceivePartnerLargeWithdrawalEmail": "可收到代理大额提款邮件",
   "CanAuditPartnerLargeWithdrawal": "可审核代理大额提款",
   "Require right platform": "需要正确的平台前缀",
+  "incomplete active setting, please set partner active params": "请先设置",
 
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",

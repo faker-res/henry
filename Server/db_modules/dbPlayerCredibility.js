@@ -365,16 +365,21 @@ let dbPlayerCredibility = {
                     // let gameTypeProm = dbconfig.collection_playerConsumptionRecord.distinct("gameId", {playerId: player._id});
                     let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: player.playerLevel}).lean();
                     let playerRemarksProm = dbconfig.collection_playerCredibilityRemark.find({_id:{$in:player.credibilityRemarks}}).lean();
-                    let winRatioProm = dbconfig.collection_playerConsumptionRecord.aggregate([
-                        {$match: {playerId: player._id}},
-                        {
-                            $group: {
-                                _id: null,
-                                totalConsumption: {$sum: "$validAmount"},
-                                totalBonus: {$sum: "$bonusAmount"}
-                            }
-                        }
-                    ]).read("secondaryPreferred");
+
+                    // Reduce server load, win ratio will based on rough value
+                    let winRatioProm = Promise.resolve([{totalConsumption: playerData.consumptionSum, totalBonus: playerData.bonusAmountSum}]);
+                    // let winRatioProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                    //     {$match: {playerId: player._id}},
+                    //     {
+                    //         $group: {
+                    //             _id: null,
+                    //             totalConsumption: {$sum: "$validAmount"},
+                    //             totalBonus: {$sum: "$bonusAmount"}
+                    //         }
+                    //     }
+                    // ]).read("secondaryPreferred");
+
+
 
                     return Promise.all([platformProm,/* gameTypeProm,*/ playerLevelProm, playerRemarksProm, winRatioProm]);
                 }
