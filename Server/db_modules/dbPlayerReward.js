@@ -6174,6 +6174,13 @@ let dbPlayerReward = {
             }).sort({createTime: 1}).lean());
             let festivalAvailableProm = checkFestivalOverApplyTimes(eventData, playerData.platform._id, playerData._id, selectedRewardParam, playerData.DOB, rewardData);
             promArr.push(festivalAvailableProm);
+
+            // check required phone number
+            let requiredPhoneNumber = true; // default as true if phone number is not required
+            if (eventData.condition.requiredPhoneNumber) {
+                requiredPhoneNumber = Boolean(playerData.phoneNumber);
+            }
+            promArr.push(requiredPhoneNumber);
         }
 
         if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
@@ -7491,6 +7498,7 @@ let dbPlayerReward = {
                         let checkIsReceived = rewardSpecificData[3];
                         isAnyRewardLeft = rewardSpecificData[6];
                         let applyRewardCount = (periodData && periodData.length ) ? periodData.length :0;
+                        matchRequiredPhoneNumber = rewardSpecificData[7];
 
                         console.log('MT --checking -dbplayerReward consumptionData', consumptionData);
                         console.log('MT --checking -dbplayerReward topUpData',topUpData);
@@ -7501,6 +7509,14 @@ let dbPlayerReward = {
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
                                 message: localization.localization.translate("Over the apply limit already")
+                            });
+                        }
+
+                        if (!matchRequiredPhoneNumber) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("This player does not have phone number to apply this reward")
                             });
                         }
 
