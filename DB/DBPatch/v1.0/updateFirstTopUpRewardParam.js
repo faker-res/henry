@@ -661,7 +661,7 @@ db.rewardParam.update({
                     detail: "REWARD_RECLAIM_MISSED_DAY_DETAIL"
                 },
                 requiredPhoneNumber: {
-                    index: 22,
+                    index: 23,
                     type: "checkbox",
                     des: "Required phone number"
                 },
