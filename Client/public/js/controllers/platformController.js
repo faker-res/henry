@@ -23762,12 +23762,7 @@ define(['js/app'], function (myApp) {
                 console.log('editReward sendData', sendData);
                 if (isValid) {
                     socketService.$socket($scope.AppSocket, 'updateRewardEvent', sendData, function (data) {
-                        let rewardItem = data && data.data ? data.data: null;
-                        if (vm.showRewardTypeData.name === 'PlayerFestivalRewardGroup') {
-                            vm.rewardTabClicked(vm.reloadReward(rewardItem), vm.filterRewardPlatform);
-                        } else {
-                            vm.rewardTabClicked('', vm.filterRewardPlatform);
-                        }
+                        vm.rewardTabClicked('', vm.filterRewardPlatform);
                         vm.afterEventCreated(data, vm.showReward);
                         vm.platformRewardPageName = 'showReward';
                         console.log('ok');
@@ -23790,16 +23785,6 @@ define(['js/app'], function (myApp) {
                         vm.disableAllRewardInput(false);
                     });
                 }
-            }
-            vm.reloadReward = function (rewardEvent) {
-                let indexNo;
-                let reloadItem = vm.allRewardEvent.filter( (item, i) => {
-                    if ( item.code == rewardEvent.code ) {
-                        indexNo = i;
-                        return item;
-                    }
-                })
-                vm.rewardEventClicked(indexNo, rewardEvent);
             }
             vm.afterEventCreated = function (data, showReward, isFirstCreate, rewardName) {
                 if (isFirstCreate && rewardName && rewardName == 'PlayerRandomRewardGroup') {
