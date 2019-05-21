@@ -274,6 +274,10 @@ define([], function () {
                 }
             });
         };
+
+        this.getToken = ($cookies) => {
+            return $cookies.get(this.cookieTokenKey);
+        }
     };
 
     var authApp = angular.module('authService', []);

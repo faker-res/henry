@@ -71,18 +71,17 @@ style.
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.pc.onClickAction == 1")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popularRecommendationSetting.pc.newPage", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                    input#popularRecommendationPageDetailFile(type="file")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.pc.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popularRecommendationPcNewPageFile(type="file")
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.pc.onClickAction == 2")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popularRecommendationSetting.pc.pageDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
-                                    input#popularRecommendationPageDetailFile(type="file")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.pc.activityDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popularRecommendationPcPageDetailFile(type="file")
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.pc.onClickAction == 3")
                                 label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.rewardName", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
-                                        option (value="", disabled selected) {{"test ..." | translate}}
+                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.pc.onClickAction == 4")
                                 label(style="width: 30%;") {{"ROUTE"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -104,17 +103,17 @@ style.
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.h5.onClickAction == 1")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popularRecommendationSetting.h5.newPage", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                    input#popularRecommendationPageDetailFile(type="file")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.h5.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popularRecommendationH5NewPageFile(type="file")
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.h5.onClickAction == 2")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popularRecommendationSetting.h5.pageDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
-                                    input#popularRecommendationPageDetailFile(type="file")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.h5.activityDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popularRecommendationH5PageDetailFile(type="file")
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.h5.onClickAction == 3")
                                 label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.rewardName" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.h5.onClickAction == 4")
                                 label(style="width: 30%;") {{"ROUTE"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -136,17 +135,17 @@ style.
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.app.onClickAction == 1")
                                     label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                     div.inline-block(style="width: 70%;")
-                                        input.form-control(ng-model="vm.popularRecommendationSetting.app.newPage", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                        input#popularRecommendationPageDetailFile(type="file")
+                                        input.form-control(ng-model="vm.popularRecommendationSetting.app.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#popularRecommendationAppNewPageFile(type="file")
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.app.onClickAction == 2")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popularRecommendationSetting.app.pageDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
-                                    input#popularRecommendationPageDetailFile(type="file")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.app.activityDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popularRecommendationAppPageDetailFile(type="file")
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.app.onClickAction == 3")
                                 label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.rewardName" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
                             .full-width-input-block(ng-if="vm.popularRecommendationSetting.app.onClickAction == 4")
                                 label(style="width: 30%;") {{"ROUTE"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -160,7 +159,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") {{"VISIBLE ON DEVICE OF"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.popularRecommendationSetting.visibleDevice" ng-options='v as i | translate for (i, v) in vm.frontEndSettingDevices')
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.popularRecommendationSetting.visibleOnDevice" ng-options='v as i | translate for (i, v) in vm.frontEndSettingDevices')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"VISIBLE FOR PLAYER"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -168,7 +167,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH REGISTERED HP NO."|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.transform150(type='checkbox', ng-model='vm.popularRecommendationSetting.isPlayerWithRegisteredHpNumberVisible')
+                                    input.transform150(type='checkbox', ng-model='vm.popularRecommendationSetting.isPlayerWithRegisteredHpNoVisible')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR NEW PLAYER"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -180,32 +179,34 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER LEVEL OF"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.popularRecommendationSetting.isVisibleForPlayerLevel" ng-options='v._id as v.name | translate for v in vm.allPlayerLvl')
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.popularRecommendationSetting.visibleOnPlayerLevel" ng-options='v._id as v.name | translate for v in vm.allPlayerLvl')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH ACCOUNT BALANCE LOWER THAN"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.popularRecommendationSetting.isVisibleForPlayerWithBalanceLowerThan")
+                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.popularRecommendationSetting.visibleForBalanceBelow")
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH TOP UP TIMES MORE THAN"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.popularRecommendationSetting.isVisibleForPlayerWithTopUpTimesMoreThan")
+                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.popularRecommendationSetting.visibleForTopUpTimeMoreThan")
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER INVOLVES IN"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.popularRecommendationSetting.isVisibleForPlayerInGameProvider" ng-options='v._id as v.name | translate for v in vm.allGameProviders')
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.popularRecommendationSetting.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.allGameProviders')
 
                         .col-md-6
                             .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
                                 label {{'PC Image Preview' | translate}}
-                                img#pcImage(src="")
+                                img#pcImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
                             .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
                                 label {{'H5 Image Preview' | translate}}
-                                img#H5Image(src="")
+                                img#H5Image(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
                             .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
                                 label {{'APP Image Preview' | translate}}
-                                img#appImage(src="")
+                                img#appImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
 
 
             .modal-footer
-                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.addNewPopularRecommendationSetting()') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitPopularRecommendationSettings()') {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#frontEndPopularRecommendationUploader.collapse
+                    i.fa.fa-spinner.fa-spin
