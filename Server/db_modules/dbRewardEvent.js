@@ -1348,7 +1348,6 @@ var dbRewardEvent = {
             ]);
 
             promArr.push(periodConsumptionProm);
-            topupMatchQuery.$or = [{'bDirty': false}];
 
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 let ignoreUsedTopupReward = [];
@@ -2930,7 +2929,7 @@ var dbRewardEvent = {
                     })
                 }
 
-                return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData).exec();
+                return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData, {new: true}).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
             }
         ).catch(
             err => {
