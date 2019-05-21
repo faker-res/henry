@@ -563,7 +563,12 @@ db.rewardParam.update({
                     des: "DEPOSIT_METHOD",
                     options: "depositMethod",
                     detail: "REWARD_TOP_UP_TYPE_DETAIL"
-                }
+                },
+                requiredPhoneNumber: {
+                    index: 20,
+                    type: "checkbox",
+                    des: "Required phone number"
+                },
             }
         },
         param: {
@@ -655,6 +660,11 @@ db.rewardParam.update({
                     des: "Player can delay apply for reward within period",
                     detail: "REWARD_RECLAIM_MISSED_DAY_DETAIL"
                 },
+                requiredPhoneNumber: {
+                    index: 23,
+                    type: "checkbox",
+                    des: "Required phone number"
+                },
             },
             dynamicCond: dynamicCond,
         },
@@ -724,7 +734,12 @@ db.rewardParam.update({
                     type: "multiSelect",
                     des: "Ignore the following rewards that applied with all top up",
                     options: "allRewardEvent"
-                }
+                },
+                requiredPhoneNumber: {
+                    index: 33,
+                    type: "checkbox",
+                    des: "Required phone number"
+                },
             },
             dynamicCond: {
                 isDynamicRewardAmount: {
@@ -794,7 +809,12 @@ db.rewardParam.update({
                     type: "multiSelect",
                     des: "Check consumption source by provider",
                     options: "gameProviders"
-                }
+                },
+                requiredPhoneNumber: {
+                    index: 24,
+                    type: "checkbox",
+                    des: "Required phone number"
+                },
             }
         },
         param: {
@@ -879,7 +899,12 @@ db.rewardParam.update({
                     index: 27,
                     type: "checkbox",
                     des: "Check if this mobile device has received free trial"
-                }
+                },
+                requiredPhoneNumber: {
+                    index: 28,
+                    type: "checkbox",
+                    des: "Required phone number"
+                },
             }
         },
         param: {
@@ -986,6 +1011,11 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Need SMS verification"
                 },
+                requiredPhoneNumber: {
+                    index: 31,
+                    type: "checkbox",
+                    des: "Required phone number"
+                },
                 numberParticipation: {
                     index: 42,
                     type: "number",
@@ -1082,6 +1112,11 @@ db.rewardParam.update({
                     options: "gameProviders"
                 },
                 countInRewardInterval: {index: 43, type: "number", des: "Apply Reward limit in interval"},
+                requiredPhoneNumber: {
+                    index: 44,
+                    type: "checkbox",
+                    des: "Required phone number"
+                },
             }
         },
         param: {
@@ -1153,6 +1188,11 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Check if this portable device has received the reward",
                     detail: "Check the IMEI value/unique code of each handset when applying through APP"
+                },
+                requiredPhoneNumber: {
+                    index: 45.5,
+                    type: "checkbox",
+                    des: "Required phone number"
                 },
                 quantityLimitInInterval: {
                     index: 46,
@@ -1268,6 +1308,11 @@ db.rewardParam.update({
                     des: "Check if this portable device has received the reward",
                     detail: "Check the IMEI value/unique code of each handset when applying through APP"
                 },
+                requiredPhoneNumber: {
+                    index: 45.5,
+                    type: "checkbox",
+                    des: "Required phone number"
+                },
                 defineRewardBonusCount: {
                     index: 46,
                     type: "select",
@@ -1373,7 +1418,12 @@ db.rewardParam.update({
                     type: "multiSelect",
                     des: "Forbid to apply other reward within reward interval",
                     options: "allRewardEvent"
-                }
+                },
+                requiredPhoneNumber: {
+                    index: 23,
+                    type: "checkbox",
+                    des: "Required phone number"
+                },
             },
             consumptionCond: consumptionCond,
             customCond: {
@@ -1437,6 +1487,11 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Check if this portable device has received the reward",
                     detail: "Check the IMEI value/unique code of each handset when applying through APP"
+                },
+                requiredPhoneNumber: {
+                    index: 46,
+                    type: "checkbox",
+                    des: "Required phone number"
                 },
                 festivalType: {
                     index: 55,

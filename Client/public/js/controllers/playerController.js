@@ -10688,6 +10688,7 @@ define(['js/app'], function (myApp) {
 
         vm.getFestivalSelection = function ( playerLevel, DOB, rewardObj ) {
             let playerLevelId = playerLevel._id || '';
+            let festivalType =  ( rewardObj.condition && rewardObj.condition.festivalType ) ? rewardObj.condition.festivalType : '';
             if (rewardObj.param && rewardObj.param.rewardParam && rewardObj.param.rewardParam.length > 0) {
                 let rewardByPlayerLevel = rewardObj.param.rewardParam.filter( item => {
                     return item.levelId == playerLevelId;
@@ -10701,6 +10702,27 @@ define(['js/app'], function (myApp) {
                     return item;
                 })
             }
+            vm.festivalByPlayerLevel = vm.festivalByPlayerLevel.filter( festival => {
+
+                switch (festivalType)
+                {
+                    case "1":
+                        // only return the birthday reward - type = 4
+                        return festival.festivalName && festival.applyTimes && festival.rewardType && festival.rewardType == 4;
+                        break;
+                    case "2":
+                        if (festival.rewardType == 3) {
+                            // special case - type 3 dont have apply times
+                            return festival.festivalName && festival.rewardType && festival.rewardType != 4;
+                        } else {
+                            return festival.festivalName && festival.applyTimes && festival.rewardType && festival.rewardType != 4;
+                        }
+                        break;
+                    default:
+                        return festival.festivalName && festival.applyTimes && festival.rewardType;
+                }
+            })
+
         }
 
         vm.getFestivalName = function(id, rewardType,  festivals, DOB) {

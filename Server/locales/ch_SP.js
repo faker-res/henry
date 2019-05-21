@@ -151,6 +151,7 @@ var simplifiedChinese = {
     "PlayerLoseReturnRewardGroup": "输值反利（組）",
     "PlayerRandomRewardGroup": "随机抽奖（组）",
     "PlayerTopUpReturnGroup": "存送金(组)",
+    "PlayerFestivalRewardGroup": "特别节日（组）",
 
     "UpdatePlayerInfo": "编辑玩家基本资料",
     "UpdatePlayerCredit": "更改玩家额度",
@@ -505,6 +506,7 @@ var simplifiedChinese = {
     "This phone number has applied for max reward times in event period": "此电话已经达到了该优惠周期内的申请上限",
     "This mobile device has applied for max reward times in event period": "此移动设备已经达到了该优惠周期内的申请上限",
     "This player has applied for other reward in event period": "此帐号已经在该优惠周期内领取其他优惠",
+    "This player does not have phone number to apply this reward": "此账号没有绑定手机号码，无法领取优惠",
     "Reward Amount and Spending Times cannot be empty. Please check reward condition.": "固定优惠金额和解锁流水不能为空。 请检查优惠条件",
     "Password should be alphanumeric and within 20 characters": "密码只能为6-20位的数字和字母",
     "Player does not have permission for reward point task": "目前进行维护当中，详情请联系客服谘询，谢谢",

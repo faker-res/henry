@@ -56,7 +56,6 @@ proposalSchema.index({proposalId: 1});
 // Index for top up report without proposalId search
 proposalSchema.index({createTime: 1, mainType: 1});
 
-proposalSchema.index({"data.merchantNo": 1});
 proposalSchema.index({"data.bankCardNo": 1});
 proposalSchema.index({"data.accountNo": 1});
 proposalSchema.index({"data.alipayAccount": 1});
@@ -68,7 +67,7 @@ proposalSchema.index({"data.playerObjId": 1, createTime: 1, mainType: 1, status:
 // Index based on type
 proposalSchema.index({type: 1, createTime: -1});
 // Merchant No related
-proposalSchema.index({createTime:1, "data.merchantNo": 1, status: 1, type: 1});
+proposalSchema.index({"data.merchantNo": 1, createTime: -1, status: 1, type: 1});
 
 proposalSchema.index({"data.playerName": 1});
 proposalSchema.index({"data.playerId": 1});
