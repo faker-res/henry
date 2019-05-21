@@ -22603,6 +22603,10 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
             vm.addNewFestivalTitle = (festival) => {
+                if (!vm.showReward._id) {
+                    vm.addFestivalErrMsg = $translate("You need to this reward first before create festival item");
+                    return
+                }
                 let updateObj = {
                     'id': createObjectId(),
                     'name': festival.name,
@@ -26418,6 +26422,7 @@ define(['js/app'], function (myApp) {
                 $(tmpt).on('shown.bs.modal', function (e) {
                     $scope.$evalAsync();
                 })
+                vm.addFestivalErrMsg = '';
             }
 
             vm.showProposalModal = function (proposalId, templateNo) {
