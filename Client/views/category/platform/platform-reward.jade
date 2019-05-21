@@ -652,8 +652,10 @@
                                 i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                             td(ng-repeat="(i,v) in cond.header track by $index")
                                 input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
+                                //select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
+                                    option(value='') {{'LOCAL_CREDIT' | translate}}
                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                    option( value='11111111')  {{'MemberBirthday' | translate}}
+                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
                                 span.percentage(ng-if="v.type == 'percentage'")
                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
@@ -669,8 +671,10 @@
                                 i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                             td(ng-repeat="(i,v) in cond.header track by $index")
                                 input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
-                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
+                                //select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
                                     option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
+                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
+                                    option( value='11111111')  {{'MemberBirthday' | translate}}
                                 span.percentage(ng-if="v.type == 'percentage'")
                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
@@ -687,11 +691,9 @@
                             td(ng-repeat="(i,v) in cond.header track by $index")
                                 input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                 select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                    option( value='11111111')  {{'MemberBirthday' | translate}}
+                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
                                 span.percentage(ng-if="v.type == 'percentage'")
                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
-
-
 
                     br
                     br
@@ -705,8 +707,10 @@
                                 i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                             td(ng-repeat="(i,v) in cond.header track by $index")
                                 input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
-                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
+                                //select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
                                     option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
+                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
+                                    option( value='11111111')  {{'MemberBirthday' | translate}}
                                 span.percentage(ng-if="v.type == 'percentage'")
                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
