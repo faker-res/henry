@@ -1793,5 +1793,13 @@
   "topUpSystemName": "Financial（Settlement）System",
   "PAYMENT_MONITOR_REPORT": "Payment Monitor Report",
   "LOCKED_ADMIN": "Locked Admin",
-  "WEBSITE_MULTI_SELECTION": "Website（Multiple Selection）"
+  "WEBSITE_MULTI_SELECTION": "Website（Multiple Selection）",
+  "skinManagement": "Skin Management",
+  "SKIN_MANAGEMENT": "Skin Management",
+  "SKIN_NAME": "Name",
+  "SKIN_URL": "URL",
+  "SKIN_DEVICE": "Device",
+  "ADD_SKIN": "ADD",
+  "DELETE_SKIN_SELECTION": "Select Skin",
+  "DELETE_SELECTED_SKIN_BUTTON": "Delete Selected Skin"
 }
