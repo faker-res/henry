@@ -565,7 +565,7 @@ db.rewardParam.update({
                     detail: "REWARD_TOP_UP_TYPE_DETAIL"
                 },
                 requiredPhoneNumber: {
-                    index: 20,
+                    index: 19.1,
                     type: "checkbox",
                     des: "Required phone number"
                 },
