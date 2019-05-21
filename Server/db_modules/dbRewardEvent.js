@@ -2656,7 +2656,7 @@ var dbRewardEvent = {
                             festivalData = festivalData.map( item => {
                                 let meetTopUp = false;
                                 let meetConsumption = false;
-
+                                // reward type 2, 5 need minTopUpAmount
                                 if (item.rewardType == 2 || item.rewardType == 5) {
                                     topUpDatas.forEach(topup => {
                                         if (topup.minTopUpAmount) {
@@ -2667,6 +2667,7 @@ var dbRewardEvent = {
                                         return item;
                                     }
                                 } else if (item.rewardType == 3 || item.rewardType == 6) {
+                                    // reward type 3, 6 need totalConsumptionInInterval
                                     if (consumptionSum > item.totalConsumptionInInterval) {
                                         meetConsumption = true;
                                         return item;
