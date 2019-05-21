@@ -794,6 +794,29 @@ const dbRewardUtility = {
         }
     },
 
+    checkRewardApplyEnoughTopupCount: (eventData, topupInPeriodCount) => {
+        // Check top up count within period
+        if (eventData.condition.topUpCountType) {
+            let intervalType = eventData.condition.topUpCountType[0];
+            let value1 = eventData.condition.topUpCountType[1];
+            let value2 = eventData.condition.topUpCountType[2];
+
+            const hasMetTopupCondition =
+                intervalType == "1" && topupInPeriodCount >= value1
+                || intervalType == "2" && topupInPeriodCount <= value1
+                || intervalType == "3" && topupInPeriodCount == value1
+                || intervalType == "4" && topupInPeriodCount >= value1 && topupInPeriodCount < value2;
+
+            if (!hasMetTopupCondition) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Top up count has not met period condition"
+                });
+            }
+        }
+    },
+
     // endregion
 
     // region Reward permission
