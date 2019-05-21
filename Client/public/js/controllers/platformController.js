@@ -30486,22 +30486,23 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platformList: platformList && platformList.length ? platformList : []
                 }
-                return new Promise((resolve, reject) => {
-                    socketService.$socket($scope.AppSocket, 'getPlatformCredibilityRemarks', sendData, function (data) {
-                        $scope.$evalAsync(() => {
-                            console.log('getPlatformCredibilityRemarks', data);
-                            vm.platformCredibilityRemarks = data.data;
-                            vm.platformCredibilityRemarks.map(remark => {
-                                if (remark && remark.platform && remark.platform.name) {
-                                    remark.platformName = remark.platform.name;
+                if (vm.allCredibilityRemarks) {
+                    vm.platformCredibilityRemarks = vm.allCredibilityRemarks;
+                    if (platformList && platformList.length) {
+                        vm.platformCredibilityRemarks = vm.allCredibilityRemarks.filter(remark => { return platformList.includes(remark.platform) });
+                    }
+                    vm.platformCredibilityRemarks.map(remark => {
+                        if (vm.allPlatformData && vm.allPlatformData.length) {
+                            vm.allPlatformData.forEach(platform => {
+                                if (remark && remark.platform && platform && platform._id && platform.name) {
+                                    if (remark.platform.toString() === platform._id.toString()) {
+                                        remark.platformName = platform.name;
+                                    }
                                 }
-                            });
-                            resolve();
-                        });
-                    }, function (err) {
-                        reject(err);
+                            })
+                        }
                     });
-                });
+                }
             };
 
             vm.getAllGameProvidersLocal = () => {
