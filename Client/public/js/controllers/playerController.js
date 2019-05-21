@@ -14751,7 +14751,8 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded('#modalPlayerPermissionChangeLog .searchDiv .startTime', function () {
                     vm.playerPermissionQuery.startTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .startTime');
                     vm.playerPermissionQuery.endTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .endTime');
-                    vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
+                    // vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
+                    vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date(vm.selectedSinglePlayer.registrationTime)));
                     vm.playerPermissionQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 });
             }
