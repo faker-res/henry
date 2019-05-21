@@ -24566,8 +24566,27 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.frontEndSettingPlatform = function () {
+                switch (vm.selectedFrontEndSettingTab) {
+                    case 'popularRecommendation':
+                        vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
+                        vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
+                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        break;
+                }
+            }
+
             vm.frontEndSettingTabClicked = function (choice) {
                 vm.selectedFrontEndSettingTab  = choice;
+                switch (choice) {
+                    case 'popularRecommendation':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'skinManagement':
+                        vm.filterFrontEndSettingPlatform = null;
+                        vm.frontEndSkinManagement = {};
+                        break;
+                }
             };
 
             vm.initFrontendConfiguration2 = function () {
