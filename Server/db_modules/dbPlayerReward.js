@@ -5857,14 +5857,18 @@ let dbPlayerReward = {
         let selectedRewardParam = setSelectedRewardParam(eventData, playerData);
         // Get interval time
         let intervalTime = getIntervalTime(eventData, rewardData);
+        // Query setup
         let topupMatchQuery = setupTopupMatchQuery(eventData, playerData, intervalTime);
         let eventQueryPeriodTime = dbRewardUtil.getRewardEventIntervalTime({applyTargetDate: new Date()}, eventData);
         let eventQuery = setupEventQuery(eventData, rewardData, playerData, intervalTime, eventQueryPeriodTime);
+        // Get top up count in interval period
+        let topupInPeriodData = await dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
+        // Check top up count is sufficient for reward application
+        await dbRewardUtil.checkRewardApplyEnoughTopupCount(eventData, topupInPeriodData.length);
 
-        console.log("LH Check Player Free Trial Reward 1-----", topupMatchQuery);
-        let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
         let dailyMaxRewardPointProm;
+
         // reward specific promise
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP || eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
             if (rewardData && rewardData.selectedTopup) {
@@ -6771,18 +6775,15 @@ let dbPlayerReward = {
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
-        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm, dailyMaxRewardPointProm, forbidRewardProm]).then(
+        return Promise.all([eventInPeriodProm, Promise.all(promArr), lastConsumptionProm, dailyMaxRewardPointProm, forbidRewardProm]).then(
             data => {
-                let topupInPeriodData = data[0];
-                console.log("LH Check Player Free Trial Reward 2-----", topupInPeriodData);
-                let eventInPeriodData = data[1];
-                let rewardSpecificData = data[2];
-                lastConsumptionRecord = data[3] && data[3][0] ? data[3][0] : {};
-                let topupInPeriodCount = topupInPeriodData.length;
+                let eventInPeriodData = data[0];
+                let rewardSpecificData = data[1];
+                lastConsumptionRecord = data[2] && data[2][0] ? data[2][0] : {};
                 let eventInPeriodCount = eventInPeriodData.length;
                 console.log('MT --checking eventInPeriodDataCount',eventInPeriodCount);
-                let dailyRewardPointData = data[4];
-                let forbidRewardData = data[5];
+                let dailyRewardPointData = data[3];
+                let forbidRewardData = data[4];
                 console.log('forbidRewardData check', forbidRewardData);
                 let matchRequiredPhoneNumber = null;
 
@@ -6798,30 +6799,6 @@ let dbPlayerReward = {
                         name: "DataError",
                         message: localization.localization.translate("Player has applied for max reward times in event period")
                     });
-                }
-
-                // Check top up count within period
-                if (eventData.condition.topUpCountType) {
-                    let intervalType = eventData.condition.topUpCountType[0];
-                    let value1 = eventData.condition.topUpCountType[1];
-                    let value2 = eventData.condition.topUpCountType[2];
-
-                    console.log("LH Check Player Free Trial Reward 3-----", intervalType);
-                    console.log("LH Check Player Free Trial Reward 4-----", value1);
-                    console.log("LH Check Player Free Trial Reward 5-----", value2);
-                    const hasMetTopupCondition =
-                        intervalType == "1" && topupInPeriodCount >= value1
-                        || intervalType == "2" && topupInPeriodCount <= value1
-                        || intervalType == "3" && topupInPeriodCount == value1
-                        || intervalType == "4" && topupInPeriodCount >= value1 && topupInPeriodCount < value2;
-                    console.log("LH Check Player Free Trial Reward 6-----", hasMetTopupCondition);
-                    if (!hasMetTopupCondition) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                            name: "DataError",
-                            message: "Top up count has not met period condition"
-                        });
-                    }
                 }
 
                 // Count reward amount and spending amount
