@@ -32,6 +32,20 @@ function socketActionPlatform(socketIO, socket) {
     var self = this;
     this.actions = {
 
+        sendFileFTP: function sendFileFTP(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data.platformId && data.token && data.fileName && data.fileStream);
+
+            socketUtil.emitter(self.socket, dbPlatform.sendFileFTP, [data.platformId, data.token, data.fileStream, data.fileName], actionName, isValidData);
+        },
+
+        saveFrontEndPopularRecommendationSetting: function saveFrontEndPopularRecommendationSetting (data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbPlatform.saveFrontEndPopularRecommendationSetting, [data], actionName, isValidData);
+        },
+
         /**
          * Create a new platform
          * @param {json} data - It has to contain platform data - refer the "platform" schema

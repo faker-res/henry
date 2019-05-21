@@ -100,6 +100,7 @@ let scheduledLive800DailyRecordSchema = require('./../schema/logs2/scheduledLive
 let wcDeviceSchema = require('./../schema/admindb/wcDevice');
 let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig');
 let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
+let frontEndPopularRecommendationSettingSchema = require('./../schema/frontEndPopularRecommendationSetting');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -263,6 +264,7 @@ let depositGroupModel = db_admin.model('depositGroup', depositGroupSchema, 'depo
 let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
 let paymentSystemConfigModel = db_admin.model('paymentSystemConfig', paymentSystemConfigSchema, 'paymentSystemConfig');
 let platformNotificationRecipientModel = db_admin.model('platformNotificationRecipient', platformNotificationRecipientSchema, 'platformNotificationRecipient');
+let frontEndPopularRecommendationSettingModel = db_admin.model('frontEndPopularRecommendationSetting', frontEndPopularRecommendationSettingSchema, 'frontEndPopularRecommendationSetting');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -724,6 +726,7 @@ var dbProperties = {
     collection_wcDevice: wcDeviceModel,
     collection_paymentSystemConfig: paymentSystemConfigModel,
     collection_platformNotificationRecipient: platformNotificationRecipientModel,
+    collection_frontEndPopularRecommendationSetting: frontEndPopularRecommendationSettingModel,
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,

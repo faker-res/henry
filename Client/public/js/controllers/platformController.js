@@ -39729,8 +39729,137 @@ define(['js/app'], function (myApp) {
                     pc: {},
                     h5: {},
                     app: {},
+                    isPlayerVisible: true,
+                    isPlayerWithRegisteredHpNoVisible: true,
                 };
+                vm.popularRecommendationImageFile = {};
+
                 $('#popularRecommendationSetting').modal();
+                $("#popularRecommendationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcImage");});
+                $("#popularRecommendationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcNewPage");});
+                $("#popularRecommendationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcPageDetail");});
+
+                $("#popularRecommendationH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5Image");});
+                $("#popularRecommendationH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5NewPage");});
+                $("#popularRecommendationH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5PageDetail");});
+
+                $("#popularRecommendationAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appImage");});
+                $("#popularRecommendationAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appNewPage");});
+                $("#popularRecommendationAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"appPageDetail");});
+            };
+
+            vm.readURL = (input, previewId) => {
+                console.log(input);
+                if (input.files && input.files[0]) {
+                    let reader1 = new FileReader();
+                    let reader2 = new FileReader();
+                    reader1.onload = function (e) {
+                        $(`#${previewId}`).attr('src', e.target.result);
+                    };
+                    reader2.onload = function (e) {
+                        vm.popularRecommendationImageFile[previewId] = {
+                            platformId: 1,
+                            token: authService.getToken($cookies),
+                            fileStream: e.target.result,
+                            fileName: input.files[0].name
+                        };
+                    };
+                    // for preview purpose
+                    reader1.readAsDataURL(input.files[0]);
+                    // for upload to ftp server purpose
+                    reader2.readAsArrayBuffer(input.files[0]);
+                }
+            };
+
+            vm.submitPopularRecommendationSettings = () => {
+                $('#frontEndPopularRecommendationSetting').show();
+                let promArr = [
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcImage),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcNewPage),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcPageDetail),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5Image),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5NewPage),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5PageDetail),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.appImage),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.appNewPage),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.appPageDetail)
+                ];
+
+                return Promise.all(promArr).then(
+                    data => {
+                        console.log("returned FTP data", data);
+                        if (data && data.length){
+                            let retPcImageUrl = data[0] && data[0].data && data[0].data.url ? data[0].data.url : null;
+                            let retPcNewPageUrl = data[1] && data[1].data && data[1].data.url ? data[1].data.url : null;
+                            let retPcActivityUrl = data[2] && data[2].data && data[2].data.url ? data[2].data.url : null;
+                            let retH5ImageUrl = data[3] && data[3].data && data[3].data.url ? data[3].data.url : null;
+                            let retH5NewPageUrl = data[4] && data[4].data && data[4].data.url ? data[4].data.url : null;
+                            let retH5ActivityUrl = data[5] && data[5].data && data[5].data.url ? data[5].data.url : null;
+                            let retAppImageUrl = data[6] && data[6].data && data[6].data.url ? data[6].data.url : null;
+                            let retAppNewPageUrl = data[7] && data[7].data && data[7].data.url ? data[7].data.url : null;
+                            let retAppActivityUrl = data[8] && data[8].data && data[8].data.url ? data[8].data.url : null;
+
+                            vm.popularRecommendationSetting.platformObjId = vm.selectedPlatform.id;
+                            if (retPcImageUrl){
+                                vm.popularRecommendationSetting.pc.imageUrl = retPcImageUrl
+                            }
+                            if (retPcNewPageUrl){
+                                vm.popularRecommendationSetting.pc.newPageUrl = retPcNewPageUrl
+                            }
+                            if (retPcNewPageUrl){
+                                vm.popularRecommendationSetting.pc.activityUrl = retPcActivityUrl
+                            }
+                            if (retH5ImageUrl){
+                                vm.popularRecommendationSetting.h5.imageUrl = retH5ImageUrl
+                            }
+                            if (retH5NewPageUrl){
+                                vm.popularRecommendationSetting.h5.newPageUrl = retH5NewPageUrl
+                            }
+                            if (retH5ActivityUrl){
+                                vm.popularRecommendationSetting.h5.activityUrl = retH5ActivityUrl
+                            }
+                            if (retAppImageUrl){
+                                vm.popularRecommendationSetting.app.imageUrl = retAppImageUrl
+                            }
+                            if (retAppNewPageUrl){
+                                vm.popularRecommendationSetting.app.newPageUrl = retAppNewPageUrl
+                            }
+                            if (retAppActivityUrl){
+                                vm.popularRecommendationSetting.app.activityUrl = retAppActivityUrl
+                            }
+
+                            socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.popularRecommendationSetting, function (data) {
+                                console.log("saveFrontEndPopularRecommendationSetting ret", data);
+                                // stop the uploading loader
+                                $('#frontEndPopularRecommendationUploader').hide();
+                                // close the modal
+                                $('#popularRecommendationSetting').modal('hide');
+                            }, function (err) {
+                                console.log("saveFrontEndPopularRecommendationSetting err", err);
+                            });
+                        }
+                    }
+                ).catch(err=>{
+                    console.log("err", err);
+                    $('#frontEndPopularRecommendationSetting').hide();
+                });
+            };
+
+            vm.uploadToFtp = (sendQuery) => {
+                console.log("sendFileFTP query", sendQuery);
+                return new Promise((resolve, reject)=>{
+                    if (!sendQuery){
+                        return resolve();
+                    }
+                    socketService.$socket($scope.AppSocket, 'sendFileFTP', sendQuery, function (data) {
+                        console.log("sendFileFTP ret", data);
+                        return resolve(data);
+                    }, function (err) {
+                        console.log("sendFileFTP err", err);
+                        //add retry here
+                        return reject(err);
+                    });
+                });
             };
 
             function getSelectedPlatform() {
