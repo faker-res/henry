@@ -21827,7 +21827,7 @@ define(['js/app'], function (myApp) {
 
                             utilService.actionAfterLoaded("#rewardMainParamTable", function () {
                                 // Set param table value
-                                if (!vm.showRewardTypeData.name === "PlayerFestivalRewardGroup") {
+                                if (vm.showRewardTypeData.name !== "PlayerFestivalRewardGroup") {
 
                                     Object.keys(paramType.rewardParam).forEach(el => {
                                         if (vm.isPlayerLevelDiff) {
