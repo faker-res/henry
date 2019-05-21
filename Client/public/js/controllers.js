@@ -967,6 +967,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         18: {name: "代理", type: "功能"}
     };
 
+    $scope.frontEndSettingDevice = {
+        1: "PC",
+        2: "APP",
+        3: "H5"
+    };
+
     // $scope.consumptionRecordProviderName = {
     //     1: "AGOTHS",
     //     2: "PT",

@@ -3803,6 +3803,9 @@
   "First_Page_Popular_Recommendation": "首页热门推荐",
   "Recommended_Game": "游戏推荐",
   "Bottom_Banner": "底部",
+  "firstPagePopularRecommendation": "首页热门推荐",
+  "gameRecommendation": "游戏推荐",
+  "bottomBanner": "底部",
   "Setting For Popular Recommendation": "热门推荐配置",
   "Note: only allow to add, delete, move, double click to edit": "注：项目只可添加、删除、移动、双击编辑\n",
   "FrontEndConfiguration2": "前端设置2",
@@ -5612,5 +5615,13 @@
   "RECALCULATE": "重新收录",
   "BULK_SETTING_CONFIG": "批量配置调整",
   "You need to this reward first before create festival item": "你需要先储存此优惠才能开始添加节日",
-  "Not allowed to transfer from test environment.": "只允许测试账号操作转入"
+  "Not allowed to transfer from test environment.": "只允许测试账号操作转入",
+  "skinManagement": "皮肤管理",
+  "SKIN_MANAGEMENT": "皮肤管理",
+  "SKIN_NAME": "皮肤名称",
+  "SKIN_URL": "皮肤路径",
+  "SKIN_DEVICE": "设备",
+  "ADD_SKIN": "添加皮肤",
+  "DELETE_SKIN_SELECTION": "删除皮肤选择",
+  "DELETE_SELECTED_SKIN_BUTTON": "删除选中皮肤"
 }

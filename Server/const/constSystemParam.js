@@ -10,6 +10,7 @@ const constSystemParam = {
     //TODO::update this value later
     VALID_PLAYER_TOP_UP_AMOUNT: 100,
     PASSWORD_LENGTH: 6,
+    MAX_API_CALL_PER_SEC: 20,
 
     API_AUTH_SECRET_KEY : "$ap1U5eR$", // JWT Secret,
     PMS2_AUTH_SECRET_KEY : "FpM$t0pM$2",
