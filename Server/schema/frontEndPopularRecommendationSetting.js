@@ -11,7 +11,6 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
     displayTitle: {type: String},
     // 1： 首页热门推荐； 2： 游戏推荐； 3： 底部
     category: {type: Number, index: true},
-
     pc: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
         onClickAction: {type: Number},
@@ -32,7 +31,6 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
         // the game code
         gameCode: {type: String},
     },
-
     h5: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
         onClickAction: {type: Number},
@@ -53,7 +51,6 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
         // the game code
         gameCode: {type: String},
     },
-
     app: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
         onClickAction: {type: Number},
@@ -74,25 +71,6 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
         // the game code
         gameCode: {type: String},
     },
-    // // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
-    // appOnClickAction: {type: Number},
-    // //  ftp url for uploaded app image
-    // appImageUrl: {type: String},
-    // // the detail for new page is selected
-    // appNewPageDetail: {type: String},
-    // // the ftp url for uploaded new page image
-    // appNewPageUrl: {type: String},
-    // // the activity detail
-    // appActivityDetail: {type: String},
-    // // the ftp url for uploaded activity iframe url
-    // appActivityUrl: {type: String},
-    // // reward event ObjectId
-    // appRewardEventObjId: {type: Schema.Types.ObjectId, ref: 'rewardEvent', index: true},
-    // // the route to official web page
-    // appRoute: {type: String},
-    // // the game code
-    // appGameCode: {type: String},
-
     // 1: web; 2: iOS APP; 3: Android APP; 4: H5
     visibleOnDevice: [{
         _id: false,
