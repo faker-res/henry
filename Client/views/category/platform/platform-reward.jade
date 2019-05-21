@@ -637,146 +637,146 @@
                                                 option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
 
 
-                    // PlayerFestivalRewardGroup
-                    .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerFestivalRewardGroup' &&  !vm.isPlayerLevelDiff")
-                        div(style="margin-bottom: 20px;")
-                            label(style="color: red") *{{ "PlayerFestivalRewardGroup" | translate }}
-                            button.btn.btn-primary.common-button(ng-click='vm.showFestivalRewardModal()') 特别节日设置
-                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableBirthday track by $index" ng-cloak, ng-if="vm.festivalType == '1'")
-                            thead
-                                th
-                                th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
-                            tbody(ng-repeat="entry in cond.value track by $index")
+                // PlayerFestivalRewardGroup
+                .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerFestivalRewardGroup' &&  !vm.isPlayerLevelDiff")
+                    div(style="margin-bottom: 20px;")
+                        label(style="color: red") *{{ "PlayerFestivalRewardGroup" | translate }}
+                        button.btn.btn-primary.common-button(ng-click='vm.showFestivalRewardModal()') 特别节日设置
+                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableBirthday track by $index" ng-cloak, ng-if="vm.festivalType == '1'")
+                        thead
+                            th
+                            th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
+                        tbody(ng-repeat="entry in cond.value track by $index")
+                            td
+                                i.fa.fa-plus(ng-click='vm.addNewFestivalTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.birthday})' ng-if='!vm.platformRewardShowEdit()')
+                                i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                            td(ng-repeat="(i,v) in cond.header track by $index")
+                                input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
+                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
+                                    option( value='11111111')  {{'MemberBirthday' | translate}}
+                                span.percentage(ng-if="v.type == 'percentage'")
+                                    input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+                    br
+                    br
+                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType1 track by $index" ng-cloak, ng-if="vm.festivalType == '2'")
+                        thead
+                            th
+                            th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
+                        tbody(ng-repeat="entry in cond.value track by $index")
+                            td
+                                i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.festivalType1})' ng-if='!vm.platformRewardShowEdit()')
+                                i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                            td(ng-repeat="(i,v) in cond.header track by $index")
+                                input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
+                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
+                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
+                                span.percentage(ng-if="v.type == 'percentage'")
+                                    input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+                    br
+                    br
+                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType2 track by $index" ng-cloak, ng-if="vm.festivalType == '2'")
+                        thead
+                            th
+                            th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
+                        tbody(ng-repeat="entry in cond.value track by $index")
+                            td
+                                i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.festivalType2})' ng-if='!vm.platformRewardShowEdit()')
+                                i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                            td(ng-repeat="(i,v) in cond.header track by $index")
+                                input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
+                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
+                                    option( value='11111111')  {{'MemberBirthday' | translate}}
+                                span.percentage(ng-if="v.type == 'percentage'")
+                                    input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+
+
+                    br
+                    br
+                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType3 track by $index" ng-cloak, ng-if="vm.festivalType == '2'")
+                        thead
+                            th
+                            th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
+                        tbody(ng-repeat="entry in cond.value track by $index")
+                            td
+                                i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.festivalType3})' ng-if='!vm.platformRewardShowEdit()')
+                                i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                            td(ng-repeat="(i,v) in cond.header track by $index")
+                                input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
+                                select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
+                                    option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
+                                span.percentage(ng-if="v.type == 'percentage'")
+                                    input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+                    br
+                    br
+
+
+                .col-md-12.well.scrollRecord(ng-if='vm.showRewardTypeData.isGrouped === true || (vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')
+                    label * {{'RICH_TEXT_EDITOR' | translate}}:&nbsp
+                    a(href='http://baowang.webcontent.cloud/ume/' target='_blank')
+                        | http://baowang.webcontent.cloud/ume/
+                    table.simple-table
+                        thead
+                            tr
+                                th(style="width: 80px;") {{"Add/Delete" | translate}}
+                                th(style="width: 150px;") {{"Display ID" | translate}}
+                                th(style="width: 250px;") {{"Display Title" | translate}}
+                                th(style="width: 250px;") {{"Display Content" | translate}}
+                                th {{"BTN_OR_IMAGE" | translate}}
+                        tbody
+                            tr(ng-repeat='(idx, val) in vm.showReward.display')
                                 td
-                                    i.fa.fa-plus(ng-click='vm.addNewFestivalTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.birthday})' ng-if='!vm.platformRewardShowEdit()')
-                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
-                                td(ng-repeat="(i,v) in cond.header track by $index")
-                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
-                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                        option( value='11111111')  {{'MemberBirthday' | translate}}
-                                    span.percentage(ng-if="v.type == 'percentage'")
-                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
-
-                        br
-                        br
-                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType1 track by $index" ng-cloak, ng-if="vm.festivalType == '2'")
-                            thead
-                                th
-                                th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
-                            tbody(ng-repeat="entry in cond.value track by $index")
+                                    div(style="width: 80px;")
+                                        label(ng-show='!vm.platformRewardShowEdit()') (
+                                        i.fa.fa-plus(ng-click='vm.rewardDisplayNewRow(vm.showReward.display)', ng-show='!vm.platformRewardShowEdit()')
+                                        label(ng-show='!vm.platformRewardShowEdit()') )
+                                        label(ng-show='!vm.platformRewardShowEdit()') (
+                                        i.fa.fa-minus(ng-click='vm.rewardDisplayDeleteRow(idx, vm.showReward.display)', ng-show='!vm.platformRewardShowEdit()')
+                                        label(ng-show='!vm.platformRewardShowEdit()') )
                                 td
-                                    i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.festivalType1})' ng-if='!vm.platformRewardShowEdit()')
-                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
-                                td(ng-repeat="(i,v) in cond.header track by $index")
-                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
-                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                        option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
-                                    span.percentage(ng-if="v.type == 'percentage'")
-                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
-
-                        br
-                        br
-                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType2 track by $index" ng-cloak, ng-if="vm.festivalType == '2'")
-                            thead
-                                th
-                                th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
-                            tbody(ng-repeat="entry in cond.value track by $index")
+                                    input(type="text" ng-model="val.displayId" ng-disabled='vm.platformRewardShowEdit()' style="width: 150px;")
                                 td
-                                    i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.festivalType2})' ng-if='!vm.platformRewardShowEdit()')
-                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
-                                td(ng-repeat="(i,v) in cond.header track by $index")
-                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
-                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                        option( value='11111111')  {{'MemberBirthday' | translate}}
-                                    span.percentage(ng-if="v.type == 'percentage'")
-                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
-
-
-
-                        br
-                        br
-                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableFestivalType3 track by $index" ng-cloak, ng-if="vm.festivalType == '2'")
-                            thead
-                                th
-                                th(ng-repeat="(i,v) in cond.header") {{v.des || "Cash Reward" | translate}}
-                            tbody(ng-repeat="entry in cond.value track by $index")
+                                    input(type="text" ng-model="val.displayTitle" ng-disabled='vm.platformRewardShowEdit()' style="width: 250px")
                                 td
-                                    i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.festivalType3})' ng-if='!vm.platformRewardShowEdit()')
-                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
-                                td(ng-repeat="(i,v) in cond.header track by $index")
-                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
-                                    select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                        option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
-                                    span.percentage(ng-if="v.type == 'percentage'")
-                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
-
-                        br
-                        br
-
-
-                    .col-md-12.well.scrollRecord(ng-if='vm.showRewardTypeData.isGrouped === true || (vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')
-                        label * {{'RICH_TEXT_EDITOR' | translate}}:&nbsp
-                        a(href='http://baowang.webcontent.cloud/ume/' target='_blank')
-                            | http://baowang.webcontent.cloud/ume/
-                        table.simple-table
-                            thead
-                                tr
-                                    th(style="width: 80px;") {{"Add/Delete" | translate}}
-                                    th(style="width: 150px;") {{"Display ID" | translate}}
-                                    th(style="width: 250px;") {{"Display Title" | translate}}
-                                    th(style="width: 250px;") {{"Display Content" | translate}}
-                                    th {{"BTN_OR_IMAGE" | translate}}
-                            tbody
-                                tr(ng-repeat='(idx, val) in vm.showReward.display')
-                                    td
-                                        div(style="width: 80px;")
-                                            label(ng-show='!vm.platformRewardShowEdit()') (
-                                            i.fa.fa-plus(ng-click='vm.rewardDisplayNewRow(vm.showReward.display)', ng-show='!vm.platformRewardShowEdit()')
-                                            label(ng-show='!vm.platformRewardShowEdit()') )
-                                            label(ng-show='!vm.platformRewardShowEdit()') (
-                                            i.fa.fa-minus(ng-click='vm.rewardDisplayDeleteRow(idx, vm.showReward.display)', ng-show='!vm.platformRewardShowEdit()')
-                                            label(ng-show='!vm.platformRewardShowEdit()') )
-                                    td
-                                        input(type="text" ng-model="val.displayId" ng-disabled='vm.platformRewardShowEdit()' style="width: 150px;")
-                                    td
-                                        input(type="text" ng-model="val.displayTitle" ng-disabled='vm.platformRewardShowEdit()' style="width: 250px")
-                                    td
-                                        input(type="text" ng-model="val.displayTextContent" ng-disabled='vm.platformRewardShowEdit()' style="width: 250px")
-                                    td
-                                        table
-                                            tbody
-                                                tr
-                                                    td(ng-if="val.btnOrImageList.length===0" style="border: none;")
-                                                        div(style="width: auto;")
-                                                            label(ng-show='!vm.platformRewardShowEdit()') (
-                                                            i.fa.fa-plus(ng-click="vm.showBtnOrImageTable(idx,vm.showReward.display)", ng-show='!vm.platformRewardShowEdit()')
-                                                            label(ng-show='!vm.platformRewardShowEdit()') )
-                                                    td(ng-repeat="v in val.btnOrImageList track by $index" style="border: none;")
-                                                        table(style="font-size: 10px;width:100%;")
-                                                            tbody
-                                                                tr
-                                                                    td
-                                                                        label(style="width: 20px;") {{'NAME' | translate}}
-                                                                    td
-                                                                        input(type='text' , ng-model='v.btnName', ng-disabled='vm.platformRewardShowEdit()', style="margin-bottom: 2px;")
-                                                                    td(rowspan=3)
-                                                                        div(style='width: 30px')
-                                                                            label(ng-show='!vm.platformRewardShowEdit()') (
-                                                                            i.fa.fa-minus(ng-click='vm.rewardImageOrButtonUrlDeleteRow($index, val.btnOrImageList)', ng-show='!vm.platformRewardShowEdit()')
-                                                                            label(ng-show='!vm.platformRewardShowEdit()') )
-                                                                            label(ng-show='!vm.platformRewardShowEdit()') (
-                                                                            i.fa.fa-plus(ng-click='vm.rewardImageOrButtonUrlNewRow(val.btnOrImageList)', ng-show='!vm.platformRewardShowEdit()')
-                                                                            label(ng-show='!vm.platformRewardShowEdit()') )
-                                                                tr
-                                                                    td
-                                                                        label {{'SOURCE' | translate}}
-                                                                    td
-                                                                        input(type='text' , ng-model='v.btnSourceFrom', ng-disabled='vm.platformRewardShowEdit()', style="margin-bottom: 2px;")
-                                                                tr
-                                                                    td
-                                                                        label {{'ButtonOrImageHyperlink' | translate}}
-                                                                    td
-                                                                        input(type='text' , ng-model='v.btnLinksTo', ng-disabled='vm.platformRewardShowEdit()', style="margin-bottom: 2px;")
+                                    input(type="text" ng-model="val.displayTextContent" ng-disabled='vm.platformRewardShowEdit()' style="width: 250px")
+                                td
+                                    table
+                                        tbody
+                                            tr
+                                                td(ng-if="val.btnOrImageList.length===0" style="border: none;")
+                                                    div(style="width: auto;")
+                                                        label(ng-show='!vm.platformRewardShowEdit()') (
+                                                        i.fa.fa-plus(ng-click="vm.showBtnOrImageTable(idx,vm.showReward.display)", ng-show='!vm.platformRewardShowEdit()')
+                                                        label(ng-show='!vm.platformRewardShowEdit()') )
+                                                td(ng-repeat="v in val.btnOrImageList track by $index" style="border: none;")
+                                                    table(style="font-size: 10px;width:100%;")
+                                                        tbody
+                                                            tr
+                                                                td
+                                                                    label(style="width: 20px;") {{'NAME' | translate}}
+                                                                td
+                                                                    input(type='text' , ng-model='v.btnName', ng-disabled='vm.platformRewardShowEdit()', style="margin-bottom: 2px;")
+                                                                td(rowspan=3)
+                                                                    div(style='width: 30px')
+                                                                        label(ng-show='!vm.platformRewardShowEdit()') (
+                                                                        i.fa.fa-minus(ng-click='vm.rewardImageOrButtonUrlDeleteRow($index, val.btnOrImageList)', ng-show='!vm.platformRewardShowEdit()')
+                                                                        label(ng-show='!vm.platformRewardShowEdit()') )
+                                                                        label(ng-show='!vm.platformRewardShowEdit()') (
+                                                                        i.fa.fa-plus(ng-click='vm.rewardImageOrButtonUrlNewRow(val.btnOrImageList)', ng-show='!vm.platformRewardShowEdit()')
+                                                                        label(ng-show='!vm.platformRewardShowEdit()') )
+                                                            tr
+                                                                td
+                                                                    label {{'SOURCE' | translate}}
+                                                                td
+                                                                    input(type='text' , ng-model='v.btnSourceFrom', ng-disabled='vm.platformRewardShowEdit()', style="margin-bottom: 2px;")
+                                                            tr
+                                                                td
+                                                                    label {{'ButtonOrImageHyperlink' | translate}}
+                                                                td
+                                                                    input(type='text' , ng-model='v.btnLinksTo', ng-disabled='vm.platformRewardShowEdit()', style="margin-bottom: 2px;")
 
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)

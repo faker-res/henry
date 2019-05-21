@@ -65,7 +65,7 @@ const constProposalType = {
     PLAYER_RETENTION_REWARD_GROUP: "PlayerRetentionRewardGroup",
     PLAYER_BONUS_DOUBLED_REWARD_GROUP: "PlayerBonusDoubledRewardGroup",
     BACCARAT_REWARD_GROUP: "BaccaratRewardGroup",
-    PLAYER_FESTIVAL_REWARD_GROUP: "PlayerFestivalRewardGroup",
+
     // Topup
     PLAYER_COMMON_TOP_UP: "PlayerCommonTopUp",
     PLAYER_MANUAL_TOP_UP: "ManualPlayerTopUp",
@@ -74,7 +74,7 @@ const constProposalType = {
     PLAYER_TOP_UP: "PlayerTopUp",
     PLAYER_QUICKPAY_TOP_UP: "PlayerQuickpayTopUp",
     PLAYER_ASSIGN_TOP_UP:"PlayerAssignTopUp",
-
+    
     // Third party payment system
     PLAYER_FKP_TOP_UP: "PlayerFKPTopUp",
     PLAYER_FKP_WITHDRAW: "PlayerFKPWithdraw",

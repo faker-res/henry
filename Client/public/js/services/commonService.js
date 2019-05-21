@@ -1425,8 +1425,6 @@ define([], () => {
                 proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
                 proposalDetail["rewardInterval"] = vm.selectedProposal.data.intervalType;
                 proposalDetail["rewardName"] = vm.selectedProposal.data.rewardName;
-                proposalDetail["festivalName"] = vm.selectedProposal.data.festivalName;
-
                 //***
                 proposalDetail["playerBirthday"] =  vm.selectedProposal.data.playerBirthday ? $scope.timeReformat(vm.selectedProposal.data.playerBirthday) :'' ;
                 proposalDetail["applyTargetDate"] = vm.selectedProposal.data.applyTargetDate;
