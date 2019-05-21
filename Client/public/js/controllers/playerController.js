@@ -10708,14 +10708,19 @@ define(['js/app'], function (myApp) {
                 {
                     case "1":
                         // only return the birthday reward - type = 4
-                        return festival.festivalName && festival.applyTimes && festival.rewardType && festival.rewardType == 4;
+                        if (festival.rewardType == 6) {
+                            // special case - type 3 dont have apply times
+                            return festival.festivalName && festival.rewardType && festival.rewardType == 6;
+                        } else {
+                            return festival.festivalName && festival.applyTimes && festival.rewardType && (festival.rewardType == 4 || festival.rewardType == 5 || festival.rewardType == 6);
+                        }
                         break;
                     case "2":
                         if (festival.rewardType == 3) {
                             // special case - type 3 dont have apply times
-                            return festival.festivalName && festival.rewardType && festival.rewardType != 4;
+                            return festival.festivalName && festival.rewardType && festival.rewardType == 3;
                         } else {
-                            return festival.festivalName && festival.applyTimes && festival.rewardType && festival.rewardType != 4;
+                            return festival.festivalName && festival.applyTimes && festival.rewardType && (festival.rewardType != 4 && festival.rewardType != 5 && festival.rewardType != 6 );
                         }
                         break;
                     default:
@@ -10738,7 +10743,7 @@ define(['js/app'], function (myApp) {
                 result = festival.name + '(' + month + $translate('month') + day + $translate('day') + ')';
 
             }
-            if (rewardType == 2 || rewardType == 4) {
+            if ( rewardType == 4 && rewardType == 5 && rewardType == 6) {
                 month = new Date(DOB).getMonth() + 1;
                 day =  new Date(DOB).getDate();
                 result = '会员生日' + '(' + month + $translate('month') + day + $translate('day') + ')';

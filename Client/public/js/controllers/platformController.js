@@ -22694,6 +22694,16 @@ define(['js/app'], function (myApp) {
                 $("#festivalItemModal").modal('hide');
             }
 
+            vm.editNewFestivalTitle = (festival) => {
+                if (!vm.showReward._id) {
+                    vm.addFestivalErrMsg = $translate("You need to this reward first before create festival item");
+                    return
+                }
+                vm.rewardParams.others = vm.showReward.param.others;
+                vm.editReward();
+                $("#festivalItemModal").modal('hide');
+            }
+
             vm.createFestivalRowByLevel = (idx) => {
                 // generate record by player level (if isPlayerLevelDiff is selected)
                 let birthday1Value = [];
@@ -22870,6 +22880,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.addNewFestivalTypeRow = (row, entry, newEntryData) => {
+                newEntryData.id = createObjectId();
                 row.push(newEntryData);
             }
 
@@ -23842,11 +23853,11 @@ define(['js/app'], function (myApp) {
                             curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable4[e].value)
                         });
                         // param table 5
-                        Object.keys(vm.rewardMainParamTable4).forEach((e, idx) => {
+                        Object.keys(vm.rewardMainParamTable5).forEach((e, idx) => {
                             curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable5[e].value)
                         });
                         // param table 6
-                        Object.keys(vm.rewardMainParamTable4).forEach((e, idx) => {
+                        Object.keys(vm.rewardMainParamTable6).forEach((e, idx) => {
                             curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable6[e].value)
                         });
                     }

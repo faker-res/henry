@@ -391,7 +391,7 @@
 
                         .panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
                             .panel-body(style="min-width: fit-content;")
-                                div(ng-repeat="cond in vm.rewardMainParamTable4 track by $index" ng-cloak)
+                                div(ng-repeat="cond in vm.rewardMainParamTable track by $index" ng-cloak)
                                     table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '2'")
                                         thead
                                             th
@@ -428,7 +428,7 @@
                                 //type2
                                 br
                                 br
-                                div(ng-repeat="cond in vm.rewardMainParamTable5 track by $index" ng-cloak)
+                                div(ng-repeat="cond in vm.rewardMainParamTable2 track by $index" ng-cloak)
                                     table#rewardMainParamTable5.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '2'")
                                         thead
                                             th
@@ -450,7 +450,7 @@
                                 //type3
                                 br
                                 br
-                                div(ng-repeat="cond in vm.rewardMainParamTable6 track by $index" ng-cloak)
+                                div(ng-repeat="cond in vm.rewardMainParamTable3 track by $index" ng-cloak)
                                     table#rewardMainParamTable6.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '2'")
                                         thead
                                             th
@@ -473,7 +473,7 @@
                                 //type4
                                 br
                                 br
-                                div(ng-repeat="cond in vm.rewardMainParamTable track by $index" ng-cloak)
+                                div(ng-repeat="cond in vm.rewardMainParamTable4 track by $index" ng-cloak)
                                     table#rewardMainParamTable4.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '1'")
                                         thead
                                             th
@@ -510,7 +510,7 @@
                                 //type5
                                 br
                                 br
-                                div(ng-repeat="cond in vm.rewardMainParamTable2 track by $index" ng-cloak)
+                                div(ng-repeat="cond in vm.rewardMainParamTable5 track by $index" ng-cloak)
                                     table#rewardMainParamTable5.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '1'")
                                         thead
                                             th
@@ -532,7 +532,7 @@
                                 //type6
                                 br
                                 br
-                                div(ng-repeat="cond in vm.rewardMainParamTable3 track by $index" ng-cloak)
+                                div(ng-repeat="cond in vm.rewardMainParamTable6 track by $index" ng-cloak)
                                     table#rewardMainParamTable6.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index && vm.festivalType == '1'")
                                         thead
                                             th
@@ -772,7 +772,7 @@
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                        option( value='11111111')  {{'MemberBirthday' | translate}}
+                                        option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
                                     span.percentage(ng-if="v.type == 'percentage'")
                                         input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
@@ -810,7 +810,7 @@
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                        option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
+                                        option( value='11111111')  {{'MemberBirthday' | translate}}
                                     span.percentage(ng-if="v.type == 'percentage'")
                                         input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
@@ -846,7 +846,7 @@
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
-                                        option(ng-repeat='(i,v) in allFestivals', value='{{v.id}}') {{ v.name }} ( {{v.month}} {{'month' | translate}} {{v.day}} {{'day' | translate}} )
+                                        option( value='11111111')  {{'MemberBirthday' | translate}}
                                     span.percentage(ng-if="v.type == 'percentage'")
                                         input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
