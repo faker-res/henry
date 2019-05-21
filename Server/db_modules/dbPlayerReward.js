@@ -6131,15 +6131,14 @@ let dbPlayerReward = {
             ]);
 
             promArr.push(periodConsumptionProm);
-            topupMatchQuery.amount = {$gte: eventData.condition && eventData.condition.requiredTopUpAmount ? eventData.condition.requiredTopUpAmount : 0};
-            topupMatchQuery.$or = [{'bDirty': false}];
+            topupMatchQuery.amount = {$gte: selectedRewardParam && selectedRewardParam.minTopUpAmount ? selectedRewardParam.minTopUpAmount : 0};
 
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 let ignoreUsedTopupReward = [];
                 ignoreUsedTopupReward = eventData.condition.ignoreTopUpDirtyCheckForReward.map(function (rewardId) {
                     return ObjectId(rewardId)
                 });
-                topupMatchQuery.$or.push({'usedEvent': {$in: ignoreUsedTopupReward}});
+                // topupMatchQuery.$or.push({'usedEvent': {$in: ignoreUsedTopupReward}});
             }
 
             let periodTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
@@ -6150,7 +6149,7 @@ let dbPlayerReward = {
             promArr.push(periodTopupProm);
             let periodPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
             promArr.push(periodPropsProm);
-
+            console.log('MT --checking festival topupMatchQuery', topupMatchQuery);
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionMatchQuery).sort({createTime: -1}).limit(1).lean();
 
             // check reward apply restriction on ip, phone and IMEI
@@ -7610,18 +7609,20 @@ let dbPlayerReward = {
                             reachConsumptionCondition = true;
                             isUpdateMultiConsumptionRecord = false;
                         }
+                        console.log('MT --checking --consumptionToParticipates', consumptionToParticipates)
+                        console.log('MT --checking --consumptionSum', consumptionSum);
 
                         if (consumptionToParticipates && consumptionSum >= consumptionToParticipates) {
                             let useConsumptionRecordAmount = 0;
                             //For set consumption bDirty Use
                             consumptionData.forEach((consumptionRecord) => {
-                                if (useConsumptionRecordAmount < consumptionToParticipate) {
+                                if (useConsumptionRecordAmount < consumptionToParticipates) {
                                     useConsumptionRecordAmount += consumptionRecord.validAmount;
                                     updateConsumptionRecordIds.push(consumptionRecord._id);
                                 }
                             });
                             isUpdateMultiConsumptionRecord = true;
-                            useConsumptionAmount = consumptionToParticipate;
+                            useConsumptionAmount = consumptionToParticipates;
                             reachConsumptionCondition = true;
                         }
 
@@ -7641,7 +7642,7 @@ let dbPlayerReward = {
                                 });
                             }
                         } else {
-                            if (!(reachTopUpCondition || reachConsumptionCondition)) {
+                            if ((!reachTopUpCondition || !reachConsumptionCondition)) {
                                 return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
@@ -8428,6 +8429,7 @@ let dbPlayerReward = {
                             proposalData.data.festivalObjId = ( isAnyRewardLeft && isAnyRewardLeft.festivals && isAnyRewardLeft.festivals[0] ) ? isAnyRewardLeft.festivals[0] : '-';  //selectedRewardParam.id || null;
                             proposalData.data.rewardType = selectedRewardParam.rewardType || null;
                             // keep this for debug
+                            proposalData.data.festivalName = getFestivalName(selectedRewardParam.festivalId, selectedRewardParam.rewardType,  eventData.param.others, playerData.DOB)
                             proposalData.data.rewardInfo = selectedRewardParam;
                         }
                         if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
@@ -10454,7 +10456,7 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
                     rewardParam.applyTimes = 1;
                 }
                 console.log('***MT --checking rewardParam...', rewardParam);
-                if (rewardParam.applyTimes && data.length <= rewardParam.applyTimes) {
+                if (rewardParam.applyTimes && data.length < rewardParam.applyTimes) {
                     console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
                     resolve({status: true , festivalObjId: festivalId});
                 } else {
@@ -10467,6 +10469,30 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
             }
         })
     })
+}
+
+function getFestivalName(id, rewardType,  festivals, DOB) {
+    let result = '';
+    let month, day;
+    console.log('festivals', festivals);
+    console.log(id);
+    if (festivals && festivals.length > 0) {
+        let festival = festivals.filter( item => {
+            return item.id == id
+        })
+        console.log('festival', festival);
+        festival = ( festival && festival[0] ) ? festival[0] : {};
+        month = festival.month;
+        day = festival.day;
+        result = festival.name + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+
+    }
+    if (rewardType == 2 || rewardType == 4) {
+        month = new Date(DOB).getMonth() + 1;
+        day =  new Date(DOB).getDate();
+        result = '会员生日' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+    }
+    return result
 }
 
 var proto = dbPlayerRewardFunc.prototype;

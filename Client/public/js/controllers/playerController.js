@@ -10708,10 +10708,15 @@ define(['js/app'], function (myApp) {
                 {
                     case "1":
                         // only return the birthday reward - type = 4
-                        return festival.festivalName && festival.applyTimes && festival.rewardType && festival.rewardType == '4';
+                        return festival.festivalName && festival.applyTimes && festival.rewardType && festival.rewardType == 4;
                         break;
                     case "2":
-                        return festival.festivalName && festival.applyTimes && festival.rewardType && festival.rewardType != '4';
+                        if (festival.rewardType == 3) {
+                            // special case - type 3 dont have apply times
+                            return festival.festivalName && festival.rewardType && festival.rewardType != 4;
+                        } else {
+                            return festival.festivalName && festival.applyTimes && festival.rewardType && festival.rewardType != 4;
+                        }
                         break;
                     default:
                         return festival.festivalName && festival.applyTimes && festival.rewardType;
