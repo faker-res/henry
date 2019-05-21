@@ -4,21 +4,28 @@ style.
     }
 .row
     .col-md-12
-        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedRewardPointTab === "popularRecommendation"}', ng-click='vm.rewardPointsTabClicked("rewardPointsRule")')
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
             span {{"POPULAR_RECOMMENDATION" | translate}}
-
-
     .col-md-12
         .panel.panel-primary
             .panel-heading.panel-heading-sm
                 label {{"FrontendConfiguration" | translate}}
             .panel-body.common-right-sub-panel-body(ng-if="!vm.curPlatformText")
             .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
-                .text-center(ng-if='!vm.selectedRewardPointTab')
+                .text-center(ng-if='!vm.selectedFrontEndSettingTab')
                     label.text-danger {{'Please select a type' | translate}}
 
                 // Tab - popular recommendation
-                div.col-md-12(ng-if='vm.selectedRewardPointTab=="rewardPointsRule" && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
+                .row
+                    .col-md-12
+                        .well.col-xs-12
+                            .search-filters-item
+                                label {{'PRODUCT_NAME' | translate}}
+                                select.form-control(ng-model='vm.filterPopularRecommendationPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformGameData(vm.filterPopularRecommendationPlatform); vm.getAllPlayerLevels(vm.filterPopularRecommendationPlatform); vm.loadPopularRecommendationSetting(vm.filterPopularRecommendationPlatform); ')
+                .text-center(ng-if='!vm.filterPopularRecommendationPlatform')
+                    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterPopularRecommendationPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
                     div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
                         div(style="display: inline;")
                             label {{'Setting For Popular Recommendation' | translate}}
@@ -191,7 +198,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER INVOLVES IN"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.popularRecommendationSetting.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.allGameProviders')
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.popularRecommendationSetting.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
 
                         .col-md-6
                             .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
