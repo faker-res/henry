@@ -1519,7 +1519,7 @@ define(['js/app'], function (myApp) {
                         vm.initFrontendConfiguration();
                         break;
                     case "FrontEndConfiguration2":
-                        // vm.initFrontendConfiguration();
+                        vm.initFrontendConfiguration2();
                         break;
                     case "AuctionSystem":
                         vm.initAuctionSystem();
@@ -24564,6 +24564,29 @@ define(['js/app'], function (myApp) {
                         break;
 
                 }
+            };
+
+            vm.frontEndSettingTabClicked = function (choice) {
+                vm.selectedFrontEndSettingTab  = choice;
+            };
+
+            vm.initFrontendConfiguration2 = function () {
+                $scope.$evalAsync( () => {
+                    vm.selectedFrontEndSettingTab = "popularRecommendation";
+                    vm.selectedFrontEndSettingTab  = "popularRecommendation";
+                })
+            };
+
+            vm.loadPopularRecommendationSetting = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
+                    console.log('getFrontEndPopularRecommendationSetting', data.data);
+                    if (data && data.data) {
+                        vm.frontEndPopularRecommendationData = data.data;
+                    }
+                    $scope.safeApply();
+                }, function (err) {
+                    console.error('getFrontEndPopularRecommendationSetting error: ', err);
+                }, true);
             };
 
             vm.rewardPointsTabClicked = function (choice) {

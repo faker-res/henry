@@ -3910,6 +3910,15 @@ var dbPlatform = {
         }
     },
 
+    getFrontEndPopularRecommendationSetting: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId)}).lean();
+        }
+
+        return prom;
+    },
+
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
         let partnerSettDetail = {};

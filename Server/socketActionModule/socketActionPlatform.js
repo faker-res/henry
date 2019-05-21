@@ -46,6 +46,13 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.saveFrontEndPopularRecommendationSetting, [data], actionName, isValidData);
         },
 
+        getFrontEndPopularRecommendationSetting: function getFrontEndPopularRecommendationSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbPlatform.getFrontEndPopularRecommendationSetting, [data.platformObjId], actionName, isValidData);
+        },
+
         /**
          * Create a new platform
          * @param {json} data - It has to contain platform data - refer the "platform" schema
