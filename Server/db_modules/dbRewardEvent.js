@@ -2657,7 +2657,7 @@ var dbRewardEvent = {
                                 let meetTopUp = false;
                                 let meetConsumption = false;
 
-                                if (item.rewardType == 2 || item.rewardType == 4) {
+                                if (item.rewardType == 2 || item.rewardType == 5) {
                                     topUpDatas.forEach(topup => {
                                         if (topup.minTopUpAmount) {
                                             meetTopUp = true;
@@ -2666,7 +2666,7 @@ var dbRewardEvent = {
                                     if (meetTopUp) {
                                         return item;
                                     }
-                                } else if (item.rewardType == 3) {
+                                } else if (item.rewardType == 3 || item.rewardType == 6) {
                                     if (consumptionSum > item.totalConsumptionInInterval) {
                                         meetConsumption = true;
                                         return item;
