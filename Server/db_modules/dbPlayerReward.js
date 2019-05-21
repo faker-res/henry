@@ -10289,7 +10289,7 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
                 let festivalItem = selectedRewardParam;
                 console.log('MT --checking selectedRewardParam',festivalItem);
                 // if is birthday
-                if (selectedRewardParam.rewardType == 2 || selectedRewardParam.rewardType == 4) {
+                if (selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6) {
                     let birthday = getBirthday(playerBirthday);
                     console.log('MT --checking --birthday', birthday);
                     festivalDate = birthday;
@@ -10429,7 +10429,7 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
         .then( data => {
             if (data) {
                 // type 3 dont have attribute of applytimes, so make this default:1
-                if (rewardParam.rewardType == 3) {
+                if (rewardParam.rewardType == 3 || rewardParam.rewardType == 6) {
                     rewardParam.applyTimes = 1;
                 }
                 console.log('***MT --checking rewardParam...', rewardParam);
@@ -10464,7 +10464,7 @@ function getFestivalName(id, rewardType,  festivals, DOB) {
         result = festival.name + '(' + getPlural(month) + '/' + getPlural(day) + ')';
 
     }
-    if (rewardType == 2 || rewardType == 4) {
+    if (rewardType == 4 || rewardType == 5 || rewardType == 6) {
         month = new Date(DOB).getMonth() + 1;
         day =  new Date(DOB).getDate();
         result = '会员生日' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
