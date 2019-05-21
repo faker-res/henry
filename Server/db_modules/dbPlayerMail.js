@@ -330,9 +330,6 @@ const dbPlayerMail = {
             message: data.message,
             delay: data.delay || 0,
         };
-
-        console.log('[smsAPI] Sending SMS: ', sendObj);
-
         return smsAPI.sending_sendMessage(sendObj).then(
             retData => {
                 console.log(retData);
