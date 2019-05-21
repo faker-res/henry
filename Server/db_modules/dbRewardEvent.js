@@ -1371,7 +1371,6 @@ var dbRewardEvent = {
             let festivalApplyProm = dbRewardEvent.getFestivalApply(eventData, platformId, playerObjId, selectedRewardParam, playerBirthday);
             promArr.push(festivalApplyProm);
 
-            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
         if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
@@ -2647,12 +2646,6 @@ var dbRewardEvent = {
                         let consumptionSum = consumptionData.reduce((sum, value) => sum + value.validAmount, 0);
                         let applyRewardSum = periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
                         console.log('MT --checking before festivalData', festivalData);
-
-                        if (!forbidRewardData) {
-                            returnData.status = 2;
-                            returnData.condition.reward.status = 2;
-                        }
-
                         if (festivalData && festivalData.length > 0) {
                             festivalData = festivalData.map( item => {
                                 let meetTopUp = false;
