@@ -10743,7 +10743,7 @@ define(['js/app'], function (myApp) {
                 result = festival.name + '(' + month + $translate('month') + day + $translate('day') + ')';
 
             }
-            if ( rewardType == 4 && rewardType == 5 && rewardType == 6) {
+            if ( rewardType == 4 || rewardType == 5 || rewardType == 6) {
                 month = new Date(DOB).getMonth() + 1;
                 day =  new Date(DOB).getDate();
                 result = '会员生日' + '(' + month + $translate('month') + day + $translate('day') + ')';
