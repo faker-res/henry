@@ -46,6 +46,13 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.saveFrontEndPopularRecommendationSetting, [data], actionName, isValidData);
         },
 
+        updatePopularRecommendationSetting: function updatePopularRecommendationSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataList);
+
+            socketUtil.emitter(self.socket, dbPlatform.updatePopularRecommendationSetting, [data.dataList, data.deletedList], actionName, isValidData);
+        },
+
         getFrontEndPopularRecommendationSetting: function getFrontEndPopularRecommendationSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);

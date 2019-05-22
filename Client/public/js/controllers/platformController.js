@@ -54,9 +54,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.frontEndSettingDevices = {
-                "web": 1,
-                "iosApp": 2,
-                "androidApp": 3,
+                "Web": 1,
+                "IOS App": 2,
+                "Android App": 3,
                 "H5": 4,
             },
 
@@ -24724,12 +24724,13 @@ define(['js/app'], function (myApp) {
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        vm.popularRecommendationSettingDeletedList = [];
                         break;
                     case 'skinManagement':
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         break;
                 }
-            }
+            };
 
             vm.frontEndSettingTabClicked = function (choice) {
                 vm.selectedFrontEndSettingTab  = choice;
@@ -24753,21 +24754,9 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync( () => {
                     vm.selectedFrontEndSettingTab = "popularRecommendation";
                     vm.selectedFrontEndSettingTab  = "popularRecommendation";
-
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
                             connectWith: ".connected-sortable"
-                        });
-
-                        $('#testSave').click(function() {
-                            var arr = $('.droppable-area1').sortable('toArray');
-                            console.log(arr);
-
-                            var arrTwo = $('.droppable-area2').sortable('toArray');
-                            console.log(arrTwo);
-
-                            var arrThree = $('.droppable-area3').sortable('toArray');
-                            console.log(arrThree);
                         });
                     });
                 })
@@ -40028,7 +40017,7 @@ define(['js/app'], function (myApp) {
                     isPlayerWithRegisteredHpNoVisible: true,
                 };
 
-                let selectedPlatformData = VM.allPlatformData.filter( p => p._id.toString() == vm.filterPopularRecommendationPlatform.toString());
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
                 vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
                 vm.popularRecommendationImageFile = {};
                 vm.popularRecommendationImageUrl = {};
@@ -40120,7 +40109,7 @@ define(['js/app'], function (myApp) {
                 return prom.then(
                     () => {
                         console.log("vm.popularRecommendationImageUrl", vm.popularRecommendationImageUrl);
-                        vm.popularRecommendationSetting.platformObjId = vm.filterPopularRecommendationPlatform;
+                        vm.popularRecommendationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
                         if (vm.popularRecommendationImageUrl){
                             if (vm.popularRecommendationImageUrl.pcImage){
                                 vm.popularRecommendationSetting.pc.imageUrl = vm.popularRecommendationImageUrl.pcImage
@@ -40158,7 +40147,7 @@ define(['js/app'], function (myApp) {
                                     // close the modal
                                     $('#popularRecommendationSetting').modal('hide');
                                     // collect the latest setting
-                                    vm.loadPopularRecommendationSetting(vm.filterPopularRecommendationPlatform);
+                                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                                 }, function (err) {
                                     console.log("saveFrontEndPopularRecommendationSetting err", err);
                                 });
@@ -40194,6 +40183,68 @@ define(['js/app'], function (myApp) {
                         return resolve();
                     });
                 });
+            };
+
+            vm.updatePopularRecommendationSetting = function () {
+                let arr1 = $('.droppable-area1').sortable('toArray');
+                let arr2 = $('.droppable-area2').sortable('toArray');
+                let arr3 = $('.droppable-area3').sortable('toArray');
+
+                arr1.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndPopularRecommendationData[index].category = 1;
+                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                arr2.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndPopularRecommendationData[index].category = 2;
+                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                arr3.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndPopularRecommendationData[index].category = 3;
+                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                socketService.$socket($scope.AppSocket, 'updatePopularRecommendationSetting', {dataList: vm.frontEndPopularRecommendationData, deletedList: vm.popularRecommendationSettingDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updatePopularRecommendationSetting is done', data);
+                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            };
+
+            vm.deletePopularRecommendation = function (eventObjectId){
+                if (eventObjectId){
+                    vm.popularRecommendationSettingDeletedList.push(eventObjectId);
+                    let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
+                    if (index != -1){
+                        vm.frontEndPopularRecommendationData.splice(index, 1);
+                    }
+                }
             };
 
             function getSelectedPlatform() {
