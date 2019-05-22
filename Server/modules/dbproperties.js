@@ -102,6 +102,7 @@ let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig
 let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
 let frontEndPopularRecommendationSettingSchema = require('./../schema/frontEndPopularRecommendationSetting');
 let frontEndSkinSettingSchema = require('./../schema/frontEndSkinSetting');
+let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfiguration');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -267,6 +268,7 @@ let paymentSystemConfigModel = db_admin.model('paymentSystemConfig', paymentSyst
 let platformNotificationRecipientModel = db_admin.model('platformNotificationRecipient', platformNotificationRecipientSchema, 'platformNotificationRecipient');
 let frontEndPopularRecommendationSettingModel = db_admin.model('frontEndPopularRecommendationSetting', frontEndPopularRecommendationSettingSchema, 'frontEndPopularRecommendationSetting');
 let frontEndSkinSettingModel = db_admin.model('frontEndSkinSetting', frontEndSkinSettingSchema, 'frontEndSkinSetting');
+let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', frontEndUrlConfigurationSchema, 'frontEndUrlConfiguration');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -736,6 +738,7 @@ var dbProperties = {
     collection_platformNotificationRecipient: platformNotificationRecipientModel,
     collection_frontEndPopularRecommendationSetting: frontEndPopularRecommendationSettingModel,
     collection_frontEndSkinSetting: frontEndSkinSettingModel,
+    collection_frontEndUrlConfiguration: frontEndUrlConfigurationModel,
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,

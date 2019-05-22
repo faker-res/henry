@@ -10702,9 +10702,11 @@ define(['js/app'], function (myApp) {
             }
 
             if (vm.festivalByPlayerLevel && vm.festivalByPlayerLevel && vm.festivalByPlayerLevel.length > 0) {
-                vm.festivalByPlayerLevel = vm.festivalByPlayerLevel.map( item => {
+                vm.festivalByPlayerLevel = vm.festivalByPlayerLevel.filter( item => {
                     item.festivalName = vm.getFestivalName(item.festivalId, item.rewardType, rewardObj.param.others, DOB);
-                    return item;
+                    if ( item.festivalName && item.rewardType ) {
+                        return item;
+                    }
                 })
             }
             vm.festivalByPlayerLevel = vm.festivalByPlayerLevel.filter( festival => {
@@ -10742,17 +10744,29 @@ define(['js/app'], function (myApp) {
                 let festival = festivals.filter( item => {
                     return item.id == id
                 })
-                festival = ( festival && festival[0] ) ? festival[0] : {};
-                month = festival.month;
-                day = festival.day;
-                result = festival.name + '(' + month + $translate('month') + day + $translate('day') + ')';
-
+                festival = ( festival && festival[0] ) ? festival[0] : null;
+                if (festival) {
+                    month = festival.month;
+                    day = festival.day;
+                    result = festival.name + '(' + month + $translate('month') + day + $translate('day') + ')';
+                }
             }
             if ( rewardType == 4 || rewardType == 5 || rewardType == 6) {
                 month = new Date(DOB).getMonth() + 1;
                 day =  new Date(DOB).getDate();
-                result = '会员生日' + '(' + month + $translate('month') + day + $translate('day') + ')';
+                // result = '会员生日' + '(' + month + $translate('month') + day + $translate('day') + ')';
             }
+            if (rewardType == 4) {
+                result = '会员生日 ' + '(' + month + $translate('month') + day + $translate('day') + ')';
+            }
+            if (rewardType == 5) {
+                result = '会员生日 - 需最小充值额' + '(' + month + $translate('month') + day + $translate('day') + ')';
+            }
+            if (rewardType == 6) {
+                result = '会员生日 - 需累积总投注额' + '(' + month + $translate('month') + day + $translate('day') + ')';
+            }
+
+
             return result
         }
 

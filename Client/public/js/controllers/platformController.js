@@ -54,9 +54,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.frontEndSettingDevices = {
-                "web": 1,
-                "iosApp": 2,
-                "androidApp": 3,
+                "Web": 1,
+                "IOS App": 2,
+                "Android App": 3,
                 "H5": 4,
             },
 
@@ -24724,17 +24724,35 @@ define(['js/app'], function (myApp) {
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        vm.popularRecommendationSettingDeletedList = [];
+                        break;
+                    case 'urlConfiguration':
+                        vm.frontEndUrlConfig = {};
+                        vm.urlConfigShowMessage = '';
+                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndSkinSettingByPC(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndSkinSettingByAPP(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndSkinSettingByH5(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'skinManagement':
+                        vm.skinSettingShowMessage = '';
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         break;
                 }
-            }
+            };
 
             vm.frontEndSettingTabClicked = function (choice) {
                 vm.selectedFrontEndSettingTab  = choice;
                 switch (choice) {
                     case 'popularRecommendation':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'urlConfiguration':
+                        vm.frontEndUrlConfig = {};
+                        vm.pcSkinSettingList = [];
+                        vm.appSkinSettingList = [];
+                        vm.h5SkinSettingList = [];
+                        vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'skinManagement':
@@ -24750,21 +24768,9 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync( () => {
                     vm.selectedFrontEndSettingTab = "popularRecommendation";
                     vm.selectedFrontEndSettingTab  = "popularRecommendation";
-
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
                             connectWith: ".connected-sortable"
-                        });
-
-                        $('#testSave').click(function() {
-                            var arr = $('.droppable-area1').sortable('toArray');
-                            console.log(arr);
-
-                            var arrTwo = $('.droppable-area2').sortable('toArray');
-                            console.log(arrTwo);
-
-                            var arrThree = $('.droppable-area3').sortable('toArray');
-                            console.log(arrThree);
                         });
                     });
                 })
@@ -24782,6 +24788,7 @@ define(['js/app'], function (myApp) {
                 }, true);
             };
 
+            //#region Frontend Configuration - Skin Management
             vm.saveFrontEndSkinSetting = function () {
                 let sendData = {
                     platform: vm.filterFrontEndSettingPlatform,
@@ -24795,7 +24802,7 @@ define(['js/app'], function (myApp) {
                     vm.newFrontEndSkinSetting = {};
                     vm.skinSettingShowMessage = "SUCCESS";
                     vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }, err => {
                     console.error('saveSkinSetting error: ', err);
                     vm.skinSettingShowMessage = "FAIL";
@@ -24812,21 +24819,98 @@ define(['js/app'], function (myApp) {
                             return item;
                         });
                     }
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }, function (err) {
-                    console.error('getFrontEndPopularRecommendationSetting error: ', err);
+                    console.error('getSkinSetting error: ', err);
                 }, true);
             };
 
-            vm.removeFrontEndSkinSetting = function (objId, index) {
+            vm.removeFrontEndSkinSetting = function (objId) {
                 return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
                     console.log("removeSkinSetting success:", data);
                     vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }, err => {
                     console.error('removeSkinSetting error: ', err);
                 });
             }
+            //#endregion
+
+            //#region Frontend Configuration - Url Configuration
+            vm.getFrontEndSkinSettingByPC = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSettingByPC', {platformObjId: platformObjId}, function (data) {
+                    if (data && data.data) {
+                        vm.pcSkinSettingList = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getSkinSettingByPC error: ', err);
+                }, true);
+            };
+
+            vm.getFrontEndSkinSettingByAPP = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSettingByAPP', {platformObjId: platformObjId}, function (data) {
+                    if (data && data.data) {
+                        vm.appSkinSettingList = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getSkinSettingByAPP error: ', err);
+                }, true);
+            };
+
+            vm.getFrontEndSkinSettingByH5 = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSettingByH5', {platformObjId: platformObjId}, function (data) {
+                    if (data && data.data) {
+                        vm.h5SkinSettingList = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getSkinSettingByH5 error: ', err);
+                }, true);
+            };
+
+            vm.saveFrontEndUrlConfig = function () {
+                let sendData = {
+                    platform: vm.filterFrontEndSettingPlatform,
+                    websiteTitle: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteTitle ? vm.frontEndUrlConfig.websiteTitle : null,
+                    websiteName: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteName ? vm.frontEndUrlConfig.websiteName : null,
+                    androidAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.androidAppUrl ? vm.frontEndUrlConfig.androidAppUrl : null,
+                    iosAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.iosAppUrl ? vm.frontEndUrlConfig.iosAppUrl : null,
+                    metaKeyword: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaKeyword ? vm.frontEndUrlConfig.metaKeyword : null,
+                    metaDescription: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaDescription ? vm.frontEndUrlConfig.metaDescription : null,
+                    horizontalScreenStyleFileUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.horizontalScreenStyleFileUrl ? vm.frontEndUrlConfig.horizontalScreenStyleFileUrl : null,
+                    faviconUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.faviconUrl ? vm.frontEndUrlConfig.faviconUrl : null,
+                    websiteLogo: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteLogo ? vm.frontEndUrlConfig.websiteLogo : null,
+                    pcSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.pcSkin ? vm.frontEndUrlConfig.pcSkin : null,
+                    h5Skin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.h5Skin ? vm.frontEndUrlConfig.h5Skin : null,
+                    appSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.appSkin ? vm.frontEndUrlConfig.appSkin : null
+                };
+
+                return $scope.$socketPromise('saveUrlConfig', sendData).then(data => {
+                    console.log("saveUrlConfig success:", data);
+                    vm.newFrontEndSkinSetting = {};
+                    vm.urlConfigShowMessage = "SUCCESS";
+                    vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                    $scope.$evalAsync();
+                }, err => {
+                    console.error('saveUrlConfig error: ', err);
+                    vm.urlConfigShowMessage = "FAIL";
+                });
+            };
+
+            vm.getFrontEndUrlConfig = function (objId) {
+                socketService.$socket($scope.AppSocket, 'getUrlConfig', {platformObjId: objId}, function (data) {
+                    console.log('getUrlConfig', data.data);
+                    if (data && data.data) {
+                        vm.frontEndUrlConfig = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getUrlConfig error: ', err);
+                }, true);
+            };
+            //#endregion
 
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
@@ -24840,7 +24924,8 @@ define(['js/app'], function (myApp) {
                         vm.rewardPointsLvlConfig = {};
                         vm.oldRewardPointsLvlConfigPeriod = null;
                         vm.oldRewardPointsLvlConfigCustomPeriodEndTime = null;
-                        Q.all([vm.getRewardPointsLvlConfig(), vm.getAllPlayerLevels(), vm.getPlatformProviderGroup()]).then(
+                        Q.all([vm.getRewardPointsLvlConfig(vm.rewardPointsSelectedPlatform),
+                            vm.getAllPlayerLevels(vm.rewardPointsSelectedPlatform), vm.getPlatformProviderGroup(vm.rewardPointsSelectedPlatform)]).then(
                             (data) => {
                                 // Check is all player level already set rewardPointsLvlConfig
                                 vm.allPlayerLvl.forEach((playerLvl) => {
@@ -24867,14 +24952,14 @@ define(['js/app'], function (myApp) {
                     case 'loginRewardPoints':
                         vm.userAgentWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.constPlayerRegistrationInterface);
                         // [vm.allGameProviders, vm.gameProvidersList] = vm.getAllGameProviders(vm.selectedPlatform.id);
-                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
                         break;
                     case 'topupRewardPoints':
                         vm.topupRewardPoints = [];
                         vm.userAgentTypeWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.userAgentType);
                         vm.topupTypeListWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.topUpTypeList);
                         // vm.getAllGameProviders(vm.selectedPlatform.id);
-                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
                         break;
                     case 'gameRewardPoints':
                         vm.allGameType = [];
@@ -24883,7 +24968,7 @@ define(['js/app'], function (myApp) {
                         //Todo get all game bet type
                         // vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getGameProviderToManuallyInsertGameId();
-                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
                         break;
                     case 'rewardPointsRanking':
                         vm.editFakeAcc = false;
@@ -24969,6 +25054,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.insertRandomData = function () {
+                let selectedPlatform = getSelectedPlatform() || {};
                 vm.randomRewardPointsData = [];
                 for (let i = 0; i < vm.playerRankingRandom.length; i++) {
                     for (let j = 0; j < vm.playerRankingRandom[i].randomCount; j++) {
@@ -24977,7 +25063,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 vm.randomRewardPointsData.map(item => {
-                    item.platformObjId = vm.selectedPlatform.id;
+                    item.platformObjId = selectedPlatform._id || vm.selectedPlatform.id;
                     return item;
                 });
 
@@ -24991,7 +25077,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getRankingRandomConfig = function () {
-                socketService.$socket($scope.AppSocket, 'getRewardPointsRandomDataConfig', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getRewardPointsRandomDataConfig', {platformObjId: getSelectedPlatform()._id || vm.selectedPlatform.id}, function (data) {
                     console.log('getRandomConfig', data.data);
                     if (data && data.data) {
                         vm.playerRankingRandom = data.data.condition;
@@ -25004,8 +25090,9 @@ define(['js/app'], function (myApp) {
             }
 
             vm.submitRankingRandomConfig = function () {
+                let selectedPlatform = getSelectedPlatform() || {};
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: selectedPlatform._id || vm.selectedPlatform.id,
                     condition: vm.playerRankingRandom
                 }
 
@@ -25030,6 +25117,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerRewardPointsRanking = function (isNewSearch) {
+                let selectedPlatform = getSelectedPlatform() || {};
                 vm.playerRewardRanking.index = isNewSearch ? 0 : (vm.playerRewardRanking.index || 0);
 
                 if (!vm.playerRewardRanking.sortCol) {
@@ -25043,8 +25131,8 @@ define(['js/app'], function (myApp) {
 
 
                 // show
-                var sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                let sendData = {
+                    platformObjId: selectedPlatform._id || vm.selectedPlatform.id,
                     index: isNewSearch ? 0 : vm.playerRewardRanking.index,
                     limit: vm.playerRewardRanking.limit || 10,
                     sortCol: vm.playerRewardRanking.sortCol || {}
@@ -25101,6 +25189,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerRewardPointsRankingRandom = function (isNewSearch) {
+                let selectedPlatform = getSelectedPlatform() || {};
                 vm.playerRewardRankingRandom.index = isNewSearch ? 0 : (vm.playerRewardRankingRandom.index || 0);
 
                 if (!vm.playerRewardRankingRandom.sortCol) {
@@ -25114,8 +25203,8 @@ define(['js/app'], function (myApp) {
 
 
                 // show
-                var sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                let sendData = {
+                    platformObjId: selectedPlatform._id || vm.selectedPlatform.id,
                     index: isNewSearch ? 0 : vm.playerRewardRankingRandom.index,
                     limit: vm.playerRewardRankingRandom.limit || 10,
                     sortCol: vm.playerRewardRankingRandom.sortCol || {}
@@ -25396,15 +25485,17 @@ define(['js/app'], function (myApp) {
             }
 
 
-            vm.getRewardPointsLvlConfig = () => {
-                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: vm.selectedPlatform.id}).then((data) => {
+            vm.getRewardPointsLvlConfig = (platformObjId) => {
+                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: platformObjId || vm.selectedPlatform.id || null}).then((data) => {
                     vm.rewardPointsLvlConfig = data.data;
                     $scope.safeApply();
                 });
             };
 
             vm.rewardPointsLvlConfigSubmit = () => {
-                vm.rewardPointsLvlConfig.platformObjId = vm.rewardPointsLvlConfig.platformObjId ? vm.rewardPointsLvlConfig.platformObjId : vm.selectedPlatform.id;
+                let selectedPlatform = getSelectedPlatform() || {};
+                vm.rewardPointsLvlConfig.platformObjId = vm.rewardPointsLvlConfig.platformObjId ? vm.rewardPointsLvlConfig.platformObjId
+                    : selectedPlatform._id || vm.selectedPlatform.id;
                 if (vm.rewardPointsLvlConfig.intervalPeriod == 6) {
                     vm.rewardPointsLvlConfig.customPeriodStartTime = vm.rewardPointsLvlConfig.customPeriodStartTime.data('datetimepicker').getLocalDate();
                     vm.rewardPointsLvlConfig.customPeriodEndTime = vm.rewardPointsLvlConfig.customPeriodEndTime.data('datetimepicker').getLocalDate();
@@ -25485,10 +25576,10 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getRewardPointsEventByCategory = (category) => {
+            vm.getRewardPointsEventByCategory = (category, platformObjId) => {
                 vm.rewardPointsEvent = [];
                 return $scope.$socketPromise('getRewardPointsEventByCategory', {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || vm.selectedPlatform.id || null,
                     category: category
                 }).then((data) => {
                     $scope.$evalAsync(()=>{
@@ -25506,7 +25597,8 @@ define(['js/app'], function (myApp) {
 
             vm.createRewardPointsEvent = (rewardPointsEvent) => {
                 delete rewardPointsEvent.isEditing;
-                rewardPointsEvent.platformObjId = vm.selectedPlatform.id;
+                let selectedPlatform = getSelectedPlatform() || {};
+                rewardPointsEvent.platformObjId = selectedPlatform._id || vm.selectedPlatform.id;
                 if (rewardPointsEvent.period == 6) {
                     rewardPointsEvent.customPeriodStartTime = rewardPointsEvent.customPeriodStartTime.data('datetimepicker').getLocalDate();
                     rewardPointsEvent.customPeriodEndTime = rewardPointsEvent.customPeriodEndTime.data('datetimepicker').getLocalDate();
@@ -25661,11 +25753,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.searchRewardPointsLog = (index, limit) => {
+                let selectedPlatform = getSelectedPlatform() || {};
                 var startTime = $('#rpRecordStartDate').data('datetimepicker').getLocalDate();
                 var endTime = $('#rpRecordEndDate').data('datetimepicker').getLocalDate();
                 var sendQuery = {
                     query: {
-                        platformId: vm.selectedPlatform.id
+                        platformId: selectedPlatform._id || vm.selectedPlatform.id
                     },
                     index: index,
                     limit: limit || 10,
@@ -40016,7 +40109,7 @@ define(['js/app'], function (myApp) {
                     isPlayerWithRegisteredHpNoVisible: true,
                 };
 
-                let selectedPlatformData = VM.allPlatformData.filter( p => p._id.toString() == vm.filterPopularRecommendationPlatform.toString());
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
                 vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
                 vm.popularRecommendationImageFile = {};
                 vm.popularRecommendationImageUrl = {};
@@ -40075,6 +40168,35 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.editPopularRecommendationSetting = function(eventObjectId) {
+                let i = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
+                vm.popularRecommendationSetting = {};
+                
+                vm.popularRecommendationSetting.title = vm.frontEndPopularRecommendationData[i].title;
+                vm.popularRecommendationSetting.displayTitle = vm.frontEndPopularRecommendationData[i].displayTitle;
+                vm.popularRecommendationSetting.category = vm.frontEndPopularRecommendationData[i].category;
+
+                if(vm.frontEndPopularRecommendationData[i].pc) {
+                    $('#pcImage').attr("src", vm.frontEndPopularRecommendationData[i].pc.imageUrl);
+                }
+                
+                vm.popularRecommendationSetting.displayOrder = vm.frontEndPopularRecommendationData[i].displayOrder;
+                vm.popularRecommendationSetting.status = vm.frontEndPopularRecommendationData[i].status;
+                vm.popularRecommendationSetting.isPlayerVisible = vm.frontEndPopularRecommendationData[i].isPlayerVisible;
+                vm.popularRecommendationSetting.isNewPlayerVisible = vm.frontEndPopularRecommendationData[i].isNewPlayerVisible;
+                vm.popularRecommendationSetting.isFirstTimeLoginPlayerVisible = vm.frontEndPopularRecommendationData[i].isFirstTimeLoginPlayerVisible;
+                vm.popularRecommendationSetting.isPlayerWithRegisteredHpNoVisible = vm.frontEndPopularRecommendationData[i].isPlayerWithRegisteredHpNoVisible;
+                vm.popularRecommendationSetting.isVisible = vm.frontEndPopularRecommendationData[i].isVisible;
+                vm.popularRecommendationSetting.visibleForBalanceBelow = vm.frontEndPopularRecommendationData[i].visibleForBalanceBelow;
+                vm.popularRecommendationSetting.visibleForInvolveInGameProvider = vm.frontEndPopularRecommendationData[i].visibleForInvolveInGameProvider;
+                vm.popularRecommendationSetting.visibleForTopUpTimeMoreThan = vm.frontEndPopularRecommendationData[i].visibleForTopUpTimeMoreThan;
+                vm.popularRecommendationSetting.visibleOnDevice = vm.frontEndPopularRecommendationData[i].visibleOnDevice;
+                vm.popularRecommendationSetting.visibleOnPlayerLevel = vm.frontEndPopularRecommendationData[i].visibleOnPlayerLevel;
+
+                $('#popularRecommendationSetting').modal();
+
+            }
+
             vm.submitPopularRecommendationSettings = () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopularRecommendationUploader').show();
@@ -40108,7 +40230,7 @@ define(['js/app'], function (myApp) {
                 return prom.then(
                     () => {
                         console.log("vm.popularRecommendationImageUrl", vm.popularRecommendationImageUrl);
-                        vm.popularRecommendationSetting.platformObjId = vm.filterPopularRecommendationPlatform;
+                        vm.popularRecommendationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
                         if (vm.popularRecommendationImageUrl){
                             if (vm.popularRecommendationImageUrl.pcImage){
                                 vm.popularRecommendationSetting.pc.imageUrl = vm.popularRecommendationImageUrl.pcImage
@@ -40146,7 +40268,7 @@ define(['js/app'], function (myApp) {
                                     // close the modal
                                     $('#popularRecommendationSetting').modal('hide');
                                     // collect the latest setting
-                                    vm.loadPopularRecommendationSetting(vm.filterPopularRecommendationPlatform);
+                                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                                 }, function (err) {
                                     console.log("saveFrontEndPopularRecommendationSetting err", err);
                                 });
@@ -40184,6 +40306,72 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.updatePopularRecommendationSetting = function () {
+                let arr1 = $('.droppable-area1').sortable('toArray');
+                let arr2 = $('.droppable-area2').sortable('toArray');
+                let arr3 = $('.droppable-area3').sortable('toArray');
+
+                arr1.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndPopularRecommendationData[index].category = 1;
+                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                arr2.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndPopularRecommendationData[index].category = 2;
+                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                arr3.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndPopularRecommendationData[index].category = 3;
+                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                socketService.$socket($scope.AppSocket, 'updatePopularRecommendationSetting', {dataList: vm.frontEndPopularRecommendationData, deletedList: vm.popularRecommendationSettingDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updatePopularRecommendationSetting is done', data);
+                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            };
+
+            vm.deletePopularRecommendation = function (eventObjectId){
+                if (eventObjectId){
+                    vm.popularRecommendationSettingDeletedList.push(eventObjectId);
+                    const eventElement = document.getElementById(eventObjectId);
+                    eventElement.style.display = "none";
+                    // let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
+                    // if (index != -1){
+                    //     vm.frontEndPopularRecommendationData.splice(index, 1);
+                    // }
+
+
+                }
+            };
+
             function getSelectedPlatform() {
                 let platform = null;
                 let selectedPlatformObjId = null;
@@ -40197,6 +40385,9 @@ define(['js/app'], function (myApp) {
                         } else if(vm.selectedAutoFeedbackTab.toLowerCase() == "overview") {
                             selectedPlatformObjId = vm.autoFeedbackMissionSearchDetail.platformObjId;
                         }
+                        break;
+                    case "rewardpoint":
+                        selectedPlatformObjId = vm.rewardPointsSelectedPlatform;
                         break;
                 }
                 if(selectedPlatformObjId) {
