@@ -29,7 +29,7 @@ var WebSocketUtility = {
      *
      * If you *do* need to 'then' the promise, then you will need to use WebSocketUtil.responsePromise().
      */
-    performAction: async function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth) {
+    performAction: async function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth, limitCall = false) {
         let startTime = new Date().getTime();
         let currentSecond = new Date().getSeconds();
 
@@ -40,7 +40,7 @@ var WebSocketUtility = {
             conn.thisSecondAPICall++;
         }
 
-        if (conn.thisSecondAPICall < constSystemParam.MAX_API_CALL_PER_SEC) {
+        if (!limitCall || conn.thisSecondAPICall < constSystemParam.MAX_API_CALL_PER_SEC) {
             await WebSocketUtility.responsePromise(
                 conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth
             ).catch(

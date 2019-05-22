@@ -192,7 +192,8 @@ var simplifiedChinese = {
     "Error creating player first top up proposal": "错误创建玩家首冲奖励提案",
     "Error finding db data": "发现错误DB数据",
     "Error searching consumption records": "错误搜索投注记录",
-
+    "exists, please re-upload a new file.": "已存在， 请重新上载新的文档。",
+    "exists, please re-upload a new image.": "已存在， 请重新上载新的图片。",
     "No consumption records found": "没有投注记录",
     "No platform providers found": "发现没有平台供应商",
     "No player found matching query": "没有玩家找到匹配的查询",

@@ -24725,6 +24725,9 @@ define(['js/app'], function (myApp) {
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                         break;
+                    case 'skinManagement':
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        break;
                 }
             }
 
@@ -24736,7 +24739,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'skinManagement':
                         vm.filterFrontEndSettingPlatform = null;
-                        vm.frontEndSkinManagement = {};
+                        vm.frontEndSkinSetting = [];
+                        vm.newFrontEndSkinSetting = {};
+                        vm.skinSettingShowMessage = '';
                         break;
                 }
             };
@@ -24745,6 +24750,23 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync( () => {
                     vm.selectedFrontEndSettingTab = "popularRecommendation";
                     vm.selectedFrontEndSettingTab  = "popularRecommendation";
+
+                    utilService.actionAfterLoaded('#testSave', function () {
+                        $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
+                            connectWith: ".connected-sortable"
+                        });
+
+                        $('#testSave').click(function() {
+                            var arr = $('.droppable-area1').sortable('toArray');
+                            console.log(arr);
+
+                            var arrTwo = $('.droppable-area2').sortable('toArray');
+                            console.log(arrTwo);
+
+                            var arrThree = $('.droppable-area3').sortable('toArray');
+                            console.log(arrThree);
+                        });
+                    });
                 })
             };
 
@@ -24759,6 +24781,52 @@ define(['js/app'], function (myApp) {
                     console.error('getFrontEndPopularRecommendationSetting error: ', err);
                 }, true);
             };
+
+            vm.saveFrontEndSkinSetting = function () {
+                let sendData = {
+                    platform: vm.filterFrontEndSettingPlatform,
+                    device: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.device ? Number(vm.newFrontEndSkinSetting.device) : null,
+                    name: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.name ? vm.newFrontEndSkinSetting.name : null,
+                    url: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.url ? vm.newFrontEndSkinSetting.url : null,
+                };
+
+                return $scope.$socketPromise('saveSkinSetting', sendData).then(data => {
+                    console.log("saveSkinSetting success:", data);
+                    vm.newFrontEndSkinSetting = {};
+                    vm.skinSettingShowMessage = "SUCCESS";
+                    vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                    $scope.safeApply();
+                }, err => {
+                    console.error('saveSkinSetting error: ', err);
+                    vm.skinSettingShowMessage = "FAIL";
+                });
+            };
+
+            vm.getFrontEndSkinSetting = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSetting', {platformObjId: platformObjId}, function (data) {
+                    console.log('getSkinSetting', data.data);
+                    if (data && data.data) {
+                        vm.frontEndSkinSetting = data.data.map(item => {
+                            item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
+
+                            return item;
+                        });
+                    }
+                    $scope.safeApply();
+                }, function (err) {
+                    console.error('getFrontEndPopularRecommendationSetting error: ', err);
+                }, true);
+            };
+
+            vm.removeFrontEndSkinSetting = function (objId, index) {
+                return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
+                    console.log("removeSkinSetting success:", data);
+                    vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                    $scope.safeApply();
+                }, err => {
+                    console.error('removeSkinSetting error: ', err);
+                });
+            }
 
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
@@ -39947,7 +40015,28 @@ define(['js/app'], function (myApp) {
                     isPlayerVisible: true,
                     isPlayerWithRegisteredHpNoVisible: true,
                 };
+
+                let selectedPlatformData = VM.allPlatformData.filter( p => p._id.toString() == vm.filterPopularRecommendationPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
                 vm.popularRecommendationImageFile = {};
+                vm.popularRecommendationImageUrl = {};
+
+                //reset
+                document.querySelector('#popularRecommendationPcImageFile').value = "";
+                document.querySelector('#popularRecommendationPcNewPageFile').value = "";
+                document.querySelector('#popularRecommendationPcPageDetailFile').value = "";
+                document.querySelector('#popularRecommendationH5ImageFile').value = "";
+                document.querySelector('#popularRecommendationH5NewPageFile').value = "";
+                document.querySelector('#popularRecommendationH5PageDetailFile').value = "";
+                document.querySelector('#popularRecommendationAppImageFile').value = "";
+                document.querySelector('#popularRecommendationAppNewPageFile').value = "";
+                document.querySelector('#popularRecommendationAppPageDetailFile').value = "";
+
+                $('#pcImage').attr("src","");
+                $('#H5Image').attr("src","");
+                $('#appImage').attr("src","");
+
+                vm.refreshSPicker();
 
                 $('#popularRecommendationSetting').modal();
                 $("#popularRecommendationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcImage");});
@@ -39965,7 +40054,7 @@ define(['js/app'], function (myApp) {
 
             vm.readURL = (input, previewId) => {
                 console.log(input);
-                if (input.files && input.files[0]) {
+                if (input.files && input.files[0] && vm.selectedPlatformId) {
                     let reader1 = new FileReader();
                     let reader2 = new FileReader();
                     reader1.onload = function (e) {
@@ -39973,7 +40062,7 @@ define(['js/app'], function (myApp) {
                     };
                     reader2.onload = function (e) {
                         vm.popularRecommendationImageFile[previewId] = {
-                            platformId: 1,
+                            platformId: vm.selectedPlatformId,
                             token: authService.getToken($cookies),
                             fileStream: e.target.result,
                             fileName: input.files[0].name
@@ -39987,92 +40076,110 @@ define(['js/app'], function (myApp) {
             };
 
             vm.submitPopularRecommendationSettings = () => {
-                $('#frontEndPopularRecommendationSetting').show();
+                vm.isFinishedUploadedToFTPServer = true;
+                $('#frontEndPopularRecommendationUploader').show();
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.popularRecommendationImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
                 let promArr = [
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcImage),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcNewPage),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcPageDetail),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5Image),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5NewPage),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5PageDetail),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.appImage),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.appNewPage),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.appPageDetail)
+                    "pcImage",
+                    "pcNewPage",
+                    "pcPageDetail",
+                    "H5Image",
+                    "H5NewPage",
+                    "H5PageDetail",
+                    "appImage",
+                    "appNewPage",
+                    "appPageDetail",
                 ];
 
-                return Promise.all(promArr).then(
-                    data => {
-                        console.log("returned FTP data", data);
-                        if (data && data.length){
-                            let retPcImageUrl = data[0] && data[0].data && data[0].data.url ? data[0].data.url : null;
-                            let retPcNewPageUrl = data[1] && data[1].data && data[1].data.url ? data[1].data.url : null;
-                            let retPcActivityUrl = data[2] && data[2].data && data[2].data.url ? data[2].data.url : null;
-                            let retH5ImageUrl = data[3] && data[3].data && data[3].data.url ? data[3].data.url : null;
-                            let retH5NewPageUrl = data[4] && data[4].data && data[4].data.url ? data[4].data.url : null;
-                            let retH5ActivityUrl = data[5] && data[5].data && data[5].data.url ? data[5].data.url : null;
-                            let retAppImageUrl = data[6] && data[6].data && data[6].data.url ? data[6].data.url : null;
-                            let retAppNewPageUrl = data[7] && data[7].data && data[7].data.url ? data[7].data.url : null;
-                            let retAppActivityUrl = data[8] && data[8].data && data[8].data.url ? data[8].data.url : null;
+                let prom = Promise.resolve();
+                promArr.forEach(
+                    item => {
+                        prom = prom.then(()=>{return vm.uploadToFtp(item).then(removeFromList)});
+                    }
+                );
 
-                            vm.popularRecommendationSetting.platformObjId = vm.selectedPlatform.id;
-                            if (retPcImageUrl){
-                                vm.popularRecommendationSetting.pc.imageUrl = retPcImageUrl
+                return prom.then(
+                    () => {
+                        console.log("vm.popularRecommendationImageUrl", vm.popularRecommendationImageUrl);
+                        vm.popularRecommendationSetting.platformObjId = vm.filterPopularRecommendationPlatform;
+                        if (vm.popularRecommendationImageUrl){
+                            if (vm.popularRecommendationImageUrl.pcImage){
+                                vm.popularRecommendationSetting.pc.imageUrl = vm.popularRecommendationImageUrl.pcImage
                             }
-                            if (retPcNewPageUrl){
-                                vm.popularRecommendationSetting.pc.newPageUrl = retPcNewPageUrl
+                            if (vm.popularRecommendationImageUrl.pcNewPage){
+                                vm.popularRecommendationSetting.pc.newPageUrl = vm.popularRecommendationImageUrl.pcNewPage
                             }
-                            if (retPcNewPageUrl){
-                                vm.popularRecommendationSetting.pc.activityUrl = retPcActivityUrl
+                            if (vm.popularRecommendationImageUrl.pcPageDetail){
+                                vm.popularRecommendationSetting.pc.activityUrl = vm.popularRecommendationImageUrl.pcPageDetail
                             }
-                            if (retH5ImageUrl){
-                                vm.popularRecommendationSetting.h5.imageUrl = retH5ImageUrl
+                            if (vm.popularRecommendationImageUrl.H5Image){
+                                vm.popularRecommendationSetting.h5.imageUrl = vm.popularRecommendationImageUrl.H5Image
                             }
-                            if (retH5NewPageUrl){
-                                vm.popularRecommendationSetting.h5.newPageUrl = retH5NewPageUrl
+                            if (vm.popularRecommendationImageUrl.H5NewPage){
+                                vm.popularRecommendationSetting.h5.newPageUrl = vm.popularRecommendationImageUrl.H5NewPage
                             }
-                            if (retH5ActivityUrl){
-                                vm.popularRecommendationSetting.h5.activityUrl = retH5ActivityUrl
+                            if (vm.popularRecommendationImageUrl.H5PageDetail){
+                                vm.popularRecommendationSetting.h5.activityUrl = vm.popularRecommendationImageUrl.H5PageDetail
                             }
-                            if (retAppImageUrl){
-                                vm.popularRecommendationSetting.app.imageUrl = retAppImageUrl
+                            if (vm.popularRecommendationImageUrl.appImage){
+                                vm.popularRecommendationSetting.app.imageUrl = vm.popularRecommendationImageUrl.appImage
                             }
-                            if (retAppNewPageUrl){
-                                vm.popularRecommendationSetting.app.newPageUrl = retAppNewPageUrl
+                            if (vm.popularRecommendationImageUrl.appNewPage){
+                                vm.popularRecommendationSetting.app.newPageUrl = vm.popularRecommendationImageUrl.appNewPage
                             }
-                            if (retAppActivityUrl){
-                                vm.popularRecommendationSetting.app.activityUrl = retAppActivityUrl
+                            if (vm.popularRecommendationImageUrl.appPageDetail){
+                                vm.popularRecommendationSetting.app.activityUrl = vm.popularRecommendationImageUrl.appPageDetail
                             }
 
-                            socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.popularRecommendationSetting, function (data) {
-                                console.log("saveFrontEndPopularRecommendationSetting ret", data);
-                                // stop the uploading loader
+                            if (vm.isFinishedUploadedToFTPServer) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.popularRecommendationSetting, function (data) {
+                                    console.log("saveFrontEndPopularRecommendationSetting ret", data);
+                                    // stop the uploading loader
+                                    $('#frontEndPopularRecommendationUploader').hide();
+                                    // close the modal
+                                    $('#popularRecommendationSetting').modal('hide');
+                                    // collect the latest setting
+                                    vm.loadPopularRecommendationSetting(vm.filterPopularRecommendationPlatform);
+                                }, function (err) {
+                                    console.log("saveFrontEndPopularRecommendationSetting err", err);
+                                });
+                            }
+                            else {
                                 $('#frontEndPopularRecommendationUploader').hide();
-                                // close the modal
-                                $('#popularRecommendationSetting').modal('hide');
-                            }, function (err) {
-                                console.log("saveFrontEndPopularRecommendationSetting err", err);
-                            });
+                            }
                         }
                     }
                 ).catch(err=>{
                     console.log("err", err);
-                    $('#frontEndPopularRecommendationSetting').hide();
+                    $('#frontEndPopularRecommendationUploader').hide();
                 });
             };
 
-            vm.uploadToFtp = (sendQuery) => {
+            vm.uploadToFtp = (holderName) => {
+                let sendQuery = vm.popularRecommendationImageFile[holderName];
+                let fileName = sendQuery && sendQuery.fileName ? sendQuery.fileName : null;
                 console.log("sendFileFTP query", sendQuery);
                 return new Promise((resolve, reject)=>{
                     if (!sendQuery){
                         return resolve();
                     }
-                    socketService.$socket($scope.AppSocket, 'sendFileFTP', sendQuery, function (data) {
+                    return socketService.$socket($scope.AppSocket, 'sendFileFTP', sendQuery, function (data) {
                         console.log("sendFileFTP ret", data);
+                        data.name = holderName;
+                        vm.popularRecommendationImageUrl[holderName] = data && data.data && data.data.url ? data.data.url : null;
+                        socketService.showConfirmMessage(fileName + " " + $translate("has been uploaded."), 10000);
                         return resolve(data);
                     }, function (err) {
                         console.log("sendFileFTP err", err);
-                        //add retry here
-                        return reject(err);
+                        vm.isFinishedUploadedToFTPServer  = false;
+                        return resolve();
                     });
                 });
             };
