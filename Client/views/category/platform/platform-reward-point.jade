@@ -4,6 +4,9 @@ style.
     }
 .row
     .col-md-12
+        div(style="display:inline-block; margin-right:10px; margin-bottom:5px;")
+            select.form-control(ng-model='vm.rewardPointsSelectedPlatform' ng-options="v._id as v.name$ for v in vm.allPlatformData" ng-change="vm.rewardPointsTabClicked(vm.selectedRewardPointTab);vm.getAllPlayerLevelsLocal();vm.getAllGameProvidersLocal();")
+                option(value="") {{"NO_PLATFORM_MESSAGE" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedRewardPointTab === "rewardPointsRule"}', ng-click='vm.rewardPointsTabClicked("rewardPointsRule")')
             span {{"REWARD_POINTS_RULE" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedRewardPointTab === "loginRewardPoints"}', ng-click='vm.rewardPointsTabClicked("loginRewardPoints")')

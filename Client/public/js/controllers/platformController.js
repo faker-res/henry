@@ -24840,7 +24840,8 @@ define(['js/app'], function (myApp) {
                         vm.rewardPointsLvlConfig = {};
                         vm.oldRewardPointsLvlConfigPeriod = null;
                         vm.oldRewardPointsLvlConfigCustomPeriodEndTime = null;
-                        Q.all([vm.getRewardPointsLvlConfig(), vm.getAllPlayerLevels(), vm.getPlatformProviderGroup()]).then(
+                        Q.all([vm.getRewardPointsLvlConfig(vm.rewardPointsSelectedPlatform),
+                            vm.getAllPlayerLevels(vm.rewardPointsSelectedPlatform), vm.getPlatformProviderGroup(vm.rewardPointsSelectedPlatform)]).then(
                             (data) => {
                                 // Check is all player level already set rewardPointsLvlConfig
                                 vm.allPlayerLvl.forEach((playerLvl) => {
@@ -24867,14 +24868,14 @@ define(['js/app'], function (myApp) {
                     case 'loginRewardPoints':
                         vm.userAgentWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.constPlayerRegistrationInterface);
                         // [vm.allGameProviders, vm.gameProvidersList] = vm.getAllGameProviders(vm.selectedPlatform.id);
-                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
                         break;
                     case 'topupRewardPoints':
                         vm.topupRewardPoints = [];
                         vm.userAgentTypeWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.userAgentType);
                         vm.topupTypeListWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.topUpTypeList);
                         // vm.getAllGameProviders(vm.selectedPlatform.id);
-                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
                         break;
                     case 'gameRewardPoints':
                         vm.allGameType = [];
@@ -24883,7 +24884,7 @@ define(['js/app'], function (myApp) {
                         //Todo get all game bet type
                         // vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getGameProviderToManuallyInsertGameId();
-                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
                         break;
                     case 'rewardPointsRanking':
                         vm.editFakeAcc = false;
@@ -24969,6 +24970,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.insertRandomData = function () {
+                let selectedPlatform = getSelectedPlatform() || {};
                 vm.randomRewardPointsData = [];
                 for (let i = 0; i < vm.playerRankingRandom.length; i++) {
                     for (let j = 0; j < vm.playerRankingRandom[i].randomCount; j++) {
@@ -24977,7 +24979,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 vm.randomRewardPointsData.map(item => {
-                    item.platformObjId = vm.selectedPlatform.id;
+                    item.platformObjId = selectedPlatform._id || vm.selectedPlatform.id;
                     return item;
                 });
 
@@ -24991,7 +24993,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getRankingRandomConfig = function () {
-                socketService.$socket($scope.AppSocket, 'getRewardPointsRandomDataConfig', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getRewardPointsRandomDataConfig', {platformObjId: getSelectedPlatform()._id || vm.selectedPlatform.id}, function (data) {
                     console.log('getRandomConfig', data.data);
                     if (data && data.data) {
                         vm.playerRankingRandom = data.data.condition;
@@ -25004,8 +25006,9 @@ define(['js/app'], function (myApp) {
             }
 
             vm.submitRankingRandomConfig = function () {
+                let selectedPlatform = getSelectedPlatform() || {};
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: selectedPlatform._id || vm.selectedPlatform.id,
                     condition: vm.playerRankingRandom
                 }
 
@@ -25030,6 +25033,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerRewardPointsRanking = function (isNewSearch) {
+                let selectedPlatform = getSelectedPlatform() || {};
                 vm.playerRewardRanking.index = isNewSearch ? 0 : (vm.playerRewardRanking.index || 0);
 
                 if (!vm.playerRewardRanking.sortCol) {
@@ -25043,8 +25047,8 @@ define(['js/app'], function (myApp) {
 
 
                 // show
-                var sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                let sendData = {
+                    platformObjId: selectedPlatform._id || vm.selectedPlatform.id,
                     index: isNewSearch ? 0 : vm.playerRewardRanking.index,
                     limit: vm.playerRewardRanking.limit || 10,
                     sortCol: vm.playerRewardRanking.sortCol || {}
@@ -25101,6 +25105,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerRewardPointsRankingRandom = function (isNewSearch) {
+                let selectedPlatform = getSelectedPlatform() || {};
                 vm.playerRewardRankingRandom.index = isNewSearch ? 0 : (vm.playerRewardRankingRandom.index || 0);
 
                 if (!vm.playerRewardRankingRandom.sortCol) {
@@ -25114,8 +25119,8 @@ define(['js/app'], function (myApp) {
 
 
                 // show
-                var sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                let sendData = {
+                    platformObjId: selectedPlatform._id || vm.selectedPlatform.id,
                     index: isNewSearch ? 0 : vm.playerRewardRankingRandom.index,
                     limit: vm.playerRewardRankingRandom.limit || 10,
                     sortCol: vm.playerRewardRankingRandom.sortCol || {}
@@ -25396,15 +25401,17 @@ define(['js/app'], function (myApp) {
             }
 
 
-            vm.getRewardPointsLvlConfig = () => {
-                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: vm.selectedPlatform.id}).then((data) => {
+            vm.getRewardPointsLvlConfig = (platformObjId) => {
+                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: platformObjId || vm.selectedPlatform.id || null}).then((data) => {
                     vm.rewardPointsLvlConfig = data.data;
                     $scope.safeApply();
                 });
             };
 
             vm.rewardPointsLvlConfigSubmit = () => {
-                vm.rewardPointsLvlConfig.platformObjId = vm.rewardPointsLvlConfig.platformObjId ? vm.rewardPointsLvlConfig.platformObjId : vm.selectedPlatform.id;
+                let selectedPlatform = getSelectedPlatform() || {};
+                vm.rewardPointsLvlConfig.platformObjId = vm.rewardPointsLvlConfig.platformObjId ? vm.rewardPointsLvlConfig.platformObjId
+                    : selectedPlatform._id || vm.selectedPlatform.id;
                 if (vm.rewardPointsLvlConfig.intervalPeriod == 6) {
                     vm.rewardPointsLvlConfig.customPeriodStartTime = vm.rewardPointsLvlConfig.customPeriodStartTime.data('datetimepicker').getLocalDate();
                     vm.rewardPointsLvlConfig.customPeriodEndTime = vm.rewardPointsLvlConfig.customPeriodEndTime.data('datetimepicker').getLocalDate();
@@ -25485,10 +25492,10 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getRewardPointsEventByCategory = (category) => {
+            vm.getRewardPointsEventByCategory = (category, platformObjId) => {
                 vm.rewardPointsEvent = [];
                 return $scope.$socketPromise('getRewardPointsEventByCategory', {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || vm.selectedPlatform.id || null,
                     category: category
                 }).then((data) => {
                     $scope.$evalAsync(()=>{
@@ -25506,7 +25513,8 @@ define(['js/app'], function (myApp) {
 
             vm.createRewardPointsEvent = (rewardPointsEvent) => {
                 delete rewardPointsEvent.isEditing;
-                rewardPointsEvent.platformObjId = vm.selectedPlatform.id;
+                let selectedPlatform = getSelectedPlatform() || {};
+                rewardPointsEvent.platformObjId = selectedPlatform._id || vm.selectedPlatform.id;
                 if (rewardPointsEvent.period == 6) {
                     rewardPointsEvent.customPeriodStartTime = rewardPointsEvent.customPeriodStartTime.data('datetimepicker').getLocalDate();
                     rewardPointsEvent.customPeriodEndTime = rewardPointsEvent.customPeriodEndTime.data('datetimepicker').getLocalDate();
@@ -25661,11 +25669,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.searchRewardPointsLog = (index, limit) => {
+                let selectedPlatform = getSelectedPlatform() || {};
                 var startTime = $('#rpRecordStartDate').data('datetimepicker').getLocalDate();
                 var endTime = $('#rpRecordEndDate').data('datetimepicker').getLocalDate();
                 var sendQuery = {
                     query: {
-                        platformId: vm.selectedPlatform.id
+                        platformId: selectedPlatform._id || vm.selectedPlatform.id
                     },
                     index: index,
                     limit: limit || 10,
@@ -40197,6 +40206,9 @@ define(['js/app'], function (myApp) {
                         } else if(vm.selectedAutoFeedbackTab.toLowerCase() == "overview") {
                             selectedPlatformObjId = vm.autoFeedbackMissionSearchDetail.platformObjId;
                         }
+                        break;
+                    case "rewardpoint":
+                        selectedPlatformObjId = vm.rewardPointsSelectedPlatform;
                         break;
                 }
                 if(selectedPlatformObjId) {
