@@ -1,0 +1,70 @@
+.full-width-input-block
+    label {{"WEBSITE_TITLE"|translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.websiteTitle" placeholder="{{'Please insert title'|translate}}")
+
+.full-width-input-block
+    label {{"WEBSITE_NAME"|translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.websiteName" placeholder="{{'Please insert website name'|translate}}")
+
+.full-width-input-block
+    label {{"APP_DOWNLOAD"|translate}}
+
+.full-width-input-block
+    label {{"ANDROID"|translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.androidAppUrl" placeholder="{{'Please insert app（android）download url'|translate}}")
+
+.full-width-input-block
+    label {{"IOS"|translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.iosAppUrl" placeholder="{{'Please insert app（ios）download url'|translate}}")
+
+.full-width-input-block
+    label meta(KeyWords)
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.metaKeyword" placeholder="{{'Please insert meta(KeyWords)'|translate}}")
+
+.full-width-input-block
+    label meta(Description)
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.metaDescription" placeholder="{{'Please insert meta(Description)'|translate}}")
+
+.full-width-input-block
+    label {{"HORIZONTAL_SCREEN_STYLE_FILE"|translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.horizontalScreenStyleFileUrl" placeholder="{{'Please insert horizontal screen style file url'|translate}}")
+
+.full-width-input-block
+    label favicon
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.faviconUrl" placeholder="{{'Please insert favicon(link-icon) image url'|translate}}")
+
+.full-width-input-block
+    label {{"Website Logo"|translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.websiteLogo" placeholder="{{'Please insert website logo image url'|translate}}")
+
+.full-width-input-block
+    label {{"Current Skin(PC)"|translate}}
+    div.inline-block
+        select.form-control(ng-model='vm.frontEndUrlConfig.pcSkin')
+            option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{v._id}}') {{v.name}}
+
+.full-width-input-block
+    label {{"Current Skin(H5)"|translate}}
+    div.inline-block
+        select.form-control(ng-model='vm.frontEndUrlConfig.h5Skin')
+            option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{v._id}}') {{v.name}}
+
+.full-width-input-block
+    label {{"Current Skin(APP)"|translate}}
+    div.inline-block
+        select.form-control(ng-model='vm.frontEndUrlConfig.appSkin')
+            option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{v._id}}') {{v.name}}
+
+.full-width-input-block
+    label
+    div.inline-block
+        button.btn.btn-success(ng-click='') {{"SAVE_SETTING" | translate}}

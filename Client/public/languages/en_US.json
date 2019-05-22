@@ -1801,5 +1801,14 @@
   "SKIN_DEVICE": "Device",
   "ADD_SKIN": "ADD",
   "DELETE_SKIN_SELECTION": "Select Skin",
-  "DELETE_SELECTED_SKIN_BUTTON": "Delete Selected Skin"
+  "DELETE_SELECTED_SKIN_BUTTON": "Delete Selected Skin",
+  "urlConfiguration": "URL CONFIGURATION",
+  "URL_CONFIGURATION": "URL CONFIGURATION",
+  "URL_CONFIGURATION_NOTE": "NOTE：This can be switch between production and cstest，image upload, image function selection, photo editing, etc",
+  "WEBSITE_TITLE": "Website Title",
+  "WEBSITE_NAME": "Website Name",
+  "APP_DOWNLOAD": "app download",
+  "ANDROID": "ANDROID",
+  "HORIZONTAL_SCREEN_STYLE_FILE": "Horizontal screen style file",
+  "SAVE_SETTING": "SAVE"
 }
