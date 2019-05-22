@@ -5637,6 +5637,10 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
                                 }));
 
+                                link.append($('<i>', {
+                                    'class': 'fa fa-repeat margin-right-5 ' + (perm.forbidPlayerConsumptionReturn === true ? "text-danger" : "text-primary"),
+                                }));
+
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
                                     'src': "images/icon/" + (perm.rewardPointsTask === false ? "rewardPointsRed.png" : "rewardPointsBlue.png"),
@@ -6344,6 +6348,7 @@ define(['js/app'], function (myApp) {
                                 //     height: '26px'
                                 // },
                                 banReward: {imgType: 'i', iconClass: "fa fa-gift"},
+                                forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
                                 rewardPointsTask: {
                                     imgType: 'img',
                                     src: "images/icon/rewardPointsBlue.png",
@@ -16839,6 +16844,12 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
                 $scope.$evalAsync(() => {
                     vm.allRewardEvent = data.data;
+                    vm.allRewardEventNoXima = vm.allRewardEvent.filter(event => {
+                        // don't display xima at player secondary permission
+                        if (event && event.type && event.type.name && event.type.name !== 'PlayerConsumptionReturn') {
+                            return event;
+                        }
+                    })
                     vm.showApplyRewardEvent = data.data.filter(item => {
                         return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1")
                     }).length > 0
