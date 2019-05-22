@@ -24737,6 +24737,9 @@ define(['js/app'], function (myApp) {
                     case 'popularRecommendation':
                         vm.filterFrontEndSettingPlatform = null;
                         break;
+                    case 'urlConfiguration':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
                     case 'skinManagement':
                         vm.filterFrontEndSettingPlatform = null;
                         vm.frontEndSkinSetting = [];

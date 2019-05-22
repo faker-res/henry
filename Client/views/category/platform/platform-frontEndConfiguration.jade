@@ -57,6 +57,8 @@ style.
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
             span {{"POPULAR_RECOMMENDATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "urlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("urlConfiguration")')
+            span {{"URL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
             span {{"SKIN_MANAGEMENT" | translate}}
 
@@ -78,6 +80,7 @@ style.
                 .text-center(ng-if='!vm.filterFrontEndSettingPlatform')
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
+                // Tab - popular recommendation
                 .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
                     div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
                         div(style="display: inline;")
@@ -122,6 +125,10 @@ style.
 
                     div.text-right
                         button#testSave.btn-primary.btn {{'SAVE' | translate}}
+
+                // Tab - url Configuration
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="urlConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "urlConfiguration")')
+                    include frontEndConfiguration-url
 
                 // Tab - skin management
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="skinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "skinManagement")')
