@@ -1,16 +1,14 @@
 style.
-    .bg-secondary {
-        background-color: #868E96;
-    }
     .connected-sortable {
-        margin: 0 auto;
+        /*margin: 0 auto;*/
         list-style: none;
-        width: 90%;
+        padding: 0px;
+        /*width: 90%;*/
         min-height: 500px;
     }
     li.draggable-item {
         width: inherit;
-        padding: 1em;
+        padding: 0.5em;
         background-color: #f5f5f5;
         border-radius: 4px;
         margin: 1em 0;
@@ -78,50 +76,9 @@ style.
                 .text-center(ng-if='!vm.filterFrontEndSettingPlatform')
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
+                // Tab - popular recommendation
                 .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
-                    div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
-                        div(style="display: inline;")
-                            label {{'Setting For Popular Recommendation' | translate}}
-                            br
-                            label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
-                        btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.addNewPopularRecommendationSetting()")
-                            span.fa.fa-pencil-square-o {{"ADD" | translate}}
-                    div.col-md-4.fronendConfigDiv
-                        span(style='font-weight: bold;') {{'First_Page_Popular_Recommendation' | translate}}
-                        ul.connected-sortable.droppable-area1
-                            li.draggable-item(ng-repeat="one in vm.frontEndPopularRecommendationData", ng-if="one.category == 1", id="{{'categoryOne_' + one._id}}")
-                                img(ng-src="{{one.pc.imageUrl}}" width="100%" height="80px")
-                                .tab-btngroup
-                                    button.btn.btn-primary(ng-if="one.isVisible" ng-click="one.isVisible = false") on
-                                    button.btn.btn-success(ng-if="!one.isVisible", ng-click="one.isVisible = true") off
-                                    button.btn.btn-danger.btn-delete
-                                        span.fa.fa-trash-o
-
-                    div.col-md-4.fronendConfigDiv
-                        span(style='font-weight: bold;') {{'Recommended_Game' | translate}}
-                        ul.connected-sortable.droppable-area2
-                            li.draggable-item(ng-repeat="two in vm.frontEndPopularRecommendationData", ng-if="two.category == 2", id="{{'categoryTwo_' + two._id}}")
-                                img(ng-src="{{two.pc.imageUrl}}" width="100%" height="80px")
-                                .tab-btngroup
-                                    button.btn.btn-primary(ng-if="two.isVisible" ng-click="two.isVisible = false") on
-                                    button.btn.btn-success(ng-if="!two.isVisible", ng-click="two.isVisible = true") off
-                                    button.btn.btn-danger.btn-delete
-                                        span.fa.fa-trash-o
-
-                    div.col-md-4.fronendConfigDiv
-                        span(style='font-weight: bold;') {{'Bottom_Banner' | translate}}
-                        ul.connected-sortable.droppable-area3
-                            li.draggable-item(ng-repeat="three in vm.frontEndPopularRecommendationData", ng-if="three.category == 3", id="{{'categoryThree_' + three._id}}")
-                                img(ng-src="{{three.pc.imageUrl}}" width="100%" height="80px")
-                                .tab-btngroup
-                                    button.btn.btn-primary(ng-if="three.isVisible" ng-click="three.isVisible = false") on
-                                    button.btn.btn-success(ng-if="!three.isVisible", ng-click="three.isVisible = true") off
-                                    button.btn.btn-danger.btn-delete
-                                        span.fa.fa-trash-o
-
-
-                    div.text-right
-                        button#testSave.btn-primary.btn {{'SAVE' | translate}}
+                    include frontEndConfiguration-popularRecommendation
 
                 // Tab - skin management
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="skinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "skinManagement")')
