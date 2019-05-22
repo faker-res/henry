@@ -1243,7 +1243,7 @@ let PlayerServiceImplement = function () {
 
     this.getCreditDetail.onRequest = function (wsFunc, conn, data) {
         var isValidData = true;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCreditDetail, [conn.playerObjId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCreditDetail, [conn.playerObjId], isValidData, null, null, false, true);
     };
 
     this.loginJblShow.onRequest = function (wsFunc, conn, data) {
