@@ -10,6 +10,7 @@ const lang = require("../modules/localization").lang;
 const mongoose = require('mongoose');
 let dbApiLog = require("../db_modules/dbApiLog");
 const dbconfig = require('./../modules/dbproperties');
+const constSystemParam = require('./../const/constSystemParam');
 
 var WebSocketUtility = {
 
@@ -30,36 +31,46 @@ var WebSocketUtility = {
      */
     performAction: async function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth) {
         let startTime = new Date().getTime();
-        await WebSocketUtility.responsePromise(
-            conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth
-        ).catch(
-            function (error) {
-                // Do not log authentication failures or invalid requests.
-                // The client should have enough information to solve those.
-                if (error === false || error === localization.translate("INVALID_DATA", conn.lang) || error.status, conn.platformId) {
-                    return;
-                }
-                // Log the error in detail, so a developer can reproduce it and resolve it.
-                if( wsFunc && wsFunc.name != "authenticate" ){
-                    console.error("Error while performing action '" + (wsFunc && wsFunc.name) + "' with args:", errorUtils.stringifyIfPossible(args));
-                    WebSocketUtility.errorHandler(error);
-                }
-            }
-        ).done();
+        let currentSecond = new Date().getSeconds();
 
-        let serviceName = wsFunc && wsFunc._service && wsFunc._service.name;
-        let functionName = wsFunc && wsFunc.name;
-        let totalSecond = (new Date().getTime() - startTime) / 1000;
-        if (totalSecond > 1) {
-            dbconfig.collection_apiResponseLog({
-                serviceName: serviceName,
-                functionName: functionName,
-                totalSecond: totalSecond
-            }).save().catch(errorUtils.reportError);
-
-            console.log("Slow response time from service " + serviceName + ", function " + String(functionName) + ": " + totalSecond + " sec");
+        if (!conn.currentSecond || currentSecond !== conn.currentSecond) {
+            conn.currentSecond = currentSecond;
+            conn.thisSecondAPICall = 0;
+        } else {
+            conn.thisSecondAPICall++;
         }
 
+        if (conn.thisSecondAPICall < constSystemParam.MAX_API_CALL_PER_SEC) {
+            await WebSocketUtility.responsePromise(
+                conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth
+            ).catch(
+                function (error) {
+                    // Do not log authentication failures or invalid requests.
+                    // The client should have enough information to solve those.
+                    if (error === false || error === localization.translate("INVALID_DATA", conn.lang) || error.status, conn.platformId) {
+                        return;
+                    }
+                    // Log the error in detail, so a developer can reproduce it and resolve it.
+                    if( wsFunc && wsFunc.name != "authenticate" ){
+                        console.error("Error while performing action '" + (wsFunc && wsFunc.name) + "' with args:", errorUtils.stringifyIfPossible(args));
+                        WebSocketUtility.errorHandler(error);
+                    }
+                }
+            ).done();
+
+            let serviceName = wsFunc && wsFunc._service && wsFunc._service.name;
+            let functionName = wsFunc && wsFunc.name;
+            let totalSecond = (new Date().getTime() - startTime) / 1000;
+            if (totalSecond > 1) {
+                dbconfig.collection_apiResponseLog({
+                    serviceName: serviceName,
+                    functionName: functionName,
+                    totalSecond: totalSecond
+                }).save().catch(errorUtils.reportError);
+
+                console.log("Slow response time from service " + serviceName + ", function " + String(functionName) + ": " + totalSecond + " sec");
+            }
+        }
     },
 
     /**
