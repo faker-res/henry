@@ -388,12 +388,27 @@
                                 thead
                                     th {{'节日名称' | translate}}
                                     th {{'时间' | translate}}
+                                    th
+                                    th
+                                    th
+                                    th
 
                                 tbody
                                     tr(ng-repeat="v in vm.showReward.param.others")
-                                        td {{v.name || ''}}
-                                        td {{v.month || ''}}月{{v.day || ''}}日
-
+                                        td
+                                            input.form-control(type='text', ng-model='v.name', required)
+                                        td
+                                            select.form-control(ng-model='v.month', style='inline-block')
+                                                option(ng-repeat="i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]", value='{{i}}')  {{i}}
+                                        td 月
+                                        td
+                                            select.form-control(ng-model='v.day', style='inline-block')
+                                                option(ng-repeat="i in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]", value='{{i}}')  {{i}}
+                                        td 日
+                                    tr
+                                        td(colspan='5')
+                                        td
+                                            button.btn.btn-primary.common-button(ng-click="vm.editNewFestivalTitle()") 修改
                                 table.common-table.display(style='min-width:100%')
                                     thead
                                         th {{'节日名称' | translate}}

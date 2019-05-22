@@ -124,7 +124,9 @@ define(['js/app'], function (myApp) {
                 "festivalType1": 1,
                 "festivalType2": 2,
                 "festivalType3": 3,
-                "birthday": 4
+                "birthday1": 4,
+                "birthday2": 5,
+                "birthday3": 6
             }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
@@ -1519,7 +1521,7 @@ define(['js/app'], function (myApp) {
                         vm.initFrontendConfiguration();
                         break;
                     case "FrontEndConfiguration2":
-                        // vm.initFrontendConfiguration();
+                        vm.initFrontendConfiguration2();
                         break;
                     case "AuctionSystem":
                         vm.initAuctionSystem();
@@ -22465,39 +22467,109 @@ define(['js/app'], function (myApp) {
                         }
                         else {
                             //vm.createFestivalRowByLevel(0);
-                            vm.rewardMainParamTableBirthday = [];
+                            vm.rewardMainParamTableBirthday1 = [];
+                            vm.rewardMainParamTableBirthday2 = [];
+                            vm.rewardMainParamTableBirthday3 = [];
+
                             vm.rewardMainParamTableFestivalType1 = [];
                             vm.rewardMainParamTableFestivalType2 = [];
                             vm.rewardMainParamTableFestivalType3 = [];
 
                             vm.remainMainParamTableFestival = {};
 
-                            let birthdayValue = [];
+                            let birthday1Value = [];
+                            let birthday2Value = [];
+                            let birthday3Value = [];
                             let festivalType1Value = [];
                             let festivalType2Value = [];
                             let festivalType3Value = [];
 
                             if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam[0] && vm.rewardParams.rewardParam[0].value && vm.rewardParams.rewardParam[0].value.length){
-                                birthdayValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthday);
+                                birthday1Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthday1);
+                                birthday2Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthday2);
+                                birthday3Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthday3);
                                 festivalType1Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType1);
                                 festivalType2Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType2);
                                 festivalType3Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType3);
                             }
 
                             // birthday
-                            if (birthdayValue && !birthdayValue.length){
-                                birthdayValue = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday}];
+                            if (birthday1Value && !birthday1Value.length){
+                                birthday1Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday1}];
                             }
 
-                            let birthdayHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
-                            if (birthdayHeader.totalConsumptionInInterval) {
-                                delete birthdayHeader.totalConsumptionInInterval
+                            let birthday1Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                            if (birthday1Header.totalConsumptionInInterval) {
+                                delete birthday1Header.totalConsumptionInInterval
                             }
-
-                            vm.rewardMainParamTableBirthday.push({
-                                header: birthdayHeader,
-                                value: birthdayValue
+                            if (birthday1Header.minTopUpAmount) {
+                                delete birthday1Header.minTopUpAmount
+                            }
+                            if (birthday1Header.title) {
+                                delete birthday1Header.title
+                            }
+                            if (birthday1Header.topUpReturnReward) {
+                                delete birthday1Header.topUpReturnReward
+                            }
+                            vm.rewardMainParamTableBirthday1.push({
+                                header: birthday1Header,
+                                value: birthday1Value
                             });
+
+                            //birthday2 incomplete.
+                            if (birthday2Value && !birthday2Value.length){
+                                birthday2Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday2}];
+                            }
+
+                            let birthday2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                            if (birthday2Header.totalConsumptionInInterval) {
+                                delete birthday2Header.totalConsumptionInInterval
+                            }
+
+                            if (birthday2Header.title) {
+                                delete birthday2Header.title
+                            }
+
+                            vm.rewardMainParamTableBirthday2.push({
+                                header: birthday2Header,
+                                value: birthday2Value
+                            });
+
+                            //birthday 3 incomplete
+                            if (birthday3Value && !birthday3Value.length){
+                                birthday3Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday3}];
+                            }
+
+                            let birthday3Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                            if (birthday3Header.minTopUpAmount) {
+                                delete birthday3Header.minTopUpAmount
+                            }
+
+                            if (birthday3Header.applyTimes) {
+                                delete birthday3Header.applyTimes
+                            }
+
+                            if (birthday3Header.requiredConsumption) {
+                                delete birthday3Header.requiredConsumption
+                            }
+
+                            if (birthday3Header.expiredInDay) {
+                                delete birthday3Header.expiredInDay
+                            }
+
+                            if (birthday3Header.topUpReturnReward) {
+                                delete birthday3Header.topUpReturnReward
+                            }
+
+                            if (birthday3Header.title) {
+                                delete birthday3Header.title
+                            }
+
+                            vm.rewardMainParamTableBirthday3.push({
+                                header: birthday3Header,
+                                value: birthday3Value
+                            });
+
 
                             // festival type1
                             if (festivalType1Value && !festivalType1Value.length){
@@ -22622,16 +22694,30 @@ define(['js/app'], function (myApp) {
                 $("#festivalItemModal").modal('hide');
             }
 
+            vm.editNewFestivalTitle = (festival) => {
+                if (!vm.showReward._id) {
+                    vm.addFestivalErrMsg = $translate("You need to this reward first before create festival item");
+                    return
+                }
+                vm.rewardParams.others = vm.showReward.param.others;
+                vm.editReward();
+                $("#festivalItemModal").modal('hide');
+            }
+
             vm.createFestivalRowByLevel = (idx) => {
                 // generate record by player level (if isPlayerLevelDiff is selected)
-                let birthdayValue = [];
+                let birthday1Value = [];
+                let birthday2Value = [];
+                let birthday3Value = [];
                 let festivalType1Value = [];
                 let festivalType2Value = [];
                 let festivalType3Value = [];
                 vm.remainMainParamTableFestival[idx] = [];
 
                 if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam[idx] && vm.rewardParams.rewardParam[idx].value && vm.rewardParams.rewardParam[idx].value.length) {
-                    birthdayValue = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.birthday);
+                    birthday1Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.birthday1);
+                    birthday2Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.birthday2);
+                    birthday3Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.birthday3);
                     festivalType1Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType1);
                     festivalType2Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType2);
                     festivalType3Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType3);
@@ -22705,23 +22791,74 @@ define(['js/app'], function (myApp) {
                     value: festivalType3Value
                 });
 
-                // birthday
-                if (birthdayValue && !birthdayValue.length) {
-                    birthdayValue = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday}];
+                // birthday 1
+                if (birthday1Value && !birthday1Value.length) {
+                    birthday1Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday1}];
                 }
 
-                let birthdayHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
-                if (birthdayHeader.totalConsumptionInInterval) {
-                    delete birthdayHeader.totalConsumptionInInterval
+                let birthday1Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                if (birthday1Header.totalConsumptionInInterval) {
+                    delete birthday1Header.totalConsumptionInInterval
                 }
-                if (birthdayHeader.title) {
-                    delete birthdayHeader.title;
+                if (birthday1Header.minTopUpAmount) {
+                    delete birthday1Header.minTopUpAmount;
+                }
+                if (birthday1Header.topUpReturnReward) {
+                    delete birthday1Header.topUpReturnReward;
+                }
+                vm.remainMainParamTableFestival[idx].push({
+                    header: birthday1Header,
+                    value: birthday1Value
+                });
+
+                // birthday 2
+                if (birthday2Value && !birthday2Value.length) {
+                    birthday2Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday2}];
+                }
+
+                let birthday2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                if (birthday2Header.totalConsumptionInInterval) {
+                    delete birthday2Header.totalConsumptionInInterval
+                }
+                if (birthday2Header.title) {
+                    delete birthday2Header.title;
                 }
 
                 vm.remainMainParamTableFestival[idx].push({
-                    header: birthdayHeader,
-                    value: birthdayValue
+                    header: birthday2Header,
+                    value: birthday2Value
                 });
+
+                // birthday 3
+                if (birthday3Value && !birthday3Value.length) {
+                    birthday3Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday3}];
+                }
+
+                let birthday3Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                if (birthday3Header.minTopUpAmount) {
+                    delete birthday3Header.minTopUpAmount
+                }
+                if (birthday3Header.applyTimes) {
+                    delete birthday3Header.applyTimes
+                }
+                if (birthday3Header.applyTimes) {
+                    delete birthday3Header.applyTimes
+                }
+                if (birthday3Header.expiredInDay) {
+                    delete birthday3Header.expiredInDay
+                }
+                if (birthday3Header.topUpReturnReward) {
+                    delete birthday3Header.topUpReturnReward
+                }
+                if (birthday3Header.title) {
+                    delete birthday3Header.title;
+                }
+
+                vm.remainMainParamTableFestival[idx].push({
+                    header: birthday3Header,
+                    value: birthday3Value
+                });
+
             }
             vm.rewardPeriodNewRow = (valueCollection) => {
                 valueCollection.push({startDate: "", startTime: "", endDate: "", endTime: ""});
@@ -22743,6 +22880,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.addNewFestivalTypeRow = (row, entry, newEntryData) => {
+                newEntryData.id = createObjectId();
                 row.push(newEntryData);
             }
 
@@ -23536,6 +23674,8 @@ define(['js/app'], function (myApp) {
                 vm.rewardMainParamTable2 = [];
                 vm.rewardMainParamTable3 = [];
                 vm.rewardMainParamTable4 = [];
+                vm.rewardMainParamTable5 = [];
+                vm.rewardMainParamTable6 = [];
 
                 vm.rewardMainParamTable.push({value: []});
                 if (vm.isPlayerLevelDiff){
@@ -23548,6 +23688,8 @@ define(['js/app'], function (myApp) {
                             vm.rewardMainParamTable2[idx] = vm.remainMainParamTableFestival[idx][1];
                             vm.rewardMainParamTable3[idx] = vm.remainMainParamTableFestival[idx][2];
                             vm.rewardMainParamTable4[idx] = vm.remainMainParamTableFestival[idx][3];
+                            vm.rewardMainParamTable5[idx] = vm.remainMainParamTableFestival[idx][4];
+                            vm.rewardMainParamTable6[idx] = vm.remainMainParamTableFestival[idx][5];
                         }
                     });
                 }
@@ -23559,13 +23701,16 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamTableFestivalType2[0].value ? vm.rewardMainParamTableFestivalType2[0].value : [];
                     let rewardParamFestivalType3 = vm.rewardMainParamTableFestivalType3 && vm.rewardMainParamTableFestivalType3[0] &&
                     vm.rewardMainParamTableFestivalType3[0].value ? vm.rewardMainParamTableFestivalType3[0].value : [];
-                    let rewardParamBirthday = vm.rewardMainParamTableBirthday && vm.rewardMainParamTableBirthday[0] &&
-                    vm.rewardMainParamTableBirthday[0].value ? vm.rewardMainParamTableBirthday[0].value : [];
-
+                    let rewardParamBirthday1 = vm.rewardMainParamTableBirthday1 && vm.rewardMainParamTableBirthday1[0] &&
+                    vm.rewardMainParamTableBirthday1[0].value ? vm.rewardMainParamTableBirthday1[0].value : [];
+                    let rewardParamBirthday2 = vm.rewardMainParamTableBirthday2 && vm.rewardMainParamTableBirthday2[0] &&
+                    vm.rewardMainParamTableBirthday2[0].value ? vm.rewardMainParamTableBirthday2[0].value : [];
+                    let rewardParamBirthday3 = vm.rewardMainParamTableBirthday3 && vm.rewardMainParamTableBirthday3[0] &&
+                    vm.rewardMainParamTableBirthday3[0].value ? vm.rewardMainParamTableBirthday3[0].value : [];
                     // // redefine
                     vm.rewardMainParamTable = [];
                     vm.rewardMainParamTable.push({value: []});
-                    vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3).concat(rewardParamBirthday);
+                    vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3).concat(rewardParamBirthday1).concat(rewardParamBirthday2).concat(rewardParamBirthday3);
                 }
             }
 
@@ -23707,7 +23852,14 @@ define(['js/app'], function (myApp) {
                         Object.keys(vm.rewardMainParamTable4).forEach((e, idx) => {
                             curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable4[e].value)
                         });
-
+                        // param table 5
+                        Object.keys(vm.rewardMainParamTable5).forEach((e, idx) => {
+                            curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable5[e].value)
+                        });
+                        // param table 6
+                        Object.keys(vm.rewardMainParamTable6).forEach((e, idx) => {
+                            curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable6[e].value)
+                        });
                     }
                 } else {
 
@@ -24564,6 +24716,48 @@ define(['js/app'], function (myApp) {
                         break;
 
                 }
+            };
+
+            vm.frontEndSettingPlatform = function () {
+                switch (vm.selectedFrontEndSettingTab) {
+                    case 'popularRecommendation':
+                        vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
+                        vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
+                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        break;
+                }
+            }
+
+            vm.frontEndSettingTabClicked = function (choice) {
+                vm.selectedFrontEndSettingTab  = choice;
+                switch (choice) {
+                    case 'popularRecommendation':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'skinManagement':
+                        vm.filterFrontEndSettingPlatform = null;
+                        vm.frontEndSkinManagement = {};
+                        break;
+                }
+            };
+
+            vm.initFrontendConfiguration2 = function () {
+                $scope.$evalAsync( () => {
+                    vm.selectedFrontEndSettingTab = "popularRecommendation";
+                    vm.selectedFrontEndSettingTab  = "popularRecommendation";
+                })
+            };
+
+            vm.loadPopularRecommendationSetting = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
+                    console.log('getFrontEndPopularRecommendationSetting', data.data);
+                    if (data && data.data) {
+                        vm.frontEndPopularRecommendationData = data.data;
+                    }
+                    $scope.safeApply();
+                }, function (err) {
+                    console.error('getFrontEndPopularRecommendationSetting error: ', err);
+                }, true);
             };
 
             vm.rewardPointsTabClicked = function (choice) {
@@ -30486,22 +30680,23 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platformList: platformList && platformList.length ? platformList : []
                 }
-                return new Promise((resolve, reject) => {
-                    socketService.$socket($scope.AppSocket, 'getPlatformCredibilityRemarks', sendData, function (data) {
-                        $scope.$evalAsync(() => {
-                            console.log('getPlatformCredibilityRemarks', data);
-                            vm.platformCredibilityRemarks = data.data;
-                            vm.platformCredibilityRemarks.map(remark => {
-                                if (remark && remark.platform && remark.platform.name) {
-                                    remark.platformName = remark.platform.name;
+                if (vm.allCredibilityRemarks) {
+                    vm.platformCredibilityRemarks = vm.allCredibilityRemarks;
+                    if (platformList && platformList.length) {
+                        vm.platformCredibilityRemarks = vm.allCredibilityRemarks.filter(remark => { return platformList.includes(remark.platform) });
+                    }
+                    vm.platformCredibilityRemarks.map(remark => {
+                        if (vm.allPlatformData && vm.allPlatformData.length) {
+                            vm.allPlatformData.forEach(platform => {
+                                if (remark && remark.platform && platform && platform._id && platform.name) {
+                                    if (remark.platform.toString() === platform._id.toString()) {
+                                        remark.platformName = platform.name;
+                                    }
                                 }
-                            });
-                            resolve();
-                        });
-                    }, function (err) {
-                        reject(err);
+                            })
+                        }
                     });
-                });
+                }
             };
 
             vm.getAllGameProvidersLocal = () => {
@@ -39749,8 +39944,137 @@ define(['js/app'], function (myApp) {
                     pc: {},
                     h5: {},
                     app: {},
+                    isPlayerVisible: true,
+                    isPlayerWithRegisteredHpNoVisible: true,
                 };
+                vm.popularRecommendationImageFile = {};
+
                 $('#popularRecommendationSetting').modal();
+                $("#popularRecommendationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcImage");});
+                $("#popularRecommendationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcNewPage");});
+                $("#popularRecommendationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcPageDetail");});
+
+                $("#popularRecommendationH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5Image");});
+                $("#popularRecommendationH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5NewPage");});
+                $("#popularRecommendationH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5PageDetail");});
+
+                $("#popularRecommendationAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appImage");});
+                $("#popularRecommendationAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appNewPage");});
+                $("#popularRecommendationAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"appPageDetail");});
+            };
+
+            vm.readURL = (input, previewId) => {
+                console.log(input);
+                if (input.files && input.files[0]) {
+                    let reader1 = new FileReader();
+                    let reader2 = new FileReader();
+                    reader1.onload = function (e) {
+                        $(`#${previewId}`).attr('src', e.target.result);
+                    };
+                    reader2.onload = function (e) {
+                        vm.popularRecommendationImageFile[previewId] = {
+                            platformId: 1,
+                            token: authService.getToken($cookies),
+                            fileStream: e.target.result,
+                            fileName: input.files[0].name
+                        };
+                    };
+                    // for preview purpose
+                    reader1.readAsDataURL(input.files[0]);
+                    // for upload to ftp server purpose
+                    reader2.readAsArrayBuffer(input.files[0]);
+                }
+            };
+
+            vm.submitPopularRecommendationSettings = () => {
+                $('#frontEndPopularRecommendationSetting').show();
+                let promArr = [
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcImage),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcNewPage),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcPageDetail),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5Image),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5NewPage),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5PageDetail),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.appImage),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.appNewPage),
+                    vm.uploadToFtp(vm.popularRecommendationImageFile.appPageDetail)
+                ];
+
+                return Promise.all(promArr).then(
+                    data => {
+                        console.log("returned FTP data", data);
+                        if (data && data.length){
+                            let retPcImageUrl = data[0] && data[0].data && data[0].data.url ? data[0].data.url : null;
+                            let retPcNewPageUrl = data[1] && data[1].data && data[1].data.url ? data[1].data.url : null;
+                            let retPcActivityUrl = data[2] && data[2].data && data[2].data.url ? data[2].data.url : null;
+                            let retH5ImageUrl = data[3] && data[3].data && data[3].data.url ? data[3].data.url : null;
+                            let retH5NewPageUrl = data[4] && data[4].data && data[4].data.url ? data[4].data.url : null;
+                            let retH5ActivityUrl = data[5] && data[5].data && data[5].data.url ? data[5].data.url : null;
+                            let retAppImageUrl = data[6] && data[6].data && data[6].data.url ? data[6].data.url : null;
+                            let retAppNewPageUrl = data[7] && data[7].data && data[7].data.url ? data[7].data.url : null;
+                            let retAppActivityUrl = data[8] && data[8].data && data[8].data.url ? data[8].data.url : null;
+
+                            vm.popularRecommendationSetting.platformObjId = vm.selectedPlatform.id;
+                            if (retPcImageUrl){
+                                vm.popularRecommendationSetting.pc.imageUrl = retPcImageUrl
+                            }
+                            if (retPcNewPageUrl){
+                                vm.popularRecommendationSetting.pc.newPageUrl = retPcNewPageUrl
+                            }
+                            if (retPcNewPageUrl){
+                                vm.popularRecommendationSetting.pc.activityUrl = retPcActivityUrl
+                            }
+                            if (retH5ImageUrl){
+                                vm.popularRecommendationSetting.h5.imageUrl = retH5ImageUrl
+                            }
+                            if (retH5NewPageUrl){
+                                vm.popularRecommendationSetting.h5.newPageUrl = retH5NewPageUrl
+                            }
+                            if (retH5ActivityUrl){
+                                vm.popularRecommendationSetting.h5.activityUrl = retH5ActivityUrl
+                            }
+                            if (retAppImageUrl){
+                                vm.popularRecommendationSetting.app.imageUrl = retAppImageUrl
+                            }
+                            if (retAppNewPageUrl){
+                                vm.popularRecommendationSetting.app.newPageUrl = retAppNewPageUrl
+                            }
+                            if (retAppActivityUrl){
+                                vm.popularRecommendationSetting.app.activityUrl = retAppActivityUrl
+                            }
+
+                            socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.popularRecommendationSetting, function (data) {
+                                console.log("saveFrontEndPopularRecommendationSetting ret", data);
+                                // stop the uploading loader
+                                $('#frontEndPopularRecommendationUploader').hide();
+                                // close the modal
+                                $('#popularRecommendationSetting').modal('hide');
+                            }, function (err) {
+                                console.log("saveFrontEndPopularRecommendationSetting err", err);
+                            });
+                        }
+                    }
+                ).catch(err=>{
+                    console.log("err", err);
+                    $('#frontEndPopularRecommendationSetting').hide();
+                });
+            };
+
+            vm.uploadToFtp = (sendQuery) => {
+                console.log("sendFileFTP query", sendQuery);
+                return new Promise((resolve, reject)=>{
+                    if (!sendQuery){
+                        return resolve();
+                    }
+                    socketService.$socket($scope.AppSocket, 'sendFileFTP', sendQuery, function (data) {
+                        console.log("sendFileFTP ret", data);
+                        return resolve(data);
+                    }, function (err) {
+                        console.log("sendFileFTP err", err);
+                        //add retry here
+                        return reject(err);
+                    });
+                });
             };
 
             function getSelectedPlatform() {

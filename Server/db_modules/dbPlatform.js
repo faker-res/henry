@@ -3903,6 +3903,22 @@ var dbPlatform = {
         return dbconfig.collection_platformBlackWhiteListing.findOneAndUpdate(query, updateData, {upsert: true, new: true});
     },
 
+    saveFrontEndPopularRecommendationSetting: (data) => {
+        if (data){
+            let record = new dbconfig.collection_frontEndPopularRecommendationSetting(data);
+            return record.save();
+        }
+    },
+
+    getFrontEndPopularRecommendationSetting: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId)}).lean();
+        }
+
+        return prom;
+    },
+
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
         let partnerSettDetail = {};
@@ -5696,23 +5712,26 @@ var dbPlatform = {
                                                                             deferred.reject({
                                                                                 status: constServerCode.DB_ERROR,
                                                                                 name: "DataError",
-                                                                                errorMessage: "File name exists"
+                                                                                errorMessage: "File name: " + fileName + " exists",
+                                                                            });
+                                                                        } else {
+                                                                            ftpClient.put(buffer, fileName, function (err) {
+                                                                                if (err) {
+                                                                                    deferred.reject({
+                                                                                        status: constServerCode.DB_ERROR,
+                                                                                        name: "DataError",
+                                                                                        errorMessage: "Failed to create file: " + err
+                                                                                    });
+                                                                                }
+
+                                                                                deferred.resolve({
+                                                                                    result: "success",
+                                                                                    url: url
+                                                                                });
+                                                                                ftpClient.end();
                                                                             });
                                                                         }
                                                                     }
-
-                                                                    ftpClient.put(buffer, fileName, function (err) {
-                                                                        if (err) {
-                                                                            deferred.reject({
-                                                                                status: constServerCode.DB_ERROR,
-                                                                                name: "DataError",
-                                                                                errorMessage: "Failed to create file: " + err
-                                                                            });
-                                                                        }
-
-                                                                        deferred.resolve({result: "success", url: url});
-                                                                        ftpClient.end();
-                                                                    });
                                                                 });
                                                             });
                                                         }else{
@@ -5825,23 +5844,22 @@ var dbPlatform = {
                                                                         deferred.reject({
                                                                             status: constServerCode.DB_ERROR,
                                                                             name: "DataError",
-                                                                            errorMessage: "File name exists"
+                                                                            errorMessage: "File name: " + fileName + " exists"
+                                                                        });
+                                                                    } else {
+                                                                        ftpClient.put(fileStream, fileName, function (err) {
+                                                                            if (err) {
+                                                                                deferred.reject({
+                                                                                    status: constServerCode.DB_ERROR,
+                                                                                    name: "DataError",
+                                                                                    errorMessage: "Failed to create file: " + err
+                                                                                });
+                                                                            }
+                                                                            deferred.resolve({result: "success", url: url});
+                                                                            ftpClient.end();
                                                                         });
                                                                     }
                                                                 }
-
-                                                                ftpClient.put(fileStream, fileName, function (err) {
-                                                                    if (err) {
-                                                                        deferred.reject({
-                                                                            status: constServerCode.DB_ERROR,
-                                                                            name: "DataError",
-                                                                            errorMessage: "Failed to create file: " + err
-                                                                        });
-                                                                    }
-
-                                                                    deferred.resolve({result: "success", url: url});
-                                                                    ftpClient.end();
-                                                                });
                                                             });
                                                         });
                                                     }else{

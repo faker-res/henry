@@ -32,6 +32,27 @@ function socketActionPlatform(socketIO, socket) {
     var self = this;
     this.actions = {
 
+        sendFileFTP: function sendFileFTP(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data.platformId && data.token && data.fileName && data.fileStream);
+
+            socketUtil.emitter(self.socket, dbPlatform.sendFileFTP, [data.platformId, data.token, data.fileStream, data.fileName], actionName, isValidData);
+        },
+
+        saveFrontEndPopularRecommendationSetting: function saveFrontEndPopularRecommendationSetting (data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbPlatform.saveFrontEndPopularRecommendationSetting, [data], actionName, isValidData);
+        },
+
+        getFrontEndPopularRecommendationSetting: function getFrontEndPopularRecommendationSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbPlatform.getFrontEndPopularRecommendationSetting, [data.platformObjId], actionName, isValidData);
+        },
+
         /**
          * Create a new platform
          * @param {json} data - It has to contain platform data - refer the "platform" schema
@@ -423,12 +444,6 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = true;
             socketUtil.emitter(self.socket, dbPlayerCredibility.getAllCredibilityRemarks, [], actionName, isValidData);
-        },
-
-        getPlatformCredibilityRemarks: function getPlatformCredibilityRemarks(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbPlayerCredibility.getPlatformCredibilityRemarks, [data.platformList], actionName, isValidData);
         },
 
         setFixedCredibilityRemarks: function setFixedCredibilityRemarks(data) {

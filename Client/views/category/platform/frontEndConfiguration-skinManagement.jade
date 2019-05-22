@@ -1,0 +1,31 @@
+.full-width-input-block
+    label {{"SKIN_DEVICE"|translate}}
+    div.inline-block
+        select.form-control(ng-model='vm.frontEndSkinManagement.device')
+            option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{i}}') {{v}}
+
+.full-width-input-block
+    label {{"SKIN_NAME"|translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndSkinManagement.name")
+
+.full-width-input-block
+    label {{"SKIN_URL"|translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndSkinManagement.url")
+
+.full-width-input-block
+    label
+    div.inline-block
+        button.btn.btn-success(ng-click='') {{"ADD_SKIN" | translate}}
+
+div
+    br
+
+.full-width-input-block
+    label {{"DELETE_SKIN_SELECTION"|translate}}
+    div.inline-block
+        select.form-control(ng-model='vm.selectedFrontEndSkin' style="width:80%;display:inline-block")
+            option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{i}}') {{v}}
+        div(style="padding-left: 22px;display:inline-block")
+            button.btn.btn-warning(ng-click='') {{"DELETE_SELECTED_SKIN_BUTTON" | translate}}
