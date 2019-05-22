@@ -24726,7 +24726,16 @@ define(['js/app'], function (myApp) {
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                         vm.popularRecommendationSettingDeletedList = [];
                         break;
+                    case 'urlConfiguration':
+                        vm.frontEndUrlConfig = {};
+                        vm.urlConfigShowMessage = '';
+                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndSkinSettingByPC(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndSkinSettingByAPP(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndSkinSettingByH5(vm.filterFrontEndSettingPlatform);
+                        break;
                     case 'skinManagement':
+                        vm.skinSettingShowMessage = '';
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         break;
                 }
@@ -24739,6 +24748,11 @@ define(['js/app'], function (myApp) {
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
+                        vm.frontEndUrlConfig = {};
+                        vm.pcSkinSettingList = [];
+                        vm.appSkinSettingList = [];
+                        vm.h5SkinSettingList = [];
+                        vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'skinManagement':
@@ -24774,6 +24788,7 @@ define(['js/app'], function (myApp) {
                 }, true);
             };
 
+            //#region Frontend Configuration - Skin Management
             vm.saveFrontEndSkinSetting = function () {
                 let sendData = {
                     platform: vm.filterFrontEndSettingPlatform,
@@ -24787,7 +24802,7 @@ define(['js/app'], function (myApp) {
                     vm.newFrontEndSkinSetting = {};
                     vm.skinSettingShowMessage = "SUCCESS";
                     vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }, err => {
                     console.error('saveSkinSetting error: ', err);
                     vm.skinSettingShowMessage = "FAIL";
@@ -24804,21 +24819,98 @@ define(['js/app'], function (myApp) {
                             return item;
                         });
                     }
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }, function (err) {
-                    console.error('getFrontEndPopularRecommendationSetting error: ', err);
+                    console.error('getSkinSetting error: ', err);
                 }, true);
             };
 
-            vm.removeFrontEndSkinSetting = function (objId, index) {
+            vm.removeFrontEndSkinSetting = function (objId) {
                 return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
                     console.log("removeSkinSetting success:", data);
                     vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }, err => {
                     console.error('removeSkinSetting error: ', err);
                 });
             }
+            //#endregion
+
+            //#region Frontend Configuration - Url Configuration
+            vm.getFrontEndSkinSettingByPC = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSettingByPC', {platformObjId: platformObjId}, function (data) {
+                    if (data && data.data) {
+                        vm.pcSkinSettingList = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getSkinSettingByPC error: ', err);
+                }, true);
+            };
+
+            vm.getFrontEndSkinSettingByAPP = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSettingByAPP', {platformObjId: platformObjId}, function (data) {
+                    if (data && data.data) {
+                        vm.appSkinSettingList = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getSkinSettingByAPP error: ', err);
+                }, true);
+            };
+
+            vm.getFrontEndSkinSettingByH5 = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSettingByH5', {platformObjId: platformObjId}, function (data) {
+                    if (data && data.data) {
+                        vm.h5SkinSettingList = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getSkinSettingByH5 error: ', err);
+                }, true);
+            };
+
+            vm.saveFrontEndUrlConfig = function () {
+                let sendData = {
+                    platform: vm.filterFrontEndSettingPlatform,
+                    websiteTitle: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteTitle ? vm.frontEndUrlConfig.websiteTitle : null,
+                    websiteName: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteName ? vm.frontEndUrlConfig.websiteName : null,
+                    androidAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.androidAppUrl ? vm.frontEndUrlConfig.androidAppUrl : null,
+                    iosAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.iosAppUrl ? vm.frontEndUrlConfig.iosAppUrl : null,
+                    metaKeyword: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaKeyword ? vm.frontEndUrlConfig.metaKeyword : null,
+                    metaDescription: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaDescription ? vm.frontEndUrlConfig.metaDescription : null,
+                    horizontalScreenStyleFileUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.horizontalScreenStyleFileUrl ? vm.frontEndUrlConfig.horizontalScreenStyleFileUrl : null,
+                    faviconUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.faviconUrl ? vm.frontEndUrlConfig.faviconUrl : null,
+                    websiteLogo: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteLogo ? vm.frontEndUrlConfig.websiteLogo : null,
+                    pcSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.pcSkin ? vm.frontEndUrlConfig.pcSkin : null,
+                    h5Skin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.h5Skin ? vm.frontEndUrlConfig.h5Skin : null,
+                    appSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.appSkin ? vm.frontEndUrlConfig.appSkin : null
+                };
+
+                return $scope.$socketPromise('saveUrlConfig', sendData).then(data => {
+                    console.log("saveUrlConfig success:", data);
+                    vm.newFrontEndSkinSetting = {};
+                    vm.urlConfigShowMessage = "SUCCESS";
+                    vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                    $scope.$evalAsync();
+                }, err => {
+                    console.error('saveUrlConfig error: ', err);
+                    vm.urlConfigShowMessage = "FAIL";
+                });
+            };
+
+            vm.getFrontEndUrlConfig = function (objId) {
+                socketService.$socket($scope.AppSocket, 'getUrlConfig', {platformObjId: objId}, function (data) {
+                    console.log('getUrlConfig', data.data);
+                    if (data && data.data) {
+                        vm.frontEndUrlConfig = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getUrlConfig error: ', err);
+                }, true);
+            };
+            //#endregion
 
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
