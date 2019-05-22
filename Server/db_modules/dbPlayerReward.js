@@ -6123,7 +6123,7 @@ let dbPlayerReward = {
                     {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
                 ];
 
-                topupMatchQuery.createTime = {$gte: todayTime.startTime, $lt: todayTime.endTime};
+                topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
