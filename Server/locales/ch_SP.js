@@ -189,7 +189,8 @@ var simplifiedChinese = {
     "CustomizePartnerCommRate": "客制化代理参数",
     "SettlePartnerCommission": "代理佣金",
     "PlayerRegistrationIntention": "玩家注册意向",
-
+    "exists, please re-upload a new file.": "已存在， 请重新上载新的文档。",
+    "exists, please re-upload a new image.": "已存在， 请重新上载新的图片。",
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
