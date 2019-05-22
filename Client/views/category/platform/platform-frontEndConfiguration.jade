@@ -78,7 +78,7 @@ style.
                 .text-center(ng-if='!vm.filterFrontEndSettingPlatform')
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
-                .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterPopularRecommendationPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
+                .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
                     div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
                         div(style="display: inline;")
                             label {{'Setting For Popular Recommendation' | translate}}
