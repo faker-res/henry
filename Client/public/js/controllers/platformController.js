@@ -40087,7 +40087,9 @@ define(['js/app'], function (myApp) {
                 if(vm.frontEndPopularRecommendationData[i].pc) {
                     $('#pcImage').attr("src", vm.frontEndPopularRecommendationData[i].pc.imageUrl);
                 }
-
+                
+                vm.popularRecommendationSetting.displayOrder = vm.frontEndPopularRecommendationData[i].displayOrder;
+                vm.popularRecommendationSetting.status = vm.frontEndPopularRecommendationData[i].status;
                 vm.popularRecommendationSetting.isPlayerVisible = vm.frontEndPopularRecommendationData[i].isPlayerVisible;
                 vm.popularRecommendationSetting.isNewPlayerVisible = vm.frontEndPopularRecommendationData[i].isNewPlayerVisible;
                 vm.popularRecommendationSetting.isFirstTimeLoginPlayerVisible = vm.frontEndPopularRecommendationData[i].isFirstTimeLoginPlayerVisible;
