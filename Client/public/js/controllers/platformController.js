@@ -40168,6 +40168,35 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.editPopularRecommendationSetting = function(eventObjectId) {
+                let i = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
+                vm.popularRecommendationSetting = {};
+                
+                vm.popularRecommendationSetting.title = vm.frontEndPopularRecommendationData[i].title;
+                vm.popularRecommendationSetting.displayTitle = vm.frontEndPopularRecommendationData[i].displayTitle;
+                vm.popularRecommendationSetting.category = vm.frontEndPopularRecommendationData[i].category;
+
+                if(vm.frontEndPopularRecommendationData[i].pc) {
+                    $('#pcImage').attr("src", vm.frontEndPopularRecommendationData[i].pc.imageUrl);
+                }
+                
+                vm.popularRecommendationSetting.displayOrder = vm.frontEndPopularRecommendationData[i].displayOrder;
+                vm.popularRecommendationSetting.status = vm.frontEndPopularRecommendationData[i].status;
+                vm.popularRecommendationSetting.isPlayerVisible = vm.frontEndPopularRecommendationData[i].isPlayerVisible;
+                vm.popularRecommendationSetting.isNewPlayerVisible = vm.frontEndPopularRecommendationData[i].isNewPlayerVisible;
+                vm.popularRecommendationSetting.isFirstTimeLoginPlayerVisible = vm.frontEndPopularRecommendationData[i].isFirstTimeLoginPlayerVisible;
+                vm.popularRecommendationSetting.isPlayerWithRegisteredHpNoVisible = vm.frontEndPopularRecommendationData[i].isPlayerWithRegisteredHpNoVisible;
+                vm.popularRecommendationSetting.isVisible = vm.frontEndPopularRecommendationData[i].isVisible;
+                vm.popularRecommendationSetting.visibleForBalanceBelow = vm.frontEndPopularRecommendationData[i].visibleForBalanceBelow;
+                vm.popularRecommendationSetting.visibleForInvolveInGameProvider = vm.frontEndPopularRecommendationData[i].visibleForInvolveInGameProvider;
+                vm.popularRecommendationSetting.visibleForTopUpTimeMoreThan = vm.frontEndPopularRecommendationData[i].visibleForTopUpTimeMoreThan;
+                vm.popularRecommendationSetting.visibleOnDevice = vm.frontEndPopularRecommendationData[i].visibleOnDevice;
+                vm.popularRecommendationSetting.visibleOnPlayerLevel = vm.frontEndPopularRecommendationData[i].visibleOnPlayerLevel;
+
+                $('#popularRecommendationSetting').modal();
+
+            }
+
             vm.submitPopularRecommendationSettings = () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopularRecommendationUploader').show();
@@ -40332,10 +40361,14 @@ define(['js/app'], function (myApp) {
             vm.deletePopularRecommendation = function (eventObjectId){
                 if (eventObjectId){
                     vm.popularRecommendationSettingDeletedList.push(eventObjectId);
-                    let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
-                    if (index != -1){
-                        vm.frontEndPopularRecommendationData.splice(index, 1);
-                    }
+                    const eventElement = document.getElementById(eventObjectId);
+                    eventElement.style.display = "none";
+                    // let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
+                    // if (index != -1){
+                    //     vm.frontEndPopularRecommendationData.splice(index, 1);
+                    // }
+
+
                 }
             };
 
