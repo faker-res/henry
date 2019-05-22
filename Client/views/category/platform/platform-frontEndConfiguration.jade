@@ -2,6 +2,57 @@ style.
     .bg-secondary {
         background-color: #868E96;
     }
+    .connected-sortable {
+        margin: 0 auto;
+        list-style: none;
+        width: 90%;
+        min-height: 500px;
+    }
+    li.draggable-item {
+        width: inherit;
+        padding: 1em;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        margin: 1em 0;
+        border: 1px solid rgb(190, 190, 190);
+        text-align: center;
+        position: relative;
+        -webkit-transition: transform .25s ease-in-out;
+        -moz-transition: transform .25s ease-in-out;
+        -o-transition: transform .25s ease-in-out;
+        transition: transform .25s ease-in-out;
+
+        -webkit-transition: box-shadow .25s ease-in-out;
+        -moz-transition: box-shadow .25s ease-in-out;
+        -o-transition: box-shadow .25s ease-in-out;
+        transition: box-shadow .25s ease-in-out;
+    }
+    /* styles during drag */
+    li.draggable-item.ui-sortable-helper {
+        background-color: #e5e5e5;
+        -webkit-box-shadow: 0 0 8px rgba(53, 41, 41, .8);
+        -moz-box-shadow: 0 0 8px rgba(53, 41, 41, .8);
+        box-shadow: 0 0 8px rgba(53, 41, 41, .8);
+        transform: scale(1.015);
+        z-index: 100;
+    }
+    li.draggable-item.ui-sortable-placeholder {
+        background-color: #ddd;
+        -moz-box-shadow: inset 0 0 10px #000000;
+        -webkit-box-shadow: inset 0 0 10px #000000;
+        box-shadow: inset 0 0 10px #000000;
+    }
+    .tab-btngroup {
+        display: inline-block;
+        position: absolute;
+        top: 30%;
+        right: 0;
+        z-index: 100;
+    }
+    .btn-delete {
+        border-radius: 100%!important;
+        margin: 0 .5em;
+    }
 .row
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
@@ -25,7 +76,7 @@ style.
                 .text-center(ng-if='!vm.filterPopularRecommendationPlatform')
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
-                .col-md-12(ng-if='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterPopularRecommendationPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
+                .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterPopularRecommendationPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
                     div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
                         div(style="display: inline;")
                             label {{'Setting For Popular Recommendation' | translate}}
@@ -35,12 +86,40 @@ style.
                             span.fa.fa-pencil-square-o {{"ADD" | translate}}
                     div.col-md-4.fronendConfigDiv
                         span(style='font-weight: bold;') {{'First_Page_Popular_Recommendation' | translate}}
+                        ul.connected-sortable.droppable-area1
+                            li.draggable-item(ng-repeat="one in vm.frontEndPopularRecommendationData", ng-if="one.category == 1", id="{{'categoryOne_' + one._id}}")
+                                img(ng-src="{{one.pc.imageUrl}}" width="100%" height="80px")
+                                .tab-btngroup
+                                    button.btn.btn-primary(ng-if="one.isVisible" ng-click="one.isVisible = false") on
+                                    button.btn.btn-success(ng-if="!one.isVisible", ng-click="one.isVisible = true") off
+                                    button.btn.btn-danger.btn-delete
+                                        span.fa.fa-trash-o
 
                     div.col-md-4.fronendConfigDiv
                         span(style='font-weight: bold;') {{'Recommended_Game' | translate}}
+                        ul.connected-sortable.droppable-area2
+                            li.draggable-item(ng-repeat="two in vm.frontEndPopularRecommendationData", ng-if="two.category == 2", id="{{'categoryTwo_' + two._id}}")
+                                img(ng-src="{{two.pc.imageUrl}}" width="100%" height="80px")
+                                .tab-btngroup
+                                    button.btn.btn-primary(ng-if="two.isVisible" ng-click="two.isVisible = false") on
+                                    button.btn.btn-success(ng-if="!two.isVisible", ng-click="two.isVisible = true") off
+                                    button.btn.btn-danger.btn-delete
+                                        span.fa.fa-trash-o
 
                     div.col-md-4.fronendConfigDiv
                         span(style='font-weight: bold;') {{'Bottom_Banner' | translate}}
+                        ul.connected-sortable.droppable-area3
+                            li.draggable-item(ng-repeat="three in vm.frontEndPopularRecommendationData", ng-if="three.category == 3", id="{{'categoryThree_' + three._id}}")
+                                img(ng-src="{{three.pc.imageUrl}}" width="100%" height="80px")
+                                .tab-btngroup
+                                    button.btn.btn-primary(ng-if="three.isVisible" ng-click="three.isVisible = false") on
+                                    button.btn.btn-success(ng-if="!three.isVisible", ng-click="three.isVisible = true") off
+                                    button.btn.btn-danger.btn-delete
+                                        span.fa.fa-trash-o
+
+
+                    div.text-right
+                        button#testSave.btn-primary.btn {{'SAVE' | translate}}
 
 
 #popularRecommendationSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

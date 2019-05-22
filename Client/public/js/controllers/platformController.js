@@ -24574,6 +24574,23 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync( () => {
                     vm.selectedFrontEndSettingTab = "popularRecommendation";
                     vm.selectedFrontEndSettingTab  = "popularRecommendation";
+
+                    utilService.actionAfterLoaded('#testSave', function () {
+                        $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
+                            connectWith: ".connected-sortable"
+                        });
+
+                        $('#testSave').click(function() {
+                            var arr = $('.droppable-area1').sortable('toArray');
+                            console.log(arr);
+
+                            var arrTwo = $('.droppable-area2').sortable('toArray');
+                            console.log(arrTwo);
+
+                            var arrThree = $('.droppable-area3').sortable('toArray');
+                            console.log(arrThree);
+                        });
+                    });
                 })
             };
 
