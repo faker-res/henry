@@ -6099,6 +6099,12 @@ let dbPlayerReward = {
             })
             selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
 
+            let festivalDate = getFestivalItem (selectedRewardParam, playerData.DOB, eventData);
+            let festivalPeriod = getTimePeriod(0, festivalDate);
+            festivalPeriod.startTime = moment(festivalPeriod.startTime).toDate();
+            festivalPeriod.endTime = moment(festivalPeriod.endTime).toDate();
+            intervalTime = festivalPeriod;
+
             if (!selectedRewardParam || selectedRewardParam.length == 0) {
                 return Q.reject({name: "DataError", message: "The Festival Item is Not Exist"});
             }
@@ -6152,6 +6158,7 @@ let dbPlayerReward = {
             let periodPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
             promArr.push(periodPropsProm);
             console.log('MT --checking festival topupMatchQuery', topupMatchQuery);
+            console.log('MT --checking festival consumptionMatchQuery', consumptionMatchQuery);
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionMatchQuery).sort({createTime: -1}).limit(1).lean();
 
             // check reward apply restriction on ip, phone and IMEI
@@ -10294,19 +10301,9 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
         if (eventData.condition && eventData.condition.festivalType) {
 
             if (rewardData.festivalItemId) {
-                let festivalDate;
                 let festivalItem = selectedRewardParam;
                 console.log('MT --checking selectedRewardParam',festivalItem);
-                // if is birthday
-                if (selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6) {
-                    let birthday = getBirthday(playerBirthday);
-                    console.log('MT --checking --birthday', birthday);
-                    festivalDate = birthday;
-                } else {
-                    // if is festival
-                    festivalDate = getFestivalRewardDate(festivalItem, eventData.param.others);
-                }
-
+                let festivalDate = getFestivalItem (selectedRewardParam, playerBirthday, eventData)
                 let isRightApplyTime = checkIfRightApplyTime(festivalItem, festivalDate);
                 if (isRightApplyTime) {
                     // if date match , check if the proposal match topup / consumption
@@ -10336,6 +10333,19 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
             )
         }
     })
+}
+
+function getFestivalItem (selectedRewardParam, playerBirthday, eventData) {
+    let result;
+    if (selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6) {
+        let birthday = getBirthday(playerBirthday);
+        console.log('MT --checking --birthday', birthday);
+        result = birthday;
+    } else {
+        // if is festival
+        result = getFestivalRewardDate(selectedRewardParam, eventData.param.others);
+    }
+    return result;
 }
 
 function getBirthday(playerBirthday) {
